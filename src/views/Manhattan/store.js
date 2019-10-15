@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
+
 import phenotypeModule from "@/modules/phenotypeModule";
 import datasetModule from "@/modules/datasetModule";
 import getVariantDataModule from "@/modules/getVariantDataModule";

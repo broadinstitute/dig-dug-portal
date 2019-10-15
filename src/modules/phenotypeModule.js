@@ -10,7 +10,6 @@ export default {
   },
   actions: {
     async getPhenotypes(context) {
-      console.log("inside something here");
       let json = await fetch("/kb/getPhenotypes").then(resp => resp.json());
       context.commit("setPhenotypeMap", json);
     }

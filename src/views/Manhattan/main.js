@@ -10,26 +10,26 @@ import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
 new Vue({
   store,
-  data() {
-    return { pValue: 12 };
+
+  components: {
+    PhenotypeSelect,
+    DatasetSelect,
+    ManhattanPlot,
   },
-  render: h => h(App),
 
   created() {
     this.$store.dispatch("phenotypeModule/getPhenotypes");
     this.$store.commit("table/setLimit", 25);
     this.$store.commit("manhattan/setLimit", 500);
   },
-  methods: {
-    current_pvalue(obj) {
-      let p = Object.values(obj)[0];
-      let d = Object.keys(p)[0];
-      return p[d];
-    }
+
+  render(createElement, context) {
+    return createElement(App);
   },
-  computed: {
-    computedPvalue: function() {
-      return this.current_pvalue(this.pValue);
+
+  methods: {
+    get_pvalue(obj) {
+      return obj[this.$store.state.selectedDataset][this.$store.state.selectedPhenotype];
     }
   },
 

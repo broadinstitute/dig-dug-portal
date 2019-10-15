@@ -24,7 +24,7 @@
           <td>{{ row[1] }}</td>
           <td>{{ row[2] }}</td>
           <td>{{ row[3] }}</td>
-          <td>{{ this.computedPvalue }}</td>
+          <td>{{ $parent.get_pvalue(row[4]) }}</td>
         </tr>
       </tbody>
     </table>
