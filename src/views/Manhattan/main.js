@@ -1,5 +1,5 @@
 import Vue from "vue";
-import App from "./App.vue";
+import Template from "./Template.vue";
 import store from "./store.js";
 
 Vue.config.productionTip = false;
@@ -24,7 +24,7 @@ new Vue({
   },
 
   render(createElement, context) {
-    return createElement(App);
+    return createElement(Template);
   },
 
   methods: {
