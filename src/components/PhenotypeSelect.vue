@@ -3,7 +3,7 @@
     v-model="selectedPhenotype"
     @change="$store.dispatch('onPhenotypeChange', selectedPhenotype)"
   >
-    <optgroup v-for="(item, index) in phenotypes" :label="{{index}}">
+    <optgroup v-for="(item, index) in phenotypes" :label="index">
       <option v-for="phenotype in phenotypes[index]">{{ phenotype }}</option>
     </optgroup>
   </select>
