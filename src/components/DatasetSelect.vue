@@ -1,10 +1,6 @@
 <template>
   <select v-model="selectedDataset" @change="$store.dispatch('onDatasetChange', selectedDataset)">
-    <option v-for="item in datasets">
-      {{
-      item
-      }}
-    </option>
+    <option v-for="dataset in datasets">{{ dataset }}</option>
   </select>
 </template>
 

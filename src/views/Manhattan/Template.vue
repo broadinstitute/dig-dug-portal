@@ -1,7 +1,7 @@
 <template>
   <div>
-    <phenotype-select v-bind:phenotypes="$store.state.phenotypeModule.phenotypeMap"></phenotype-select>
-    <dataset-select v-bind:datasets="$store.state.datasetModule.datasetList"></dataset-select>
+    <phenotype-select v-bind:phenotypes="$parent.phenotypeMap"></phenotype-select>
+    <dataset-select v-bind:datasets="$parent.datasetList"></dataset-select>
 
     <table width="100%">
       <tr>

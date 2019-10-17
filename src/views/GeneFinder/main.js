@@ -14,13 +14,22 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("phenotypeModule/getPhenotypes");
+        this.$store.dispatch("metadataModule/getMetadata");
     },
 
     render(createElement, context) {
         return createElement(Template);
     },
 
-    watch: {
-    }
+    computed: {
+        phenotypeMap() {
+            return this.$store.getters['metadataModule/phenotypes'];
+        },
+        datasetList() {
+            let phenotype = this.$store.state.selectedPhenotype;
+            let datasets = this.$store.getters['metadataModule/datasetList'](phenotype);
+
+            return datasets;
+        },
+    },
 }).$mount("#app");

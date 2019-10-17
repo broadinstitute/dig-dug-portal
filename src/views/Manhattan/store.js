@@ -1,20 +1,21 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-import phenotypeModule from "@/modules/phenotypeModule";
-import datasetModule from "@/modules/datasetModule";
+import metadataModule from "@/modules/metadataModule";
 import getVariantDataModule from "@/modules/getVariantDataModule";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        phenotypeModule,
-        datasetModule,
+        metadataModule,
         manhattan: getVariantDataModule,
         table: getVariantDataModule
     },
-    state: {},
+    state: {
+        selectedPhenotype: null,
+        selectedDataset: null,
+    },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
             state.selectedPhenotype = phenotype;
@@ -28,7 +29,6 @@ export default new Vuex.Store({
             context.commit("table/clearData");
             context.commit("manhattan/clearData");
             context.commit("setSelectedPhenotype", selectedPhenotype);
-            context.dispatch("datasetModule/getDatasets", selectedPhenotype);
         },
         onDatasetChange(context, selectedDataset) {
             context.commit("setSelectedDataset", selectedDataset);
