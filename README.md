@@ -1,29 +1,125 @@
-# dig-dug-norouter
+# Welcome to DIG Portal - Frontend
 
-## Project setup
+This is the shared code base of the front-end-only resources for the new knowledge portals. It requires the [back-end server](https://github.com/broadinstitute/dig-dug-server) to be installed and started first.
+
+---
+
+> **Note:** This code base make no assumption on how you choose to work with
+> different portals. You can choose to work on them as separate
+> branches, forked repos, etc ...
+
+## Front-end framework
+
+### Vue.js / Vuex
+
+[Vue.js](https://vuejs.org/) is an open-source JavaScript framework for building user interfaces and single-page applications. It is the core of our front-end. Because it is based on javascript, it can be incorporated with any javscript library like jQuery, lodash, etc ... or even plain javascript.
+
+[Vuex](https://vuex.vuejs.org/) is a state management pattern + library for Vue.js applications. It serves as a centralized store for all the components in an application, with rules ensuring that the state can only be mutated in a predictable fashion.
+
+## File structure
+
+Currently files are placed inside the `www` folder for consistency with the backend setup. However, it can be named anything. You just need to make sure that the corresponding folder/mount point is the same in the config file.
+
+- `css` This folder contains all the stylesheets for the site.
+- `js` This folder contains all the javascripts for the site.
+- `js/components` This folder contains the components. More info below.
+- `js/modules` This folder contains the modules. More info below.
+- `js/utils` This folder contains helper functions.
+
+### Components
+
+Components are reusable Vue instances. They can accept the same options as a Vue object, such as `data`, `computed`, `methods`, etc ... and lifecycle hooks.
+
+### Modules
+
+Due to using a single state tree, all state of our application is contained inside one big object. However, as our application grows in scale, the store can get really bloated.
+
+To help with that, Vuex allows us to divide our store into **modules**. Each module can contain its own state, mutations, actions, getters, and even nested modules.
+Each module is namespaced for example:  The benefit of being namespaced is - So in order to enable this you have the option to define the module as namespaced, and then you can use the same method in different modules:
+
 ```
-npm install
+moduleA {
+  actions:{
+    save(){}
+  },
+  namespaced: true
+}
 ```
 
-### Compiles and hot-reloads for development
 ```
-npm run serve
+moduleB {
+  actions:{  
+    save(){}
+  },
+  namespaced: true
+}
+```
+and then you call it like this:
+
+`this.$store.dispatch('moduleA/save')`
+this.$store.dispatch('moduleB/save')
+
+In our project we currently have two modules:
+
+1. datasetModule -  you can call this module anywhere using context.dispatch('datasetModule/getDatasets', selectedPhenotype);
+
+2. phenotypeModule - this.$store.dispatch("phenotypeModule/getPhenotypes");
+
+
+
+## Usage
+
+### Getting Started
+
+The easiest way to get started is by including Vue.js library into a project.
+
+For development:
+
+```
+<!-- development version, includes helpful console warnings -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 ```
 
-### Compiles and minifies for production
+or:
+
+For production:
+
 ```
-npm run build
+<!-- production version, optimized for size and speed -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
 ```
 
-### Run your tests
+### Declarative Rendering
+
+At the core of Vue.js is a system that enables us to declaratively render data to the DOM using straightforward template syntax:
+
+Add an element with an **id** to the **html** part of the page.
+
 ```
-npm run test
+<div id="app">
+  {{ message }}
+</div>
 ```
 
-### Lints and fixes files
+Attach a vue object to the element with chosen ID in the **<script>** section.
+
 ```
-npm run lint
+var app = new Vue({
+    el: '#app',
+    data: {
+        message: 'Hello Word!'
+    }
+})
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+And we have our first Vue app! The data and the DOM are now linked, and everything is now **reactive**.
+
+### Using Components
+
+```
+<div id="app">
+
+    <phenotype></phenotype>
+
+</div>
+```
