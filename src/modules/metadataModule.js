@@ -92,39 +92,46 @@ export default {
     getters: {
 
         // Returns a map of { phenotypeGroup: [phenotypes] }.
-        phenotypes(state) {
+        // phenotypes(state) {
+        //     let phenotypeMap = {};
+        //     let query = '$.experiments[*]..phenotypes[*]';
+        //     let phenotypes = jp.query(state.metadata, query);
+
+        //     // collect all the phenotypes into their respective groups
+        //     for (let key in phenotypes) {
+        //         let phenotype = phenotypes[key];
+        //         let group = phenotype.group;
+
+        //         if (!phenotypeMap[group]) {
+        //             phenotypeMap[group] = {
+        //                 [phenotype.name]: phenotype,
+        //             };
+        //         } else {
+        //             phenotypeMap[group][phenotype.name] = phenotype;
+        //         }
+        //     }
+
+        //     // sort all the groups
+        //     for (let group in phenotypeMap) {
+        //         let phenotypes = Object.keys(phenotypeMap[group]);
+
+        //         // sort the phenotypes by their sort_order
+        //         phenotypes.sort((a, b) => {
+        //             return phenotypeMap[group][a].sort_order - phenotypeMap[group][b].sort_order;
+        //         });
+
+        //         // update the group to the list of sorted phenotypes
+        //         phenotypeMap[group] = phenotypes;
+        //     };
+
+        //     return phenotypeMap;
+        // },
+
+        phenotypes(state){
             let phenotypeMap = {};
-            let query = '$.experiments[*]..phenotypes[*]';
-            let phenotypes = jp.query(state.metadata, query);
+            
 
-            // collect all the phenotypes into their respective groups
-            for (let key in phenotypes) {
-                let phenotype = phenotypes[key];
-                let group = phenotype.group;
 
-                if (!phenotypeMap[group]) {
-                    phenotypeMap[group] = {
-                        [phenotype.name]: phenotype,
-                    };
-                } else {
-                    phenotypeMap[group][phenotype.name] = phenotype;
-                }
-            }
-
-            // sort all the groups
-            for (let group in phenotypeMap) {
-                let phenotypes = Object.keys(phenotypeMap[group]);
-
-                // sort the phenotypes by their sort_order
-                phenotypes.sort((a, b) => {
-                    return phenotypeMap[group][a].sort_order - phenotypeMap[group][b].sort_order;
-                });
-
-                // update the group to the list of sorted phenotypes
-                phenotypeMap[group] = phenotypes;
-            };
-
-            return phenotypeMap;
         },
 
         // Return array of datasets for a given phenotype.
