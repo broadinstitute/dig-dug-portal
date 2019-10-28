@@ -19,6 +19,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
+        this.$store.dispatch("metadataModule/getPhenotypedata");
         this.$store.commit("table/setLimit", 25);
         this.$store.commit("manhattan/setLimit", 500);
     },

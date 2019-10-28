@@ -14,7 +14,7 @@ export default new Vuex.Store({
     },
     state: {
         selectedPhenotype: null,
-        selectedDataset: null,
+        selectedDataset: null
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
@@ -22,6 +22,9 @@ export default new Vuex.Store({
         },
         setSelectedDataset(state, dataset) {
             state.selectedDataset = dataset;
+        },
+        setPhenotypes(state, phenotypes){
+            state.phenotypes = phenotypes;
         }
     },
     actions: {
