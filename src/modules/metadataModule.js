@@ -70,61 +70,42 @@ export default {
 
     // initial module state
     state() {
-        return { metadata: {} };
+        return { 
+            metadata: {},
+            phenotypes:{} 
+        };
     },
 
     // commit methods
     mutations: {
         setMetadata(state, json) {
             state.metadata = json;
+        },
+        setPhenotypes(state, phenotypes){
+            state.phenotypes = phenotypes;
         }
     },
 
     // dispatch methods
     actions: {
+        //not used right now
         async getMetadata(context) {
             let json = await fetch("/kb/getMetadata").then(resp => resp.json());
             context.commit("setMetadata", json);
+        },
+        async getPhenotypes(context) {
+            let json = await fetch("/kb/getPhenotypes").then(resp => resp.json());
+            context.commit('setPhenotypes', json)
         }
     },
 
     // getter methods for computed data
     getters: {
-
-        // Returns a map of { phenotypeGroup: [phenotypes] }.
-        phenotypes(state) {
-            let phenotypeMap = {};
-            let query = '$.experiments[*]..phenotypes[*]';
-            let phenotypes = jp.query(state.metadata, query);
-
-            // collect all the phenotypes into their respective groups
-            for (let key in phenotypes) {
-                let phenotype = phenotypes[key];
-                let group = phenotype.group;
-
-                if (!phenotypeMap[group]) {
-                    phenotypeMap[group] = {
-                        [phenotype.name]: phenotype,
-                    };
-                } else {
-                    phenotypeMap[group][phenotype.name] = phenotype;
-                }
-            }
-
-            // sort all the groups
-            for (let group in phenotypeMap) {
-                let phenotypes = Object.keys(phenotypeMap[group]);
-
-                // sort the phenotypes by their sort_order
-                phenotypes.sort((a, b) => {
-                    return phenotypeMap[group][a].sort_order - phenotypeMap[group][b].sort_order;
-                });
-
-                // update the group to the list of sorted phenotypes
-                phenotypeMap[group] = phenotypes;
-            };
-
-            return phenotypeMap;
+        phenotypes(state){
+            let phenotypes = state.phenotypes;
+             // collect all the phenotypes into their respective groups
+             return phenotypes.data;
+            
         },
 
         // Return array of datasets for a given phenotype.
@@ -133,14 +114,11 @@ export default {
                 if (!phenotype) {
                     return [];
                 }
-
                 let experiments = state.metadata.experiments;
-
                 // remove experiments that aren't of the right phenotype
                 let filtered = experiments.filter(dataset => {
                     let phenotypes = jp.query(dataset, `$..phenotypes[*].name`);
-                    let exists = phenotypes.indexOf(phenotype) >= 0;
-
+                    let exists = phenotypes.indexOf(phenotype.phenotype_id) >= 0;
                     // is the phenotype present?
                     return exists;
                 });
