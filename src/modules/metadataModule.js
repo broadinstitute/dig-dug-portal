@@ -106,16 +106,17 @@ export default {
             let phenotypeMap = {};
             let phenotypes = state.phenotypes;
              // collect all the phenotypes into their respective groups
-             for (let key in phenotypes) {
-                let phenotype = phenotypes[key];
+             let phenotypeList =  phenotypes.data;
+             for (let key in phenotypeList) {
+                let phenotype = phenotypeList[key];
                 let group = phenotype.group;
 
                 if (!phenotypeMap[group]) {
                     phenotypeMap[group] = {
-                        [phenotype.name]: phenotype,
+                        [phenotype.phenotype_id]: phenotype.name,
                     };
                 } else {
-                    phenotypeMap[group][phenotype.name] = phenotype;
+                    phenotypeMap[group][phenotype.name] = phenotype.name;
                 }
             }
             return phenotypeMap;
