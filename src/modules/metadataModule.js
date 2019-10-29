@@ -93,9 +93,8 @@ export default {
             let json = await fetch("/kb/getMetadata").then(resp => resp.json());
             context.commit("setMetadata", json);
         },
-        async getPhenotypedata(context) {
-            let json = await fetch("/kb/getPhenotypedata").then(resp => resp.json());
-           // context.commit("setPhenotypes", json);
+        async getPhenotypes(context) {
+            let json = await fetch("/kb/getPhenotypes").then(resp => resp.json());
             context.commit('setPhenotypes', json)
         }
     },
@@ -103,23 +102,10 @@ export default {
     // getter methods for computed data
     getters: {
         phenotypes(state){
-            let phenotypeMap = {};
             let phenotypes = state.phenotypes;
              // collect all the phenotypes into their respective groups
-             let phenotypeList =  phenotypes.data;
-             for (let key in phenotypeList) {
-                let phenotype = phenotypeList[key];
-                let group = phenotype.group;
-
-                if (!phenotypeMap[group]) {
-                    phenotypeMap[group] = {
-                        [phenotype.phenotype_id]: phenotype.name,
-                    };
-                } else {
-                    phenotypeMap[group][phenotype.name] = phenotype.name;
-                }
-            }
-            return phenotypeMap;
+             return phenotypes.data;
+            
         },
 
         // Return array of datasets for a given phenotype.
@@ -132,7 +118,7 @@ export default {
                 // remove experiments that aren't of the right phenotype
                 let filtered = experiments.filter(dataset => {
                     let phenotypes = jp.query(dataset, `$..phenotypes[*].name`);
-                    let exists = phenotypes.indexOf(phenotype) >= 0;
+                    let exists = phenotypes.indexOf(phenotype.phenotype_id) >= 0;
                     // is the phenotype present?
                     return exists;
                 });

@@ -45,6 +45,7 @@ export default {
     actions: {
         async getData(context, { dataset, phenotype }) {
             //input JSON
+            phenotype = phenotype.phenotype_id;
             let body = {
                 passback: "abc123",
                 entity: "variant",

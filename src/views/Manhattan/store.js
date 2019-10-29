@@ -10,11 +10,12 @@ export default new Vuex.Store({
     modules: {
         metadataModule,
         manhattan: getVariantDataModule,
-        table: getVariantDataModule
+        table: getVariantDataModule,
     },
     state: {
         selectedPhenotype: null,
-        selectedDataset: null
+        selectedDataset: null,
+        phenotypes: null
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
