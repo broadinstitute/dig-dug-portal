@@ -82,7 +82,7 @@ export default {
                 ]
             };
             // download the variants
-            let variantJson = fetch(`/kb/getData`, {
+            let variantJson = fetch(`/dccservices/getData`, {
                 method: "POST",
                 body: JSON.stringify(body)
             })
