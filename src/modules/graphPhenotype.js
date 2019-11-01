@@ -4,6 +4,7 @@ export default {
     // initial module state
     state() {
         return {
+            format: "object",
             phenotypes: {}
         };
     },

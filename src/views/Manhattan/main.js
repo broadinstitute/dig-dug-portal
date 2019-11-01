@@ -20,7 +20,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
-        this.$store.dispatch("getPhenotypesModule/getPhenotypes");
+        this.$store.dispatch("graphPhenotype/getPhenotypes");
         this.$store.commit("table/setLimit", 25);
         this.$store.commit("manhattan/setLimit", 500);
     },
@@ -31,7 +31,7 @@ new Vue({
 
     computed: {
         phenotypes() {
-            return this.$store.getters['getPhenotypesModule/phenotypes'];
+            return this.$store.getters['graphPhenotype/phenotypes'];
         },
         datasetList() {
             let selectedPhenotype = this.$store.state.selectedPhenotype;
