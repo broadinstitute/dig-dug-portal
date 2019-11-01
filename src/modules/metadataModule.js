@@ -1,70 +1,5 @@
 import jp from "jsonpath"
 
-/* The Metadata Module is responsible for asynchronously downloading and
- * storing the portal MDV metadata and then providing getter methods for
- * parsing it.
- *
- * The metadata layout is basically:
- *
- * {
- *  "experiments": [ ]
- * }
- *
- * Where each experiment is:
- *
- * {
- *  "name"
- *  "version"
- *  "technology"
- *  "institution"
- *  "sample_groups": [ ]
- * }
- *
- * And each sample_group is:
- *
- * {
- *  "name"
- *  "id"
- *  "ancestry"
- *  "cases"
- *  "controls"
- *  "subjects"
- *  "sort_order"
- *  "properties": [ ]
- *  "phenotypes": [ ]
- * }
- *
- * Each property:
- *
- * {
- *  "name"
- *  "type"
- *  "meaning"
- *  "displayable"
- *  "sort_order"
- * }
- *
- * Each phenotype:
- *
- * {
- *  "name"
- *  "group"
- *  "sort_order"
- *  "properties": [ ]
- * }
- *
- * And each phenotype property:
- *
- * {
- *  "name"
- *  "type"
- *  "meaning"
- *  "displayable"
- *  "searchable"
- *  "sort_order"
- * }
- */
-
 export default {
     namespaced: true,
 
@@ -86,7 +21,7 @@ export default {
     actions: {
         //not used right now
         async getMetadata(context) {
-            let json = await fetch("/kb/getMetadata").then(resp => resp.json());
+            let json = await fetch("/cache/getMetadata").then(resp => resp.json());
             context.commit("setMetadata", json);
         }
     },
