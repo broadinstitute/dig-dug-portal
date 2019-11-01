@@ -20,7 +20,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
-        this.$store.dispatch("metadataModule/getPhenotypes");
+        this.$store.dispatch("getPhenotypesModule/getPhenotypes");
         this.$store.commit("table/setLimit", 25);
         this.$store.commit("manhattan/setLimit", 500);
     },
@@ -31,11 +31,11 @@ new Vue({
 
     computed: {
         phenotypes() {
-            return this.$store.getters['metadataModule/phenotypes'];
+            return this.$store.getters['getPhenotypesModule/phenotypes'];
         },
         datasetList() {
-            let phenotype = this.$store.state.selectedPhenotype;
-            let datasets = this.$store.getters['metadataModule/datasetList'](phenotype);
+            let selectedPhenotype = this.$store.state.selectedPhenotype;
+            let datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
             return datasets;
         },
     },
