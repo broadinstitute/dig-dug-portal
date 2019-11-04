@@ -55,5 +55,5 @@ export default function (output, extend) {
     };
 
     // override module settings
-    return merge(module, extend);
+    return merge(module, extend || {});
 }
