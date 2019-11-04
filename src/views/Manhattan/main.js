@@ -20,7 +20,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
-        this.$store.dispatch("graphPhenotype/get", { method: 'list' });
+        this.$store.dispatch("graphPhenotype/list");
         this.$store.commit("table/setLimit", 25);
         this.$store.commit("manhattan/setLimit", 500);
     },
