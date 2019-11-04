@@ -15,6 +15,13 @@
  *       methods: { ... },
  *       actions: { ... },
  *   });
+ *
+ *   // instantiate a new graphModule for a type, but no overrides
+ *   new Vuex.Store({
+ *       modules: {
+ *           phenotypeModule: graphModule('phenotype'),
+ *       }
+ *   },
  */
 
 import merge from "lodash.merge"
