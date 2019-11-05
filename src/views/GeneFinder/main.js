@@ -14,7 +14,7 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("metadataModule/getMetadata");
+        this.$store.dispatch("graphPhenotype/list");
     },
 
     render(createElement, context) {
@@ -23,7 +23,7 @@ new Vue({
 
     computed: {
         phenotypeMap() {
-            return this.$store.getters['metadataModule/phenotypes'];
+            return this.$store.getters['graphPhenotype/phenotypes'];
         },
         datasetList() {
             let phenotype = this.$store.state.selectedPhenotype;
