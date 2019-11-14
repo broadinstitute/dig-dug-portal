@@ -3,6 +3,7 @@ import Vuex from "vuex";
 
 import metadataModule from "@/modules/metadataModule";
 import graphPhenotype from "@/modules/graphPhenotype";
+import aggregatedData from "@/modules/getAggregatedData"
 // import getVariantDataModule from "@/modules/getVariantDataModule";
 
 Vue.use(Vuex);
@@ -11,6 +12,7 @@ export default new Vuex.Store({
     modules: {
         metadataModule,
         graphPhenotype,
+        aggregatedData
     },
     state: {
         selectedPhenotype: null,
