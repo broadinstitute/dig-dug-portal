@@ -36,6 +36,7 @@ new Vue({
             start,
             end
         });
+        this.$store.dispatch("graphPhenotype/list");
         //this.$store.dispatch("phewas/getAggregatedData");
     },
 
@@ -56,13 +57,16 @@ new Vue({
         phenotype() {
             return this.$store.state.phenotype;
         },
-        phenotypesd() {
-            return this.$store.getters["graphPhenotype/phenotypes"];
-        },
+        // phenotypes() {
+        //     return this.$store.getters['graphPhenotype/phenotypes'];
+        // },
         phenotypes() {
             let variants = this.$store.state.phenotypes.aggregatedData.variants;
             if (!variants) return [];
             return variants.map(v => v.phenotype);
+        },
+        phenotypeMap() {
+            return this.$store.getters["graphPhenotype/phenotypes"];
         }
     },
 

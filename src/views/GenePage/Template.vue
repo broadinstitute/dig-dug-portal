@@ -1,12 +1,9 @@
 <template>
 	<div>
-		<phenotype-select v-bind:phenotypes="$parent.phenotypes"></phenotype-select>
-		<locuszoom></locuszoom>
-
+		<phenotype-select v-bind:phenotypes="$parent.phenotypeMap"></phenotype-select>
 		<table cellspacing="50">
 			<thead>
 				<th>Phenotypes with signal in the region {{$store.state.start}} - {{$store.state.end}}</th>
-
 				<th>Top variants for Phenotype {{$store.state.phenotype}}</th>
 			</thead>
 			<tbody>
