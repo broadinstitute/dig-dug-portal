@@ -1,6 +1,34 @@
 <template>
 	<div>
 		<phenotype-select v-bind:phenotypes="$parent.phenotypeMap"></phenotype-select>
+		<locuszoom
+			v-bind:gene="{
+				 	url:
+				 		'https://portaldev.sph.umich.edu/api/v1/annotation/genes/',
+					params: {
+						build: 'GRCh37'
+					}
+                 }"
+			v-bind:constraint="{
+					url: 'http://exac.broadinstitute.org/api/constraint'
+				}"
+			v-bind:ld="{
+					url: 'https://portaldev.sph.umich.edu/ld/',
+					params: {
+						source: '1000G',
+						build: 'GRCh37',
+						population: 'ALL'
+					}
+				}"
+			v-bind:recomb="{
+					url:
+						'https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/',
+					params: {
+						build: 'GRCh37'
+					}
+				}"
+			v-bind:panels="['association', 'genes']"
+		></locuszoom>
 		<table cellspacing="50">
 			<thead>
 				<th>Phenotypes with signal in the region {{$store.state.start}} - {{$store.state.end}}</th>

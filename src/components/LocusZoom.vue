@@ -8,7 +8,7 @@ import Vue from "vue";
 import LocusZoom from "../../node_modules/locuszoom/dist/locuszoom.app";
 
 export default Vue.component("locuszoom", {
-	props: ["gene", "recomb", "interval", "phewas", "static", "ld", "ld2"],
+	props: ["gene", "recomb", "phewas", "constraint", "ld", "assoc", "panels"],
 	data() {
 		return {
 			// plot: null,
@@ -18,34 +18,36 @@ export default Vue.component("locuszoom", {
 	mounted() {
 		this.dataSources = new LocusZoom.DataSources();
 
-		if (this.static) {
-			this.dataSources.add("static", ["StaticJSON", this.static]);
+		if (this.assoc) {
+			// panels.push(LocusZoom.Layouts.get("panel", "association"));
+			this.dataSources.add("assoc", [this.assoc]);
 		}
+		if (this.constraint) {
+			this.dataSources.add("constraint", [
+				"GeneConstraintLZ",
+				this.constraint
+			]);
+		}
+		if (this.ld) {
+			this.dataSources.add("ld", ["LDLZ2", this.ld]);
+		}
+		if (this.recomb) {
+			this.dataSources.add("recomb", ["RecombLZ", this.recomb]);
+		}
+
+		if (this.gene) {
+			// panels.push(LocusZoom.Layouts.get("panel", "genes"));
+			this.dataSources.add("gene", ["GeneLZ", this.gene]);
+		}
+
 		//...
 		let layout = {
-			//id: "plot",
-			//type: "filledCurve",
 			width: 100,
 			height: 100,
 			responsive_resize: "both",
-			panels: [
-				LocusZoom.Layouts.get("panel", "association", {
-					//namespace: { phewas: "static" }
-					data_layers: [
-						LocusZoom.Layouts.get("data_layer", "significance", {
-							name: "Line of GWAS Significance",
-							namespace: { sig: "static" }
-						})
-					]
-				})
-			]
-			//id_field: "{{namespace[phewas]}}static",
-			//fields: ["{{namespace[phewas]}}static"]
-			//dashboard: LocusZoom.Layouts.get("dashboard", "region_nav_plot")
+			panels: this.panels.map(p => LocusZoom.Layouts.get("panel", p))
 		};
-		// let layout = LocusZoom.Layouts.get("plot", "association", {
-		// 	//namespace: { standard_association: "static" }
-		// });
+
 		this.plot = LocusZoom.populate("#locuszoom", this.dataSources, layout);
 	}
 });
