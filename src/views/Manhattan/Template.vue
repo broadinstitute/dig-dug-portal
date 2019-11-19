@@ -15,7 +15,7 @@
                             <th>p-value</th>
                         </thead>
                         <tbody>
-                            <tr v-for="(row, index) in $store.state.aggregatedData">
+                            <tr v-for="(row, index) in $store.state.table.variants">
                                 <td>{{ row[0] }}</td>
                                 <td>{{ row[1] }}</td>
                                 <td>{{ row[2] }}</td>
