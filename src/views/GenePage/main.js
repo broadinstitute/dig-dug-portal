@@ -3,18 +3,17 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
+import LocusZoom from "@/components/LocusZoom";
 
 Vue.config.productionTip = false;
-
-
 
 new Vue({
     store,
 
     components: {
-        PhenotypeSelect
+        PhenotypeSelect,
+        LocusZoom
     },
-
 
     created() {
         let mdv = this.$store.state.mdv;
@@ -24,8 +23,19 @@ new Vue({
         let phenotype = this.$store.state.phenotype;
         this.$store.commit("variants/setCall", "variants");
         this.$store.commit("phenotypes/setCall", "phenotypes");
-        this.$store.dispatch("variants/getAggregatedData", { mdv, chrom, start, end, phenotype });
-        this.$store.dispatch("phenotypes/getAggregatedData", { mdv, chrom, start, end });
+        this.$store.dispatch("variants/getAggregatedData", {
+            mdv,
+            chrom,
+            start,
+            end,
+            phenotype
+        });
+        this.$store.dispatch("phenotypes/getAggregatedData", {
+            mdv,
+            chrom,
+            start,
+            end
+        });
         //this.$store.dispatch("phewas/getAggregatedData");
     },
 
@@ -41,19 +51,19 @@ new Vue({
             return this.$store.state.phenotypes.aggregatedData.variants;
         },
         phewasData() {
-            return this.$store.getters['phewas/aggregatedData'];
+            return this.$store.getters["phewas/aggregatedData"];
         },
         phenotype() {
             return this.$store.state.phenotype;
         },
         phenotypesd() {
-            return this.$store.getters['graphPhenotype/phenotypes'];
+            return this.$store.getters["graphPhenotype/phenotypes"];
         },
         phenotypes() {
             let variants = this.$store.state.phenotypes.aggregatedData.variants;
             if (!variants) return [];
-            return variants.map((v) => v.phenotype);
-        },
+            return variants.map(v => v.phenotype);
+        }
     },
 
     watch: {
@@ -62,8 +72,13 @@ new Vue({
             let chrom = this.$store.state.chrom;
             let start = this.$store.state.start;
             let end = this.$store.state.end;
-            this.$store.dispatch("variants/getAggregatedData", { mdv, chrom, start, end, phenotype });
+            this.$store.dispatch("variants/getAggregatedData", {
+                mdv,
+                chrom,
+                start,
+                end,
+                phenotype
+            });
         }
-
-    },
+    }
 }).$mount("#app");
