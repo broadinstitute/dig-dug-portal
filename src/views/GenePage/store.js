@@ -3,6 +3,7 @@ import Vuex from "vuex";
 
 
 import getAggregatedData from "@/modules/getAggregatedData";
+import graphPhenotype from "@/modules/graphPhenotype";
 
 Vue.use(Vuex);
 
@@ -11,6 +12,7 @@ export default new Vuex.Store({
         variants: getAggregatedData,
         phewas: getAggregatedData,
         phenotypes: getAggregatedData,
+        graphPhenotype
     },
     state: {
         mdv: "mdv41",
