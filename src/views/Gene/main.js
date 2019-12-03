@@ -4,6 +4,7 @@ import store from "./store.js";
 
 import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
 import LocusZoom from "@/components/LocusZoom";
+import DataSources from "@/utils/lzDataSources";
 
 Vue.config.productionTip = false;
 
@@ -12,7 +13,13 @@ new Vue({
 
     components: {
         PhenotypeSelect,
-        LocusZoom
+        LocusZoom,
+    },
+    data: {
+        geneSource: DataSources.defaultGeneSource,
+        recombSource: DataSources.defaultRecombSource,
+        ldSource: DataSources.defaultLDSource,
+        constraintSource: DataSources.defaultConstraintSource,
     },
 
     created() {
@@ -57,9 +64,6 @@ new Vue({
         phenotype() {
             return this.$store.state.phenotype;
         },
-        // phenotypes() {
-        //     return this.$store.getters['graphPhenotype/phenotypes'];
-        // },
         phenotypes() {
             let variants = this.$store.state.phenotypes.aggregatedData.variants;
             if (!variants) return [];
@@ -67,10 +71,37 @@ new Vue({
         },
         phenotypeMap() {
             return this.$store.getters["graphPhenotype/phenotypes"];
+        },
+        computedAssoc() {
+            let assocData = [];
+            let phenotype = this.$store.state.phenotype;
+            // filter and transform the variants into LZ format
+            if (this.variantsData) {
+                this.variantsData.forEach(function (r) {
+                    if (r.phenotype == phenotype) {
+                        assocData.push({
+                            id: r.VAR_ID,
+                            position: parseInt(r.VAR_ID.match(/_(\d+)_/)[1]),
+                            log_pvalue: -Math.log10(r.P_VALUE),
+                            ref_allele: r.Reference_allele,
+                            variant: r.VAR_ID,
+                        });
+                    }
+                });
+            }
+
+            return assocData;
         }
     },
 
     watch: {
+        computedAssoc(assocData) {
+            this.$children[0].$refs.lz.updateVariants(assocData);
+            this.$children[0].$refs.lz.plot();
+
+            //this.$emit('updateplot');
+        }
+        ,
         phenotype(phenotype) {
             let mdv = this.$store.state.mdv;
             let chrom = this.$store.state.chrom;
