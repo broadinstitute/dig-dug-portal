@@ -8,10 +8,12 @@
             v-bind:ld="$parent.ldSource"
             v-bind:recomb="$parent.recombSource"
             v-bind:assoc="['StaticJSON', { data: [] }]"
-            v-bind:panels="['association']"
+            v-bind:panels="['association','genes']"
+            v-bind:chrom="$store.state.chrom"
+            v-bind:start="$store.state.start"
+            v-bind:end="$store.state.end"
         ></locuszoom>
 
-        <!-- <locuszoom v-bind:assoc="computedAssoc"></locuszoom> -->
         <table cellspacing="50">
             <thead>
                 <th>Phenotypes with signal in the region {{$store.state.start}} - {{$store.state.end}}</th>

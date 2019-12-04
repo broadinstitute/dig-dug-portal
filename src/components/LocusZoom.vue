@@ -1,23 +1,45 @@
 <template>
-    <div v-on:updateplot="this.plot" id="locuszoom" data-region="10:114550452-115067678"></div>
+    <div v-on:updateplot="this.plot" id="locuszoom"></div>
 </template>
 
 <script>
 import Vue from "vue";
 import LocusZoom from "locuszoom";
-//import LocusZoom from "../../node_modules/locuszoom/dist/locuszoom.app";
 
 export default Vue.component("locuszoom", {
-    props: ["gene", "recomb", "phewas", "constraint", "ld", "assoc", "panels"],
+    props: [
+        "gene",
+        "recomb",
+        "phewas",
+        "constraint",
+        "ld",
+        "assoc",
+        "panels",
+        "chrom",
+        "start",
+        "end"
+    ],
     data() {
         return {};
     },
     mounted() {
+        let panelOptions = {
+            //unnamespaced: true,
+            proportional_height: 0.5,
+            dashboard: null
+        };
+        let panels = this.panels.map(p =>
+            LocusZoom.Layouts.get("panel", p, { ...panelOptions })
+        );
+
         this.layout = {
-            width: 100,
-            height: 100,
             responsive_resize: "both",
-            panels: this.panels.map(p => LocusZoom.Layouts.get("panel", p))
+            panels,
+            state: {
+                chr: this.chrom,
+                start: this.start,
+                end: this.end
+            }
         };
 
         this.plot();
@@ -29,9 +51,9 @@ export default Vue.component("locuszoom", {
             if (this.assoc) {
                 this.dataSources.add("assoc", this.assoc);
             }
-            // if (this.constraint) {
-            //     this.dataSources.add("constraint", this.constraint);
-            // }
+            if (this.constraint) {
+                this.dataSources.add("constraint", this.constraint);
+            }
             if (this.ld) {
                 this.dataSources.add("ld", this.ld);
             }
