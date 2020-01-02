@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import metadataModule from "@/modules/metadataModule";
+import graphPhenotype from "@/modules/graphPhenotype";
 import getVariantDataModule from "@/modules/getVariantDataModule";
 
 Vue.use(Vuex);
@@ -9,12 +10,14 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     modules: {
         metadataModule,
+        graphPhenotype,
         manhattan: getVariantDataModule,
-        table: getVariantDataModule
+        table: getVariantDataModule,
     },
     state: {
         selectedPhenotype: null,
         selectedDataset: null,
+        phenotypes: null
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
@@ -22,6 +25,9 @@ export default new Vuex.Store({
         },
         setSelectedDataset(state, dataset) {
             state.selectedDataset = dataset;
+        },
+        setPhenotypes(state, phenotypes) {
+            state.phenotypes = phenotypes;
         }
     },
     actions: {

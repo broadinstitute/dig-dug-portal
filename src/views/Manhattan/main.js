@@ -8,6 +8,7 @@ import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
 import DatasetSelect from "@/components/DatasetSelect.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
+
 new Vue({
     store,
 
@@ -19,6 +20,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
+        this.$store.dispatch("graphPhenotype/list");
         this.$store.commit("table/setLimit", 25);
         this.$store.commit("manhattan/setLimit", 500);
     },
@@ -28,20 +30,19 @@ new Vue({
     },
 
     computed: {
-        phenotypeMap() {
-            return this.$store.getters['metadataModule/phenotypes'];
+        phenotypes() {
+            return this.$store.getters['graphPhenotype/phenotypes'];
         },
         datasetList() {
-            let phenotype = this.$store.state.selectedPhenotype;
-            let datasets = this.$store.getters['metadataModule/datasetList'](phenotype);
-
+            let selectedPhenotype = this.$store.state.selectedPhenotype;
+            let datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
             return datasets;
         },
     },
 
     methods: {
         get_pvalue(obj) {
-            return obj[this.$store.state.selectedDataset][this.$store.state.selectedPhenotype];
+            return obj[this.$store.state.selectedDataset][this.$store.state.selectedPhenotype.phenotype_id];
         }
     },
 }).$mount("#app");

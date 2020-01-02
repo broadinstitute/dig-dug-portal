@@ -1,0 +1,119 @@
+import Vue from "vue";
+import Template from "./Template.vue";
+import store from "./store.js";
+
+import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
+import LocusZoom from "@/components/LocusZoom";
+import DataSources from "@/utils/lzDataSources";
+
+Vue.config.productionTip = false;
+
+new Vue({
+    store,
+
+    components: {
+        PhenotypeSelect,
+        LocusZoom,
+    },
+    data: {
+        geneSource: DataSources.defaultGeneSource,
+        recombSource: DataSources.defaultRecombSource,
+        ldSource: DataSources.defaultLDSource,
+        constraintSource: DataSources.defaultConstraintSource,
+    },
+
+    created() {
+        let mdv = this.$store.state.mdv;
+        let chrom = this.$store.state.chrom;
+        let start = this.$store.state.start;
+        let end = this.$store.state.end;
+        let phenotype = this.$store.state.phenotype;
+        this.$store.commit("variants/setCall", "variants");
+        this.$store.commit("phenotypes/setCall", "phenotypes");
+        this.$store.dispatch("variants/getAggregatedData", {
+            mdv,
+            chrom,
+            start,
+            end,
+            phenotype
+        });
+        this.$store.dispatch("phenotypes/getAggregatedData", {
+            mdv,
+            chrom,
+            start,
+            end
+        });
+        this.$store.dispatch("graphPhenotype/list");
+        //this.$store.dispatch("phewas/getAggregatedData");
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
+
+    computed: {
+        variantsData() {
+            return this.$store.state.variants.aggregatedData.variants;
+        },
+        phenotypesData() {
+            return this.$store.state.phenotypes.aggregatedData.variants;
+        },
+        phewasData() {
+            return this.$store.getters["phewas/aggregatedData"];
+        },
+        phenotype() {
+            return this.$store.state.phenotype;
+        },
+        phenotypes() {
+            let variants = this.$store.state.phenotypes.aggregatedData.variants;
+            if (!variants) return [];
+            return variants.map(v => v.phenotype);
+        },
+        phenotypeMap() {
+            return this.$store.getters["graphPhenotype/phenotypes"];
+        },
+        computedAssoc() {
+            let assocData = [];
+            let phenotype = this.$store.state.phenotype;
+            // filter and transform the variants into LZ format
+            if (this.variantsData) {
+                this.variantsData.forEach(function (r) {
+                    if (r.phenotype == phenotype) {
+                        assocData.push({
+                            id: r.VAR_ID,
+                            position: parseInt(r.VAR_ID.match(/_(\d+)_/)[1]),
+                            log_pvalue: -Math.log10(r.P_VALUE),
+                            ref_allele: r.Reference_allele,
+                            variant: r.VAR_ID,
+                        });
+                    }
+                });
+            }
+
+            return assocData;
+        }
+    },
+
+    watch: {
+        computedAssoc(assocData) {
+            this.$children[0].$refs.lz.updateVariants(assocData);
+            this.$children[0].$refs.lz.plot();
+
+            //this.$emit('updateplot');
+        }
+        ,
+        phenotype(phenotype) {
+            let mdv = this.$store.state.mdv;
+            let chrom = this.$store.state.chrom;
+            let start = this.$store.state.start;
+            let end = this.$store.state.end;
+            this.$store.dispatch("variants/getAggregatedData", {
+                mdv,
+                chrom,
+                start,
+                end,
+                phenotype
+            });
+        }
+    }
+}).$mount("#app");

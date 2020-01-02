@@ -45,6 +45,7 @@ export default {
     actions: {
         async getData(context, { dataset, phenotype }) {
             //input JSON
+            phenotype = phenotype.phenotype_id;
             let body = {
                 passback: "abc123",
                 entity: "variant",
@@ -81,7 +82,7 @@ export default {
                 ]
             };
             // download the variants
-            let variantJson = fetch(`/kb/getData`, {
+            let variantJson = fetch(`/dccservices/getData`, {
                 method: "POST",
                 body: JSON.stringify(body)
             })

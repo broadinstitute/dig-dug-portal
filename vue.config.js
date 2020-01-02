@@ -16,6 +16,13 @@ module.exports = {
             filename: "genefinder.html",
             title: "Gene Finder",
             chunks: ["chunk-vendors", "chunk-common", "geneFinder"]
+        },
+        gene: {
+            entry: "src/views/Gene/main.js",
+            template: "public/index.html",
+            filename: "gene.html",
+            title: "Gene Info",
+            chunks: ["chunk-vendors", "chunk-common", "gene"]
         }
     }
 };
