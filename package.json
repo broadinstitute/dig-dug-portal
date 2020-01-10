@@ -9,6 +9,7 @@
   "dependencies": {
     "c3": "^0.7.11",
     "core-js": "^2.6.5",
+    "jquery": "^3.4.1",
     "jsonpath": "^1.0.2",
     "locuszoom": "^0.9.1",
     "lodash.merge": "^4.6.2",

@@ -7,13 +7,6 @@ import getVariantDataModule from "@/modules/getVariantDataModule";
 
 Vue.use(Vuex);
 
-var url = new URL(document.URL);
-let keyParam = {};
-var c = url.searchParams.forEach((value, key) => {
-  keyParam[key] = value;
-});
-var dPhenotype = keyParam.phenotype;
-
 export default new Vuex.Store({
     modules: {
         metadataModule,
@@ -22,49 +15,28 @@ export default new Vuex.Store({
         table: getVariantDataModule,
     },
     state: {
-        mPlotInitialPhenotype:dPhenotype,
-        mPlotInitialDataset:null,
         selectedPhenotype: null,
         selectedDataset: null,
-        phenotypes: null,
-        phenotypeName: "Select a phenotype",
-        datasetName: "Select a phenotype",
+        phenotypes: null
     },
     mutations: {
-        setPhenotypeName(state, phenotypeName) {
-            state.phenotypeName = phenotypeName;
-        },
         setSelectedPhenotype(state, phenotype) {
             state.selectedPhenotype = phenotype;
-            state.phenotypeName = phenotype.name;
-            mdkp.utility.showHideElement('#phenotypeSearchHolder');
         },
         setSelectedDataset(state, dataset) {
             state.selectedDataset = dataset;
-            state.datasetName = dataset;
-            mdkp.utility.showHideElement('#datasetSearchHolder');
         },
         setPhenotypes(state, phenotypes) {
             state.phenotypes = phenotypes;
         }
     },
     actions: {
-        onInitialPhenotypeSet(context, selectedPhenotype) {
-
-            console.log("initial phenotype is set");
-            console.log(selectedPhenotype);
-            context.commit("setPhenotypeName", selectedPhenotype.name);
-            /* It throws error when "setSelectedPhenotype" is called here */
-            //context.commit("setSelectedPhenotype", selectedPhenotype);
-        },
         onPhenotypeChange(context, selectedPhenotype) {
             context.commit("table/clearData");
             context.commit("manhattan/clearData");
             context.commit("setSelectedPhenotype", selectedPhenotype);
         },
         onDatasetChange(context, selectedDataset) {
-            console.log(selectedDataset);
-
             context.commit("setSelectedDataset", selectedDataset);
             context.commit("table/clearData");
             context.commit("manhattan/clearData");
@@ -76,6 +48,5 @@ export default new Vuex.Store({
             context.dispatch("table/getData", { dataset, phenotype });
             context.dispatch("manhattan/getData", { dataset, phenotype });
         }
-    },
-
+    }
 });

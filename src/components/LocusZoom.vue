@@ -25,7 +25,7 @@ export default Vue.component("locuszoom", {
     mounted() {
         let panelOptions = {
             //unnamespaced: true,
-            proportional_height: 0.5,
+            proportional_height: 1,
             dashboard: null
         };
         let panels = this.panels.map(p =>

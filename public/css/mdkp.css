@@ -1,0 +1,147 @@
+body { background-color: #eee; }
+
+.amp-header {
+  height: 70px;
+  background-image: url(../images/AMP_banner_middle.png);
+  background-size: 100% 70px;
+}
+.amp-banner-right {
+  width: 100%;
+  height: 70px;
+  background-image: url(../images/AMP_banner_right.png);
+  background-repeat: no-repeat;
+  background-position: right;
+}
+.amp-banner-left {
+  height: 70px;
+  background-image: url(../images/AMP_banner_left.png);
+  background-repeat: no-repeat;
+  background-position: left top;
+  padding: 15px 0 0 20px;
+}
+
+.amp-banner-left a {
+  color: #fff;
+  font-size: 30px;
+  font-weight: 200;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.mdkp-logo {
+    height: 50px;
+}
+
+.mdkp-menu-wrapper {
+    text-align: right;
+}
+
+.mdkp-menu li {
+    list-style: none;
+    display: inline-block;
+    padding-top: 15px;
+}
+
+.mdkp-menu li a {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 300;
+}
+
+.mdkp-menu li a.mdkp-login {
+    border-left: solid 1px #fff;
+}
+
+.mdkp-header, .mdkp-footer {
+    background-color: #0097d6;
+    height: 50px;
+}
+
+.mdkp-footer {
+    text-align: center;
+    padding-top: 15px;
+    color: #fff;
+    font-weight: 300;
+    font-size: 14px;
+}
+
+.mdkp-body {
+    background-color: #eee;
+    min-height: 400px;
+}
+.mdkp-card {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.gene-page-header .card-body {
+    padding: 0px 15px !important;
+}
+
+.gene-page-header-title {
+    font-size: 12px;
+    padding: 2px 0 2px 5px;
+    border-bottom: solid 1px #eee;
+    border-left: solid 1px #eee;
+}
+
+a.edit-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #ddd;
+    color: #fff;
+    font-size: 12px;
+    padding: 2px 5px;
+    z-index: 15;
+}
+
+.gene-page-header-search-holder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 5px;
+    height: 65px;
+    width: 100%;
+    background-color: #fff;
+}
+
+.gene-page-header-body {
+    height: 65px;
+    font-size: 25px;
+    padding: 12px 0 12px 5px;
+    border-left: solid 1px #eee;
+}
+
+#phenotypeSearchHolder .bootstrap-select {
+    width: 100%;
+}
+
+#phenotypeSearchHolder button.dropdown-toggle {
+    border: solid 1px #ccc;
+}
+
+.phenotype-with-signal {
+    cursor: pointer;
+    display: inline-block;
+    margin: 0px 10px 10px 0;
+    padding: 2px 20px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.phenotype-with-signal.high {
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+}
+
+.phenotype-with-signal.moderate {
+    background-color: #d0efff;
+    border: solid 1px #30b7f6;
+}

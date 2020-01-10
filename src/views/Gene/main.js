@@ -56,7 +56,22 @@ new Vue({
             return this.$store.state.variants.aggregatedData.variants;
         },
         phenotypesData() {
-            return this.$store.state.phenotypes.aggregatedData.variants;
+
+            var phenotypesList = this.$store.state.phenotypes.aggregatedData.variants;
+
+            if(this.phenotypeMap && phenotypesList) {
+
+                var phenotypeMap = this.phenotypeMap;
+
+                phenotypesList.forEach( function(e) {
+                    $.each(phenotypeMap, function(j,r) {
+                        if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
+                            e["name"] = r.name;
+                        };
+                    })
+                })
+                return phenotypesList;
+            }
         },
         phewasData() {
             return this.$store.getters["phewas/aggregatedData"];
@@ -71,6 +86,21 @@ new Vue({
         },
         phenotypeMap() {
             return this.$store.getters["graphPhenotype/phenotypes"];
+        },
+        genesInRegion() {
+            let assocGenesTemp = [];
+            let assocGenes = [];
+
+            if(this.phenotypesData) {
+                this.phenotypesData.forEach(function (r) {
+                    assocGenesTemp.push(r.GENE);
+                });
+
+                $.each(assocGenesTemp,function(i,e){
+                    if($.inArray(e,assocGenes)===-1 && e != null) assocGenes.push(e);
+                });
+                return assocGenes;
+            }
         },
         computedAssoc() {
             let assocData = [];
