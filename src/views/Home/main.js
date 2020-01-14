@@ -4,18 +4,21 @@ import store from "./store.js";
 
 Vue.config.productionTip = false;
 
+import PageHeader from "@/components/PageHeader.vue";
+import PageFooter from "@/components/PageFooter.vue";
 import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
 import DatasetSelect from "@/components/DatasetSelect.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
-
 
 new Vue({
     store,
 
     components: {
+        PageHeader,
+        PageFooter,
         PhenotypeSelect,
         DatasetSelect,
-        ManhattanPlot,
+        ManhattanPlot
     },
 
     created() {
@@ -31,18 +34,22 @@ new Vue({
 
     computed: {
         phenotypes() {
-            return this.$store.getters['graphPhenotype/phenotypes'];
+            return this.$store.getters["graphPhenotype/phenotypes"];
         },
         datasetList() {
             let selectedPhenotype = this.$store.state.selectedPhenotype;
-            let datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
+            let datasets = this.$store.getters["metadataModule/datasetList"](
+                selectedPhenotype
+            );
             return datasets;
-        },
+        }
     },
 
     methods: {
         get_pvalue(obj) {
-            return obj[this.$store.state.selectedDataset][this.$store.state.selectedPhenotype.phenotype_id];
+            return obj[this.$store.state.selectedDataset][
+                this.$store.state.selectedPhenotype.phenotype_id
+            ];
         }
-    },
+    }
 }).$mount("#app");
