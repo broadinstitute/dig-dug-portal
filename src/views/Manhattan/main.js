@@ -4,8 +4,8 @@ import store from "./store.js";
 
 Vue.config.productionTip = false;
 
-import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
-import DatasetSelect from "@/components/DatasetSelect.vue";
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectpicker.vue";
+import DatasetSelectpicker from "@/components/DatasetSelectpicker.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
 
@@ -13,8 +13,8 @@ new Vue({
     store,
 
     components: {
-        PhenotypeSelect,
-        DatasetSelect,
+        PhenotypeSelectpicker,
+        DatasetSelectpicker,
         ManhattanPlot,
     },
 
@@ -35,8 +35,12 @@ new Vue({
         },
         datasetList() {
             let selectedPhenotype = this.$store.state.selectedPhenotype;
-            let datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
-            return datasets;
+            if(!selectedPhenotype) {
+                return [];
+            } else {
+                let datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
+                return datasets;
+            }
         },
     },
 

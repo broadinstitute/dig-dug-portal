@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-
+import $ from "jquery";
 import getAggregatedData from "@/modules/getAggregatedData";
 import graphPhenotype from "@/modules/graphPhenotype";
 
@@ -13,12 +13,6 @@ var c = url.searchParams.forEach((value, key) => {
   keyParam[key] = value;
 });
 
-var dChrom = keyParam.chrom;
-var dStart = Number(keyParam.start);
-var dEnd = Number(keyParam.end);
-var dPhenotype = "T2D";
-var dPhenotypeName = "T2D";
-
 export default new Vuex.Store({
     modules: {
         variants: getAggregatedData,
@@ -28,11 +22,14 @@ export default new Vuex.Store({
     },
     state: {
         mdv: "mdv41",
-        chrom: dChrom,
-        start: dStart,
-        end: dEnd,
-        phenotype: dPhenotype,
-        phenotypeName:dPhenotypeName,
+        chrom: keyParam.chrom,
+        start: Number(keyParam.start),
+        end: Number(keyParam.end),
+        phenotype: keyParam.phenotype,
+        phenotypeName:keyParam.phenotype,
+        newChrom: keyParam.chrom,
+        newStart: Number(keyParam.start),
+        newEnd: Number(keyParam.end),
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -45,15 +42,18 @@ export default new Vuex.Store({
             state.phenotype = phenotype.phenotype_id;
             state.phenotypeName = phenotype.name;
         },
-        setLocation(state, chrom, start, end) {
-            state.chrom = chrom;
-            state.start = start;
-            state.end = end;
-        },
     },
     actions: {
+        setLocation(state) {
+            var chrom = this.state.newChrom;
+            var start = this.state.newStart;
+            var end = this.state.newEnd;
+
+            window.location.href = "./gene.html?gene=&chrom="+chrom+"&start="+start+"&end="+end;
+        },
         onPhenotypeChange(state, phenotype) {
-            mdkp.utility.showHideElement("#phenotypeSearchHolder");
+            console.log(phenotype);
+            mdkp.utility.showHideElement("phenotypeSearchHolder");
             state.commit("setSelectedPhenotype", phenotype);
         }
     }

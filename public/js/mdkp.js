@@ -1,4 +1,4 @@
-$ = jQuery;
+//$ = jQuery;
 
 var mdkp = mdkp || {};
 
@@ -7,7 +7,12 @@ var mdkp = mdkp || {};
     mdkp.utility = (function () {
 
         var showHideElement = function (TGELEMENT) {
-                  $(TGELEMENT).toggle("slow","swing");
+                  var x = document.getElementById(TGELEMENT);
+                  if (x.style.display === "none") {
+                    x.style.display = "block";
+                  } else {
+                    x.style.display = "none";
+                  }
               }
 
         return {

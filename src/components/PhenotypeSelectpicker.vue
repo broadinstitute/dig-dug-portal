@@ -1,16 +1,8 @@
 <template>
-  <b-form-select
+  <v-select
     v-model="selectedPhenotype"
-    @change="$store.dispatch('onPhenotypeChange', selectedPhenotype);"
-    class="mb-3"
-  >
-  <template v-slot:first>
-        <b-form-select-option :value="null" disabled>Please select a phenotype</b-form-select-option>
-      </template>
-  <b-form-select-option-group v-for="(item, index) in phenotypeMap" :label="index">
-      <b-form-select-option v-for="phenotype in phenotypeMap[index]" v-bind:value="phenotype">{{ phenotype.name }}</b-form-select-option>
-      </b-form-select-option-group>
-  </b-form-select>
+    @input="$store.dispatch('onPhenotypeChange', selectedPhenotype);"
+    label="name" :options="phenotypeOptions"></v-select>
 </template>
 
 <script>
@@ -26,8 +18,13 @@ Vue.use(IconsPlugin);
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
+import vSelect from 'vue-select'
 
-export default Vue.component("phenotype-select", {
+Vue.component('v-select', vSelect)
+
+import 'vue-select/dist/vue-select.css';
+
+export default Vue.component("phenotype-selectpicker", {
   props: ["phenotypes"],
 
   data() {
@@ -37,8 +34,6 @@ export default Vue.component("phenotype-select", {
   },
 
   updated() {
-    //$("#phenotypes-select").selectpicker('refresh');
-
     //set initial phenotype data for Manhattan plot page
     if( this.$store.state.mPlotInitialPhenotype && this.$store.state.mPlotInitialPhenotype != null) {
       let initialPhenotype = this.$store.state.mPlotInitialPhenotype;
@@ -55,6 +50,21 @@ export default Vue.component("phenotype-select", {
   },
 
   computed:{
+
+  phenotypeOptions() {
+    var phenotypes = [];
+
+    let phenotypeList = this.phenotypes;
+    for (let i in phenotypeList) {
+              let phenotype = phenotypeList[i];
+              var tempObj = {};
+              tempObj.value = phenotype;
+              tempObj.name = phenotype.name;
+              phenotypes.push(tempObj);
+          }
+
+    return phenotypeList ;
+  },
     phenotypeMap(){
       let phenotypeList = this.phenotypes;
       let phenotypeMap = {};

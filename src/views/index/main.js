@@ -4,25 +4,20 @@ import store from "./store.js";
 
 Vue.config.productionTip = false;
 
-import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
-import DatasetSelect from "@/components/DatasetSelect.vue";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
-
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectpicker.vue";
+import DatasetSelectpicker from "@/components/DatasetSelectpicker.vue";
 
 new Vue({
     store,
 
     components: {
-        PhenotypeSelect,
-        DatasetSelect,
-        ManhattanPlot,
+        PhenotypeSelectpicker,
+        DatasetSelectpicker,
     },
 
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.commit("table/setLimit", 25);
-        this.$store.commit("manhattan/setLimit", 500);
     },
 
     render(createElement, context) {

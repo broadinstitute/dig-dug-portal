@@ -7,24 +7,24 @@
         </div>
         <div class="col-md-4 gene-page-header-title">
           Phenotype
-          <a class="edit-btn" onclick="mdkp.utility.showHideElement('#phenotypeSearchHolder');">Set phenotype</a>
+          <a class="edit-btn" onclick="mdkp.utility.showHideElement('phenotypeSearchHolder');">Set phenotype</a>
         </div>
         <div class="col-md-4 gene-page-header-title">
           Dataset
-          <a class="edit-btn" onclick="mdkp.utility.showHideElement('#datasetSearchHolder');">Set dataset</a>
+          <a class="edit-btn" onclick="mdkp.utility.showHideElement('datasetSearchHolder');">Set dataset</a>
         </div>
         <div class="col-md-4 gene-page-header-body">
           <span>Manhattan Plot</span>
         </div>
         <div class="col-md-4 gene-page-header-body regionInfo">
         <div id="phenotypeSearchHolder" class="gene-page-header-search-holder" style="display: none;">
-          <phenotype-select v-bind:phenotypes="$parent.phenotypes"></phenotype-select>
+          <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
         </div>
           <span>{{$store.state.phenotypeName}}</span>
         </div>
         <div class="col-md-4 gene-page-header-body">
           <div id="datasetSearchHolder" class="gene-page-header-search-holder" style="display: none;">
-            <dataset-select v-bind:datasets="$parent.datasetList"></dataset-select>
+            <dataset-selectpicker v-bind:datasets="$parent.datasetList"></dataset-selectpicker>
           </div>
           <span>{{$store.state.datasetName}}</span>
         </div>

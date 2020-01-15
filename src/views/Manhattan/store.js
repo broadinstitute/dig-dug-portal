@@ -37,12 +37,12 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, phenotype) {
             state.selectedPhenotype = phenotype;
             state.phenotypeName = phenotype.name;
-            mdkp.utility.showHideElement('#phenotypeSearchHolder');
+            mdkp.utility.showHideElement('phenotypeSearchHolder');
         },
         setSelectedDataset(state, dataset) {
             state.selectedDataset = dataset;
             state.datasetName = dataset;
-            mdkp.utility.showHideElement('#datasetSearchHolder');
+            mdkp.utility.showHideElement('datasetSearchHolder');
         },
         setPhenotypes(state, phenotypes) {
             state.phenotypes = phenotypes;
@@ -50,12 +50,9 @@ export default new Vuex.Store({
     },
     actions: {
         onInitialPhenotypeSet(context, selectedPhenotype) {
-
-            console.log("initial phenotype is set");
-            console.log(selectedPhenotype);
             context.commit("setPhenotypeName", selectedPhenotype.name);
             /* It throws error when "setSelectedPhenotype" is called here */
-            //context.commit("setSelectedPhenotype", selectedPhenotype);
+            context.commit("setSelectedPhenotype", selectedPhenotype);
         },
         onPhenotypeChange(context, selectedPhenotype) {
             context.commit("table/clearData");

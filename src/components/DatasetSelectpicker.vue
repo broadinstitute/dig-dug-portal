@@ -1,15 +1,15 @@
 <template>
-  <select v-model="selectedDataset"
-    @change="$store.dispatch('onDatasetChange', selectedDataset)"
-    class="selectpicker" data-live-search="true" id="datasets-select">
+  <v-select v-model="selectedDataset"
+    @input="$store.dispatch('onDatasetChange', selectedDataset)"
+    :options="datasets">
     <option v-for="dataset in datasets">{{ dataset }}</option>
-  </select>
+  </v-select>
 </template>
 
 <script>
 import Vue from "vue";
 
-export default Vue.component("dataset-select", {
+export default Vue.component("dataset-selectpicker", {
   props: ["datasets"],
 
   data() {
@@ -18,7 +18,7 @@ export default Vue.component("dataset-select", {
     };
   },
   updated() {
-    
+
   }
 });
 </script>

@@ -2,8 +2,10 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
+import $ from "jquery";
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectpicker.vue";
 import LocusZoom from "@/components/LocusZoom";
+import VariantsTable from "@/components/VariantsTable";
 import DataSources from "@/utils/lzDataSources";
 
 Vue.config.productionTip = false;
@@ -12,8 +14,9 @@ new Vue({
     store,
 
     components: {
-        PhenotypeSelect,
+        PhenotypeSelectpicker,
         LocusZoom,
+        VariantsTable,
     },
     data: {
         geneSource: DataSources.defaultGeneSource,
@@ -60,9 +63,9 @@ new Vue({
             var phenotypesList = this.$store.state.phenotypes.aggregatedData.variants;
 
             if(this.phenotypeMap && phenotypesList) {
-
                 var phenotypeMap = this.phenotypeMap;
-
+                var stateObj = this.$store.state;
+                var index = 0;
                 phenotypesList.forEach( function(e) {
                     $.each(phenotypeMap, function(j,r) {
                         if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
