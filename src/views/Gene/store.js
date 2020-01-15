@@ -4,6 +4,7 @@ import Vuex from "vuex";
 
 import getAggregatedData from "@/modules/getAggregatedData";
 import graphPhenotype from "@/modules/graphPhenotype";
+import graphTissue from "@/modules/graphTissue";
 
 Vue.use(Vuex);
 
@@ -12,7 +13,8 @@ export default new Vuex.Store({
         variants: getAggregatedData,
         phewas: getAggregatedData,
         phenotypes: getAggregatedData,
-        graphPhenotype
+        graphPhenotype,
+        graphTissue
     },
     state: {
         mdv: "mdv41",
@@ -25,7 +27,6 @@ export default new Vuex.Store({
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
-
         }
 
     },

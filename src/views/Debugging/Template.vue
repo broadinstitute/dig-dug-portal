@@ -12,7 +12,6 @@
             v-bind:chrom="$store.state.chrom"
             v-bind:start="$store.state.start"
             v-bind:end="$store.state.end"
-            v-bind:tissue="['StaticJSON', { data: [] }]"
         ></locuszoom>
 
         <table cellspacing="50">

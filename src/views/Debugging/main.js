@@ -44,7 +44,6 @@ new Vue({
             end
         });
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.dispatch("graphTissue/list");
         //this.$store.dispatch("phewas/getAggregatedData");
     },
 
@@ -73,15 +72,6 @@ new Vue({
         phenotypeMap() {
             return this.$store.getters["graphPhenotype/phenotypes"];
         },
-        tissueMap() {
-            return this.$store.getters["graphTissue/tissue"];
-        },
-        tissueId() {
-            return this.$store.getters["graphTissue/tissueId"];
-        },
-        tissueDescription() {
-            return this.$store.getters["graphTissue/tissueDescription"];
-        },
         computedAssoc() {
             let assocData = [];
             let phenotype = this.$store.state.phenotype;
@@ -101,20 +91,8 @@ new Vue({
             }
 
             return assocData;
-        },
-        computedTissue() {
-            let tissueData = [];
-            // tissueCode: tissueId,
-            // tissueDescriptiveName: 'Reads in ' + this.parent_panel.title.text(),
-            // getLocusZoomFilledPlotUrl: pageVars.getLocusZoomFilledPlotUrl,
-            // phenoTypeName: pageVars.phenoTypeName,
-            // domId1: pageVars.domId1,
-            // assayId: 'H3K27ac' ?? why hard coded ?
-
-
-        },
+        }
     },
-
 
     watch: {
         computedAssoc(assocData) {
@@ -124,9 +102,6 @@ new Vue({
             //this.$emit('updateplot');
         }
         ,
-        computedTissues() {
-
-        },
         phenotype(phenotype) {
             let mdv = this.$store.state.mdv;
             let chrom = this.$store.state.chrom;

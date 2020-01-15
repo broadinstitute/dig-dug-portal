@@ -17,7 +17,8 @@ export default Vue.component("locuszoom", {
         "panels",
         "chrom",
         "start",
-        "end"
+        "end",
+        "tissue"
     ],
     data() {
         return {};
@@ -63,6 +64,9 @@ export default Vue.component("locuszoom", {
             if (this.gene) {
                 this.dataSources.add("gene", this.gene);
             }
+            if (this.tissue) {
+                this.dataSources.add("tissue", this.tissue);
+            }
             this.lzplot = LocusZoom.populate(
                 "#locuszoom",
                 this.dataSources,
@@ -71,6 +75,9 @@ export default Vue.component("locuszoom", {
         },
         updateVariants(assocData) {
             this.assoc[1].data = assocData;
+        },
+        updateTissues(tissueData) {
+            this.tissue[1].data = tissueData;
         }
     }
 });
