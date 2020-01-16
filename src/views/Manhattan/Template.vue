@@ -40,27 +40,9 @@
         ></manhattan-plot>
       </div>
     </div>
-
     <div class="card mdkp-card">
       <div class="card-body">
-        <table class="table table-striped" style="margin-top:20px">
-            <thead class="thead-dark">
-                <th>rsid</th>
-                <th>chromosomes</th>
-                <th>position</th>
-                <th>closest gene</th>
-                <th>p-value</th>
-            </thead>
-            <tbody>
-                <tr v-for="(row, index) in $store.state.table.variants">
-                    <td>{{ row[0] }}</td>
-                    <td>{{ row[1] }}</td>
-                    <td>{{ row[2] }}</td>
-                    <td>{{ row[3] }}</td>
-                    <td>{{ $parent.get_pvalue(row[4]) }}</td>
-                </tr>
-            </tbody>
-        </table>
+      <mplot-variants-table></mplot-variants-table>
       </div>
     </div>
 

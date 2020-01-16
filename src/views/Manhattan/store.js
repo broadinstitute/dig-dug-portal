@@ -12,7 +12,6 @@ let keyParam = {};
 var c = url.searchParams.forEach((value, key) => {
   keyParam[key] = value;
 });
-var dPhenotype = keyParam.phenotype;
 
 export default new Vuex.Store({
     modules: {
@@ -22,7 +21,7 @@ export default new Vuex.Store({
         table: getVariantDataModule,
     },
     state: {
-        mPlotInitialPhenotype:dPhenotype,
+        mPlotInitialPhenotype:keyParam.phenotype,
         mPlotInitialDataset:null,
         selectedPhenotype: null,
         selectedDataset: null,
@@ -74,5 +73,10 @@ export default new Vuex.Store({
             context.dispatch("manhattan/getData", { dataset, phenotype });
         }
     },
+    methods: {
+        get_pvalue(obj) {
+            return obj[this.$store.state.selectedDataset][this.$store.state.selectedPhenotype.phenotype_id];
+        }
+    }
 
 });

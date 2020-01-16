@@ -7,6 +7,7 @@ Vue.config.productionTip = false;
 import PhenotypeSelectpicker from "@/components/PhenotypeSelectpicker.vue";
 import DatasetSelectpicker from "@/components/DatasetSelectpicker.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import MplotVariantsTable from "@/components/MplotVariantsTable.vue";
 
 
 new Vue({
@@ -16,6 +17,7 @@ new Vue({
         PhenotypeSelectpicker,
         DatasetSelectpicker,
         ManhattanPlot,
+        MplotVariantsTable
     },
 
     created() {
@@ -45,8 +47,5 @@ new Vue({
     },
 
     methods: {
-        get_pvalue(obj) {
-            return obj[this.$store.state.selectedDataset][this.$store.state.selectedPhenotype.phenotype_id];
-        }
     },
 }).$mount("#app");
