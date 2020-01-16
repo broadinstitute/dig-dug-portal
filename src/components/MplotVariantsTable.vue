@@ -1,21 +1,21 @@
 <template>
   <div>
-    <b-table small :fields="fields" :items="variantsCleaned">
-      <template v-slot:cell(rsid)="data">
-        {{ data.value }}
-      </template>
-      <template v-slot:cell(p_value)="data">
-        {{ data.value }}
-      </template>
-      <template v-slot:cell(chromosome)="data">
-        {{ data.value }}
-      </template>
-      <template v-slot:cell(position)="data">
-        {{ data.value }}
-      </template>
-      <template v-slot:cell(gene)="data">
-        <i>{{ data.value }}</i>
-      </template>
+    <b-table hover :fields="fields" :items="variantsCleaned" :tbody-tr-class="rowClass">
+        <template v-slot:cell(rsid)="data">
+          {{ data.value }}
+        </template>
+        <template v-slot:cell(p_value)="data">
+          {{ data.value }}
+        </template>
+        <template v-slot:cell(chromosome)="data">
+          {{ data.value }}
+        </template>
+        <template v-slot:cell(position)="data">
+          {{ data.value }}
+        </template>
+        <template v-slot:cell(gene)="data">
+          <i>{{ data.value }}</i>
+        </template>
     </b-table>
   </div>
 </template>
@@ -64,6 +64,12 @@ export default Vue.component("mplot-variants-table", {
       ],
     }
   },
+  methods: {
+      rowClass(item, type) {
+        if (!item || type !== 'row') return;
+        if (item.p_value < 2.5e-6) return 'variant-table-row high';
+      }
+    },
   computed: {
     variantsCleaned() {
       if(this.$store.state.table.variants){

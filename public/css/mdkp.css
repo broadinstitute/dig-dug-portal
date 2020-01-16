@@ -248,3 +248,7 @@ a.edit-btn {
     background-color: #d0efff;
     border: solid 1px #30b7f6;
 }
+
+.variant-table-row.high {
+    background-color: #d0efff;
+}

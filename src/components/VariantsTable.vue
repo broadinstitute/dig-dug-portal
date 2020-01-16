@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-table striped hover :items="variants" :fields="fields"></b-table>
+    <b-table hover :items="variants" :fields="fields" :tbody-tr-class="rowClass"></b-table>
   </div>
 </template>
 
@@ -54,6 +54,12 @@ export default Vue.component("variants-table", {
       }
       ],
     }
-  }
+  },
+  methods: {
+      rowClass(item, type) {
+        if (!item || type !== 'row') return;
+        if (item.P_VALUE < 2.5e-6) return 'variant-table-row';
+      }
+    }
 });
 </script>
