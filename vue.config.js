@@ -3,12 +3,12 @@ module.exports = {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
     pages: {
-        home: {
-            entry: "src/views/Home/main.js",
+        index: {
+            entry: "src/views/Index/main.js",
             template: "public/index.html",
-            filename: "home.html",
+            filename: "index.html",
             title: "Home",
-            chunks: ["chunk-vendors", "chunk-common", "home"]
+            chunks: ["chunk-vendors", "chunk-common", "index"]
         },
         manhattan: {
             entry: "src/views/Manhattan/main.js",

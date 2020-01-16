@@ -31,8 +31,11 @@
 					<li>
 						<a href>Contacts</a>
 					</li>
-					<li>
-						<a href class="mdkp-login">Login</a>
+					<li v-if="user">
+						<a href="/logout" class="mdkp-login">Logout</a>
+					</li>
+					<li v-else>
+						<a href="/login" class="mdkp-login">Login</a>
 					</li>
 				</ul>
 			</div>
@@ -42,10 +45,16 @@
 
 <script>
 import Vue from "vue";
+import VueCookies from "vue-cookies";
+Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
 	data() {
 		return {};
+	},
+	created() {
+		//simple cookie check for now
+		this.user = Vue.$cookies.isKey("email") || false;
 	}
 });
 </script>

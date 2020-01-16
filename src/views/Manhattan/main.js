@@ -12,9 +12,6 @@ import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
 import DatasetSelect from "@/components/DatasetSelect.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
 new Vue({
     store,
 
