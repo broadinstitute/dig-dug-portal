@@ -20,6 +20,7 @@ new Vue({
         recombSource: DataSources.defaultRecombSource,
         ldSource: DataSources.defaultLDSource,
         constraintSource: DataSources.defaultConstraintSource,
+        intervalsSource: DataSources.defaultIntervalsSource,
     },
 
     created() {
@@ -44,8 +45,6 @@ new Vue({
             end
         });
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.dispatch("graphTissue/list");
-        //this.$store.dispatch("phewas/getAggregatedData");
     },
 
     render(createElement, context) {
@@ -73,15 +72,6 @@ new Vue({
         phenotypeMap() {
             return this.$store.getters["graphPhenotype/phenotypes"];
         },
-        tissueMap() {
-            return this.$store.getters["graphTissue/tissue"];
-        },
-        tissueId() {
-            return this.$store.getters["graphTissue/tissueId"];
-        },
-        tissueDescription() {
-            return this.$store.getters["graphTissue/tissueDescription"];
-        },
         computedAssoc() {
             let assocData = [];
             let phenotype = this.$store.state.phenotype;
@@ -102,17 +92,6 @@ new Vue({
 
             return assocData;
         },
-        computedTissue() {
-            let tissueData = [];
-            // tissueCode: tissueId,
-            // tissueDescriptiveName: 'Reads in ' + this.parent_panel.title.text(),
-            // getLocusZoomFilledPlotUrl: pageVars.getLocusZoomFilledPlotUrl,
-            // phenoTypeName: pageVars.phenoTypeName,
-            // domId1: pageVars.domId1,
-            // assayId: 'H3K27ac' ?? why hard coded ?
-
-
-        },
     },
 
 
@@ -122,10 +101,6 @@ new Vue({
             this.$children[0].$refs.lz.plot();
 
             //this.$emit('updateplot');
-        }
-        ,
-        computedTissues() {
-
         },
         phenotype(phenotype) {
             let mdv = this.$store.state.mdv;

@@ -8,11 +8,11 @@
             v-bind:ld="$parent.ldSource"
             v-bind:recomb="$parent.recombSource"
             v-bind:assoc="['StaticJSON', { data: [] }]"
-            v-bind:panels="['association','genes']"
+            v-bind:panels="['association','genes','intervals']"
             v-bind:chrom="$store.state.chrom"
             v-bind:start="$store.state.start"
             v-bind:end="$store.state.end"
-            v-bind:tissue="['StaticJSON', { data: [] }]"
+            v-bind:intervals="$parent.intervalsSource"
         ></locuszoom>
 
         <table cellspacing="50">
