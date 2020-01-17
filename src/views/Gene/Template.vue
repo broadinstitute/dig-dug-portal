@@ -1,5 +1,7 @@
 <template>
+    <!-- Header -->
     <div>
+        <page-header></page-header>
         <div class="gene-page-header card mdkp-card">
             <div class="row card-body">
                 <div class="col-md-4 gene-page-header-title">
@@ -129,5 +131,6 @@
                 <variants-table v-bind:variants="$parent.variantsData"></variants-table>
             </div>
         </div>
+        <page-footer></page-footer>
     </div>
 </template>

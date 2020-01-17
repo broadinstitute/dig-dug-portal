@@ -7,7 +7,7 @@ module.exports = {
             entry: "src/views/Index/main.js",
             template: "public/index.html",
             filename: "index.html",
-            title: "Index page",
+            title: "Home",
             chunks: ["chunk-vendors", "chunk-common", "index"]
         },
         manhattan: {

@@ -4,6 +4,8 @@ import store from "./store.js";
 
 import $ from "jquery";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
 import DataSources from "@/utils/lzDataSources";
@@ -17,6 +19,9 @@ new Vue({
         PhenotypeSelectPicker,
         LocusZoom,
         VariantsTable,
+        PageHeader,
+        PageFooter,
+        LocusZoom
     },
     data: {
         geneSource: DataSources.defaultGeneSource,
@@ -59,20 +64,20 @@ new Vue({
             return this.$store.state.variants.aggregatedData.variants;
         },
         phenotypesData() {
+            var phenotypesList = this.$store.state.phenotypes.aggregatedData
+                .variants;
 
             var phenotypesList = this.$store.state.phenotypes.aggregatedData.variants;
 
             if (this.phenotypeMap && phenotypesList) {
                 var phenotypeMap = this.phenotypeMap;
-                var stateObj = this.$store.state;
-                var index = 0;
                 phenotypesList.forEach(function (e) {
                     $.each(phenotypeMap, function (j, r) {
                         if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
                             e["name"] = r.name;
-                        };
-                    })
-                })
+                        }
+                    });
+                });
                 return phenotypesList;
             }
         },
@@ -117,7 +122,7 @@ new Vue({
                             position: parseInt(r.VAR_ID.match(/_(\d+)_/)[1]),
                             log_pvalue: -Math.log10(r.P_VALUE),
                             ref_allele: r.Reference_allele,
-                            variant: r.VAR_ID,
+                            variant: r.VAR_ID
                         });
                     }
                 });
