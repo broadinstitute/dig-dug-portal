@@ -10,7 +10,7 @@ Vue.use(Vuex);
 var url = new URL(document.URL);
 let keyParam = {};
 var c = url.searchParams.forEach((value, key) => {
-  keyParam[key] = value;
+    keyParam[key] = value;
 });
 
 export default new Vuex.Store({
@@ -18,7 +18,7 @@ export default new Vuex.Store({
         variants: getAggregatedData,
         phewas: getAggregatedData,
         phenotypes: getAggregatedData,
-        graphPhenotype
+        graphPhenotype,
     },
     state: {
         mdv: "mdv41",
@@ -26,7 +26,7 @@ export default new Vuex.Store({
         start: Number(keyParam.start),
         end: Number(keyParam.end),
         phenotype: keyParam.phenotype,
-        phenotypeName:keyParam.phenotype,
+        phenotypeName: keyParam.phenotype,
         newChrom: keyParam.chrom,
         newStart: Number(keyParam.start),
         newEnd: Number(keyParam.end),
@@ -34,8 +34,8 @@ export default new Vuex.Store({
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype.id;
-            $.each(phenotype.phenotypes, function(index,PHENOTYPE) {
-                if( PHENOTYPE.phenotype_id == phenotype.id ) {state.phenotypeName = PHENOTYPE.name};
+            $.each(phenotype.phenotypes, function (index, PHENOTYPE) {
+                if (PHENOTYPE.phenotype_id == phenotype.id) { state.phenotypeName = PHENOTYPE.name };
             })
         },
         setSelectedPhenotype(state, phenotype) {
@@ -49,7 +49,7 @@ export default new Vuex.Store({
             var start = this.state.newStart;
             var end = this.state.newEnd;
 
-            window.location.href = "./gene.html?gene=&chrom="+chrom+"&start="+start+"&end="+end;
+            window.location.href = "./gene.html?gene=&chrom=" + chrom + "&start=" + start + "&end=" + end;
         },
         onPhenotypeChange(state, phenotype) {
             console.log(phenotype);

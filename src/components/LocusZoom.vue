@@ -17,7 +17,8 @@ export default Vue.component("locuszoom", {
         "panels",
         "chrom",
         "start",
-        "end"
+        "end",
+        "intervals"
     ],
     data() {
         return {};
@@ -62,6 +63,9 @@ export default Vue.component("locuszoom", {
             }
             if (this.gene) {
                 this.dataSources.add("gene", this.gene);
+            }
+            if (this.intervals) {
+                this.dataSources.add("intervals", this.intervals);
             }
             this.lzplot = LocusZoom.populate(
                 "#locuszoom",

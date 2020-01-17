@@ -2,10 +2,8 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import $ from "jquery";
-import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
 import LocusZoom from "@/components/LocusZoom";
-import VariantsTable from "@/components/VariantsTable";
 import DataSources from "@/utils/lzDataSources";
 
 Vue.config.productionTip = false;
@@ -14,16 +12,14 @@ new Vue({
     store,
 
     components: {
-        PhenotypeSelectPicker,
+        PhenotypeSelect,
         LocusZoom,
-        VariantsTable,
     },
     data: {
         geneSource: DataSources.defaultGeneSource,
         recombSource: DataSources.defaultRecombSource,
         ldSource: DataSources.defaultLDSource,
         constraintSource: DataSources.defaultConstraintSource,
-        intervalsSource: DataSources.defaultIntervalsSource,
     },
 
     created() {
@@ -48,6 +44,7 @@ new Vue({
             end
         });
         this.$store.dispatch("graphPhenotype/list");
+        //this.$store.dispatch("phewas/getAggregatedData");
     },
 
     render(createElement, context) {
@@ -59,22 +56,7 @@ new Vue({
             return this.$store.state.variants.aggregatedData.variants;
         },
         phenotypesData() {
-
-            var phenotypesList = this.$store.state.phenotypes.aggregatedData.variants;
-
-            if (this.phenotypeMap && phenotypesList) {
-                var phenotypeMap = this.phenotypeMap;
-                var stateObj = this.$store.state;
-                var index = 0;
-                phenotypesList.forEach(function (e) {
-                    $.each(phenotypeMap, function (j, r) {
-                        if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
-                            e["name"] = r.name;
-                        };
-                    })
-                })
-                return phenotypesList;
-            }
+            return this.$store.state.phenotypes.aggregatedData.variants;
         },
         phewasData() {
             return this.$store.getters["phewas/aggregatedData"];
@@ -89,21 +71,6 @@ new Vue({
         },
         phenotypeMap() {
             return this.$store.getters["graphPhenotype/phenotypes"];
-        },
-        genesInRegion() {
-            let assocGenesTemp = [];
-            let assocGenes = [];
-
-            if (this.phenotypesData) {
-                this.phenotypesData.forEach(function (r) {
-                    assocGenesTemp.push(r.GENE);
-                });
-
-                $.each(assocGenesTemp, function (i, e) {
-                    if ($.inArray(e, assocGenes) === -1 && e != null) assocGenes.push(e);
-                });
-                return assocGenes;
-            }
         },
         computedAssoc() {
             let assocData = [];
@@ -124,9 +91,8 @@ new Vue({
             }
 
             return assocData;
-        },
+        }
     },
-
 
     watch: {
         computedAssoc(assocData) {
@@ -134,7 +100,8 @@ new Vue({
             this.$children[0].$refs.lz.plot();
 
             //this.$emit('updateplot');
-        },
+        }
+        ,
         phenotype(phenotype) {
             let mdv = this.$store.state.mdv;
             let chrom = this.$store.state.chrom;

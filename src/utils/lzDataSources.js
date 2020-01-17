@@ -27,4 +27,11 @@ export default {
 		{
 			url: 'http://exac.broadinstitute.org/api/constraint'
 		}],
+	defaultIntervalsSource: ["IntervalLZ",
+		{
+			url: 'https://portaldev.sph.umich.edu/api/v1/annotation/intervals/results/',
+			params: {
+				source: 19
+			}
+		}],
 }
