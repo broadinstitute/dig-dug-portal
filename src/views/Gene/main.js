@@ -3,7 +3,7 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import $ from "jquery";
-import PhenotypeSelectpicker from "@/components/PhenotypeSelectpicker.vue";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
 import DataSources from "@/utils/lzDataSources";
@@ -14,7 +14,7 @@ new Vue({
     store,
 
     components: {
-        PhenotypeSelectpicker,
+        PhenotypeSelectPicker,
         LocusZoom,
         VariantsTable,
     },
@@ -62,12 +62,12 @@ new Vue({
 
             var phenotypesList = this.$store.state.phenotypes.aggregatedData.variants;
 
-            if(this.phenotypeMap && phenotypesList) {
+            if (this.phenotypeMap && phenotypesList) {
                 var phenotypeMap = this.phenotypeMap;
                 var stateObj = this.$store.state;
                 var index = 0;
-                phenotypesList.forEach( function(e) {
-                    $.each(phenotypeMap, function(j,r) {
+                phenotypesList.forEach(function (e) {
+                    $.each(phenotypeMap, function (j, r) {
                         if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
                             e["name"] = r.name;
                         };
@@ -94,13 +94,13 @@ new Vue({
             let assocGenesTemp = [];
             let assocGenes = [];
 
-            if(this.phenotypesData) {
+            if (this.phenotypesData) {
                 this.phenotypesData.forEach(function (r) {
                     assocGenesTemp.push(r.GENE);
                 });
 
-                $.each(assocGenesTemp,function(i,e){
-                    if($.inArray(e,assocGenes)===-1 && e != null) assocGenes.push(e);
+                $.each(assocGenesTemp, function (i, e) {
+                    if ($.inArray(e, assocGenes) === -1 && e != null) assocGenes.push(e);
                 });
                 return assocGenes;
             }

@@ -4,7 +4,7 @@ module.exports = {
     },
     pages: {
         index: {
-            entry: "src/views/index/main.js",
+            entry: "src/views/Index/main.js",
             template: "public/index.html",
             filename: "index.html",
             title: "Index page",

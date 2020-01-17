@@ -1,18 +1,18 @@
-import Vue from "vue";
+import Vue from "./node_modules/vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
 Vue.config.productionTip = false;
 
-import PhenotypeSelectpicker from "@/components/PhenotypeSelectpicker.vue";
-import DatasetSelectpicker from "@/components/DatasetSelectpicker.vue";
+import PhenotypeSelectPicker from "./node_modules/@/components/PhenotypeSelectPicker.vue";
+import DatasetSelectPicker from "./node_modules/@/components/DatasetSelectPicker.vue";
 
 new Vue({
     store,
 
     components: {
-        PhenotypeSelectpicker,
-        DatasetSelectpicker,
+        PhenotypeSelectPicker,
+        DatasetSelectPicker,
     },
 
     created() {
