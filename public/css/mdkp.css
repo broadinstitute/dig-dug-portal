@@ -252,3 +252,19 @@ a.edit-btn {
 .variant-table-row.high {
     background-color: #d0efff;
 }
+
+.c3 .c3-axis-x path, .c3 .c3-axis-x line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 0.5px;
+}
+
+.c3 .c3-axis-x .c3-axis-x-label, .c3 .c3-axis-y .c3-axis-y-label {
+    font-size: 12px;
+}
+
+.c3 .c3-axis-y path, .c3 .c3-axis-y line {
+    fill: none;
+    stroke: #000;
+    stroke-width: 0.5px;
+}

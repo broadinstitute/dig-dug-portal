@@ -18,7 +18,7 @@ export default Vue.component("manhattan-plot", {
   mounted() {
     this.chart = c3.generate({
       size: {
-        height: 500
+        height: 400
       },
       data: {
         xs: {
@@ -28,8 +28,8 @@ export default Vue.component("manhattan-plot", {
         columns: []
       },
       zoom: {
-        enabled: true,
-        rescale: true
+        enabled: false,
+        rescale: false
       },
       point: {
         r: 5
@@ -37,7 +37,10 @@ export default Vue.component("manhattan-plot", {
       bindto: "#chart",
       axis: {
         x: {
-          label: "Chromosome",
+          label: {
+            text:"Chromosome",
+            position: 'inner-right'
+          },
           tick: {
             format(pos) {
               for (let chrom in chromosomeStart) {
@@ -50,7 +53,10 @@ export default Vue.component("manhattan-plot", {
           }
         },
         y: {
-          label: "-log10 P"
+          label: {
+            text:"p-value (-log10)",
+            position: 'inner-top'
+          },
         }
       }
     });
@@ -71,10 +77,12 @@ export default Vue.component("manhattan-plot", {
       if (variants.length == 0) {
         this.chart.unload({});
       } else {
+
+        console.log(variants);
         this.chart.load({
           columns: [xs, ys],
           names: {
-            data: this.dataset
+            data: "p-value: "
           }
         });
       }
@@ -141,7 +149,10 @@ let chromosomeStart = {};
 let start = 0;
 for (let i in chromosomes) {
   let chrom = chromosomes[i];
-  chromosomeStart[chrom] = start;
   start += chromosomeLength[chrom];
+  chromosomeStart[chrom] = start;
+  //start += chromosomeLength[chrom]/2;
+  console.log(chromosomeStart);
 }
+
 </script>
