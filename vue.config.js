@@ -30,6 +30,15 @@ module.exports = {
             filename: "gene.html",
             title: "Gene Info",
             chunks: ["chunk-vendors", "chunk-common", "gene"]
+
+        },
+        debug: {
+            entry: "src/views/Debugging/main.js",
+            template: "public/index.html",
+            filename: "debug.html",
+            title: "Debug Page",
+            chunks: ["chunk-vendors", "chunk-common", "debug"]
+
         }
     }
 };
