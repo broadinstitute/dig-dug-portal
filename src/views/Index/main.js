@@ -6,8 +6,8 @@ Vue.config.productionTip = false;
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import PhenotypeSelect from "@/components/PhenotypeSelect.vue";
-import DatasetSelect from "@/components/DatasetSelect.vue";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 
 new Vue({
@@ -16,8 +16,8 @@ new Vue({
     components: {
         PageHeader,
         PageFooter,
-        PhenotypeSelect,
-        DatasetSelect,
+        PhenotypeSelectPicker,
+        DatasetSelectPicker,
         ManhattanPlot
     },
 

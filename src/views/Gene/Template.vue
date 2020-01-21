@@ -2,6 +2,8 @@
     <!-- Header -->
     <div>
         <page-header></page-header>
+        <!-- body -->
+        <div class="container-fluid mdkp-body">
         <div class="gene-page-header card mdkp-card">
             <div class="row card-body">
                 <div class="col-md-4 gene-page-header-title">
@@ -130,6 +132,7 @@
                 <h4 class="card-title">Top variants for Phenotype: {{$store.state.phenotypeName}}</h4>
                 <variants-table v-bind:variants="$parent.variantsData"></variants-table>
             </div>
+        </div>
         </div>
         <page-footer></page-footer>
     </div>

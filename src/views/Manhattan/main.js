@@ -11,6 +11,7 @@ import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import MplotVariantsTable from "@/components/MplotVariantsTable.vue";
 
 new Vue({
     store,
@@ -21,7 +22,8 @@ new Vue({
         ManhattanPlot,
         PageHeader,
         PageFooter,
-        ManhattanPlot
+        ManhattanPlot,
+        MplotVariantsTable
     },
 
     created() {
@@ -43,17 +45,11 @@ new Vue({
             let selectedPhenotype = this.$store.state.selectedPhenotype;
             if (!selectedPhenotype) {
                 return [];
+            } else {
+                let datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
+                return datasets;
             }
-
-            return this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
-        },
-    },
-
-    methods: {
-        get_pvalue(obj) {
-            return obj[this.$store.state.selectedDataset][
-                this.$store.state.selectedPhenotype.phenotype_id
-            ];
         }
     }
+
 }).$mount("#app");

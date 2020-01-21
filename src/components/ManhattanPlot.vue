@@ -28,8 +28,8 @@ export default Vue.component("manhattan-plot", {
         columns: []
       },
       zoom: {
-        enabled: true,
-        rescale: true
+        enabled: false,
+        rescale: false
       },
       point: {
         r: 5
