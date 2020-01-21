@@ -10,7 +10,7 @@ Vue.use(Vuex);
 var url = new URL(document.URL);
 let keyParam = {};
 var c = url.searchParams.forEach((value, key) => {
-  keyParam[key] = value;
+    keyParam[key] = value;
 });
 
 export default new Vuex.Store({
