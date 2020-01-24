@@ -5,13 +5,17 @@
                 <td valign="top">
                     <table class="table table-striped" style="margin-top:20px">
                         <thead class="thead-dark">
-                            <th>title</th>
-                            <th>field_portals</th>
+                            <th>var_id</th>
+                            <th>p_value</th>
+                            <th>standard_error</th>
+                            <th>beta</th>
                         </thead>
                         <tbody>
-                            <tr v-for="(row) in $store.state.kp4cd.newsFeed">
-                                <td>{{ row.title }}</td>
-                                <td>{{ row.field_portals }}</td>
+                            <tr v-for="(row) in $store.state.graphPrioritizationVariant">
+                                <td>{{ row.var_id }}</td>
+                                <td>{{ row.p_value }}</td>
+                                <td>{{ row.standard_error }}</td>
+                                <td>{{ row.beta }}</td>
                             </tr>
                         </tbody>
                     </table>

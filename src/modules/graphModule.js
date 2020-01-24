@@ -49,8 +49,8 @@ export default function (output, extend) {
 
         // dispatch methods
         actions: {
-            async query(context, { method, format, params }) {
-                let qs = '';
+            async query(context, { method, format }) {
+                let qs = {};
                 let fmt = format || "object";
                 let json = await fetch(`/dccservices/graph/${output}/${method}/${fmt}?${qs}`)
                     .then(resp => resp.json());

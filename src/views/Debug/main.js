@@ -16,7 +16,19 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("graphPrioritizationVariant/getNewsFeed");
+        let chrom = this.$store.state.chrom;
+        let start = this.$store.state.start;
+        let end = this.$store.state.end;
+        let phenotype = this.$store.state.phenotype;
+        let limit = 50;
+
+        this.$store.dispatch("graphPrioritizationVariant/object", {
+            chrom,
+            start,
+            end,
+            phenotype,
+            limit
+        });
     },
 
     render(createElement, context) {
@@ -24,8 +36,11 @@ new Vue({
     },
 
     computed: {
-
+        prioritizationVariants() {
+            return this.$store.getters["graphPrioritizationVariant/prioritizationVariants"];
+        },
     },
+
 
     watch: {
 

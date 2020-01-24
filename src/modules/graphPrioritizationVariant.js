@@ -4,6 +4,7 @@ import graphModule from "./graphModule"
 // This module overrides the base module (graphModule) with an extended object 
 // This module gets the variants in prioritized order (ordered by p_value) 
 // The input params for this call are - phenotype, chrom, start and end position 
+// input - phenotype, chrom, start_pos, end_pos
 
 export default graphModule('prioritizationVariant', {
     getters: {
@@ -13,11 +14,9 @@ export default graphModule('prioritizationVariant', {
     },
 
     actions: {
-        async prioritizationVariant(context) {
-            context.dispatch('query', { output: 'prioritization/variant' })
+        async object(context, { chrom, start, end, phenotype, limit }) {
+            context.dispatch('query', { output: 'prioritization/variant', qs: { 'chrom': chrom, 'start_pos': start, 'end_pos': end, 'phenotype': phenotype, 'limit': limit } })
         },
-        async object(context) {
-            context.dispatch('query', { method: 'object' })
-        }
+
     }
 });
