@@ -16,7 +16,7 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("kp4cd/getNewsFeed");
+        this.$store.dispatch("graphPrioritizationVariant/getNewsFeed");
     },
 
     render(createElement, context) {
