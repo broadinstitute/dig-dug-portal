@@ -14,6 +14,7 @@ export default graphModule('prioritization', {
     },
 
     actions: {
+        //by default the output is object
         async object(context, { phenotype, chrom, start, end, limit }) {
             context.dispatch('query', { method: 'variant', params: { 'phenotype': phenotype, 'chrom': chrom, 'start_pos': start, 'end_pos': end, 'limit': limit } })
         },
