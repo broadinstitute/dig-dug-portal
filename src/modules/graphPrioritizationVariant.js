@@ -6,7 +6,7 @@ import graphModule from "./graphModule"
 // The input params for this call are - phenotype, chrom, start and end position 
 // input - phenotype, chrom, start_pos, end_pos
 
-export default graphModule('prioritizationVariant', {
+export default graphModule('prioritization', {
     getters: {
         prioritizationVariants(state) {
             return state.data.data;
@@ -14,9 +14,8 @@ export default graphModule('prioritizationVariant', {
     },
 
     actions: {
-        async object(context, { chrom, start, end, phenotype, limit }) {
-            context.dispatch('query', { output: 'prioritization/variant', qs: { 'chrom': chrom, 'start_pos': start, 'end_pos': end, 'phenotype': phenotype, 'limit': limit } })
+        async object(context, { phenotype, chrom, start, end, limit }) {
+            context.dispatch('query', { method: 'variant', params: { 'phenotype': phenotype, 'chrom': chrom, 'start_pos': start, 'end_pos': end, 'limit': limit } })
         },
-
     }
 });

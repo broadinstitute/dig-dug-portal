@@ -25,6 +25,7 @@
  */
 
 import merge from "lodash.merge"
+import querystring from "querystring";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -49,8 +50,9 @@ export default function (output, extend) {
 
         // dispatch methods
         actions: {
-            async query(context, { method, format }) {
-                let qs = {};
+            async query(context, { method, format, params }) {
+                let qs = querystring.stringify(params);
+                console.log(qs);
                 let fmt = format || "object";
                 let json = await fetch(`/dccservices/graph/${output}/${method}/${fmt}?${qs}`)
                     .then(resp => resp.json());

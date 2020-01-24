@@ -7,18 +7,18 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        variants: graphPrioritizationVariant,
+        graphPrioritizationVariant,
     },
     state: {
+        phenotype: `T2D`,
         chrom: 8,
         start: 118184783,
         end: 219194783,
-        phenotype: `T2D`,
     },
     mutations: {
-       
+
     },
     actions: {
-       
+
     }
 });
