@@ -22,7 +22,7 @@ new Vue({
         let phenotype = this.$store.state.phenotype;
         let limit = 50;
 
-        this.$store.dispatch("graphPrioritizationVariant/object", {
+        this.$store.dispatch("graphAnnotationByRegion/object", {
             chrom,
             start,
             end,
@@ -36,8 +36,8 @@ new Vue({
     },
 
     computed: {
-        prioritizationVariants() {
-            return this.$store.getters["graphPrioritizationVariant/prioritizationVariants"];
+        geneAnnotationByRegion() {
+            return this.$store.getters["graphAnnotationByRegion/geneAnnotationByRegion"];
         },
     },
 
