@@ -4,7 +4,7 @@ import graphModule from "./graphModule"
 // This module overrides the base module (graphModule) with an extended object 
 // This module gets the gene annotation for a given region 
 // The input params for this call are - chrom, start and end position
-// here is the example call //http://ec2-34-229-106-174.compute-1.amazonaws.com:8090/dccservices/graph/annotation/byregion/object?chrom=8&start_pos=10000000&end_pos=14000000
+// here is the example call // dccservices/graph/annotation/byregion/object?chrom=8&start_pos=10000000&end_pos=14000000
 // default limit to 4000; it does take an optional limit parameter as well, with max 5000
 
 

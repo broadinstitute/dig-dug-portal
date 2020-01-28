@@ -12,7 +12,7 @@ export default new Vuex.Store({
     state: {
         chrom: 8,
         start: 118184783,
-        end: 219194783,
+        end: 119194783,
     },
     mutations: {
 

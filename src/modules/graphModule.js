@@ -52,17 +52,14 @@ export default function (output, extend) {
         actions: {
             async query(context, { method, format, params }) {
                 let qs = querystring.stringify(params);
-                console.log(qs);
                 let fmt = format || "object";
                 let json = await fetch(`/dccservices/graph/${output}/${method}/${fmt}?${qs}`)
                     .then(resp => resp.json());
-
                 // set the data
                 context.commit('setData', json)
             },
         },
     };
-
     // override module settings
     return merge(module, extend || {});
 }

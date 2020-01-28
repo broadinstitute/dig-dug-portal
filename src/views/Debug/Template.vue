@@ -5,17 +5,11 @@
                 <td valign="top">
                     <table class="table table-striped" style="margin-top:20px">
                         <thead class="thead-dark">
-                            <th>var_id</th>
-                            <th>p_value</th>
-                            <th>standard_error</th>
-                            <th>beta</th>
+                            <th>region_name</th>
                         </thead>
                         <tbody>
-                            <tr v-for="(row) in $store.state.graphAnnotationByRegion">
-                                <td>{{ row.var_id }}</td>
-                                <td>{{ row.p_value }}</td>
-                                <td>{{ row.standard_error }}</td>
-                                <td>{{ row.beta }}</td>
+                            <tr v-for="(row) in $parent.geneAnnotationByRegion">
+                                <td>{{ row.region_name }}</td>
                             </tr>
                         </tbody>
                     </table>
