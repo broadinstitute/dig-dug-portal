@@ -34,7 +34,6 @@ new Vue({
             let datasets = this.$store.getters["metadataModule/datasetList"](
                 phenotype
             );
-
             return datasets;
         }
     }

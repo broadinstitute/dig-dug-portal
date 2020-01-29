@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import $ from "jquery";
 import getAggregatedData from "@/modules/getAggregatedData";
 import graphPhenotype from "@/modules/graphPhenotype";
+import graphAnnotationByRegion from "@/modules/graphAnnotationByRegion";;
 
 Vue.use(Vuex);
 
@@ -19,6 +20,7 @@ export default new Vuex.Store({
         phewas: getAggregatedData,
         phenotypes: getAggregatedData,
         graphPhenotype,
+        graphAnnotationByRegion
     },
     state: {
         mdv: "mdv41",

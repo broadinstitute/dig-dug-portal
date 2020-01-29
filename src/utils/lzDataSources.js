@@ -1,4 +1,3 @@
-import LocusZoom from "locuszoom";
 
 export default {
 	defaultGeneSource: ["GeneLZ", {

@@ -1,10 +1,12 @@
 import graphModule from "./graphModule"
 
 
-// This module overrides the base module (graphModule) with an extended object 
-// This module gets the variants in prioritized order (ordered by p_value) 
-// The input params for this call are - phenotype, chrom, start and end position 
-// input - phenotype, chrom, start_pos, end_pos
+/***
+ * This module overrides the base module (graphModule) with an extended object 
+ * This module gets the variants in prioritized order (ordered by p_value) 
+ * The input params - phenotype, chrom, start and end position 
+ * example call: /dccservices/graph/prioritization/variant/object?phenotype=T2D&chrom=8&start_pos=118184783&end_pos=219194783&limit=50
+*/
 
 export default graphModule('prioritization', {
     getters: {

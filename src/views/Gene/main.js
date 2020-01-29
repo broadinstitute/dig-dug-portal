@@ -36,6 +36,7 @@ new Vue({
         let chrom = this.$store.state.chrom;
         let start = this.$store.state.start;
         let end = this.$store.state.end;
+        let limit = 50;
         let phenotype = this.$store.state.phenotype;
         this.$store.commit("variants/setCall", "variants");
         this.$store.commit("phenotypes/setCall", "phenotypes");
@@ -52,6 +53,13 @@ new Vue({
             start,
             end
         });
+        this.$store.dispatch("graphAnnotationByRegion/object", {
+            chrom,
+            start,
+            end,
+            phenotype,
+            limit
+        });
         this.$store.dispatch("graphPhenotype/list");
     },
 
@@ -60,6 +68,9 @@ new Vue({
     },
 
     computed: {
+        annotationByRegionData() {
+            return this.$store.state.variants.aggregatedData.variants;
+        },
         variantsData() {
             return this.$store.state.variants.aggregatedData.variants;
         },
