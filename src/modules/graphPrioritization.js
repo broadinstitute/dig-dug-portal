@@ -17,8 +17,12 @@ export default graphModule('prioritization', {
 
     actions: {
         //by default the output is object
-        async object(context, { phenotype, chrom, start, end, limit }) {
-            context.dispatch('query', { method: 'variant', params: { 'phenotype': phenotype, 'chrom': chrom, 'start_pos': start, 'end_pos': end, 'limit': limit } })
+        /***
+         * ??? 
+         * Confused about the name - waiting on marc to rename the API calls 
+         */
+        async bypvalue(context, { phenotype, chrom, start, end, limit, fmt }) {
+            context.dispatch('query', { method: 'variant', fmt: fmt, params: { 'phenotype': phenotype, 'chrom': chrom, 'start_pos': start, 'end_pos': end, 'limit': limit } })
         },
     }
 });

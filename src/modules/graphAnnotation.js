@@ -10,15 +10,15 @@ import graphModule from "./graphModule"
 
 export default graphModule('annotation', {
     getters: {
-        geneAnnotationByRegion(state) {
+        annotationByRegion(state) {
             return state.data.data;
         }
     },
 
     actions: {
-        //by default the output is object
-        async object(context, { chrom, start, end, limit }) {
-            context.dispatch('query', { method: 'byregion', params: { 'chrom': chrom, 'start_pos': start, 'end_pos': end, 'limit': limit } })
+        //by default the output format is object
+        async byregion(context, { chrom, start, end, fmt, limit }) {
+            context.dispatch('query', { method: 'byregion', fmt: fmt, params: { 'chrom': chrom, 'start_pos': start, 'end_pos': end, 'limit': limit } })
         },
     }
 });

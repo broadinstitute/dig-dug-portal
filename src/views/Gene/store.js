@@ -20,7 +20,6 @@ export default new Vuex.Store({
         phewas: getAggregatedData,
         phenotypes: getAggregatedData,
         graphPhenotype,
-        graphAnnotationByRegion
     },
     state: {
         mdv: "mdv41",

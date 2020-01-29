@@ -15,8 +15,8 @@ export default graphModule('phenotype', {
     },
 
     actions: {
-        async list(context) {
-            context.dispatch('query', { method: 'list' })
+        async list(context, fmt) {
+            context.dispatch('query', { method: 'list', fmt: fmt })
         }
     }
 });
