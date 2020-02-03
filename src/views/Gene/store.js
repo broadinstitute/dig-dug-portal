@@ -21,7 +21,7 @@ export default new Vuex.Store({
         graphPhenotype,
     },
     state: {
-        mdv: "mdv41",
+        mdv: "mdv43",
         chrom: keyParam.chrom,
         start: Number(keyParam.start),
         end: Number(keyParam.end),
