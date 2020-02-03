@@ -17,6 +17,8 @@ new Vue({
 
     created() {
         this.$store.dispatch("kp4cd/getNewsFeed");
+        this.$store.dispatch("kp4cd/getFrontContents");
+        this.$store.dispatch("kp4cd/getDatasetsInfo");
     },
 
     render(createElement, context) {

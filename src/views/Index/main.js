@@ -7,8 +7,10 @@ Vue.config.productionTip = false;
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
-import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import NewsFeedSection from "@/components/NewsFeedSection.vue";
+import AboutPortalSection from "@/components/AboutPortalSection.vue";
+import AboutProjectSection from "@/components/AboutProjectSection.vue";
+import datasetsSection from "@/components/DatasetsSection.vue";
 
 new Vue({
     store,
@@ -17,15 +19,18 @@ new Vue({
         PageHeader,
         PageFooter,
         PhenotypeSelectPicker,
-        DatasetSelectPicker,
-        ManhattanPlot
+        NewsFeedSection,
+        AboutPortalSection,
+        AboutProjectSection,
+        datasetsSection
     },
 
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.commit("table/setLimit", 25);
-        this.$store.commit("manhattan/setLimit", 500);
+        this.$store.dispatch("kp4cd/getNewsFeed");
+        this.$store.dispatch("kp4cd/getFrontContents");
+        this.$store.dispatch("kp4cd/getDatasetsInfo");
     },
 
     render(createElement, context) {
@@ -36,20 +41,8 @@ new Vue({
         phenotypes() {
             return this.$store.getters["graphPhenotype/phenotypes"];
         },
-        datasetList() {
-            let selectedPhenotype = this.$store.state.selectedPhenotype;
-            let datasets = this.$store.getters["metadataModule/datasetList"](
-                selectedPhenotype
-            );
-            return datasets;
-        }
     },
 
     methods: {
-        get_pvalue(obj) {
-            return obj[this.$store.state.selectedDataset][
-                this.$store.state.selectedPhenotype.phenotype_id
-            ];
-        }
     }
 }).$mount("#app");
