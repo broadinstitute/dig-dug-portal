@@ -33,10 +33,10 @@ export default Vue.component("datasets-section", {
     },
     methods: {
         renderCharts: function(DATASETS) {
-            console.log(DATASETS);
+            //console.log(DATASETS);
 
             var randerPie = function(PIEDATA, SVGID, COLORSET, WIDTH, HEIGHT) {
-                console.log(PIEDATA);
+                //console.log(PIEDATA);
 
                 var width = WIDTH,
                     height = HEIGHT,
@@ -195,10 +195,11 @@ export default Vue.component("datasets-section", {
 
             let datasets = this.$store.state.kp4cd.datasetsInfo;
             let datasetsMap = {};
-            let t2dDatasets = 0,
+            /*let t2dDatasets = 0,
                 strokeDatasets = 0,
                 miDatasets = 0,
-                sleepDatasets = 0;
+                sleepDatasets = 0,
+                totalDatasets = 0;*/
 
             let portals = ["t2d", "stroke", "mi", "sleep"];
             let dataTypes = [
@@ -253,6 +254,8 @@ export default Vue.component("datasets-section", {
                 "totalPhenotypes"
             ].filter(onlyUnique);
 
+            //console.log(datasetsMap["totalPhenotypes"].sort());
+
             datasetsMap["totalPhenotypesNum"] =
                 datasetsMap["totalPhenotypes"].length;
 
@@ -270,7 +273,8 @@ export default Vue.component("datasets-section", {
     },
     watch: {
         datasetsInfo(datasetsInfo) {
-            this.renderCharts(datasetsInfo);
+            if (this.$store.state.diseaseGroup == "md")
+                this.renderCharts(datasetsInfo);
         }
     }
 });

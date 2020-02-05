@@ -17,7 +17,7 @@
         <div class="news-items-ui">
             <a
                 href="javascript:;"
-                v-for="item in newsIndex"
+                v-for="item in this.$store.state.newsIndex"
                 v-on:click="onSwitchNews(item)"
                 :class="item == 1? 'on-view':''"
             >{{ item }}</a>
@@ -38,12 +38,13 @@ export default Vue.component("news-feed-section", {
     props: ["newsItems"],
     data() {
         return {
-            newsIndex: [1, 2, 3, 4]
+            newsIndex: null
         };
     },
     methods: {
         onSwitchNews: function(NEWSINDEX) {
-            let newsNum = NEWSINDEX == 5 ? 1 : NEWSINDEX;
+            let newsItemsNum = this.$store.state.newsIndex.length + 1;
+            let newsNum = NEWSINDEX == newsItemsNum ? 1 : NEWSINDEX;
 
             $(".news-items-ui")
                 .find("a")
@@ -72,10 +73,11 @@ export default Vue.component("news-feed-section", {
         filteredNews() {
             let filteredPortalNews = [];
             let portal = this.$store.state.diseaseGroup;
+            let newsUIIndex = this.$store.state.newsIndex;
             let newsNum = 0;
             $.each(this.$store.state.kp4cd.newsFeed, function(index, news) {
                 if (newsNum < 4) {
-                    let newsBody = news.body.split(" ").slice(0, 15);
+                    let newsBody = news.body.split(" ").slice(0, 12);
                     let numWords = 10;
                     let joinedNewsBody = newsBody.join(" ");
 
@@ -86,15 +88,9 @@ export default Vue.component("news-feed-section", {
                         news_number: newsNum + 2
                     };
 
-                    if (portal == "md") {
-                        filteredPortalNews.push(tempNews);
-                        newsNum++;
-                    } else {
-                        if (news.field_portals.indexOf(portal) >= 0) {
-                            filteredPortalNews.push(tempNews);
-                            newsNum++;
-                        }
-                    }
+                    filteredPortalNews.push(tempNews);
+                    newsNum++;
+                    newsUIIndex.push(newsNum);
                 }
             });
             return filteredPortalNews;

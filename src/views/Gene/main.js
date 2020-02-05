@@ -53,6 +53,7 @@ new Vue({
             end
         });
         this.$store.dispatch("graphPhenotype/list");
+        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup);
     },
 
     render(createElement, context) {

@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
+import { defaultGroup } from "@/modules/defaultPortal";
 import metadataModule from "@/modules/metadataModule";
 import graphPhenotype from "@/modules/graphPhenotype";
 import getVariantDataModule from "@/modules/getVariantDataModule";
@@ -10,7 +11,7 @@ Vue.use(Vuex);
 var url = new URL(document.URL);
 let keyParam = {};
 var c = url.searchParams.forEach((value, key) => {
-  keyParam[key] = value;
+    keyParam[key] = value;
 });
 var dPhenotype = keyParam.phenotype;
 
@@ -22,13 +23,14 @@ export default new Vuex.Store({
         table: getVariantDataModule,
     },
     state: {
-        mPlotInitialPhenotype:dPhenotype,
-        mPlotInitialDataset:null,
+        mPlotInitialPhenotype: dPhenotype,
+        mPlotInitialDataset: null,
         selectedPhenotype: null,
         selectedDataset: null,
         phenotypes: null,
         phenotypeName: "Select a phenotype",
         datasetName: "Select a phenotype",
+        diseaseGroup: defaultGroup,
     },
     mutations: {
         setPhenotypeName(state, phenotypeName) {

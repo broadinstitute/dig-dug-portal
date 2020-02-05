@@ -8,12 +8,16 @@ a:hover { text-decoration: none !important; }
     background-image: url(../images/mdkp_front_bg.png), linear-gradient(#0097d6, #8ed8f8);
 }
 
+.front-top-banner-cvdkp {
+    background-image: url(../images/mdkp_front_bg.png), linear-gradient(#f58752, #fdbc63);
+}
+
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
     background-position: -130px 130px, top left;
     margin: 0 -15px 0 -15px;
-    padding: 30px 0 30px 0;
+    padding: 30px 0 50px 0;
 }
 
 .front-logo-wrapper {
@@ -29,6 +33,10 @@ a:hover { text-decoration: none !important; }
     margin-right: 30px;
     padding: 20px 20px 20px 0;
     float: left;
+}
+
+.front-top-banner-cvdkp .front-logo-img {
+    width: 430px;
 }
 
 .front-banner-btn {
@@ -49,6 +57,10 @@ a:hover { text-decoration: none !important; }
 
 .front-logo-tagline-mdkp {
     transform: translate(0%,15%);
+}
+
+.front-logo-tagline-cvdkp {
+    transform: translate(0%,29%);
 }
 
 .front-banner-ui-tabs {
@@ -91,21 +103,29 @@ a:hover { text-decoration: none !important; }
   text-decoration: none;
 }
 
+.portals-2-mdkp-logo {
+    width: 500px;
+}
+
 .mdkp-logo {
     height: 50px;
 }
 
-.mdkp-menu-wrapper {
+.cvdkp-logo {
+    height: 50px;
+}
+
+.mdkp-menu-wrapper, .cvdkp-menu-wrapper {
     text-align: right;
 }
 
-.mdkp-menu li {
+.mdkp-menu li, .cvdkp-menu li {
     list-style: none;
     display: inline-block;
     padding-top: 15px;
 }
 
-.mdkp-menu li a {
+.mdkp-menu li a, .cvdkp-menu li a {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 5px;
@@ -115,7 +135,7 @@ a:hover { text-decoration: none !important; }
     font-weight: 300;
 }
 
-.mdkp-menu li a.mdkp-login {
+.mdkp-menu li a.mdkp-login, .cvdkp-menu li a.cvdkp-login {
     border-left: solid 1px #fff;
 }
 
@@ -124,7 +144,12 @@ a:hover { text-decoration: none !important; }
     height: 50px;
 }
 
-.mdkp-footer {
+.cvdkp-header, .cvdkp-footer {
+    background-color:#f58752;
+    height: 50px;
+}
+
+.mdkp-footer, .cvdkp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -132,14 +157,56 @@ a:hover { text-decoration: none !important; }
     font-size: 14px;
 }
 
-.mdkp-body {
+.mdkp-body, .cvdkp-body {
     background-color: #eee;
     min-height: 400px;
 }
-.mdkp-card {
+.mdkp-card, .cvdkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
+.portal-front-tabs {
+    margin-top: 50px;
+}
+
+.portal-front-tabs .nav-tabs .nav-link, .portal-front-tabs .nav-tabs .nav-link.active, .portal-front-tabs .nav-tabs .nav-item.show .nav-link {
+    color: rgba(255, 255, 255, .75) !important;
+    font-size: 25px;
+    background: none;
+    border-color: #dee2e6 #dee2e6 #fff;
+    border-radius: 0;
+    border-top: none;
+}
+
+.portal-front-tabs .nav-tabs .nav-link.active {
+    color: rgba(255, 255, 255, 1) !important;
+    background-image: linear-gradient(rgba(255, 255, 255, 0),rgba(255, 255, 255, 0),rgba(255, 255, 255, 0), rgba(255, 255, 255, .5));
+}
+
+.portal-front-tabs .tab-content {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.portal-front-tabs .tab-content .v-select {
+    width: 50%;
+    margin: auto;
+}
+
+.portal-front-tabs .tab-content .vs__clear {
+    width: 20px;
+}
+
+.portal-front-tabs .tab-content .vs__open-indicator {
+    height: 10px;
+}
+
+.portal-front-tabs .tab-content .vs__dropdown-toggle {
+    background-color: rgba(255, 255, 255, .75);
+    height: 50px;
+}
+
 
 .gene-page-header .card-body {
     padding: 0px 15px !important;

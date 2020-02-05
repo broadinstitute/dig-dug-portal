@@ -26,7 +26,7 @@ Vue.component("v-select", vSelect);
 
 import "vue-select/dist/vue-select.css";
 
-export default Vue.component("phenotype-selectpicker", {
+export default Vue.component("test-phenotype-selectpicker", {
     props: ["phenotypes"],
 
     data() {
@@ -132,8 +132,9 @@ export default Vue.component("phenotype-selectpicker", {
                     // following is to test natches between meta data and data from KPN website
                     /*
                     if (
-                        pName == "All diabetic kidney disease" ||
-                        pName == "End-stage renal disease vs. controls"
+                        pName == "Daytime sleepiness" ||
+                        pName.indexOf("Accelerometer") >= 0 ||
+                        pName.indexOf("Apnea-hypopnea") >= 0
                     ) {
                         console.log(p);
                     }*/
