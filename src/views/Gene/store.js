@@ -24,7 +24,7 @@ export default new Vuex.Store({
         kp4cd,
     },
     state: {
-        mdv: "mdv42",
+        mdv: "mdv400",
         chrom: keyParam.chrom,
         start: Number(keyParam.start),
         end: Number(keyParam.end),
@@ -56,7 +56,7 @@ export default new Vuex.Store({
             window.location.href = "./gene.html?gene=&chrom=" + chrom + "&start=" + start + "&end=" + end;
         },
         onPhenotypeChange(state, phenotype) {
-            console.log(phenotype);
+            //console.log(phenotype);
             mdkp.utility.showHideElement("phenotypeSearchHolder");
             state.commit("setSelectedPhenotype", phenotype);
         }

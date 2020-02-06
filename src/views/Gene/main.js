@@ -74,11 +74,20 @@ new Vue({
                 var phenotypeMap = this.phenotypeMap;
                 phenotypesList.forEach(function (e) {
                     $.each(phenotypeMap, function (j, r) {
+
+
                         if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
                             e["name"] = r.name;
+                            if ($.trim(e.phenotype) == "allstroke") {
+                                console.log(r.phenotype_id + " : " + r.name)
+                            }
                         }
                     });
                 });
+
+                this.$store.state.phenotype = phenotypesList[0].phenotype;
+                this.$store.state.phenotypeName = phenotypesList[0].name;
+
                 return phenotypesList;
             }
         },
