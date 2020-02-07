@@ -18,9 +18,11 @@
             :style="this.$store.state.diseaseGroup != 'md' && this.$store.state.diseaseGroup != 't2d'? 'display: block;height: 50px;':'display: none;'"
         >
             <div class="amp-banner-right">
-                <div class="amp-banner-left" style="padding: 5px; text-align: center;">
-                    <img :src="'images/portals2mdkp_banner.svg'" :class="'portals-2-mdkp-logo'" />
-                </div>
+                <a href="./">
+                    <div class="amp-banner-left" style="padding: 5px; text-align: center;">
+                        <img :src="'images/portals2mdkp_banner.svg'" :class="'portals-2-mdkp-logo'" />
+                    </div>
+                </a>
             </div>
         </div>
         <div :class="'row '+this.$store.state.diseaseGroup+'kp-header'">

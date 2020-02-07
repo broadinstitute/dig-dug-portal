@@ -31,6 +31,7 @@ new Vue({
         this.$store.dispatch("graphPhenotype/list");
         this.$store.commit("table/setLimit", 25);
         this.$store.commit("manhattan/setLimit", 500);
+        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup);
     },
 
     render(createElement, context) {
@@ -38,17 +39,42 @@ new Vue({
     },
 
     computed: {
+        initiallySelected() {
+            this.$store.state.selectedPhenotype = phenotypesList[0].phenotype;
+            this.$store.state.phenotypeName = phenotypesList[0].name;
+        },
+
         phenotypes() {
             return this.$store.getters["graphPhenotype/phenotypes"];
         },
         datasetList() {
             let selectedPhenotype = this.$store.state.selectedPhenotype;
-            if (!selectedPhenotype) {
-                return [];
-            } else {
-                let datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
+            let datasets = null
+
+            //console.log(selectedPhenotype);
+            if (selectedPhenotype != null) {
+                console.log("called with phenotype");
+                datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
+                console.log("datasets");
+
+                console.log(datasets);
+
                 return datasets;
+
+            } else {
+
+                console.log("called without phenotype");
+                datasets = [];
+
+                console.log("datasets");
+
+                console.log(datasets);
+
+                return datasets;
+
             }
+
+
         }
     }
 

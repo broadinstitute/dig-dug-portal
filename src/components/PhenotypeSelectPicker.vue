@@ -37,6 +37,7 @@ export default Vue.component("phenotype-selectpicker", {
 
     updated() {
         //set initial phenotype data for Manhattan plot page
+
         if (
             this.$store.state.mPlotInitialPhenotype &&
             this.$store.state.mPlotInitialPhenotype != null

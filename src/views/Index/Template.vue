@@ -26,7 +26,9 @@
                                 <b-tab title="Explore by phenotype">
                                     <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
                                 </b-tab>
-                                <b-tab title="Set default disease group"></b-tab>
+                                <b-tab title="Set default disease group">
+                                    <disease-group-select></disease-group-select>
+                                </b-tab>
                             </b-tabs>
                         </div>
                     </div>

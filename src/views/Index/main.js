@@ -7,10 +7,11 @@ Vue.config.productionTip = false;
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
-import NewsFeedSection from "@/components/NewsFeedSection.vue";
-import AboutPortalSection from "@/components/AboutPortalSection.vue";
-import AboutProjectSection from "@/components/AboutProjectSection.vue";
-import datasetsSection from "@/components/DatasetsSection.vue";
+import NewsFeedSection from "@/components/frontPage/NewsFeedSection.vue";
+import AboutPortalSection from "@/components/frontPage/AboutPortalSection.vue";
+import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue";
+import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
+import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 
 new Vue({
     store,
@@ -22,7 +23,8 @@ new Vue({
         NewsFeedSection,
         AboutPortalSection,
         AboutProjectSection,
-        datasetsSection
+        DatasetsSection,
+        DiseaseGroupSelect
     },
 
     created() {

@@ -15,6 +15,8 @@ var c = url.searchParams.forEach((value, key) => {
     keyParam[key] = value;
 });
 
+keyParam.group = (keyParam.group == null) ? 'md' : keyParam.group;
+
 export default new Vuex.Store({
     modules: {
         variants: getAggregatedData,
@@ -33,7 +35,8 @@ export default new Vuex.Store({
         newChrom: keyParam.chrom,
         newStart: Number(keyParam.start),
         newEnd: Number(keyParam.end),
-        diseaseGroup: defaultGroup,
+        diseaseGroup: keyParam.group,
+        portalGroup: defaultGroup,
     },
     mutations: {
         setPhenotype(state, phenotype) {

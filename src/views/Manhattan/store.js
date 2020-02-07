@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import { defaultGroup } from "@/modules/defaultPortal";
 import metadataModule from "@/modules/metadataModule";
 import graphPhenotype from "@/modules/graphPhenotype";
+import kp4cd from "@/modules/kp4cd";
 import getVariantDataModule from "@/modules/getVariantDataModule";
 
 Vue.use(Vuex);
@@ -13,7 +14,8 @@ let keyParam = {};
 var c = url.searchParams.forEach((value, key) => {
     keyParam[key] = value;
 });
-var dPhenotype = keyParam.phenotype;
+
+keyParam.group = (keyParam.group == null) ? 'md' : keyParam.group;
 
 export default new Vuex.Store({
     modules: {
@@ -21,22 +23,26 @@ export default new Vuex.Store({
         graphPhenotype,
         manhattan: getVariantDataModule,
         table: getVariantDataModule,
+        kp4cd,
     },
     state: {
-        mPlotInitialPhenotype: dPhenotype,
+        mPlotInitialPhenotype: keyParam.phenotype,
         mPlotInitialDataset: null,
         selectedPhenotype: null,
         selectedDataset: null,
         phenotypes: null,
         phenotypeName: "Select a phenotype",
-        datasetName: "Select a phenotype",
-        diseaseGroup: defaultGroup,
+        datasetName: "Select a dataset",
+        diseaseGroup: keyParam.group,
+        portalGroup: defaultGroup,
     },
     mutations: {
         setPhenotypeName(state, phenotypeName) {
             state.phenotypeName = phenotypeName;
         },
         setSelectedPhenotype(state, phenotype) {
+
+            console.log(phenotype);
             state.selectedPhenotype = phenotype;
             state.phenotypeName = phenotype.name;
             mdkp.utility.showHideElement('phenotypeSearchHolder');
@@ -52,18 +58,18 @@ export default new Vuex.Store({
     },
     actions: {
         onInitialPhenotypeSet(context, selectedPhenotype) {
+            console.log("initial");
             context.commit("setPhenotypeName", selectedPhenotype.name);
-            /* It throws error when "setSelectedPhenotype" is called here */
             context.commit("setSelectedPhenotype", selectedPhenotype);
         },
         onPhenotypeChange(context, selectedPhenotype) {
+            console.log("change");
+
             context.commit("table/clearData");
             context.commit("manhattan/clearData");
             context.commit("setSelectedPhenotype", selectedPhenotype);
         },
         onDatasetChange(context, selectedDataset) {
-            console.log(selectedDataset);
-
             context.commit("setSelectedDataset", selectedDataset);
             context.commit("table/clearData");
             context.commit("manhattan/clearData");

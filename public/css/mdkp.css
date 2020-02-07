@@ -209,6 +209,17 @@ a:hover { text-decoration: none !important; }
     height: 50px;
 }
 
+.portal-front-tabs .tab-content .disease-group-select {
+    width: 50%;
+    margin: auto;
+}
+
+.portal-front-tabs .tab-content .disease-group-select select{
+    height: 50px;
+    width: 100%;
+    font-size: 16px;
+}
+
 
 .gene-page-header .card-body {
     padding: 0px 15px !important;
