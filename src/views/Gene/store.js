@@ -26,7 +26,7 @@ export default new Vuex.Store({
         kp4cd,
     },
     state: {
-        mdv: "mdv400",
+        mdv: "mdv43",
         chrom: keyParam.chrom,
         start: Number(keyParam.start),
         end: Number(keyParam.end),
