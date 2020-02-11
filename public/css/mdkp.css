@@ -6,16 +6,17 @@ a:hover { text-decoration: none !important; }
 /* front page */
 .front-top-banner-mdkp {
     background-image: url(../images/mdkp_front_bg.png), linear-gradient(#0097d6, #8ed8f8);
+    background-position: 120% 100px, top left;
 }
 
 .front-top-banner-cvdkp {
-    background-image: url(../images/mdkp_front_bg.png), linear-gradient(#f58752, #fdbc63);
+    background-image: url(../images/cvdkp_front_bg.png), linear-gradient(#f58752, #fdbc63);
+    background-position: 120% 100px, top left;
 }
 
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
-    background-position: -130px 130px, top left;
     margin: 0 -15px 0 -15px;
     padding: 30px 0 50px 0;
 }
@@ -218,6 +219,21 @@ a:hover { text-decoration: none !important; }
     height: 50px;
     width: 100%;
     font-size: 16px;
+}
+
+.header-disease-group-select-wrapper {
+    display: inline-block;
+    border-left: solid 1px #ddd;
+    margin-left: 10px;
+    padding-left: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.header-disease-group-select-wrapper select {
+    color: #fff;
+    background: none;
+    border: none;
 }
 
 

@@ -1,10 +1,7 @@
 <template>
     <!-- Menu header-->
     <div class="container-fluid">
-        <div
-            class="row amp-header"
-            :style="this.$store.state.diseaseGroup == 'md' || this.$store.state.diseaseGroup == 't2d'? 'display: block':'display: none'"
-        >
+        <div class="row amp-header" v-if="this.$store.state.diseaseGroup == 'md'">
             <div class="amp-banner-right">
                 <div class="amp-banner-left">
                     <a
@@ -15,11 +12,15 @@
         </div>
         <div
             class="row amp-header"
-            :style="this.$store.state.diseaseGroup != 'md' && this.$store.state.diseaseGroup != 't2d'? 'display: block;height: 50px;':'display: none;'"
+            v-if="this.$store.state.diseaseGroup != 'md'"
+            style="height: 50px;"
         >
-            <div class="amp-banner-right">
+            <div class="amp-banner-right" style="height: 50px;">
                 <a href="./">
-                    <div class="amp-banner-left" style="padding: 5px; text-align: center;">
+                    <div
+                        class="amp-banner-left"
+                        style="padding: 5px; text-align: center;height: 50px;"
+                    >
                         <img :src="'images/portals2mdkp_banner.svg'" :class="'portals-2-mdkp-logo'" />
                     </div>
                 </a>
@@ -31,6 +32,12 @@
                     :src="'images/'+this.$store.state.diseaseGroup+'KP_header_logo.svg'"
                     :class="this.$store.state.diseaseGroup+'kp-logo'"
                 />
+                <div
+                    :class="'header-disease-group-select-wrapper'"
+                    v-if="this.$store.state.diseaseGroup == 'md' && currentPage != '/'"
+                >
+                    <disease-group-select></disease-group-select>
+                </div>
             </div>
             <div :class="this.$store.state.diseaseGroup+'kp-menu-wrapper col-md-8'">
                 <ul :class="this.$store.state.diseaseGroup+'kp-menu'">
@@ -64,15 +71,26 @@
 <script>
 import Vue from "vue";
 import VueCookies from "vue-cookies";
+
+import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
+
 Vue.use(VueCookies);
+
+let url = new URL(document.URL);
+let currentPath = url.pathname;
 
 export default Vue.component("page-header", {
     data() {
-        return {};
+        return {
+            currentPage: currentPath
+        };
     },
     created() {
         //simple cookie check for now
         this.user = Vue.$cookies.isKey("email") || false;
+    },
+    componenets: {
+        DiseaseGroupSelect
     }
 });
 </script>

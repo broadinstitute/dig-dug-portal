@@ -33,18 +33,11 @@ export default new Vuex.Store({
     mutations: {
         setPhenotypes(state, phenotypes) {
             state.phenotypes = phenotypes;
-        },
-        setselectedDiseaseGroup(state, selectedDiseaseGroup) {
-            state.diseaseGroup = selectedDiseaseGroup;
         }
     },
     actions: {
         onPhenotypeChange(context, selectedPhenotype) {
             window.location.href = "./manhattan.html?phenotype=" + selectedPhenotype.phenotype_id + '&group=' + this.state.diseaseGroup;
-        },
-        onDiseaseGroupChange(context, selectedDiseaseGroup) {
-            //context.commit("setselectedDiseaseGroup", selectedDiseaseGroup);
-            window.location.href = "./?group=" + selectedDiseaseGroup;
-        },
+        }
     }
 });

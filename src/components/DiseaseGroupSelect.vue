@@ -1,9 +1,6 @@
 <template>
     <div class="disease-group-select">
-        <select
-            v-model="diseaseGroup"
-            @change="$store.dispatch('onDiseaseGroupChange', diseaseGroup);"
-        >
+        <select v-model="diseaseGroup" @change="onDiseaseGroupChange(diseaseGroup);">
             <option v-for="group in groups" v-bind:value="group.value">{{ group.text }}</option>
         </select>
     </div>
@@ -25,6 +22,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 export default Vue.component("disease-group-select", {
     data() {
         return {
+            diseaseGroup: this.$store.state.diseaseGroup,
             groups: [
                 { text: "Metabolic Disorders", value: "md" },
                 { text: "Type 2 Diabetes", value: "t2d" },
@@ -33,6 +31,11 @@ export default Vue.component("disease-group-select", {
                 { text: "Sleep Disorder", value: "sleep" }
             ]
         };
+    },
+    methods: {
+        onDiseaseGroupChange: function(selectedDiseaseGroup) {
+            window.location.href = "./?group=" + selectedDiseaseGroup;
+        }
     }
 });
 </script>
