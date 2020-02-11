@@ -59,7 +59,7 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <mplot-variants-table></mplot-variants-table>
+                    <mplot-variants-table v-if="$store.state.manhattan.variants != null"></mplot-variants-table>
                 </div>
             </div>
         </div>

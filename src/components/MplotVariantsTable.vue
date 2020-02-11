@@ -1,6 +1,12 @@
 <template>
     <div>
-        <b-table hover :fields="fields" :items="variantsCleaned" :tbody-tr-class="rowClass">
+        <b-table
+            hover
+            :id="variants-table"
+            :fields="fields"
+            :items="variantsCleaned"
+            :tbody-tr-class="rowClass"
+        >
             <template v-slot:cell(rsid)="data">{{ data.value }}</template>
             <template v-slot:cell(p_value)="data">{{ data.value }}</template>
             <template v-slot:cell(chromosome)="data">{{ data.value }}</template>

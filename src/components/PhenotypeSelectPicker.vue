@@ -57,9 +57,18 @@ export default Vue.component("phenotype-selectpicker", {
 
     computed: {
         phenotypeOptions() {
-            let onlyUnique = function(value, index, self) {
-                return self.indexOf(value) === index;
+            var getUnique = function(inputArray) {
+                var outputArray = [];
+
+                for (var i = 0; i < inputArray.length; i++) {
+                    if ($.inArray(inputArray[i], outputArray) == -1) {
+                        outputArray.push(inputArray[i].trim());
+                    }
+                }
+
+                return outputArray;
             };
+
             let phenotypes = [];
             let phenotypesNames = [];
             //console.log("datasetsInfo");
@@ -85,8 +94,12 @@ export default Vue.component("phenotype-selectpicker", {
                         );
                         tempPhenotypes.forEach(function(p) {
                             if (phenotypes[p]) {
-                                phenotypes[p] =
+                                let portals =
                                     phenotypes[p] + "," + dataset.field_portals;
+                                let portalsArr = portals.split(",");
+                                portalsArr = getUnique(portalsArr);
+
+                                phenotypes[p] = portalsArr.join();
                             } else {
                                 phenotypes[p] = dataset.field_portals;
                             }
@@ -103,8 +116,12 @@ export default Vue.component("phenotype-selectpicker", {
                         );
                         tempPhenotypes.forEach(function(p) {
                             if (phenotypes[p]) {
-                                phenotypes[p] =
+                                let portals =
                                     phenotypes[p] + "," + dataset.field_portals;
+                                let portalsArr = portals.split(",");
+                                portalsArr = getUnique(portalsArr);
+
+                                phenotypes[p] = portalsArr.join();
                             } else {
                                 phenotypes[p] = dataset.field_portals;
                             }
