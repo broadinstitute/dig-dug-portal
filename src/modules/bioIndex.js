@@ -17,6 +17,7 @@ export default function (index, extend) {
                 count: null,
                 profile: {},
                 userWantsAbort: null,
+                loading: false,
             };
         },
 
@@ -45,6 +46,10 @@ export default function (index, extend) {
                 state.userWantsAbort = flag;
             },
 
+            setLoading(state, flag) {
+                state.loading = flag;
+            },
+
             appendData(state, json) {
                 state.data = state.data.concat(json.data);
                 state.profile.fetch += json.profile.fetch;
@@ -65,8 +70,9 @@ export default function (index, extend) {
             async query(context, { q, all, limit, cont }) {
                 let qs = querystring.encode({q, limit});
 
-                // clear the abort flag
+                // clear the abort flag, set loading
                 context.commit('setAbort', false);
+                context.commit('setLoading', true);
 
                 // issue the request
                 let action = (!!all) ? 'all' : 'query';
@@ -84,6 +90,9 @@ export default function (index, extend) {
 
                     context.commit('appendData', json);
                 }
+
+                // no longer loading
+                context.commit('setLoading', false);
             },
         },
     };
