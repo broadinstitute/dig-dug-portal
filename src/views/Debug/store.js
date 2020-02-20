@@ -1,19 +1,18 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-import kp4cd from "@/modules/kp4cd";
+import bioIndexAssociations from "@/modules/bioIndexAssociations";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        kp4cd
+        bioIndexAssociations,
     },
     state: {
 
     },
     mutations: {
-
 
     },
     actions: {

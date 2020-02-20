@@ -16,7 +16,8 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("kp4cd/getNewsFeed");
+        this.$store.dispatch("bioIndexAssociations/count", {q: 'slc30a8'});
+        this.$store.dispatch("bioIndexAssociations/query", {q: 'slc30a8', cont: true});
     },
 
     render(createElement, context) {
@@ -24,7 +25,13 @@ new Vue({
     },
 
     computed: {
+        variantData() {
+            return this.$store.state.bioIndexAssociations.data;
+        },
 
+        percentComplete() {
+            return this.$store.getters['bioIndexAssociations/percentComplete'];
+        }
     },
 
     watch: {

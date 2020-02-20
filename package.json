@@ -15,9 +15,10 @@
     "jsonpath": "^1.0.2",
     "locuszoom": "^0.9.1",
     "lodash.merge": "^4.6.2",
+    "querystring": "^0.2.0",
     "vue": "^2.6.11",
-    "vue-select": "^3.4.0",
     "vue-cookies": "^1.6.1",
+    "vue-select": "^3.4.0",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
