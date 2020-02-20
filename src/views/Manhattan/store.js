@@ -1,21 +1,13 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-import { defaultGroup } from "@/modules/defaultPortal";
 import metadataModule from "@/modules/metadataModule";
 import graphPhenotype from "@/modules/graphPhenotype";
 import kp4cd from "@/modules/kp4cd";
 import getVariantDataModule from "@/modules/getVariantDataModule";
+import diseaseGroup from "@/modules/diseaseGroup";
 
 Vue.use(Vuex);
-
-var url = new URL(document.URL);
-let keyParam = {};
-var c = url.searchParams.forEach((value, key) => {
-    keyParam[key] = value;
-});
-
-keyParam.group = (keyParam.group == null) ? 'md' : keyParam.group;
 
 export default new Vuex.Store({
     modules: {
@@ -24,17 +16,14 @@ export default new Vuex.Store({
         manhattan: getVariantDataModule,
         table: getVariantDataModule,
         kp4cd,
+        diseaseGroup
     },
     state: {
-        mPlotInitialPhenotype: keyParam.phenotype,
-        mPlotInitialDataset: null,
         selectedPhenotype: null,
         selectedDataset: null,
         phenotypes: null,
         phenotypeName: "Select a phenotype",
         datasetName: "Select a dataset",
-        diseaseGroup: keyParam.group,
-        portalGroup: defaultGroup,
     },
     mutations: {
         setPhenotypeName(state, phenotypeName) {
@@ -57,11 +46,6 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        onInitialPhenotypeSet(context, selectedPhenotype) {
-            console.log("initial");
-            context.commit("setPhenotypeName", selectedPhenotype.name);
-            context.commit("setSelectedPhenotype", selectedPhenotype);
-        },
         onPhenotypeChange(context, selectedPhenotype) {
             console.log("change");
 

@@ -49,18 +49,10 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body">
-                    <manhattan-plot
-                        v-bind:variants="$store.state.manhattan.variants"
-                        v-bind:dataset="$store.state.selectedDataset"
-                        v-bind:phenotype="$store.state.selectedPhenotype"
-                    ></manhattan-plot>
-                </div>
+                <div class="card-body"></div>
             </div>
             <div class="card mdkp-card">
-                <div class="card-body">
-                    <mplot-variants-table></mplot-variants-table>
-                </div>
+                <div class="card-body"></div>
             </div>
         </div>
 

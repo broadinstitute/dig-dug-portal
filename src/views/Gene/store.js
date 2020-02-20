@@ -2,10 +2,10 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import $ from "jquery";
-import { defaultGroup } from "@/modules/defaultPortal";
 import getAggregatedData from "@/modules/getAggregatedData";
 import graphPhenotype from "@/modules/graphPhenotype";
 import kp4cd from "@/modules/kp4cd";
+import diseaseGroup from "@/modules/diseaseGroup";
 
 Vue.use(Vuex);
 
@@ -24,6 +24,7 @@ export default new Vuex.Store({
         phenotypes: getAggregatedData,
         graphPhenotype,
         kp4cd,
+        diseaseGroup
     },
     state: {
         mdv: "mdv43",
@@ -35,8 +36,6 @@ export default new Vuex.Store({
         newChrom: keyParam.chrom,
         newStart: Number(keyParam.start),
         newEnd: Number(keyParam.end),
-        diseaseGroup: keyParam.group,
-        portalGroup: defaultGroup,
     },
     mutations: {
         setPhenotype(state, phenotype) {

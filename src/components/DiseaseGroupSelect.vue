@@ -22,7 +22,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 export default Vue.component("disease-group-select", {
     data() {
         return {
-            diseaseGroup: this.$store.state.diseaseGroup,
+            diseaseGroup: null,
             groups: [
                 { text: "Metabolic Disorders", value: "md" },
                 { text: "Type 2 Diabetes", value: "t2d" },
@@ -36,6 +36,9 @@ export default Vue.component("disease-group-select", {
         onDiseaseGroupChange: function(selectedDiseaseGroup) {
             window.location.href = "./?group=" + selectedDiseaseGroup;
         }
+    },
+    mounted() {
+        this.diseaseGroup = this.$store.state.diseaseGroup.id;
     }
 });
 </script>

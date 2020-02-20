@@ -34,27 +34,6 @@ export default Vue.component("phenotype-selectpicker", {
             selectedPhenotype: null
         };
     },
-
-    updated() {
-        //set initial phenotype data for Manhattan plot page
-
-        if (
-            this.$store.state.mPlotInitialPhenotype &&
-            this.$store.state.mPlotInitialPhenotype != null
-        ) {
-            let initialPhenotype = this.$store.state.mPlotInitialPhenotype;
-            var initialActionObj = this.$store;
-            $.each(this.phenotypeMap, function(i, e) {
-                $.each(e, function(j, r) {
-                    if (initialPhenotype == r.phenotype_id) {
-                        initialActionObj.dispatch("onInitialPhenotypeSet", r);
-                        initialActionObj.state.mPlotInitialPhenotype = null;
-                    }
-                });
-            });
-        }
-    },
-
     computed: {
         phenotypeOptions() {
             var getUnique = function(inputArray) {
@@ -71,13 +50,14 @@ export default Vue.component("phenotype-selectpicker", {
 
             let phenotypes = [];
             let phenotypesNames = [];
-            //console.log("datasetsInfo");
-            //console.log(this.$store.state.kp4cd.datasetsInfo);
             let diseaseGroup =
-                this.$store.state.diseaseGroup == "cvd"
+                this.$store.state.diseaseGroup.id == "cvd"
                     ? "mi"
-                    : this.$store.state.diseaseGroup;
+                    : this.$store.state.diseaseGroup.id;
             let publishedDatasets = this.$store.state.kp4cd.datasetsInfo;
+
+            //console.log("publishedDatasets");
+            //console.log(publishedDatasets);
 
             publishedDatasets.forEach(function(dataset) {
                 if (diseaseGroup == "md") {
@@ -87,8 +67,6 @@ export default Vue.component("phenotype-selectpicker", {
                         dataset.field_portals.indexOf("mi") >= 0 ||
                         dataset.field_portals.indexOf("sleep") >= 0
                     ) {
-                        //console.log(dataset.field_portals);
-                        //console.log(dataset.field_phenotypes.split("\r\n"));
                         let tempPhenotypes = dataset.field_phenotypes.split(
                             "\r\n"
                         );
@@ -103,10 +81,6 @@ export default Vue.component("phenotype-selectpicker", {
                             } else {
                                 phenotypes[p] = dataset.field_portals;
                             }
-
-                            //phenotypesNames.push(p);
-
-                            //console.log(p + " : " + dataset.title);
                         });
                     }
                 } else {
@@ -125,10 +99,6 @@ export default Vue.component("phenotype-selectpicker", {
                             } else {
                                 phenotypes[p] = dataset.field_portals;
                             }
-
-                            //phenotypesNames.push(p);
-
-                            //console.log(p + " : " + dataset.title);
                         });
                     }
                 }
@@ -144,21 +114,10 @@ export default Vue.component("phenotype-selectpicker", {
                         tempObj["portal"] = phenotypes[pName];
                         phenotypeList.push(tempObj);
                     }
-
-                    //console.log(pName);
-
-                    // following is to test natches between meta data and data from KPN website
-                    /*
-                    if (
-                        pName == "All diabetic kidney disease" ||
-                        pName == "End-stage renal disease vs. controls"
-                    ) {
-                        console.log(p);
-                    }*/
                 });
             }
 
-            console.log(phenotypeList.length);
+            //console.log(phenotypeList.length);
 
             return phenotypeList;
         },

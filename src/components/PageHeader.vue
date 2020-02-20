@@ -1,7 +1,7 @@
 <template>
     <!-- Menu header-->
     <div class="container-fluid">
-        <div class="row amp-header" v-if="this.$store.state.diseaseGroup == 'md'">
+        <div class="row amp-header" v-if="diseaseGroup == 'md'">
             <div class="amp-banner-right">
                 <div class="amp-banner-left">
                     <a
@@ -10,11 +10,7 @@
                 </div>
             </div>
         </div>
-        <div
-            class="row amp-header"
-            v-if="this.$store.state.diseaseGroup != 'md'"
-            style="height: 50px;"
-        >
+        <div class="row amp-header" v-if="diseaseGroup != 'md'" style="height: 50px;">
             <div class="amp-banner-right" style="height: 50px;">
                 <a href="./">
                     <div
@@ -26,21 +22,21 @@
                 </a>
             </div>
         </div>
-        <div :class="'row '+this.$store.state.diseaseGroup+'kp-header'">
-            <div :class="this.$store.state.diseaseGroup+'kp-logo-wrapper col-md-4'">
+        <div :class="'row '+diseaseGroup+'kp-header'">
+            <div :class="diseaseGroup+'kp-logo-wrapper col-md-4'">
                 <img
-                    :src="'images/'+this.$store.state.diseaseGroup+'KP_header_logo.svg'"
-                    :class="this.$store.state.diseaseGroup+'kp-logo'"
+                    :src="'images/'+diseaseGroup+'KP_header_logo.svg'"
+                    :class="diseaseGroup+'kp-logo'"
                 />
                 <div
                     :class="'header-disease-group-select-wrapper'"
-                    v-if="this.$store.state.diseaseGroup == 'md' && currentPage != '/'"
+                    v-if="diseaseGroup == 'md' && currentPage != '/' && currentPage != ''"
                 >
                     <disease-group-select></disease-group-select>
                 </div>
             </div>
-            <div :class="this.$store.state.diseaseGroup+'kp-menu-wrapper col-md-8'">
-                <ul :class="this.$store.state.diseaseGroup+'kp-menu'">
+            <div :class="diseaseGroup+'kp-menu-wrapper col-md-8'">
+                <ul :class="diseaseGroup+'kp-menu'">
                     <li>
                         <a href>Home</a>
                     </li>
@@ -57,10 +53,10 @@
                         <a href>Contacts</a>
                     </li>
                     <li v-if="user">
-                        <a href="/logout" :class="this.$store.state.diseaseGroup+'kp-login'">Logout</a>
+                        <a href="/logout" :class="diseaseGroup+'kp-login'">Logout</a>
                     </li>
                     <li v-else>
-                        <a href="/login" :class="this.$store.state.diseaseGroup+'kp-login'">Login</a>
+                        <a href="/login" :class="diseaseGroup+'kp-login'">Login</a>
                     </li>
                 </ul>
             </div>
@@ -76,14 +72,9 @@ import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 
 Vue.use(VueCookies);
 
-let url = new URL(document.URL);
-let currentPath = url.pathname;
-
 export default Vue.component("page-header", {
     data() {
-        return {
-            currentPage: currentPath
-        };
+        return {};
     },
     created() {
         //simple cookie check for now
@@ -91,6 +82,17 @@ export default Vue.component("page-header", {
     },
     componenets: {
         DiseaseGroupSelect
+    },
+    data() {
+        return {};
+    },
+    computed: {
+        diseaseGroup() {
+            return this.$store.state.diseaseGroup.id;
+        },
+        currentPage() {
+            return this.$store.state.diseaseGroup.currentPath;
+        }
     }
 });
 </script>

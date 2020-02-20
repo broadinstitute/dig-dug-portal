@@ -9,12 +9,5 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("about-portal-section", {
-    props: [],
-    data() {
-        return {};
-    },
-    methods: {},
-    computed: {}
-});
+export default Vue.component("about-portal-section", {});
 </script>

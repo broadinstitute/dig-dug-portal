@@ -37,6 +37,8 @@ new Vue({
         let start = this.$store.state.start;
         let end = this.$store.state.end;
         let phenotype = this.$store.state.phenotype;
+
+        console.log(mdv + chrom + start + end + phenotype);
         this.$store.commit("variants/setCall", "variants");
         this.$store.commit("phenotypes/setCall", "phenotypes");
         this.$store.dispatch("variants/getAggregatedData", {
@@ -53,7 +55,7 @@ new Vue({
             end
         });
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup);
+        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
     },
 
     render(createElement, context) {

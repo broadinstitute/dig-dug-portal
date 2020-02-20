@@ -5,17 +5,19 @@
 
         <!-- Body -->
         <div class="fluid">
-            <div :class="'front-top-banner-'+this.$store.state.diseaseGroup+'kp front-top-banner'">
+            <div
+                :class="'front-top-banner-'+this.$store.state.diseaseGroup.id+'kp front-top-banner'"
+            >
                 <div class="container">
                     <div class="row">
                         <div class="col-md-12">
                             <div class="front-logo-wrapper">
                                 <img
                                     class="front-logo-img"
-                                    :src="'images/'+this.$store.state.diseaseGroup+'kp_front_logo.svg'"
+                                    :src="'images/'+this.$store.state.diseaseGroup.id+'kp_front_logo.svg'"
                                 />
                                 <span
-                                    :class="'front-logo-tagline front-logo-tagline-'+this.$store.state.diseaseGroup+'kp'"
+                                    :class="'front-logo-tagline front-logo-tagline-'+this.$store.state.diseaseGroup.id+'kp'"
                                 >Providing data and tools to promote understanding of cardiometabolic disorders and their complications</span>
                             </div>
                         </div>
@@ -28,7 +30,7 @@
                                 </b-tab>
                                 <b-tab
                                     title="Set default disease group"
-                                    v-if="this.$store.state.diseaseGroup == 'md'"
+                                    v-if="this.$store.state.diseaseGroup.id == 'md'"
                                 >
                                     <disease-group-select></disease-group-select>
                                 </b-tab>

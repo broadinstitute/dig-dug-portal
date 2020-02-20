@@ -5,29 +5,21 @@ import Vuex from "vuex";
 import metadataModule from "@/modules/metadataModule";
 import graphPhenotype from "@/modules/graphPhenotype";
 import kp4cd from "@/modules/kp4cd";
+import diseaseGroup from "@/modules/diseaseGroup";
 
 
 Vue.use(Vuex);
-
-var url = new URL(document.URL);
-let keyParam = {};
-var c = url.searchParams.forEach((value, key) => {
-    keyParam[key] = value;
-});
-
-keyParam.group = (keyParam.group == null) ? 'md' : keyParam.group;
 
 export default new Vuex.Store({
     modules: {
         metadataModule,
         graphPhenotype,
         kp4cd,
+        diseaseGroup
     },
     state: {
         selectedPhenotype: null,
         phenotypes: null,
-        diseaseGroup: keyParam.group,
-        newsItems: kp4cd.newsFeed,
         newsIndex: [],
     },
     mutations: {
@@ -37,7 +29,7 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, selectedPhenotype) {
-            window.location.href = "./manhattan.html?phenotype=" + selectedPhenotype.phenotype_id + '&group=' + this.state.diseaseGroup;
+            window.location.href = "./manhattan.html?phenotype=" + selectedPhenotype.phenotype_id + '&group=' + this.state.diseaseGroup.id;
         }
     }
 });

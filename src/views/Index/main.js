@@ -30,9 +30,9 @@ new Vue({
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.dispatch("kp4cd/getNewsFeed", this.$store.state.diseaseGroup);
-        this.$store.dispatch("kp4cd/getFrontContents", this.$store.state.diseaseGroup);
-        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup);
+        this.$store.dispatch("kp4cd/getNewsFeed", this.$store.state.diseaseGroup.id);
+        this.$store.dispatch("kp4cd/getFrontContents", this.$store.state.diseaseGroup.id);
+        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
     },
 
     render(createElement, context) {

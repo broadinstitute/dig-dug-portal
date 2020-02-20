@@ -8,7 +8,7 @@
                 <span>
                     ...
                     <a
-                        :href="'http://kp4cd.org/new_features/'+$store.state.diseaseGroup+'?nid='+item.nid"
+                        :href="'http://kp4cd.org/new_features/'+diseaseGroup+'?nid='+item.nid"
                         target="_blank"
                     >Read more</a>
                 </span>
@@ -17,13 +17,13 @@
         <div class="news-items-ui">
             <a
                 href="javascript:;"
-                v-for="item in this.$store.state.newsIndex"
+                v-for="item in this.newsIndex"
                 v-on:click="onSwitchNews(item)"
                 :class="item == 1? 'on-view':''"
             >{{ item }}</a>
         </div>
         <a
-            href="http://www.kp4cd.org/new_features/mdkp"
+            :href="'http://www.kp4cd.org/new_features/'+diseaseGroup"
             target="_blank"
             style="display: block; position: absolute; bottom: -5px; font-weight: 600;"
         >View news archive ></a>
@@ -34,16 +34,32 @@
 import Vue from "vue";
 import $ from "jquery";
 
+let url = new URL(document.URL);
+let currentPath = url.pathname;
+
+let keyParam = {};
+var c = url.searchParams.forEach((value, key) => {
+    keyParam[key] = value;
+});
+
+keyParam.group =
+    keyParam.group == null
+        ? "md"
+        : keyParam.group == "cvd"
+        ? "mi"
+        : keyParam.group;
+
 export default Vue.component("news-feed-section", {
-    props: ["newsItems"],
+    props: [],
     data() {
         return {
-            newsIndex: null
+            newsIndex: [],
+            diseaseGroup: keyParam.group
         };
     },
     methods: {
         onSwitchNews: function(NEWSINDEX) {
-            let newsItemsNum = this.$store.state.newsIndex.length + 1;
+            let newsItemsNum = this.newsIndex.length + 1;
             let newsNum = NEWSINDEX == newsItemsNum ? 1 : NEWSINDEX;
 
             $(".news-items-ui")
@@ -72,8 +88,8 @@ export default Vue.component("news-feed-section", {
     computed: {
         filteredNews() {
             let filteredPortalNews = [];
-            let portal = this.$store.state.diseaseGroup;
-            let newsUIIndex = this.$store.state.newsIndex;
+            let portal = this.diseaseGroup;
+            let newsUIIndex = this.newsIndex;
             let newsNum = 0;
             $.each(this.$store.state.kp4cd.newsFeed, function(index, news) {
                 if (newsNum < 4) {

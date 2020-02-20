@@ -273,7 +273,7 @@ export default Vue.component("datasets-section", {
     },
     watch: {
         datasetsInfo(datasetsInfo) {
-            if (this.$store.state.diseaseGroup == "md")
+            if (this.$store.state.diseaseGroup.id == "md")
                 this.renderCharts(datasetsInfo);
         }
     }

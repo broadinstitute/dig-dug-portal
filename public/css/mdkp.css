@@ -161,6 +161,8 @@ a:hover { text-decoration: none !important; }
 .mdkp-body, .cvdkp-body {
     background-color: #eee;
     min-height: 400px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 .mdkp-card, .cvdkp-card {
     margin-top: 10px;

@@ -31,7 +31,7 @@ new Vue({
         this.$store.dispatch("graphPhenotype/list");
         this.$store.commit("table/setLimit", 25);
         this.$store.commit("manhattan/setLimit", 500);
-        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup);
+        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
     },
 
     render(createElement, context) {
