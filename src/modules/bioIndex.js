@@ -14,18 +14,19 @@ export default function (index, extend) {
         state() {
             return {
                 data: [],
-                count: undefined,
+                count: null,
                 profile: {},
+                userWantsAbort: null,
             };
         },
 
         getters: {
             percentComplete(state) {
                 if (!state.count) {
-                    return undefined;
+                    return null;
                 }
 
-                return Math.max(state.data.length / state.count, 1.0);
+                return Math.min(state.data.length / state.count, 1.0);
             }
         },
 
@@ -40,18 +41,23 @@ export default function (index, extend) {
                 state.count = n;
             },
 
+            setAbort(state, flag) {
+                state.userWantsAbort = flag;
+            },
+
             appendData(state, json) {
-                state.data.concat(json.data);
+                state.data = state.data.concat(json.data);
                 state.profile.fetch += json.profile.fetch;
-            }
+            },
         },
 
         // dispatch methods
         actions: {
             async count(context, { q }) {
+                let qs = querystring.encode({q});
                 let json  = await fetch(`${bioIndexHost}/api/count/${index}?${qs}`)
                     .then(resp => resp.json())
-                    .catch(() => {count: undefined});
+                    .catch(error => {count: null});
 
                 context.commit('setCount', json.count);
             },
@@ -59,6 +65,10 @@ export default function (index, extend) {
             async query(context, { q, all, limit, cont }) {
                 let qs = querystring.encode({q, limit});
 
+                // clear the abort flag
+                context.commit('setAbort', false);
+
+                // issue the request
                 let action = (!!all) ? 'all' : 'query';
                 let json = await fetch(`${bioIndexHost}/api/${action}/${index}?${qs}`)
                     .then(resp => resp.json());
@@ -66,7 +76,8 @@ export default function (index, extend) {
                 // set the data
                 context.commit('setResponse', json);
 
-                while (cont && json.continuation) {
+                // loop until done or user aborts
+                while (cont && !context.state.userWantsAbort && json.continuation) {
                     qs = querystring.encode({token: json.continuation});
                     json = await fetch(`${bioIndexHost}/api/cont?${qs}`)
                         .then(resp => resp.json());
