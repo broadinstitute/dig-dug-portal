@@ -16,8 +16,9 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("bioIndexAssociations/count", {q: 'slc30a8'});
-        this.$store.dispatch("bioIndexAssociations/query", {q: 'slc30a8', cont: true});
+        //this.$store.dispatch("associations/count", {q: 'slc30a8'});
+        //this.$store.dispatch("associations/query", {q: 'slc30a8', cont: true});
+        this.$store.dispatch("bioIndexTopAssociations/query", {q: 'slc30a8', cont: true});
     },
 
     render(createElement, context) {
@@ -26,11 +27,28 @@ new Vue({
 
     computed: {
         variantData() {
-            return this.$store.state.bioIndexAssociations.data;
+            return this.$store.state.bioIndexTopAssociations.data;
+        },
+
+        topAssociations() {
+            let top = {};
+
+            this.variantData.forEach(v => {
+                let p = v.phenotype;
+
+                if (!top[p] || v.pValue < top[p].pValue) {
+                    top[p] = v;
+                }
+            });
+
+            let associations = Object.values(top);
+            associations.sort((a, b) => a.pValue - b.pValue);
+
+            return associations;
         },
 
         percentComplete() {
-            return this.$store.getters['bioIndexAssociations/percentComplete'];
+            return this.$store.getters['bioIndexTopAssociations/percentComplete'];
         }
     },
 

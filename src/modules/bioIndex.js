@@ -52,6 +52,13 @@ export default function (index, extend) {
 
             appendData(state, json) {
                 state.data = state.data.concat(json.data);
+
+                // if there was a count, and we have more, match
+                if (state.count && state.data.length > state.count) {
+                    state.count = state.data.length;
+                }
+
+                // total time profile
                 state.profile.fetch += json.profile.fetch;
             },
         },
