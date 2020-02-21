@@ -16,7 +16,7 @@ export default function (index, extend) {
                 data: [],
                 count: null,
                 profile: {},
-                userWantsAbort: null,
+                aborted: null,
                 loading: false,
             };
         },
@@ -43,7 +43,7 @@ export default function (index, extend) {
             },
 
             setAbort(state, flag) {
-                state.userWantsAbort = flag;
+                state.aborted = flag;
             },
 
             setLoading(state, flag) {
@@ -90,7 +90,7 @@ export default function (index, extend) {
                 context.commit('setResponse', json);
 
                 // loop until done or user aborts
-                while (cont && !context.state.userWantsAbort && json.continuation) {
+                while (cont && !context.state.aborted && json.continuation) {
                     qs = querystring.encode({token: json.continuation});
                     json = await fetch(`${bioIndexHost}/api/cont?${qs}`)
                         .then(resp => resp.json());
@@ -98,7 +98,8 @@ export default function (index, extend) {
                     context.commit('appendData', json);
                 }
 
-                // no longer loading
+                // set the final count and clear loading flag
+                context.commit('setCount', context.state.data.length);
                 context.commit('setLoading', false);
             },
         },
