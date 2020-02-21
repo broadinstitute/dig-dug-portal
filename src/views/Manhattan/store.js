@@ -3,16 +3,11 @@ import Vuex from "vuex";
 
 import metadataModule from "@/modules/metadataModule";
 import graphPhenotype from "@/modules/graphPhenotype";
+import kp4cd from "@/modules/kp4cd";
 import getVariantDataModule from "@/modules/getVariantDataModule";
+import diseaseGroup from "@/modules/diseaseGroup";
 
 Vue.use(Vuex);
-
-var url = new URL(document.URL);
-let keyParam = {};
-var c = url.searchParams.forEach((value, key) => {
-  keyParam[key] = value;
-});
-var dPhenotype = keyParam.phenotype;
 
 export default new Vuex.Store({
     modules: {
@@ -20,15 +15,15 @@ export default new Vuex.Store({
         graphPhenotype,
         manhattan: getVariantDataModule,
         table: getVariantDataModule,
+        kp4cd,
+        diseaseGroup
     },
     state: {
-        mPlotInitialPhenotype:dPhenotype,
-        mPlotInitialDataset:null,
         selectedPhenotype: null,
         selectedDataset: null,
         phenotypes: null,
         phenotypeName: "Select a phenotype",
-        datasetName: "Select a phenotype",
+        datasetName: "Select a dataset",
     },
     mutations: {
         setPhenotypeName(state, phenotypeName) {
@@ -49,19 +44,12 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        onInitialPhenotypeSet(context, selectedPhenotype) {
-            context.commit("setPhenotypeName", selectedPhenotype.name);
-            /* It throws error when "setSelectedPhenotype" is called here */
-            context.commit("setSelectedPhenotype", selectedPhenotype);
-        },
         onPhenotypeChange(context, selectedPhenotype) {
             context.commit("table/clearData");
             context.commit("manhattan/clearData");
             context.commit("setSelectedPhenotype", selectedPhenotype);
         },
         onDatasetChange(context, selectedDataset) {
-            console.log(selectedDataset);
-
             context.commit("setSelectedDataset", selectedDataset);
             context.commit("table/clearData");
             context.commit("manhattan/clearData");

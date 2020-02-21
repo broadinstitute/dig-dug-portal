@@ -37,6 +37,8 @@ new Vue({
         let start = this.$store.state.start;
         let end = this.$store.state.end;
         let phenotype = this.$store.state.phenotype;
+
+        //console.log(mdv + chrom + start + end + phenotype);
         this.$store.commit("variants/setCall", "variants");
         this.$store.commit("phenotypes/setCall", "phenotypes");
         this.$store.dispatch("variants/getAggregatedData", {
@@ -53,6 +55,7 @@ new Vue({
             end
         });
         this.$store.dispatch("graphPhenotype/list");
+        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
     },
 
     render(createElement, context) {
@@ -73,11 +76,17 @@ new Vue({
                 var phenotypeMap = this.phenotypeMap;
                 phenotypesList.forEach(function (e) {
                     $.each(phenotypeMap, function (j, r) {
+
+
                         if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
                             e["name"] = r.name;
                         }
                     });
                 });
+
+                this.$store.state.phenotype = phenotypesList[0].phenotype;
+                this.$store.state.phenotypeName = phenotypesList[0].name;
+
                 return phenotypesList;
             }
         },

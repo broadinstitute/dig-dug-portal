@@ -1,9 +1,12 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
+//import { defaultGroup } from "@/modules/defaultPortal";
 import metadataModule from "@/modules/metadataModule";
 import graphPhenotype from "@/modules/graphPhenotype";
-import getVariantDataModule from "@/modules/getVariantDataModule";
+import kp4cd from "@/modules/kp4cd";
+import diseaseGroup from "@/modules/diseaseGroup";
+
 
 Vue.use(Vuex);
 
@@ -11,42 +14,22 @@ export default new Vuex.Store({
     modules: {
         metadataModule,
         graphPhenotype,
-        manhattan: getVariantDataModule,
-        table: getVariantDataModule,
+        kp4cd,
+        diseaseGroup
     },
     state: {
         selectedPhenotype: null,
-        selectedDataset: null,
-        phenotypes: null
+        phenotypes: null,
+        newsIndex: [],
     },
     mutations: {
-        setSelectedPhenotype(state, phenotype) {
-            state.selectedPhenotype = phenotype;
-        },
-        setSelectedDataset(state, dataset) {
-            state.selectedDataset = dataset;
-        },
         setPhenotypes(state, phenotypes) {
             state.phenotypes = phenotypes;
         }
     },
     actions: {
         onPhenotypeChange(context, selectedPhenotype) {
-            context.commit("table/clearData");
-            context.commit("manhattan/clearData");
-            context.commit("setSelectedPhenotype", selectedPhenotype);
-        },
-        onDatasetChange(context, selectedDataset) {
-            context.commit("setSelectedDataset", selectedDataset);
-            context.commit("table/clearData");
-            context.commit("manhattan/clearData");
-            context.dispatch("performGetData");
-        },
-        performGetData(context) {
-            let dataset = context.state.selectedDataset;
-            let phenotype = context.state.selectedPhenotype;
-            context.dispatch("table/getData", { dataset, phenotype });
-            context.dispatch("manhattan/getData", { dataset, phenotype });
+            window.location.href = "./manhattan.html?phenotype=" + selectedPhenotype.phenotype_id + '&group=' + this.state.diseaseGroup.id;
         }
     }
 });

@@ -16,9 +16,9 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("associations/count", {q: 'slc30a8'});
-        this.$store.dispatch("associations/query", {q: 'slc30a8', cont: true});
-        this.$store.dispatch("topAssociations/query", {q: 'slc30a8', cont: true});
+        this.$store.dispatch("associations/count", { q: 'slc30a8' });
+        this.$store.dispatch("associations/query", { q: 'slc30a8', cont: true });
+        this.$store.dispatch("topAssociations/query", { q: 'slc30a8', cont: true });
     },
 
     render(createElement, context) {

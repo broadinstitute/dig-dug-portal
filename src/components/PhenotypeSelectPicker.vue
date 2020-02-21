@@ -1,74 +1,130 @@
 <template>
-  <v-select
-    v-model="selectedPhenotype"
-    @input="$store.dispatch('onPhenotypeChange', selectedPhenotype);"
-    label="name" :options="phenotypeOptions"></v-select>
+    <v-select
+        v-model="selectedPhenotype"
+        @input="$store.dispatch('onPhenotypeChange', selectedPhenotype);"
+        label="name"
+        :options="phenotypeOptions"
+    ></v-select>
 </template>
 
 <script>
 import Vue from "vue";
 import $ from "jquery";
 
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 // Install BootstrapVue
 Vue.use(BootstrapVue);
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin);
 
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap-vue/dist/bootstrap-vue.css';
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import vSelect from 'vue-select'
+import vSelect from "vue-select";
 
-Vue.component('v-select', vSelect)
+Vue.component("v-select", vSelect);
 
-import 'vue-select/dist/vue-select.css';
+import "vue-select/dist/vue-select.css";
 
 export default Vue.component("phenotype-selectpicker", {
-  props: ["phenotypes"],
+    props: ["phenotypes"],
 
-  data() {
-    return {
-      selectedPhenotype: null
-    };
-  },
+    data() {
+        return {
+            selectedPhenotype: null
+        };
+    },
+    computed: {
+        phenotypeOptions() {
+            var getUnique = function(inputArray) {
+                var outputArray = [];
 
-  updated() {
-    //set initial phenotype data for Manhattan plot page
-    if( this.$store.state.mPlotInitialPhenotype && this.$store.state.mPlotInitialPhenotype != null) {
-      let initialPhenotype = this.$store.state.mPlotInitialPhenotype;
-      var initialActionObj = this.$store;
-      $.each(this.phenotypeMap, function(i,e) {
-        $.each(e, function(j,r) {
-          if (initialPhenotype == r.phenotype_id) {
-            initialActionObj.dispatch('onInitialPhenotypeSet', r);
-            initialActionObj.state.mPlotInitialPhenotype = null;
-          };
-        })
-      });
-    }
-  },
+                for (var i = 0; i < inputArray.length; i++) {
+                    if ($.inArray(inputArray[i], outputArray) == -1) {
+                        outputArray.push(inputArray[i].trim());
+                    }
+                }
 
-  computed:{
+                return outputArray;
+            };
 
-  phenotypeOptions() {
-    var phenotypes = [];
+            let phenotypes = [];
+            let phenotypesNames = [];
+            let diseaseGroup =
+                this.$store.state.diseaseGroup.id == "cvd"
+                    ? "mi"
+                    : this.$store.state.diseaseGroup.id;
+            let publishedDatasets = this.$store.state.kp4cd.datasetsInfo;
 
-    let phenotypeList = this.phenotypes;
-    for (let i in phenotypeList) {
-              let phenotype = phenotypeList[i];
-              var tempObj = {};
-              tempObj.value = phenotype;
-              tempObj.name = phenotype.name;
-              phenotypes.push(tempObj);
-          }
+            //console.log("publishedDatasets");
+            //console.log(publishedDatasets);
 
-    return phenotypeList ;
-  },
-    phenotypeMap(){
-      let phenotypeList = this.phenotypes;
-      let phenotypeMap = {};
-      for (let i in phenotypeList) {
+            publishedDatasets.forEach(function(dataset) {
+                if (diseaseGroup == "md") {
+                    if (
+                        dataset.field_portals.indexOf("t2d") >= 0 ||
+                        dataset.field_portals.indexOf("stroke") >= 0 ||
+                        dataset.field_portals.indexOf("mi") >= 0 ||
+                        dataset.field_portals.indexOf("sleep") >= 0
+                    ) {
+                        let tempPhenotypes = dataset.field_phenotypes.split(
+                            "\r\n"
+                        );
+                        tempPhenotypes.forEach(function(p) {
+                            if (phenotypes[p]) {
+                                let portals =
+                                    phenotypes[p] + "," + dataset.field_portals;
+                                let portalsArr = portals.split(",");
+                                portalsArr = getUnique(portalsArr);
+
+                                phenotypes[p] = portalsArr.join();
+                            } else {
+                                phenotypes[p] = dataset.field_portals;
+                            }
+                        });
+                    }
+                } else {
+                    if (dataset.field_portals.indexOf(diseaseGroup) >= 0) {
+                        let tempPhenotypes = dataset.field_phenotypes.split(
+                            "\r\n"
+                        );
+                        tempPhenotypes.forEach(function(p) {
+                            if (phenotypes[p]) {
+                                let portals =
+                                    phenotypes[p] + "," + dataset.field_portals;
+                                let portalsArr = portals.split(",");
+                                portalsArr = getUnique(portalsArr);
+
+                                phenotypes[p] = portalsArr.join();
+                            } else {
+                                phenotypes[p] = dataset.field_portals;
+                            }
+                        });
+                    }
+                }
+            });
+
+            let phenotypeList = [];
+
+            if (this.phenotypes != null && this.phenotypes != undefined) {
+                this.phenotypes.forEach(function(p) {
+                    let tempObj = p;
+                    let pName = p.name;
+                    if (phenotypes[pName] != undefined) {
+                        tempObj["portal"] = phenotypes[pName];
+                        phenotypeList.push(tempObj);
+                    }
+                });
+            }
+
+            //console.log(phenotypeList.length);
+
+            return phenotypeList;
+        },
+        phenotypeMap() {
+            let phenotypeList = this.phenotypeOptions;
+            let phenotypeMap = {};
+            for (let i in phenotypeList) {
                 let phenotype = phenotypeList[i];
                 let group = phenotype.group;
                 if (!phenotypeMap[group]) {
@@ -78,7 +134,7 @@ export default Vue.component("phenotype-selectpicker", {
                 }
             }
             return phenotypeMap;
+        }
     }
-  },
 });
 </script>

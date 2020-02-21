@@ -4,27 +4,54 @@
         <page-header></page-header>
 
         <!-- Body -->
-        <div class="fluid front-top-banner-mdkp front-top-banner">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="front-logo-wrapper">
-                        <img class="front-logo-img" src="images/MDKP_front_logo.svg">
-                        <span class="front-logo-tagline front-logo-tagline-mdkp">Providing data and tools to promote understanding of cardiometabolic disorders and their complications
-                        </span>
-                    </div>
-                </div>
-                <div class="col-md-6 offset-md-3" style="text-align: center; padding-top: 30px;">
-                    <a href="http://www.kp4cd.org/new_features/mdkp" target="_blank" class="btn btn-lg btn-default front-banner-btn">Learn about the portal</a>
-                </div>
+        <div class="fluid">
+            <div
+                :class="'front-top-banner-'+this.$store.state.diseaseGroup.id+'kp front-top-banner'"
+            >
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="front-logo-wrapper">
+                                <img
+                                    class="front-logo-img"
+                                    :src="'images/'+this.$store.state.diseaseGroup.id+'kp_front_logo.svg'"
+                                />
+                                <span
+                                    :class="'front-logo-tagline front-logo-tagline-'+this.$store.state.diseaseGroup.id+'kp'"
+                                >Providing data and tools to promote understanding of cardiometabolic disorders and their complications</span>
+                            </div>
+                        </div>
 
-                <div class="col-md-12">
-                    <h2 class="front-banner-ui-tabs" style="font-size: 45px; padding-bottom: 15px;">Explore by region</h2>
-                    <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
-                    <dataset-selectpicker v-bind:datasets="$parent.datasetList"></dataset-selectpicker>
+                        <div class="col-md-12 portal-front-tabs">
+                            <b-tabs content-class="mt-3" align="center">
+                                <b-tab title="Explore by region" active></b-tab>
+                                <b-tab title="Explore by phenotype">
+                                    <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
+                                </b-tab>
+                                <b-tab
+                                    title="Set default disease group"
+                                    v-if="this.$store.state.diseaseGroup.id == 'md'"
+                                >
+                                    <disease-group-select></disease-group-select>
+                                </b-tab>
+                            </b-tabs>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
+        <div class="container static-content-section">
+            <div class="row">
+                <div class="col-md-7">
+                    <about-portal-section></about-portal-section>
+                    <datasets-section></datasets-section>
+                </div>
+                <div class="col-md-5">
+                    <news-feed-section></news-feed-section>
+                    <about-project-section></about-project-section>
+                </div>
+            </div>
+        </div>
         <!-- Footer-->
         <page-footer></page-footer>
     </div>

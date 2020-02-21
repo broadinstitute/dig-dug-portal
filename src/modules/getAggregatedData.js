@@ -56,7 +56,7 @@ export default {
             else if (call == "variants") {
                 body = {
                     version: mdv,
-                    pagination: { "size": 50, "offset": 0 },
+                    pagination: { "size": 500, "offset": 0 },
                     filters: [
                         {
                             parameter: "phenotype",

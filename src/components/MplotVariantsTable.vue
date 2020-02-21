@@ -1,6 +1,12 @@
 <template>
     <div>
-        <b-table hover :fields="fields" :items="variantsCleaned" :tbody-tr-class="rowClass">
+        <b-table
+            hover
+            :id="variants-table"
+            :fields="fields"
+            :items="variantsCleaned"
+            :tbody-tr-class="rowClass"
+        >
             <template v-slot:cell(rsid)="data">{{ data.value }}</template>
             <template v-slot:cell(p_value)="data">{{ data.value }}</template>
             <template v-slot:cell(chromosome)="data">{{ data.value }}</template>
@@ -72,15 +78,15 @@ export default Vue.component("mplot-variants-table", {
                 let variantsCleaned = [];
 
                 $.each(rawVariantsData, function(i, v) {
-                    let tempArr = {};
-                    tempArr["rsid"] = v[0];
-                    tempArr["p_value"] =
+                    let tempObj = {};
+                    tempObj["rsid"] = v[0];
+                    tempObj["p_value"] =
                         v[4][selectedDatasetId][selectedPhenotypeId];
-                    tempArr["chromosome"] = v[1];
-                    tempArr["position"] = v[2];
-                    tempArr["gene"] = v[3];
+                    tempObj["chromosome"] = v[1];
+                    tempObj["position"] = v[2];
+                    tempObj["gene"] = v[3];
 
-                    variantsCleaned.push(tempArr);
+                    variantsCleaned.push(tempObj);
                 });
                 return variantsCleaned;
             }

@@ -10,8 +10,6 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
-import MplotVariantsTable from "@/components/MplotVariantsTable.vue";
 
 new Vue({
     store,
@@ -19,48 +17,45 @@ new Vue({
     components: {
         PhenotypeSelectPicker,
         DatasetSelectPicker,
-        ManhattanPlot,
         PageHeader,
         PageFooter,
-        ManhattanPlot,
-        MplotVariantsTable
     },
 
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.commit("table/setLimit", 25);
-        this.$store.commit("manhattan/setLimit", 500);
         this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
     },
 
     render(createElement, context) {
         return createElement(Template);
     },
-
+    mounted() {
+        //console.log("mounted");
+    },
     computed: {
-        initiallySelected() {
-            this.$store.state.selectedPhenotype = phenotypesList[0].phenotype;
-            this.$store.state.phenotypeName = phenotypesList[0].name;
-        },
-
         phenotypes() {
             return this.$store.getters["graphPhenotype/phenotypes"];
         },
+        selectedPhenotype() {
+            //console.log("computed");
+            return this.$store.state.selectedPhenotype;
+        },
         datasetList() {
-            let selectedPhenotype = this.$store.state.selectedPhenotype;
-            let datasets = null
-
-            //console.log(selectedPhenotype);
-            if (selectedPhenotype != null) {
-                datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
-                return datasets;
-
-            } else {
-                datasets = [];
-                return datasets;
-            }
+            return this.$store.state.datasetList;
+        }
+    },
+    watch: {
+        selectedPhenotype(phenotype) {
+            //console.log("watch phenotype");
+            let datasets = this.$store.getters['metadataModule/datasetList'](phenotype);
+            this.$store.state.datasetList == datasets;
+            //console.log(datasets);
+            //console.log(this.$store.state.datasetList);
+        },
+        datasetList(datasets) {
+            //console.log("watch dataset");
+            //console.log(datasets);
         }
     }
-
 }).$mount("#app");

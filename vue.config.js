@@ -17,6 +17,13 @@ module.exports = {
             title: "Manhattan Page",
             chunks: ["chunk-vendors", "chunk-common", "manhattan"]
         },
+        phenotype: {
+            entry: "src/views/Phenotype/main.js",
+            template: "public/index.html",
+            filename: "phenotype.html",
+            title: "Phenotype Page",
+            chunks: ["chunk-vendors", "chunk-common", "phenotype"]
+        },
         geneFinder: {
             entry: "src/views/GeneFinder/main.js",
             template: "public/index.html",
