@@ -66,32 +66,31 @@ export default function (index, extend) {
         // dispatch methods
         actions: {
             async count(context, { q }) {
-                let qs = querystring.encode({q});
-                let json  = await fetch(`${bioIndexHost}/api/count/${index}?${qs}`)
+                let qs = querystring.encode({ q });
+                let json = await fetch(`${bioIndexHost}/api/count/${index}?${qs}`)
                     .then(resp => resp.json())
-                    .catch(error => {count: null});
+                    .catch(error => { count: null });
 
                 context.commit('setCount', json.count);
             },
 
-            async query(context, { q, all, limit, cont }) {
-                let qs = querystring.encode({q, limit});
+            async query(context, { q, limit }) {
+                let qs = querystring.encode({ q, limit });
 
                 // clear the abort flag, set loading
                 context.commit('setAbort', false);
                 context.commit('setLoading', true);
 
                 // issue the request
-                let action = (!!all) ? 'all' : 'query';
-                let json = await fetch(`${bioIndexHost}/api/${action}/${index}?${qs}`)
+                let json = await fetch(`${bioIndexHost}/api/query/${index}?${qs}`)
                     .then(resp => resp.json());
 
                 // set the data
                 context.commit('setResponse', json);
 
                 // loop until done or user aborts
-                while (cont && !context.state.aborted && json.continuation) {
-                    qs = querystring.encode({token: json.continuation});
+                while (!context.state.aborted && json.continuation) {
+                    qs = querystring.encode({ token: json.continuation });
                     json = await fetch(`${bioIndexHost}/api/cont?${qs}`)
                         .then(resp => resp.json());
 
