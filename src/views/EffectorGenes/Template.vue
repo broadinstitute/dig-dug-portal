@@ -12,7 +12,7 @@
 							class="form-control"
 							id="selectTrait"
 							v-bind:selectedPhenotype="$store.state.selectedPhenotype"
-							@change="$store.dispatch('onPhenotypeChange', {selectedPhenotype:selectedPhenotype});"
+							@change="$store.dispatch('onPhenotypeChange', {selectedPhenotype});"
 						>
 							<option value="calcium">Calcium</option>
 							<option value="dbilirubin">Dbilirubin</option>
