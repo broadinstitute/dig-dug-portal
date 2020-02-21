@@ -30,7 +30,13 @@ module.exports = {
             filename: "gene.html",
             title: "Gene Info",
             chunks: ["chunk-vendors", "chunk-common", "gene"]
-
+        },
+        effectorGenes: {
+            entry: "src/views/EffectorGenes/main.js",
+            template: "public/index.html",
+            filename: "effectorgenes.html",
+            title: "Effector Genes",
+            chunks: ["chunk-vendors", "chunk-common", "effectorGenes"]
         },
         debug: {
             entry: "src/views/Debug/main.js",
@@ -38,7 +44,6 @@ module.exports = {
             filename: "debug.html",
             title: "Debug Page",
             chunks: ["chunk-vendors", "chunk-common", "debug"]
-
         }
     }
 };
