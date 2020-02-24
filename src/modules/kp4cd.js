@@ -32,21 +32,21 @@ export default {
     // dispatch methods
     actions: {
         async getNewsFeed(context, selecteddiseaseGroup) {
-            let diseaseGroup = (selecteddiseaseGroup == "md") ? "" : (selecteddiseaseGroup == "cvd") ? "mi" : selecteddiseaseGroup;
+            let diseaseGroup = (selecteddiseaseGroup == "md") ? "" : (selecteddiseaseGroup == "cvd") ? "mi" : (selecteddiseaseGroup == "cd") ? "stroke" : selecteddiseaseGroup;
             let json = await fetch(`http://kp4cd.org/rest/views/news2portals?portal=` + diseaseGroup)
                 .then(resp => resp.json());
             // set the data
             context.commit('setNewsFeed', json)
         },
         async getFrontContents(context, selecteddiseaseGroup) {
-            let diseaseGroup = (selecteddiseaseGroup == "cvd") ? "mi" : selecteddiseaseGroup;
+            let diseaseGroup = (selecteddiseaseGroup == "cvd") ? "mi" : (selecteddiseaseGroup == "cd") ? "stroke" : selecteddiseaseGroup;
             let json = await fetch(`http://kp4cd.org/reset/views/portal_front?portal=` + diseaseGroup)
                 .then(resp => resp.json());
             // set the data
             context.commit('setFrontContents', json)
         },
         async getDatasetsInfo(context, selecteddiseaseGroup) {
-            let diseaseGroup = (selecteddiseaseGroup == "md") ? "" : (selecteddiseaseGroup == "cvd") ? "mi" : selecteddiseaseGroup;
+            let diseaseGroup = (selecteddiseaseGroup == "md") ? "" : (selecteddiseaseGroup == "cvd") ? "mi" : (selecteddiseaseGroup == "cd") ? "stroke" : selecteddiseaseGroup;
             let json = await fetch(`http://kp4cd.org/rest/views/kpdatasets?portal=` + diseaseGroup)
                 .then(resp => resp.json());
             // set the data
