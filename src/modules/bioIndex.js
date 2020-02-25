@@ -22,6 +22,9 @@ export default function (index, extend) {
         },
 
         getters: {
+            currentLength(state) {
+
+            },
             percentComplete(state) {
                 if (!state.count) {
                     return null;
@@ -69,12 +72,12 @@ export default function (index, extend) {
                 let qs = querystring.encode({q});
                 let json  = await fetch(`${bioIndexHost}/api/count/${index}?${qs}`)
                     .then(resp => resp.json())
-                    .catch(error => {count: null});
+                    .catch(error => { count: null });
 
                 context.commit('setCount', json.count);
             },
 
-            async query(context, { q, all, limit, cont }) {
+            async query(context, { q, limit }) {
                 let qs = querystring.encode({q, limit});
 
                 // clear the abort flag, set loading
@@ -90,7 +93,7 @@ export default function (index, extend) {
                 context.commit('setResponse', json);
 
                 // loop until done or user aborts
-                while (cont && !context.state.aborted && json.continuation) {
+                while (context.state.loading && !context.state.aborted && json.continuation) {
                     qs = querystring.encode({token: json.continuation});
                     json = await fetch(`${bioIndexHost}/api/cont?${qs}`)
                         .then(resp => resp.json());

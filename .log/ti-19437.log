@@ -1,0 +1,32 @@
+[16:19:8.663] Global cache location '/Users/kenneth/Library/Caches/typescript/3.7', safe file path '/usr/local/lib/node_modules/typescript/lib/typingsafelist.json', types map path /usr/local/lib/node_modules/typescript/lib/typesmap.json
+[16:19:8.665] Processing cache location '/Users/kenneth/Library/Caches/typescript/3.7'
+[16:19:8.666] Trying to find '/Users/kenneth/Library/Caches/typescript/3.7/package.json'...
+[16:19:8.666] Finished processing cache location '/Users/kenneth/Library/Caches/typescript/3.7'
+[16:19:8.667] Process id: 19439
+[16:19:8.667] NPM location: /usr/local/Cellar/node/13.2.0/bin/npm (explicit '--npmLocation' not  provided)
+[16:19:8.668] validateDefaultNpmLocation: false
+[16:19:8.668] Npm config file: /Users/kenneth/Library/Caches/typescript/3.7/package.json
+[16:19:8.668] Updating types-registry npm package...
+[16:19:8.669] Exec: /usr/local/Cellar/node/13.2.0/bin/npm install --ignore-scripts types-registry@latest
+[16:19:8.687]     Failed. stdout:
+    
+    stderr:
+    /bin/sh: /usr/local/Cellar/node/13.2.0/bin/npm: No such file or directory
+    
+[16:19:8.687] Updated types-registry npm package
+[16:19:8.688] Types registry file '/Users/kenneth/Library/Caches/typescript/3.7/node_modules/types-registry/index.json' does not exist
+[16:19:9.855] Got install request {"projectName":"/dev/null/inferredProject1*","fileNames":["/usr/local/lib/node_modules/typescript/lib/lib.d.ts","/usr/local/lib/node_modules/typescript/lib/lib.es5.d.ts","/usr/local/lib/node_modules/typescript/lib/lib.dom.d.ts","/usr/local/lib/node_modules/typescript/lib/lib.webworker.importscripts.d.ts","/usr/local/lib/node_modules/typescript/lib/lib.scripthost.d.ts","/Users/kenneth/git/dig-dug-portal/src/components/LocusZoom.vue"],"compilerOptions":{"target":1,"jsx":1,"allowNonTsExtensions":true,"allowJs":true,"noEmitForJsFiles":true},"typeAcquisition":{"enable":true,"include":[],"exclude":[]},"unresolvedImports":["locuszoom","vue"],"projectRootPath":"/users/kenneth/git/dig-dug-portal/src/components","kind":"discover"}
+[16:19:9.906] Loaded safelist from types map file '/usr/local/lib/node_modules/typescript/lib/typesmap.json'
+[16:19:9.908] Explicitly included types: []
+[16:19:9.916] Inferred typings from unresolved imports: ["locuszoom","vue"]
+[16:19:9.916] Result: {"cachedTypingPaths":[],"newTypingNames":["locuszoom","vue"],"filesToWatch":["/users/kenneth/git/dig-dug-portal/src/components/bower_components","/users/kenneth/git/dig-dug-portal/src/components/node_modules"]}
+[16:19:9.917] Finished typings discovery: {"cachedTypingPaths":[],"newTypingNames":["locuszoom","vue"],"filesToWatch":["/users/kenneth/git/dig-dug-portal/src/components/bower_components","/users/kenneth/git/dig-dug-portal/src/components/node_modules"]}
+[16:19:9.918] DirectoryWatcher:: Added:: WatchInfo: /users/kenneth/git/dig-dug-portal/src/components/bower_components
+[16:19:9.920] DirectoryWatcher:: Added:: WatchInfo: /users/kenneth/git/dig-dug-portal/src/components/node_modules
+[16:19:9.920] Installing typings ["locuszoom","vue"]
+[16:19:9.921] 'locuszoom':: Entry for package 'locuszoom' does not exist in local types registry - skipping...
+[16:19:9.922] 'vue':: Entry for package 'vue' does not exist in local types registry - skipping...
+[16:19:9.922] All typings are known to be missing or invalid - no need to install more typings
+[16:19:9.922] Sending response:
+    {"projectName":"/dev/null/inferredProject1*","typeAcquisition":{"enable":true,"include":[],"exclude":[]},"compilerOptions":{"target":1,"jsx":1,"allowNonTsExtensions":true,"allowJs":true,"noEmitForJsFiles":true},"typings":[],"unresolvedImports":["locuszoom","vue"],"kind":"action::set"}
+[16:19:9.923] Response has been sent.

@@ -1,0 +1,93 @@
+Info 0    [8:45:1.71] Starting TS Server
+Info 1    [8:45:1.72] Version: 3.7.3
+Info 2    [8:45:1.73] Arguments: /usr/local/Cellar/node/13.2.0/bin/node /usr/local/bin/tsserver --logFile /Users/kenneth/git/dig-dug-portal/.log/tsserver.log --logVerbosity info --cancellationPipeName /private/var/folders/hc/3yxh5rdj075c14dn0t0623m80000gn/T/74fd93414a54df86561c137e36879c18/tscancellation*
+Info 3    [8:45:1.73] Platform: darwin NodeVersion: 13 CaseSensitive: false
+Info 4    [8:45:1.91] Search path: /Users/kenneth/git/dig-dug-portal
+Info 5    [8:45:1.93] For info: /Users/kenneth/git/dig-dug-portal/babel.config.js :: No config files found.
+Info 6    [8:45:1.100] Starting updateGraphWorker: Project: /dev/null/inferredProject1*
+Info 7    [8:45:4.63] Finishing updateGraphWorker: Project: /dev/null/inferredProject1* Version: 1 structureChanged: true Elapsed: 2963ms
+Info 8    [8:45:4.64] Project '/dev/null/inferredProject1*' (Inferred) 
+Info 9    [8:45:4.64] 	Files (84)
+
+Info 10   [8:45:4.64] -----------------------------------------------
+Info 11   [8:45:4.94] Search path: /Users/kenneth/git/dig-dug-portal
+Info 12   [8:45:4.95] For info: /Users/kenneth/git/dig-dug-portal/package-lock.json :: No config files found.
+Info 13   [8:45:4.95] Starting updateGraphWorker: Project: /dev/null/inferredProject2*
+Info 14   [8:45:4.469] Finishing updateGraphWorker: Project: /dev/null/inferredProject2* Version: 1 structureChanged: true Elapsed: 373ms
+Info 15   [8:45:4.469] Project '/dev/null/inferredProject2*' (Inferred) 
+Info 16   [8:45:4.469] 	Files (84)
+
+Info 17   [8:45:4.469] -----------------------------------------------
+Info 18   [8:45:4.473] Search path: /Users/kenneth/git/dig-dug-portal
+Info 19   [8:45:4.473] For info: /Users/kenneth/git/dig-dug-portal/package.json :: No config files found.
+Info 20   [8:45:4.474] Starting updateGraphWorker: Project: /dev/null/inferredProject3*
+Info 21   [8:45:4.590] Finishing updateGraphWorker: Project: /dev/null/inferredProject3* Version: 1 structureChanged: true Elapsed: 116ms
+Info 22   [8:45:4.590] Project '/dev/null/inferredProject3*' (Inferred) 
+Info 23   [8:45:4.590] 	Files (84)
+
+Info 24   [8:45:4.590] -----------------------------------------------
+Info 25   [8:45:4.592] Search path: /Users/kenneth/git/dig-dug-portal
+Info 26   [8:45:4.592] For info: /Users/kenneth/git/dig-dug-portal/postcss.config.js :: No config files found.
+Info 27   [8:45:4.593] Starting updateGraphWorker: Project: /dev/null/inferredProject4*
+Info 28   [8:45:4.703] Finishing updateGraphWorker: Project: /dev/null/inferredProject4* Version: 1 structureChanged: true Elapsed: 110ms
+Info 29   [8:45:4.703] Project '/dev/null/inferredProject4*' (Inferred) 
+Info 30   [8:45:4.703] 	Files (84)
+
+Info 31   [8:45:4.703] -----------------------------------------------
+Info 32   [8:45:7.582] Starting updateGraphWorker: Project: /dev/null/inferredProject1*
+Info 33   [8:45:8.789] Finishing updateGraphWorker: Project: /dev/null/inferredProject1* Version: 2 structureChanged: true Elapsed: 1206ms
+Info 34   [8:45:8.790] Project '/dev/null/inferredProject1*' (Inferred) 
+Info 35   [8:45:8.790] 	Files (148)
+
+Info 36   [8:45:8.790] -----------------------------------------------
+Info 37   [8:45:8.791] Structure before ensureProjectForOpenFiles:
+Info 38   [8:45:8.791] Structure after ensureProjectForOpenFiles:
+Info 39   [8:45:8.810] got projects updated in background, updating diagnostics for /Users/kenneth/git/dig-dug-portal/babel.config.js,/Users/kenneth/git/dig-dug-portal/package-lock.json,/Users/kenneth/git/dig-dug-portal/package.json,/Users/kenneth/git/dig-dug-portal/postcss.config.js
+Info 40   [8:45:9.29] Starting updateGraphWorker: Project: /dev/null/inferredProject2*
+Info 41   [8:45:9.466] Finishing updateGraphWorker: Project: /dev/null/inferredProject2* Version: 2 structureChanged: true Elapsed: 437ms
+Info 42   [8:45:9.466] Project '/dev/null/inferredProject2*' (Inferred) 
+Info 43   [8:45:9.466] 	Files (148)
+
+Info 44   [8:45:9.466] -----------------------------------------------
+Info 45   [8:45:9.814] Starting updateGraphWorker: Project: /dev/null/inferredProject3*
+Info 46   [8:45:10.302] Finishing updateGraphWorker: Project: /dev/null/inferredProject3* Version: 2 structureChanged: true Elapsed: 488ms
+Info 47   [8:45:10.302] Project '/dev/null/inferredProject3*' (Inferred) 
+Info 48   [8:45:10.302] 	Files (148)
+
+Info 49   [8:45:10.302] -----------------------------------------------
+Info 50   [8:45:10.303] Structure before ensureProjectForOpenFiles:
+Info 51   [8:45:10.303] Structure after ensureProjectForOpenFiles:
+Info 52   [8:45:10.303] got projects updated in background, updating diagnostics for /Users/kenneth/git/dig-dug-portal/babel.config.js,/Users/kenneth/git/dig-dug-portal/package-lock.json,/Users/kenneth/git/dig-dug-portal/package.json,/Users/kenneth/git/dig-dug-portal/postcss.config.js
+Info 53   [8:45:10.911] Starting updateGraphWorker: Project: /dev/null/inferredProject4*
+Info 54   [8:45:11.430] Finishing updateGraphWorker: Project: /dev/null/inferredProject4* Version: 2 structureChanged: true Elapsed: 519ms
+Info 55   [8:45:11.430] Project '/dev/null/inferredProject4*' (Inferred) 
+Info 56   [8:45:11.430] 	Files (148)
+
+Info 57   [8:45:11.431] -----------------------------------------------
+Info 58   [8:45:11.440] Structure before ensureProjectForOpenFiles:
+Info 59   [8:45:11.440] Structure after ensureProjectForOpenFiles:
+Info 60   [8:45:11.440] got projects updated in background, updating diagnostics for /Users/kenneth/git/dig-dug-portal/babel.config.js,/Users/kenneth/git/dig-dug-portal/package-lock.json,/Users/kenneth/git/dig-dug-portal/package.json,/Users/kenneth/git/dig-dug-portal/postcss.config.js
+Info 61   [8:45:12.588] Starting updateGraphWorker: Project: /dev/null/inferredProject1*
+Info 62   [8:45:12.604] Finishing updateGraphWorker: Project: /dev/null/inferredProject1* Version: 3 structureChanged: false Elapsed: 16ms
+Info 63   [8:45:12.604] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 64   [8:45:12.604] Structure before ensureProjectForOpenFiles:
+Info 65   [8:45:12.604] Structure after ensureProjectForOpenFiles:
+Info 66   [8:45:12.604] got projects updated in background, updating diagnostics for /Users/kenneth/git/dig-dug-portal/babel.config.js,/Users/kenneth/git/dig-dug-portal/package-lock.json,/Users/kenneth/git/dig-dug-portal/package.json,/Users/kenneth/git/dig-dug-portal/postcss.config.js
+Info 67   [8:45:12.819] Starting updateGraphWorker: Project: /dev/null/inferredProject2*
+Info 68   [8:45:12.828] Finishing updateGraphWorker: Project: /dev/null/inferredProject2* Version: 3 structureChanged: false Elapsed: 8ms
+Info 69   [8:45:12.828] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 70   [8:45:13.73] Structure before ensureProjectForOpenFiles:
+Info 71   [8:45:13.73] Structure after ensureProjectForOpenFiles:
+Info 72   [8:45:13.73] got projects updated in background, updating diagnostics for /Users/kenneth/git/dig-dug-portal/babel.config.js,/Users/kenneth/git/dig-dug-portal/package-lock.json,/Users/kenneth/git/dig-dug-portal/package.json,/Users/kenneth/git/dig-dug-portal/postcss.config.js
+Info 73   [8:45:13.938] Starting updateGraphWorker: Project: /dev/null/inferredProject3*
+Info 74   [8:45:13.945] Finishing updateGraphWorker: Project: /dev/null/inferredProject3* Version: 3 structureChanged: false Elapsed: 7ms
+Info 75   [8:45:13.945] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 76   [8:45:13.945] Structure before ensureProjectForOpenFiles:
+Info 77   [8:45:13.945] Structure after ensureProjectForOpenFiles:
+Info 78   [8:45:13.946] got projects updated in background, updating diagnostics for /Users/kenneth/git/dig-dug-portal/babel.config.js,/Users/kenneth/git/dig-dug-portal/package-lock.json,/Users/kenneth/git/dig-dug-portal/package.json,/Users/kenneth/git/dig-dug-portal/postcss.config.js
+Info 79   [8:45:15.7] Starting updateGraphWorker: Project: /dev/null/inferredProject4*
+Info 80   [8:45:15.15] Finishing updateGraphWorker: Project: /dev/null/inferredProject4* Version: 3 structureChanged: false Elapsed: 8ms
+Info 81   [8:45:15.15] Different program with same set of files:: oldProgram.structureIsReused:: 2
+Info 82   [8:45:15.15] Structure before ensureProjectForOpenFiles:
+Info 83   [8:45:15.15] Structure after ensureProjectForOpenFiles:
+Info 84   [8:45:15.15] got projects updated in background, updating diagnostics for /Users/kenneth/git/dig-dug-portal/babel.config.js,/Users/kenneth/git/dig-dug-portal/package-lock.json,/Users/kenneth/git/dig-dug-portal/package.json,/Users/kenneth/git/dig-dug-portal/postcss.config.js
