@@ -25,19 +25,12 @@
 
         <div>
             <div v-if="!$store.state.associations.aborted">
-                <button @click="() => {
-                    $store.commit('associations/setAbort', true);
-                    $store.commit('associations/clearTIterableQuery');
-                }">
+                <button @click="$store.dispatch('associations/CANCEL')">
                     Cancel
                 </button>
             </div>
             <div v-else-if="$store.state.associations.aborted">
-                <button @click="() => {
-                    $store.commit('associations/clearData');
-                    $store.dispatch('associations/count', { q: 'slc30a8' });
-                    $store.dispatch('associations/queryGen', { q: 'slc30a8' });
-                }">
+                <button @click="$store.dispatch('associations/RESTART', { q: 'slc30a8' })">
                     Restart
                 </button>
             </div>
@@ -49,13 +42,10 @@
                 </button>
             </div>
             <div v-else-if="!$store.state.associations.loading && !$store.state.associations.aborted">
-                <button @click="() => {
-                    $store.commit('associations/setLoading', true);
-                    $store.dispatch('associations/queryGen', { q: 'slc30a8' });
-                }">Continue</button>
+                <button @click="$store.dispatch('associations/CONTINUE', { q: 'slc30a8' })">Continue</button>
             </div>
             <div v-else-if="$store.state.associations.loading">
-                <button @click="$store.commit('associations/setLoading', false)">
+                <button @click="$store.dispatch('associations/PAUSE')">
                     Pause
                 </button>
             </div>

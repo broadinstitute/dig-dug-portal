@@ -17,29 +17,11 @@
         <br>
         Completeness: {{ $store.state.associations.data.length }} / {{ $store.state.associations.count }} <br>
 
-        <!--        <div>-->
-        <!--            Status:-->
-        <!--            <p v-if="$store.state.associations.loading && $store.state.associations.aborted">-->
-        <!--                Canceling-->
-        <!--            </p>-->
-        <!--            <p v-else-if="$store.state.associations.loading && !$store.state.associations.aborted">-->
-        <!--                Loading-->
-        <!--            </p>-->
-        <!--            <p v-else-if="!$store.state.associations.loading && !$store.state.associations.aborted && $store.state.associations.data.length > 0">-->
-        <!--                Paused-->
-        <!--            </p>-->
-        <!--            <p v-else-if="!$store.state.associations.loading && !$store.state.associations.aborted && $store.state.associations.data.length === 0">-->
-        <!--                Ready-->
-        <!--            </p>-->
-        <!--        </div>-->
-
         <div>
             <div v-if="!$store.state.associations.aborted">
                 <button @click="() => {
                     $store.commit('associations/setAbort', true)
                     $store.commit('associations/clearTContinuation', null)
-                    // TODO: Should `Cancel` leave already-loaded results alone?
-                    // TODO: Should `Cancel` automatically restart?
                 }">Cancel</button>
             </div>
             <div v-else-if="$store.state.associations.aborted">
