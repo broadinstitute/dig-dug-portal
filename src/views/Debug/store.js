@@ -70,15 +70,15 @@ const extend = (index) => ({
             context.commit('clearTIterableQuery');
         },
         async PAUSE(context) {
-            context.commit('associations/setLoading', false)
+            context.commit('setLoading', false)
         },
         async CONTINUE(context, payloadQuery) {
-            $store.commit('associations/setLoading', true);
-            $store.dispatch('associations/queryGen', payloadQuery);
+            context.commit('setLoading', true);
+            context.dispatch('queryGen', payloadQuery);
         },
         async RESTART(context, payloadQuery) {
-            $store.commit('clearData');
-            $store.dispatch('START', payloadQuery);
+            context.commit('clearData');
+            context.dispatch('START', payloadQuery);
         },
         async queryGen(context, {q, limit}) {
 
