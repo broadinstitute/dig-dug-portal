@@ -1,51 +1,65 @@
 <template>
     <div>
+        Hello <br>
+        Loading: {{$store.state.associations.loading}} <br>
+        Aborted: {{$store.state.associations.aborted}} <br>
+
+        <b-progress class="mt-2"
+                    :max="$store.state.associations.count + 2500"
+                    :precision="2"
+                    show-progress
+                    v-bind:animated='!$store.state.associations.aborted'>
+            <b-progress-bar :value="$store.state.associations.data.length + 2500"
+                            :label="`${((($store.state.associations.data.length) / ($store.state.associations.count)) * 100).toFixed(2)}%`">
+            </b-progress-bar><br>
+        </b-progress>
+
+        <br>
+        Completeness: {{ $store.state.associations.data.length }} / {{ $store.state.associations.count }} <br>
+
+<!--        [show/can]Cancel, wasStarted or wasRestarted: !$store.state.associations.aborted-->
+<!--        [show/can]Restarted, wasCanceled, isDone: $store.state.associations.aborted-->
+<!--        [show/can]Done, isDone: $store.state.associations.aborted-->
+<!--        [show/can]Continue, isPaused: !$store.state.associations.aborted && !$store.state.associations.loading-->
+<!--        [show/can]Pause, wasStarted or wasContinued: $store.state.associations.loading-->
+
         <div>
-            Associations: {{ $store.state.associations.data.length }} / {{ $store.state.associations.count }}
-        </div>
-        <div>
-            <div :key="v.varId" v-for="v in $store.state.variants.data">
-                <div :key="motif.positionWeightMatrix" v-for="motif in v.transcriptionFactors">
-                    {{ motif }}
-                </div>
+            <div v-if="!$store.state.associations.aborted">
+                <button @click="() => {
+                    $store.commit('associations/setAbort', true);
+                    $store.commit('associations/clearTIterableQuery');
+                }">
+                    Cancel
+                </button>
+            </div>
+            <div v-else-if="$store.state.associations.aborted">
+                <button @click="() => {
+                    $store.commit('associations/clearData');
+                    $store.dispatch('associations/count', { q: 'slc30a8' });
+                    $store.dispatch('associations/queryGen', { q: 'slc30a8' });
+                }">
+                    Restart
+                </button>
             </div>
         </div>
-        <table width="50%">
-            <thead>
-                <th>Phenotype</th>
-                <th>Variant</th>
-                <th>P</th>
-            </thead>
-            <tbody>
-                <tr :key="v.phenotype" v-for="v in $parent.topAssociations">
-                    <td>{{v.phenotype}}</td>
-                    <td>
-                        <a href="#" @click="$store.dispatch('variants/query', {q: v.varId})">
-                            {{v.varId}}
-                        </a>
-                    </td>
-                    <td>{{v.pValue}}</td>
-                </tr>
-            </tbody>
-        </table>
-        <table width="100%">
-            <tr>
-                <td valign="top">
-                    <table class="table table-striped" style="margin-top:20px">
-                        <thead class="thead-dark">
-                            <th>body</th>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(row) in $store.state.kp4cd.frontContents">
-                                <td v-html="row.body">{{ row.body }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-        </table>
         <div>
-            {{ $store.state.kp4cd.datasetsInfo }}
+            <div v-if="$store.state.associations.aborted">
+                <button disabled>
+                    Done
+                </button>
+            </div>
+            <div v-else-if="!$store.state.associations.loading && !$store.state.associations.aborted">
+                <button @click="() => {
+                    $store.commit('associations/setLoading', true);
+                    $store.dispatch('associations/queryGen', { q: 'slc30a8' });
+                }">Continue</button>
+            </div>
+            <div v-else-if="$store.state.associations.loading">
+                <button @click="$store.commit('associations/setLoading', false)">
+                    Pause
+                </button>
+            </div>
         </div>
+
     </div>
 </template>

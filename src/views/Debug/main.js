@@ -1,9 +1,16 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
 
+import store from "./store.js";
+import vsm from "vue-state-machine";
+
+import {BootstrapVue} from "bootstrap-vue";
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 Vue.config.productionTip = false;
+Vue.use(BootstrapVue);
+Vue.use(vsm.plugin, store);
 
 new Vue({
     store,
@@ -17,8 +24,9 @@ new Vue({
 
     created() {
         this.$store.dispatch("associations/count", { q: 'slc30a8' });
-        this.$store.dispatch("associations/query", { q: 'slc30a8', cont: true });
-        this.$store.dispatch("topAssociations/query", { q: 'slc30a8', cont: true });
+        this.$store.dispatch("associations/queryGen", { q: 'slc30a8' });
+        // this.$store.dispatch("associations/query", { q: 'slc30a8', cont: true });
+        // this.$store.dispatch("topAssociations/queryGen", { q: 'slc30a8', cont: true });
     },
 
     render(createElement, context) {
