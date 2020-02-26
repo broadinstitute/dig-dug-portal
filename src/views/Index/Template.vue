@@ -18,7 +18,7 @@
                                 />
                                 <span
                                     :class="'front-logo-tagline front-logo-tagline-'+this.$store.state.diseaseGroup.id+'kp'"
-                                >Providing data and tools to promote understanding of cardiometabolic disorders and their complications</span>
+                                >{{ this.$store.state.kp4cd.frontContents[0].field_tagline }}</span>
                             </div>
                         </div>
 

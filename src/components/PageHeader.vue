@@ -41,7 +41,7 @@
                         <a href>Home</a>
                     </li>
                     <li>
-                        <a href>Data</a>
+                        <a :href="translatedDG">Data</a>
                     </li>
                     <li>
                         <a href>Tools</a>
@@ -95,6 +95,19 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return this.$store.state.diseaseGroup.url2Md;
+        },
+        translatedDG() {
+            let translatedDG = {
+                md: "md",
+                t2d: "t2d",
+                cvd: "mi",
+                cd: "stroke",
+                sleep: "sleep"
+            };
+            return (
+                "http://kp4cd.org/datasets/" +
+                translatedDG[this.$store.state.diseaseGroup.id]
+            );
         }
     }
 });

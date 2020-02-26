@@ -20,7 +20,7 @@ export default new Vuex.Store({
     state: {
         selectedPhenotype: null,
         phenotypes: null,
-        newsIndex: [],
+        newsIndex: []
     },
     mutations: {
         setPhenotypes(state, phenotypes) {

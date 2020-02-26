@@ -1,7 +1,9 @@
 <template>
     <div>
-        <div v-for="(row) in $store.state.kp4cd.frontContents">
-            <div v-html="row.field_about_project">{{ row.field_about_project }}</div>
+        <div v-bind="$store.state.kp4cd.frontContents">
+            <div
+                v-html="$store.state.kp4cd.frontContents[0].field_about_project"
+            >{{ $store.state.kp4cd.frontContents[0].field_about_project }}</div>
         </div>
     </div>
 </template>
