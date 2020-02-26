@@ -1,6 +1,6 @@
 <template>
     <div :class="'container-fluid '+diseaseGroup+'kp-footer'">
-        <div>{{ portalName }}</div>
+        <div v-html="portalName">{{ portalName }}</div>
     </div>
 </template>
 
@@ -16,16 +16,8 @@ export default Vue.component("page-footer", {
             return this.$store.state.diseaseGroup.id;
         },
         portalName() {
-            let name = null;
-
-            switch (this.$store.state.diseaseGroup.id) {
-                case "md":
-                    name = "Metabolic Disorder Knowledge Portal";
-                    break;
-                case "cvd":
-                    name = "Cardiovascular Disease Knowledge Portal";
-                    break;
-            }
+            let name =
+                "Powered by the <span style='font-weight:600; font-size: 1.2em; vertical-align:-.1em;'>AMP-T2DKP</span> platform";
 
             return name;
         }

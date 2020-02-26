@@ -34,7 +34,17 @@ export default Vue.component("disease-group-select", {
     },
     methods: {
         onDiseaseGroupChange: function(selectedDiseaseGroup) {
-            window.location.href = "./?group=" + selectedDiseaseGroup;
+            let currentHost = window.location.hostname;
+            let currentURLArr = window.location.href.split(currentHost);
+            let cleandHost = currentHost.substring(
+                currentHost.split(".")[0].length
+            );
+            let redirectHost = selectedDiseaseGroup + cleandHost;
+
+            let redirectUrl =
+                currentURLArr[0] + redirectHost + currentURLArr[1];
+
+            window.location.href = redirectUrl;
         }
     },
     mounted() {

@@ -12,7 +12,7 @@
         </div>
         <div class="row amp-header" v-if="diseaseGroup != 'md'" style="height: 50px;">
             <div class="amp-banner-right" style="height: 50px;">
-                <a href="./">
+                <a :href="url2Md">
                     <div
                         class="amp-banner-left"
                         style="padding: 5px; text-align: center;height: 50px;"
@@ -25,7 +25,7 @@
         <div :class="'row '+diseaseGroup+'kp-header'">
             <div :class="diseaseGroup+'kp-logo-wrapper col-md-4'">
                 <img
-                    :src="'images/'+diseaseGroup+'KP_header_logo.svg'"
+                    :src="'images/'+diseaseGroup+'kp_header_logo.svg'"
                     :class="diseaseGroup+'kp-logo'"
                 />
                 <div
@@ -44,13 +44,13 @@
                         <a href>Data</a>
                     </li>
                     <li>
-                        <a href>Analysis Modules</a>
+                        <a href>Tools</a>
                     </li>
                     <li>
-                        <a href>Disease Specific Resources</a>
+                        <a href>Information</a>
                     </li>
                     <li>
-                        <a href>Contacts</a>
+                        <a href>Help</a>
                     </li>
                     <li v-if="user">
                         <a href="/logout" :class="diseaseGroup+'kp-login'">Logout</a>
@@ -92,6 +92,9 @@ export default Vue.component("page-header", {
         },
         currentPage() {
             return this.$store.state.diseaseGroup.currentPath;
+        },
+        url2Md() {
+            return this.$store.state.diseaseGroup.url2Md;
         }
     }
 });
