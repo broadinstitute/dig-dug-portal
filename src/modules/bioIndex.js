@@ -141,6 +141,6 @@ export default function(index, extend) {
     };
 
     // override module settings
-    // TODO: bind (this) to extend to allow for partial overrides (reference + extend original object)
+    // TODO: bind (this) to extend to allow for partial overrides (reference + extend original object)?
     return merge(module, extend || {});
 }

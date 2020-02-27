@@ -1,3 +1,8 @@
+/* BioIndex Utilities
+   - Data and methods useful for BioIndex that aren't worth keeping within a Vuex store
+   - Includes constants like hostname (which can still be set via an environmental variable)
+*/
+
 import querystring from "querystring";
 
 // Constants
@@ -6,7 +11,8 @@ export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
 // Methods
 /*  bioIndex Query Chain Iterator
     - Why? Because we want to encapsulate the behavior of continuations without duplicating them as state on the client.
-    - Features like "pausing" and "more of..." need to maintain a sense of where on a chain of continuations they are
+    - Features like "pausing" and "more of..." need to maintain a sense of where on a chain of continuations they are,
+        so that when users unpause or get more data after some time, they don't get data they already downloaded.
 */
 export async function *iterableQuery (response) {
     // NOTE: an existing response has to be passed in to *iterateQuery on initialization
