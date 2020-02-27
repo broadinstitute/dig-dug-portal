@@ -45,7 +45,7 @@ export async function *continuedIterableQuery (response, err=null) {
     }
 }
 
-async function *iterableQueryInitializer (q, limit) {
+async function *iterableQuery ({q, limit}) {
     let qs = querystring.encode({q, limit});
     let response = await fetch(
         `${BIO_INDEX_HOST}/api/query/${index}?${qs}`

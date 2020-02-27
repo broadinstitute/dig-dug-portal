@@ -13,6 +13,7 @@ export default function(index, extend) {
         // initial module state
         state() {
             return {
+                id: index,
                 data: [],
                 count: null,
                 profile: {},
