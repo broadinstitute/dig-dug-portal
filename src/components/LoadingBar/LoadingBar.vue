@@ -9,7 +9,7 @@
                         :precision="2"
                         show-progress
                         v-bind:variant='
-                            !$store.state[dataType].loading && !$store.state[dataType].aborted || !$store.state[dataType].aborted ?
+                            $store.state[dataType].loading && !$store.state[dataType].aborted ?
                                 "success" :
                             !$store.state[dataType].loading && !$store.state[dataType].aborted ?
                                 "warning" :
