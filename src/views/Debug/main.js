@@ -1,17 +1,14 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-
 import store from "./store.js";
-import vsm from "vue-state-machine";
 
-import {BootstrapVue} from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
-import {mLoadingBar} from "./store";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
-Vue.use(vsm.plugin, store);
+Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,

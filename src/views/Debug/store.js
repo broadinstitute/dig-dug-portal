@@ -8,6 +8,20 @@ import querystring from "querystring";
 Vue.use(Vuex);
 
 const extend = ({
+    getters: {
+        canCancel(state) {
+            return !state.aborted
+        },
+        canRestart(state) {
+            return state.aborted
+        },
+        canContinue(state) {
+            return !state.loading && !state.aborted
+        },
+        canPause(state) {
+            return state.loading
+        }
+    },
     actions: {
         async SETUP(context) {
             context.commit("setAbort", false);

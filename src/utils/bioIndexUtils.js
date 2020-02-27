@@ -37,5 +37,4 @@ export async function *iterableQuery (response) {
         // into their args the next time they are called
         yield response;
     }
-    return null;
 }
