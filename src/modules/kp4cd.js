@@ -40,7 +40,7 @@ export default {
     actions: {
         async getNewsFeed(context, selecteddiseaseGroup) {
             let diseaseGroup = context.state.portalID2OldID[selecteddiseaseGroup];
-            let json = await fetch(`http://kp4cd.org/rest/views/news2portals?portal=` + diseaseGroup)
+            let json = await fetch(`http://kp4cd.org/rest/views/news2vueportal?portal=` + diseaseGroup)
                 .then(resp => resp.json());
             // set the data
             context.commit('setNewsFeed', json)
