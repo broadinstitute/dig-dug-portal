@@ -6,7 +6,7 @@ import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
-import LoadingBar from "../../components/LoadingBar/LoadingBar"
+import LoadingBar from "../../components/LoadingBar/LoadingBar";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -23,7 +23,8 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("associations/START", {q: 'slc30a8'});
+        this.$store.dispatch("associations/count", { q: 'slc30a8' })
+        this.$store.dispatch("associations/query", { q: 'slc30a8' })
     },
 
     render(createElement, context) {

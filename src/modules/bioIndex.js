@@ -1,6 +1,6 @@
 import merge from "lodash.merge";
 import querystring from "querystring";
-import { iterableQuery, BIO_INDEX_HOST } from "../utils/bioIndexUtils";
+import {BIO_INDEX_HOST, continuedIterableQuery} from "../utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -111,7 +111,7 @@ export default function(index, extend) {
 
                     // set the initial data
                     context.commit("setResponse", response);
-                    context.commit("setTIterableQuery", iterableQuery(response));
+                    context.commit("setTIterableQuery", continuedIterableQuery(response));
                 }
 
                 // as long as the query is "in-progress" (i.e. loading and not yet aborted),
