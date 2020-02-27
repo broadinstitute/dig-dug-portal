@@ -4,10 +4,11 @@
         Loading: {{$store.state.associations.loading}} <br>
         Aborted: {{$store.state.associations.aborted}} <br>
 
-        <b-progress class="mt-2"
+        <b-progress class="mt-5"
                     :max="$store.state.associations.count + 2500"
                     :precision="2"
                     show-progress
+                    variant='info'
                     v-bind:animated='!$store.state.associations.aborted'>
             <b-progress-bar :value="$store.state.associations.data.length + 2500"
                             :label="`${((($store.state.associations.data.length) / ($store.state.associations.count)) * 100).toFixed(2)}%`">
@@ -16,13 +17,6 @@
 
         <br>
         Completeness: {{ $store.state.associations.data.length }} / {{ $store.state.associations.count }} <br>
-
-<!--        [show/can]Cancel, wasStarted or wasRestarted: !$store.state.associations.aborted-->
-<!--        [show/can]Restarted, wasCanceled, isDone: $store.state.associations.aborted-->
-<!--        [show/can]Done, isDone: $store.state.associations.aborted-->
-<!--        [show/can]Continue, isPaused: !$store.state.associations.aborted && !$store.state.associations.loading-->
-<!--        [show/can]Pause, wasStarted or wasContinued: $store.state.associations.loading-->
-
         <div>
             <div v-if="!$store.state.associations.aborted">
                 <button @click="$store.dispatch('associations/CANCEL')">
