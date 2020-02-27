@@ -14,7 +14,7 @@
                             <div class="front-logo-wrapper">
                                 <img
                                     class="front-logo-img"
-                                    :src="'images/'+this.$store.state.diseaseGroup.id+'kp_front_logo.svg'"
+                                    :src="'http://kp4cd.org/sites/default/files/vueportal/'+this.$store.state.kp4cd.frontContents[0].field_front_logo"
                                 />
                                 <span
                                     :class="'front-logo-tagline front-logo-tagline-'+this.$store.state.diseaseGroup.id+'kp'"

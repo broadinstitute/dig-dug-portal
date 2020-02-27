@@ -17,7 +17,10 @@
                         class="amp-banner-left"
                         style="padding: 5px; text-align: center;height: 50px;"
                     >
-                        <img :src="'images/portals2mdkp_banner.svg'" :class="'portals-2-mdkp-logo'" />
+                        <img
+                            :src="'http://kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
+                            :class="'portals-2-mdkp-logo'"
+                        />
                     </div>
                 </a>
             </div>
@@ -25,7 +28,7 @@
         <div :class="'row '+diseaseGroup+'kp-header'">
             <div :class="diseaseGroup+'kp-logo-wrapper col-md-4'">
                 <img
-                    :src="'images/'+diseaseGroup+'kp_header_logo.svg'"
+                    :src="'http://kp4cd.org/sites/default/files/vueportal/'+$store.state.kp4cd.frontContents[0].field_banner_logo"
                     :class="diseaseGroup+'kp-logo'"
                 />
                 <div
