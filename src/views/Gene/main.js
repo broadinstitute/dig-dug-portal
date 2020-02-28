@@ -21,7 +21,6 @@ new Vue({
         VariantsTable,
         PageHeader,
         PageFooter,
-        LocusZoom
     },
     data: {
         geneSource: DataSources.defaultGeneSource,
