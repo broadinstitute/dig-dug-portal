@@ -101,9 +101,6 @@ export default function (index, extend) {
             },
             async query(context, queryPayload) {
 
-                // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
-                // in hindsight, could have used an `await`?
-                // context.dispatch("SETUP");
                 context.commit("setAbort", false);
                 context.commit("setLoading", true);
 
@@ -113,18 +110,12 @@ export default function (index, extend) {
                     if (queryPayload) {
                         const { q, limit } = queryPayload;
                         context.commit("setIterableQuery",
-                            // TODO: refactor error handler out to utils?
-                            // TODO: what would be the best error message for debugging?
                             beginIterableQuery({ index, q, limit: limit || context.limit }, (error) => {
                                 // errHandler:
                                 // if error, print out the error code (and continuation?)
                                 // then force a cancel (i.e. aborted and not loading)
-                                console.log(error.message);
                                 context.commit('setAbort', true);
                                 context.commit("setLoading", false);
-
-                                // TODO: could force an illegal state as our error state so that other components know to fail?
-                                //  hack!
 
                             })
                         );
@@ -142,9 +133,6 @@ export default function (index, extend) {
                     // if we run out of promised queries, then abort/exit the stream and claim it is no longer loading/in-progress
                     // (we have to manually break the loop to prevent lag-time from the commits from producing invalid behavior)
                     if (response.done) {
-                        // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
-                        // in hindsight, could have used an `await`?
-                        // context.dispatch("ABORT");
                         context.commit('setAbort', true);
                         context.commit("setLoading", false);
                         break;
