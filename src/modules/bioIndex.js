@@ -1,11 +1,9 @@
 import merge from "lodash.merge";
 import querystring from "querystring";
-import {BIO_INDEX_HOST, continuedIterableQuery} from "../utils/bioIndexUtils";
+import {BIO_INDEX_HOST, iterableQuery, continuedIterableQuery} from "../utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
-
-
 export default function(index, extend) {
     let module = {
         namespaced: true,
@@ -13,10 +11,19 @@ export default function(index, extend) {
         // initial module state
         state() {
             return {
-                id: index,
+                // freeze id to make it immutable (like a prop)
+                id: Object.freeze(index.toLowerCase()),
+
+                // accumulated information from query responses
                 data: [],
                 count: null,
                 profile: {},
+
+                // bioIndex query chain state
+                // semantics of aborted and loading:
+                // aborted => completed chain of queries, or cancelled them
+                // loading => there exists a chain of queries that has been called, but might not yet be loading next one yet
+                // can't be both aborted and loading at the same time ( loading |- !aborted )
                 aborted: false,
                 loading: false,
                 tIterableQuery: null,
@@ -94,7 +101,7 @@ export default function(index, extend) {
 
                 context.commit("setCount", json.count);
             },
-            async query(context, {q, limit}) {
+            async query(context, queryPayload) {
 
                 // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
                 // in hindsight, could have used an `await`?
@@ -105,14 +112,28 @@ export default function(index, extend) {
                 // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
                 // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.
                 if (!context.state.tIterableQuery || context.state.tIterableQuery.done) {
-                    let qs = querystring.encode({q, limit});
-                    let response = await fetch(
-                        `${BIO_INDEX_HOST}/api/query/${index}?${qs}`
-                    ).then(resp => resp.json());
+                    if (queryPayload) {
+                        const {q, limit} = queryPayload;
+                        context.commit("setTIterableQuery",
+                            // TODO: refactor error handler out to utils?
+                            // TODO: what would be the best error message for debugging?
+                            iterableQuery(index, {q, limit}, (error) => {
+                                // errHandler:
+                                // if error, print out the error code (and continuation?)
+                                // then force a cancel (i.e. aborted and not loading)
+                                console.log(error.message);
+                                context.commit('setAbort', true);
+                                context.commit("setLoading", false);
 
-                    // set the initial data
-                    context.commit("setResponse", response);
-                    context.commit("setTIterableQuery", continuedIterableQuery(response));
+                                // TODO: could force an illegal state as our error state so that other components know to fail?
+                                //  hack!
+
+                            })
+                        );
+                        let response = await context.state.tIterableQuery.next();
+                        // set the initial data
+                        context.commit("setResponse", response.value);
+                    }
                 }
 
                 // as long as the query is "in-progress" (i.e. loading and not yet aborted),
