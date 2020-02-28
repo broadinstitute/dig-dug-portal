@@ -105,7 +105,7 @@ export default function (index, extend) {
 
                 context.commit("setCount", json.count);
             },
-            async query(context, queryPayload) {
+            async query(context, { q, limit } ) {
 
                 context.commit("setAbort", false);
                 context.commit("setLoading", true);
@@ -113,7 +113,6 @@ export default function (index, extend) {
                 // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
                 // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.
                 if (!context.state.iterableQuery || context.state.iterableQuery.done) {
-                    const { q, limit } = queryPayload;
                     context.commit("setIterableQuery",
                         beginIterableQuery({ index, q, limit: limit || context.limit }, (error) => {
                             // errHandler:
