@@ -24,7 +24,7 @@ async function* iterateOnQuery(json, errHandler) {
     } while(json.continuation);
 }
 
-async function portalFetch(query, errHandler) {
+export async function portalFetch(query, errHandler) {
     return await fetch(query)
         .then(resp => {
             if (resp.status !== 200) {
