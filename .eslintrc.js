@@ -11,6 +11,7 @@ module.exports = {
     parser: 'babel-eslint'
   },
   rules: {
+      // TODO: are these rules in the right mode? how can we make switching/detecting production/dev deploys anyway?
       'no-var': process.env.NODE_ENV === 'production' ? 'error' : 'off',
       'prefer-const': process.env.NODE_ENV === 'production' ? 'error' : 'off',
       'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
