@@ -1,29 +1,30 @@
 <template>
-
     <div class="lb-container-all">
         <div class="lb-container-row">
             <!-- The magic numbers here are fudge factors to get the percentage display to initialize with information -->
             <!-- If they weren't here the loading bar would look empty on first render, which looks unresponsive -->
-            <b-progress class="lb-container-progress"
-                        :max="$store.state[moduleId].count + 2500"
-                        :precision="2"
-                        show-progress
-                        v-bind:variant='
+            <b-progress
+                class="lb-container-progress"
+                :max="$store.state[moduleId].count + 2500"
+                :precision="2"
+                show-progress
+                v-bind:variant="
                             $store.state[moduleId].loading && !$store.state[moduleId].aborted ?
-                                "success" :
+                                'success' :
                             !$store.state[moduleId].loading && !$store.state[moduleId].aborted ?
-                                "warning" :
+                                'warning' :
                             $store.state[moduleId].aborted ?
-                                "primary" : "success"
-                        '
-                        v-bind:animated='!$store.state[moduleId].aborted'>
-                <b-progress-bar :value="$store.state[moduleId].data.length + 2500"
-                                :label="`${((($store.state[moduleId].data.length) / ($store.state[moduleId].count + 1)) * 100).toFixed(2)}%`">
-                </b-progress-bar>
+                                'primary' : 'success'
+                        "
+                v-bind:animated="!$store.state[moduleId].aborted"
+            >
+                <b-progress-bar
+                    :value="$store.state[moduleId].data.length + 2500"
+                    :label="`${((($store.state[moduleId].data.length) / ($store.state[moduleId].count + 1)) * 100).toFixed(2)}%`"
+                ></b-progress-bar>
             </b-progress>
 
             <div class="lb-container-buttons">
-
                 <div class="lb-button-group-pause-continue">
                     <div title="Done receiving" v-if="$store.state[moduleId].aborted">
                         <b-button pill variant="outline-secondary" size="sm" disabled>
@@ -31,38 +32,50 @@
                         </b-button>
                     </div>
 
-                    <div v-bind:title="`Continue receiving ${moduleId}`" v-else-if="!$store.state[moduleId].loading && !$store.state[moduleId].aborted">
-                        <b-button pill variant="outline-secondary" size="sm" @click="CONTINUE">
+                    <div
+                        v-bind:title="`Continue receiving ${moduleId}`"
+                        v-else-if="!$store.state[moduleId].loading && !$store.state[moduleId].aborted"
+                    >
+                        <b-button pill variant="outline-secondary" size="sm" @click="resume">
                             <b-icon-chevron-right></b-icon-chevron-right>
                         </b-button>
                     </div>
 
-                    <div v-bind:title="`Pause receiving ${moduleId}`" v-else-if="$store.state[moduleId].loading">
-                        <b-button pill variant="outline-secondary" size="sm" @click="PAUSE">
+                    <div
+                        v-bind:title="`Pause receiving ${moduleId}`"
+                        v-else-if="$store.state[moduleId].loading"
+                    >
+                        <b-button pill variant="outline-secondary" size="sm" @click="pause">
                             <b-icon-pause-fill></b-icon-pause-fill>
                         </b-button>
                     </div>
                 </div>
 
                 <div class="lb-button-group-cancel-restart">
-                    <div v-bind:title="`Cancel receiving ${moduleId}`" v-if="!$store.state[moduleId].aborted">
-                        <b-button pill variant="outline-secondary" size="sm" @click="CANCEL">
+                    <div
+                        v-bind:title="`Cancel receiving ${moduleId}`"
+                        v-if="!$store.state[moduleId].aborted"
+                    >
+                        <b-button pill variant="outline-secondary" size="sm" @click="cancel">
                             <b-icon-circle-slash></b-icon-circle-slash>
                         </b-button>
                     </div>
 
-                    <div v-bind:title="`Restart ${moduleId} query`" v-else-if="$store.state[moduleId].aborted">
-                        <b-button pill variant="outline-secondary" size="sm" @click="RESTART">
+                    <div
+                        v-bind:title="`Restart ${moduleId} query`"
+                        v-else-if="$store.state[moduleId].aborted"
+                    >
+                        <b-button pill variant="outline-secondary" size="sm" @click="restart">
                             <b-icon-arrow-repeat></b-icon-arrow-repeat>
                         </b-button>
                     </div>
                 </div>
-
             </div>
         </div>
-        <div class="lb-container-count" v-if="$store.state[moduleId].count > 0">
-            {{ $store.state[moduleId].data.length }} / {{ $store.state[moduleId].count }} {{moduleId}} loaded
-        </div>
+        <div
+            class="lb-container-count"
+            v-if="$store.state[moduleId].count > 0"
+        >{{ $store.state[moduleId].data.length }} / {{ $store.state[moduleId].count }} {{moduleId}} loaded</div>
     </div>
 </template>
 
@@ -78,10 +91,10 @@ export default Vue.component("loading-bar", {
         return {
             // to take advantage of caching
             moduleId: this.module.id
-        }
+        };
     },
     created() {
-      // console.log(this.data.moduleId);
+        // console.log(this.data.moduleId);
     },
     computed: {
         // TODO: using computed properties results in noticeable interface lag, these are not necessary but are kept here for reference
@@ -117,51 +130,51 @@ export default Vue.component("loading-bar", {
     },
     methods: {
         // TODO: is there a way to decouple this even further from the store without bloating the component's interface?
-        CANCEL() {
+        cancel() {
             this.$store.commit(`${this.moduleId}/setLoading`, false);
             this.$store.commit(`${this.moduleId}/setAbort`, true);
         },
-        RESTART() {
-            this.$store.commit(`${this.moduleId}/clearTIterableQuery`);
+        restart() {
+            this.$store.commit(`${this.moduleId}/clearIterableQuery`);
             this.$store.commit(`${this.moduleId}/clearData`);
             this.$store.dispatch(`${this.moduleId}/count`, this.queryState);
             this.$store.dispatch(`${this.moduleId}/query`, this.queryState);
         },
-        PAUSE() {
+        pause() {
             this.$store.commit(`${this.moduleId}/setLoading`, false);
         },
-        CONTINUE() {
+        resume() {
             this.$store.commit(`${this.moduleId}/setLoading`, true);
             // TODO: case where queryState changes but previous iterableQuery not done?
-                // TODO: need a way of binding *->this.queryState to the creation of a new iterableQuery!
+            // TODO: need a way of binding *->this.queryState to the creation of a new iterableQuery!
             this.$store.dispatch(`${this.moduleId}/query`, this.queryState);
-        },
+        }
     }
-})
+});
 </script>
 
 <style scoped>
-    .lb-container-all {
-        margin: 0.5%;
-    }
-    .lb-container-row {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-evenly;
-        align-items: center;
-    }
-    .lb-container-progress {
-        flex-grow: 3;
-        height: 200%;  /* equivalent to a bootstrap button height? */
-    }
-    .lb-container-buttons {
-        display: flex;
-        flex-direction: row;
-    }
-    .lb-container-buttons > * {
-        margin-left: 5%;
-    }
-    .lb-container-count {
-        font-size: 0.80rem;
-    }
+.lb-container-all {
+    margin: 0.5%;
+}
+.lb-container-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+}
+.lb-container-progress {
+    flex-grow: 3;
+    height: 200%; /* equivalent to a bootstrap button height? */
+}
+.lb-container-buttons {
+    display: flex;
+    flex-direction: row;
+}
+.lb-container-buttons > * {
+    margin-left: 5%;
+}
+.lb-container-count {
+    font-size: 0.8rem;
+}
 </style>

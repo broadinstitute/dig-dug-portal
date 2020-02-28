@@ -6,7 +6,7 @@ import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
-import LoadingBar from "../../components/LoadingBar/LoadingBar";
+import LoadingBar from "@/components/LoadingBar";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);

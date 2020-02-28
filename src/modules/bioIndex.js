@@ -1,12 +1,13 @@
 import merge from "lodash.merge";
 import querystring from "querystring";
-import {BIO_INDEX_HOST, iterableQuery, continuedIterableQuery} from "../utils/bioIndexUtils";
+import { BIO_INDEX_HOST, iterableQuery } from "@/utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
-export default function(index, extend) {
+export default function (index, extend) {
     let module = {
         namespaced: true,
+        limit: null,
 
         // initial module state
         state() {
@@ -26,12 +27,12 @@ export default function(index, extend) {
                 // can't be both aborted and loading at the same time ( loading |- !aborted )
                 aborted: false,
                 loading: false,
-                tIterableQuery: null,
+                iterableQuery: null,
             };
         },
 
         getters: {
-            data (state) {
+            data(state) {
                 return state.data;
             },
             percentComplete(state) {
@@ -50,11 +51,11 @@ export default function(index, extend) {
                 state.data = [];
             },
 
-            setTIterableQuery(state, tc) {
-                state.tIterableQuery = tc;
+            setIterableQuery(state, tc) {
+                state.iterableQuery = tc;
             },
-            clearTIterableQuery(state) {
-                state.tIterableQuery = null;
+            clearIterableQuery(state) {
+                state.iterableQuery = null;
             },
 
             setResponse(state, json) {
@@ -94,10 +95,10 @@ export default function(index, extend) {
                 let json = await fetch(
                     `${BIO_INDEX_HOST}/api/count/${index}?${qs}`
                 )
-                .then(resp => resp.json())
-                .catch(error => {
-                    count: null;
-                });
+                    .then(resp => resp.json())
+                    .catch(error => {
+                        count: null;
+                    });
 
                 context.commit("setCount", json.count);
             },
@@ -111,13 +112,13 @@ export default function(index, extend) {
 
                 // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
                 // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.
-                if (!context.state.tIterableQuery || context.state.tIterableQuery.done) {
+                if (!context.state.iterableQuery || context.state.iterableQuery.done) {
                     if (queryPayload) {
-                        const {q, limit} = queryPayload;
-                        context.commit("setTIterableQuery",
+                        const { q, limit } = queryPayload;
+                        context.commit("setIterableQuery",
                             // TODO: refactor error handler out to utils?
                             // TODO: what would be the best error message for debugging?
-                            iterableQuery(index, {q, limit}, (error) => {
+                            iterableQuery(index, { q, limit: limit || context.limit }, (error) => {
                                 // errHandler:
                                 // if error, print out the error code (and continuation?)
                                 // then force a cancel (i.e. aborted and not loading)
@@ -130,7 +131,7 @@ export default function(index, extend) {
 
                             })
                         );
-                        let response = await context.state.tIterableQuery.next();
+                        let response = await context.state.iterableQuery.next();
                         // set the initial data
                         context.commit("setResponse", response.value);
                     }
@@ -139,7 +140,7 @@ export default function(index, extend) {
                 // as long as the query is "in-progress" (i.e. loading and not yet aborted),
                 // then continue asking for promised queries from the generator
                 while (context.state.loading && !context.state.aborted) {
-                    let response = await context.state.tIterableQuery.next();
+                    let response = await context.state.iterableQuery.next();
 
                     // if we run out of promised queries, then abort/exit the stream and claim it is no longer loading/in-progress
                     // (we have to manually break the loop to prevent lag-time from the commits from producing invalid behavior)
