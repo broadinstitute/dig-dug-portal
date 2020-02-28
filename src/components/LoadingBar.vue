@@ -1,12 +1,9 @@
 <template>
     <div class="lb-container-all">
         <div class="lb-container-row">
-            <!-- The magic numbers here are fudge factors to get the percentage display to initialize with information -->
-            <!-- If they weren't here the loading bar would look empty on first render, which looks unresponsive -->
             <b-progress
                 class="lb-container-progress"
-                :max="$store.state[moduleId].count + 2500"
-                :precision="2"
+                :max="$store.state[moduleId].count"
                 show-progress
                 v-bind:variant="
                             $store.state[moduleId].loading && !$store.state[moduleId].aborted ?
@@ -19,8 +16,8 @@
                 v-bind:animated="!$store.state[moduleId].aborted"
             >
                 <b-progress-bar
-                    :value="$store.state[moduleId].data.length + 2500"
-                    :label="`${((($store.state[moduleId].data.length) / ($store.state[moduleId].count + 1)) * 100).toFixed(2)}%`"
+                    :value="$store.state[moduleId].data.length"
+                    :label="`${ $store.state[moduleId].data.length > 0 ? ((($store.state[moduleId].data.length) / ($store.state[moduleId].count + 1)) * 100).toFixed(2).toString()+'%' : '' }`"
                 ></b-progress-bar>
             </b-progress>
 
