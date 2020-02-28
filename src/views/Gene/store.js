@@ -41,7 +41,7 @@ export default new Vuex.Store({
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype.id;
             $.each(phenotype.phenotypes, function (index, PHENOTYPE) {
-                if (PHENOTYPE.phenotype_id == phenotype.id) { state.phenotypeName = PHENOTYPE.name };
+                if (PHENOTYPE.phenotype_id == phenotype.id) { state.phenotypeName = PHENOTYPE.name }
             })
         },
         setSelectedPhenotype(state, phenotype) {

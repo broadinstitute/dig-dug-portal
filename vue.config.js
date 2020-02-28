@@ -1,4 +1,11 @@
+const RemoveConsolePlugin = require('remove-console-plugin');
+
 module.exports = {
+    configureWebpack: {
+        plugins: [
+            new RemoveConsolePlugin(),  // https://github.com/matt-mcdaniel/RemoveConsolePlugin
+        ]
+    },
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },

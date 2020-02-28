@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
     "watch": "vue-cli-service build --watch"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
     "locuszoom": "^0.9.1",
     "lodash.merge": "^4.6.2",
     "querystring": "^0.2.0",
+    "recast": "^0.18.7",
     "vue": "^2.6.11",
     "vue-cookies": "^1.6.1",
     "vue-select": "^3.4.0",
@@ -23,7 +25,12 @@
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.11.0",
+    "@vue/cli-plugin-eslint": "^4.2.3",
     "@vue/cli-service": "^3.11.0",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.1.2",
+    "remove-console-plugin": "0.0.1",
     "vue-template-compiler": "^2.6.11"
   }
 }

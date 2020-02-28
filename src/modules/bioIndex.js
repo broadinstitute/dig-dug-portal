@@ -69,7 +69,7 @@ export default function (index, extend) {
                 let qs = querystring.encode({ q });
                 let json = await fetch(`${bioIndexHost}/api/count/${index}?${qs}`)
                     .then(resp => resp.json())
-                    .catch(error => { count: null });
+                    .catch(error => { null });
 
                 context.commit('setCount', json.count);
             },

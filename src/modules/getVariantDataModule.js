@@ -12,7 +12,7 @@ function tableColumns(json, ...columns) {
 
         // use the first variant since they are all in the same order
         json.variants[0].forEach((obj, i) => {
-            if (!!obj[col]) columnIndices[col] = i;
+            if (obj[col]) columnIndices[col] = i;
         });
 
         if (!columnIndices[col]) {
