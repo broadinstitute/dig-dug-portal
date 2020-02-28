@@ -1,6 +1,7 @@
 import merge from "lodash.merge";
 import querystring from "querystring";
 import { BIO_INDEX_HOST, beginIterableQuery } from "../utils/bioIndexUtils";
+import {isNumber} from "bootstrap-vue/esm/utils/inspect";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -28,6 +29,7 @@ export default function (index, extend) {
                 aborted: false,
                 loading: false,
                 iterableQuery: null,
+                limit: null,
             };
         },
 
@@ -43,6 +45,10 @@ export default function (index, extend) {
 
         // commit methods
         mutations: {
+
+            setLimit(state, limit) {
+                state.limit = limit;
+            },
 
             clearData(state) {
                 state.data = [];
