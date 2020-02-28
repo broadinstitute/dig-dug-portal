@@ -9,6 +9,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
+import Url from "url-parse";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 // Install BootstrapVue
@@ -34,17 +35,18 @@ export default Vue.component("disease-group-select", {
     },
     methods: {
         onDiseaseGroupChange: function(selectedDiseaseGroup) {
-            let currentHost = window.location.hostname;
-            let currentURLArr = window.location.href.split(currentHost);
-            let cleandHost = currentHost.substring(
-                currentHost.split(".")[0].length
-            );
-            let redirectHost = selectedDiseaseGroup + cleandHost;
+            let url = new Url(window.location.href);
+            let hostParts = url.hostname.split(".");
 
-            let redirectUrl =
-                currentURLArr[0] + redirectHost + currentURLArr[1];
+            if (hostParts[hostParts.length - 1] === "localhost") {
+                hostParts = [selectedDiseaseGroup, "localhost"];
+            } else {
+                hostParts = [selectedDiseaseGroup, ...hostParts.slice(-2)];
+            }
 
-            window.location.href = redirectUrl;
+            url.set("hostname", hostParts.join("."));
+
+            window.location.href = url.href;
         }
     },
     mounted() {
