@@ -113,22 +113,20 @@ export default function (index, extend) {
                 // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
                 // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.
                 if (!context.state.iterableQuery || context.state.iterableQuery.done) {
-                    if (queryPayload) {
-                        const { q, limit } = queryPayload;
-                        context.commit("setIterableQuery",
-                            beginIterableQuery({ index, q, limit: limit || context.limit }, (error) => {
-                                // errHandler:
-                                // if error, print out the error code (and continuation?)
-                                // then force a cancel (i.e. aborted and not loading)
-                                context.commit('setAbort', true);
-                                context.commit("setLoading", false);
+                    const { q, limit } = queryPayload;
+                    context.commit("setIterableQuery",
+                        beginIterableQuery({ index, q, limit: limit || context.limit }, (error) => {
+                            // errHandler:
+                            // if error, print out the error code (and continuation?)
+                            // then force a cancel (i.e. aborted and not loading)
+                            context.commit('setAbort', true);
+                            context.commit("setLoading", false);
 
-                            })
-                        );
-                        let response = await context.state.iterableQuery.next();
-                        // set the initial data
-                        context.commit("setResponse", response.value);
-                    }
+                        })
+                    );
+                    let response = await context.state.iterableQuery.next();
+                    // set the initial data
+                    context.commit("setResponse", response.value);
                 }
 
                 // as long as the query is "in-progress" (i.e. loading and not yet aborted),
