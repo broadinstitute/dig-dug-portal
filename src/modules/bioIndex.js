@@ -95,9 +95,7 @@ export default function (index, extend) {
         actions: {
             async count(context, { q }) {
                 let qs = querystring.encode({ q });
-                let json = await fetch(
-                    `${BIO_INDEX_HOST}/api/count/${index}?${qs}`
-                )
+                let json = await fetch(`${BIO_INDEX_HOST}/api/count/${index}?${qs}`)
                     .then(resp => resp.json())
                     .catch(error => {
                         count: null;
@@ -118,9 +116,9 @@ export default function (index, extend) {
                             // errHandler:
                             // if error, print out the error code (and continuation?)
                             // then force a cancel (i.e. aborted and not loading)
+                            console.log(error);
                             context.commit('setAbort', true);
                             context.commit("setLoading", false);
-
                         })
                     );
                     let response = await context.state.iterableQuery.next();

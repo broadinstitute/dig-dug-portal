@@ -15,14 +15,13 @@ export async function* beginIterableQuery(json, errHandler) {
 };
 
 async function* iterateOnQuery(json, errHandler) {
-    while (json.index && json.q) {
+    // NOTE: we're implicitly guarded by beginIterableQuery having correct base case information,
+    // i.e. `{ index, q, limit }` – but this should be OK as long as iterateOnQuery is respected as private.
+    do {
         let queryStr = makeBioIndexQueryStr(json);
         json = await portalFetch(queryStr, errHandler);
         yield json;
-        if (!json.continuation) {
-            return;
-        }
-    };
+    } while(json.continuation);
 }
 
 async function portalFetch(query, errHandler) {
