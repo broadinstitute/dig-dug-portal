@@ -1,5 +1,5 @@
 /*
- * Module to get data from Brent Richard's effector gene lists
+ * Module to get data from Brent Richards' effector gene lists
  */
 
 export default {
@@ -23,8 +23,14 @@ export default {
     actions: {
         async getGeneData(context, trait) {
             let json = await fetch(
-                `http://kp4cd.org//modules/kpn/effector_genes/assets/js/richards_data_${trait}`
-            ).then(resp => resp.json());
+                `http://kp4cd.org//modules/kpn/effector_genes/assets/js/richards_data_${trait}.json`
+            )
+                .then(resp => resp.json())
+                .then(resp =>
+                    resp.sort((a, b) =>
+                        a["all.locus.prob"] < b["all.locus.prob"] ? 1 : -1
+                    )
+                );
             // set the data
             context.commit("setGeneData", json);
         }

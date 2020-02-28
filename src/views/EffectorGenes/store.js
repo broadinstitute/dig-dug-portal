@@ -21,9 +21,14 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        onPhenotypeChange(state, phenotype) {
-            console.log(phenotype);
-            state.commit("setSelectedPhenotype", phenotype);
+        onPhenotypeChange(context, phenotype) {
+            //console.log(phenotype);
+            context.commit("setSelectedPhenotype", phenotype);
+            context.dispatch("getData");
+        },
+        getData(context) {
+            let phenotype = context.state.selectedPhenotype;
+            context.dispatch("effectorGenes/getGeneData", phenotype);
         }
     }
 });

@@ -6,28 +6,15 @@
 				<div id="traits">
 					<div class="form-group table-filter">
 						<label for="traits">Traits</label>
-						hello
-						{{ $store.state.selectedPhenotype }}
-						<select
-							class="form-control"
-							id="selectTrait"
-							v-bind:selectedPhenotype="$store.state.selectedPhenotype"
-							@change="$store.dispatch('onPhenotypeChange', {selectedPhenotype});"
-						>
-							<option value="calcium">Calcium</option>
-							<option value="dbilirubin">Dbilirubin</option>
-							<option value="dbp">Diastolic blood pressure</option>
-							<option value="ebmd">Estimated bone mineral density</option>
-							<option value="glucose">Glucose</option>
-							<option value="height">Height</option>
-							<option value="ldl">LDL cholesterol</option>
-							<option value="lowtsh">Lowtsh</option>
-							<option value="rbc">RBC</option>
-							<option value="sbp">Systolic blood pressure</option>
-							<option value="t2d" selected>Type 2 diabetes</option>
-							<option value="tg">Triglycerides</option>
+						<select class="form-control" id="selectTrait" v-model="$parent.selectedPhenotype">
+							<option
+								v-for="item in $parent.listPheno"
+								:value="item.value"
+								:selected="item.value == $store.state.selectedPhenotype"
+							>{{ item.name }}</option>
 						</select>
 					</div>
+
 					<div class="table-filter">
 						<label>Search a gene</label>
 						<input id="geneSearch" type="text" placeholder="Gene ID" />
@@ -47,28 +34,7 @@
 							<label for="region">Chromosome</label>
 							<select class="form-control" id="selectChrom">
 								<option value="0" selected>All</option>
-								<option value="1">1</option>
-								<option value="2">2</option>
-								<option value="3">3</option>
-								<option value="4">4</option>
-								<option value="5">5</option>
-								<option value="6">6</option>
-								<option value="7">7</option>
-								<option value="8">8</option>
-								<option value="9">9</option>
-								<option value="10">10</option>
-								<option value="11">11</option>
-								<option value="12">12</option>
-								<option value="13">13</option>
-								<option value="14">14</option>
-								<option value="15">15</option>
-								<option value="16">16</option>
-								<option value="17">17</option>
-								<option value="18">18</option>
-								<option value="19">19</option>
-								<option value="20">20</option>
-								<option value="21">21</option>
-								<option value="22">22</option>
+								<option v-for="item in $parent.listChrom" :value="item.value">{{ item.name }}</option>
 							</select>
 						</div>
 						<div class="table-filter">
@@ -90,68 +56,9 @@
 					<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
 				</div>
 				<h3>Set visibility of annotation columns</h3>
-				<span class="column-option">
-					<input type="checkbox" value="col1" checked /> snp.name
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col2" checked /> snp.locus
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col3" checked /> snp.pos
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col4" checked /> maf
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col5" checked /> beta
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col6" checked /> se
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col7" checked /> z
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col8" checked /> prob
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col9" checked /> log10bf
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col10" checked /> log10bf_group
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col11" checked /> snpeff.impact
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col12" /> dsbsnp.func
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col13" /> is.dbsnp.delit
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col14" /> is.snpeff.delit
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col15" /> snp.in.trait.DHS
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col16" /> nearest.trait.DHS.from.gene
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col17" /> nearest.gene.from.trait.DHS
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col18" /> snp.in.DHS
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col19" /> nearest.DHS.from.gene
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col20" /> nearest.gene.from.DHS
-				</span>
-				<span class="column-option">
-					<input type="checkbox" value="col21" /> in.gtex
+				<span class="column-option" v-for="item in $parent.listCol">
+					<input type="checkbox" :value="item.value" v-model="item.checked" />
+					{{item.name}} - {{item.checked}}
 				</span>
 			</div>
 			<button id="setColumn" class="btn btn-default">Set Columns</button>
@@ -183,6 +90,9 @@
 			<div class="legends legends2">
 				<span>*Hover gene name for gene information</span>
 				<span>*Click probability value to see detailed annotations</span>
+			</div>
+			<div id="table">
+				<div v-for="gene in $parent.geneData">{{gene["names.genes"]}}</div>
 			</div>
 		</div>
 
