@@ -1,4 +1,6 @@
-body { background-color: #eee; }
+@import url('https://fonts.googleapis.com/css?family=Roboto+Condensed:100,200,300,400italic,400,700,700italic|Open+Sans:400,600, 700,700italic,600italic,600,400italic|Oswald:400,300,700');
+
+body { background-color: #eee; font-family: 'Roboto', Arial, sans-serif; }
 
 a {  color:#0097d6 !important; }
 a:hover { text-decoration: none !important; }
