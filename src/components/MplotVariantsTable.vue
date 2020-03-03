@@ -1,19 +1,10 @@
 <template>
     <div>
-        <b-table
-            hover
-            :id="variants-table"
-            :fields="fields"
-            :items="variantsCleaned"
-            :tbody-tr-class="rowClass"
-        >
-            <template v-slot:cell(rsid)="data">{{ data.value }}</template>
-            <template v-slot:cell(p_value)="data">{{ data.value }}</template>
+        <b-table hover :fields="fields" :items="variants" :tbody-tr-class="rowClass">
+            <template v-slot:cell(varId)="data">{{ data.value }}</template>
+            <template v-slot:cell(pValue)="data">{{ data.value }}</template>
             <template v-slot:cell(chromosome)="data">{{ data.value }}</template>
             <template v-slot:cell(position)="data">{{ data.value }}</template>
-            <template v-slot:cell(gene)="data">
-                <i>{{ data.value }}</i>
-            </template>
         </b-table>
     </div>
 </template>
@@ -35,12 +26,12 @@ export default Vue.component("mplot-variants-table", {
         return {
             fields: [
                 {
-                    key: "rsid",
-                    label: "rsid",
+                    key: "varId",
+                    label: "varId",
                     sortable: false
                 },
                 {
-                    key: "p_value",
+                    key: "pValue",
                     label: "p-value",
                     sortable: true
                 },
@@ -53,11 +44,6 @@ export default Vue.component("mplot-variants-table", {
                     key: "position",
                     label: "Position",
                     sortable: false
-                },
-                {
-                    key: "gene",
-                    label: "Closest gene",
-                    sortable: false
                 }
             ]
         };
@@ -65,32 +51,9 @@ export default Vue.component("mplot-variants-table", {
     methods: {
         rowClass(item, type) {
             if (!item || type !== "row") return;
-            if (item.p_value < 2.5e-6) return "variant-table-row high";
-        }
-    },
-    computed: {
-        variantsCleaned() {
-            if (this.$store.state.table.variants) {
-                let rawVariantsData = this.$store.state.table.variants;
-                let selectedDatasetId = this.$store.state.selectedDataset;
-                let selectedPhenotypeId = this.$store.state.selectedPhenotype
-                    .phenotype_id;
-                let variantsCleaned = [];
-
-                $.each(rawVariantsData, function(i, v) {
-                    let tempObj = {};
-                    tempObj["rsid"] = v[0];
-                    tempObj["p_value"] =
-                        v[4][selectedDatasetId][selectedPhenotypeId];
-                    tempObj["chromosome"] = v[1];
-                    tempObj["position"] = v[2];
-                    tempObj["gene"] = v[3];
-
-                    variantsCleaned.push(tempObj);
-                });
-                return variantsCleaned;
-            }
+            if (item.pValue < 2.5e-6) return "variant-table-row high";
         }
     }
 });
 </script>
+

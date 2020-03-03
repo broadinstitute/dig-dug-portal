@@ -19,7 +19,6 @@ new Vue({
     components: {
         PhenotypeSelectPicker,
         DatasetSelectPicker,
-        ManhattanPlot,
         PageHeader,
         PageFooter,
         ManhattanPlot,
@@ -29,8 +28,6 @@ new Vue({
     created() {
         this.$store.dispatch("metadataModule/getMetadata");
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.commit("table/setLimit", 25);
-        this.$store.commit("manhattan/setLimit", 500);
         this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
     },
 
@@ -43,24 +40,9 @@ new Vue({
             this.$store.state.selectedPhenotype = phenotypesList[0].phenotype;
             this.$store.state.phenotypeName = phenotypesList[0].name;
         },
-
         phenotypes() {
             return this.$store.getters["graphPhenotype/phenotypes"];
         },
-        datasetList() {
-            let selectedPhenotype = this.$store.state.selectedPhenotype;
-            let datasets = null
-
-            //console.log(selectedPhenotype);
-            if (selectedPhenotype != null) {
-                datasets = this.$store.getters['metadataModule/datasetList'](selectedPhenotype);
-                return datasets;
-
-            } else {
-                datasets = [];
-                return datasets;
-            }
-        }
     }
 
 }).$mount("#app");

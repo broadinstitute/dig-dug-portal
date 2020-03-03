@@ -4,7 +4,7 @@ import Vuex from "vuex";
 import metadataModule from "@/modules/metadataModule";
 import graphPhenotype from "@/modules/graphPhenotype";
 import kp4cd from "@/modules/kp4cd";
-import getVariantDataModule from "@/modules/getVariantDataModule";
+import bioIndex from "@/modules/bioIndex";
 import diseaseGroup from "@/modules/diseaseGroup";
 
 Vue.use(Vuex);
@@ -13,14 +13,13 @@ export default new Vuex.Store({
     modules: {
         metadataModule,
         graphPhenotype,
-        manhattan: getVariantDataModule,
-        table: getVariantDataModule,
+        manhattan: bioIndex("PhenotypeAssociations"),
+        table: bioIndex("PhenotypeAssociations"),
         kp4cd,
         diseaseGroup
     },
     state: {
         selectedPhenotype: null,
-        selectedDataset: null,
         phenotypes: null,
         phenotypeName: "Select a phenotype",
         datasetName: "Select a dataset",
@@ -34,33 +33,20 @@ export default new Vuex.Store({
             state.phenotypeName = phenotype.name;
             mdkp.utility.showHideElement('phenotypeSearchHolder');
         },
-        setSelectedDataset(state, dataset) {
-            state.selectedDataset = dataset;
-            state.datasetName = dataset;
-            mdkp.utility.showHideElement('datasetSearchHolder');
-        },
         setPhenotypes(state, phenotypes) {
             state.phenotypes = phenotypes;
         }
     },
     actions: {
         onPhenotypeChange(context, selectedPhenotype) {
-            context.commit("table/clearData");
-            context.commit("manhattan/clearData");
             context.commit("setSelectedPhenotype", selectedPhenotype);
-        },
-        onDatasetChange(context, selectedDataset) {
-            context.commit("setSelectedDataset", selectedDataset);
-            context.commit("table/clearData");
-            context.commit("manhattan/clearData");
             context.dispatch("performGetData");
         },
         performGetData(context) {
-            let dataset = context.state.selectedDataset;
-            let phenotype = context.state.selectedPhenotype;
-            context.dispatch("table/getData", { dataset, phenotype });
-            context.dispatch("manhattan/getData", { dataset, phenotype });
-        }
+            let phenotype = context.state.selectedPhenotype.phenotype_id;
+            context.dispatch("table/query", { q: phenotype, limit: 100 });
+            context.dispatch("manhattan/query", { q: phenotype, limit: 2000 });
+        },
     },
 
 });

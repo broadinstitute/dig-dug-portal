@@ -57,18 +57,18 @@ export default Vue.component("manhattan-plot", {
     },
 
     watch: {
-        variants(variants) {
+        variants(variantsData) {
             let xs = ["data_x"];
             let ys = ["data"];
 
-            variants.forEach(v => {
-                let p_value = v[4][this.dataset][this.phenotype.phenotype_id];
-                let pos = chromosomeStart[v[1]] + v[2];
+            variantsData.forEach(v => {
+                let p_value = v.pValue;
+                let pos = chromosomeStart[v.chromosome] + v.position;
                 xs.push(pos); // Pos
                 ys.push(-Math.log10(p_value)); // P_VALUE
             });
 
-            if (variants.length == 0) {
+            if (variantsData.length == 0) {
                 this.chart.unload({});
             } else {
                 this.chart.load({
