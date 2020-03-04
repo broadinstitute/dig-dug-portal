@@ -149,12 +149,13 @@ export default function (index, extend) {
                         // in hindsight, could have used an `await`?
                         // context.dispatch("ABORT");
                         context.commit('setAbort', true);
-                        context.commit("setLoading", false);
+                        context.commit('setLoading', false);
+                        context.commit('clearIterableQuery');
                         break;
                     } else {
                         // if we were still in the stream of data (loading and not aborted) when we asked for a query from the chain,
                         // then append the values from the response (which we assume will exist in a valid format if the chain isn't done) to our store.
-                        context.commit("appendData", response.value);
+                        context.commit('appendData', response.value);
                     }
 
                 }
