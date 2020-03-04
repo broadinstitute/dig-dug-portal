@@ -1,9 +1,14 @@
 <template>
     <div>
-        <loading-bar v-bind:data-type="'associations'"
-                     v-bind:module ="$store.state.associations"
-                     v-bind:query-state="{ q: 'slc30a8' }">
-        </loading-bar>
+        <locuszoom-old
+            v-bind:assoc="['StaticJSON', { data: [] }]"
+            v-bind:panels="['association','genes','intervals']"
+
+            v-bind:chrom="$store.state.chrom"
+            v-bind:start="$store.state.start"
+            v-bind:end="$store.state.end"
+        >
+        </locuszoom-old>
     </div>
 </template>
 
