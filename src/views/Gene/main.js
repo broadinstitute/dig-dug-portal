@@ -16,18 +16,18 @@ new Vue({
     store,
 
     components: {
-        PhenotypeSelectPicker,
-        LocusZoom,
-        VariantsTable,
         PageHeader,
         PageFooter,
+        PhenotypeSelectPicker,
+        LocusZoom,
+        VariantsTable
     },
     data: {
         geneSource: DataSources.defaultGeneSource,
         recombSource: DataSources.defaultRecombSource,
         ldSource: DataSources.defaultLDSource,
         constraintSource: DataSources.defaultConstraintSource,
-        intervalsSource: DataSources.defaultIntervalsSource,
+        intervalsSource: DataSources.defaultIntervalsSource
     },
 
     created() {
@@ -54,7 +54,14 @@ new Vue({
             end
         });
         this.$store.dispatch("graphPhenotype/list");
-        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
+        this.$store.dispatch(
+            "kp4cd/getDatasetsInfo",
+            this.$store.state.diseaseGroup.id
+        );
+        this.$store.dispatch(
+            "kp4cd/getFrontContents",
+            this.$store.state.diseaseGroup.id
+        );
     },
 
     render(createElement, context) {
@@ -69,14 +76,13 @@ new Vue({
             var phenotypesList = this.$store.state.phenotypes.aggregatedData
                 .variants;
 
-            var phenotypesList = this.$store.state.phenotypes.aggregatedData.variants;
+            var phenotypesList = this.$store.state.phenotypes.aggregatedData
+                .variants;
 
             if (this.phenotypeMap && phenotypesList) {
                 var phenotypeMap = this.phenotypeMap;
-                phenotypesList.forEach(function (e) {
-                    $.each(phenotypeMap, function (j, r) {
-
-
+                phenotypesList.forEach(function(e) {
+                    $.each(phenotypeMap, function(j, r) {
                         if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
                             e["name"] = r.name;
                         }
@@ -108,12 +114,13 @@ new Vue({
             let assocGenes = [];
 
             if (this.phenotypesData) {
-                this.phenotypesData.forEach(function (r) {
+                this.phenotypesData.forEach(function(r) {
                     assocGenesTemp.push(r.GENE);
                 });
 
-                $.each(assocGenesTemp, function (i, e) {
-                    if ($.inArray(e, assocGenes) === -1 && e != null) assocGenes.push(e);
+                $.each(assocGenesTemp, function(i, e) {
+                    if ($.inArray(e, assocGenes) === -1 && e != null)
+                        assocGenes.push(e);
                 });
                 return assocGenes;
             }
@@ -123,7 +130,7 @@ new Vue({
             let phenotype = this.$store.state.phenotype;
             // filter and transform the variants into LZ format
             if (this.variantsData) {
-                this.variantsData.forEach(function (r) {
+                this.variantsData.forEach(function(r) {
                     if (r.phenotype == phenotype) {
                         assocData.push({
                             id: r.VAR_ID,
@@ -137,9 +144,8 @@ new Vue({
             }
 
             return assocData;
-        },
+        }
     },
-
 
     watch: {
         computedAssoc(assocData) {
