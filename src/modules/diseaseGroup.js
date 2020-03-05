@@ -13,7 +13,7 @@ var c = url.searchParams.forEach((value, key) => {
 // Script bellow is complex to work with localhost and online
 let diseaseGroupIds = { "md": "md", "cvd": "cvd", "cd": "cd", "t2d": "t2d", "sleep": "sleep" };
 let currentHost = window.location.hostname;
-let diseaseGroup = (diseaseGroupIds[currentHost.split(".")[0]] == "undefined") ? "md" : currentHost.split(".")[0];
+let diseaseGroup = typeof diseaseGroupIds[currentHost.split(".")[0]] === "undefined" ? "md" : currentHost.split(".")[0];
 let currentURLArr = window.location.href.split(currentHost);
 let cleandHost = currentHost.substring(
     currentHost.split(".")[0].length
