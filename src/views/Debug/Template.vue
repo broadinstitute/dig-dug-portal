@@ -2,7 +2,7 @@
     <div>
         <locuszoom-wip
             v-bind:store="$store"
-            v-bind:modules="['associations']"
+            v-bind:modules="['Associations']"
 
             v-bind:assoc="['StaticJSON', { data: [] }]"
             v-bind:panels="['intervals','genes', 'association',]"

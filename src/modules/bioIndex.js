@@ -62,13 +62,15 @@ export default function (index, extend) {
                     if (format === "r") {
                         return data.filter(datum => datum[property] === filter[property]);
                     } else if (format === "c") {
+                        console.log("column")
                         // column first filtering
                         // get only elements of array with positions in array
                         // find indecies of elements satisfying property
                         const columnFilterSeed =
                             data[property]
-                                .map(datum => datum === filter[property])
-                                .map(datum => { if (datum) { return data[property].indexOf(datum) } })
+                                .map(datum => (datum === filter[property]))
+                                .map((datum, index) => { if (datum) { return index } })
+                                .filter(x => typeof x !== "undefined");
 
                         // initialize a tempData object
                         let tempData = {};
@@ -78,15 +80,15 @@ export default function (index, extend) {
 
                         // fill tempData object with data that's matched the filter
                         columnFilterSeed.forEach(index => {
+                            console.log(index)
                             // TODO can be paralellized
                             // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
                             Object.keys(data).forEach(property => {
                                 tempData[property][index] = data[property][index];
                             });
                         });
-
+                        return tempData;
                     }
-                    return data;
                 }
             },
 

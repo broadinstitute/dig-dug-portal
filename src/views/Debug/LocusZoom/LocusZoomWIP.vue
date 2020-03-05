@@ -7,6 +7,7 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "../../../utils/lzDataSources";
 import {sortPanels} from "../utils/lzUtils";
+import {makeDataSourceFromModule} from "../utils/lzReader";
 
 export default Vue.component("locuszoom-wip", {
     props: [
@@ -25,6 +26,10 @@ export default Vue.component("locuszoom-wip", {
     created() {
         // initialize custom locuszoom datasources based on page-scoped modules
         // TODO utils like lzReader are used here
+        for (let i = 0; i < this.modules.length; i++) {
+            const bioIndexDataSource = makeDataSourceFromModule(this.store, this.modules[i]);
+            console.log(bioIndexDataSource);
+        }
     },
     mounted() {
 
@@ -33,8 +38,7 @@ export default Vue.component("locuszoom-wip", {
             proportional_height: 1,
             dashboard: null
         };
-        let panels = sortPanels(this.panels)
-            this.panels.map(p =>
+        let panels = sortPanels(this.panels).map(p =>
             LocusZoom.Layouts.get("panel", p, {...panelOptions})
         );
 
