@@ -1,4 +1,5 @@
 import merge from "lodash.merge";
+import get from "lodash";
 import querystring from "querystring";
 import { BIO_INDEX_HOST, iterableQuery } from "@/utils/bioIndexUtils";
 
@@ -20,6 +21,9 @@ export default function (index, extend) {
                 count: null,
                 profile: {},
 
+                // column-first: "c", record/row-first: "r"
+                format: "r",
+
                 // bioIndex query chain state
                 // semantics of aborted and loading:
                 // aborted => completed chain of queries, or cancelled them
@@ -32,7 +36,14 @@ export default function (index, extend) {
         },
 
         getters: {
-            data(state) {
+            data(state, filter) {
+                let data =  state.data;
+                const dataFilter = this.dataFilter(this.format, data, filter);
+                if (filter) {
+                    for (let filterProp in Object.keys(filter)) {
+                        data = dataFilter(data, filterProp);
+                    }
+                }
                 return state.data;
             },
             percentComplete(state) {
@@ -42,6 +53,43 @@ export default function (index, extend) {
 
                 return Math.min(state.data.length / state.count, 1.0);
             }
+        },
+
+        methods: {
+
+            dataFilter(format, filter) {
+                return function (data, property) {
+                    if (format === "r") {
+                        return data.filter(datum => datum[property] === filter[property]);
+                    } else if (format === "c") {
+                        // column first filtering
+                        // get only elements of array with positions in array
+                        // find indecies of elements satisfying property
+                        const columnFilterSeed =
+                            data[property]
+                                .map(datum => datum === filter[property])
+                                .map(datum => { if (datum) { return data.indexOf(datum) } })
+
+                        // initialize a tempData object
+                        let tempData = {};
+                        Object.keys(data).forEach(property => {
+                            tempData[property] = [];
+                        });
+
+                        // fill tempData object with data that's matched the filter
+                        columnFilterSeed.forEach(index => {
+                            // TODO can be paralellized
+                            // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
+                            Object.keys(data).forEach(property => {
+                                tempData[property][index] = data[property][index];
+                            });
+                        });
+
+                    }
+                    return data;
+                }
+            },
+
         },
 
         // commit methods

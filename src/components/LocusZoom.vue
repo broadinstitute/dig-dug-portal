@@ -18,6 +18,7 @@
         data() {
             return {};
         },
+        created() {},
         mounted() {
             let panelOptions = {
                 //unnamespaced: true,

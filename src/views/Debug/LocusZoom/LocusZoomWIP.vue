@@ -7,10 +7,13 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "../../../utils/lzDataSources";
 
-export default Vue.component("locuszoom-old", {
+export default Vue.component("locuszoom-wip", {
     props: [
+        "store", "modules",
         ...Object.keys(lzDataSources.defaultSource),
         "panels",
+
+        // TODO can these be eliminated?
         "chrom",
         "start",
         "end"
@@ -18,14 +21,19 @@ export default Vue.component("locuszoom-old", {
     data() {
         return {};
     },
+    created() {
+        // initialize custom locuszoom datasources based on page-scoped modules
+        // TODO utils like lzReader are used here
+    },
     mounted() {
+
         let panelOptions = {
             //unnamespaced: true,
             proportional_height: 1,
             dashboard: null
         };
         let panels = this.panels.map(p =>
-            LocusZoom.Layouts.get("panel", p, { ...panelOptions })
+            LocusZoom.Layouts.get("panel", p, {...panelOptions})
         );
 
         this.layout = {
@@ -40,7 +48,7 @@ export default Vue.component("locuszoom-old", {
 
         this.plot();
 
-        },
+    },
     methods: {
         plot() {
 

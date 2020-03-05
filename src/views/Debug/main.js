@@ -5,7 +5,7 @@ import store from "./store.js";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
-import LocusZoomOld from "./LocusZoom/LocusZoomOld";
+import LocusZoomWIP from "./LocusZoom/LocusZoomWIP";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -15,7 +15,7 @@ new Vue({
     store,
 
     components: {
-        LocusZoomOld,
+        LocusZoomWIP,
     },
     data: {
 
