@@ -37,11 +37,11 @@ export default function (index, extend) {
 
         getters: {
             data(state, filter) {
-                let data =  state.data;
-                const dataFilter = this.dataFilter(this.format, data, filter);
+                let data = state.data;
+                const localDataFilter = this.dataFilter(this.format, data, filter);
                 if (filter) {
                     for (let filterProp in Object.keys(filter)) {
-                        data = dataFilter(data, filterProp);
+                        data = localDataFilter(data, filterProp);
                     }
                 }
                 return state.data;
@@ -68,7 +68,7 @@ export default function (index, extend) {
                         const columnFilterSeed =
                             data[property]
                                 .map(datum => datum === filter[property])
-                                .map(datum => { if (datum) { return data.indexOf(datum) } })
+                                .map(datum => { if (datum) { return data[property].indexOf(datum) } })
 
                         // initialize a tempData object
                         let tempData = {};

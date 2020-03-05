@@ -12,7 +12,11 @@ export default new Vuex.Store({
         topAssociations: bioIndex("TopAssociations"),
         variants: bioIndex("Variants"),
     },
-    state: {},
+    state: {
+        chrom: 8,
+        start: 10000,
+        end: 20000,
+    },
     mutations: {},
     actions: {}
 });

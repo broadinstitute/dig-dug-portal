@@ -7,7 +7,7 @@
     import LocusZoom from "locuszoom";
     import lzDataSources from "@/utils/lzDataSources";
 
-    export default Vue.component("locuszoom-old", {
+    export default Vue.component("locuszoom", {
         props: [
             ...Object.keys(lzDataSources.defaultSource),
             "panels",

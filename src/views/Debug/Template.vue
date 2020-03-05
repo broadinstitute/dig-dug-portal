@@ -5,7 +5,7 @@
             v-bind:modules="['associations']"
 
             v-bind:assoc="['StaticJSON', { data: [] }]"
-            v-bind:panels="['association','genes','intervals']"
+            v-bind:panels="['intervals','genes', 'association',]"
 
             v-bind:chrom="$store.state.chrom"
             v-bind:start="$store.state.start"

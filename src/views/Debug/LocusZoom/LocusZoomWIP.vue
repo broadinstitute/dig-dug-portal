@@ -6,6 +6,7 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "../../../utils/lzDataSources";
+import {sortPanels} from "../utils/lzUtils";
 
 export default Vue.component("locuszoom-wip", {
     props: [
@@ -32,7 +33,8 @@ export default Vue.component("locuszoom-wip", {
             proportional_height: 1,
             dashboard: null
         };
-        let panels = this.panels.map(p =>
+        let panels = sortPanels(this.panels)
+            this.panels.map(p =>
             LocusZoom.Layouts.get("panel", p, {...panelOptions})
         );
 

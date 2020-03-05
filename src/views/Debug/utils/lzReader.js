@@ -25,7 +25,6 @@ let moduleParser = {
     }
 };
 
-
 export function makeDataSourceFromModule(store, moduleIndex, phenotype) {
     const moduleDataSourceConstructor = {
         parseInit(init) {
@@ -48,6 +47,5 @@ export function makeDataSourceFromModule(store, moduleIndex, phenotype) {
             return data.map(this.parser)
         }
     };
-    LocusZoom.Data.StaticSource.extend(moduleDataSourceConstructor, `BI_${moduleIndex}LZ`);
-    return
+    return LocusZoom.Data.StaticSource.extend(moduleDataSourceConstructor, `BI_${moduleIndex}LZ`);
 }
