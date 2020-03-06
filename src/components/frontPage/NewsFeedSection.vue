@@ -8,7 +8,7 @@
                 <span>
                     ...
                     <a
-                        :href="'http://kp4cd.org/new_features/'+diseaseGroup.kp4cd+'?nid='+item.nid"
+                        :href="'http://kp4cd.org/new_features/'+diseaseGroup.name+'?nid='+item.nid"
                         target="_blank"
                     >Read more</a>
                 </span>
@@ -23,7 +23,7 @@
             >{{ item }}</a>
         </div>
         <a
-            :href="'http://www.kp4cd.org/new_features/'+diseaseGroup.kp4cd"
+            :href="'http://www.kp4cd.org/new_features/'+diseaseGroup.name"
             target="_blank"
             style="display: block; position: absolute; bottom: -5px; font-weight: 600;"
         >View news archive ></a>
