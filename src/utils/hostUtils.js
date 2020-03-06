@@ -9,7 +9,7 @@ let host = parts.pop();
 
 // strip the full domain name (handle localhost)
 if (host !== 'localhost') {
-    host = `${parts.pop()}.${domain}`;
+    host = `${parts.pop()}.${host}`;
 }
 
 export default {
