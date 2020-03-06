@@ -1,15 +1,13 @@
 <template>
     <div>
-        <div v-bind="$store.state.kp4cd.frontContents">
-            <div
-                v-html="$store.state.kp4cd.frontContents[0].field_about_portal"
-            >{{ $store.state.kp4cd.frontContents[0].field_about_portal }}</div>
-        </div>
+        <div v-html="frontContents.field_about_portal"></div>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
 
-export default Vue.component("about-portal-section", {});
+export default Vue.component("about-portal-section", {
+    props: ["frontContents"]
+});
 </script>

@@ -1,7 +1,7 @@
 <template>
     <!-- Menu header-->
-    <div class="container-fluid">
-        <div class="row amp-header" v-if="diseaseGroup == 'md'">
+    <div v-if="diseaseGroup" class="container-fluid">
+        <div class="row amp-header" v-if="diseaseGroup.default">
             <div class="amp-banner-right">
                 <div class="amp-banner-left">
                     <a
@@ -10,7 +10,7 @@
                 </div>
             </div>
         </div>
-        <div class="row amp-header" v-if="diseaseGroup != 'md'" style="height: 50px;">
+        <div class="row amp-header" v-if="!diseaseGroup.default" style="height: 50px;">
             <div class="amp-banner-right" style="height: 50px;">
                 <a :href="url2Md">
                     <div
@@ -25,26 +25,26 @@
                 </a>
             </div>
         </div>
-        <div :class="'row '+diseaseGroup+'kp-header'">
+        <div :class="'row '+diseaseGroup.name+'kp-header'">
             <div :class="diseaseGroup+'kp-logo-wrapper col-md-4'">
                 <img
-                    :src="'http://kp4cd.org/sites/default/files/vueportal/'+$store.state.kp4cd.frontContents[0].field_banner_logo"
-                    :class="diseaseGroup+'kp-logo'"
+                    :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
+                    :class="diseaseGroup.name+'kp-logo'"
                 />
                 <div
                     :class="'header-disease-group-select-wrapper'"
-                    v-if="diseaseGroup == 'md' && currentPage != '/' && currentPage != ''"
+                    v-if="diseaseGroup.default && currentPage != '/' && currentPage != ''"
                 >
-                    <disease-group-select></disease-group-select>
+                    <disease-group-select :disease-groups="diseaseGroups"></disease-group-select>
                 </div>
             </div>
-            <div :class="diseaseGroup+'kp-menu-wrapper col-md-8'">
-                <ul :class="diseaseGroup+'kp-menu'">
+            <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
+                <ul :class="diseaseGroup.name+'kp-menu'">
                     <li>
-                        <a href>Home</a>
+                        <a href="/">Home</a>
                     </li>
                     <li>
-                        <a :href="translatedDG">Data</a>
+                        <a :href="translatedDataPage">Data</a>
                     </li>
                     <li>
                         <a href>Tools</a>
@@ -56,10 +56,10 @@
                         <a href>Help</a>
                     </li>
                     <li v-if="user">
-                        <a href="/logout" :class="diseaseGroup+'kp-login'">Logout</a>
+                        <a href="/logout" :class="diseaseGroup.name+'kp-login'">Logout</a>
                     </li>
                     <li v-else>
-                        <a href="/login" :class="diseaseGroup+'kp-login'">Login</a>
+                        <a href="/login" :class="diseaseGroup.name+'kp-login'">Login</a>
                     </li>
                 </ul>
             </div>
@@ -71,46 +71,42 @@
 import Vue from "vue";
 import VueCookies from "vue-cookies";
 
+import host from "@/utils/hostUtils";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
+    props: ["diseaseGroups", "diseaseGroup", "frontContents"],
+
+    components: {
+        DiseaseGroupSelect
+    },
+
     data() {
         return {};
     },
     created() {
-        //simple cookie check for now
-        this.user = Vue.$cookies.isKey("email") || false;
-    },
-    componenets: {
-        DiseaseGroupSelect
-    },
-    data() {
-        return {};
+        this.user = Vue.$cookies.isKey("session") || false;
     },
     computed: {
-        diseaseGroup() {
-            return this.$store.state.diseaseGroup.id;
-        },
         currentPage() {
-            return this.$store.state.diseaseGroup.currentPath;
+            return window.location.pathname;
         },
         url2Md() {
-            return this.$store.state.diseaseGroup.url2Md;
+            return host.urlWithSubdomain().href;
         },
-        translatedDG() {
-            let translatedDG = {
-                md: "md",
+        translatedDataPage() {
+            let kp4cd_xform = {
                 t2d: "t2d",
+                sleep: "sleep",
                 cvd: "mi",
-                cd: "stroke",
-                sleep: "sleep"
+                cd: "stroke"
             };
-            return (
-                "http://kp4cd.org/datasets/" +
-                translatedDG[this.$store.state.diseaseGroup.id]
-            );
+
+            let name = kp4cd_xform[this.diseaseGroup.name];
+
+            return `http://kp4cd.org/datasets/${name || "md"}`;
         }
     }
 });

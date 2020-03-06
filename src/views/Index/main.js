@@ -28,11 +28,8 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("metadataModule/getMetadata");
-        this.$store.dispatch("graphPhenotype/list");
-        this.$store.dispatch("kp4cd/getNewsFeed", this.$store.state.diseaseGroup.id);
-        this.$store.dispatch("kp4cd/getFrontContents", this.$store.state.diseaseGroup.id);
-        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
     render(createElement, context) {
@@ -40,11 +37,28 @@ new Vue({
     },
 
     computed: {
-        phenotypes() {
-            return this.$store.getters["graphPhenotype/phenotypes"];
+        diseaseGroup() {
+            return this.$store.getters['bioPortal/diseaseGroup'];
         },
+        phenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+
+            if (contents.length === 0) {
+                return {};
+            }
+
+            return contents[0];
+        }
     },
 
-    methods: {
+    watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getNewsFeed", group.name);
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+            this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
+        },
     }
 }).$mount("#app");

@@ -2,19 +2,17 @@
     <v-select
         v-model="selectedPhenotype"
         @input="$store.dispatch('onPhenotypeChange', selectedPhenotype);"
-        label="name"
+        label="description"
         :options="phenotypeOptions"
     ></v-select>
 </template>
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-// Install BootstrapVue
+
 Vue.use(BootstrapVue);
-// Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
@@ -36,104 +34,15 @@ export default Vue.component("phenotype-selectpicker", {
     },
     computed: {
         phenotypeOptions() {
-            var getUnique = function(inputArray) {
-                var outputArray = [];
+            return this.phenotypes.sort((a, b) => {
+                if (a.group < b.group) return -1;
+                if (b.group < a.group) return 1;
 
-                for (var i = 0; i < inputArray.length; i++) {
-                    if ($.inArray(inputArray[i], outputArray) == -1) {
-                        outputArray.push(inputArray[i].trim());
-                    }
-                }
+                if (a.description < b.description) return -1;
+                if (b.description < a.description) return 1;
 
-                return outputArray;
-            };
-
-            let phenotypes = [];
-            let phenotypesNames = [];
-            let diseaseGroup =
-                this.$store.state.diseaseGroup.id == "cvd"
-                    ? "mi"
-                    : this.$store.state.diseaseGroup.id;
-            let publishedDatasets = this.$store.state.kp4cd.datasetsInfo;
-
-            //console.log("publishedDatasets");
-            //console.log(publishedDatasets);
-
-            publishedDatasets.forEach(function(dataset) {
-                if (diseaseGroup == "md") {
-                    if (
-                        dataset.field_portals.indexOf("t2d") >= 0 ||
-                        dataset.field_portals.indexOf("stroke") >= 0 ||
-                        dataset.field_portals.indexOf("mi") >= 0 ||
-                        dataset.field_portals.indexOf("sleep") >= 0
-                    ) {
-                        let tempPhenotypes = dataset.field_phenotypes.split(
-                            "\r\n"
-                        );
-                        tempPhenotypes.forEach(function(p) {
-                            if (phenotypes[p]) {
-                                let portals =
-                                    phenotypes[p] + "," + dataset.field_portals;
-                                let portalsArr = portals.split(",");
-                                portalsArr = getUnique(portalsArr);
-
-                                phenotypes[p] = portalsArr.join();
-                            } else {
-                                phenotypes[p] = dataset.field_portals;
-                            }
-                        });
-                    }
-                } else {
-                    if (dataset.field_portals.indexOf(diseaseGroup) >= 0) {
-                        let tempPhenotypes = dataset.field_phenotypes.split(
-                            "\r\n"
-                        );
-                        tempPhenotypes.forEach(function(p) {
-                            if (phenotypes[p]) {
-                                let portals =
-                                    phenotypes[p] + "," + dataset.field_portals;
-                                let portalsArr = portals.split(",");
-                                portalsArr = getUnique(portalsArr);
-
-                                phenotypes[p] = portalsArr.join();
-                            } else {
-                                phenotypes[p] = dataset.field_portals;
-                            }
-                        });
-                    }
-                }
+                return 0;
             });
-
-            let phenotypeList = [];
-
-            if (this.phenotypes != null && this.phenotypes != undefined) {
-                this.phenotypes.forEach(function(p) {
-                    let tempObj = p;
-                    let pName = p.name;
-                    if (phenotypes[pName] != undefined) {
-                        tempObj["portal"] = phenotypes[pName];
-                        phenotypeList.push(tempObj);
-                    }
-                });
-            }
-
-            //console.log(phenotypeList.length);
-
-            return phenotypeList;
-        },
-        phenotypeMap() {
-            let phenotypeList = this.phenotypeOptions;
-            let phenotypeMap = {};
-            for (let i in phenotypeList) {
-                let phenotype = phenotypeList[i];
-                let group = phenotype.group;
-                if (!phenotypeMap[group]) {
-                    phenotypeMap[group] = [phenotype];
-                } else {
-                    phenotypeMap[group].push(phenotype);
-                }
-            }
-            return phenotypeMap;
         }
     }
 });
