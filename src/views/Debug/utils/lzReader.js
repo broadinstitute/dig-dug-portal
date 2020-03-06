@@ -2521,7 +2521,7 @@ function readOnAll(store, moduleIndex, phenotype) {
     }
 }
 
-// TODO: Test Bed: get it wor
+// TODO: Test Bed: get it working with static data before generalizing to having to synchronize with the store
 function readerTest(store, moduleIndex, phenotype) {
     return {
         fetch(chr, start, end, callback) {
