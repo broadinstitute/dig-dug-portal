@@ -1,33 +1,14 @@
 import LocusZoom from "locuszoom";
-import findIndex from "lodash";
+import {findIndex, findLastIndex} from "lodash";
 import {BIO_INDEX_TYPE} from "./lzConstants"
-import {position} from "bootstrap-vue/esm/utils/dom";
 
-function makeModuleReader(store, moduleIndex, phenotype) {
-    return {
-        fetch(chr, start, end, callback) {
-            // return new Promise(function (resolve, reject) {
-            //     // TODO: should this be strictly a getter?
-            //     callback(store.dispatch(`${moduleIndex}/query`, { q: `chr${chr}:${start}-${end}` }));
-            // }).then(store.getters[`${moduleIndex}/getData`]({ phenotype }));
-        }
-    }
-}
+import store from "../store";
+import {BIO_INDEX_HOST} from "../../../utils/bioIndexUtils";
 
-let moduleParser = {
-    [BIO_INDEX_TYPE.Associations]: function(data) {
-        return {
-            ...data,
-            id: data.varId,
-            // phenotype?
-            chr: data.chromosome,
-            pvalue: data.pValue,
-            log_pvalue: data.pValue.map(-Math.log),
-            ref_allele: data.reference,
-            variant: data.varId,
-        }
-    }
-};
+
+
+const PHENOTYPE_TEST = 'T2D';
+const LOCUS_TEST = 'SLC30A8';
 
 const testData = {
     "data": {
@@ -2383,14 +2364,52 @@ const testData = {
             0.4559319556497244,
             0.10237290870955855
         ],
+        "phenotype": Array(333).fill(PHENOTYPE_TEST).concat(["blah"]),  // made up
     },
     "lastPage": null
+};
+
+// schema can be applied to both column-first or record-first formats, but the distinction
+// in how is handled by another function
+let moduleParserSchema = Object.freeze({
+    'test': function(data) {
+        return {
+            ...data,
+        };
+    },
+    [BIO_INDEX_TYPE.Associations]: function(data) {
+        return {
+            ...data,
+            id: data.varId,
+            // phenotype?
+            chr: data.chromosome,
+            pvalue: data.pValue,
+            log_pvalue: data.pValue.map(-Math.log),
+            ref_allele: data.reference,
+            variant: data.varId,
+        }
+    }
+});
+function moduleParser(format, index) {
+    const schema = moduleParserSchema[index];
+    return function (data){
+        switch(format) {
+            case 'r':
+                return data.map(schema);
+                break;
+            case 'c':
+                return schema(data);
+                break;
+        }
+    }
 }
+
 function dataFilter(format, filter) {
     const firstProperty = Object.keys(filter)[0];
     return function (data, property=firstProperty) {
+        console.log('dataFilter', format, filter, data, property);
         if (format === "r") {
-            return data.filter(datum => datum[property] === filter[property]);
+            return data.filter(datum => datum[property] == filter[property]);  // we want casting
         } else if (format === "c") {
             // column first filtering
             // get only elements of array with positions in array
@@ -2419,19 +2438,22 @@ function dataFilter(format, filter) {
         }
     };
 };
-
 function dataRangeFilter(format, property) {
     return function (start, end) {
         return function (data) {
+            console.log('dataRangeFilter', format, data, start, end);
+
             if (format === "r") {
 
                 // using lodash
-                const startIndex = findIndex(data, [property, start]);
-                const endIndex = findIndex(data, [property, end]);
-                return data.slice(startIndex, endIndex !== -1 ? endIndex + 1 : data.length);
+                const startIndex = findIndex(data, { [property]: start });
+                const endIndex = findIndex(data, { [property]: end });
+                const value =  data.slice(startIndex, endIndex !== -1 ? endIndex + 1 : data.length);
+                console.log('row formatting', startIndex, endIndex, value);
+                return value;
 
             } else if (format === "c") {
-
+                console.log('column formatting')
                 const startIndex = data[property].indexOf(start);
                 const endIndex = data[property].lastIndexOf(end);
 
@@ -2455,74 +2477,103 @@ function dataRangeFilter(format, property) {
 }
 
 // TODO: Candidate A: Read off store (i.e. command-query separation)
-function readOffStore(store, moduleIndex, phenotype) {
+function readOffStore(store, moduleIndex, indexObject) {
     return {
-        async fetch(chr, start, end, callback) {
+        fetch(chromosome, start, end, callback) {
             try {
 
-                // NOTE: assumes page initializes query
-                let value = store.state.getters[`${moduleIndex}/getData`]({ phenotype });  // filter just in case
+                const data = store.getters[`${moduleIndex}/data`];
+                if (data) {
+                    const format = majorFormat(data);
 
-                const chromosomeFilter = dataFilter('c', { chr });
-                const positionFilter = dataRangeFilter('c', 'position')(start, end);
+                    const indexFilter = dataFilter(format, { ...indexObject });
+                    const chromosomeFilter = dataFilter(format, { chromosome });
+                    const positionFilter = dataRangeFilter(format, 'position')(start, end);
 
-                callback(positionFilter(chromosomeFilter(value)));
+                    let value = positionFilter(chromosomeFilter(indexFilter(data)));
+
+                    return callback(value);
+                }
 
             } catch (e) {
-
-                callback(null, e);
-
+                return callback(null, e);
             }
         }
     }
 }
+// console.log('offline testReadOffStore');
+// store.commit('test/setData', testData.data)
+// const testReadOffStore = readOffStore(store, 'test', { locus: LOCUS_TEST }).fetch(10, 114552962, 114611504, x => x);
+// console.log(testReadOffStore)
 
 // TODO: Candidate B: Read On Coordinate change (i.e. Just-In-Time Data)
-function readOnCoords(store, moduleIndex, phenotype) {
+function readOnCoords(store, moduleIndex, indexObject) {
     return {
-        async fetch(chr, start, end, callback) {
+        async fetch(chromosome, start, end, callback) {
             try {
-                // TODO await necessary or reasonable?
-                await store.dispatch(`${moduleIndex}/query`, { q: `chr${chr}:${start}-${end}` });
-                let value = store.state.getters[`${moduleIndex}/getData`]();
-                const phenotypeFilter = dataFilter('c', { phenotype });
+                return await store.dispatch(`${moduleIndex}/query`, { q: `chr${chromosome}:${start}-${end}` }).then(() => {
+                    const data = store.getters[`${moduleIndex}/data`];
+                    const format = majorFormat(data);
 
-                callback((phenotypeFilter(value)));
+                    const indexFilter = dataFilter(format, { ...indexObject });
+                    let value = indexFilter(data);
 
+                    return callback(value);
+
+                });
             } catch (e) {
-
-                callback(null, e);
-
+                return callback(null, e);
             }
         }
     }
 }
+// TODO: test query on coord change
+// TODO: API TEST SOON!
+const testReadOnCoords = readOnCoords(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
+Promise.resolve(testReadOnCoords).then(data => console.log('online testReadOnCoords', data)).catch(console.error);
+
 
 // TODO: Candidate C: Read On Any change (i.e. 'Safe'/Naive/Brute Force, self-supplying)
-function readOnAll(store, moduleIndex, phenotype) {
+function readOnAll(store, moduleIndex, indexObject) {
+    const queryValue = Object.values(indexObject)[0];
     return {
-        async fetch(chr, start, end, callback) {
+        async fetch(chromosome, start, end, callback) {
             try {
-                // TODO await necessary or reasonable?
-                await store.dispatch(`${moduleIndex}/query`, { q: phenotype })
-                let value = store.state.getters[`${moduleIndex}/getData`]();  // pre-filtered by server
+                return await store.dispatch(`${moduleIndex}/query`, { q: queryValue }).then(() => {
 
-                const chromosomeFilter = dataFilter('c', { chr });
-                const positionFilter = dataRangeFilter('c', 'position')(start, end);
+                    const data = store.getters[`${moduleIndex}/data`];
+                    const format = majorFormat(data);
 
-                callback(positionFilter(chromosomeFilter(value)));
+                    const chromosomeFilter = dataFilter(format, { chromosome });
+                    const positionFilter = dataRangeFilter(format, 'position')(start, end);
 
+                    let value = positionFilter(chromosomeFilter(data));
+
+                    return callback(value);
+
+                });
             } catch (e) {
-
-                callback(null, e);
-
+                return callback(null, e);
             }
         }
     }
 }
+const testReadOnAll = readOnAll(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
+Promise.resolve(testReadOnAll).then(data => console.log('online testReadOnAll', data)).catch(console.error);
 
-// TODO: Test Bed: get it working with static data before generalizing to having to synchronize with the store
-function readerTest(store, moduleIndex, phenotype) {
+
+function majorFormat(data){
+    // https://stackoverflow.com/a/51285298
+    if (data.constructor == Object) {
+        return 'c'
+    } else if (data instanceof Array) {
+        return 'r'
+    }
+}
+
+// DONE: Test Bed: get it working with static data before generalizing to having to synchronize with the store
+// filters work
+function readerTest(store, moduleIndex, indexObject) {
     return {
         fetch(chr, start, end, callback) {
             try {
@@ -2532,22 +2583,25 @@ function readerTest(store, moduleIndex, phenotype) {
                 // (B) be queried for then filtered on
                 // WHICH APPROACH IS MORE SOUND?
                 // either way we can assume some data is called at this point, before any post-data filtering
-                let value = testData;
+                let value = testData.data;
 
-                // console.log(dataFilter('c', { chr: 10 })(testData.data));
-                // console.log(dataRangeFilter('c', 'position')(114552639, 114611504)(testData.data));
-                // console.log(dataRangeFilter('c', 'position')(114552639, 114611504)(dataFilter('c', { chr: 10 })(testData.data)));
-
+                // TODO: does data carry its format?
+                const phenotypeFilter = dataFilter('c', { ...indexObject });
                 const chromosomeFilter = dataFilter('c', { chr });
                 const positionFilter = dataRangeFilter('c', 'position')(start, end);
 
-                callback(positionFilter(chromosomeFilter(value)));
+                // TODO: return is reliable here?
+                return callback(positionFilter(chromosomeFilter(phenotypeFilter(value))));
             } catch (e) {
-                callback(null, e);
+                return callback(null, e);
             }
         }
     }
 }
+// console.log('offline testedReaderData');
+const testedReaderData = readerTest(store, 'test', { varId: `10:114750500:A:G` }).fetch(10, 114552962, 114611504, x => x)
+// console.log(testedReaderData);
+
 
 export function makeDataSourceFromModule(store, moduleIndex, phenotype) {
     const moduleDataSourceConstructor = {
@@ -2568,49 +2622,9 @@ export function makeDataSourceFromModule(store, moduleIndex, phenotype) {
             });
         },
         normalizeResponse(data) {
-            return data.map(this.parser)
+            return this.parser(data)
         }
     };
     return LocusZoom.Data.Source.extend(moduleDataSourceConstructor, `BI_${moduleIndex}LZ`);
 }
 
-/* Utility Functions – basic combinators that reduce LocusZoom state against a type of layer data (including all layer data) */
-// not quite the same as defining SKI-combinators that are domain-specific but in the long run that's the idea
-// What makes them domain specific is that they include all of the LZ state options in their args
-var lzDataIdentity = data => () => {
-    console.log("identity");
-    return data;
-};
-// HOF/type wrapper
-const lazyReducer = (reduceFunc) => (initData) => {
-    // dTODO: block-level memoization on reducer call?
-    // DONE: only possible with recursion if I want to make subsequent reductions
-
-    var current_value = initData;
-    var handle_value = (args) => {
-        if (typeof args !== "undefined") {  // i.e. if passed args do not have arity 0
-            // are these the args we're looking for
-            current_value = reduceFunc(initData)(args);
-            return LocusZoom.Data.TLazy(reduceFunc)(current_value);
-        } else {
-            return current_value;
-        }
-    }; // only return on evaluation
-    return handle_value;
-
-};
-LocusZoom.Data.LazySource = LocusZoom.Data.Source.extend(function(LazySource) {
-    this._lazyData = LazySource;
-},'LazyJSON');
-LocusZoom.Data.LazySource.prototype.getRequest = function(state, chain, fields) {
-    this._lazyData = this._lazyData(state, chain, fields);
-    return Promise.resolve(this._lazyData());
-};
-LocusZoom.Data.LazySource.prototype.toJSON = function() {
-    // we get the current data by calling a TLazyData with no args (sort of like an observable)
-    return [Object.getPrototypeOf(this).constructor.SOURCE_NAME, this._lazyData()];
-};
-const lazyIdentityReducer = lazyReducer(lzDataIdentity);
-const LazyIdentityAssocSource = lazyIdentityReducer(testData);
-
-// var data_sources = new LocusZoom.DataSources().add("assoc", ["LazyJSON", LazyIdentityAssocSource]);

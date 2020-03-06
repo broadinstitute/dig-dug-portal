@@ -57,7 +57,6 @@ export default function (index, extend) {
         },
 
         methods: {
-
             dataFilter(format, filter) {
                 const firstProperty = Object.keys(filter)[0];
                 return function (data, property=firstProperty) {
@@ -102,7 +101,6 @@ export default function (index, extend) {
                             return data.slice(startIndex, endIndex !== -1 ? endIndex + 1 : data.length);
 
                         } else if (format === "c") {
-                            // NOTE: ASSUMES THAT THE DATA IS SORTED ON THAT PROPERTY
 
                             const startIndex = data[property].indexOf(start);
                             const endIndex = data[property].lastIndexOf(end);
@@ -125,7 +123,6 @@ export default function (index, extend) {
 
                 }
             },
-
         },
 
         // commit methods

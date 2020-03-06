@@ -21,14 +21,11 @@ export default Vue.component("locuszoom-wip", {
         "end"
     ],
     data() {
-        return {};
+        return {
+        };
     },
     created() {
-        // initialize custom locuszoom datasources based on page-scoped modules
-        // TODO utils like lzReader are used here
-        for (let i = 0; i < this.modules.length; i++) {
-            const bioIndexDataSource = makeDataSourceFromModule(this.store, this.modules[i]);
-        }
+
     },
     mounted() {
 
@@ -61,7 +58,15 @@ export default Vue.component("locuszoom-wip", {
 
             let lzDataSourceList = Object.keys(lzDataSources.defaultSource);
             lzDataSourceList
-                .map(dataSource => this.dataSources.add(dataSource, this[dataSource] || lzDataSources.defaultSource[dataSource]))
+                .map(dataSourceType => this.dataSources.add(dataSourceType, this[dataSourceType] || lzDataSources.defaultSource[dataSourceType]))
+
+            // initialize custom locuszoom datasources based on page-scoped modules
+            for (let i = 0; i < this.modules.length; i++) {
+                const dataSourceType = this.modules[i];
+                // TODO utils like lzReader are used here
+                const bioIndexDataSource = makeDataSourceFromModule(this.store, this.modules[i]);
+                this.dataSources.add(dataSourceType, bioIndexDataSource);
+            }
 
             this.lzplot = LocusZoom.populate(
                 "#locuszoom",

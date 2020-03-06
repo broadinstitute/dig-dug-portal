@@ -22,6 +22,7 @@ new Vue({
     },
 
     created() {
+        // TODO initialize data from queries
     },
 
     computed: {
