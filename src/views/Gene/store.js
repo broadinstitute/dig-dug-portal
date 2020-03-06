@@ -18,29 +18,38 @@ export default new Vuex.Store({
         topAssociations: bioIndex("TopAssociations"),
     },
     state: {
-        chr: keyParams.chr,
-        start: keyParams.start,
-        end: keyParams.end,
-        phenotype: null,
+        phenotypeParam: keyParams.phenotype,
 
         // user-entered locus
         newChr: keyParams.chr || '',
         newStart: keyParams.start || '',
         newEnd: keyParams.end || '',
+
+        // current locus
+        chr: keyParams.chr,
+        start: keyParams.start,
+        end: keyParams.end,
+        phenotype: null,
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
             state.phenotype = phenotype;
         },
-
-        // redirects the page, which re-runs with the new locus
+        setPhenotypeByName(state, name) {
+            state.phenotype = state.bioPortal.phenotypeMap[name];
+        },
         setLocus(state) {
+            state.chr = state.newChr;
+            state.start = state.newStart;
+            state.end = state.newEnd;
+
+            // update url
             keyParams.set({
                 chr: state.newChr,
                 start: state.newStart,
                 end: state.newEnd,
             });
-        }
+        },
     },
     getters: {
         // The phenotype is a getter because it depends on the bioPortal
@@ -63,6 +72,20 @@ export default new Vuex.Store({
             mdkp.utility.showHideElement("phenotypeSearchHolder");
             state.commit("setSelectedPhenotype", phenotype);
             keyParams.set({ phenotype: phenotype.name });
+        },
+
+        // redirects the page, which re-runs with the new locus
+        updateLocus(context) {
+            context.commit('setLocus');
+            context.commit('setSelectedPhenotype', null);
+
+            // get the query range
+            let q = `${context.state.chr}:${context.state.start}-${context.state.end}`;
+
+            // requery the data for the new region
+            context.dispatch('associations/query', { q });
+            context.dispatch('topAssociations/query', { q });
+            context.dispatch('genes/query', { q });
         }
     }
 });

@@ -73,7 +73,7 @@
                                         id="regionSearchGo"
                                         class="btn btn-primary"
                                         type="button"
-                                        @click="$store.commit('setLocus')"
+                                        @click="$store.dispatch('updateLocus')"
                                     >GO</button>
                                 </div>
                             </div>

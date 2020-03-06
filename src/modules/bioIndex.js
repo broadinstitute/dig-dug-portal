@@ -111,6 +111,7 @@ export default function (index, extend) {
                 // context.dispatch("SETUP");
                 context.commit("setAbort", false);
                 context.commit("setLoading", true);
+                context.commit("clearData");
 
                 // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
                 // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.

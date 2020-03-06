@@ -31,16 +31,12 @@ new Vue({
     },
 
     created() {
-        let q = `${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`;
-
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
 
-        // get the data for each of the sections
-        this.$store.dispatch('associations/query', { q });
-        this.$store.dispatch('topAssociations/query', { q });
-        this.$store.dispatch('genes/query', { q });
+        // get initial data
+        this.$store.dispatch('updateLocus');
     },
 
     render(createElement, context) {
@@ -137,6 +133,16 @@ new Vue({
             // update plot
             this.$children[0].$refs.lz.updateVariants(lzAssocs);
             this.$children[0].$refs.lz.plot();
+        },
+
+        phenotypes(phenotypes) {
+            let param = this.$store.state.phenotypeParam;
+
+            // if there's a phenotypeParam, then pick that phenotype
+            if (param) {
+                let phenotype = this.$store.state.bioPortal.phenotypeMap[param];
+                this.$store.commit('setSelectedPhenotype', phenotype);
+            }
         },
 
         topAssociations(top) {
