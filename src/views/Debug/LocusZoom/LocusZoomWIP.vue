@@ -28,7 +28,6 @@ export default Vue.component("locuszoom-wip", {
         // TODO utils like lzReader are used here
         for (let i = 0; i < this.modules.length; i++) {
             const bioIndexDataSource = makeDataSourceFromModule(this.store, this.modules[i]);
-            console.log(bioIndexDataSource);
         }
     },
     mounted() {

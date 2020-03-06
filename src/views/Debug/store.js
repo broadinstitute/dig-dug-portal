@@ -13,9 +13,9 @@ export default new Vuex.Store({
         variants: bioIndex("Variants"),
     },
     state: {
-        chrom: 8,
-        start: 10000,
-        end: 20000,
+        chrom: 10,
+        start: 114552962,
+        end: 114611504,
     },
     mutations: {},
     actions: {}

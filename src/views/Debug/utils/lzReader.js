@@ -1,12 +1,15 @@
 import LocusZoom from "locuszoom";
+import findIndex from "lodash";
 import {BIO_INDEX_TYPE} from "./lzConstants"
+import {position} from "bootstrap-vue/esm/utils/dom";
 
 function makeModuleReader(store, moduleIndex, phenotype) {
     return {
         fetch(chr, start, end, callback) {
-            return new Promise(function (resolve, reject) {
-                resolve(store.dispatch(`${moduleIndex}/query`, { q: `chr${chr}:${start}-${end}` }));
-            }).then(store.getters[`${moduleIndex}/getData`]({ phenotype }));
+            // return new Promise(function (resolve, reject) {
+            //     // TODO: should this be strictly a getter?
+            //     callback(store.dispatch(`${moduleIndex}/query`, { q: `chr${chr}:${start}-${end}` }));
+            // }).then(store.getters[`${moduleIndex}/getData`]({ phenotype }));
         }
     }
 }
@@ -1046,7 +1049,7 @@ const testData = {
             114554779,
             114555882,
             114557647,
-            114557685,
+            114552639,
             114557926,
             114558142,
             114558359,
@@ -1054,7 +1057,7 @@ const testData = {
             114559196,
             114560863,
             114562444,
-            114562675,
+            114552639,
             114565788,
             114571036,
             114571067,
@@ -2384,17 +2387,17 @@ const testData = {
     "lastPage": null
 }
 function dataFilter(format, filter) {
-    return function (data, property) {
+    const firstProperty = Object.keys(filter)[0];
+    return function (data, property=firstProperty) {
         if (format === "r") {
             return data.filter(datum => datum[property] === filter[property]);
         } else if (format === "c") {
-            console.log("column")
             // column first filtering
             // get only elements of array with positions in array
             // find indecies of elements satisfying property
             const columnFilterSeed =
                 data[property]
-                    .map(datum => (datum === filter[property]))
+                    .map(datum => (datum == filter[property]))
                     .map((datum, index) => { if (datum) { return index } })
                     .filter(x => typeof x !== "undefined");
 
@@ -2406,7 +2409,6 @@ function dataFilter(format, filter) {
 
             // fill tempData object with data that's matched the filter
             columnFilterSeed.forEach(index => {
-                console.log(index)
                 // TODO can be paralellized
                 // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
                 Object.keys(data).forEach(property => {
@@ -2416,12 +2418,133 @@ function dataFilter(format, filter) {
             return tempData;
         }
     };
+};
+
+function dataRangeFilter(format, property) {
+    return function (start, end) {
+        return function (data) {
+            if (format === "r") {
+
+                // using lodash
+                const startIndex = findIndex(data, [property, start]);
+                const endIndex = findIndex(data, [property, end]);
+                return data.slice(startIndex, endIndex !== -1 ? endIndex + 1 : data.length);
+
+            } else if (format === "c") {
+
+                const startIndex = data[property].indexOf(start);
+                const endIndex = data[property].lastIndexOf(end);
+
+                // initialize a tempData object
+                let tempData = {};
+                Object.keys(data).forEach(property => {
+                    tempData[property] = [];
+                });
+                // TODO can be paralellized
+                // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
+                Object.keys(data).forEach(property => {
+                    tempData[property] = data[property].slice(startIndex, endIndex !== -1 ? endIndex + 1 : data[property].length);
+                });
+
+                return tempData;
+
+            }
+        }
+
+    }
 }
-function makeModuleReaderTest(store, moduleIndex, phenotype) {
+
+// TODO: Candidate A: Read off store (i.e. command-query separation)
+function readOffStore(store, moduleIndex, phenotype) {
+    return {
+        async fetch(chr, start, end, callback) {
+            try {
+
+                // NOTE: assumes page initializes query
+                let value = store.state.getters[`${moduleIndex}/getData`]({ phenotype });  // filter just in case
+
+                const chromosomeFilter = dataFilter('c', { chr });
+                const positionFilter = dataRangeFilter('c', 'position')(start, end);
+
+                callback(positionFilter(chromosomeFilter(value)));
+
+            } catch (e) {
+
+                callback(null, e);
+
+            }
+        }
+    }
+}
+
+// TODO: Candidate B: Read On Coordinate change (i.e. Just-In-Time Data)
+function readOnCoords(store, moduleIndex, phenotype) {
+    return {
+        async fetch(chr, start, end, callback) {
+            try {
+                // TODO await necessary or reasonable?
+                await store.dispatch(`${moduleIndex}/query`, { q: `chr${chr}:${start}-${end}` });
+                let value = store.state.getters[`${moduleIndex}/getData`]();
+                const phenotypeFilter = dataFilter('c', { phenotype });
+
+                callback((phenotypeFilter(value)));
+
+            } catch (e) {
+
+                callback(null, e);
+
+            }
+        }
+    }
+}
+
+// TODO: Candidate C: Read On Any change (i.e. 'Safe'/Naive/Brute Force, self-supplying)
+function readOnAll(store, moduleIndex, phenotype) {
+    return {
+        async fetch(chr, start, end, callback) {
+            try {
+                // TODO await necessary or reasonable?
+                await store.dispatch(`${moduleIndex}/query`, { q: phenotype })
+                let value = store.state.getters[`${moduleIndex}/getData`]();  // pre-filtered by server
+
+                const chromosomeFilter = dataFilter('c', { chr });
+                const positionFilter = dataRangeFilter('c', 'position')(start, end);
+
+                callback(positionFilter(chromosomeFilter(value)));
+
+            } catch (e) {
+
+                callback(null, e);
+
+            }
+        }
+    }
+}
+
+// TODO: Test Bed: get it wor
+function readerTest(store, moduleIndex, phenotype) {
     return {
         fetch(chr, start, end, callback) {
-            const filteredData = dataFilter('c', { chr: 10 })(testData, 'chr')
-            return filteredData;
+            try {
+
+                // TODO: this value could either...
+                // (A) be read off of the store; OR
+                // (B) be queried for then filtered on
+                // WHICH APPROACH IS MORE SOUND?
+                // either way we can assume some data is called at this point, before any post-data filtering
+                let value = testData;
+
+                // console.log(dataFilter('c', { chr: 10 })(testData.data));
+                // console.log(dataRangeFilter('c', 'position')(114552639, 114611504)(testData.data));
+                // console.log(dataRangeFilter('c', 'position')(114552639, 114611504)(dataFilter('c', { chr: 10 })(testData.data)));
+
+                const chromosomeFilter = dataFilter('c', { chr });
+                const positionFilter = dataRangeFilter('c', 'position')(start, end);
+
+                callback(positionFilter(chromosomeFilter(value)));
+            } catch (e) {
+                callback(null, e);
+            }
         }
     }
 }
@@ -2431,7 +2554,7 @@ export function makeDataSourceFromModule(store, moduleIndex, phenotype) {
         parseInit(init) {
             this.params = init.params; // Used to create a parser
             this.parser = moduleParser[moduleIndex];
-            this.reader = makeModuleReaderTest(store, moduleIndex, phenotype);
+            this.reader = readerTest(store, moduleIndex, phenotype);
         },
         fetchRequest(state, chain, fields) {
             const self = this;
@@ -2450,3 +2573,44 @@ export function makeDataSourceFromModule(store, moduleIndex, phenotype) {
     };
     return LocusZoom.Data.Source.extend(moduleDataSourceConstructor, `BI_${moduleIndex}LZ`);
 }
+
+/* Utility Functions – basic combinators that reduce LocusZoom state against a type of layer data (including all layer data) */
+// not quite the same as defining SKI-combinators that are domain-specific but in the long run that's the idea
+// What makes them domain specific is that they include all of the LZ state options in their args
+var lzDataIdentity = data => () => {
+    console.log("identity");
+    return data;
+};
+// HOF/type wrapper
+const lazyReducer = (reduceFunc) => (initData) => {
+    // dTODO: block-level memoization on reducer call?
+    // DONE: only possible with recursion if I want to make subsequent reductions
+
+    var current_value = initData;
+    var handle_value = (args) => {
+        if (typeof args !== "undefined") {  // i.e. if passed args do not have arity 0
+            // are these the args we're looking for
+            current_value = reduceFunc(initData)(args);
+            return LocusZoom.Data.TLazy(reduceFunc)(current_value);
+        } else {
+            return current_value;
+        }
+    }; // only return on evaluation
+    return handle_value;
+
+};
+LocusZoom.Data.LazySource = LocusZoom.Data.Source.extend(function(LazySource) {
+    this._lazyData = LazySource;
+},'LazyJSON');
+LocusZoom.Data.LazySource.prototype.getRequest = function(state, chain, fields) {
+    this._lazyData = this._lazyData(state, chain, fields);
+    return Promise.resolve(this._lazyData());
+};
+LocusZoom.Data.LazySource.prototype.toJSON = function() {
+    // we get the current data by calling a TLazyData with no args (sort of like an observable)
+    return [Object.getPrototypeOf(this).constructor.SOURCE_NAME, this._lazyData()];
+};
+const lazyIdentityReducer = lazyReducer(lzDataIdentity);
+const LazyIdentityAssocSource = lazyIdentityReducer(testData);
+
+// var data_sources = new LocusZoom.DataSources().add("assoc", ["LazyJSON", LazyIdentityAssocSource]);

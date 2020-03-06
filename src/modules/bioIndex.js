@@ -1,5 +1,5 @@
 import merge from "lodash.merge";
-import get from "lodash";
+import findIndex from "lodash";
 import querystring from "querystring";
 import { BIO_INDEX_HOST, iterableQuery } from "@/utils/bioIndexUtils";
 
@@ -38,8 +38,9 @@ export default function (index, extend) {
         getters: {
             data(state, filter) {
                 let data = state.data;
-                const localDataFilter = this.dataFilter(this.format, data, filter);
                 if (filter) {
+                    // TODO: any way to generalize the dataFilter interface to behave either as a point filter, or as a range filter?
+                    const localDataFilter = this.dataFilter(this.format, filter);
                     for (let filterProp in Object.keys(filter)) {
                         data = localDataFilter(data, filterProp);
                     }
@@ -58,17 +59,17 @@ export default function (index, extend) {
         methods: {
 
             dataFilter(format, filter) {
-                return function (data, property) {
+                const firstProperty = Object.keys(filter)[0];
+                return function (data, property=firstProperty) {
                     if (format === "r") {
                         return data.filter(datum => datum[property] === filter[property]);
                     } else if (format === "c") {
-                        console.log("column")
                         // column first filtering
                         // get only elements of array with positions in array
                         // find indecies of elements satisfying property
                         const columnFilterSeed =
                             data[property]
-                                .map(datum => (datum === filter[property]))
+                                .map(datum => (datum == filter[property]))
                                 .map((datum, index) => { if (datum) { return index } })
                                 .filter(x => typeof x !== "undefined");
 
@@ -80,7 +81,6 @@ export default function (index, extend) {
 
                         // fill tempData object with data that's matched the filter
                         columnFilterSeed.forEach(index => {
-                            console.log(index)
                             // TODO can be paralellized
                             // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
                             Object.keys(data).forEach(property => {
@@ -89,6 +89,40 @@ export default function (index, extend) {
                         });
                         return tempData;
                     }
+                };
+            },
+            dataRangeFilter(format, property) {
+                return function (start, end) {
+                    return function (data) {
+                        if (format === "r") {
+
+                            // using lodash
+                            const startIndex = findIndex(data, [property, start]);
+                            const endIndex = findIndex(data, [property, end]);
+                            return data.slice(startIndex, endIndex !== -1 ? endIndex + 1 : data.length);
+
+                        } else if (format === "c") {
+                            // NOTE: ASSUMES THAT THE DATA IS SORTED ON THAT PROPERTY
+
+                            const startIndex = data[property].indexOf(start);
+                            const endIndex = data[property].lastIndexOf(end);
+
+                            // initialize a tempData object
+                            let tempData = {};
+                            Object.keys(data).forEach(property => {
+                                tempData[property] = [];
+                            });
+                            // TODO can be paralellized
+                            // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
+                            Object.keys(data).forEach(property => {
+                                tempData[property] = data[property].slice(startIndex, endIndex !== -1 ? endIndex + 1 : data[property].length);
+                            });
+
+                            return tempData;
+
+                        }
+                    }
+
                 }
             },
 
