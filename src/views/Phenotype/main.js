@@ -7,55 +7,70 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
-import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
+import MplotVariantsTable from "@/components/MplotVariantsTable.vue";
+import keyParams from "@/utils/keyParams";
 
 new Vue({
     store,
 
     components: {
         PhenotypeSelectPicker,
-        DatasetSelectPicker,
         PageHeader,
         PageFooter,
+        ManhattanPlot,
+        MplotVariantsTable
     },
 
     created() {
-        this.$store.dispatch("metadataModule/getMetadata");
-        this.$store.dispatch("graphPhenotype/list");
-        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
     render(createElement, context) {
         return createElement(Template);
     },
-    mounted() {
-        //console.log("mounted");
-    },
+
     computed: {
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+
+            if (contents.length === 0) {
+                return {};
+            }
+
+            return contents[0];
+        },
+
+        diseaseGroup() {
+            return this.$store.getters['bioPortal/diseaseGroup'];
+        },
+
         phenotypes() {
-            return this.$store.getters["graphPhenotype/phenotypes"];
+            return this.$store.state.bioPortal.phenotypes;
         },
+
+        topVariants() {
+            return this.$store.state.associations.data.slice(0, 200);
+        },
+
         selectedPhenotype() {
-            //console.log("computed");
-            return this.$store.state.selectedPhenotype;
+            let name = this.$store.state.phenotypeName;
+
+            // lookup the phenotype object from the bio portal once downloaded
+            return this.$store.state.bioPortal.phenotypeMap[name];
         },
-        datasetList() {
-            return this.$store.state.datasetList;
-        }
     },
+
     watch: {
-        selectedPhenotype(phenotype) {
-            //console.log("watch phenotype");
-            let datasets = this.$store.getters['metadataModule/datasetList'](phenotype);
-            this.$store.state.datasetList == datasets;
-            //console.log(datasets);
-            //console.log(this.$store.state.datasetList);
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        datasetList(datasets) {
-            //console.log("watch dataset");
-            //console.log(datasets);
-        }
-    }
+        selectedPhenotype(phenotype) {
+            this.$store.dispatch("associations/query", { q: phenotype.name, limit: 2000 });
+        },
+    },
+
 }).$mount("#app");

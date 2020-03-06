@@ -1,66 +1,68 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-import $ from "jquery";
-import getAggregatedData from "@/modules/getAggregatedData";
-import graphPhenotype from "@/modules/graphPhenotype";
+import keyParams from "@/utils/keyParams";
+import bioPortal from "@/modules/bioPortal";
+import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import diseaseGroup from "@/modules/diseaseGroup";
 
 Vue.use(Vuex);
 
-var url = new URL(document.URL);
-let keyParam = {};
-var c = url.searchParams.forEach((value, key) => {
-    keyParam[key] = value;
-});
-
-keyParam.group = (keyParam.group == null) ? 'md' : keyParam.group;
-
 export default new Vuex.Store({
     modules: {
-        variants: getAggregatedData,
-        phewas: getAggregatedData,
-        phenotypes: getAggregatedData,
-        graphPhenotype,
+        bioPortal,
         kp4cd,
-        diseaseGroup
+        genes: bioIndex("Genes"),
+        associations: bioIndex("Associations"),
+        phewasAssociations: bioIndex("Associations"),
+        topAssociations: bioIndex("TopAssociations"),
     },
     state: {
-        mdv: "mdv43",
-        chrom: keyParam.chrom,
-        start: Number(keyParam.start),
-        end: Number(keyParam.end),
-        phenotype: keyParam.phenotype,
-        phenotypeName: keyParam.phenotype,
-        newChrom: keyParam.chrom,
-        newStart: Number(keyParam.start),
-        newEnd: Number(keyParam.end),
+        chr: keyParams.chr,
+        start: keyParams.start,
+        end: keyParams.end,
+        phenotype: null,
+
+        // user-entered locus
+        newChr: keyParams.chr || '',
+        newStart: keyParams.start || '',
+        newEnd: keyParams.end || '',
     },
     mutations: {
-        setPhenotype(state, phenotype) {
-            state.phenotype = phenotype.id;
-            $.each(phenotype.phenotypes, function (index, PHENOTYPE) {
-                if (PHENOTYPE.phenotype_id == phenotype.id) { state.phenotypeName = PHENOTYPE.name };
-            })
-        },
         setSelectedPhenotype(state, phenotype) {
-            state.phenotype = phenotype.phenotype_id;
-            state.phenotypeName = phenotype.name;
+            state.phenotype = phenotype;
         },
+
+        // redirects the page, which re-runs with the new locus
+        setLocus(state) {
+            keyParams.set({
+                chr: state.newChr,
+                start: state.newStart,
+                end: state.newEnd,
+            });
+        }
+    },
+    getters: {
+        // The phenotype is a getter because it depends on the bioPortal
+        // having loaded all the phenotype objects from the database.
+        phenotype(state) {
+            for (let i in state.bioPortal.phenotypes) {
+                let phenotype = state.bioPortal.phenotypes[i];
+
+                if (phenotype.name === keyParams.phenotype) {
+                    return phenotype;
+                }
+            }
+
+            // not set or not found
+            return null;
+        }
     },
     actions: {
-        setLocation(state) {
-            var chrom = this.state.newChrom;
-            var start = this.state.newStart;
-            var end = this.state.newEnd;
-
-            window.location.href = "./gene.html?gene=&chrom=" + chrom + "&start=" + start + "&end=" + end;
-        },
         onPhenotypeChange(state, phenotype) {
-            //console.log(phenotype);
             mdkp.utility.showHideElement("phenotypeSearchHolder");
             state.commit("setSelectedPhenotype", phenotype);
+            keyParams.set({ phenotype: phenotype.name });
         }
     }
 });

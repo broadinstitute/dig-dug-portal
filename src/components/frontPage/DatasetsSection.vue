@@ -23,7 +23,7 @@ import * as d3 from "d3";
 import $ from "jquery";
 
 export default Vue.component("datasets-section", {
-    props: [],
+    props: ["diseaseGroup", "diseaseGroups", "datasetsInfo"],
     data() {
         return {
             datasets_chart: null,
@@ -186,14 +186,12 @@ export default Vue.component("datasets-section", {
     },
     mounted: function() {},
     computed: {
-        datasetsInfo() {
-            //console.log(this.$store.state.kp4cd.datasetsInfo);
-
+        datasetsInfo2() {
             var onlyUnique = function(value, index, self) {
                 return self.indexOf(value) === index;
             };
 
-            let datasets = this.$store.state.kp4cd.datasetsInfo;
+            let datasets = this.datasetsInfo;
             let datasetsMap = {};
             /*let t2dDatasets = 0,
                 strokeDatasets = 0,
@@ -273,8 +271,9 @@ export default Vue.component("datasets-section", {
     },
     watch: {
         datasetsInfo(datasetsInfo) {
-            if (this.$store.state.diseaseGroup.id == "md")
+            if (this.diseaseGroup.default) {
                 this.renderCharts(datasetsInfo);
+            }
         }
     }
 });

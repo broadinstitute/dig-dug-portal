@@ -8,7 +8,6 @@
         ></b-pagination>
         <b-table
             hover
-            :id="variants-table"
             :items="variants"
             :fields="fields"
             :per-page="perPage"
@@ -31,43 +30,28 @@ export default Vue.component("variants-table", {
             rows: 500,
             fields: [
                 {
-                    key: "VAR_ID",
+                    key: "varId",
                     label: "Variant ID",
                     sortable: false
                 },
                 {
-                    key: "DBSNP_ID",
-                    label: "dbSNP ID",
-                    sortable: false
-                },
-                {
-                    key: "P_VALUE",
+                    key: "pValue",
                     label: "p-value",
                     sortable: true
                 },
                 {
-                    key: "Reference_allele",
-                    label: "Major allele",
+                    key: "reference",
+                    label: "Ref allele",
                     sortable: true
                 },
                 {
-                    key: "Effect_allele",
-                    label: "Minor allele",
+                    key: "alt",
+                    label: "Effect allele",
                     sortable: true
                 },
                 {
-                    key: "Consequence",
-                    label: "Predicted impact",
-                    sortable: true
-                },
-                {
-                    key: "EFFECT",
+                    key: "beta",
                     label: "Effect",
-                    sortable: true
-                },
-                {
-                    key: "AF",
-                    label: "MAF",
                     sortable: true
                 }
             ]
@@ -76,7 +60,7 @@ export default Vue.component("variants-table", {
     methods: {
         rowClass(item, type) {
             if (!item || type !== "row") return;
-            if (item.P_VALUE < 2.5e-6) {
+            if (item.pValue < 2.5e-6) {
                 return "variant-table-row high";
             } else {
                 return "variant-table-row test";

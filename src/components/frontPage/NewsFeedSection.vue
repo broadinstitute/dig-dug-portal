@@ -8,7 +8,7 @@
                 <span>
                     ...
                     <a
-                        :href="'http://kp4cd.org/new_features/'+diseaseGroup+'?nid='+item.nid"
+                        :href="'http://kp4cd.org/new_features/'+diseaseGroup.kp4cd+'?nid='+item.nid"
                         target="_blank"
                     >Read more</a>
                 </span>
@@ -23,7 +23,7 @@
             >{{ item }}</a>
         </div>
         <a
-            :href="'http://www.kp4cd.org/new_features/'+diseaseGroup"
+            :href="'http://www.kp4cd.org/new_features/'+diseaseGroup.kp4cd"
             target="_blank"
             style="display: block; position: absolute; bottom: -5px; font-weight: 600;"
         >View news archive ></a>
@@ -34,27 +34,11 @@
 import Vue from "vue";
 import $ from "jquery";
 
-let url = new URL(document.URL);
-let currentPath = url.pathname;
-
-let keyParam = {};
-var c = url.searchParams.forEach((value, key) => {
-    keyParam[key] = value;
-});
-
-keyParam.group =
-    keyParam.group == null
-        ? "md"
-        : keyParam.group == "cvd"
-        ? "mi"
-        : keyParam.group;
-
 export default Vue.component("news-feed-section", {
-    props: [],
+    props: ["diseaseGroup", "newsFeed"],
     data() {
         return {
-            newsIndex: [],
-            diseaseGroup: keyParam.group
+            newsIndex: []
         };
     },
     methods: {
@@ -88,10 +72,10 @@ export default Vue.component("news-feed-section", {
     computed: {
         filteredNews() {
             let filteredPortalNews = [];
-            let portal = this.diseaseGroup;
+            let portal = this.diseaseGroup.kp4cd;
             let newsUIIndex = this.newsIndex;
             let newsNum = 0;
-            $.each(this.$store.state.kp4cd.newsFeed, function(index, news) {
+            $.each(this.newsFeed, function(index, news) {
                 if (newsNum < 4) {
                     let newsBody = news.body.split(" ").slice(0, 12);
                     let numWords = 10;
