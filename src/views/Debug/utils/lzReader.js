@@ -5,8 +5,6 @@ import {BIO_INDEX_TYPE} from "./lzConstants"
 import store from "../store";
 import {BIO_INDEX_HOST} from "../../../utils/bioIndexUtils";
 
-
-
 const PHENOTYPE_TEST = 'T2D';
 const LOCUS_TEST = 'SLC30A8';
 
@@ -2369,6 +2367,15 @@ const testData = {
     "lastPage": null
 };
 
+function majorFormat(data){
+    // https://stackoverflow.com/a/51285298
+    if (data.constructor == Object) {
+        return 'c'
+    } else if (data instanceof Array) {
+        return 'r'
+    }
+}
+
 // schema can be applied to both column-first or record-first formats, but the distinction
 // in how is handled by another function
 let moduleParserSchema = Object.freeze({
@@ -2396,10 +2403,8 @@ function moduleParser(format, index) {
         switch(format) {
             case 'r':
                 return data.map(schema);
-                break;
             case 'c':
                 return schema(data);
-                break;
         }
     }
 }
@@ -2476,7 +2481,8 @@ function dataRangeFilter(format, property) {
     }
 }
 
-// TODO: Candidate A: Read off store (i.e. command-query separation)
+
+// DONE: Candidate A: Read off store (i.e. command-query separation)
 function readOffStore(store, moduleIndex, indexObject) {
     return {
         fetch(chromosome, start, end, callback) {
@@ -2528,12 +2534,12 @@ function readOnCoords(store, moduleIndex, indexObject) {
     }
 }
 // TODO: test query on coord change
-// TODO: API TEST SOON!
+// DONE: API TEST SOON!
 const testReadOnCoords = readOnCoords(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
 Promise.resolve(testReadOnCoords).then(data => console.log('online testReadOnCoords', data)).catch(console.error);
 
 
-// TODO: Candidate C: Read On Any change (i.e. 'Safe'/Naive/Brute Force, self-supplying)
+// DONE: Candidate C: Read On Any change (i.e. 'Safe'/Naive/Brute Force, self-supplying)
 function readOnAll(store, moduleIndex, indexObject) {
     const queryValue = Object.values(indexObject)[0];
     return {
@@ -2558,18 +2564,8 @@ function readOnAll(store, moduleIndex, indexObject) {
         }
     }
 }
-const testReadOnAll = readOnAll(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
-Promise.resolve(testReadOnAll).then(data => console.log('online testReadOnAll', data)).catch(console.error);
-
-
-function majorFormat(data){
-    // https://stackoverflow.com/a/51285298
-    if (data.constructor == Object) {
-        return 'c'
-    } else if (data instanceof Array) {
-        return 'r'
-    }
-}
+// const testReadOnAll = readOnAll(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
+// Promise.resolve(testReadOnAll).then(data => console.log('online testReadOnAll', data)).catch(console.error);
 
 // DONE: Test Bed: get it working with static data before generalizing to having to synchronize with the store
 // filters work
@@ -2599,9 +2595,8 @@ function readerTest(store, moduleIndex, indexObject) {
     }
 }
 // console.log('offline testedReaderData');
-const testedReaderData = readerTest(store, 'test', { varId: `10:114750500:A:G` }).fetch(10, 114552962, 114611504, x => x)
+// const testedReaderData = readerTest(store, 'test', { varId: `10:114750500:A:G` }).fetch(10, 114552962, 114611504, x => x)
 // console.log(testedReaderData);
-
 
 export function makeDataSourceFromModule(store, moduleIndex, phenotype) {
     const moduleDataSourceConstructor = {
