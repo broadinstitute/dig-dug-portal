@@ -7,11 +7,11 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "../../../utils/lzDataSources";
 import {sortPanels} from "../utils/lzUtils";
-import {makeDataSourceFromModule} from "../utils/lzReader";
+import {bioIndexLZDataSourceConstructor, BioIndexLZSource} from "../utils/lzReader";
 
 export default Vue.component("locuszoom-wip", {
     props: [
-        "store", "modules",
+        "store", "modules", "phenotype",
         ...Object.keys(lzDataSources.defaultSource),
         "panels",
 
@@ -61,12 +61,19 @@ export default Vue.component("locuszoom-wip", {
                 .map(dataSourceType => this.dataSources.add(dataSourceType, this[dataSourceType] || lzDataSources.defaultSource[dataSourceType]))
 
             // initialize custom locuszoom datasources based on page-scoped modules
-            for (let i = 0; i < this.modules.length; i++) {
-                const dataSourceType = this.modules[i];
-                // TODO utils like lzReader are used here
-                const bioIndexDataSource = makeDataSourceFromModule(this.store, this.modules[i]);
-                this.dataSources.add(dataSourceType, bioIndexDataSource);
-            }
+            // for (let i = 0; i < this.modules.length; i++) {
+            //     const dataSourceType = this.modules[i];
+            //     // TODO utils like lzReader are used here
+            //     const bioIndexDataSource = makeDataSourceFromModule(this.store, this.modules[i]);
+            //     this.dataSources.add(dataSourceType, [`${dataSourceType}LZ`, bioIndexDataSource]);
+            // }
+
+            this.dataSources.add("assoc", new BioIndexLZSource({
+                store: this.store,
+                moduleIndex: this.modules[0],
+                indexObj: { phenotype: 'T2D' },
+            }));
+            console.log(this.dataSources);
 
             this.lzplot = LocusZoom.populate(
                 "#locuszoom",

@@ -1690,7 +1690,7 @@ const testData = {
             "G",
             "T"
         ],
-        "pvalue": [
+        "pValue": [
             0.86,
             0.46,
             0.27,
@@ -2391,15 +2391,16 @@ let moduleParserSchema = Object.freeze({
             // phenotype?
             chr: data.chromosome,
             pvalue: data.pValue,
-            log_pvalue: data.pValue.map(-Math.log),
+            log_pvalue: data.pValue.map(Math.log).map(x => (-1*x)),
             ref_allele: data.reference,
             variant: data.varId,
         }
     }
 });
-function moduleParser(format, index) {
+function moduleParser(index) {
     const schema = moduleParserSchema[index];
     return function (data){
+        let format = majorFormat(data);
         switch(format) {
             case 'r':
                 return data.map(schema);
@@ -2570,6 +2571,7 @@ function readOnAll(store, moduleIndex, indexObject) {
 // DONE: Test Bed: get it working with static data before generalizing to having to synchronize with the store
 // filters work
 function readerTest(store, moduleIndex, indexObject) {
+    console.log('indexObject', indexObject)
     return {
         fetch(chr, start, end, callback) {
             try {
@@ -2598,28 +2600,76 @@ function readerTest(store, moduleIndex, indexObject) {
 // const testedReaderData = readerTest(store, 'test', { varId: `10:114750500:A:G` }).fetch(10, 114552962, 114611504, x => x)
 // console.log(testedReaderData);
 
-export function makeDataSourceFromModule(store, moduleIndex, phenotype) {
-    const moduleDataSourceConstructor = {
-        parseInit(init) {
-            this.params = init.params; // Used to create a parser
-            this.parser = moduleParser[moduleIndex];
-            this.reader = readerTest(store, moduleIndex, phenotype);
-        },
-        fetchRequest(state, chain, fields) {
-            const self = this;
-            return new Promise((resolve, reject) => {
-                self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
-                    if (err) {
-                        reject(new Error(err));
-                    }
-                    resolve(data);
-                });
-            });
-        },
-        normalizeResponse(data) {
-            return this.parser(data)
-        }
-    };
-    return LocusZoom.Data.Source.extend(moduleDataSourceConstructor, `BI_${moduleIndex}LZ`);
+export const BioIndexLZSource = LocusZoom.Data.Source.extend(function(init) {
+    console.log('init');
+    this.parseInit(init);
+});
+BioIndexLZSource.prototype.parseInit = function ({ store, moduleIndex, indexObj }) {
+    console.log('parseInit in BioIndexLZSource');
+    this.params = { store, moduleIndex, indexObj };
+    this.parser = moduleParser(moduleIndex);
+    this.reader = readerTest(store, moduleIndex, indexObj);
+};
+BioIndexLZSource.prototype.fetchRequest = function (state, chain, fields) {
+    console.log('fetchRequest in BioIndexLZSource')
+    const self = this;
+    return new Promise((resolve, reject) => {
+        self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
+            if (err) {
+                reject(new Error(err));
+            }
+            resolve(data);
+        });
+    });
+};
+BioIndexLZSource.prototype.normalizeResponse = function(data) {
+    return this.parser(data)
 }
+
+export const bioIndexLZDataSourceConstructor = {
+    parseInit(init) {
+        // this.params = init.params; // Used to create a parser
+        this.parser = moduleParser[init.moduleIndex];
+        this.reader = readerTest(init.store, init.moduleIndex, init.indexObj);
+    },
+    fetchRequest(state, chain, fields) {
+        console.log(`BI_${moduleIndex}LZ fetch request`);
+        const self = this;
+        return new Promise((resolve, reject) => {
+            self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
+                if (err) {
+                    reject(new Error(err));
+                }
+                resolve(data);
+            });
+        });
+    },
+
+};
+
+// export function makeLZDataSourceConstructor(store, moduleIndex, indexObj) {
+//     const LZDataSourceConstructor = {
+//         parseInit(init) {
+//             // this.params = init.params; // Used to create a parser
+//             this.parser = moduleParser[init.moduleIndex];
+//             this.reader = readerTest(init.store, init.moduleIndex, init.indexObj);
+//         },
+//         fetchRequest(state, chain, fields) {
+//             console.log(`BI_${moduleIndex}LZ fetch request`);
+//             const self = this;
+//             return new Promise((resolve, reject) => {
+//                 self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
+//                     if (err) {
+//                         reject(new Error(err));
+//                     }
+//                     resolve(data);
+//                 });
+//             });
+//         },
+//         normalizeResponse(data) {
+//             return this.parser(data)
+//         }
+//     };
+//     return moduleDataSourceConstructor;
+// }
 
