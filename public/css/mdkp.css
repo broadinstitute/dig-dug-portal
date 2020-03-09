@@ -392,6 +392,11 @@ a.edit-btn {
     text-align: center;
 }
 
+.phenotypes-with-signal-wrapper {
+    height: 280px;
+    overflow-y: auto;
+}
+
 .phenotype-with-signal {
     cursor: pointer;
     display: inline-block;
@@ -411,6 +416,15 @@ a.edit-btn {
 .phenotype-with-signal.moderate {
     background-color: #d0efff;
     border: solid 1px #30b7f6;
+}
+
+.phenotype-with-signal.none {
+    background-color: #eee;
+    border: solid 1px #ccc;
+}
+
+.phenotype-with-signal.none.hidden {
+    display: none;
 }
 
 .variant-table-row.high {
