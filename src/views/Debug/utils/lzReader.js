@@ -8,6 +8,7 @@ import {BIO_INDEX_HOST} from "../../../utils/bioIndexUtils";
 const PHENOTYPE_TEST = 'T2D';
 const LOCUS_TEST = 'SLC30A8';
 
+
 const testData = {
     "data": {
         "analysis": [
@@ -2362,10 +2363,27 @@ const testData = {
             0.4559319556497244,
             0.10237290870955855
         ],
-        "phenotype": Array(333).fill(PHENOTYPE_TEST).concat(["blah"]),  // made up
+        "phenotype": Array(334).fill(PHENOTYPE_TEST).concat(["blah"]),  // made up
     },
     "lastPage": null
 };
+
+
+/*
+const testData = {
+    "data": {
+        "analysis": [],
+        "variant": [],
+        "chr": [],
+        "position": [],
+        "ref_allele": [],
+        "pValue": [],
+        "log_pvalue": [],
+        "phenotype": [],  // made up
+    },
+    "lastPage": null
+};
+*/
 
 function majorFormat(data){
     // https://stackoverflow.com/a/51285298
@@ -2444,39 +2462,68 @@ function dataFilter(format, filter) {
         }
     };
 };
+
+function findLeastStart(start, end, indexSearch) {
+    let startIndex = -1;
+    let k = start;
+    while (true) {
+        startIndex = indexSearch(k);
+        if (startIndex == -1 && k < end) {
+            k++;
+        } else {
+            break;
+        }
+    }
+    return startIndex;
+}
+
+function findMostEnd(start, end, indexSearch) {
+    let endIndex = -1;
+    let j = end;
+    while (true) {
+        endIndex = indexSearch(j);
+        if (endIndex == -1 && j > start) {
+            j--;
+        } else {
+            break;
+        }
+    }
+    return endIndex;
+}
+
 function dataRangeFilter(format, property) {
     return function (start, end) {
         return function (data) {
             console.log('dataRangeFilter', format, data, start, end);
-
             if (format === "r") {
-
-                // using lodash
-                const startIndex = findIndex(data, { [property]: start });
-                const endIndex = findIndex(data, { [property]: end });
-                const value =  data.slice(startIndex, endIndex !== -1 ? endIndex + 1 : data.length);
-                console.log('row formatting', startIndex, endIndex, value);
-                return value;
-
+                let startIndex = findLeastStart(start, end, k => findIndex(data, {[property]: k}));
+                let endIndex = findMostEnd(start, end, j => findLastIndex(data, {[property]: j}));
+                if (startIndex !== -1 && endIndex !== -1) {
+                    const value =  data.slice(startIndex, endIndex !== -1 ? endIndex + 1 : data.length);
+                    return value;
+                }
+                return [];
             } else if (format === "c") {
-                console.log('column formatting')
-                const startIndex = data[property].indexOf(start);
-                const endIndex = data[property].lastIndexOf(end);
-
-                // initialize a tempData object
-                let tempData = {};
-                Object.keys(data).forEach(property => {
-                    tempData[property] = [];
-                });
-                // TODO can be paralellized
-                // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
-                Object.keys(data).forEach(property => {
-                    tempData[property] = data[property].slice(startIndex, endIndex !== -1 ? endIndex + 1 : data[property].length);
-                });
-
+                let startIndex = findLeastStart(start, end, k => data[property].indexOf(k));
+                let endIndex = findMostEnd(start, end, j => data[property].indexOf(j));
+                    // initialize a tempData object
+                    let tempData = {};
+                    Object.keys(data).forEach(property => {
+                        tempData[property] = [];
+                    });
+                if (startIndex !== -1 && endIndex !== -1) {
+                    // TODO can be paralellized
+                    // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
+                    Object.keys(data).forEach(property => {
+                        tempData[property] = data[property].slice(
+                            startIndex,
+                            endIndex !== -1 ? endIndex + 1 : data[property].length + 1
+                        );
+                    });
+                }
                 return tempData;
-
             }
+
         }
 
     }
@@ -2536,8 +2583,8 @@ function readOnCoords(store, moduleIndex, indexObject) {
 }
 // TODO: test query on coord change
 // DONE: API TEST SOON!
-const testReadOnCoords = readOnCoords(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
-Promise.resolve(testReadOnCoords).then(data => console.log('online testReadOnCoords', data)).catch(console.error);
+// const testReadOnCoords = readOnCoords(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
+// Promise.resolve(testReadOnCoords).then(data => console.log('online testReadOnCoords', data)).catch(console.error);
 
 
 // DONE: Candidate C: Read On Any change (i.e. 'Safe'/Naive/Brute Force, self-supplying)
@@ -2610,14 +2657,15 @@ BioIndexLZSource.prototype.parseInit = function ({ store, module, indexObj }) {
     this.parser = moduleParser(module);
     this.reader = readerTest(store, module, indexObj);
 };
-BioIndexLZSource.prototype.fetchRequest = function (state, chain, fields) {
-    console.log('fetchRequest in BioIndexLZSource')
+BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
+    console.log('getRequest in BioIndexLZSource')
     const self = this;
     return new Promise((resolve, reject) => {
         self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
             if (err) {
                 reject(new Error(err));
             }
+            console.log("data in fetch", data)
             resolve(data);
         });
     });

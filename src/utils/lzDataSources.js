@@ -2,7 +2,6 @@ import LocusZoom from "locuszoom";
 
 export default {
 	defaultSource: {
-	    assoc: [],
 	    gene: ["GeneLZ", {
             url:
                 'https://portaldev.sph.umich.edu/api/v1/annotation/genes/',

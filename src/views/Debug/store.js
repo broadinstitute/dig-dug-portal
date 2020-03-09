@@ -2480,8 +2480,8 @@ export default new Vuex.Store({
     },
     state: {
         chrom: 10,
-        start: 114552962,
-        end: 114611504,
+        start: 114552267,
+        end: 115066971,
     },
     getters: {
     },
