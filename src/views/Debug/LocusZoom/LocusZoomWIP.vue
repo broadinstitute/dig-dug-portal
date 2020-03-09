@@ -70,7 +70,7 @@ export default Vue.component("locuszoom-wip", {
 
             this.dataSources.add("assoc", new BioIndexLZSource({
                 store: this.store,
-                moduleIndex: this.modules[0],
+                module: this.modules[0],
                 indexObj: { phenotype: 'T2D' },
             }));
             console.log(this.dataSources);

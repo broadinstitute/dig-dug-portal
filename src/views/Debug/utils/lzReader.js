@@ -2604,11 +2604,11 @@ export const BioIndexLZSource = LocusZoom.Data.Source.extend(function(init) {
     console.log('init');
     this.parseInit(init);
 });
-BioIndexLZSource.prototype.parseInit = function ({ store, moduleIndex, indexObj }) {
+BioIndexLZSource.prototype.parseInit = function ({ store, module, indexObj }) {
     console.log('parseInit in BioIndexLZSource');
-    this.params = { store, moduleIndex, indexObj };
-    this.parser = moduleParser(moduleIndex);
-    this.reader = readerTest(store, moduleIndex, indexObj);
+    this.params = { store, module, indexObj };
+    this.parser = moduleParser(module);
+    this.reader = readerTest(store, module, indexObj);
 };
 BioIndexLZSource.prototype.fetchRequest = function (state, chain, fields) {
     console.log('fetchRequest in BioIndexLZSource')
@@ -2625,27 +2625,6 @@ BioIndexLZSource.prototype.fetchRequest = function (state, chain, fields) {
 BioIndexLZSource.prototype.normalizeResponse = function(data) {
     return this.parser(data)
 }
-
-export const bioIndexLZDataSourceConstructor = {
-    parseInit(init) {
-        // this.params = init.params; // Used to create a parser
-        this.parser = moduleParser[init.moduleIndex];
-        this.reader = readerTest(init.store, init.moduleIndex, init.indexObj);
-    },
-    fetchRequest(state, chain, fields) {
-        console.log(`BI_${moduleIndex}LZ fetch request`);
-        const self = this;
-        return new Promise((resolve, reject) => {
-            self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
-                if (err) {
-                    reject(new Error(err));
-                }
-                resolve(data);
-            });
-        });
-    },
-
-};
 
 // export function makeLZDataSourceConstructor(store, moduleIndex, indexObj) {
 //     const LZDataSourceConstructor = {
