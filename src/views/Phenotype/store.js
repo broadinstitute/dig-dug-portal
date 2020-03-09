@@ -12,21 +12,21 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        associations: bioIndex("PhenotypeAssociations"),
+        associations: bioIndex("PhenotypeAssociations")
     },
     state: {
         phenotypeName: keyParams.phenotype,
-        phenotypes: null,
+        phenotypes: null
     },
     mutations: {
         setPhenotypeName(state, name) {
             state.phenotypeName = name;
-        },
+        }
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            keyParams.set({ phenotype: phenotype.name });
-            context.commit('setPhenotypeName', phenotype.name);
-        },
-    },
+            // keyParams.set({ phenotype: phenotype.name });
+            context.commit("setPhenotypeName", phenotype);
+        }
+    }
 });
