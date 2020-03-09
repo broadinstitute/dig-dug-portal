@@ -2505,7 +2505,7 @@ function dataRangeFilter(format, property) {
                 return [];
             } else if (format === "c") {
                 let startIndex = findLeastStart(start, end, k => data[property].indexOf(k));
-                let endIndex = findMostEnd(start, end, j => data[property].indexOf(j));
+                let endIndex = findMostEnd(start, end, j => data[property].lastIndexOf(j));
                     // initialize a tempData object
                     let tempData = {};
                     Object.keys(data).forEach(property => {
