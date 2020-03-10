@@ -7,7 +7,8 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "../../../utils/lzDataSources";
 import {sortPanels} from "../utils/lzUtils";
-import {bioIndexLZDataSourceConstructor, BioIndexLZSource} from "../utils/lzReader";
+import {BIO_INDEX_TYPE} from "../utils/lzConstants";
+import {BioIndexLZSource} from "../utils/lzReader";
 
 export default Vue.component("locuszoom-wip", {
     props: [
@@ -22,6 +23,7 @@ export default Vue.component("locuszoom-wip", {
     ],
     data() {
         return {
+
         };
     },
     created() {
@@ -34,9 +36,10 @@ export default Vue.component("locuszoom-wip", {
             proportional_height: 1,
             dashboard: null
         };
-        let panels = sortPanels(this.panels).map(p =>
-            LocusZoom.Layouts.get("panel", p, {...panelOptions})
-        );
+        let panels = sortPanels(this.panels).map(p => {
+            console.log("Panels", LocusZoom.Layouts.get("panel", p, {...panelOptions}));
+            return LocusZoom.Layouts.get("panel", p, {...panelOptions})
+        });
 
         this.layout = {
             responsive_resize: "both",

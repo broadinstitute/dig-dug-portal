@@ -17,10 +17,10 @@ new Vue({
     components: {
         LocusZoomWIP,
     },
-    data: {
-
+    data() {
+        return {
+        }
     },
-
     created() {
         // TODO initialize data from queries
     },

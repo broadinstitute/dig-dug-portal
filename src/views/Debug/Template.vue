@@ -16,7 +16,3 @@
         </locuszoom-wip>
     </div>
 </template>
-
-<script>
-
-</script>
