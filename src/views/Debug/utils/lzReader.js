@@ -2405,8 +2405,9 @@ let moduleParserSchema = Object.freeze({
             id: data.varId || data.variant,
             // phenotype?
             chr: data.chromosome || data.chr,
-            pvalue: data.pValue ||  data.pvalue,
-            log_pvalue: data.pValue.map(Math.log).map(x => (-1*x)),
+            position: data.position,
+            pvalue: data.pvalue || data.pValue,
+            log_pvalue: data.pvalue.map(Math.log).map(x => (-1*x)) || data.pValue.map(Math.log).map(x => (-1*x)),
             ref_allele: data.reference || data.ref_allele,
             variant: data.varId || data.variant,
         }
@@ -2431,11 +2432,10 @@ function dataFilter(format, filter) {
         if (format === "r") {
             return pointData.filter(datum => datum[property] == filter[property]);  // we want casting
         } else if (format === "c") {
-            console.log(filter, property);
             if (pointData[property]) {
                 // initialize a tempData object
                 let tempData = {};
-                Object.keys(data).forEach(property => {
+                Object.keys(pointData).forEach(property => {
                     tempData[property] = [];
                 });
 
@@ -2444,12 +2444,13 @@ function dataFilter(format, filter) {
                         .map(datum => (datum == filter[property]))
                         .map((datum, index) => { if (datum) { return index } })
                         .filter(x => typeof x !== "undefined");
+                console.log('filtering', columnFilterSeed);
 
                 // fill tempData object with data that's matched the filter
                 columnFilterSeed.forEach(index => {
                     // TODO can be paralellized
                     // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
-                    Object.keys(data).forEach(property => {
+                    Object.keys(pointData).forEach(property => {
                         tempData[property][index] = pointData[property][index];
                     });
                 });
@@ -2458,7 +2459,6 @@ function dataFilter(format, filter) {
             // column first filtering
             // get only elements of array with positions in array
             // find indecies of elements satisfying property
-            console.log(pointData);
             return pointData;
 
         }
@@ -2634,26 +2634,18 @@ export function readerTest(store, moduleIndex, indexObject) {
 
                 // default behavior is to return everything if states for a filter are undefined
                 const indexObjectFilter = dataFilter(format, { ...indexObject });  // e.g. phenotype: `<page's phenotype>`
+
+                // NOTE: TODO: does all data share these filters? NO!
                 const chromosomeFilter = dataFilter(format, { chr });
                 const positionFilter = dataRangeFilter(format, 'position')(start, end);
 
                 let filtered = indexObjectFilter(value);
-                console.log('indexObjFilter', filtered)
-                //
-                // filtered = chromosomeFilter(filtered);
-                // console.log('chromosome filter', filtered)
-                //
-                // filtered = positionFilter(filtered);
-                // console.log('position filter',filtered)
-                //
-                // value = filtered;
-                // console.log('value', value);
+                filtered = chromosomeFilter(filtered);
+                filtered = positionFilter(filtered);
 
                 return callback(filtered);
 
             } catch (e) {
-                console.log("error")
-
                 return callback(null, e);
             }
         }
@@ -2676,17 +2668,12 @@ BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
     return new Promise((resolve, reject) => {
         self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
             if (err) {
-                console.error(`error "${err}" in reader.fetch`);
                 reject(new Error(err));
             }
-            console.log('data resolving in reader.fetch', data);
-            resolve(data);
+            resolve(self.parser(data));
         });
     });
 };
-// BioIndexLZSource.prototype.normalizeResponse = function(data) {
-//     return this.parser(data)
-// }
 
 // export function makeLZDataSourceConstructor(store, moduleIndex, indexObj) {
 //     const LZDataSourceConstructor = {
