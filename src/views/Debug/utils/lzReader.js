@@ -2444,7 +2444,6 @@ function dataFilter(format, filter) {
                         .map(datum => (datum == filter[property]))
                         .map((datum, index) => { if (datum) { return index } })
                         .filter(x => typeof x !== "undefined");
-                console.log('filtering', columnFilterSeed);
 
                 // fill tempData object with data that's matched the filter
                 columnFilterSeed.forEach(index => {
@@ -2540,22 +2539,23 @@ function dataRangeFilter(format, property) {
 // DONE: Candidate A: Read off store (i.e. command-query separation)
 function readOffStore(store, moduleIndex, indexObject) {
     return {
-        fetch(chromosome, start, end, callback) {
+        fetch(chr, start, end, callback) {
             try {
+                let value = store.getters[`${moduleIndex}/data`];
+                let format = majorFormat(value);
 
-                const data = store.getters[`${moduleIndex}/data`];
-                if (data) {
-                    const format = majorFormat(data);
+                // default behavior is to return everything if states for a filter are undefined
+                const indexObjectFilter = dataFilter(format, { ...indexObject });  // e.g. phenotype: `<page's phenotype>`
 
-                    const indexFilter = dataFilter(format, { ...indexObject });
-                    const chromosomeFilter = dataFilter(format, { chromosome });
-                    const positionFilter = dataRangeFilter(format, 'position')(start, end);
+                // NOTE: TODO: does all data share these filters? NO!
+                const chromosomeFilter = dataFilter(format, { chr });
+                const positionFilter = dataRangeFilter(format, 'position')(start, end);
 
-                    let value = positionFilter(chromosomeFilter(indexFilter(data)));
+                let filtered = indexObjectFilter(value);
+                filtered = chromosomeFilter(filtered);
+                filtered = positionFilter(filtered);
 
-                    return callback(value);
-                }
-
+                return callback(filtered);
             } catch (e) {
                 return callback(null, e);
             }
@@ -2661,7 +2661,7 @@ export const BioIndexLZSource = LocusZoom.Data.Source.extend(function(init) {
 BioIndexLZSource.prototype.parseInit = function ({ store, module, indexObj }) {
     this.params = { store, module, indexObj };
     this.parser = moduleParser(module);
-    this.reader = readerTest(store, module, indexObj);
+    this.reader = readOffStore(store, module, indexObj);
 };
 BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;

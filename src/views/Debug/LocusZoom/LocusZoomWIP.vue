@@ -37,7 +37,6 @@ export default Vue.component("locuszoom-wip", {
             dashboard: null
         };
         let panels = sortPanels(this.panels).map(p => {
-            console.log("Panels", LocusZoom.Layouts.get("panel", p, {...panelOptions}));
             return LocusZoom.Layouts.get("panel", p, {...panelOptions})
         });
 
@@ -73,7 +72,7 @@ export default Vue.component("locuszoom-wip", {
 
             this.dataSources.add("assoc", new BioIndexLZSource({
                 store: this.store,
-                module: this.modules[0],
+                module: 'test',
                 indexObj: { phenotype: 'T2D' },
             }));
             console.log(this.dataSources);
