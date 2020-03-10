@@ -96,7 +96,7 @@
                     >Genes in the region associated with phenotypes with signal</h4>
                     <div
                         v-for="row in $parent.genes"
-                        class="phenotype-with-signal moderate"
+                        :class="'gene-with-signal '+row.type"
                     >{{row.name}}</div>
                 </div>
             </div>

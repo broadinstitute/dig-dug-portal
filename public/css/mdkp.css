@@ -397,7 +397,7 @@ a.edit-btn {
     overflow-y: auto;
 }
 
-.phenotype-with-signal {
+.phenotype-with-signal, .gene-with-signal {
     cursor: pointer;
     display: inline-block;
     margin: 0px 10px 10px 0;
@@ -406,6 +406,16 @@ a.edit-btn {
     -moz-border-radius: 3px;
     border-radius: 3px;
     font-size: 13px;
+}
+
+.gene-with-signal.protein_coding {
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+}
+
+.gene-with-signal.antisense {
+    background-color: #b7eab7;
+    border: solid 1px #72ce49;
 }
 
 .phenotype-with-signal.high {
