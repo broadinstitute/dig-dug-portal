@@ -4,19 +4,17 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 
-
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
         bioPortal,
-        kp4cd,
+        kp4cd
     },
-    state: {
-    },
+    state: {},
     actions: {
         onPhenotypeChange(context, phenotype) {
-            window.location.href = "./phenotype.html?phenotype=" + phenotype.name;
+            window.location.href = "./phenotype.html?phenotype=" + phenotype;
         }
     }
 });
