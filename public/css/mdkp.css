@@ -367,13 +367,8 @@ a.edit-btn {
     margin: 0;
 }
 
-#regionSearchHolder .input-wrapper.or {
-    text-align: center;
-    border-left: solid 1px #ddd;
-    padding-top: 20px;
-}
-
-#regionSearchHolder .input-wrapper.or span {
+#regionSearchHolder .input-wrapper span.gene-search-or {
+    position: absolute;
     display: block;
     background-color: #ccc;
     width: 30px;
@@ -382,6 +377,9 @@ a.edit-btn {
     border-radius: 20px;
     padding-top: 3px;
     margin: auto;
+    position: absolute;
+    text-align: center;
+    top:25%;
 }
 
 #regionSearchHolder .input-default {
