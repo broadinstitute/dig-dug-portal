@@ -17,14 +17,13 @@ export default new Vuex.Store({
         topAssociations: bioIndex("TopAssociations"),
     },
     state: {
+        // only used at the start
         phenotypeParam: keyParams.phenotype,
 
         // user-entered locus
         chr: keyParams.chr,
         start: keyParams.start,
         end: keyParams.end,
-
-        // current locus
         phenotype: null,
     },
     mutations: {
@@ -62,6 +61,10 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        async onPhenotypeChange(context, phenotype) {
+            context.commit('setSelectedPhenotype', phenotype);
+        },
+
         async queryRegion(context) {
             context.commit('setLocus');
             context.commit('setSelectedPhenotype', null);
