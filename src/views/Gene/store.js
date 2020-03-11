@@ -119,7 +119,7 @@ export default new Vuex.Store({
 
                 // update the url with the new phenotype
                 keyParams.set({ phenotype: phenotype.name });
-                mdkp.utility.showHideElement("phenotypeSearchHolder");
+                //mdkp.utility.showHideElement("phenotypeSearchHolder");
 
                 // get the associations for this phenotype in the region
                 context.commit("setSelectedPhenotype", phenotype);

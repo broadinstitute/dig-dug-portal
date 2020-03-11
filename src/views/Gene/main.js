@@ -124,6 +124,11 @@ new Vue({
 
     watch: {
         lzAssociations(assocs) {
+            this.$children[0].$refs.lz.updateLocus(
+                this.$store.state.chr,
+                this.$store.state.start,
+                this.$store.state.end,
+            );
             this.$children[0].$refs.lz.updateVariants(assocs);
             this.$children[0].$refs.lz.plot();
         },
