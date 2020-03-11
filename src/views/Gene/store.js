@@ -5,6 +5,7 @@ import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
+import ensembl from "@/utils/ensembl";
 
 Vue.use(Vuex);
 
@@ -14,21 +15,17 @@ export default new Vuex.Store({
         kp4cd,
         genes: bioIndex("Genes"),
         associations: bioIndex("Associations"),
-        phewasAssociations: bioIndex("Associations"),
         topAssociations: bioIndex("TopAssociations"),
     },
     state: {
         phenotypeParam: keyParams.phenotype,
 
         // user-entered locus
-        newChr: keyParams.chr || '',
-        newStart: keyParams.start || '',
-        newEnd: keyParams.end || '',
-
-        // current locus
         chr: keyParams.chr,
         start: keyParams.start,
         end: keyParams.end,
+
+        // current locus
         phenotype: null,
     },
     mutations: {
@@ -39,15 +36,10 @@ export default new Vuex.Store({
             state.phenotype = state.bioPortal.phenotypeMap[name];
         },
         setLocus(state) {
-            state.chr = state.newChr;
-            state.start = state.newStart;
-            state.end = state.newEnd;
-
-            // update url
             keyParams.set({
-                chr: state.newChr,
-                start: state.newStart,
-                end: state.newEnd,
+                chr: state.chr,
+                start: state.start,
+                end: state.end,
             });
         },
     },
@@ -65,27 +57,35 @@ export default new Vuex.Store({
 
             // not set or not found
             return null;
-        }
+        },
+        region(state) {
+            return `${state.chr}:${state.start}-${state.end}`;
+        },
     },
     actions: {
-        onPhenotypeChange(state, phenotype) {
-            mdkp.utility.showHideElement("phenotypeSearchHolder");
-            state.commit("setSelectedPhenotype", phenotype);
-            keyParams.set({ phenotype: phenotype.name });
-        },
-
-        // redirects the page, which re-runs with the new locus
-        updateLocus(context) {
+        async queryRegion(context) {
             context.commit('setLocus');
             context.commit('setSelectedPhenotype', null);
 
-            // get the query range
-            let q = `${context.state.chr}:${context.state.start}-${context.state.end}`;
+            // find all the top associations and genes in the region
+            context.dispatch('topAssociations/query', { q: context.getters.region });
+            context.dispatch('genes/query', { q: context.getters.region });
+            context.dispatch('getAssociations');
+        },
 
-            // requery the data for the new region
-            context.dispatch('associations/query', { q });
-            context.dispatch('topAssociations/query', { q });
-            context.dispatch('genes/query', { q });
-        }
+        // fetches all the associations for the selected phenotype
+        async getAssociations(context, phenotype) {
+            if (phenotype) {
+                let q = `${phenotype.name},${context.getters.region}`;
+
+                // update the url with the new phenotype
+                keyParams.set({ phenotype: phenotype.name });
+                mdkp.utility.showHideElement("phenotypeSearchHolder");
+
+                // get the associations for this phenotype in the region
+                context.commit("setSelectedPhenotype", phenotype);
+                context.dispatch('associations/query', { q });
+            }
+        },
     }
 });
