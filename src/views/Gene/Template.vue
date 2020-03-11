@@ -58,6 +58,7 @@
                                 </div>
                                 <div class="col-md-3 input-wrapper">
                                     <input
+                                        v-model="$store.state.gene"
                                         type="text"
                                         class="form-control input-default"
                                         placeholder="Search gene"
@@ -120,7 +121,10 @@
 
             <div class="card mdkp-card">
                 <div v-show="$parent.selectedPhenotype" class="card-body">
-                    <h5 class="card-title">LocusZoom</h5>
+                    <h4
+                        v-if="$parent.selectedPhenotype"
+                        class="card-title"
+                    >LocusZoom Associations for Phenotype: {{$parent.selectedPhenotype.description}}</h4>
                     <locuszoom
                         ref="lz"
                         v-bind:gene="$parent.geneSource"

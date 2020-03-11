@@ -5,6 +5,7 @@ import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
+import ensembl from "@/utils/ensembl";
 
 Vue.use(Vuex);
 
@@ -25,6 +26,12 @@ export default new Vuex.Store({
         start: keyParams.start,
         end: keyParams.end,
         phenotype: null,
+
+        // user-entered search fields
+        newChr: keyParams.chr,
+        newStart: keyParams.start,
+        newEnd: keyParams.end,
+        gene: null,
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
@@ -34,6 +41,11 @@ export default new Vuex.Store({
             state.phenotype = state.bioPortal.phenotypeMap[name];
         },
         setLocus(state) {
+            state.chr = state.newChr || state.chr;
+            state.start = state.newStart || state.start;
+            state.end = state.newEnd || state.end;
+            state.gene = null;
+
             keyParams.set({
                 chr: state.chr,
                 start: state.start,
@@ -65,14 +77,33 @@ export default new Vuex.Store({
             context.commit('setSelectedPhenotype', phenotype);
         },
 
-        async queryRegion(context) {
-            context.commit('setLocus');
-            context.commit('setSelectedPhenotype', null);
+        async searchGene(context) {
+            if (context.state.gene) {
+                let locus = await ensembl.parseRegion(context.state.gene);
 
-            // find all the top associations and genes in the region
-            context.dispatch('topAssociations/query', { q: context.getters.region });
-            context.dispatch('genes/query', { q: context.getters.region });
-            context.dispatch('getAssociations');
+                if (locus) {
+                    context.state.newChr = locus.chr;
+                    context.state.newStart = locus.start;
+                    context.state.newEnd = locus.end;
+
+                    // update the locus
+                    context.commit('setLocus');
+                }
+            }
+        },
+
+        async queryRegion(context) {
+            if (context.state.gene) {
+                context.dispatch('searchGene');
+            } else {
+                context.commit('setLocus');
+                context.commit('setSelectedPhenotype', null);
+
+                // find all the top associations and genes in the region
+                context.dispatch('topAssociations/query', { q: context.getters.region });
+                context.dispatch('genes/query', { q: context.getters.region });
+                context.dispatch('getAssociations');
+            }
         },
 
         // fetches all the associations for the selected phenotype
