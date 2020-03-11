@@ -5,7 +5,6 @@ import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import ensembl from "@/utils/ensembl";
 
 Vue.use(Vuex);
 

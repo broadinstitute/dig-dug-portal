@@ -3,11 +3,11 @@
  */
 
 // matches a string to a region string (same as used in BioIndex)
-const REGION_REGEXP = /(?:chr)?(\d{1,2}|x|y|xy|mt):([\d,]+)(?:([+/-])([\d,]+))?/;
+const REGION_REGEXP = /(?:chr)?(\d{1,2}|x|y|xy|mt):(\d+)(?:([+/-])(\d+))?/;
 
 // parse a region as either a gene name, ENS ID, or chr:start-stop
 async function parseRegion(s, allowENSLookup = true) {
-    let match = s.match(REGION_REGEXP);
+    let match = s.replace(/,/g, '').match(REGION_REGEXP);
 
     // region matched, return chrom, start, and stop
     if (!!match) {
@@ -21,7 +21,7 @@ async function parseRegion(s, allowENSLookup = true) {
 
             switch (match[3]) {
                 case '-':
-                    end = n + 1;
+                    end = Math.max(n, start) + 1;
                     break;
 
                 // offset from start
