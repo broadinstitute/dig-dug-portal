@@ -56,18 +56,18 @@
                                         placeholder="End position"
                                     />
                                 </div>
-                                <div class="col-md-1 input-wrapper or">
-                                    <span>OR</span>
-                                </div>
+
                                 <div class="col-md-3 input-wrapper">
                                     <input
                                         v-model="$store.state.gene"
                                         type="text"
                                         class="form-control input-default"
+                                        style="margin-left: 15px;padding-left: 30px;"
                                         placeholder="Search gene"
                                     />
+                                    <span class="gene-search-or">OR</span>
                                 </div>
-                                <div class="col-md-1 input-wrapper">
+                                <div class="col-md-2 input-wrapper">
                                     <button
                                         id="regionSearchGo"
                                         class="btn btn-primary"
