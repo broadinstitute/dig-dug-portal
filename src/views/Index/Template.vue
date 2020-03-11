@@ -1,11 +1,7 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header
-            :disease-groups="$store.state.bioPortal.diseaseGroups"
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
         <div v-if="$parent.diseaseGroup">
@@ -31,10 +27,10 @@
                                         <div class="front-gene-search-wrapper">
                                             <div class="col-md-10 input-wrapper">
                                                 <input
-                                                    v-model="$store.state.gene"
+                                                    v-model="$store.state.geneOrRegion"
                                                     type="text"
                                                     class="form-control input-default"
-                                                    placeholder="Search gene"
+                                                    placeholder="Gene name or region"
                                                 />
                                             </div>
                                             <div class="col-md-2 input-wrapper">
@@ -42,9 +38,13 @@
                                                     id="regionSearchGo"
                                                     class="btn btn-primary"
                                                     type="button"
-                                                    @click="$store.dispatch('queryRegion')"
+                                                    @click="$store.dispatch('exploreRegion')"
                                                 >GO</button>
                                             </div>
+                                            <div
+                                                class="text-danger"
+                                                v-show="$store.state.invalidGeneOrRegion"
+                                            >Invalid gene name or region</div>
                                         </div>
                                     </b-tab>
                                     <b-tab title="Explore by phenotype">

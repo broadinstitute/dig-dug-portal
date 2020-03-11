@@ -1,11 +1,7 @@
 <template>
     <!-- Header -->
     <div>
-        <page-header
-            :disease-groups="$store.state.bioPortal.diseaseGroups"
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
@@ -34,7 +30,7 @@
                             <div class="region-search">
                                 <div class="col-md-1 input-wrapper">
                                     <input
-                                        v-model="$store.state.chr"
+                                        v-model="$store.state.newChr"
                                         type="text"
                                         class="form-control input-default"
                                         placeholder="Chromosome"
@@ -42,7 +38,7 @@
                                 </div>
                                 <div class="col-md-3 input-wrapper">
                                     <input
-                                        v-model="$store.state.start"
+                                        v-model="$store.state.newStart"
                                         type="text"
                                         class="form-control input-default"
                                         placeholder="Start position"
@@ -50,7 +46,7 @@
                                 </div>
                                 <div class="col-md-3 input-wrapper">
                                     <input
-                                        v-model="$store.state.end"
+                                        v-model="$store.state.newEnd"
                                         type="text"
                                         class="form-control input-default"
                                         placeholder="End position"
