@@ -11,7 +11,7 @@ export const PANEL_ORDER = Object.freeze([
 ]);
 
 export const BIO_INDEX_TYPE = Object.freeze({
-    test: 'Associations',
+    test: 'test',
     Associations: "Associations",
     TopAssociations: "TopAssociations",
     Variants: "Variants",
@@ -45,6 +45,17 @@ const AssociationsSchemaCol = new SchemaObject({
     log_pvalue: { type: Array },
     ref_allele: { type: Array },
     variant: { type: Array },
+}, { setUndefined: true, });
+
+const Associations = new SchemaObject({
+    phenotype: 'any',
+    id: 'any',
+    chr: 'any',
+    position: 'any',
+    pvalue: 'any',
+    log_pvalue: 'any',
+    ref_allele: 'any',
+    variant: 'any',
 }, { setUndefined: true, });
 
 export const LZSchemas = Object.freeze({

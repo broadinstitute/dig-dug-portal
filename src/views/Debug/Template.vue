@@ -2,7 +2,7 @@
     <div>
         <locuszoom-wip
             v-bind:store="$store"
-            v-bind:modules="['Associations',]"
+            v-bind:modules="['test',]"
             v-bind:panels="['intervals', 'genes', 'association',]"
 
             v-bind:chrom="$store.state.chrom"
