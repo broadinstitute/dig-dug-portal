@@ -49,21 +49,21 @@
                             <div class="region-search">
                                 <div class="col-md-2 input-wrapper">
                                     <input
-                                        v-model="$store.state.newChr"
+                                        v-model="$store.state.chr"
                                         type="text"
                                         class="form-control input-default"
                                     />
                                 </div>
                                 <div class="col-md-4 input-wrapper">
                                     <input
-                                        v-model="$store.state.newStart"
+                                        v-model="$store.state.start"
                                         type="text"
                                         class="form-control input-default"
                                     />
                                 </div>
                                 <div class="col-md-4 input-wrapper">
                                     <input
-                                        v-model="$store.state.newEnd"
+                                        v-model="$store.state.end"
                                         type="text"
                                         class="form-control input-default"
                                     />
@@ -73,7 +73,7 @@
                                         id="regionSearchGo"
                                         class="btn btn-primary"
                                         type="button"
-                                        @click="$store.dispatch('updateLocus')"
+                                        @click="$store.dispatch('queryRegion')"
                                     >GO</button>
                                 </div>
                             </div>
