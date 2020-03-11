@@ -2,10 +2,9 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
 import DataSources from "@/utils/lzDataSources";
 
@@ -15,8 +14,6 @@ new Vue({
     store,
 
     components: {
-        PhenotypeSelectPicker,
-        LocusZoom,
         VariantsTable,
         PageHeader,
         PageFooter,
@@ -34,9 +31,8 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
         // get initial data
-        this.$store.dispatch('updateLocus');
+        // this.$store.dispatch('updateLocus');
     },
 
     render(createElement, context) {
@@ -62,13 +58,13 @@ new Vue({
             return this.$store.state.bioPortal.phenotypes;
         },
 
-        selectedPhenotype() {
-            return this.$store.state.phenotype;
-        },
+        // selectedPhenotype() {
+        //     return this.$store.state.phenotype;
+        // },
 
-        genes() {
-            return this.$store.state.genes.data;
-        },
+        // genes() {
+        //     return this.$store.state.genes.data;
+        // },
 
         associations() {
             let trait = this.selectedPhenotype;
@@ -82,9 +78,9 @@ new Vue({
                 .sort((a, b) => a.pValue - b.pValue);
         },
 
-        phewasAssociations() {
-            return this.$store.state.phewasAssociations.data;
-        },
+        // phewasAssociations() {
+        //     return this.$store.state.phewasAssociations.data;
+        // },
 
         // Give the top associations, find the best one across all unique
         // phenotypes available.

@@ -12,23 +12,25 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        genes: bioIndex("Genes"),
-        associations: bioIndex("Associations"),
-        phewasAssociations: bioIndex("Associations"),
-        topAssociations: bioIndex("TopAssociations"),
+        variants: bioIndex("Variants"),
+        // associations: bioIndex("Associations"),
+        // phewasAssociations: bioIndex("Associations"),
+        // topAssociations: bioIndex("TopAssociations"),
     },
     state: {
         phenotypeParam: keyParams.phenotype,
 
         // user-entered locus
         newChr: keyParams.chr || '',
-        newStart: keyParams.start || '',
-        newEnd: keyParams.end || '',
+        newPos: keyParams.pos || '',
+        newref: keyParams.ref || '',
+        newalt: keyParams.alt || '',
 
         // current locus
         chr: keyParams.chr,
-        start: keyParams.start,
-        end: keyParams.end,
+        pos: keyParams.pos,
+        ref: keyParams.ref,
+        alt: keyParams.alt,
         phenotype: null,
     },
     mutations: {
@@ -68,24 +70,8 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        onPhenotypeChange(state, phenotype) {
-            mdkp.utility.showHideElement("phenotypeSearchHolder");
-            state.commit("setSelectedPhenotype", phenotype);
-            keyParams.set({ phenotype: phenotype.name });
-        },
 
-        // redirects the page, which re-runs with the new locus
-        updateLocus(context) {
-            context.commit('setLocus');
-            context.commit('setSelectedPhenotype', null);
 
-            // get the query range
-            let q = `${context.state.chr}:${context.state.start}-${context.state.end}`;
 
-            // requery the data for the new region
-            context.dispatch('associations/query', { q });
-            context.dispatch('topAssociations/query', { q });
-            context.dispatch('genes/query', { q });
-        }
     }
 });

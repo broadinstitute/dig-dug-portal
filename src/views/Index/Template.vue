@@ -28,6 +28,7 @@
                             <div class="col-md-12 portal-front-tabs">
                                 <b-tabs content-class="mt-3" align="center">
                                     <b-tab title="Explore by region" active></b-tab>
+                                    <b-tab title="Explore by variant"></b-tab>
                                     <b-tab title="Explore by phenotype">
                                         <phenotype-selectpicker
                                             v-bind:phenotypes="$parent.phenotypes"
