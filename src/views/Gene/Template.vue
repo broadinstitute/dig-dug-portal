@@ -56,6 +56,9 @@
                                         placeholder="End position"
                                     />
                                 </div>
+                                <div class="col-md-1 input-wrapper or">
+                                    <span>OR</span>
+                                </div>
                                 <div class="col-md-3 input-wrapper">
                                     <input
                                         v-model="$store.state.gene"
@@ -64,7 +67,7 @@
                                         placeholder="Search gene"
                                     />
                                 </div>
-                                <div class="col-md-2 input-wrapper">
+                                <div class="col-md-1 input-wrapper">
                                     <button
                                         id="regionSearchGo"
                                         class="btn btn-primary"
@@ -77,11 +80,7 @@
                         {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.end}}
                     </div>
                     <div class="col-md-4 gene-page-header-body">
-                        <div
-                            id="phenotypeSearchHolder"
-                            class="gene-page-header-search-holder"
-                            style="display: none;"
-                        >
+                        <div id="phenotypeSearchHolder" class="gene-page-header-search-holder">
                             <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
                         </div>
                         <span

@@ -27,7 +27,26 @@
 
                             <div class="col-md-12 portal-front-tabs">
                                 <b-tabs content-class="mt-3" align="center">
-                                    <b-tab title="Explore by region" active></b-tab>
+                                    <b-tab title="Explore by region" active>
+                                        <div class="front-gene-search-wrapper">
+                                            <div class="col-md-10 input-wrapper">
+                                                <input
+                                                    v-model="$store.state.gene"
+                                                    type="text"
+                                                    class="form-control input-default"
+                                                    placeholder="Search gene"
+                                                />
+                                            </div>
+                                            <div class="col-md-2 input-wrapper">
+                                                <button
+                                                    id="regionSearchGo"
+                                                    class="btn btn-primary"
+                                                    type="button"
+                                                    @click="$store.dispatch('queryRegion')"
+                                                >GO</button>
+                                            </div>
+                                        </div>
+                                    </b-tab>
                                     <b-tab title="Explore by phenotype">
                                         <phenotype-selectpicker
                                             v-bind:phenotypes="$parent.phenotypes"
