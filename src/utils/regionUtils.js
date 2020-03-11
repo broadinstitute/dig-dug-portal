@@ -23,17 +23,17 @@ async function parseRegion(s, allowGeneLookup = true) {
 
             switch (match[3]) {
                 case '-':
-                    end = Math.max(n, start) + 1;
+                    end = Math.max(n, start);
                     break;
 
                 // offset from start
                 case '+':
-                    end = start + n + 1;
+                    end = start + n;
                     break;
 
                 // around position
                 case '/':
-                    end = start + n + 1;
+                    end = start + n;
                     start = start - n;
                     break;
             }
