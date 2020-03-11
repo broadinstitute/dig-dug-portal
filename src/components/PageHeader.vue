@@ -66,16 +66,13 @@ import Vue from "vue";
 import VueCookies from "vue-cookies";
 
 import host from "@/utils/hostUtils";
-import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
-    props: ["diseaseGroups", "diseaseGroup", "frontContents"],
+    props: ["diseaseGroup", "frontContents"],
 
-    components: {
-        DiseaseGroupSelect
-    },
+    components: {},
 
     data() {
         return {};

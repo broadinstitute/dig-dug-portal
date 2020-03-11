@@ -46,18 +46,17 @@ new Vue({
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
-            //console.log(contents);
-
             if (contents.length === 0) {
                 return {};
             }
 
             return contents[0];
         },
+        geneOrRegion() {
+            return this.$store.state.geneOrRegion;
+        },
         datasetsInfo() {
             let datasets = this.$store.state.kp4cd.datasetsInfo;
-
-            console.log(datasets);
 
             if (datasets.length === 0) {
                 return {};
@@ -68,6 +67,9 @@ new Vue({
     },
 
     watch: {
+        geneOrRegion() {
+            this.$store.commit('setInvalidGeneOrRegion', false);
+        },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getNewsFeed", group.name);
             this.$store.dispatch("kp4cd/getFrontContents", group.name);

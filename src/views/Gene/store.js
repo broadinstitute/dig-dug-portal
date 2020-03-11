@@ -5,7 +5,7 @@ import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import ensembl from "@/utils/ensembl";
+import regionUtils from "@/utils/regionUtils";
 
 Vue.use(Vuex);
 
@@ -35,9 +35,11 @@ export default new Vuex.Store({
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
+            state.phenotypeParam = null;
             state.phenotype = phenotype;
         },
         setPhenotypeByName(state, name) {
+            state.phenotypeParam = null;
             state.phenotype = state.bioPortal.phenotypeMap[name];
         },
         setLocus(state) {
@@ -79,7 +81,7 @@ export default new Vuex.Store({
 
         async searchGene(context) {
             if (context.state.gene) {
-                let locus = await ensembl.parseRegion(context.state.gene);
+                let locus = await regionUtils.parseRegion(context.state.gene);
 
                 if (locus) {
                     context.state.newChr = locus.chr;
@@ -88,6 +90,7 @@ export default new Vuex.Store({
 
                     // update the locus
                     context.commit('setLocus');
+                    context.dispatch('queryRegion');
                 }
             }
         },
@@ -98,6 +101,9 @@ export default new Vuex.Store({
             } else {
                 context.commit('setLocus');
                 context.commit('setSelectedPhenotype', null);
+                context.commit('genes/clearData');
+                context.commit('associations/clearData');
+                context.commit('topAssociations/clearData');
 
                 // find all the top associations and genes in the region
                 context.dispatch('topAssociations/query', { q: context.getters.region });
@@ -113,7 +119,7 @@ export default new Vuex.Store({
 
                 // update the url with the new phenotype
                 keyParams.set({ phenotype: phenotype.name });
-                mdkp.utility.showHideElement("phenotypeSearchHolder");
+                //mdkp.utility.showHideElement("phenotypeSearchHolder");
 
                 // get the associations for this phenotype in the region
                 context.commit("setSelectedPhenotype", phenotype);
