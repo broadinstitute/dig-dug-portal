@@ -72,7 +72,7 @@ new Vue({
         },
 
         associations() {
-            return this.$store.state.associations.data;
+            return this.$store.state.associations.data.sort((a, b) => a.pValue - b.pValue);
         },
 
         // Give the top associations, find the best one across all unique
