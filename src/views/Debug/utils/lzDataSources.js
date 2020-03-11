@@ -1,42 +1,43 @@
 import LocusZoom from "locuszoom";
+import {HUMAN_GENOME_BUILD_VERSION, LZ_TYPE} from "./lzConstants";
 
 export default {
 	defaultSource: {
-	    gene: ["GeneLZ", {
+	    [LZ_TYPE.gene]: ["GeneLZ", {
             url:
                 'https://portaldev.sph.umich.edu/api/v1/annotation/genes/',
             params: {
-                build: 'GRCh37'
+                build: HUMAN_GENOME_BUILD_VERSION,
             }
         }],
-        ld: ["LDLZ2", {
+        [LZ_TYPE.ld]: ["LDLZ2", {
             url: 'https://portaldev.sph.umich.edu/ld/',
             params: {
                 source: '1000G',
-                build: 'GRCh37',
+                build: HUMAN_GENOME_BUILD_VERSION,
                 population: 'ALL'
             }
         }],
-        recomb: ["RecombLZ", {
+        [LZ_TYPE.recomb]: ["RecombLZ", {
             url:
                 'https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/',
             params: {
-                build: 'GRCh37'
+                build: HUMAN_GENOME_BUILD_VERSION,
             }
         }],
-        constraint: ["GeneConstraintLZ",
+        [LZ_TYPE.constraint]: ["GeneConstraintLZ",
             {
                 url: 'https://gnomad.broadinstitute.org/api/constraint',
                 params: {
-                    build: 'GRCh37'
+                    build: HUMAN_GENOME_BUILD_VERSION,
                 }
             }],
-        intervals: ["IntervalLZ",
+        [LZ_TYPE.intervals]: ["IntervalLZ",
             {
                 url: 'https://portaldev.sph.umich.edu/api/v1/annotation/intervals/results/',
                 params: {
                     source: 19,
-                    build: 'GRCh37',
+                    build: HUMAN_GENOME_BUILD_VERSION,
                 }
             }],
     }

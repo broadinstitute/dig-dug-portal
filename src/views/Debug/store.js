@@ -2358,7 +2358,8 @@ const testData = {
             0.06048074738138147,
             0.4559319556497244,
             0.10237290870955855
-        ]
+        ],
+        phenotype: Array(200).fill('T2D').concat(Array(134).fill('Blah'))
     }
 };
 
@@ -2370,46 +2371,37 @@ export default new Vuex.Store({
         variants: bioIndex("Variants"),
         test: {
             namespaced: true,
-
             state: {
-                data: testData.data,
+                data: null,
                 format: 'c',
             },
-
             getters: {
                 data(state) {
                     let data = state.data;
                     return state.data;
                 },
             },
-
             mutations: {
                 setData(state, data) {
                     state.data = data;
                 },
             },
-
-            methods: {
-
-            },
-
             actions: {
-                async query(context, queryPayload) {
-                    let qs = querystring.encode({ ...queryPayload });
-                    let json = await fetch(`${BIO_INDEX_HOST}/api/query/${'Associations'}?${qs}`)
-                        .then(resp => {
-                            if (resp.status !== 200) {
-                                throw Error(resp.status.toString());
-                            }
-                            return resp;
-                        })
-                        .then(resp => resp.json())
-                        .then(json => this.commit('test/setData', json.data))
-                        .catch(console.error);
-
+                async query(context) {
+                    context.commit('setData', testData.data);
+                    // let qs = querystring.encode({ ...queryPayload });
+                    // let json = await fetch(`${BIO_INDEX_HOST}/api/query/${'Associations'}?${qs}`)
+                    //     .then(resp => {
+                    //         if (resp.status !== 200) {
+                    //             throw Error(resp.status.toString());
+                    //         }
+                    //         return resp;
+                    //     })
+                    //     .then(resp => resp.json())
+                    //     .then(json => context.commit('test/setData', json.data))
+                    //     .catch(console.error);
                 },
-            }
-
+            },
         },
     },
     state: {

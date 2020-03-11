@@ -7,13 +7,13 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "../../../utils/lzDataSources";
 import {sortPanels} from "../utils/lzUtils";
-import {BIO_INDEX_TYPE} from "../utils/lzConstants";
+import {BIO_INDEX_TO_LZ, LZ_TYPE} from "../utils/lzConstants";
 import {BioIndexLZSource} from "../utils/lzReader";
 
 export default Vue.component("locuszoom-wip", {
     props: [
-        "store", "modules", "phenotype",
-        ...Object.keys(lzDataSources.defaultSource),
+        "store", "modules",
+        ...Object.keys(LZ_TYPE),
         "panels",
 
         // TODO can these be eliminated?
@@ -21,14 +21,6 @@ export default Vue.component("locuszoom-wip", {
         "start",
         "end"
     ],
-    data() {
-        return {
-
-        };
-    },
-    created() {
-
-    },
     mounted() {
 
         let panelOptions = {
@@ -63,19 +55,13 @@ export default Vue.component("locuszoom-wip", {
                 .map(dataSourceType => this.dataSources.add(dataSourceType, this[dataSourceType] || lzDataSources.defaultSource[dataSourceType]))
 
             // initialize custom locuszoom datasources based on page-scoped modules
-            // for (let i = 0; i < this.modules.length; i++) {
-            //     const dataSourceType = this.modules[i];
-            //     // TODO utils like lzReader are used here
-            //     const bioIndexDataSource = makeDataSourceFromModule(this.store, this.modules[i]);
-            //     this.dataSources.add(dataSourceType, [`${dataSourceType}LZ`, bioIndexDataSource]);
-            // }
-
-            this.dataSources.add("assoc", new BioIndexLZSource({
-                store: this.store,
-                module: 'test',
-                indexObj: { phenotype: 'T2D' },
-            }));
-            console.log(this.dataSources);
+            for (let i = 0; i < this.modules.length; i++) {
+                const module = this.modules[i];
+                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSource({
+                    store: this.store,
+                    module: module,
+                }));
+            }
 
             this.lzplot = LocusZoom.populate(
                 "#locuszoom",
@@ -83,9 +69,6 @@ export default Vue.component("locuszoom-wip", {
                 this.layout
             );
 
-        },
-        updateVariants(assocData) {
-            this.assoc[1].data = assocData;
         }
     }
 });

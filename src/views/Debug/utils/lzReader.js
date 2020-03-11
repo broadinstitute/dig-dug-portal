@@ -1,15 +1,10 @@
 import LocusZoom from "locuszoom";
-import {findIndex, findLastIndex} from "lodash";
-import {BIO_INDEX_TYPE} from "./lzConstants"
-
-import store from "../store";
-import {BIO_INDEX_HOST} from "../../../utils/bioIndexUtils";
+import {BIO_INDEX_TO_LZ, BIO_INDEX_TYPE, LZSchemas} from "./lzConstants"
+import {majorFormat, dataRangeFilter, dataFilter, isEmpty} from "./lzUtils";
 
 const PHENOTYPE_TEST = 'T2D';
 const LOCUS_TEST = 'SLC30A8';
-
-
-export const testData = {
+const testData = {
     data: {
         analysis: [
             3,
@@ -2366,44 +2361,12 @@ export const testData = {
     }
 };
 
-
-/*
-const testData = {
-    'data": {
-        "analysis": [],
-        "variant": [],
-        "chr": [],
-        "position": [],
-        "ref_allele": [],
-        "pValue": [],
-        "log_pvalue": [],
-        "phenotype": [],  // made up
-    },
-    "lastPage": null
-};
-*/
-
-function majorFormat(data){
-    // https://stackoverflow.com/a/51285298
-    if (data.constructor == Object) {
-        return 'c'
-    } else if (data instanceof Array) {
-        return 'r'
-    }
-}
-
-// schema can be applied to both column-first or record-first formats, but the distinction
-// in how is handled by another function
 let moduleParserSchema = Object.freeze({
-    'test': function(data) {
-        return {
-            ...data,
-        };
-    },
+    'test': function(data) { return data; },
     [BIO_INDEX_TYPE.Associations]: function(data) {
         return {
+            phenotype: data.phenotype,
             id: data.varId || data.variant,
-            // phenotype?
             chr: data.chromosome || data.chr,
             position: data.position,
             pvalue: data.pvalue || data.pValue,
@@ -2413,6 +2376,9 @@ let moduleParserSchema = Object.freeze({
         }
     }
 });
+
+// schema can be applied to both column-first or record-first formats, but the distinction
+// in how is handled by another function
 function moduleParser(index) {
     return function (data){
         let schema = moduleParserSchema[index];
@@ -2426,135 +2392,30 @@ function moduleParser(index) {
     }
 }
 
-function dataFilter(format, filter) {
-    const firstProperty = Object.keys(filter)[0];
-    return function (pointData, property=firstProperty) {
-        if (format === "r") {
-            return pointData.filter(datum => datum[property] == filter[property]);  // we want casting
-        } else if (format === "c") {
-            if (pointData[property]) {
-                // initialize a tempData object
-                let tempData = {};
-                Object.keys(pointData).forEach(property => {
-                    tempData[property] = [];
-                });
-
-                const columnFilterSeed =
-                    pointData[property]
-                        .map(datum => (datum == filter[property]))
-                        .map((datum, index) => { if (datum) { return index } })
-                        .filter(x => typeof x !== "undefined");
-
-                // fill tempData object with data that's matched the filter
-                columnFilterSeed.forEach(index => {
-                    // TODO can be paralellized
-                    // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
-                    Object.keys(pointData).forEach(property => {
-                        tempData[property][index] = pointData[property][index];
-                    });
-                });
-                return tempData;
-            }
-            // column first filtering
-            // get only elements of array with positions in array
-            // find indecies of elements satisfying property
-            return pointData;
-
-        }
-    };
-};
-
-function findLeastStart(start, end, indexSearch) {
-    let startIndex = -1;
-    let k = start;
-    while (true) {
-        startIndex = indexSearch(k);
-        if (startIndex == -1 && k < end) {
-            k++;
-        } else {
-            break;
-        }
-    }
-    return startIndex;
-}
-
-function findMostEnd(start, end, indexSearch) {
-    let endIndex = -1;
-    let j = end;
-    while (true) {
-        endIndex = indexSearch(j);
-        if (endIndex == -1 && j > start) {
-            j--;
-        } else {
-            break;
-        }
-    }
-    return endIndex;
-}
-
-function dataRangeFilter(format, property) {
-    return function (start, end) {
-        return function (rangedData) {
-
-            let startIndex = findLeastStart(start, end,
-                point => (rangedData[property] || rangedData.map(item => item[property])).indexOf(point));
-            let endIndex = findMostEnd(start, end,
-                point => (rangedData[property] || rangedData.map(item => item[property])).lastIndexOf(point));
-
-            if (format === "r") {
-
-                if (startIndex !== -1 && endIndex !== -1) {
-                    const value =  rangedData.slice(startIndex, endIndex !== -1 ? endIndex + 1 : rangedData.length);
-                    return value;
-                }
-                return [];
-
-            } else if (format === "c") {
-
-                // initialize a tempData object
-                let tempData = {};
-                Object.keys(rangedData).forEach(property => {
-                    tempData[property] = [];
-                });
-                if (startIndex !== -1 && endIndex !== -1) {
-                    // TODO can be paralellized
-                    // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
-                    Object.keys(rangedData).forEach(property => {
-                        tempData[property] = rangedData[property].slice(
-                            startIndex,
-                            endIndex !== -1 ? endIndex + 1 : rangedData[property].length + 1
-                        );
-                    });
-                }
-                return tempData;
-
-            }
-
-        }
-
-    }
-}
-
-
-// DONE: Candidate A: Read off store (i.e. command-query separation)
+// Candidate A: Read off store (i.e. command-query separation)
+// TODO: Caching?
 function readOffStore(store, moduleIndex, indexObject) {
     return {
         fetch(chr, start, end, callback) {
             try {
-                let value = store.getters[`${moduleIndex}/data`];
+                const moduleIndex = 'test';
+                let value = store.getters[`${moduleIndex}/data`]
+                    || new LZSchemas[BIO_INDEX_TO_LZ[BIO_INDEX_TYPE[moduleIndex]]]().toObject();
                 let format = majorFormat(value);
 
                 // default behavior is to return everything if states for a filter are undefined
-                const indexObjectFilter = dataFilter(format, { ...indexObject });  // e.g. phenotype: `<page's phenotype>`
-
-                // NOTE: TODO: does all data share these filters? NO!
                 const chromosomeFilter = dataFilter(format, { chr });
                 const positionFilter = dataRangeFilter(format, 'position')(start, end);
 
-                let filtered = indexObjectFilter(value);
-                filtered = chromosomeFilter(filtered);
-                filtered = positionFilter(filtered);
-
+                let filtered = value;
+                if (!isEmpty(filtered)) {
+                    if (indexObject) {
+                        const indexObjectFilter = dataFilter(format, { ...indexObject });  // e.g. phenotype: `<page's phenotype>`
+                        filtered = indexObjectFilter(filtered);
+                    }
+                    filtered = chromosomeFilter(filtered);
+                    filtered = positionFilter(filtered);
+                }
                 return callback(filtered);
             } catch (e) {
                 return callback(null, e);
@@ -2562,98 +2423,6 @@ function readOffStore(store, moduleIndex, indexObject) {
         }
     }
 }
-// console.log('offline testReadOffStore');
-// store.commit('test/setData', testData.data)
-// const testReadOffStore = readOffStore(store, 'test', { locus: LOCUS_TEST }).fetch(10, 114552962, 114611504, x => x);
-// console.log(testReadOffStore)
-
-// TODO: Candidate B: Read On Coordinate change (i.e. Just-In-Time Data)
-function readOnCoords(store, moduleIndex, indexObject) {
-    return {
-        async fetch(chromosome, start, end, callback) {
-            try {
-                return await store.dispatch(`${moduleIndex}/query`, { q: `chr${chromosome}:${start}-${end}` }).then(() => {
-                    const data = store.getters[`${moduleIndex}/data`];
-                    const format = majorFormat(data);
-
-                    const indexFilter = dataFilter(format, { ...indexObject });
-                    let value = indexFilter(data);
-
-                    return callback(value);
-
-                });
-            } catch (e) {
-                return callback(null, e);
-            }
-        }
-    }
-}
-// TODO: test query on coord change
-// DONE: API TEST SOON!
-// const testReadOnCoords = readOnCoords(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
-// Promise.resolve(testReadOnCoords).then(data => console.log('online testReadOnCoords', data)).catch(console.error);
-
-
-// DONE: Candidate C: Read On Any change (i.e. 'Safe'/Naive/Brute Force, self-supplying)
-function readOnAll(store, moduleIndex, indexObject) {
-    const queryValue = Object.values(indexObject)[0];
-    return {
-        async fetch(chromosome, start, end, callback) {
-            try {
-                return await store.dispatch(`${moduleIndex}/query`, { q: queryValue }).then(() => {
-
-                    const data = store.getters[`${moduleIndex}/data`];
-                    const format = majorFormat(data);
-
-                    const chromosomeFilter = dataFilter(format, { chromosome });
-                    const positionFilter = dataRangeFilter(format, 'position')(start, end);
-
-                    let value = positionFilter(chromosomeFilter(data));
-
-                    return callback(value);
-
-                });
-            } catch (e) {
-                return callback(null, e);
-            }
-        }
-    }
-}
-// const testReadOnAll = readOnAll(store, 'test', { phenotype: PHENOTYPE_TEST }).fetch(10, 114750500, 124193181, x => x);
-// Promise.resolve(testReadOnAll).then(data => console.log('online testReadOnAll', data)).catch(console.error);
-
-// DONE: Test Bed: get it working with static data before generalizing to having to synchronize with the store
-// filters work
-export function readerTest(store, moduleIndex, indexObject) {
-    return {
-        fetch(chr, start, end, callback) {
-            try {
-
-                let value = testData.data;
-                let format = majorFormat(value);
-
-                // default behavior is to return everything if states for a filter are undefined
-                const indexObjectFilter = dataFilter(format, { ...indexObject });  // e.g. phenotype: `<page's phenotype>`
-
-                // NOTE: TODO: does all data share these filters? NO!
-                const chromosomeFilter = dataFilter(format, { chr });
-                const positionFilter = dataRangeFilter(format, 'position')(start, end);
-
-                let filtered = indexObjectFilter(value);
-                filtered = chromosomeFilter(filtered);
-                filtered = positionFilter(filtered);
-
-                return callback(filtered);
-
-            } catch (e) {
-                return callback(null, e);
-            }
-        }
-    }
-}
-// console.log('offline testedReaderData');
-// const testedReaderData = readerTest(store, 'test', { varId: `10:114750500:A:G` }).fetch(10, 114552962, 114611504, x => x)
-// console.log(testedReaderData);
 
 export const BioIndexLZSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
@@ -2674,30 +2443,3 @@ BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
         });
     });
 };
-
-// export function makeLZDataSourceConstructor(store, moduleIndex, indexObj) {
-//     const LZDataSourceConstructor = {
-//         parseInit(init) {
-//             // this.params = init.params; // Used to create a parser
-//             this.parser = moduleParser[init.moduleIndex];
-//             this.reader = readerTest(init.store, init.moduleIndex, init.indexObj);
-//         },
-//         fetchRequest(state, chain, fields) {
-//             console.log(`BI_${moduleIndex}LZ fetch request`);
-//             const self = this;
-//             return new Promise((resolve, reject) => {
-//                 self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
-//                     if (err) {
-//                         reject(new Error(err));
-//                     }
-//                     resolve(data);
-//                 });
-//             });
-//         },
-//         normalizeResponse(data) {
-//             return this.parser(data)
-//         }
-//     };
-//     return moduleDataSourceConstructor;
-// }
-
