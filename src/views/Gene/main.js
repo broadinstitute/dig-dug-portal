@@ -66,7 +66,9 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data;
+            return this.$store.state.genes.data.filter(function (gene) {
+                return gene.type == 'protein_coding'
+            });
         },
 
         associations() {

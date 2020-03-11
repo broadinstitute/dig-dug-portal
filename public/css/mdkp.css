@@ -392,7 +392,12 @@ a.edit-btn {
     text-align: center;
 }
 
-.phenotype-with-signal {
+.phenotypes-with-signal-wrapper {
+    height: 280px;
+    overflow-y: auto;
+}
+
+.phenotype-with-signal, .gene-with-signal {
     cursor: pointer;
     display: inline-block;
     margin: 0px 10px 10px 0;
@@ -403,6 +408,16 @@ a.edit-btn {
     font-size: 13px;
 }
 
+.gene-with-signal.protein_coding {
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+}
+
+.gene-with-signal.antisense {
+    background-color: #b7eab7;
+    border: solid 1px #72ce49;
+}
+
 .phenotype-with-signal.high {
     background-color: #a0d7ff;
     border: solid 1px #30b7f6;
@@ -411,6 +426,15 @@ a.edit-btn {
 .phenotype-with-signal.moderate {
     background-color: #d0efff;
     border: solid 1px #30b7f6;
+}
+
+.phenotype-with-signal.none {
+    background-color: #eee;
+    border: solid 1px #ccc;
+}
+
+.phenotype-with-signal.none.hidden {
+    display: none;
 }
 
 .variant-table-row.high {

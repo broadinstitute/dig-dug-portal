@@ -31,7 +31,9 @@ export default {
     // dispatch methods
     actions: {
         async getNewsFeed(context, selectedDiseaseGroup) {
+
             let portal = selectedDiseaseGroup || 'md';
+
             let json = await fetch(`http://kp4cd.org/rest/views/news2vueportal?portal=` + portal)
                 .then(resp => resp.json());
             // set the data
@@ -47,7 +49,8 @@ export default {
         },
 
         async getDatasetsInfo(context, selectedDiseaseGroup) {
-            let portal = selectedDiseaseGroup || 'md';
+
+            let portal = (selectedDiseaseGroup == 'md') ? '' : selectedDiseaseGroup;
             let json = await fetch(`http://kp4cd.org/rest/views/kpdatasets?portal=` + portal)
                 .then(resp => resp.json());
             // set the data
