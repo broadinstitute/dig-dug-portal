@@ -31,12 +31,11 @@ new Vue({
     },
 
     created() {
+        this.$store.dispatch('queryRegion');
+
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
-        // get initial data
-        this.$store.dispatch('updateLocus');
     },
 
     render(createElement, context) {
@@ -67,23 +66,13 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data;
+            return this.$store.state.genes.data.filter(function (gene) {
+                return gene.type == 'protein_coding'
+            });
         },
 
         associations() {
-            let trait = this.selectedPhenotype;
-            if (!trait) {
-                return [];
-            }
-
-            // all the associations, but filtered for the selected phenotype
-            return this.$store.state.associations.data
-                .filter(assoc => assoc.phenotype === trait.name)
-                .sort((a, b) => a.pValue - b.pValue);
-        },
-
-        phewasAssociations() {
-            return this.$store.state.phewasAssociations.data;
+            return this.$store.state.associations.data.sort((a, b) => a.pValue - b.pValue);
         },
 
         // Give the top associations, find the best one across all unique
@@ -109,10 +98,9 @@ new Vue({
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
-    },
 
-    watch: {
-        associations(assocs) {
+        // Column-major associations for locuszoom
+        lzAssociations() {
             let lzAssocs = {
                 id: [],
                 position: [],
@@ -122,7 +110,7 @@ new Vue({
             };
 
             // transform associations to lz format
-            assocs.forEach(v => {
+            this.$store.state.associations.data.forEach(v => {
                 lzAssocs.id.push(v.varId);
                 lzAssocs.variant.push(v.varId);
                 lzAssocs.position.push(v.position);
@@ -130,8 +118,18 @@ new Vue({
                 lzAssocs.ref_allele.push(v.reference);
             });
 
-            // update plot
-            this.$children[0].$refs.lz.updateVariants(lzAssocs);
+            return lzAssocs;
+        }
+    },
+
+    watch: {
+        lzAssociations(assocs) {
+            this.$children[0].$refs.lz.updateLocus(
+                this.$store.state.chr,
+                this.$store.state.start,
+                this.$store.state.end,
+            );
+            this.$children[0].$refs.lz.updateVariants(assocs);
             this.$children[0].$refs.lz.plot();
         },
 
@@ -141,8 +139,15 @@ new Vue({
             // if there's a phenotypeParam, then pick that phenotype
             if (param) {
                 let phenotype = this.$store.state.bioPortal.phenotypeMap[param];
-                this.$store.commit('setSelectedPhenotype', phenotype);
+
+                if (phenotype) {
+                    this.$store.dispatch('getAssociations', phenotype);
+                }
             }
+        },
+
+        selectedPhenotype(phenotype) {
+            this.$store.dispatch('getAssociations', phenotype);
         },
 
         topAssociations(top) {
@@ -150,7 +155,7 @@ new Vue({
                 let topAssoc = top[0];
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[topAssoc.phenotype];
 
-                this.$store.commit('setSelectedPhenotype', topPhenotype);
+                this.$store.dispatch('getAssociations', topPhenotype);
             }
         },
 

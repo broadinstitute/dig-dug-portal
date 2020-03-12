@@ -73,6 +73,9 @@ export default Vue.component("locuszoom", {
                 this.layout
             );
         },
+        updateLocus(chr, start, end) {
+            this.lzplot.applyState({ chr, start, end });
+        },
         updateVariants(assocData) {
             this.assoc[1].data = assocData;
         }

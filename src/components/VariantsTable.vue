@@ -9,6 +9,7 @@
         <b-table
             hover
             :items="variants"
+            :sort-by.sync="sortBy"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -25,9 +26,10 @@ export default Vue.component("variants-table", {
     data() {
         return {
             // Note `isActive` is left out and will not appear in the rendered table
-            perPage: 25,
+            perPage: 15,
             currentPage: 1,
             rows: 500,
+            sortBy: "pValue",
             fields: [
                 {
                     key: "varId",

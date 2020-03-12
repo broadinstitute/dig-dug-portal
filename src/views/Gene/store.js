@@ -5,6 +5,7 @@ import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
+import regionUtils from "@/utils/regionUtils";
 
 Vue.use(Vuex);
 
@@ -14,40 +15,43 @@ export default new Vuex.Store({
         kp4cd,
         genes: bioIndex("Genes"),
         associations: bioIndex("Associations"),
-        phewasAssociations: bioIndex("Associations"),
         topAssociations: bioIndex("TopAssociations"),
     },
     state: {
+        // only used at the start
         phenotypeParam: keyParams.phenotype,
 
         // user-entered locus
-        newChr: keyParams.chr || '',
-        newStart: keyParams.start || '',
-        newEnd: keyParams.end || '',
-
-        // current locus
         chr: keyParams.chr,
         start: keyParams.start,
         end: keyParams.end,
         phenotype: null,
+
+        // user-entered search fields
+        newChr: keyParams.chr,
+        newStart: keyParams.start,
+        newEnd: keyParams.end,
+        gene: null,
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
+            state.phenotypeParam = null;
             state.phenotype = phenotype;
         },
         setPhenotypeByName(state, name) {
+            state.phenotypeParam = null;
             state.phenotype = state.bioPortal.phenotypeMap[name];
         },
         setLocus(state) {
-            state.chr = state.newChr;
-            state.start = state.newStart;
-            state.end = state.newEnd;
+            state.chr = state.newChr || state.chr;
+            state.start = state.newStart || state.start;
+            state.end = state.newEnd || state.end;
+            state.gene = null;
 
-            // update url
             keyParams.set({
-                chr: state.newChr,
-                start: state.newStart,
-                end: state.newEnd,
+                chr: state.chr,
+                start: state.start,
+                end: state.end,
             });
         },
     },
@@ -65,27 +69,62 @@ export default new Vuex.Store({
 
             // not set or not found
             return null;
-        }
+        },
+        region(state) {
+            return `${state.chr}:${state.start}-${state.end}`;
+        },
     },
     actions: {
-        onPhenotypeChange(state, phenotype) {
-            mdkp.utility.showHideElement("phenotypeSearchHolder");
-            state.commit("setSelectedPhenotype", phenotype);
-            keyParams.set({ phenotype: phenotype.name });
+        async onPhenotypeChange(context, phenotype) {
+            context.commit('setSelectedPhenotype', phenotype);
         },
 
-        // redirects the page, which re-runs with the new locus
-        updateLocus(context) {
-            context.commit('setLocus');
-            context.commit('setSelectedPhenotype', null);
+        async searchGene(context) {
+            if (context.state.gene) {
+                let locus = await regionUtils.parseRegion(context.state.gene);
 
-            // get the query range
-            let q = `${context.state.chr}:${context.state.start}-${context.state.end}`;
+                if (locus) {
+                    context.state.newChr = locus.chr;
+                    context.state.newStart = locus.start;
+                    context.state.newEnd = locus.end;
 
-            // requery the data for the new region
-            context.dispatch('associations/query', { q });
-            context.dispatch('topAssociations/query', { q });
-            context.dispatch('genes/query', { q });
-        }
+                    // update the locus
+                    context.commit('setLocus');
+                    context.dispatch('queryRegion');
+                }
+            }
+        },
+
+        async queryRegion(context) {
+            if (context.state.gene) {
+                context.dispatch('searchGene');
+            } else {
+                context.commit('setLocus');
+                context.commit('setSelectedPhenotype', null);
+                context.commit('genes/clearData');
+                context.commit('associations/clearData');
+                context.commit('topAssociations/clearData');
+
+                // find all the top associations and genes in the region
+                context.dispatch('topAssociations/query', { q: context.getters.region });
+                context.dispatch('genes/query', { q: context.getters.region });
+                context.dispatch('getAssociations');
+            }
+        },
+
+        // fetches all the associations for the selected phenotype
+        async getAssociations(context, phenotype) {
+            if (phenotype) {
+                let q = `${phenotype.name},${context.getters.region}`;
+
+                // update the url with the new phenotype
+                keyParams.set({ phenotype: phenotype.name });
+                //mdkp.utility.showHideElement("phenotypeSearchHolder");
+
+                // get the associations for this phenotype in the region
+                context.commit("setSelectedPhenotype", phenotype);
+                context.dispatch('associations/query', { q });
+            }
+        },
     }
 });

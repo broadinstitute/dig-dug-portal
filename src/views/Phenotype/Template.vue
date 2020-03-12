@@ -1,11 +1,7 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header
-            :disease-groups="$store.state.bioPortal.diseaseGroups"
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">

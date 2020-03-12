@@ -31,12 +31,6 @@
                     :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
                     :class="diseaseGroup.name+'kp-logo'"
                 />
-                <div
-                    :class="'header-disease-group-select-wrapper'"
-                    v-if="diseaseGroup.default && currentPage != '/' && currentPage != ''"
-                >
-                    <disease-group-select :disease-groups="diseaseGroups"></disease-group-select>
-                </div>
             </div>
             <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
                 <ul :class="diseaseGroup.name+'kp-menu'">
@@ -44,7 +38,7 @@
                         <a href="/">Home</a>
                     </li>
                     <li>
-                        <a :href="translatedDataPage">Data</a>
+                        <a :href="'http://kp4cd.org/datasets/'+diseaseGroup.name">Data</a>
                     </li>
                     <li>
                         <a href>Tools</a>
@@ -72,16 +66,13 @@ import Vue from "vue";
 import VueCookies from "vue-cookies";
 
 import host from "@/utils/hostUtils";
-import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
-    props: ["diseaseGroups", "diseaseGroup", "frontContents"],
+    props: ["diseaseGroup", "frontContents"],
 
-    components: {
-        DiseaseGroupSelect
-    },
+    components: {},
 
     data() {
         return {};
@@ -95,18 +86,6 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
-        },
-        translatedDataPage() {
-            let kp4cd_xform = {
-                t2d: "t2d",
-                sleep: "sleep",
-                cvd: "mi",
-                cd: "stroke"
-            };
-
-            let name = kp4cd_xform[this.diseaseGroup.name];
-
-            return `http://kp4cd.org/datasets/${name || "md"}`;
         }
     }
 });
