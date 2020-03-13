@@ -1,28 +1,15 @@
 <template>
 	<div>
-		<!-- <b-form-select
-			v-model="selectedPhenotype"
-			@change="$store.dispatch('onPhenotypeChange', selectedPhenotype)"
-		>
-			<b-form-select-option-group v-for="(item, index) in phenotypeOptionsGroups" :label="item.name">
-				<b-form-select-option
-					v-for="list in phenotypeOptionsGroups[index].groups"
-					v-bind:value="list.name"
-					v-bind:name="list.name"
-				>{{ list.description }}</b-form-select-option>
-			</b-form-select-option-group>
-		</b-form-select>-->
-		<!-- <v-select
-			v-model="selectedPhenotype"
-			@input="$store.dispatch('onPhenotypeChange', selectedPhenotype);"
-			label="description"
-			:options="phenotypeOptions"
-		></v-select>-->
 		<vue-typeahead-bootstrap
 			:data="phenotypeOptions"
 			:serializer="s => s.description"
 			@hit="$store.dispatch('onPhenotypeChange', $event.name)"
-		></vue-typeahead-bootstrap>
+		>
+			<template slot="suggestion" slot-scope="{ data, htmlText }">
+				<span v-html="htmlText"></span>&nbsp;
+				<small class="text-secondary">{{ data.group }}</small>
+			</template>
+		</vue-typeahead-bootstrap>
 	</div>
 </template>
 
