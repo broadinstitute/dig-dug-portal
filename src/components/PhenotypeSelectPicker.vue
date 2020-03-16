@@ -53,12 +53,6 @@ export default Vue.component("phenotype-selectpicker", {
 				return 0;
 			});
 		}
-		// phenotypeOptionsGroups() {
-		// 	return _.chain(this.phenotypeOptions)
-		// 		.groupBy("group")
-		// 		.map((key, value) => ({ groups: key, name: value }))
-		// 		.value();
-		// }
 	}
 });
 </script>
