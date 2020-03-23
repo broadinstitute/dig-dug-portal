@@ -1,7 +1,7 @@
 import merge from "lodash.merge";
 import findIndex from "lodash";
 import querystring from "querystring";
-import { BIO_INDEX_HOST, iterableQuery } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, beginIterableQuery } from "@/utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -17,9 +17,10 @@ export default function (index, extend) {
                 id: Object.freeze(index.toLowerCase()),
 
                 // accumulated information from query responses
-                data: [],
+                data: null,
                 count: null,
                 profile: {},
+                limit: 5000,
 
                 // column-first: "c", record/row-first: "r"
                 format: "r",
@@ -36,22 +37,14 @@ export default function (index, extend) {
         },
 
         getters: {
-            data(state, filter) {
-                let data = state.data;
-                if (filter) {
-                    // TODO: any way to generalize the dataFilter interface to behave either as a point filter, or as a range filter?
-                    const localDataFilter = this.dataFilter(this.format, filter);
-                    for (let filterProp in Object.keys(filter)) {
-                        data = localDataFilter(data, filterProp);
-                    }
-                }
+            data(state) {
                 return state.data;
             },
             percentComplete(state) {
                 if (!state.count) {
                     return null;
                 }
-
+                // TODO: handle null case (refactor to new portal?) and r/c format cases? (unless standardizing)
                 return Math.min(state.data.length / state.count, 1.0);
             }
         },
@@ -93,6 +86,7 @@ export default function (index, extend) {
             appendData(state, json) {
                 state.data = state.data.concat(json.data);
 
+                // TODO: handle null case (refactor to new portal?) and r/c format cases? (unless standardizing)
                 // if there was a count, and we have more, match
                 if (state.count && state.data.length > state.count) {
                     state.count = state.data.length;
@@ -117,33 +111,24 @@ export default function (index, extend) {
 
                 context.commit("setCount", json.count);
             },
-            async query(context, queryPayload) {
-                console.log(context, queryPayload);
+            async query(context, { q, limit }) {
 
-                // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
-                // in hindsight, could have used an `await`?
-                // context.dispatch("SETUP");
                 context.commit("setAbort", false);
                 context.commit("setLoading", true);
 
                 // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
                 // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.
                 if (!context.state.iterableQuery || context.state.iterableQuery.done) {
-                    if (queryPayload) {
-                        const { q, limit } = queryPayload;
+                    if (q) {
                         context.commit("setIterableQuery",
                             // TODO: refactor error handler out to utils?
                             // TODO: what would be the best error message for debugging?
-                            iterableQuery(index, { q, limit: limit || context.limit }, (error) => {
+                            beginIterableQuery({ index, q }, (error) => {
                                 // errHandler:
                                 // if error, print out the error code (and continuation?)
                                 // then force a cancel (i.e. aborted and not loading)
-                                console.log(error.message);
                                 context.commit('setAbort', true);
                                 context.commit("setLoading", false);
-
-                                // TODO: could force an illegal state as our error state so that other components know to fail?
-                                //  hack!
 
                             })
                         );
@@ -157,13 +142,9 @@ export default function (index, extend) {
                 // then continue asking for promised queries from the generator
                 while (context.state.loading && !context.state.aborted) {
                     let response = await context.state.iterableQuery.next();
-                    console.log(response);
                     // if we run out of promised queries, then abort/exit the stream and claim it is no longer loading/in-progress
                     // (we have to manually break the loop to prevent lag-time from the commits from producing invalid behavior)
                     if (response.done) {
-                        // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
-                        // in hindsight, could have used an `await`?
-                        // context.dispatch("ABORT");
                         context.commit('setAbort', true);
                         context.commit('setLoading', false);
                         context.commit('clearIterableQuery');

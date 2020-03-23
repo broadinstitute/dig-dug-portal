@@ -8,15 +8,10 @@ function moduleParser(index) {
     return function (data){
         let schema = moduleParserSchema[index];
         let format = majorFormat(data);
-
-        console.log(index, data, schema, format);
-
         switch(format) {
             case 'r':
-                console.log(data.map(schema));
                 return data.map(schema);
             case 'c':
-                console.log(schema(data));
                 return schema(data);
         }
     }
@@ -28,8 +23,8 @@ function readOffStore(store, moduleIndex, indexObject) {
     return {
         fetch(chromosome, start, end, callback) {
             try {
-                let value = store.getters[`${moduleIndex}/data`];
-                if(value) {
+                let value = store.getters[`${moduleIndex.toLowerCase()}/data`];
+                if (value) {
                     let format = majorFormat(value);
 
                     // default behavior is to return everything if states for a filter are undefined
@@ -63,14 +58,17 @@ export const BioIndexLZSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
 });
 BioIndexLZSource.prototype.parseInit = function ({ store, module, indexObj }) {
+    console.log('BioIndexLZSource.prototype.parseInit');
     this.params = { store, module, indexObj };
     this.parser = moduleParser(module);
     this.reader = readOffStore(store, module, indexObj);
 };
 BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
+    console.log('BioIndexLZSource.prototype.getRequest');
     const self = this;
     return new Promise((resolve, reject) => {
         self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
+            console.log('data', data, 'err', err);
             if (err) {
                 reject(new Error(err));
             }
