@@ -57,72 +57,6 @@ export default function (index, extend) {
         },
 
         methods: {
-            dataFilter(format, filter) {
-                const firstProperty = Object.keys(filter)[0];
-                return function (data, property=firstProperty) {
-                    if (format === "r") {
-                        return data.filter(datum => datum[property] === filter[property]);
-                    } else if (format === "c") {
-                        // column first filtering
-                        // get only elements of array with positions in array
-                        // find indecies of elements satisfying property
-                        const columnFilterSeed =
-                            data[property]
-                                .map(datum => (datum == filter[property]))
-                                .map((datum, index) => { if (datum) { return index } })
-                                .filter(x => typeof x !== "undefined");
-
-                        // initialize a tempData object
-                        let tempData = {};
-                        Object.keys(data).forEach(property => {
-                            tempData[property] = [];
-                        });
-
-                        // fill tempData object with data that's matched the filter
-                        columnFilterSeed.forEach(index => {
-                            // TODO can be paralellized
-                            // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
-                            Object.keys(data).forEach(property => {
-                                tempData[property][index] = data[property][index];
-                            });
-                        });
-                        return tempData;
-                    }
-                };
-            },
-            dataRangeFilter(format, property) {
-                return function (start, end) {
-                    return function (data) {
-                        if (format === "r") {
-
-                            // using lodash
-                            const startIndex = findIndex(data, [property, start]);
-                            const endIndex = findIndex(data, [property, end]);
-                            return data.slice(startIndex, endIndex !== -1 ? endIndex + 1 : data.length);
-
-                        } else if (format === "c") {
-
-                            const startIndex = data[property].indexOf(start);
-                            const endIndex = data[property].lastIndexOf(end);
-
-                            // initialize a tempData object
-                            let tempData = {};
-                            Object.keys(data).forEach(property => {
-                                tempData[property] = [];
-                            });
-                            // TODO can be paralellized
-                            // https://medium.com/@ian.mundy/async-map-in-javascript-b19439f0099
-                            Object.keys(data).forEach(property => {
-                                tempData[property] = data[property].slice(startIndex, endIndex !== -1 ? endIndex + 1 : data[property].length);
-                            });
-
-                            return tempData;
-
-                        }
-                    }
-
-                }
-            },
         },
 
         // commit methods
@@ -184,6 +118,7 @@ export default function (index, extend) {
                 context.commit("setCount", json.count);
             },
             async query(context, queryPayload) {
+                console.log(context, queryPayload);
 
                 // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
                 // in hindsight, could have used an `await`?
@@ -222,7 +157,7 @@ export default function (index, extend) {
                 // then continue asking for promised queries from the generator
                 while (context.state.loading && !context.state.aborted) {
                     let response = await context.state.iterableQuery.next();
-
+                    console.log(response);
                     // if we run out of promised queries, then abort/exit the stream and claim it is no longer loading/in-progress
                     // (we have to manually break the loop to prevent lag-time from the commits from producing invalid behavior)
                     if (response.done) {

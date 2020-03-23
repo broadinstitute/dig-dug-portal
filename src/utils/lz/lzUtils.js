@@ -22,6 +22,14 @@ export function isEmpty(obj) {
     return true;
 }
 
+export const calcLog = function (values) {
+    if (values instanceof Array) {
+        return values.map(Math.log).map(data => (-1)*data);
+    } else {
+        return (-1)*Math.log(values);
+    }
+};
+
 export function findLeastStart(start, end, indexSearch) {
     let startIndex = -1;
     let k = start;
@@ -59,46 +67,46 @@ export function majorFormat(data){
     }
 }
 
-export function dataFilter(format, filter) {
-    const firstProperty = Object.keys(filter)[0];
-    return function (pointData, property=firstProperty) {
-        if (format === "r") {
-            return pointData.filter(datum => datum[property] == filter[property]);  // we want casting
-        } else if (format === "c") {
-            if (pointData[property]) {
-                // initialize a tempData object
-                let tempData = {};
-                Object.keys(pointData).forEach(property => {
-                    tempData[property] = [];
-                });
-
-                const columnFilterSeed =
-                    pointData[property]
-                        .map(datum => (datum == filter[property]))
-                        .map((datum, index) => { if (datum) { return index } })
-                        .filter(x => typeof x !== "undefined");
-
-                // fill tempData object with data that's matched the filter
-                columnFilterSeed.forEach(index => {
+export function dataFilter(format, propertyName) {
+    return function(pointValue) {
+        return function (pointData) {
+            if (format === "r") {
+                return pointData.filter(datum => datum[propertyName] == pointValue);  // we want casting
+            } else if (format === "c") {
+                if (pointData[propertyName]) {
+                    // initialize a tempData object
+                    let tempData = {};
                     Object.keys(pointData).forEach(property => {
-                        tempData[property][index] = pointData[property][index];
+                        tempData[propertyName] = [];
                     });
-                });
-                return tempData;
-            }
-            // column first filtering
-            // get only elements of array with positions in array
-            // find indecies of elements satisfying property
-            return pointData;
 
-        }
+                    const columnFilterSeed =
+                        pointData[propertyName]
+                            .map(datum => (datum == pointValue))
+                            .map((datum, index) => { if (datum) { return index } })
+                            .filter(x => typeof x !== "undefined");
+
+                    // fill tempData object with data that's matched the filter
+                    columnFilterSeed.forEach(index => {
+                        Object.keys(pointData).forEach(property => {
+                            tempData[propertyName][index] = pointData[propertyName][index];
+                        });
+                    });
+                    return tempData;
+                }
+                // column first filtering
+                // get only elements of array with positions in array
+                // find indecies of elements satisfying property
+                return pointData;
+
+            }
+        };
     };
 };
 
 export function dataRangeFilter(format, property) {
     return function (start, end) {
         return function (rangedData) {
-
             let startIndex = findLeastStart(start, end,
                 point => (rangedData[property] || rangedData.map(item => item[property])).indexOf(point));
             let endIndex = findMostEnd(start, end,

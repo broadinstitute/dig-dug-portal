@@ -3,7 +3,7 @@ import Vuex from "vuex";
 
 import bioIndex from "@/modules/bioIndex";
 import querystring from "querystring";
-import {BIO_INDEX_HOST} from "../../utils/bioIndexUtils";
+import {BIO_INDEX_HOST} from "@/utils/bioIndexUtils";
 
 const testData = {
     data: {
@@ -2372,7 +2372,7 @@ export default new Vuex.Store({
         test: {
             namespaced: true,
             state: {
-                data: null,
+                data: testData.data,
                 format: 'c',
             },
             getters: {
@@ -2387,27 +2387,26 @@ export default new Vuex.Store({
                 },
             },
             actions: {
-                async query(context) {
-                    context.commit('setData', testData.data);
-                    // let qs = querystring.encode({ ...queryPayload });
-                    // let json = await fetch(`${BIO_INDEX_HOST}/api/query/${'Associations'}?${qs}`)
-                    //     .then(resp => {
-                    //         if (resp.status !== 200) {
-                    //             throw Error(resp.status.toString());
-                    //         }
-                    //         return resp;
-                    //     })
-                    //     .then(resp => resp.json())
-                    //     .then(json => context.commit('test/setData', json.data))
-                    //     .catch(console.error);
+                async query(context, { q }) {
+                    let qs = querystring.encode({ q });
+                    let json = await fetch(`${BIO_INDEX_HOST}/api/query/${'Associations'}?${qs}`)
+                        .then(resp => {
+                            if (resp.status !== 200) {
+                                throw Error(resp.status.toString());
+                            }
+                            return resp;
+                        })
+                        .then(resp => resp.json())
+                        .then(json => context.commit('setData', json.data))
+                        .catch(console.error);
                 },
             },
         },
     },
     state: {
-        chrom: 10,
-        start: 114552267,
-        end: 115066971,
+        chrom: 8,
+        start: 117962623,
+        end: 117962723,
     },
     getters: {
     },

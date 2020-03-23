@@ -116,16 +116,13 @@
                     <h5 class="card-title">LocusZoom</h5>
                     <locuszoom
                         ref="lz"
-                        v-bind:gene="$parent.geneSource"
-                        v-bind:constraint="$parent.constraintSource"
-                        v-bind:ld="$parent.ldSource"
-                        v-bind:recomb="$parent.recombSource"
-                        v-bind:assoc="['StaticJSON', { data: [] }]"
-                        v-bind:panels="['association','genes','intervals']"
+                        v-bind:store="$store"
+                        v-bind:modules="['test',]"
+                        v-bind:panels="['intervals', 'genes', 'association',]"
+
                         v-bind:chrom="$store.state.chrom"
                         v-bind:start="$store.state.start"
                         v-bind:end="$store.state.end"
-                        v-bind:intervals="$parent.intervalsSource"
                     ></locuszoom>
                 </div>
             </div>
