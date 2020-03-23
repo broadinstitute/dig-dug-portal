@@ -48,7 +48,6 @@ new Vue({
         this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
 
         this.$store.dispatch("associations/query", { q: `${phenotype},${chrom}:${start}-${end}` });
-
     },
 
     render(createElement, context) {
@@ -156,6 +155,12 @@ new Vue({
                 end,
                 phenotype
             });
+
+            // this.$store.dispatch("associations/query", {
+            //     q: `${phenotype},${chrom}:${start}-${end}`
+            // });
+
+
         },
 
     }

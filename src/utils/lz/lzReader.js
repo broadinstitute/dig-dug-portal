@@ -23,7 +23,7 @@ function readOffStore(store, moduleIndex, indexObject) {
     return {
         async fetch(chromosome, start, end, callback) {
             try {
-                let value = store.getters[`${moduleIndex.toLowerCase()}/data`];
+                let value = store.getters[`${_.camelCase(moduleIndex)}/data`];
                 if (value) {
                     let format = majorFormat(value);
 
