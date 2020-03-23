@@ -57,12 +57,7 @@ export default Vue.component("locuszoom", {
             // initialize custom locuszoom datasources based on page-scoped modules
             for (let i = 0; i < this.modules.length; i++) {
                 const module = this.modules[i];
-
-                console.log(module, BIO_INDEX_TO_LZ[module], new BioIndexLZSource({
-                    store: this.store,
-                    module: module,
-                }));
-                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSource({
+               this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSource({
                     store: this.store,
                     module: module,
                 }));

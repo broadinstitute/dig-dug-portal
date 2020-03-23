@@ -2,6 +2,8 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import $ from "jquery";
+
+import bioIndex from "@/modules/bioIndex";
 import getAggregatedData from "@/modules/getAggregatedData";
 import graphPhenotype from "@/modules/graphPhenotype";
 import kp4cd from "@/modules/kp4cd";
@@ -19,6 +21,8 @@ keyParam.group = (keyParam.group == null) ? 'md' : keyParam.group;
 
 export default new Vuex.Store({
     modules: {
+        associations: bioIndex("Associations"),
+        topAssociations: bioIndex("TopAssociations"),
         variants: getAggregatedData,
         phewas: getAggregatedData,
         phenotypes: getAggregatedData,
@@ -58,7 +62,6 @@ export default new Vuex.Store({
             window.location.href = "./gene.html?gene=&chrom=" + chrom + "&start=" + start + "&end=" + end;
         },
         onPhenotypeChange(state, phenotype) {
-            //console.log(phenotype);
             mdkp.utility.showHideElement("phenotypeSearchHolder");
             state.commit("setSelectedPhenotype", phenotype);
         }

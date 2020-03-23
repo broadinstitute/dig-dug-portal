@@ -46,6 +46,9 @@ new Vue({
         });
         this.$store.dispatch("graphPhenotype/list");
         this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
+
+        this.$store.dispatch("associations/query", { q: `${phenotype},${chrom}:${start}-${end}` });
+
     },
 
     render(createElement, context) {
@@ -109,6 +112,7 @@ new Vue({
                 return assocGenes;
             }
         },
+
         computedAssoc() {
             let assocData = [];
             let phenotype = this.$store.state.phenotype;
@@ -129,16 +133,17 @@ new Vue({
 
             return assocData;
         },
+
     },
 
 
     watch: {
+
         computedAssoc(assocData) {
             this.$children[0].$refs.lz.updateVariants(assocData);
             this.$children[0].$refs.lz.plot();
-
-            //this.$emit('updateplot');
         },
+
         phenotype(phenotype) {
             let mdv = this.$store.state.mdv;
             let chrom = this.$store.state.chrom;
@@ -151,6 +156,7 @@ new Vue({
                 end,
                 phenotype
             });
-        }
+        },
+
     }
 }).$mount("#app");

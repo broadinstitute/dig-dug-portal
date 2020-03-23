@@ -21,7 +21,7 @@ function moduleParser(index) {
 // TODO: Caching?
 function readOffStore(store, moduleIndex, indexObject) {
     return {
-        fetch(chromosome, start, end, callback) {
+        async fetch(chromosome, start, end, callback) {
             try {
                 let value = store.getters[`${moduleIndex.toLowerCase()}/data`];
                 if (value) {
@@ -58,21 +58,17 @@ export const BioIndexLZSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
 });
 BioIndexLZSource.prototype.parseInit = function ({ store, module, indexObj }) {
-    console.log('BioIndexLZSource.prototype.parseInit');
     this.params = { store, module, indexObj };
     this.parser = moduleParser(module);
     this.reader = readOffStore(store, module, indexObj);
 };
 BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
-    console.log('BioIndexLZSource.prototype.getRequest');
     const self = this;
     return new Promise((resolve, reject) => {
         self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
-            console.log('data', data, 'err', err);
             if (err) {
                 reject(new Error(err));
             }
-            console.log('resolving data', data, self.parser(data));
             resolve(self.parser(data));
         });
     });
