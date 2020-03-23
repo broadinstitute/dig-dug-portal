@@ -117,7 +117,7 @@
                     <locuszoom
                         ref="lz"
                         v-bind:store="$store"
-                        v-bind:modules="['test',]"
+                        v-bind:modules="['associations',]"
                         v-bind:panels="['intervals', 'genes', 'association',]"
 
                         v-bind:chrom="$store.state.chrom"
