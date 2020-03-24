@@ -1,5 +1,6 @@
 // Methods
 import querystring from "querystring";
+import {BIO_INDEX_TYPE} from "./lz/lzConstants";
 
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
 
@@ -42,3 +43,46 @@ function makeBioIndexQueryStr(json) {
         return `${BIO_INDEX_HOST}/api/query/${index}?${qs}`
     }
 };
+
+export const arityFilter = {
+    [BIO_INDEX_TYPE.Associations]: function(args) {
+        const { phenotype, chromosome, start, end } = args;
+        return { phenotype, chromosome, start, end };
+    },
+    [BIO_INDEX_TYPE.PhenotypeAssociations]: function(args) {
+        const { phenotype } = args;
+        return { phenotype };
+    },
+    [BIO_INDEX_TYPE.TopAssociations]: function(args) {
+        const { chromosome, start, end } = args;
+        return { chromosome, start, end };
+    },
+    [BIO_INDEX_TYPE.Gene]: function(args) {
+
+    }
+};
+
+export function queryTemplate({ phenotype, varId, chromosome, start, end, position }) {
+    let queryTemplateStr = '';
+
+    // logic below is based on the hierarchy of arities for bioIndex.
+    if (phenotype) {
+        queryTemplateStr = queryTemplateStr.concat(phenotype)
+    } else if (varId) {
+        queryTemplateStr = queryTemplateStr.concat(varId)
+    }
+
+    if (chromosome && (position || start && end)) {
+        if (!(queryTemplateStr === '')) {
+            queryTemplateStr = queryTemplateStr.concat(',');
+        }
+        queryTemplateStr = queryTemplateStr.concat(`${chromosome}:`);
+        if (position) {
+            queryTemplateStr = queryTemplateStr.concat(`${position}`);
+        } else if (start && end) {
+            queryTemplateStr = queryTemplateStr.concat(`${start}-${end}`);
+        }
+    }
+
+    return queryTemplateStr;
+}

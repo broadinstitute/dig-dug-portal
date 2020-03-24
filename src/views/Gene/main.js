@@ -8,6 +8,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
+import {queryTemplate} from "../../utils/bioIndexUtils";
 
 Vue.config.productionTip = false;
 
@@ -47,7 +48,10 @@ new Vue({
         this.$store.dispatch("graphPhenotype/list");
         this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
 
-        this.$store.dispatch("associations/query", { q: `${phenotype},${chrom}:${start}-${end}` });
+        this.$store.dispatch(
+            "associations/query",
+            { q: queryTemplate({ phenotype, chromosome: chrom, start, end }) }
+            );
     },
 
     render(createElement, context) {
@@ -139,7 +143,7 @@ new Vue({
     watch: {
 
         computedAssoc(assocData) {
-            this.$children[0].$refs.lz.updateVariants(assocData);
+            // this.$children[0].$refs.lz.updateVariants(assocData);
             this.$children[0].$refs.lz.plot();
         },
 
@@ -155,11 +159,6 @@ new Vue({
                 end,
                 phenotype
             });
-
-            // this.$store.dispatch("associations/query", {
-            //     q: `${phenotype},${chrom}:${start}-${end}`
-            // });
-
 
         },
 

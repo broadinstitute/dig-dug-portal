@@ -11,10 +11,10 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        metadataModule,
-        graphPhenotype,
         manhattan: bioIndex("PhenotypeAssociations"),
         table: bioIndex("PhenotypeAssociations"),
+        metadataModule,
+        graphPhenotype,
         kp4cd,
         diseaseGroup
     },

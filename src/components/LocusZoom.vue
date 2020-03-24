@@ -17,7 +17,9 @@ export default Vue.component("locuszoom", {
         "panels",
 
         // TODO can these be eliminated?
-        "chrom",
+            // YES – if they are a part of the page slot scope or store.
+        "phenotype",
+        "chromosome",
         "start",
         "end"
     ],
@@ -57,7 +59,7 @@ export default Vue.component("locuszoom", {
             // initialize custom locuszoom datasources based on page-scoped modules
             for (let i = 0; i < this.modules.length; i++) {
                 const module = this.modules[i];
-               this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSource({
+                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSource({
                     store: this.store,
                     module: module,
                 }));

@@ -21,6 +21,7 @@ keyParam.group = (keyParam.group == null) ? 'md' : keyParam.group;
 
 export default new Vuex.Store({
     modules: {
+        phenotypeAssociations: bioIndex("PhenotypeAssociations"),
         associations: bioIndex("Associations"),
         topAssociations: bioIndex("TopAssociations"),
         variants: getAggregatedData,
