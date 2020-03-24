@@ -74,42 +74,110 @@ export default {
         { name: "22", value: "22" }
     ],
     dataColumns: [
-        { name: "snp.name", value: "snp.name", checked: true },
-        { name: "snp.locus", value: "snp.locus", checked: true },
-        { name: "snp.pos", value: "snp.pos", checked: true },
-        { name: "maf", value: "maf", checked: true },
-        { name: "beta", value: "beta", checked: true },
-        { name: "se", value: "se", checked: true },
-        { name: "z", value: "z", checked: true },
-        { name: "prob", value: "prob", checked: true },
-        { name: "log10bf", value: "log10bf", checked: true },
-        { name: "log10bf_group", value: "log10bf_group", checked: true },
-        { name: "snpeff.impact", value: "snpeff.impact", checked: true },
-        { name: "dsbsnp.func", value: "dsbsnp.func", checked: false },
-        { name: "is.dbsnp.delit", value: "is.dbsnp.delit", checked: false },
-        { name: "is.snpeff.delit", value: "is.snpeff.delit", checked: false },
-        { name: "snp.in.trait.DHS", value: "snp.in.trait.DHS", checked: false },
+        {
+            name: "snp.name",
+            value: "SNP identifier (usually the dbSNP rs identifier).",
+            checked: true
+        },
+        {
+            name: "snp.locus",
+            value: "Locus from where the FINEMAP statistics where obtained",
+            checked: true
+        },
+        {
+            name: "snp.pos",
+            value: "position of SNP on the chromosome",
+            checked: true
+        },
+        { name: "maf", value: "SNP minor allele frequency", checked: true },
+        {
+            name: "beta",
+            value: "SNP effect estimate from the GWAS",
+            checked: true
+        },
+        {
+            name: "se",
+            value: "Standard error of the effect estimate from the GWAS",
+            checked: true
+        },
+        {
+            name: "z",
+            value: "SNP Z-score (beta/se) from the GWAS",
+            checked: true
+        },
+        {
+            name: "prob",
+            value: "FINEMAP posterior probability of the SNP being causal",
+            checked: true
+        },
+        {
+            name: "log10bf",
+            value: "FINEMAP log 10 Bayes factor of the SNP being causal",
+            checked: true
+        },
+        {
+            name: "log10bf_group",
+            value: "FINEMAP log 10 Bayes factor of the SNP group being causal",
+            checked: true
+        },
+        {
+            name: "snpeff.impact",
+            value: "Impact of SNP as reported by SNPEff",
+            checked: true
+        },
+        {
+            name: "dsbsnp.func",
+            value: "Functional consequence of the SNP as reported by dbSNP",
+            checked: false
+        },
+        {
+            name: "is.dbsnp.delit",
+            value:
+                "SWhether function of the SNP as reported by dbSNP is deliterious",
+            checked: false
+        },
+        {
+            name: "is.snpeff.delit",
+            value: "Whether impact of SNP as reported by SNPEff is deliterious",
+            checked: false
+        },
+        {
+            name: "snp.in.trait.DHS",
+            value:
+                "The number of trait-matched openchromatin peaks that overlap the SNP",
+            checked: false
+        },
         {
             name: "nearest.trait.DHS.from.gene",
-            value: "nearest.trait.DHS.from.gene",
+            value:
+                "Is this trait-matched openchromatin SNP the nearest one to this gene?",
             checked: false
         },
         {
             name: "nearest.gene.from.trait.DHS",
-            value: "nearest.gene.from.trait.DHS",
+            value:
+                "Is this the nearest gene to the trait-matched openchromatin SNP?",
             checked: false
         },
-        { name: "snp.in.DHS", value: "snp.in.DHS", checked: false },
+        {
+            name: "snp.in.DHS",
+            value: "The number of openchromatin peaks that overlap the SNP",
+            checked: false
+        },
         {
             name: "nearest.DHS.from.gene",
-            value: " nearest.DHS.from.gene",
+            value: " Is this openchromatin SNP the nearest one to this gene?",
             checked: false
         },
         {
             name: "nearest.gene.from.DHS",
-            value: " nearest.gene.from.DHS",
+            value: " Is this the nearest gene to the openchromatin SNP?",
             checked: false
         },
-        { name: "in.gtex", value: "in.gtex", checked: false }
+        {
+            name: "in.gtex",
+            value: "Is SNP a GTEx eQTL for a trait-matched tissue or celltype",
+            checked: false
+        }
     ]
 };

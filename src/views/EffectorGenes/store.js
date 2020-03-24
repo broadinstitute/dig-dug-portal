@@ -25,10 +25,15 @@ export default new Vuex.Store({
             //console.log(phenotype);
             context.commit("setSelectedPhenotype", phenotype);
             context.dispatch("getData");
+            context.dispatch("getTop20Data");
         },
         getData(context) {
             let phenotype = context.state.selectedPhenotype;
             context.dispatch("effectorGenes/getGeneData", phenotype);
+        },
+        getTop20Data(context) {
+            let phenotype = context.state.selectedPhenotype;
+            context.dispatch("effectorGenes/getTop20Data", phenotype);
         }
     }
 });

@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<!-- <page-header></page-header> -->
+		<page-header></page-header>
 		<div class="container-fluid mdkp-body">
 			<div class="filtering-tools">
 				<div id="traits">
@@ -21,7 +21,7 @@
 					</div>
 					<div class="table-filter">
 						<label>Search a locus</label>
-						<input id="locusSearch" type="text" placeholder="Locus ID" />
+						<input id="locusSearch" type="text" v-model="searchLocus" placeholder="Locus ID" />
 					</div>
 					<div class="table-filter">
 						<label>Filter by prob score</label>&gt;=
@@ -91,14 +91,105 @@
 				<span>*Hover gene name for gene information</span>
 				<span>*Click probability value to see detailed annotations</span>
 			</div>
+
 			<div id="table">
-				<div v-for="gene in $parent.geneData">{{gene["names.genes"]}}</div>
+				<div v-for="(gene, i) in filteredLocus">
+					<div v-if="(i === 0) || (gene[1]['names.genes'] !== filteredLocus[i-1][1]['names.genes'])">
+						<div class="row summary">
+							<div class="sum geneName">{{gene[1]["names.genes"]}}</div>
+							<div class="sum prob">{{gene[1]["all.locus.prob"]}}</div>
+							<div class="sum chromLocation">
+								<span class="chrom">{{gene[1]["locus.chrom"].slice(3)}}</span> :
+								<span class="chromStart">{{ gene[1]["locus.chrom.start"]}}</span> -
+								<span class="chromEnd">{{gene[1]["locus.chrom.end"]}}</span>
+							</div>
+							<div class="sum ei"></div>
+						</div>
+						<div class="probInfo">
+							<div class="probHeaders">
+								<div v-for="col in $parent.listCol">
+									<span>{{col.name}}</span>
+								</div>
+							</div>
+							<div class="probDetails">
+								<portal-target v-bind:name="gene[1]['names.genes']" multiple></portal-target>
+							</div>
+						</div>
+					</div>
+					<portal v-bind:to="gene[1]['names.genes']">
+						<div class="detailRow">
+							<div v-for="col in $parent.listCol">{{gene[1][col.name]}}</div>
+						</div>
+					</portal>
+
+					<!-- <div class="probInfo">
+						<div class="probHeaders">
+							<div v-for="col in $parent.listCol">
+								<span v-bind="col">{{col.name}}</span>
+							</div>
+						</div>
+					</div>-->
+
+					<!-- <div v-for="(detail, j) in gene" class="probInfo" :key="detail.id">
+						
+					</div>-->
+
+					<!-- <div v-for="(detail, j) in gene" class="probInfo" :key="detail.id">
+						<div class="probHeaders">
+							<div v-for="col in $parent.listCol">
+								<span v-bind="col">{{col.name}}</span>
+							</div>
+						</div>
+						<div class="proDetails">
+							<div v-for="dCol in detail">
+								<span></span>
+							</div>
+						</div>
+					</div>-->
+
+					<!-- {{gene["names.genes"]}} - {{$parent.geneData[i]["names.genes"]}} -->
+					<!-- <div
+						v-if="i > 0 && gene['names.genes'] !== $parent.geneData[i-1]['names.genes']"
+					>{{gene['names.genes']}} - {{i}}</div>
+					<div v-else-if="i === 0">{{gene['names.genes']}} - {{i}}</div>-->
+				</div>
 			</div>
 		</div>
 
-		<!-- <page-footer></page-footer> -->
+		<page-footer></page-footer>
 	</div>
 </template>
+<script>
+export default {
+	data() {
+		return {
+			searchLocus: ""
+		};
+	},
+	computed: {
+		geneData: function() {
+			return this.$store.state.effectorGenes.geneData;
+		},
+		top20Data: function() {
+			return this.$store.state.effectorGenes.top20Data;
+		},
+		prepped: function() {
+			return _.chain(this.geneData)
+				.groupBy("names.genes")
+				.value();
+		},
+		filteredLocus: function() {
+			return Object.entries(this.geneData).filter(gene => {
+				//console.log(gene[1]);
+				return gene[1]["names.genes"]
+					.toLowerCase()
+					.includes(this.searchLocus.toLowerCase());
+			});
+			// return this.geneData;
+		}
+	}
+};
+</script>
 
 <style scoped>
 .content.effector-genes-page {
@@ -393,8 +484,10 @@ div.probDetails {
 div.probDetails:hover {
 	background-color: #eee;
 }
-
-div.probDetails > div {
+div.detailRow {
+	display: block;
+}
+div.detailRow > div {
 	display: inline-block;
 	width: 9%;
 	overflow: hidden;

@@ -16,6 +16,9 @@ export default {
     mutations: {
         setGeneData(state, geneData) {
             state.geneData = geneData;
+        },
+        setTop20Data(state, top20Data) {
+            state.top20Data = top20Data;
         }
     },
 
@@ -33,6 +36,14 @@ export default {
                 );
             // set the data
             context.commit("setGeneData", json);
+        },
+        async getTop20Data(context, trait) {
+            let json = await fetch(
+                `http://kp4cd.org//modules/kpn/effector_genes/assets/js/richards_data_${trait}_top20.json`
+            ).then(resp => resp.json());
+
+            // set the data
+            context.commit("setTop20Data", json);
         }
     }
 };
