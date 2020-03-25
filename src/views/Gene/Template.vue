@@ -117,7 +117,7 @@
                     <locuszoom
                         ref="lz"
                         v-bind:store="$store"
-                        v-bind:modules="['TopAssociations','Associations',]"
+                        v-bind:modules="['TopAssociations',]"
                         v-bind:panels="['intervals', 'genes', 'association',]"
 
                         v-bind:phenotype="$store.state.phenotype"

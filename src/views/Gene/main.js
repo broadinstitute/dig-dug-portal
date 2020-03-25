@@ -53,9 +53,13 @@ new Vue({
             q: buildModuleQuery(BIO_INDEX_TYPE.TopAssociations, { phenotype, chromosome: chrom, start, end }),
             filter: { phenotype },
         });
-        this.$store.dispatch(`${BIO_INDEX_TYPE.Associations}/query`, {
-            q: buildModuleQuery(BIO_INDEX_TYPE.Associations, { phenotype, chromosome: chrom, start, end }),
-        });
+        // this.$store.dispatch(`${BIO_INDEX_TYPE.Associations}/query`, {
+        //     q: buildModuleQuery(BIO_INDEX_TYPE.Associations, { phenotype, chromosome: chrom, start, end }),
+        // });
+        // this.$store.dispatch(`${BIO_INDEX_TYPE.PhenotypeAssociations}/query`, {
+        //     q: buildModuleQuery(BIO_INDEX_TYPE.PhenotypeAssociations, { phenotype, chromosome: chrom, start, end }),
+        //     filter: { phenotype },
+        // });
     },
 
     render(createElement, context) {
