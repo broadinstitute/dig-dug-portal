@@ -21,6 +21,7 @@ export default new Vuex.Store({
             state.invalidGeneOrRegion = flag;
         },
     },
+    state: {},
     actions: {
         async onPhenotypeChange(context, phenotype) {
             window.location.href = "./phenotype.html?phenotype=" + phenotype.name;

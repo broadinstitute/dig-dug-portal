@@ -31,6 +31,12 @@
                     :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
                     :class="diseaseGroup.name+'kp-logo'"
                 />
+                <div
+                    :class="'header-disease-group-select-wrapper'"
+                    v-if="diseaseGroup.default && currentPage != '/' && currentPage != ''"
+                >
+                    <disease-group-select :disease-groups="diseaseGroups"></disease-group-select>
+                </div>
             </div>
             <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
                 <ul :class="diseaseGroup.name+'kp-menu'">
@@ -38,7 +44,7 @@
                         <a href="/">Home</a>
                     </li>
                     <li>
-                        <a :href="'http://kp4cd.org/datasets/'+diseaseGroup.name">Data</a>
+                        <a :href="'http://kp4cd.org/datasets/' + diseaseGroup.name">Data</a>
                     </li>
                     <li>
                         <a href>Tools</a>
@@ -53,7 +59,11 @@
                         <a href="/logout" :class="diseaseGroup.name+'kp-login'">Logout</a>
                     </li>
                     <li v-else>
-                        <a href="/login" :class="diseaseGroup.name+'kp-login'">Login</a>
+                        <a
+                            href="/login"
+                            @click="saveCurrentPage"
+                            :class="diseaseGroup.name+'kp-login'"
+                        >Login</a>
                     </li>
                 </ul>
             </div>
@@ -86,6 +96,11 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
+        }
+    },
+    methods: {
+        saveCurrentPage() {
+            Vue.$cookies.set("whereAmI", location.href);
         }
     }
 });
