@@ -2,6 +2,10 @@
 
 This is the shared code base of the front-end-only resources for the new knowledge portals. 
 
+> **Note:** This code base make no assumption on how you choose to work with
+> different portals. You can choose to work on them as separate
+> branches, forked repos, etc ...
+
 ## Prerequisites
 
 ### Server
@@ -10,11 +14,12 @@ The portal requires the [back-end server](https://github.com/broadinstitute/dig-
 
 ### Local project module dependencies
 
-The portal code is written in Javascript, the dependencies for which are managed using the node package manager `npm`,  which  needs to be installed before building the project. Information about how to install the node package manager can be found [here](https://www.npmjs.com/get-npm}).
+The portal code is Javascript, the dependencies for which are managed using the node package manager `npm`,  which needs to be installed before building the project. Information about how to install the node package manager can be found [here](https://www.npmjs.com/get-npm}).
 
 Once `npm` is installed, the portal code dependencies may be installed by typing the following:
 
 ```shell script
+cd /path/to/your/project/dig-dug-portal
 npm install
 ```
 
@@ -32,19 +37,13 @@ npm install <some-other-package>
 
 ### Running the portal
 
-Assuming that the server is running (in another terminal) then the portal code may be run as follows:
+Assuming that the server is running (in another terminal) then run the portal code as follows:
 
 ```shell script
 npm run watch
 ```
 
-This command compiles the portal distribution into a /dist for access by the running server.
-
----
-
-> **Note:** This code base make no assumption on how you choose to work with
-> different portals. You can choose to work on them as separate
-> branches, forked repos, etc ...
+In this manner, as the *dig-dug-portal* code is modified locally, the changes are immediately incorporated into the web pages seen by the browser (upon browser page refresh). This command also (re-)compiles the portal distribution into a /dist for access by the running server.
 
 ## Front-end framework
 
