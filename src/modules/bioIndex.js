@@ -1,7 +1,7 @@
 import merge from "lodash.merge";
 import findIndex from "lodash";
 import querystring from "querystring";
-import { BIO_INDEX_HOST, beginIterableQuery } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, beginIterableQuery, dataFilter, majorFormat } from "@/utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -14,7 +14,7 @@ export default function (index, extend) {
         state() {
             return {
                 // freeze id to make it immutable (like a prop)
-                id: Object.freeze(index.toLowerCase()),
+                id: index.toLowerCase(),
 
                 // accumulated information from query responses
                 data: null,
@@ -111,7 +111,8 @@ export default function (index, extend) {
 
                 context.commit("setCount", json.count);
             },
-            async query(context, { q, limit }) {
+
+            async query(context, { q, limit, filter }) {
 
                 context.commit("setAbort", false);
                 context.commit("setLoading", true);
@@ -123,7 +124,7 @@ export default function (index, extend) {
                         context.commit("setIterableQuery",
                             // TODO: refactor error handler out to utils?
                             // TODO: what would be the best error message for debugging?
-                            beginIterableQuery({ index, q }, (error) => {
+                            beginIterableQuery({ index, q, limit }, (error) => {
                                 // errHandler:
                                 // if error, print out the error code (and continuation?)
                                 // then force a cancel (i.e. aborted and not loading)
@@ -134,27 +135,30 @@ export default function (index, extend) {
                         );
                         let response = await context.state.iterableQuery.next();
                         // set the initial data
-                        context.commit("setResponse", response.value);
+                        let json = response.value;
+                        context.commit("setResponse", json);
                     }
                 }
 
                 // as long as the query is "in-progress" (i.e. loading and not yet aborted),
                 // then continue asking for promised queries from the generator
-                while (context.state.loading && !context.state.aborted) {
-                    let response = await context.state.iterableQuery.next();
-                    // if we run out of promised queries, then abort/exit the stream and claim it is no longer loading/in-progress
-                    // (we have to manually break the loop to prevent lag-time from the commits from producing invalid behavior)
-                    if (response.done) {
-                        context.commit('setAbort', true);
-                        context.commit('setLoading', false);
-                        context.commit('clearIterableQuery');
-                        break;
-                    } else {
-                        // if we were still in the stream of data (loading and not aborted) when we asked for a query from the chain,
-                        // then append the values from the response (which we assume will exist in a valid format if the chain isn't done) to our store.
-                        context.commit('appendData', response.value);
+                if (context.state.iterableQuery) {
+                    while (context.state.loading && !context.state.aborted) {
+                        let response = await context.state.iterableQuery.next();
+                        // if we run out of promised queries, then abort/exit the stream and claim it is no longer loading/in-progress
+                        // (we have to manually break the loop to prevent lag-time from the commits from producing invalid behavior)
+                        if (response.done) {
+                            context.commit('setAbort', true);
+                            context.commit('setLoading', false);
+                            context.commit('clearIterableQuery');
+                            break;
+                        } else {
+                            // if we were still in the stream of data (loading and not aborted) when we asked for a query from the chain,
+                            // then append the values from the response (which we assume will exist in a valid format if the chain isn't done) to our store.
+                            let json = response.value;
+                            context.commit('appendData', json);
+                        }
                     }
-
                 }
 
             },

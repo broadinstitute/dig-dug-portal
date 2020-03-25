@@ -54,6 +54,14 @@ export default new Vuex.Store({
             state.phenotypeName = phenotype.name;
         },
     },
+    getters: {
+        page(state) {
+            return state;
+        },
+        phenotype(state) {
+            return state.phenotype;
+        },
+    },
     actions: {
         setLocation(state) {
             var chrom = this.state.newChrom;

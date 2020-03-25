@@ -6,9 +6,9 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "@/utils/lz/lzDataSources";
-import {sortPanels} from "@/utils/lz/lzUtils";
-import {BIO_INDEX_TO_LZ, LZ_TYPE} from "@/utils/lz/lzConstants";
-import {BioIndexLZSource} from "@/utils/lz/lzReader";
+import { sortPanels } from "@/utils/lz/lzUtils";
+import { BIO_INDEX_TO_LZ, LZ_TYPE } from "@/utils/lz/lzConstants";
+import { BioIndexLZSource, BioIndexLZSourceJIT } from "@/utils/lz/lzReader";
 
 export default Vue.component("locuszoom", {
     props: [
@@ -38,7 +38,7 @@ export default Vue.component("locuszoom", {
             responsive_resize: "both",
             panels,
             state: {
-                chr: this.chrom,
+                chr: this.chromosome,
                 start: this.start,
                 end: this.end
             }
@@ -57,11 +57,13 @@ export default Vue.component("locuszoom", {
                 .map(dataSourceType => this.dataSources.add(dataSourceType, this[dataSourceType] || lzDataSources.defaultSource[dataSourceType]))
 
             // initialize custom locuszoom datasources based on page-scoped modules
+            const phenotype = this.phenotype;
             for (let i = 0; i < this.modules.length; i++) {
                 const module = this.modules[i];
-                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSource({
+                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSourceJIT({
                     store: this.store,
                     module: module,
+                    queryMaker: { phenotype },
                 }));
             }
 

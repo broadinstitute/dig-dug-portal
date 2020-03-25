@@ -1,4 +1,5 @@
 import { PANEL_ORDER } from "./lzConstants";
+import {findLeastStart, findMostEnd, majorFormat} from "../bioIndexUtils";
 
 export function sortPanels (panels) {
     // _.invert swaps keys and values, i.e. [ "val" ] === { 0: "val" } => { "val": 0 }
@@ -30,48 +31,11 @@ export const calcLog = function (values) {
     }
 };
 
-export function findLeastStart(start, end, indexSearch) {
-    let startIndex = -1;
-    let k = start;
-    while (true) {
-        startIndex = indexSearch(k);
-        if (startIndex == -1 && k < end) {
-            k++;
-        } else {
-            break;
-        }
-    }
-    return startIndex;
-}
-
-export function findMostEnd(start, end, indexSearch) {
-    let endIndex = -1;
-    let j = end;
-    while (true) {
-        endIndex = indexSearch(j);
-        if (endIndex == -1 && j > start) {
-            j--;
-        } else {
-            break;
-        }
-    }
-    return endIndex;
-}
-
-export function majorFormat(data){
-    // https://stackoverflow.com/a/51285298
-    if (data.constructor == Object) {
-        return 'c'
-    } else if (data instanceof Array) {
-        return 'r'
-    }
-}
-
 export function dataFilter(format, propertyName) {
-    return function(pointValue) {
+    return function(propertyValue) {
         return function (pointData) {
             if (format === "r") {
-                return pointData.filter(datum => datum[propertyName] == pointValue);  // we want casting
+                return pointData.filter(datum => datum[propertyName] == propertyValue);  // we want casting
             } else if (format === "c") {
                 if (pointData[propertyName]) {
                     // initialize a tempData object
@@ -82,7 +46,7 @@ export function dataFilter(format, propertyName) {
 
                     const columnFilterSeed =
                         pointData[propertyName]
-                            .map(datum => (datum == pointValue))
+                            .map(datum => (datum == propertyValue))
                             .map((datum, index) => { if (datum) { return index } })
                             .filter(x => typeof x !== "undefined");
 
@@ -144,3 +108,4 @@ export function dataRangeFilter(format, property) {
 
     }
 }
+

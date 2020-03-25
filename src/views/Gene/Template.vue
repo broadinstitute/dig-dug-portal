@@ -117,12 +117,14 @@
                     <locuszoom
                         ref="lz"
                         v-bind:store="$store"
-                        v-bind:modules="['PhenotypeAssociations',]"
+                        v-bind:modules="['TopAssociations','Associations',]"
                         v-bind:panels="['intervals', 'genes', 'association',]"
 
+                        v-bind:phenotype="$store.state.phenotype"
                         v-bind:chromosome="$store.state.chrom"
                         v-bind:start="$store.state.start"
                         v-bind:end="$store.state.end"
+
                     ></locuszoom>
                 </div>
             </div>

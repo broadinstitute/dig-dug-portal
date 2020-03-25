@@ -1,8 +1,9 @@
 <template>
     <div>
+        hello
         <locuszoom
             v-bind:store="$store"
-            v-bind:modules="['Associations',]"
+            v-bind:modules="['TopAssociations',]"
             v-bind:panels="['intervals', 'genes', 'association',]"
 
             v-bind:chromosome="$store.state.chrom"

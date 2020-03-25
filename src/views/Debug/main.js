@@ -16,6 +16,8 @@ new Vue({
     created() {
         // NOTE: this should work on gene page: http://localhost:8090/gene.html?chrom=8&end=118188953&gene=&phenotype=t2d&start=117962512
         this.$store.dispatch('associations/query' , { q: 't2d,8:117962512-118188953' });
+        this.$store.dispatch('phenotypeAssociations/query' , { q: 't2d' });
+        this.$store.dispatch('topAssociations/query' , { q: '8:117962512-118188953' });
     },
     components: {
         LocusZoom,

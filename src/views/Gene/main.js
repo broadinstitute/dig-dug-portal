@@ -8,7 +8,8 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
-import {queryTemplate} from "../../utils/bioIndexUtils";
+import {arityFilter, buildModuleQuery, queryTemplate} from "@/utils/bioIndexUtils";
+import {BIO_INDEX_TYPE} from "@/utils/lz/lzConstants";
 
 Vue.config.productionTip = false;
 
@@ -48,10 +49,13 @@ new Vue({
         this.$store.dispatch("graphPhenotype/list");
         this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
 
-        this.$store.dispatch(
-            "associations/query",
-            { q: queryTemplate({ phenotype, chromosome: chrom, start, end }) }
-            );
+        this.$store.dispatch(`${BIO_INDEX_TYPE.TopAssociations}/query`, {
+            q: buildModuleQuery(BIO_INDEX_TYPE.TopAssociations, { phenotype, chromosome: chrom, start, end }),
+            filter: { phenotype },
+        });
+        this.$store.dispatch(`${BIO_INDEX_TYPE.Associations}/query`, {
+            q: buildModuleQuery(BIO_INDEX_TYPE.Associations, { phenotype, chromosome: chrom, start, end }),
+        });
     },
 
     render(createElement, context) {
