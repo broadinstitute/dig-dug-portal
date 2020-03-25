@@ -1,12 +1,46 @@
 # Welcome to DIG Portal - Frontend
 
-This is the shared code base of the front-end-only resources for the new knowledge portals. It requires the [back-end server](https://github.com/broadinstitute/dig-dug-server) to be installed and started first.
+This is the shared code base of the front-end-only resources for the new knowledge portals. 
+It requires the [back-end server](https://github.com/broadinstitute/dig-dug-server) to be 
+installed and started first.
 
 ---
 
 > **Note:** This code base make no assumption on how you choose to work with
 > different portals. You can choose to work on them as separate
 > branches, forked repos, etc ...
+
+## Getting Started
+
+### Installing npm
+
+This project is written in Javascript and uses `npm` for managing module dependencies and running the system. 
+which needs to be installed. Instructions for installing `npm` are [here](https://www.npmjs.com/get-npm}).
+
+### Installing Javascript Dependencies
+
+To install the project's Javascript module dependencies, type:
+
+``` 
+cd /path/to/your/project/dig-dug-portal
+npm install
+```
+
+### Running the Portal
+
+The portal is not "run" on its own but as noted above, it is run as an integral part of the 
+[back-end server](https://github.com/broadinstitute/dig-dug-server) which  needs to be installed and started first 
+(refer to the *dig-dug-server* project README for details).
+
+The portal code may, however, be watched by npm to enable updating of the front end code "on-the-fly" by typing the 
+following command in a separate operating system terminal session, from within the *dig-dug-portal* project folder:
+ 
+```
+npm run watch
+```
+
+In this manner, as the *dig-dug-portal* code is modified locally, the changes are immediately incorporated into the web 
+pages seen by the browser (upon browser page refresh).
 
 ## Front-end framework
 
