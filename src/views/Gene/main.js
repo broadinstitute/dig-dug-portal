@@ -2,7 +2,6 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import $ from "jquery";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -30,36 +29,12 @@ new Vue({
         let end = this.$store.state.end;
         let phenotype = this.$store.state.phenotype;
 
-        //console.log(mdv + chrom + start + end + phenotype);
-        this.$store.commit("variants/setCall", "variants");
-        this.$store.commit("phenotypes/setCall", "phenotypes");
-        this.$store.dispatch("variants/getAggregatedData", {
-            mdv,
-            chrom,
-            start,
-            end,
-            phenotype
-        });
-        this.$store.dispatch("phenotypes/getAggregatedData", {
-            mdv,
-            chrom,
-            start,
-            end
-        });
-        this.$store.dispatch("graphPhenotype/list");
-        this.$store.dispatch("kp4cd/getDatasetsInfo", this.$store.state.diseaseGroup.id);
+        this.$store.dispatch('queryRegion');
 
-        this.$store.dispatch(`${BIO_INDEX_TYPE.TopAssociations}/query`, {
-            q: buildModuleQuery(BIO_INDEX_TYPE.TopAssociations, { phenotype, chromosome: chrom, start, end }),
-            filter: { phenotype },
-        });
-        // this.$store.dispatch(`${BIO_INDEX_TYPE.Associations}/query`, {
-        //     q: buildModuleQuery(BIO_INDEX_TYPE.Associations, { phenotype, chromosome: chrom, start, end }),
-        // });
-        // this.$store.dispatch(`${BIO_INDEX_TYPE.PhenotypeAssociations}/query`, {
-        //     q: buildModuleQuery(BIO_INDEX_TYPE.PhenotypeAssociations, { phenotype, chromosome: chrom, start, end }),
-        //     filter: { phenotype },
-        // });
+        // get the disease group and set of phenotypes available
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+
     },
 
     render(createElement, context) {
@@ -67,63 +42,37 @@ new Vue({
     },
 
     computed: {
-        variantsData() {
-            return this.$store.state.variants.aggregatedData.variants;
-        },
-        phenotypesData() {
-            var phenotypesList = this.$store.state.phenotypes.aggregatedData
-                .variants;
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
 
-            var phenotypesList = this.$store.state.phenotypes.aggregatedData.variants;
-
-            if (this.phenotypeMap && phenotypesList) {
-                var phenotypeMap = this.phenotypeMap;
-                phenotypesList.forEach(function (e) {
-                    $.each(phenotypeMap, function (j, r) {
-
-
-                        if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
-                            e["name"] = r.name;
-                        }
-                    });
-                });
-
-                this.$store.state.phenotype = phenotypesList[0].phenotype;
-                this.$store.state.phenotypeName = phenotypesList[0].name;
-
-                return phenotypesList;
+            if (contents.length === 0) {
+                return {};
             }
+
+            return contents[0];
         },
-        phewasData() {
-            return this.$store.getters["phewas/aggregatedData"];
+
+        diseaseGroup() {
+            return this.$store.getters['bioPortal/diseaseGroup'];
         },
-        phenotype() {
+
+        phenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
+
+        selectedPhenotype() {
             return this.$store.state.phenotype;
         },
-        phenotypes() {
-            let variants = this.$store.state.phenotypes.aggregatedData.variants;
-            if (!variants) return [];
-            return variants.map(v => v.phenotype);
-        },
-        phenotypeMap() {
-            return this.$store.getters["graphPhenotype/phenotypes"];
-        },
-        genesInRegion() {
-            let assocGenesTemp = [];
-            let assocGenes = [];
 
-            if (this.phenotypesData) {
-                this.phenotypesData.forEach(function (r) {
-                    assocGenesTemp.push(r.GENE);
-                });
-
-                $.each(assocGenesTemp, function (i, e) {
-                    if ($.inArray(e, assocGenes) === -1 && e != null) assocGenes.push(e);
-                });
-                return assocGenes;
-            }
+        genes() {
+            return this.$store.state.genes.data.filter(function (gene) {
+                return gene.type == 'protein_coding'
+            });
         },
 
+        associations() {
+            return this.$store.state.associations.data.sort((a, b) => a.pValue - b.pValue);
+        },
         computedAssoc() {
             let assocData = [];
             let phenotype = this.$store.state.phenotype;
@@ -141,19 +90,54 @@ new Vue({
                     }
                 });
             }
-
-            return assocData;
         },
+        // Give the top associations, find the best one across all unique
+        // phenotypes available.
+        topAssociations() {
+            let data = this.$store.state.topAssociations.data;
+            let assocMap = {};
 
+            for (let i in data) {
+                let assoc = data[i];
+
+                // skip associations not part of the disease group
+                if (!this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]) {
+                    continue;
+                }
+
+                let curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+
+            // convert to an array, sorted by p-value
+            return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+        },
+        // Column-major associations for locuszoom
+        lzAssociations() {
+            let lzAssocs = {
+                id: [],
+                position: [],
+                log_pvalue: [],
+                ref_allele: [],
+                variant: [],
+            };
+
+            // transform associations to lz format
+            this.$store.state.associations.data.forEach(v => {
+                lzAssocs.id.push(v.varId);
+                lzAssocs.variant.push(v.varId);
+                lzAssocs.position.push(v.position);
+                lzAssocs.log_pvalue.push(-Math.log10(v.pValue));
+                lzAssocs.ref_allele.push(v.reference);
+            });
+
+            return lzAssocs;
+        }
     },
 
-
     watch: {
-
-        computedAssoc(assocData) {
-            // this.$children[0].$refs.lz.updateVariants(assocData);
-            this.$children[0].$refs.lz.plot();
-        },
 
         phenotype(phenotype) {
             let mdv = this.$store.state.mdv;
@@ -170,5 +154,34 @@ new Vue({
 
         },
 
+        phenotypes(phenotypes) {
+            let param = this.$store.state.phenotypeParam;
+
+            // if there's a phenotypeParam, then pick that phenotype
+            if (param) {
+                let phenotype = this.$store.state.bioPortal.phenotypeMap[param];
+
+                if (phenotype) {
+                    this.$store.dispatch('getAssociations', phenotype);
+                }
+            }
+        },
+
+        selectedPhenotype(phenotype) {
+            this.$store.dispatch('getAssociations', phenotype);
+        },
+
+        topAssociations(top) {
+            if (!this.selectedPhenotype && top.length > 0) {
+                let topAssoc = top[0];
+                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[topAssoc.phenotype];
+
+                this.$store.dispatch('getAssociations', topPhenotype);
+            }
+        },
+
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
     }
 }).$mount("#app");

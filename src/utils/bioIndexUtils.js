@@ -5,6 +5,7 @@ import {BIO_INDEX_TYPE} from "./lz/lzConstants";
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
 
 export async function* beginIterableQuery(json, errHandler) {
+    console.log(json);
     const { index, q, limit } = json;
     yield* iterateOnQuery({ index, q, limit }, errHandler);
 };

@@ -10,26 +10,12 @@ module.exports = {
             title: "Home",
             chunks: ["chunk-vendors", "chunk-common", "index"]
         },
-        manhattan: {
-            entry: "src/views/Manhattan/main.js",
-            template: "public/index.html",
-            filename: "manhattan.html",
-            title: "Manhattan Page",
-            chunks: ["chunk-vendors", "chunk-common", "manhattan"]
-        },
         phenotype: {
             entry: "src/views/Phenotype/main.js",
             template: "public/index.html",
             filename: "phenotype.html",
             title: "Phenotype Page",
             chunks: ["chunk-vendors", "chunk-common", "phenotype"]
-        },
-        geneFinder: {
-            entry: "src/views/GeneFinder/main.js",
-            template: "public/index.html",
-            filename: "genefinder.html",
-            title: "Gene Finder",
-            chunks: ["chunk-vendors", "chunk-common", "geneFinder"]
         },
         gene: {
             entry: "src/views/Gene/main.js",

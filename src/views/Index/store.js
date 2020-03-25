@@ -1,35 +1,39 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-//import { defaultGroup } from "@/modules/defaultPortal";
-import metadataModule from "@/modules/metadataModule";
-import graphPhenotype from "@/modules/graphPhenotype";
+import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
-import diseaseGroup from "@/modules/diseaseGroup";
-
+import regionUtils from "@/utils/regionUtils";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        metadataModule,
-        graphPhenotype,
+        bioPortal,
         kp4cd,
-        diseaseGroup
     },
     state: {
-        selectedPhenotype: null,
-        phenotypes: null,
-        newsIndex: []
+        geneOrRegion: null,
+        invalidGeneOrRegion: false,
     },
     mutations: {
-        setPhenotypes(state, phenotypes) {
-            state.phenotypes = phenotypes;
-        }
+        setInvalidGeneOrRegion(state, flag) {
+            state.invalidGeneOrRegion = flag;
+        },
     },
     actions: {
-        onPhenotypeChange(context, selectedPhenotype) {
-            window.location.href = "./manhattan.html?phenotype=" + selectedPhenotype.phenotype_id + '&group=' + this.state.diseaseGroup.id;
+        async onPhenotypeChange(context, phenotype) {
+            window.location.href = "./phenotype.html?phenotype=" + phenotype.name;
+        },
+
+        async exploreRegion(context) {
+            let locus = await regionUtils.parseRegion(context.state.geneOrRegion);
+
+            if (locus) {
+                window.location.href = `./gene.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+            } else {
+                context.commit('setInvalidGeneOrRegion', true);
+            }
         }
     }
 });

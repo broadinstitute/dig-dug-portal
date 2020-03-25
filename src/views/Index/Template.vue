@@ -1,58 +1,93 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
-        <div class="fluid">
-            <div
-                :class="'front-top-banner-'+this.$store.state.diseaseGroup.id+'kp front-top-banner'"
-            >
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="front-logo-wrapper">
-                                <img
-                                    class="front-logo-img"
-                                    :src="'http://kp4cd.org/sites/default/files/vueportal/'+this.$store.state.kp4cd.frontContents[0].field_front_logo"
-                                />
-                                <span
-                                    :class="'front-logo-tagline front-logo-tagline-'+this.$store.state.diseaseGroup.id+'kp'"
-                                >{{ this.$store.state.kp4cd.frontContents[0].field_tagline }}</span>
+        <div v-if="$parent.diseaseGroup">
+            <div class="fluid">
+                <div :class="'front-top-banner-'+$parent.diseaseGroup.name+'kp front-top-banner'">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="front-logo-wrapper">
+                                    <img
+                                        class="front-logo-img"
+                                        :src="'http://kp4cd.org/sites/default/files/vueportal/'+$parent.frontContents.field_front_logo"
+                                    />
+                                    <span
+                                        :class="'front-logo-tagline front-logo-tagline-'+$parent.diseaseGroup.name+'kp'"
+                                    >{{ $parent.frontContents.field_tagline }}</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="col-md-12 portal-front-tabs">
-                            <b-tabs content-class="mt-3" align="center">
-                                <b-tab title="Explore by region" active></b-tab>
-                                <b-tab title="Explore by phenotype">
-                                    <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
-                                </b-tab>
-                                <b-tab
-                                    title="Set default disease group"
-                                    v-if="this.$store.state.diseaseGroup.id == 'md'"
-                                >
-                                    <disease-group-select></disease-group-select>
-                                </b-tab>
-                            </b-tabs>
+                            <div class="col-md-12 portal-front-tabs">
+                                <b-tabs content-class="mt-3" align="center">
+                                    <b-tab title="Explore by region" active>
+                                        <div class="front-gene-search-wrapper">
+                                            <div class="col-md-10 input-wrapper">
+                                                <input
+                                                    v-model="$store.state.geneOrRegion"
+                                                    type="text"
+                                                    class="form-control input-default"
+                                                    placeholder="Gene name or region"
+                                                />
+                                            </div>
+                                            <div class="col-md-2 input-wrapper">
+                                                <button
+                                                    id="regionSearchGo"
+                                                    class="btn btn-primary"
+                                                    type="button"
+                                                    @click="$store.dispatch('exploreRegion')"
+                                                >GO</button>
+                                            </div>
+                                            <div
+                                                class="text-danger"
+                                                v-show="$store.state.invalidGeneOrRegion"
+                                            >Invalid gene name or region</div>
+                                        </div>
+                                    </b-tab>
+                                    <b-tab title="Explore by phenotype">
+                                        <phenotype-selectpicker
+                                            v-bind:phenotypes="$parent.phenotypes"
+                                        ></phenotype-selectpicker>
+                                    </b-tab>
+                                    <b-tab
+                                        title="Set default disease group"
+                                        v-if="$parent.diseaseGroup.default"
+                                    >
+                                        <disease-group-select
+                                            :disease-groups="$store.state.bioPortal.diseaseGroups"
+                                        ></disease-group-select>
+                                    </b-tab>
+                                </b-tabs>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="container static-content-section">
-            <div class="row">
-                <div class="col-md-7">
-                    <about-portal-section></about-portal-section>
-                    <datasets-section></datasets-section>
-                </div>
-                <div class="col-md-5">
-                    <news-feed-section></news-feed-section>
-                    <about-project-section></about-project-section>
+            <div class="container static-content-section">
+                <div class="row">
+                    <div class="col-md-7">
+                        <about-portal-section :front-contents="$parent.frontContents"></about-portal-section>
+                        <datasets-section
+                            :disease-group="$parent.diseaseGroup"
+                            :disease-groups="$store.state.bioPortal.diseaseGroups"
+                            :datasets-info="$store.state.kp4cd.datasetsInfo"
+                        ></datasets-section>
+                    </div>
+                    <div class="col-md-5">
+                        <news-feed-section
+                            :disease-group="$parent.diseaseGroup"
+                            :news-feed="$store.state.kp4cd.newsFeed"
+                        ></news-feed-section>
+                        <about-project-section :front-contents="$parent.frontContents"></about-project-section>
+                    </div>
                 </div>
             </div>
         </div>
+
         <!-- Footer-->
-        <page-footer></page-footer>
+        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>

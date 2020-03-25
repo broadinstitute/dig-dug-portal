@@ -3,15 +3,17 @@
         <div>
             <span
                 style="color: #00b9f2;font-family: 'Oswald'; font-size: 65px"
-            >{{ datasetsInfo.totalDatasetsNum }} datasets,</span>
+            >{{ processedDatasetsInfo.totalDatasetsNum }} datasets,</span>
             <span
                 style="color: #80C242;font-family: 'Oswald'; font-size: 65px"
-            >&nbsp;{{ datasetsInfo.totalPhenotypesNum }} traits</span>
+            >&nbsp;{{ processedDatasetsInfo.totalPhenotypesNum }} traits</span>
         </div>
         <div id="datasets-chart"></div>
         <div style="text-align: center;">
             <h4>
-                <a href="http://www.kp4cd.org/datasets/md">Browse data here ></a>
+                <a
+                    :href="'http://www.kp4cd.org/datasets/'+this.diseaseGroup.name"
+                >Browse data here ></a>
             </h4>
         </div>
     </div>
@@ -23,7 +25,7 @@ import * as d3 from "d3";
 import $ from "jquery";
 
 export default Vue.component("datasets-section", {
-    props: [],
+    props: ["diseaseGroup", "diseaseGroups", "datasetsInfo"],
     data() {
         return {
             datasets_chart: null,
@@ -134,11 +136,11 @@ export default Vue.component("datasets-section", {
                 { label: "Type 2 Diabetes", value: DATASETS.t2dDatasetsNum },
                 {
                     label: "Cardiovascular Disease",
-                    value: DATASETS.miDatasetsNum
+                    value: DATASETS.cvdDatasetsNum
                 },
                 {
                     label: "Cerebrovascular Disease",
-                    value: DATASETS.strokeDatasetsNum
+                    value: DATASETS.cdDatasetsNum
                 },
                 { label: "Sleep Disorder", value: DATASETS.sleepDatasetsNum }
             ];
@@ -148,11 +150,11 @@ export default Vue.component("datasets-section", {
                 { label: "Type 2 Diabetes", value: DATASETS.t2dPhenotypesNum },
                 {
                     label: "Cardiovascular Disease",
-                    value: DATASETS.miPhenotypesNum
+                    value: DATASETS.cvdPhenotypesNum
                 },
                 {
                     label: "Cerebrovascular Disease",
-                    value: DATASETS.strokePhenotypesNum
+                    value: DATASETS.cdPhenotypesNum
                 },
                 { label: "Sleep Disorder", value: DATASETS.sleepPhenotypesNum }
             ];
@@ -186,14 +188,12 @@ export default Vue.component("datasets-section", {
     },
     mounted: function() {},
     computed: {
-        datasetsInfo() {
-            //console.log(this.$store.state.kp4cd.datasetsInfo);
-
+        processedDatasetsInfo() {
             var onlyUnique = function(value, index, self) {
                 return self.indexOf(value) === index;
             };
 
-            let datasets = this.$store.state.kp4cd.datasetsInfo;
+            let datasets = this.datasetsInfo;
             let datasetsMap = {};
             /*let t2dDatasets = 0,
                 strokeDatasets = 0,
@@ -201,7 +201,7 @@ export default Vue.component("datasets-section", {
                 sleepDatasets = 0,
                 totalDatasets = 0;*/
 
-            let portals = ["t2d", "stroke", "mi", "sleep"];
+            let portals = ["t2d", "cd", "cvd", "sleep"];
             let dataTypes = [
                 "GWAS",
                 "Exome chip",
@@ -225,7 +225,10 @@ export default Vue.component("datasets-section", {
                 let tempPheotypes = v.field_phenotypes.split("\r\n");
 
                 portals.forEach(function(d) {
-                    if (v.field_portals.indexOf(d) >= 0) {
+                    if (
+                        v.field_portals.indexOf(d) >= 0 ||
+                        v.field_portals.indexOf("all") >= 0
+                    ) {
                         datasetsMap[d + "DatasetsNum"]++;
                         tempPheotypes.forEach(function(phenotype) {
                             datasetsMap[d + "Phenotypes"].push(phenotype);
@@ -236,9 +239,10 @@ export default Vue.component("datasets-section", {
 
                 if (
                     v.field_portals.indexOf("t2d") >= 0 ||
-                    v.field_portals.indexOf("stroke") >= 0 ||
-                    v.field_portals.indexOf("mi") >= 0 ||
-                    v.field_portals.indexOf("sleep") >= 0
+                    v.field_portals.indexOf("cd") >= 0 ||
+                    v.field_portals.indexOf("cvd") >= 0 ||
+                    v.field_portals.indexOf("sleep") >= 0 ||
+                    v.field_portals.indexOf("all") >= 0
                 ) {
                     datasetsMap["totalDatasetsNum"]++;
                 }
@@ -253,8 +257,6 @@ export default Vue.component("datasets-section", {
             datasetsMap["totalPhenotypes"] = datasetsMap[
                 "totalPhenotypes"
             ].filter(onlyUnique);
-
-            //console.log(datasetsMap["totalPhenotypes"].sort());
 
             datasetsMap["totalPhenotypesNum"] =
                 datasetsMap["totalPhenotypes"].length;
@@ -272,9 +274,10 @@ export default Vue.component("datasets-section", {
         }
     },
     watch: {
-        datasetsInfo(datasetsInfo) {
-            if (this.$store.state.diseaseGroup.id == "md")
+        processedDatasetsInfo(datasetsInfo) {
+            if (this.diseaseGroup.default) {
                 this.renderCharts(datasetsInfo);
+            }
         }
     }
 });

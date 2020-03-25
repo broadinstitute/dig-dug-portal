@@ -1,40 +1,32 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import metadataModule from "@/modules/metadataModule";
-import graphPhenotype from "@/modules/graphPhenotype";
+
+import bioPortal from "@/modules/bioPortal";
+import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import getVariantDataModule from "@/modules/getVariantDataModule";
-import diseaseGroup from "@/modules/diseaseGroup";
+import keyParams from "@/utils/keyParams";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        metadataModule,
-        graphPhenotype,
-        manhattan: getVariantDataModule,
-        table: getVariantDataModule,
+        bioPortal,
         kp4cd,
-        diseaseGroup
+        associations: bioIndex("PhenotypeAssociations"),
     },
     state: {
-        selectedPhenotype: null,
-        selectedDataset: null,
+        phenotypeName: keyParams.phenotype,
         phenotypes: null,
-        phenotypeName: "Select a phenotype",
-        datasetName: "Select a dataset",
-        datasetList: [],
     },
     mutations: {
-        setSelectedPhenotype(state, selectedPhenotype) {
-            state.selectedPhenotype = selectedPhenotype;
-            state.phenotypeName = selectedPhenotype.name;
-            mdkp.utility.showHideElement('phenotypeSearchHolder');
+        setPhenotypeName(state, name) {
+            state.phenotypeName = name;
         },
     },
     actions: {
-        onPhenotypeChange(context, selectedPhenotype) {
-            context.commit("setSelectedPhenotype", selectedPhenotype);
+        onPhenotypeChange(context, phenotype) {
+            keyParams.set({ phenotype: phenotype.name });
+            context.commit('setPhenotypeName', phenotype.name);
         },
-    }
+    },
 });

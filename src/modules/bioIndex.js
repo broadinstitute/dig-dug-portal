@@ -1,7 +1,7 @@
 import merge from "lodash.merge";
 import findIndex from "lodash";
-import querystring from "querystring";
-import { BIO_INDEX_HOST, beginIterableQuery, dataFilter, majorFormat } from "@/utils/bioIndexUtils";
+import queryString from "query-string";
+import { BIO_INDEX_HOST, beginIterableQuery, } from "@/utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -100,7 +100,7 @@ export default function (index, extend) {
         // dispatch methods
         actions: {
             async count(context, { q }) {
-                let qs = querystring.encode({ q });
+                let qs = queryString.stringify({ q });
                 let json = await fetch(
                     `${BIO_INDEX_HOST}/api/count/${index}?${qs}`
                 )
@@ -111,11 +111,12 @@ export default function (index, extend) {
 
                 context.commit("setCount", json.count);
             },
-
             async query(context, { q, limit, filter }) {
-
+                let data = [];
+                let profile = {};
                 context.commit("setAbort", false);
                 context.commit("setLoading", true);
+                context.commit("clearData");
 
                 // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
                 // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.
@@ -130,13 +131,14 @@ export default function (index, extend) {
                                 // then force a cancel (i.e. aborted and not loading)
                                 context.commit('setAbort', true);
                                 context.commit("setLoading", false);
-
                             })
                         );
                         let response = await context.state.iterableQuery.next();
+                        console.log('response', response);
                         // set the initial data
-                        let json = response.value;
-                        context.commit("setResponse", json);
+                        //context.commit("setResponse", response.value);
+                        data = response.value.data;
+                        profile = response.value.profile;
                     }
                 }
 
@@ -155,11 +157,14 @@ export default function (index, extend) {
                         } else {
                             // if we were still in the stream of data (loading and not aborted) when we asked for a query from the chain,
                             // then append the values from the response (which we assume will exist in a valid format if the chain isn't done) to our store.
-                            let json = response.value;
-                            context.commit('appendData', json);
+                            //context.commit('appendData', response.value);
+                            data = data.concat(response.value.data);
+                            profile.fetch += response.value.profile.fetch;
                         }
                     }
                 }
+
+                context.commit('setResponse', { data, profile });
 
             },
         }
