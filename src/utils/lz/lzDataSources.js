@@ -25,8 +25,11 @@ export default {
 	}],
 	defaultConstraintSource: ["GeneConstraintLZ",
 		{
-			url: 'http://exac.broadinstitute.org/api/constraint'
-		}],
+			url: 'http://exac.broadinstitute.org/api/constraint',
+            params: {
+                build: 'GRCh37'
+            }
+        }],
 	defaultIntervalsSource: ["IntervalLZ",
 		{
 			url: 'https://portaldev.sph.umich.edu/api/v1/annotation/intervals/results/',
