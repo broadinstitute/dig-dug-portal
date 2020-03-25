@@ -126,7 +126,7 @@ export default {
             checked: true
         },
         {
-            name: "dsbsnp.func",
+            name: "dbsnp.func",
             value: "Functional consequence of the SNP as reported by dbSNP",
             checked: false
         },

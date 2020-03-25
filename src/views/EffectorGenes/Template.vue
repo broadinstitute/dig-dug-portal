@@ -17,33 +17,30 @@
 
 					<div class="table-filter">
 						<label>Search a gene</label>
-						<input id="geneSearch" type="text" placeholder="Gene ID" />
+						<input id="geneSearch" type="text" v-model="searchGene" placeholder="Gene ID" />
 					</div>
-					<div class="table-filter">
-						<label>Search a locus</label>
-						<input id="locusSearch" type="text" v-model="searchLocus" placeholder="Locus ID" />
-					</div>
+
 					<div class="table-filter">
 						<label>Filter by prob score</label>&gt;=
-						<input id="probFilter" type="text" placeholder="Prob score" />
+						<input id="probFilter" type="text" v-model="searchScore" placeholder="Prob score" />
 					</div>
 				</div>
 				<div id="regionFilter">
 					<div class="form-group">
 						<div class="table-filter">
 							<label for="region">Chromosome</label>
-							<select class="form-control" id="selectChrom">
+							<select class="form-control" id="selectChrom" v-model="searchChrom">
 								<option value="0" selected>All</option>
 								<option v-for="item in $parent.listChrom" :value="item.value">{{ item.name }}</option>
 							</select>
 						</div>
 						<div class="table-filter">
 							<label>Region start</label>
-							<input id="geneStart" type="text" placeholder="Start position" />
+							<input id="geneStart" type="text" v-model="chromStart" placeholder="Start position" />
 						</div>
 						<div class="table-filter">
 							<label>Region end</label>
-							<input id="geneEnd" type="text" placeholder="End position" />
+							<input id="geneEnd" type="text" v-model="chromEnd" placeholder="End position" />
 						</div>
 					</div>
 				</div>
@@ -93,11 +90,11 @@
 			</div>
 
 			<div id="table">
-				<div v-for="(gene, i) in filteredLocus">
-					<div v-if="(i === 0) || (gene[1]['names.genes'] !== filteredLocus[i-1][1]['names.genes'])">
+				<div v-for="(gene, i) in filteredGene" :key="i">
+					<div v-if="(i === 0) || (gene[1]['names.genes'] !== filteredGene[i-1][1]['names.genes'])">
 						<div class="row summary">
 							<div class="sum geneName">{{gene[1]["names.genes"]}}</div>
-							<div class="sum prob">{{gene[1]["all.locus.prob"]}}</div>
+							<div class="sum prob" @click="showInfo()">{{gene[1]["all.locus.prob"]}}</div>
 							<div class="sum chromLocation">
 								<span class="chrom">{{gene[1]["locus.chrom"].slice(3)}}</span> :
 								<span class="chromStart">{{ gene[1]["locus.chrom.start"]}}</span> -
@@ -105,20 +102,24 @@
 							</div>
 							<div class="sum ei"></div>
 						</div>
-						<div class="probInfo">
+						<div
+							class="probInfo"
+							:class="{hidden: isHidden}"
+							:id="gene[1]['names.genes'].split('.').join('_')"
+						>
 							<div class="probHeaders">
-								<div v-for="col in $parent.listCol">
+								<div v-for="col in $parent.listCol" :key="col.name">
 									<span>{{col.name}}</span>
 								</div>
 							</div>
 							<div class="probDetails">
-								<portal-target v-bind:name="gene[1]['names.genes']" multiple></portal-target>
+								<portal-target :name="gene[1]['names.genes']" multiple></portal-target>
 							</div>
 						</div>
 					</div>
-					<portal v-bind:to="gene[1]['names.genes']">
+					<portal :to="gene[1]['names.genes']">
 						<div class="detailRow">
-							<div v-for="col in $parent.listCol">{{gene[1][col.name]}}</div>
+							<div v-for="col in $parent.listCol" :key="col.name">{{gene[1][col.name]}}</div>
 						</div>
 					</portal>
 
@@ -163,8 +164,18 @@
 export default {
 	data() {
 		return {
-			searchLocus: ""
+			isHidden: true,
+			searchGene: "",
+			searchScore: "",
+			searchChrom: 0,
+			chromStart: "",
+			chromEnd: ""
 		};
+	},
+	methods: {
+		showInfo: function() {
+			this.isHidden = !this.isHidden;
+		}
 	},
 	computed: {
 		geneData: function() {
@@ -178,13 +189,33 @@ export default {
 				.groupBy("names.genes")
 				.value();
 		},
-		filteredLocus: function() {
-			return Object.entries(this.geneData).filter(gene => {
-				//console.log(gene[1]);
-				return gene[1]["names.genes"]
-					.toLowerCase()
-					.includes(this.searchLocus.toLowerCase());
-			});
+		filteredGene: function() {
+			return Object.entries(this.geneData)
+				.filter(gene => {
+					return gene[1]["names.genes"]
+						.toLowerCase()
+						.includes(this.searchGene.toLowerCase());
+				})
+				.filter(gene => {
+					return gene[1]["all.locus.prob"] >= this.searchScore;
+				})
+				.filter(gene => {
+					if (this.searchChrom > 0)
+						return (
+							gene[1]["locus.chrom"].slice(3) == this.searchChrom
+						);
+					else return gene;
+				})
+				.filter(gene => {
+					if (this.chromStart)
+						return gene[1]["locus.chrom.start"] >= this.chromStart;
+					else return gene;
+				})
+				.filter(gene => {
+					if (this.chromEnd)
+						return gene[1]["locus.chrom.end"] <= this.chromEnd;
+					else return gene;
+				});
 			// return this.geneData;
 		}
 	}
@@ -203,6 +234,10 @@ export default {
 
 .row.locus_y_1 {
 	border-right: 8px #fa0 solid;
+}
+
+div#data {
+	overflow-x: hidden !important;
 }
 div#data .row {
 	margin: 0 !important;
@@ -235,6 +270,7 @@ div#data div.row.headers {
 	color: blue;
 }
 
+div.probInfo.hidden,
 .hidden,
 .start-hidden,
 .end-hidden {
