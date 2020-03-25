@@ -44,7 +44,7 @@
                         <a href="/">Home</a>
                     </li>
                     <li>
-                        <a :href="translatedDataPage">Data</a>
+                        <a :href="'http://kp4cd.org/datasets/' + diseaseGroup.name">Data</a>
                     </li>
                     <li>
                         <a href>Tools</a>
