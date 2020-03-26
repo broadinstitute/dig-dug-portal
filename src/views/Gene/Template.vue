@@ -120,13 +120,15 @@
                         v-if="$parent.selectedPhenotype"
                         class="card-title"
                     >LocusZoom Associations for Phenotype: {{$parent.selectedPhenotype.description}}</h4>
+
                     <locuszoom
                         ref="lz"
-                        v-if="$store.getters.phenotype.name !== null"
+                        v-if="$parent.selectedPhenotype !== null"
                         v-bind:modules="['Associations']"
                         v-bind:panels="['association','genes','intervals']"
-                        v-bind:phenotype="$store.getters.phenotype.name"
+                        v-bind:phenotype="$parent.selectedPhenotype.name"
                     ></locuszoom>
+
                 </div>
             </div>
             <div class="card mdkp-card">

@@ -125,10 +125,12 @@ new Vue({
                     this.$store.dispatch('getAssociations', phenotype);
                 }
             }
+
         },
 
-        selectedPhenotype(phenotype) {
-            this.$store.dispatch('getAssociations', phenotype);
+        async selectedPhenotype(phenotype) {
+            await this.$store.dispatch('getAssociations', phenotype);
+            this.$children[0].$refs.lz.plot();
         },
 
         topAssociations(top) {

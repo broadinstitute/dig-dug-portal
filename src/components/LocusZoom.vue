@@ -40,9 +40,11 @@ export default Vue.component("locuszoom", {
     },
     methods: {
         plot() {
+            console.log('lz plot');
             this.dataSources = new LocusZoom.DataSources();
 
             const phenotype = this.phenotype;
+            console.log(phenotype);
             this.modules.forEach(module => {
                 this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSourceJIT({
                     store: this.$store,
