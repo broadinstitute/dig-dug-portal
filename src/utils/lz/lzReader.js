@@ -24,7 +24,6 @@ function readOnCoords(store, moduleIndex, queryMaker) {
     return {
         async fetch(chromosome, start, end, callback) {
             try {
-                console.log({ ...queryMaker, chromosome, start, end });
                 const moduleQueryStr = buildModuleQuery(moduleIndex, { ...queryMaker, chromosome, start, end });
                 const moduleStore = _.camelCase(moduleIndex);
                 return await store.dispatch(`${moduleStore}/query`, { q: moduleQueryStr }).then(() => {
