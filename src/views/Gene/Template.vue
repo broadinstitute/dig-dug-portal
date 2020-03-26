@@ -120,19 +120,18 @@
                         v-if="$parent.selectedPhenotype"
                         class="card-title"
                     >LocusZoom Associations for Phenotype: {{$parent.selectedPhenotype.description}}</h4>
-                    <locuszoom
-                        ref="lz"
-                        v-bind:gene="$parent.geneSource"
-                        v-bind:constraint="$parent.constraintSource"
-                        v-bind:ld="$parent.ldSource"
-                        v-bind:recomb="$parent.recombSource"
-                        v-bind:assoc="['StaticJSON', { data: [] }]"
-                        v-bind:panels="['association','genes','intervals']"
-                        v-bind:chrom="$store.state.chr"
-                        v-bind:start="$store.state.start"
-                        v-bind:end="$store.state.end"
-                        v-bind:intervals="$parent.intervalsSource"
-                    ></locuszoom>
+                    <div v-if="$parent.selectedPhenotype.name">
+                        <locuszoom
+                            ref="lz"
+                            v-bind:store="$store"
+                            v-bind:panels="['association','genes','intervals']"
+
+                            v-bind:phenotype="$parent.selectedPhenotype.name"
+                            v-bind:chrom="$store.state.chr"
+                            v-bind:start="$store.state.start"
+                            v-bind:end="$store.state.end"
+                        ></locuszoom>
+                    </div>
                 </div>
             </div>
             <div class="card mdkp-card">

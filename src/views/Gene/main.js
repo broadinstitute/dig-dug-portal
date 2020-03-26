@@ -7,7 +7,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
-import DataSources from "@/utils/lzDataSources";
+import lzDataSources from "@/utils/lz/lzDataSources";
 
 Vue.config.productionTip = false;
 
@@ -23,11 +23,11 @@ new Vue({
     },
 
     data: {
-        geneSource: DataSources.defaultGeneSource,
-        recombSource: DataSources.defaultRecombSource,
-        ldSource: DataSources.defaultLDSource,
-        constraintSource: DataSources.defaultConstraintSource,
-        intervalsSource: DataSources.defaultIntervalsSource,
+        geneSource: lzDataSources.defaultSource.gene,
+        recombSource: lzDataSources.defaultSource.recomb,
+        ldSource: lzDataSources.defaultSource.ld,
+        constraintSource: lzDataSources.defaultSource.constraint,
+        intervalsSource: lzDataSources.defaultSource.intervals,
     },
 
     created() {

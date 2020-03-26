@@ -1,5 +1,6 @@
 import SchemaObject from "schema-object";
-import {calcLog} from "./lzUtils";
+import { calcLog } from "@/utils/lz/lzUtils";
+import {BIO_INDEX_TYPE} from "@/utils/bioIndexUtils";
 
 export const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';
 
@@ -10,19 +11,6 @@ export const PANEL_ORDER = Object.freeze([
     // TODO: your ordering here
     'association','genes','intervals'
 ]);
-
-export const BIO_INDEX_TYPE = Object.freeze({
-    test: 'test',
-    Gene: 'Gene',
-    Genes: 'Genes',
-    PhenotypeAssociations: 'PhenotypeAssociations',
-    GlobalEnrichment: 'GlobalEnrichment',
-    AnnotatedRegions: 'AnnotatedRegions',
-    Associations: 'Associations',
-    TopAssociations: 'TopAssociations',
-    Variant: 'Variant',
-    Variants: 'Variants',
-});
 
 // change this at your peril - they are observed values from LocusZoom's defaults
 export const LZ_TYPE = Object.freeze({

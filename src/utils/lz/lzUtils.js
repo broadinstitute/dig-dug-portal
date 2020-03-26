@@ -1,5 +1,4 @@
-import { PANEL_ORDER } from "./lzConstants";
-import {findLeastStart, findMostEnd, majorFormat} from "../bioIndexUtils";
+import { PANEL_ORDER } from "@/utils/lz/lzConstants";
 
 export function sortPanels (panels) {
     // _.invert swaps keys and values, i.e. [ "val" ] === { 0: "val" } => { "val": 0 }
@@ -109,3 +108,30 @@ export function dataRangeFilter(format, property) {
     }
 }
 
+function findLeastStart(start, end, indexSearch) {
+    let startIndex = -1;
+    let k = start;
+    while (true) {
+        startIndex = indexSearch(k);
+        if (startIndex == -1 && k < end) {
+            k++;
+        } else {
+            break;
+        }
+    }
+    return startIndex;
+}
+
+function findMostEnd(start, end, indexSearch) {
+    let endIndex = -1;
+    let j = end;
+    while (true) {
+        endIndex = indexSearch(j);
+        if (endIndex == -1 && j > start) {
+            j--;
+        } else {
+            break;
+        }
+    }
+    return endIndex;
+}

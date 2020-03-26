@@ -7,6 +7,18 @@ import querystring from "querystring";
 
 // Constants
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
+export const BIO_INDEX_TYPE = Object.freeze({
+    test: 'test',
+    Gene: 'Gene',
+    Genes: 'Genes',
+    PhenotypeAssociations: 'PhenotypeAssociations',
+    GlobalEnrichment: 'GlobalEnrichment',
+    AnnotatedRegions: 'AnnotatedRegions',
+    Associations: 'Associations',
+    TopAssociations: 'TopAssociations',
+    Variant: 'Variant',
+    Variants: 'Variants',
+});
 
 // Methods
 /*  bioIndex Query Chain Iterator
@@ -14,43 +26,103 @@ export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
     - Features like "pausing" and "more of..." need to maintain a sense of where on a chain of continuations they are,
         so that when users unpause or get more data after some time, they don't get data they already downloaded.
 */
-async function* continuedIterableQuery(json, errHandler = null) {
-    // NOTE: an existing response has to be passed in to *iterateQuery on initialization
-    // if the continuation from the previous response isn't null, we can move the generator forward
-    while (json.continuation) {
-        let qs = querystring.encode({ token: json.continuation });
-        json = await fetch(`${BIO_INDEX_HOST}/api/cont?${qs}`)
-            .then(resp => {
-                if (resp.status !== 200) {
-                    throw Error(resp.status.toString());
-                }
+export async function* beginIterableQuery(json, errHandler) {
+    const { index, q, limit } = json;
+    yield* iterateOnQuery({ index, q, limit }, errHandler);
+};
 
-                return resp;
-            })
-            .then(resp => resp.json())
-            .catch(errHandler);
-
-        // note that generators are implicitly recursive:
-        // they pass in their previous yields
-        // into their args the next time they are called
+async function* iterateOnQuery(json, errHandler) {
+    // NOTE: we're implicitly guarded by beginIterableQuery having correct base case information,
+    // i.e. `{ index, q, limit }` – but this should be OK as long as iterateOnQuery is respected as private.
+    do {
+        let queryStr = makeBioIndexQueryStr(json);
+        json = await portalFetch(queryStr, errHandler);
         yield json;
-    }
+    } while(json.continuation);
 }
 
-export async function* iterableQuery(index, { q, limit }, errHandler = null) {
-    let qs = querystring.encode({ q, limit });
-    let json = await fetch(`${BIO_INDEX_HOST}/api/query/${index}?${qs}`)
+async function portalFetch(query, errHandler) {
+    return await fetch(query)
         .then(resp => {
             if (resp.status !== 200) {
                 throw Error(resp.status.toString());
             }
-
             return resp;
         })
         .then(resp => resp.json())
         .catch(errHandler);
-
-    // yield the result of the base case
-    yield json;
-    yield* continuedIterableQuery(json, errHandler);
 };
+
+
+// Private methods
+function makeBioIndexQueryStr(json) {
+    const { index, q, limit, continuation } = json;
+    // check for the continuation first, since index && q are going to be true in all valid cases
+    // (they will only be false in malformed/invalid cases)
+    if (continuation) {
+        const qs = querystring.encode({ token: continuation });
+        return `${BIO_INDEX_HOST}/api/cont?${qs}`;
+    } else if (index && q) {
+        const qs = querystring.encode({ q, limit });
+        return `${BIO_INDEX_HOST}/api/query/${index}?${qs}`
+    }
+};
+
+export function majorFormat(data){
+    // https://stackoverflow.com/a/51285298
+    if (data.constructor == Object) {
+        return 'c'
+    } else if (data instanceof Array) {
+        return 'r'
+    }
+}
+
+const arityFilter = {
+    [BIO_INDEX_TYPE.Associations]: function(args) {
+        const { phenotype, chromosome, start, end } = args;
+        return { phenotype, chromosome, start, end };
+    },
+    [BIO_INDEX_TYPE.PhenotypeAssociations]: function(args) {
+        const { phenotype } = args;
+        return { phenotype };
+    },
+    [BIO_INDEX_TYPE.TopAssociations]: function(args) {
+        const { chromosome, start, end } = args;
+        return { chromosome, start, end };
+    },
+    [BIO_INDEX_TYPE.Gene]: function(args) {
+
+    }
+};
+
+function queryTemplate(args) {
+    let queryTemplateStr = '';
+    if (args) {
+        const { phenotype, varId, chromosome, start, end, position } = args;
+        // logic below is based on the hierarchy of arities for bioIndex.
+        if (phenotype) {
+            queryTemplateStr = queryTemplateStr.concat(phenotype)
+        } else if (varId) {
+            queryTemplateStr = queryTemplateStr.concat(varId)
+        }
+
+        if (chromosome && (position || start && end)) {
+            if (!(queryTemplateStr === '')) {
+                queryTemplateStr = queryTemplateStr.concat(',');
+            }
+            queryTemplateStr = queryTemplateStr.concat(`${chromosome}:`);
+            if (position) {
+                queryTemplateStr = queryTemplateStr.concat(`${position}`);
+            } else if (start && end) {
+                queryTemplateStr = queryTemplateStr.concat(`${start}-${end}`);
+            }
+        }
+    }
+    return queryTemplateStr;
+}
+
+export function buildModuleQuery(module, params) {
+    console.log(arityFilter, module, arityFilter[module]);
+    return queryTemplate(arityFilter[module](params))
+}
+

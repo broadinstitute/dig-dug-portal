@@ -1,7 +1,8 @@
 import LocusZoom from "locuszoom";
-import {BIO_INDEX_TO_LZ, BIO_INDEX_TYPE, LZSchemas, moduleParserSchema} from "./lzConstants"
-import { isEmpty, dataRangeFilter, dataFilter } from "./lzUtils";
-import {arityFilter, queryTemplate, majorFormat, buildModuleQuery} from "@/utils/bioIndexUtils"
+
+import { BIO_INDEX_TYPE, majorFormat, buildModuleQuery } from "@/utils/bioIndexUtils"
+import { BIO_INDEX_TO_LZ, LZSchemas, moduleParserSchema } from "@/utils/lz/lzConstants"
+import { isEmpty, dataRangeFilter, dataFilter } from "@/utils/lz/lzUtils";
 
 // schema can be applied to both column-first or record-first formats, but the distinction
 // in how is handled by another function
@@ -26,6 +27,7 @@ function readOnCoords(store, moduleIndex, queryMaker) {
                 const moduleStore = _.camelCase(moduleIndex);
                 return await store.dispatch(`${moduleStore}/query`, { q: moduleQueryStr }).then(() => {
                     let value = store.getters[`${moduleStore}/data`];
+                    console.log('value');
                     if (value) {
                         return callback(value);
                     }
@@ -114,3 +116,6 @@ BioIndexLZSourceJIT.prototype.getRequest = function (state, chain, fields) {
         });
     });
 };
+
+
+
