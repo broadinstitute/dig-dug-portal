@@ -126,7 +126,7 @@
                         v-if="$parent.selectedPhenotype !== null"
                         v-bind:modules="['Associations']"
                         v-bind:panels="['association','genes','intervals']"
-                        v-bind:phenotype="$parent.selectedPhenotype.name"
+                        v-bind:phenotype="$parent.selectedPhenotype"
                     ></locuszoom>
 
                 </div>
