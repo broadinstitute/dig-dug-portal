@@ -7,31 +7,15 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "@/utils/lz/lzDataSources";
 
-import {BioIndexLZSource, BioIndexLZSourceJIT} from "@/utils/lz/lzReader";
-import {BIO_INDEX_TO_LZ} from "@/utils/lz/lzConstants";
-import {BIO_INDEX_TYPE} from "@/utils/bioIndexUtils"
+import {BioIndexLZSourceJIT} from "@/utils/lz/lzReader";
+import {BIO_INDEX_TO_LZ, LZ_TYPE} from "@/utils/lz/lzConstants";
 
 export default Vue.component("locuszoom", {
     props: [
-        "gene",
-        "recomb",
-        "phewas",
-        "constraint",
-        "ld",
-        "assoc",
-        "intervals",
-
-        "store",
         "panels",
-
+        "modules",
         "phenotype",
-        "chrom",
-        "start",
-        "end",
     ],
-    data() {
-        return {};
-    },
     mounted() {
         let panelOptions = {
             //unnamespaced: true,
@@ -46,9 +30,9 @@ export default Vue.component("locuszoom", {
             responsive_resize: "both",
             panels,
             state: {
-                chr: this.chrom,
-                start: this.start,
-                end: this.end
+                chr: this.$store.state.chr,
+                start: this.$store.state.start,
+                end: this.$store.state.end
             }
         };
 
@@ -58,49 +42,23 @@ export default Vue.component("locuszoom", {
         plot() {
             this.dataSources = new LocusZoom.DataSources();
 
-            if (this.assoc) {
-                this.dataSources.add("assoc", this.assoc);
-            } else {
-                const store = this.store;
-                const phenotype = this.phenotype;
-                console.log('phenotype', phenotype)
-                // this.dataSources.add("assoc", ['StaticJSON', {data:[]}]);
-                this.dataSources.add("assoc", new BioIndexLZSource({
-                    store: store,
-                    module: BIO_INDEX_TYPE.Associations,
+            const phenotype = this.phenotype;
+            this.modules.forEach(module => {
+                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSourceJIT({
+                    store: this.$store,
+                    module: module,
                     queryMaker: { phenotype },
                 }));
-            }
+            });
 
-            if (this.constraint) {
-                this.dataSources.add("constraint", this.constraint);
-            } else {
-                this.dataSources.add("constraint", lzDataSources.defaultSource.constraint);
-            }
-
-            if (this.ld) {
-                this.dataSources.add("ld", this.ld);
-            } else {
-                this.dataSources.add("ld", lzDataSources.defaultSource.ld);
-            }
-
-            if (this.recomb) {
-                this.dataSources.add("recomb", this.recomb);
-            } else {
-                this.dataSources.add("recomb", lzDataSources.defaultSource.recomb);
-            }
-
-            if (this.gene) {
-                this.dataSources.add("gene", this.gene);
-            } else {
-                this.dataSources.add("gene", lzDataSources.defaultSource.gene);
-            }
-
-            if (this.intervals) {
-                this.dataSources.add("intervals", this.intervals);
-            } else {
-                this.dataSources.add("intervals", lzDataSources.defaultSource.intervals);
-            }
+            Object.values(LZ_TYPE).filter(dataType => !this.modules.map(m => BIO_INDEX_TO_LZ[m]).includes(dataType))
+                .forEach(dataType => {
+                    if (this[dataType]) {
+                        this.dataSources.add(dataType, this[dataType]);
+                    } else {
+                        this.dataSources.add(dataType, lzDataSources.defaultSource[dataType]);
+                    }
+                });
 
             this.lzplot = LocusZoom.populate(
                 "#locuszoom",
@@ -108,14 +66,6 @@ export default Vue.component("locuszoom", {
                 this.layout
             );
         },
-        updateLocus(chr, start, end) {
-            this.lzplot.applyState({ chr, start, end });
-        },
-        updateVariants(assocData) {
-            if (this.assoc) {
-                this.assoc[1].data = assocData;
-            }
-        }
     }
 });
 </script>

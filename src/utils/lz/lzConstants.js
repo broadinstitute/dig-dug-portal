@@ -20,7 +20,7 @@ export const LZ_TYPE = Object.freeze({
     ld: 'ld',
     constraint: 'constraint',
     intervals: 'intervals',
-    catalog: 'catalog',
+    // catalog: 'catalog',
 });
 
 export const BIO_INDEX_TO_LZ = Object.freeze({
@@ -112,7 +112,7 @@ export const LZSchemas = Object.freeze({
     [LZ_TYPE.gene]: Genes,
     [LZ_TYPE.phewas]: PheWAS,
     [LZ_TYPE.ld]: LD,
-    [LZ_TYPE.catalog]: Catalog,
+    // [LZ_TYPE.catalog]: Catalog,
 });
 
 export const moduleParserSchema = Object.freeze({

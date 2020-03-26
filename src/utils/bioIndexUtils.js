@@ -122,7 +122,6 @@ function queryTemplate(args) {
 }
 
 export function buildModuleQuery(module, params) {
-    console.log(arityFilter, module, arityFilter[module]);
     return queryTemplate(arityFilter[module](params))
 }
 

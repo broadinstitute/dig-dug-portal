@@ -22,17 +22,8 @@ new Vue({
         PageFooter,
     },
 
-    data: {
-        geneSource: lzDataSources.defaultSource.gene,
-        recombSource: lzDataSources.defaultSource.recomb,
-        ldSource: lzDataSources.defaultSource.ld,
-        constraintSource: lzDataSources.defaultSource.constraint,
-        intervalsSource: lzDataSources.defaultSource.intervals,
-    },
-
     created() {
         this.$store.dispatch('queryRegion');
-
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -123,16 +114,6 @@ new Vue({
     },
 
     watch: {
-        lzAssociations(assocs) {
-            this.$children[0].$refs.lz.updateLocus(
-                this.$store.state.chr,
-                this.$store.state.start,
-                this.$store.state.end,
-            );
-            this.$children[0].$refs.lz.updateVariants(assocs);
-            this.$children[0].$refs.lz.plot();
-        },
-
         phenotypes(phenotypes) {
             let param = this.$store.state.phenotypeParam;
 

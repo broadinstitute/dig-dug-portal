@@ -1,3 +1,4 @@
+import throttle from "lodash"
 import LocusZoom from "locuszoom";
 
 import { BIO_INDEX_TYPE, majorFormat, buildModuleQuery } from "@/utils/bioIndexUtils"
@@ -23,15 +24,15 @@ function readOnCoords(store, moduleIndex, queryMaker) {
     return {
         async fetch(chromosome, start, end, callback) {
             try {
+                console.log({ ...queryMaker, chromosome, start, end });
                 const moduleQueryStr = buildModuleQuery(moduleIndex, { ...queryMaker, chromosome, start, end });
                 const moduleStore = _.camelCase(moduleIndex);
                 return await store.dispatch(`${moduleStore}/query`, { q: moduleQueryStr }).then(() => {
                     let value = store.getters[`${moduleStore}/data`];
-                    console.log('value');
                     if (value) {
                         return callback(value);
                     }
-                    const emptyObject = new LZSchemas[BIO_INDEX_TO_LZ[BIO_INDEX_TYPE[moduleIndex]]]().toObject();
+                    const emptyObject = [];
                     return callback(emptyObject);
                 });
             } catch (e) {
