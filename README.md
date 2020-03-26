@@ -26,7 +26,7 @@ cd /path/to/your/project/dig-dug-portal
 npm install
 ```
 
-#### Special Note to Mac OSX Develpers
+#### Special Note to Mac OSX Developers
 
 Before installing the above npm dependencies on MacOSX, you may need to ensure that `node-gyp` is properly configured. 
 See [here](https://www.npmjs.com/package/node-gyp) for details. Note: if your Mac OSX is the Catalina release, 
@@ -52,13 +52,18 @@ pages seen by the browser (upon browser page refresh).
 
 ### Vue.js / Vuex
 
-[Vue.js](https://vuejs.org/) is an open-source JavaScript framework for building user interfaces and single-page applications. It is the core of our front-end. Because it is based on javascript, it can be incorporated with any javscript library like jQuery, lodash, etc ... or even plain javascript.
+[Vue.js](https://vuejs.org/) is an open-source JavaScript framework for building user interfaces and single-page 
+applications. It is the core of our front-end. Because it is based on javascript, it can be incorporated with any 
+javascript library like jQuery, lodash, etc ... or even plain javascript.
 
-[Vuex](https://vuex.vuejs.org/) is a state management pattern + library for Vue.js applications. It serves as a centralized store for all the components in an application, with rules ensuring that the state can only be mutated in a predictable fashion.
+[Vuex](https://vuex.vuejs.org/) is a state management pattern + library for Vue.js applications. It serves as a 
+centralized store for all the components in an application, with rules ensuring that the state can only be mutated 
+in a predictable fashion.
 
 ## File structure
 
-Currently files are placed inside the `www` folder for consistency with the backend setup. However, it can be named anything. You just need to make sure that the corresponding folder/mount point is the same in the config file.
+Currently files are placed inside the `www` folder for consistency with the backend setup. However, it can be named 
+anything. You just need to make sure that the corresponding folder/mount point is the same in the config file.
 
 - `css` This folder contains all the stylesheets for the site.
 - `js` This folder contains all the javascripts for the site.
@@ -68,14 +73,18 @@ Currently files are placed inside the `www` folder for consistency with the back
 
 ### Components
 
-Components are reusable Vue instances. They can accept the same options as a Vue object, such as `data`, `computed`, `methods`, etc ... and lifecycle hooks.
+Components are reusable Vue instances. They can accept the same options as a Vue object, such as `data`, `computed`, 
+`methods`, etc ... and lifecycle hooks.
 
 ### Modules
 
-Due to using a single state tree, all state of our application is contained inside one big object. However, as our application grows in scale, the store can get really bloated.
+Due to using a single state tree, all state of our application is contained inside one big object. However, as our 
+application grows in scale, the store can get really bloated.
 
-To help with that, Vuex allows us to divide our store into **modules**. Each module can contain its own state, mutations, actions, getters, and even nested modules.
-Each module is namespaced for example:  The benefit of being namespaced is - So in order to enable this you have the option to define the module as namespaced, and then you can use the same method in different modules:
+To help with that, Vuex allows us to divide our store into **modules**. Each module can contain its own state, 
+mutations, actions, getters, and even nested modules.
+Each module is namespaced for example:  The benefit of being namespaced is - So in order to enable this you have the 
+option to define the module as namespaced, and then you can use the same method in different modules:
 
 ```
 moduleA {
@@ -131,7 +140,8 @@ For production:
 
 ### Declarative Rendering
 
-At the core of Vue.js is a system that enables us to declaratively render data to the DOM using straightforward template syntax:
+At the core of Vue.js is a system that enables us to declaratively render data to the DOM using straightforward 
+template syntax:
 
 Add an element with an **id** to the **html** part of the page.
 
