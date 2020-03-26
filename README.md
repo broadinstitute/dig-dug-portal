@@ -26,6 +26,12 @@ cd /path/to/your/project/dig-dug-portal
 npm install
 ```
 
+#### Special Note to Mac OSX Develpers
+
+Before installing the above npm dependencies on MacOSX, you may need to ensure that `node-gyp` is properly configured. 
+See [here](https://www.npmjs.com/package/node-gyp) for details. Note: if your Mac OSX is the Catalina release, 
+see [the special note on properly configuring Catalina][https://github.com/nodejs/node-gyp/blob/HEAD/macOS_Catalina.md).  
+
 ### Running the Portal
 
 The portal is not "run" on its own but as noted above, it is run as an integral part of the 
