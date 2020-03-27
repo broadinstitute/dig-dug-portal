@@ -7,7 +7,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
-import DataSources from "@/utils/lzDataSources";
+import lzDataSources from "@/utils/lz/lzDataSources";
 
 Vue.config.productionTip = false;
 
@@ -22,17 +22,8 @@ new Vue({
         PageFooter,
     },
 
-    data: {
-        geneSource: DataSources.defaultGeneSource,
-        recombSource: DataSources.defaultRecombSource,
-        ldSource: DataSources.defaultLDSource,
-        constraintSource: DataSources.defaultConstraintSource,
-        intervalsSource: DataSources.defaultIntervalsSource,
-    },
-
     created() {
         this.$store.dispatch('queryRegion');
-
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -123,16 +114,6 @@ new Vue({
     },
 
     watch: {
-        lzAssociations(assocs) {
-            this.$children[0].$refs.lz.updateLocus(
-                this.$store.state.chr,
-                this.$store.state.start,
-                this.$store.state.end,
-            );
-            this.$children[0].$refs.lz.updateVariants(assocs);
-            this.$children[0].$refs.lz.plot();
-        },
-
         phenotypes(phenotypes) {
             let param = this.$store.state.phenotypeParam;
 
@@ -144,10 +125,17 @@ new Vue({
                     this.$store.dispatch('getAssociations', phenotype);
                 }
             }
+
         },
 
-        selectedPhenotype(phenotype) {
-            this.$store.dispatch('getAssociations', phenotype);
+        async selectedPhenotype(phenotype) {
+            await this.$store.dispatch('getAssociations', phenotype);
+            this.$children[0].$refs.lz.plot();
+            this.$children[0].$refs.lz.updateLocus(
+                this.$store.state.chr,
+                this.$store.state.start,
+                this.$store.state.end,
+            );
         },
 
         topAssociations(top) {
