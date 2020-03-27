@@ -9,6 +9,7 @@ import lzDataSources from "@/utils/lz/lzDataSources";
 
 import {BioIndexLZSourceJIT} from "@/utils/lz/lzReader";
 import {BIO_INDEX_TO_LZ, LZ_TYPE} from "@/utils/lz/lzConstants";
+import {sortPanels} from "../utils/lz/lzUtils";
 
 export default Vue.component("locuszoom", {
     props: [
@@ -22,7 +23,7 @@ export default Vue.component("locuszoom", {
             proportional_height: 1,
             dashboard: null
         };
-        let panels = this.panels.map(p =>
+        let panels = sortPanels(this.panels).map(p =>
             LocusZoom.Layouts.get("panel", p, { ...panelOptions })
         );
 
@@ -39,11 +40,9 @@ export default Vue.component("locuszoom", {
     },
     methods: {
         plot() {
-            console.log('lz plot');
             this.dataSources = new LocusZoom.DataSources();
 
             const phenotype = this.phenotype.name;
-            console.log(phenotype);
             this.modules.forEach(module => {
                 this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSourceJIT({
                     store: this.$store,
