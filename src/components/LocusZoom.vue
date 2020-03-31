@@ -33,9 +33,9 @@ export default Vue.component("locuszoom", {
             responsive_resize: "both",
             panels,
             state: {
-                chr: this.$store.state.chr,
-                start: this.$store.state.start,
-                end: this.$store.state.end
+                chr: this.chr,
+                start: this.start,
+                end: this.end
             }
         };
         this.plot();
