@@ -126,7 +126,6 @@
                         v-if="$parent.selectedPhenotype !== null"
                         v-bind:modules="['Associations']"
                         v-bind:panels="['association','genes','intervals']"
-                        v-bind:phenotype="$parent.selectedPhenotype"
                         v-bind:chr="$store.state.chr"
                         v-bind:start="$store.state.start"
                         v-bind:end="$store.state.end"

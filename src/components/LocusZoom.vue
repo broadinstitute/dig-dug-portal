@@ -15,7 +15,9 @@ export default Vue.component("locuszoom", {
     props: [
         "panels",
         "modules",
-        "phenotype",
+        "chr",
+        "start",
+        "end",
     ],
     mounted() {
         let panelOptions = {
