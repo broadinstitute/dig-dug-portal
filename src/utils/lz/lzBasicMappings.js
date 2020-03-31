@@ -2,7 +2,14 @@ import { BIO_INDEX_TYPE } from "@/utils/bioIndexUtils";
 import { LZ_TYPE } from "@/utils/lz/lzSchemas";
 import { calcLog } from "@/utils/lz/lzUtils";
 
-const bioIndexToLzMappings = {
+export const BIO_INDEX_TO_LZ = Object.freeze({
+    [BIO_INDEX_TYPE.PhenotypeAssociations]: LZ_TYPE.assoc,  // done
+    [BIO_INDEX_TYPE.Associations]: LZ_TYPE.assoc,   // done
+    [BIO_INDEX_TYPE.TopAssociations]: LZ_TYPE.assoc,   // done
+    [BIO_INDEX_TYPE.Genes]: LZ_TYPE.gene,   // done
+});
+
+export const bioIndexToLzMappings = {
     [BIO_INDEX_TYPE.Associations]: {
         [LZ_TYPE.assoc]: {
             phenotype: 'phenotype',

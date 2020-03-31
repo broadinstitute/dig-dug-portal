@@ -1,6 +1,4 @@
 import LocusZoom from "locuszoom";
-
-import { majorFormat } from "@/utils/bioIndexUtils"
 import { moduleParserSchema } from "@/utils/lz/lzSchemas"
 
 // schema can be applied to both column-first or record-first formats, but the distinction
@@ -21,7 +19,6 @@ function readOnCoords(store, moduleIndex) {
                 return await store.dispatch(`onLocusZoomCoords`, { module: moduleStore, newChr: chromosome, newStart: start, newEnd: end } )
                     .then(() => {
                         let value = store.getters[`${moduleStore}/data`];
-                        console.log('data', value);
                         if (value) {
                             return callback(value);
                         }

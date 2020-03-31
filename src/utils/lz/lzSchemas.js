@@ -17,7 +17,6 @@ export const BIO_INDEX_TO_LZ = Object.freeze({
     [BIO_INDEX_TYPE.PhenotypeAssociations]: LZ_TYPE.assoc,  // done
     [BIO_INDEX_TYPE.Associations]: LZ_TYPE.assoc,   // done
     [BIO_INDEX_TYPE.TopAssociations]: LZ_TYPE.assoc,   // done
-    [BIO_INDEX_TYPE.Variants]: LZ_TYPE.ld, // todo
     [BIO_INDEX_TYPE.Genes]: LZ_TYPE.gene,   // done
 });
 
