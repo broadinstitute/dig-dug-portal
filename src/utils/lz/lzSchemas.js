@@ -2,16 +2,6 @@ import SchemaObject from "schema-object";
 import { calcLog } from "@/utils/lz/lzUtils";
 import {BIO_INDEX_TYPE} from "@/utils/bioIndexUtils";
 
-export const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';
-
-// panel ordering
-// https://github.com/statgen/locuszoom/wiki/Panel#general
-// https://github.com/statgen/locuszoom/wiki/Data-Layer#supported-layout-directives---allmost-data-layer-types
-export const PANEL_ORDER = Object.freeze([
-    // TODO: your ordering here
-    'association','genes','intervals'
-]);
-
 // change this at your peril - they are observed values from LocusZoom's defaults
 export const LZ_TYPE = Object.freeze({
     assoc: 'assoc',
@@ -20,7 +10,6 @@ export const LZ_TYPE = Object.freeze({
     ld: 'ld',
     constraint: 'constraint',
     intervals: 'intervals',
-    // catalog: 'catalog',
 });
 
 export const BIO_INDEX_TO_LZ = Object.freeze({

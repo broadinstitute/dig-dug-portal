@@ -1,109 +1,48 @@
-import throttle from "lodash"
 import LocusZoom from "locuszoom";
 
-import { BIO_INDEX_TYPE, majorFormat, buildModuleQuery } from "@/utils/bioIndexUtils"
-import { BIO_INDEX_TO_LZ, LZSchemas, moduleParserSchema } from "@/utils/lz/lzConstants"
-import { isEmpty, dataRangeFilter, dataFilter } from "@/utils/lz/lzUtils";
+import { majorFormat } from "@/utils/bioIndexUtils"
+import { moduleParserSchema } from "@/utils/lz/lzSchemas"
 
 // schema can be applied to both column-first or record-first formats, but the distinction
 // in how is handled by another function
 function moduleParser(index) {
     return function (data){
         let schema = moduleParserSchema[index];
-        let format = majorFormat(data);
-        switch(format) {
-            case 'r':
-                return data.map(schema);
-            case 'c':
-                return schema(data);
-        }
+        return data.map(schema);
     }
 }
 
-function readOnCoords(store, moduleIndex, queryMaker) {
+function readOnCoords(store, moduleIndex) {
     return {
         async fetch(chromosome, start, end, callback) {
             try {
-                const moduleQueryStr = buildModuleQuery(moduleIndex, { ...queryMaker, chromosome, start, end });
+                // const moduleQueryStr = buildModuleQuery(moduleIndex, { ...queryMaker, chromosome, start, end });
                 const moduleStore = _.camelCase(moduleIndex);
-                return await store.dispatch(`${moduleStore}/query`, { q: moduleQueryStr }).then(() => {
-                    let value = store.getters[`${moduleStore}/data`];
-                    if (value) {
-                        return callback(value);
-                    }
-                    const emptyObject = [];
-                    return callback(emptyObject);
-                });
-            } catch (e) {
-                return callback(null, e);
-            }
-        }
-    }
-}
-
-// Candidate A: Read off store (i.e. command-query separation)
-function readOffStore(store, moduleIndex) {
-    return {
-        async fetch(chromosome, start, end, callback) {
-            try {
-                let value = store.getters[`${_.camelCase(moduleIndex)}/data`];
-                if (value) {
-                    let format = majorFormat(value);
-
-                    // default behavior is to return everything if states for a filter are undefined
-                    const chromosomeFilter = dataFilter(format, 'chromosome')(chromosome);  // scoping the name as 'chromosome' as we're expecting bioindex data in general
-                    const positionFilter = dataRangeFilter(format, 'position')(start, end);
-                    if (!isEmpty(value)) {
-                        if (typeof indexObject !== "undefined") {
-                            Object.keys(indexObject).forEach(property => {
-                                const indexObjectFilter = dataFilter(format, property)(indexObject[property]);  // e.g. phenotype: `<page's phenotype>`
-                                value = indexObjectFilter(value);
-                            });
+                return await store.dispatch(`onLocusZoomCoords`, { module: moduleStore, newChr: chromosome, newStart: start, newEnd: end } )
+                    .then(() => {
+                        let value = store.getters[`${moduleStore}/data`];
+                        console.log('data', value);
+                        if (value) {
+                            return callback(value);
                         }
-                    }
-                    value = chromosomeFilter(value);
-                    value = positionFilter(value);
-                    return callback(value);
-                } else {
-                    const emptySchema = new LZSchemas[BIO_INDEX_TO_LZ[BIO_INDEX_TYPE[moduleIndex]]]().toObject();
-                    return callback(emptySchema);
-                }
-
+                        const emptyObject = [];
+                        return callback(emptyObject);
+                    });
             } catch (e) {
                 return callback(null, e);
             }
         }
     }
 }
-
-export const BioIndexLZSource = LocusZoom.Data.Source.extend(function(init) {
-    this.parseInit(init);
-});
-BioIndexLZSource.prototype.parseInit = function ({ store, module, indexObj }) {
-    this.params = { store, module, indexObj };
-    this.parser = moduleParser(module);
-    this.reader = readOffStore(store, module, indexObj);
-};
-BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
-    const self = this;
-    return new Promise((resolve, reject) => {
-        self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
-            if (err) {
-                reject(new Error(err));
-            }
-            resolve(self.parser(data));
-        });
-    });
-};
 
 export const BioIndexLZSourceJIT = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
 });
 BioIndexLZSourceJIT.prototype.parseInit = function (params) {
-    const { store, module, queryMaker } = params;
+    const { store, module } = params;
     this.params = params;
     this.parser = moduleParser(module);
-    this.reader = readOnCoords(store, module, queryMaker);
+    this.reader = readOnCoords(store, module);
 };
 BioIndexLZSourceJIT.prototype.getRequest = function (state, chain, fields) {
     const self = this;

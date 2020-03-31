@@ -54,6 +54,22 @@ export default new Vuex.Store({
                 end: state.end,
             });
         },
+        setLocusCoords(state, { chromosome, start, end }) {
+            state.newChr = chromosome;
+            state.newStart = start;
+            state.newEnd = end;
+
+            state.chr = state.newChr || state.chr;
+            state.start = state.newStart || state.start;
+            state.end = state.newEnd || state.end;
+            state.gene = null;
+
+            keyParams.set({
+                chr: state.chr,
+                start: state.start,
+                end: state.end,
+            });
+        },
     },
     getters: {
         // The phenotype is a getter because it depends on the bioPortal
@@ -75,6 +91,16 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        async onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
+            const { chr, start, end } = context.state;
+            if (newChr !== chr || newStart !== start || newEnd !== end) {
+                console.log(module);
+                await context.dispatch(`${module}/clearData`);
+                await context.dispatch(`${module}/query`, {q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
+                context.commit(`setLocusCoords`, { chromosome: newChr, start: newStart, end: newEnd });
+            }
+        },
+
         async onPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);
         },
@@ -99,7 +125,6 @@ export default new Vuex.Store({
             if (context.state.gene) {
                 context.dispatch('searchGene');
             } else {
-                context.commit('setLocus');
                 context.commit('setSelectedPhenotype', null);
                 context.commit('genes/clearData');
                 context.commit('associations/clearData');
@@ -123,8 +148,9 @@ export default new Vuex.Store({
 
                 // get the associations for this phenotype in the region
                 context.commit("setSelectedPhenotype", phenotype);
-                context.dispatch('associations/query', { q });
+                await context.dispatch('associations/query', { q });
             }
         },
+
     }
 });

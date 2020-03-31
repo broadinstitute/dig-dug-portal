@@ -103,6 +103,7 @@ export default function (index, extend) {
                 context.commit("setCount", json.count);
             },
             async query(context, queryPayload) {
+                console.log('query');
                 let data = [];
                 let profile = {};
 
@@ -168,7 +169,6 @@ export default function (index, extend) {
                 }
 
                 context.commit('setResponse', { data, profile });
-
             },
         }
     };
