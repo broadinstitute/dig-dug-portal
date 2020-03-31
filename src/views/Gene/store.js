@@ -94,8 +94,6 @@ export default new Vuex.Store({
         async onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
             const { chr, start, end } = context.state;
             if (newChr !== chr || newStart !== start || newEnd !== end) {
-                console.log(module);
-                await context.dispatch(`${module}/clearData`);
                 await context.dispatch(`${module}/query`, {q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
                 context.commit(`setLocusCoords`, { chromosome: newChr, start: newStart, end: newEnd });
             }
