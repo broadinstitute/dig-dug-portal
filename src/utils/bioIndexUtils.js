@@ -38,7 +38,7 @@ async function* iterateOnQuery(json, errHandler) {
         let queryStr = makeBioIndexQueryStr(json);
         json = await portalFetch(queryStr, errHandler);
         yield json;
-    } while(json.continuation);
+    } while (json.continuation);
 }
 
 async function portalFetch(query, errHandler) {
@@ -56,19 +56,19 @@ async function portalFetch(query, errHandler) {
 
 // Private methods
 function makeBioIndexQueryStr(json) {
-    const { index, q, limit, continuation } = json;
+    const { index, q, continuation } = json;
     // check for the continuation first, since index && q are going to be true in all valid cases
     // (they will only be false in malformed/invalid cases)
     if (continuation) {
         const qs = querystring.encode({ token: continuation });
-        return `${BIO_INDEX_HOST}/api/cont?${qs}`;
+        return `${BIO_INDEX_HOST}/api/bio/cont?${qs}`;
     } else if (index && q) {
-        const qs = querystring.encode({ q, limit });
-        return `${BIO_INDEX_HOST}/api/query/${index}?${qs}`
+        const qs = querystring.encode({ q });
+        return `${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`
     }
 };
 
-export function majorFormat(data){
+export function majorFormat(data) {
     // https://stackoverflow.com/a/51285298
     if (data.constructor == Object) {
         return 'c'
@@ -78,19 +78,19 @@ export function majorFormat(data){
 }
 
 const arityFilter = {
-    [BIO_INDEX_TYPE.Associations]: function(args) {
+    [BIO_INDEX_TYPE.Associations]: function (args) {
         const { phenotype, chromosome, start, end } = args;
         return { phenotype, chromosome, start, end };
     },
-    [BIO_INDEX_TYPE.PhenotypeAssociations]: function(args) {
+    [BIO_INDEX_TYPE.PhenotypeAssociations]: function (args) {
         const { phenotype } = args;
         return { phenotype };
     },
-    [BIO_INDEX_TYPE.TopAssociations]: function(args) {
+    [BIO_INDEX_TYPE.TopAssociations]: function (args) {
         const { chromosome, start, end } = args;
         return { chromosome, start, end };
     },
-    [BIO_INDEX_TYPE.Gene]: function(args) {
+    [BIO_INDEX_TYPE.Gene]: function (args) {
 
     }
 };
@@ -124,4 +124,3 @@ function queryTemplate(args) {
 export function buildModuleQuery(module, params) {
     return queryTemplate(arityFilter[module](params))
 }
-

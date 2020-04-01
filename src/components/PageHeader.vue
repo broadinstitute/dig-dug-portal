@@ -35,7 +35,7 @@
                     :class="'header-disease-group-select-wrapper'"
                     v-if="diseaseGroup.default && currentPage != '/' && currentPage != ''"
                 >
-                    <disease-group-select :disease-groups="diseaseGroups"></disease-group-select>
+                    <!--<disease-group-select :disease-groups="diseaseGroups"></disease-group-select>-->
                 </div>
             </div>
             <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
