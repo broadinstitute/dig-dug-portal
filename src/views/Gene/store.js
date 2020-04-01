@@ -13,9 +13,9 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        genes: bioIndex("Genes"),
-        associations: bioIndex("Associations"),
-        topAssociations: bioIndex("TopAssociations"),
+        genes: bioIndex("genes"),
+        associations: bioIndex("associations"),
+        topAssociations: bioIndex("top-associations"),
     },
     state: {
         // only used at the start
