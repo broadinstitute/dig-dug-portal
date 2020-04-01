@@ -74,7 +74,7 @@ export default {
 
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
-            let qs = queryString.stringify({ q: state.host.subDomain });
+            let qs = queryString.stringify({ q: state.host.subDomain }, { skipNull: true });
             let json = await fetch(`${BIO_INDEX_HOST}/api/portal/phenotypes?${qs}`)
                 .then(resp => resp.json());
 
