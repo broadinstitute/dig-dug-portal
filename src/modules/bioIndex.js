@@ -93,7 +93,7 @@ export default function (index, extend) {
             async count(context, { q }) {
                 let qs = queryString.stringify({ q });
                 let json = await fetch(
-                    `${BIO_INDEX_HOST}/api/count/${index}?${qs}`
+                    `${BIO_INDEX_HOST}/api/bio/count/${index}?${qs}`
                 )
                     .then(resp => resp.json())
                     .catch(error => {

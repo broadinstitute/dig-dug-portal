@@ -8,9 +8,9 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        associations: bioIndex("Associations"),
-        topAssociations: bioIndex("TopAssociations"),
-        variants: bioIndex("Variants"),
+        associations: bioIndex("associations"),
+        topAssociations: bioIndex("top-associations"),
+        variants: bioIndex("variants"),
     },
     state: {},
     mutations: {},

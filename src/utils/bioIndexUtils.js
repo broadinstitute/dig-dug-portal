@@ -3,7 +3,7 @@
    - Includes constants like hostname (which can still be set via an environmental variable)
 */
 
-import querystring from "querystring";
+import querystring from "query-string";
 
 // Constants
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
@@ -18,8 +18,8 @@ async function* continuedIterableQuery(json, errHandler = null) {
     // NOTE: an existing response has to be passed in to *iterateQuery on initialization
     // if the continuation from the previous response isn't null, we can move the generator forward
     while (json.continuation) {
-        let qs = querystring.encode({ token: json.continuation });
-        json = await fetch(`${BIO_INDEX_HOST}/api/cont?${qs}`)
+        let qs = querystring.stringify({ token: json.continuation });
+        json = await fetch(`${BIO_INDEX_HOST}/api/bio/cont?${qs}`)
             .then(resp => {
                 if (resp.status !== 200) {
                     throw Error(resp.status.toString());
@@ -38,8 +38,8 @@ async function* continuedIterableQuery(json, errHandler = null) {
 }
 
 export async function* iterableQuery(index, { q, limit }, errHandler = null) {
-    let qs = querystring.encode({ q, limit });
-    let json = await fetch(`${BIO_INDEX_HOST}/api/query/${index}?${qs}`)
+    let qs = querystring.stringify({ q, limit }, { skipNull: true });
+    let json = await fetch(`${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`)
         .then(resp => {
             if (resp.status !== 200) {
                 throw Error(resp.status.toString());

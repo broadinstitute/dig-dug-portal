@@ -65,7 +65,7 @@ export default {
     actions: {
         // fetch all disease groups from the bio index
         async getDiseaseGroups({ commit }) {
-            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/DiseaseGroups`)
+            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/groups`)
                 .then(resp => resp.json());
 
             // set the portal list
@@ -74,8 +74,8 @@ export default {
 
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
-            let qs = queryString.stringify({ q: state.host.subDomain });
-            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/Phenotypes?${qs}`)
+            let qs = queryString.stringify({ q: state.host.subDomain }, { skipNull: true });
+            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/phenotypes?${qs}`)
                 .then(resp => resp.json());
 
             // set the list of phenotypes
