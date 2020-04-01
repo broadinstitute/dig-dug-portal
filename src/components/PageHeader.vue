@@ -31,12 +31,6 @@
                     :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
                     :class="diseaseGroup.name+'kp-logo'"
                 />
-                <div
-                    :class="'header-disease-group-select-wrapper'"
-                    v-if="diseaseGroup.default && currentPage != '/' && currentPage != ''"
-                >
-                    <disease-group-select :disease-groups="diseaseGroups"></disease-group-select>
-                </div>
             </div>
             <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
                 <ul :class="diseaseGroup.name+'kp-menu'">
