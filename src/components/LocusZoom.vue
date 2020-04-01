@@ -7,15 +7,11 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "@/utils/lz/lzDataSources";
 
-import {BioIndexLZSourceJIT} from "@/utils/lz/lzReader";
-import {BIO_INDEX_TO_LZ, LZ_TYPE} from "@/utils/lz/lzConstants";
+import { BioIndexLZSourceJIT } from "@/utils/lz/lzReader";
+import { BIO_INDEX_TO_LZ, LZ_TYPE } from "@/utils/lz/lzConstants";
 
 export default Vue.component("locuszoom", {
-    props: [
-        "panels",
-        "modules",
-        "phenotype",
-    ],
+    props: ["panels", "modules", "phenotype"],
     mounted() {
         let panelOptions = {
             //unnamespaced: true,
@@ -39,25 +35,37 @@ export default Vue.component("locuszoom", {
     },
     methods: {
         plot() {
-            console.log('lz plot');
+            //console.log('lz plot');
             this.dataSources = new LocusZoom.DataSources();
 
             const phenotype = this.phenotype.name;
-            console.log(phenotype);
+            //console.log(phenotype);
             this.modules.forEach(module => {
-                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSourceJIT({
-                    store: this.$store,
-                    module: module,
-                    queryMaker: { phenotype },
-                }));
+                this.dataSources.add(
+                    BIO_INDEX_TO_LZ[module],
+                    new BioIndexLZSourceJIT({
+                        store: this.$store,
+                        module: module,
+                        queryMaker: { phenotype }
+                    })
+                );
             });
 
-            Object.values(LZ_TYPE).filter(dataType => !this.modules.map(m => BIO_INDEX_TO_LZ[m]).includes(dataType))
+            Object.values(LZ_TYPE)
+                .filter(
+                    dataType =>
+                        !this.modules
+                            .map(m => BIO_INDEX_TO_LZ[m])
+                            .includes(dataType)
+                )
                 .forEach(dataType => {
                     if (this[dataType]) {
                         this.dataSources.add(dataType, this[dataType]);
                     } else {
-                        this.dataSources.add(dataType, lzDataSources.defaultSource[dataType]);
+                        this.dataSources.add(
+                            dataType,
+                            lzDataSources.defaultSource[dataType]
+                        );
                     }
                 });
 
@@ -69,7 +77,7 @@ export default Vue.component("locuszoom", {
         },
         updateLocus(chr, start, end) {
             this.lzplot.applyState({ chr, start, end });
-        },
+        }
     }
 });
 </script>

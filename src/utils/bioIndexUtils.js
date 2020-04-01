@@ -3,7 +3,7 @@
    - Includes constants like hostname (which can still be set via an environmental variable)
 */
 
-import querystring from "querystring";
+import querystring from "query-string";
 
 // Constants
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
@@ -56,14 +56,19 @@ async function portalFetch(query, errHandler) {
 
 // Private methods
 function makeBioIndexQueryStr(json) {
-    const { index, q, continuation } = json;
+    let { index, q, limit, continuation } = json;
+
+    // if the query or limit is an empty string, ignore it
+    q = (!!q) ? q : null;
+    limit = (!!limit) ? limit : null;
+
     // check for the continuation first, since index && q are going to be true in all valid cases
     // (they will only be false in malformed/invalid cases)
     if (continuation) {
-        const qs = querystring.encode({ token: continuation });
+        const qs = querystring.stringify({ token: continuation }, { skipNull: true });
         return `${BIO_INDEX_HOST}/api/bio/cont?${qs}`;
     } else if (index && q) {
-        const qs = querystring.encode({ q });
+        const qs = querystring.stringify({ q }, { skipNull: true });
         return `${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`
     }
 };
