@@ -42,26 +42,13 @@ export default new Vuex.Store({
             state.phenotypeParam = null;
             state.phenotype = state.bioPortal.phenotypeMap[name];
         },
-        setLocus(state) {
-            state.chr = state.newChr || state.chr;
-            state.start = state.newStart || state.start;
-            state.end = state.newEnd || state.end;
-            state.gene = null;
-
-            keyParams.set({
-                chr: state.chr,
-                start: state.start,
-                end: state.end,
-            });
-        },
-        setLocusCoords(state, { chromosome, start, end }) {
-            state.newChr = chromosome;
-            state.newStart = start;
-            state.newEnd = end;
-
-            state.chr = state.newChr || state.chr;
-            state.start = state.newStart || state.start;
-            state.end = state.newEnd || state.end;
+        setLocus(state, region = {}) {
+            state.chr = region.chr || state.newChr || state.chr;
+            state.start = region.start || state.newStart || state.start;
+            state.end = region.end || state.newEnd || state.end;
+            state.newChr = state.chr;
+            state.newStart = state.start;
+            state.newEnd = state.end;
             state.gene = null;
 
             keyParams.set({
@@ -94,8 +81,8 @@ export default new Vuex.Store({
         async onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
             const { chr, start, end } = context.state;
             if (newChr !== chr || newStart !== start || newEnd !== end) {
-                await context.dispatch(`${module}/query`, {q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
-                context.commit(`setLocusCoords`, { chromosome: newChr, start: newStart, end: newEnd });
+                await context.dispatch(`${module}/query`, { q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
+                //context.commit(`setLocus`, { chr: newChr, start: newStart, end: newEnd });
             }
         },
 
@@ -146,7 +133,7 @@ export default new Vuex.Store({
 
                 // get the associations for this phenotype in the region
                 context.commit("setSelectedPhenotype", phenotype);
-                await context.dispatch('associations/query', { q });
+                context.dispatch('associations/query', { q });
             }
         },
 
