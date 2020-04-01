@@ -12,7 +12,7 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        associations: bioIndex("PhenotypeAssociations")
+        associations: bioIndex("phenotype-associations")
     },
     state: {
         phenotypeName: keyParams.phenotype,
