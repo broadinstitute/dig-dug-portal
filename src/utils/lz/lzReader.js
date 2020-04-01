@@ -1,15 +1,5 @@
 import LocusZoom from "locuszoom";
-import { moduleParserSchema } from "@/utils/lz/lzSchemas"
-import {BIO_INDEX_TO_LZ, bioIndexToLzMappings, lzCreateSchemaTranslator} from "./lzBasicMappings";
-
-// schema can be applied to both column-first or record-first formats, but the distinction
-// in how is handled by another function
-function moduleParser(index) {
-    return function (data){
-        let schema = moduleParserSchema[index];
-        return data.map(schema);
-    }
-}
+import { BIO_INDEX_TO_LZ, bioIndexMappings, createSchemaTranslator } from "@/utils/dataMappingUtils";
 
 function readOnCoords(store, moduleIndex) {
     return {
@@ -39,7 +29,7 @@ export const BioIndexLZSourceJIT = LocusZoom.Data.Source.extend(function(init) {
 BioIndexLZSourceJIT.prototype.parseInit = function (params) {
     const { store, module } = params;
     this.params = params;
-    this.parser = lzCreateSchemaTranslator(BIO_INDEX_TO_LZ[module], module, bioIndexToLzMappings);
+    this.parser = createSchemaTranslator(BIO_INDEX_TO_LZ[module], module, bioIndexMappings);
     this.reader = readOnCoords(store, module);
 };
 BioIndexLZSourceJIT.prototype.getRequest = function (state, chain, fields) {

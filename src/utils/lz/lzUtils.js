@@ -1,3 +1,12 @@
+export const LZ_TYPE = Object.freeze({
+    assoc: 'assoc',
+    gene: 'gene',
+    recomb: 'recomb',
+    ld: 'ld',
+    constraint: 'constraint',
+    intervals: 'intervals',
+});
+
 export const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';
 // panel ordering
 // https://github.com/statgen/locuszoom/wiki/Panel#general

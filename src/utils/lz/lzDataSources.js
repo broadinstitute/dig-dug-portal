@@ -1,5 +1,4 @@
-import {HUMAN_GENOME_BUILD_VERSION} from "@/utils/lz/lzUtils"
-import {LZ_TYPE} from "@/utils/lz/lzSchemas";
+import { HUMAN_GENOME_BUILD_VERSION, LZ_TYPE } from "@/utils/lz/lzUtils"
 
 export default {
     defaultSource: {

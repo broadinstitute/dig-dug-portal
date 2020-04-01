@@ -8,16 +8,14 @@ import querystring from "querystring";
 // Constants
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
 export const BIO_INDEX_TYPE = Object.freeze({
-    test: 'test',
-    Gene: 'Gene',
-    Genes: 'Genes',
-    PhenotypeAssociations: 'PhenotypeAssociations',
-    GlobalEnrichment: 'GlobalEnrichment',
-    AnnotatedRegions: 'AnnotatedRegions',
-    Associations: 'Associations',
-    TopAssociations: 'TopAssociations',
-    Variant: 'Variant',
-    Variants: 'Variants',
+    Gene: 'gene',
+    Genes: 'genes',
+    PhenotypeAssociations: 'phenotype-associations',
+    GlobalEnrichment: 'global-enrichment',
+    Associations: 'associations',
+    TopAssociations: 'top-associations',
+    Variant: 'variant',
+    Variants: 'variants',
 });
 
 // Methods

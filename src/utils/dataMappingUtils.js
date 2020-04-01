@@ -1,12 +1,6 @@
 import { BIO_INDEX_TYPE } from "@/utils/bioIndexUtils";
-import { LZ_TYPE } from "@/utils/lz/lzSchemas";
-import { calcLog } from "@/utils/lz/lzUtils";
-
+import { calcLog, LZ_TYPE } from "@/utils/lz/lzUtils";
 import { isFunction, isPlainObject, flatten } from "lodash";
-
-import { testAssociations, testVariants } from "../../views/Debug/testData";
-
-const TEST = false;
 
 export const BIO_INDEX_TO_LZ = Object.freeze({
     [BIO_INDEX_TYPE.PhenotypeAssociations]: LZ_TYPE.assoc,
@@ -15,7 +9,7 @@ export const BIO_INDEX_TO_LZ = Object.freeze({
     [BIO_INDEX_TYPE.Genes]: LZ_TYPE.gene,
 });
 
-export const bioIndexToLzMappings = {
+export const bioIndexMappings = {
     [BIO_INDEX_TYPE.Associations]: {
         // an example of a simple way of specifying schema mappings, including computed parameters (log_pvalue)
         [LZ_TYPE.assoc]: {
@@ -27,42 +21,36 @@ export const bioIndexToLzMappings = {
             log_pvalue: { func: calcLog, key: 'pValue' },
             ref_allele: 'reference',
             variant: 'varId',
-        }
+        },
+    },
+    [BIO_INDEX_TYPE.Variant]: {
+        // TODO
+        ['transcriptConsequence']: parseVariantDataForTranscriptConsequences,
+        // TODO
+        [LZ_TYPE.assoc]: parseVariantDataForAssociations
     },
     [BIO_INDEX_TYPE.Variants]: {
         // an example of a custom function used for parsing, can be any function you want as long as it takes an array of data
         [LZ_TYPE.assoc]: parseVariantsDataForAssociations,
-        // TODO: do I want to support the complexity of the Variants -> assoc mapping in the syntax, or just let custom function be written?
-        // [LZ_TYPE.assoc]: {
-        //     access: 'associations',
-        //     mapping: {
-        //         chr: '@chromosome',
-        //         position: '@position',
-        //         pvalue: '@pValue',
-        //         ref_allele: '@reference',
-        //         phenotype: 'phenotype',
-        //         id: 'varId',
-        //         log_pvalue: { func: calcLog, key: 'pvalue' },
-        //         variant: 'varId',
-        //     },
-        // },
     },
 }
 
+let parseVariantDataForTranscriptConsequences = function (data) { return data.map(datum => datum.transcriptConsequence); };
+let parseVariantDataForAssociations = function (data) { return data; };
 function parseVariantsDataForAssociations(variants) {
     return flatten(variants.filter(variant => typeof variant.associations != 'undefined').map(variant => {
         return variant.associations.map(association => ({
             chr: variant.chromosome,
             position: variant.position,
+            ref_allele: variant.varId,
             pvalue: association.pValue,
             log_pvalue: calcLog(association.pValue),
             phenotype: association.phenotype,
-            ref_allele: variant.reference,
         }));
     }));
 };
 
-export function lzCreateSchemaTranslator(schemaTo, bioIndexFrom, basicMappings) {
+export function createSchemaTranslator(schemaTo, bioIndexFrom, basicMappings) {
     const translationMap = basicMappings[bioIndexFrom][schemaTo];
     /*
     * translation mappings obey the following structure:
@@ -70,6 +58,7 @@ export function lzCreateSchemaTranslator(schemaTo, bioIndexFrom, basicMappings) 
     * and values inside of mapping obey the following structure:
     * - <string> OR { func: <optional function>, key: <string> }
     * */
+    // TODO: refactor so that schemaParserAndMapper can be used as a function?
     return function (data) {
         if (isFunction(translationMap)) {
             return translationMap(data)
@@ -162,6 +151,7 @@ const schemaParserAndMapper = function(data, translationMap) {
 
 
 /* TESTS */
+const TEST = false;
 if (TEST) {
 
     const flatData = [{ property1a: 'hello', property1b: 'my', property1c: 'good', property1d: 'friend' }];
@@ -223,8 +213,8 @@ if (TEST) {
     // Case 1/2: No accessors (i.e. the Associations case)
         console.log('case1/2');
     // create schema remapping generator
-        const abTranslator1 = lzCreateSchemaTranslator('b', 'a1', testMappings);  // schema
-        const abTranslator2 = lzCreateSchemaTranslator('b', 'a2', testMappings);  // mapping: { ...schema }
+        const abTranslator1 = createSchemaTranslator('b', 'a1', testMappings);  // schema
+        const abTranslator2 = createSchemaTranslator('b', 'a2', testMappings);  // mapping: { ...schema }
         console.log(abTranslator1(flatData));  // Case 1: basic schema definition syntax
     // RESULT: [ { 'property2a': 'hello', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a1',  } ]
         console.log(abTranslator2(flatData));  // Case 2: expanded schema definition syntax
@@ -233,13 +223,13 @@ if (TEST) {
     // Case 3: Single accessor
         console.log('case3');
     // TODO: recover the structure of the accessor as an option?
-        const abTranslator3 = lzCreateSchemaTranslator('b', 'a3', testMappings);
+        const abTranslator3 = createSchemaTranslator('b', 'a3', testMappings);
         console.log(struct1Data.map(datum => abTranslator3(datum))[0]);
     // RESULT: [ { 'property2a': 'hello', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a3',  } ]
 
     // Case 4: Single accessor with property injection (i.e. the Variant case)
         console.log('case4');
-        const abTranslator4 = lzCreateSchemaTranslator('b', 'a4', testMappings);
+        const abTranslator4 = createSchemaTranslator('b', 'a4', testMappings);
         console.log(struct1Data.map(datum => abTranslator4(datum))[0]);
     // RESULT: [ { 'property2a': 'goodbye', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a4',  } ]
 
@@ -248,7 +238,7 @@ if (TEST) {
         const testMapWithFunction = {
             a: { b: function(data) { console.log("i'm a function"); return data; } }
         };
-        const identityTranslator = lzCreateSchemaTranslator('b', 'a', testMapWithFunction);
+        const identityTranslator = createSchemaTranslator('b', 'a', testMapWithFunction);
     // console.log(identityTranslator(flatData));
     // RESULT: [ { 'property2a': 'hello', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a1',  } ]
 
@@ -257,20 +247,5 @@ if (TEST) {
     // Case 1: Non-existent accessors (underdrill)
     // Case 2: Non-existent accessors (overdrill)
     // Case 2: No such property in source data
-
-
-    // Ecological Cases
-
-    // CASE 1: From BioIndex Associations – Data is flat list that corresponds 1:1 to an LZ_Type in structure
-        const bioIndexTranslatorAssociationsToAssoc = lzCreateSchemaTranslator(LZ_TYPE.assoc, BIO_INDEX_TYPE.Associations, bioIndexToLzMappings);
-        const translatedAssociationsFromAssociations = bioIndexTranslatorAssociationsToAssoc(testAssociations.data);
-        console.log(translatedAssociationsFromAssociations);
-    // // RESULT: [ { ...'pvalue': 3.3e-316, 'chromosome': 10, 'position': 114750500... }... ]
-
-    // CASE 2: from BioIndex Variants – Data requires accessor, as the original data does not correspond 1:1 to an LZ_Type in structure
-        const bioIndexTranslatorVariantsToAssoc = lzCreateSchemaTranslator(LZ_TYPE.assoc, BIO_INDEX_TYPE.Variants, bioIndexToLzMappings);
-        const translatedAssociationsFromVariants = bioIndexTranslatorVariantsToAssoc(testVariants.data);
-        console.log(translatedAssociationsFromVariants);
-    // RESULT: [ { 'pvalue': 0.6969, 'chromsome'...? } ]
 
 };
