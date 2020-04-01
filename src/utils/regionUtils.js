@@ -60,7 +60,7 @@ async function parseRegion(s, allowGeneLookup = true) {
         }
 
         // use the bio index to lookup a gene name
-        let region = await fetch(`${BIO_INDEX_HOST}/api/query/Gene?q=${s}`)
+        let region = await fetch(`${BIO_INDEX_HOST}/api/bio/query/gene?q=${s}`)
             .then(resp => resp.json())
             .then(json => {
                 if (json.count == 0) {

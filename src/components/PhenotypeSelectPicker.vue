@@ -1,16 +1,24 @@
 <template>
-    <v-select
-        v-model="selectedPhenotype"
-        @input="$store.dispatch('onPhenotypeChange', selectedPhenotype);"
-        label="description"
-        :options="phenotypeOptions"
-    ></v-select>
+    <div>
+        <vue-typeahead-bootstrap
+            :data="phenotypeOptions"
+            :serializer="s => s.description"
+            @hit="$store.dispatch('onPhenotypeChange', $event)"
+        >
+            <template slot="suggestion" slot-scope="{ data, htmlText }">
+                <span v-html="htmlText"></span>&nbsp;
+                <small class="text-secondary">{{ data.group }}</small>
+            </template>
+        </vue-typeahead-bootstrap>
+    </div>
 </template>
 
 <script>
 import Vue from "vue";
+import _ from "lodash";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -21,6 +29,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import vSelect from "vue-select";
 
 Vue.component("v-select", vSelect);
+Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 import "vue-select/dist/vue-select.css";
 
