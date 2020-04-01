@@ -8,7 +8,7 @@ import LocusZoom from "locuszoom";
 import lzDataSources from "@/utils/lz/lzDataSources";
 
 import {BioIndexLZSourceJIT} from "@/utils/lz/lzReader";
-import {sortPanels} from "@/utils/lz/lzUtils";
+import {sortPanels, LZ_TYPE} from "@/utils/lz/lzUtils";
 import {BIO_INDEX_TO_LZ} from "@/utils/dataMappingUtils";
 
 export default Vue.component("locuszoom", {

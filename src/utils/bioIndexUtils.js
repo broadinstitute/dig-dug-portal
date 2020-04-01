@@ -49,6 +49,7 @@ async function portalFetch(query, errHandler) {
         })
         .then(resp => resp.json())
         .catch(errHandler);
+    return json;
 };
 
 
@@ -58,19 +59,11 @@ function makeBioIndexQueryStr(json) {
     // check for the continuation first, since index && q are going to be true in all valid cases
     // (they will only be false in malformed/invalid cases)
     if (continuation) {
-        const qs = querystring.encode({ token: continuation });
-        return `${BIO_INDEX_HOST}/api/cont?${qs}`;
+        const qs = querystring.stringify({ token: continuation }, { skipNull: true });
+        return `${BIO_INDEX_HOST}/api/bio/cont?${qs}`;
     } else if (index && q) {
-        const qs = querystring.encode({ q, limit });
-        return `${BIO_INDEX_HOST}/api/query/${index}?${qs}`
+        const qs = querystring.stringify({ q, limit }, { skipNull: true });
+        return `${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`
     }
 };
 
-export function majorFormat(data){
-    // https://stackoverflow.com/a/51285298
-    if (data.constructor == Object) {
-        return 'c'
-    } else if (data instanceof Array) {
-        return 'r'
-    }
-}

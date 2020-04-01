@@ -10,6 +10,7 @@ function readOnCoords(store, moduleIndex) {
                 return await store.dispatch(`onLocusZoomCoords`, { module: moduleStore, newChr: chromosome, newStart: start, newEnd: end } )
                     .then(() => {
                         let value = store.getters[`${moduleStore}/data`];
+                        console.log(value)
                         if (value) {
                             return callback(value);
                         }
@@ -28,7 +29,6 @@ export const BioIndexLZSourceJIT = LocusZoom.Data.Source.extend(function(init) {
 });
 BioIndexLZSourceJIT.prototype.parseInit = function (params) {
     const { store, module } = params;
-    this.params = params;
     this.parser = createSchemaTranslator(BIO_INDEX_TO_LZ[module], module, bioIndexMappings);
     this.reader = readOnCoords(store, module);
 };

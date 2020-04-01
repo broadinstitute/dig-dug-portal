@@ -2,7 +2,6 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioIndex from "@/modules/bioIndex";
-import querystring from "querystring";
 
 Vue.use(Vuex);
 

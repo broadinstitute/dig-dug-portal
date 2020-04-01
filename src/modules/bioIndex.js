@@ -103,7 +103,6 @@ export default function (index, extend) {
                 context.commit("setCount", json.count);
             },
             async query(context, queryPayload) {
-                console.log('query');
                 let data = [];
                 let profile = {};
 
@@ -137,7 +136,6 @@ export default function (index, extend) {
                         );
                         let response = await context.state.iterableQuery.next();
                         // set the initial data
-                        //context.commit("setResponse", response.value);
                         data = response.value.data;
                         profile = response.value.profile;
                     }

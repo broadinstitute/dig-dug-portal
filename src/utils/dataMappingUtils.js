@@ -51,6 +51,7 @@ function parseVariantsDataForAssociations(variants) {
 };
 
 export function createSchemaTranslator(schemaTo, bioIndexFrom, basicMappings) {
+    console.log(basicMappings, bioIndexFrom, schemaTo);
     const translationMap = basicMappings[bioIndexFrom][schemaTo];
     /*
     * translation mappings obey the following structure:
