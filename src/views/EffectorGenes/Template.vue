@@ -91,51 +91,53 @@
 
 			<div id="table">
 				<div v-for="(gene, i) in filteredGene" :key="i">
-					<div v-if="(i === 0) || (gene[1]['names.genes'] !== filteredGene[i-1][1]['names.genes'])">
-						<div class="row summary">
-							<div class="sum geneName">{{gene[1]["names.genes"]}}</div>
-							<div class="sum prob" @click="showInfo()">{{gene[1]["all.locus.prob"]}}</div>
-							<div class="sum chromLocation">
-								<span class="chrom">{{gene[1]["locus.chrom"].slice(3)}}</span> :
-								<span class="chromStart">{{ gene[1]["locus.chrom.start"]}}</span> -
-								<span class="chromEnd">{{gene[1]["locus.chrom.end"]}}</span>
+					<template>
+						<div v-if="(i === 0) || (gene[1]['names.genes'] !== filteredGene[i-1][1]['names.genes'])">
+							<div class="row summary">
+								<div class="sum geneName">{{gene[1]["names.genes"]}}</div>
+								<div class="sum prob" @click="this.isHidden = !this.isHidden">{{gene[1]["all.locus.prob"]}}</div>
+								<div class="sum chromLocation">
+									<span class="chrom">{{gene[1]["locus.chrom"].slice(3)}}</span> :
+									<span class="chromStart">{{ gene[1]["locus.chrom.start"]}}</span> -
+									<span class="chromEnd">{{gene[1]["locus.chrom.end"]}}</span>
+								</div>
+								<div class="sum ei"></div>
 							</div>
-							<div class="sum ei"></div>
-						</div>
-						<div
-							class="probInfo"
-							:class="{hidden: isHidden}"
-							:id="gene[1]['names.genes'].split('.').join('_')"
-						>
-							<div class="probHeaders">
-								<div v-for="col in $parent.listCol" :key="col.name">
-									<span>{{col.name}}</span>
+
+							<div
+								class="probInfo"
+								:class="{hidden: isHidden}"
+								:id="gene[1]['names.genes'].split('.').join('_')"
+							>
+								<div class="probHeaders">
+									<div v-for="col in $parent.listCol" :key="col.name">
+										<span>{{col.name}}</span>
+									</div>
+								</div>
+								<div class="probDetails">
+									<portal-target :name="gene[1]['names.genes']" multiple></portal-target>
 								</div>
 							</div>
-							<div class="probDetails">
-								<portal-target :name="gene[1]['names.genes']" multiple></portal-target>
+						</div>
+						<portal :to="gene[1]['names.genes']">
+							<div class="detailRow">
+								<div v-for="col in $parent.listCol" :key="col.name">{{gene[1][col.name]}}</div>
 							</div>
-						</div>
-					</div>
-					<portal :to="gene[1]['names.genes']">
-						<div class="detailRow">
-							<div v-for="col in $parent.listCol" :key="col.name">{{gene[1][col.name]}}</div>
-						</div>
-					</portal>
+						</portal>
 
-					<!-- <div class="probInfo">
+						<!-- <div class="probInfo">
 						<div class="probHeaders">
 							<div v-for="col in $parent.listCol">
 								<span v-bind="col">{{col.name}}</span>
 							</div>
 						</div>
-					</div>-->
+						</div>-->
 
-					<!-- <div v-for="(detail, j) in gene" class="probInfo" :key="detail.id">
+						<!-- <div v-for="(detail, j) in gene" class="probInfo" :key="detail.id">
 						
-					</div>-->
+						</div>-->
 
-					<!-- <div v-for="(detail, j) in gene" class="probInfo" :key="detail.id">
+						<!-- <div v-for="(detail, j) in gene" class="probInfo" :key="detail.id">
 						<div class="probHeaders">
 							<div v-for="col in $parent.listCol">
 								<span v-bind="col">{{col.name}}</span>
@@ -146,13 +148,14 @@
 								<span></span>
 							</div>
 						</div>
-					</div>-->
+						</div>-->
 
-					<!-- {{gene["names.genes"]}} - {{$parent.geneData[i]["names.genes"]}} -->
-					<!-- <div
+						<!-- {{gene["names.genes"]}} - {{$parent.geneData[i]["names.genes"]}} -->
+						<!-- <div
 						v-if="i > 0 && gene['names.genes'] !== $parent.geneData[i-1]['names.genes']"
 					>{{gene['names.genes']}} - {{i}}</div>
-					<div v-else-if="i === 0">{{gene['names.genes']}} - {{i}}</div>-->
+						<div v-else-if="i === 0">{{gene['names.genes']}} - {{i}}</div>-->
+					</template>
 				</div>
 			</div>
 		</div>
