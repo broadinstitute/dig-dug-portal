@@ -133,7 +133,7 @@ export default new Vuex.Store({
 
                 // get the associations for this phenotype in the region
                 context.commit("setSelectedPhenotype", phenotype);
-                context.dispatch('associations/query', { q });
+                await context.dispatch('associations/query', { q });
             }
         },
 

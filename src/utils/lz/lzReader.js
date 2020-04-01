@@ -7,10 +7,10 @@ function readOnCoords(store, moduleIndex) {
             try {
                 // const moduleQueryStr = buildModuleQuery(moduleIndex, { ...queryMaker, chromosome, start, end });
                 const moduleStore = _.camelCase(moduleIndex);
-                return await store.dispatch(`onLocusZoomCoords`, { module: moduleStore, newChr: chromosome, newStart: start, newEnd: end } )
+                return await store.dispatch(`onLocusZoomCoords`, { module: moduleStore, newChr: chromosome, newStart: start, newEnd: end })
                     .then(() => {
                         let value = store.getters[`${moduleStore}/data`];
-                        console.log(value)
+                        //console.log(value)
                         if (value) {
                             return callback(value);
                         }
@@ -24,7 +24,7 @@ function readOnCoords(store, moduleIndex) {
     }
 }
 
-export const BioIndexLZSourceJIT = LocusZoom.Data.Source.extend(function(init) {
+export const BioIndexLZSourceJIT = LocusZoom.Data.Source.extend(function (init) {
     this.parseInit(init);
 });
 BioIndexLZSourceJIT.prototype.parseInit = function (params) {
@@ -43,6 +43,3 @@ BioIndexLZSourceJIT.prototype.getRequest = function (state, chain, fields) {
         });
     });
 };
-
-
-

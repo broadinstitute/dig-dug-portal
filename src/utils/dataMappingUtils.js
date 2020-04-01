@@ -51,7 +51,7 @@ function parseVariantsDataForAssociations(variants) {
 };
 
 export function createSchemaTranslator(schemaTo, bioIndexFrom, basicMappings) {
-    console.log(basicMappings, bioIndexFrom, schemaTo);
+    //console.log(basicMappings, bioIndexFrom, schemaTo);
     const translationMap = basicMappings[bioIndexFrom][schemaTo];
     /*
     * translation mappings obey the following structure:
@@ -69,7 +69,7 @@ export function createSchemaTranslator(schemaTo, bioIndexFrom, basicMappings) {
     };
 };
 
-const schemaParserAndMapper = function(data, translationMap) {
+const schemaParserAndMapper = function (data, translationMap) {
 
     // STEP 0: get the property mapping from schema A to schema B
     // Note that the order matters: translationMap will always return the whole object,
@@ -132,7 +132,7 @@ const schemaParserAndMapper = function(data, translationMap) {
                         tempDatum[property] = data[oldProperty];
                     }
 
-                // CASE: the mapping property encodes for string which can be straightforwardly accessed in the object
+                    // CASE: the mapping property encodes for string which can be straightforwardly accessed in the object
                 } else {
                     tempDatum[property] = datum[mapping[property]];
                 }
@@ -172,7 +172,7 @@ if (TEST) {
                 property2a: 'property1a',
                 property2b: 'property1b',
                 property2c: { key: 'property1c' },
-                property2d: { func: id => id.concat(':a1'), key: 'property1d'}
+                property2d: { func: id => id.concat(':a1'), key: 'property1d' }
             }
         },
         a2: {
@@ -181,7 +181,7 @@ if (TEST) {
                     property2a: 'property1a',
                     property2b: 'property1b',
                     property2c: { key: 'property1c' },
-                    property2d: { func: id => id.concat(':a2'), key: 'property1d'}
+                    property2d: { func: id => id.concat(':a2'), key: 'property1d' }
                 }
             }
         },
@@ -192,7 +192,7 @@ if (TEST) {
                     property2a: 'property1a',
                     property2b: 'property1b',
                     property2c: { key: 'property1c' },
-                    property2d: { func: id => id.concat(':a3'), key: 'property1d'}
+                    property2d: { func: id => id.concat(':a3'), key: 'property1d' }
                 }
             }
         },
@@ -203,7 +203,7 @@ if (TEST) {
                     property2a: '@property1a',
                     property2b: 'property1b',
                     property2c: { key: 'property1c' },
-                    property2d: { func: id => id.concat(':a4'), key: 'property1d'}
+                    property2d: { func: id => id.concat(':a4'), key: 'property1d' }
                 }
             }
         }
@@ -212,34 +212,34 @@ if (TEST) {
     // Positive Cases
 
     // Case 1/2: No accessors (i.e. the Associations case)
-        console.log('case1/2');
+    console.log('case1/2');
     // create schema remapping generator
-        const abTranslator1 = createSchemaTranslator('b', 'a1', testMappings);  // schema
-        const abTranslator2 = createSchemaTranslator('b', 'a2', testMappings);  // mapping: { ...schema }
-        console.log(abTranslator1(flatData));  // Case 1: basic schema definition syntax
+    const abTranslator1 = createSchemaTranslator('b', 'a1', testMappings);  // schema
+    const abTranslator2 = createSchemaTranslator('b', 'a2', testMappings);  // mapping: { ...schema }
+    console.log(abTranslator1(flatData));  // Case 1: basic schema definition syntax
     // RESULT: [ { 'property2a': 'hello', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a1',  } ]
-        console.log(abTranslator2(flatData));  // Case 2: expanded schema definition syntax
+    console.log(abTranslator2(flatData));  // Case 2: expanded schema definition syntax
     // RESULT: [ { 'property2a': 'hello', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a2',  } ]
 
     // Case 3: Single accessor
-        console.log('case3');
+    console.log('case3');
     // TODO: recover the structure of the accessor as an option?
-        const abTranslator3 = createSchemaTranslator('b', 'a3', testMappings);
-        console.log(struct1Data.map(datum => abTranslator3(datum))[0]);
+    const abTranslator3 = createSchemaTranslator('b', 'a3', testMappings);
+    console.log(struct1Data.map(datum => abTranslator3(datum))[0]);
     // RESULT: [ { 'property2a': 'hello', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a3',  } ]
 
     // Case 4: Single accessor with property injection (i.e. the Variant case)
-        console.log('case4');
-        const abTranslator4 = createSchemaTranslator('b', 'a4', testMappings);
-        console.log(struct1Data.map(datum => abTranslator4(datum))[0]);
+    console.log('case4');
+    const abTranslator4 = createSchemaTranslator('b', 'a4', testMappings);
+    console.log(struct1Data.map(datum => abTranslator4(datum))[0]);
     // RESULT: [ { 'property2a': 'goodbye', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a4',  } ]
 
 
     // Test: it can take a function
-        const testMapWithFunction = {
-            a: { b: function(data) { console.log("i'm a function"); return data; } }
-        };
-        const identityTranslator = createSchemaTranslator('b', 'a', testMapWithFunction);
+    const testMapWithFunction = {
+        a: { b: function (data) { console.log("i'm a function"); return data; } }
+    };
+    const identityTranslator = createSchemaTranslator('b', 'a', testMapWithFunction);
     // console.log(identityTranslator(flatData));
     // RESULT: [ { 'property2a': 'hello', 'property2b': 'my', 'property2c': 'good', 'property2d': 'friend:a1',  } ]
 
