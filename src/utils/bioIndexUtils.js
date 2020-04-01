@@ -38,8 +38,6 @@ async function* continuedIterableQuery(json, errHandler = null) {
 }
 
 export async function* iterableQuery(index, { q, limit }, errHandler = null) {
-    limit = (!!limit) ? limit : null;
-
     let qs = querystring.stringify({ q, limit }, { skipNull: true });
     let json = await fetch(`${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`)
         .then(resp => {
