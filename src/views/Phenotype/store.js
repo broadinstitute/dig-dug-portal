@@ -25,8 +25,8 @@ export default new Vuex.Store({
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            keyParams.set({ phenotype: phenotype });
-            context.commit("setPhenotypeName", phenotype);
+            keyParams.set({ phenotype: phenotype.name });
+            context.commit("setPhenotypeName", phenotype.name);
         }
     }
 });
