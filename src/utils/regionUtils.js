@@ -5,7 +5,8 @@
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 // matches a string to a region string (same as used in BioIndex)
-const REGION_REGEXP = /(?:chr)?(\d{1,2}|x|y|xy|mt):(\d+)(?:([+/-])(\d+))?/;
+//check for 1 and 22(regex)
+const REGION_REGEXP = /(?:chr)?(\d{1,2}|x|y|xy|mt?):(\d+)(?:([+/-])(\d+))?/;
 
 // parse a region as either a gene name, ENS ID, or chr:start-stop
 async function parseRegion(s, allowGeneLookup = true) {

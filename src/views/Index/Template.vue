@@ -47,6 +47,31 @@
                                             >Invalid gene name or region</div>
                                         </div>
                                     </b-tab>
+                                    <b-tab title="Explore by variant">
+                                        <!-- this css class should be named generic -->
+                                        <div class="front-gene-search-wrapper">
+                                            <div class="col-md-10 input-wrapper">
+                                                <input
+                                                    v-model="$store.state.variantID"
+                                                    type="text"
+                                                    class="form-control input-default"
+                                                    placeholder="variant ID"
+                                                />
+                                            </div>
+                                            <div class="col-md-2 input-wrapper">
+                                                <button
+                                                    id="variantSearchGo"
+                                                    class="btn btn-primary"
+                                                    type="button"
+                                                    @click="$store.dispatch('exploreVariant')"
+                                                >GO</button>
+                                            </div>
+                                            <div
+                                                class="text-danger"
+                                                v-show="$store.state.invalidVariantID"
+                                            >Invalid Variant ID</div>
+                                        </div>
+                                    </b-tab>
                                     <b-tab title="Explore by phenotype">
                                         <phenotype-selectpicker
                                             v-bind:phenotypes="$parent.phenotypes"
