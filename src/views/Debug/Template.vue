@@ -1,10 +1,15 @@
 <template>
     <!-- Header -->
     <div>
-        <page-header :disease-group="$parent.diseaseGroup.value" :front-contents="$parent.frontContents"></page-header>
+        <!-- TODO: there's no protection from malformed $parent.frontContents in the component, change? -->
+        <page-header
+                v-if="$parent.frontContents && $parent.diseaseGroup"
+                :disease-group="$parent.diseaseGroup.value"
+                :front-contents="$parent.frontContents.value">
+        </page-header>
         <!-- body -->
         <div class="container-fluid mdkp-body">
-            <div>{{$parent.hello}} {{$parent.diseaseGroup.value}}</div>
+            <div>{{$parent.hello}} {{$parent.diseaseGroup.value}} {{$parent.frontContents.value}}</div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">

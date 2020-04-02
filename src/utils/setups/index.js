@@ -57,14 +57,7 @@ export function usePageSetup(context) {
     return {
         diseaseGroup: computed(() => diseaseGroup),
         // phenotypes: computed(() => phenotypes),
-        frontContents: computed(() => {
-            let contents = frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-
-            return contents[0];
-        }),
+        frontContents: computed(() => frontContents),
     }
 
 };
