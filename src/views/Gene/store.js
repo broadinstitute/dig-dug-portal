@@ -5,7 +5,7 @@ import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import regionUtils from "@/utils/regionUtils";
+import regionStoreUtils from "@/utils/store/regionStoreUtils";
 
 Vue.use(Vuex);
 
@@ -92,7 +92,7 @@ export default new Vuex.Store({
 
         async searchGene(context) {
             if (context.state.gene) {
-                let locus = await regionUtils.parseRegion(context.state.gene);
+                let locus = await regionStoreUtils.parseRegion(context.state.gene);
 
                 if (locus) {
                     context.state.newChr = locus.chr;

@@ -81,7 +81,20 @@ async function parseRegion(s, allowGeneLookup = true) {
     return null;
 }
 
+function region(state) {
+    if (state.chr && state.start && state.end) {
+        return `${state.chr}:${state.start}-${state.end}`;
+    };
+}
 
 export default {
+    state: {
+        chr: null,
+        start: null,
+        end: null,
+    },
+    getters: {
+        region,
+    },
     parseRegion,
 }

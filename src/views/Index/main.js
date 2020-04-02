@@ -37,12 +37,6 @@ new Vue({
     },
 
     computed: {
-        diseaseGroup() {
-            return this.$store.getters['bioPortal/diseaseGroup'];
-        },
-        phenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
-        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -51,6 +45,12 @@ new Vue({
             }
 
             return contents[0];
+        },
+        diseaseGroup() {
+            return this.$store.getters['bioPortal/diseaseGroup'];
+        },
+        phenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
         },
         geneOrRegion() {
             return this.$store.state.geneOrRegion;

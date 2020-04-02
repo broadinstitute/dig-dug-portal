@@ -3,7 +3,7 @@ import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
-import regionUtils from "@/utils/regionUtils";
+import regionStoreUtils from "@/utils/store/regionStoreUtils";
 
 Vue.use(Vuex);
 
@@ -21,7 +21,6 @@ export default new Vuex.Store({
             state.invalidGeneOrRegion = flag;
         },
     },
-    state: {},
     actions: {
         async onPhenotypeChange(context, phenotype) {
             window.location.href = "./phenotype.html?phenotype=" + phenotype.name;

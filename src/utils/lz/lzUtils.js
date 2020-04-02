@@ -1,3 +1,4 @@
+
 export const LZ_TYPE = Object.freeze({
     assoc: 'assoc',
     gene: 'gene',
@@ -100,3 +101,28 @@ function findMostEnd(start, end, indexSearch) {
     }
     return endIndex;
 }
+
+/* SETUP METHOD */
+export function useLocusZoom() {
+    // setup e.g.?
+    return {
+        components: {
+            LocusZoom,
+        }
+    }
+}
+
+/* COMPONENT METHODS */
+// You can inject these into the store with e.g. Lodash Merge
+async function onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
+    const { chr, start, end } = context.state;
+    if (newChr !== chr || newStart !== start || newEnd !== end) {
+        await context.dispatch(`${module}/query`, { q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
+    }
+}
+
+export const lzStoreUtils = {
+    actions: {
+        onLocusZoomCoords,
+    }
+};

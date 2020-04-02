@@ -7,7 +7,6 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
-import lzDataSources from "@/utils/lz/lzDataSources";
 
 Vue.config.productionTip = false;
 
@@ -89,28 +88,6 @@ new Vue({
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
-
-        // Column-major associations for locuszoom
-        lzAssociations() {
-            let lzAssocs = {
-                id: [],
-                position: [],
-                log_pvalue: [],
-                ref_allele: [],
-                variant: [],
-            };
-
-            // transform associations to lz format
-            this.$store.state.associations.data.forEach(v => {
-                lzAssocs.id.push(v.varId);
-                lzAssocs.variant.push(v.varId);
-                lzAssocs.position.push(v.position);
-                lzAssocs.log_pvalue.push(-Math.log10(v.pValue));
-                lzAssocs.ref_allele.push(v.reference);
-            });
-
-            return lzAssocs;
-        }
     },
 
     watch: {
@@ -131,11 +108,6 @@ new Vue({
         async selectedPhenotype(phenotype) {
             await this.$store.dispatch('getAssociations', phenotype);
             this.$children[0].$refs.lz.plot();
-            // this.$children[0].$refs.lz.updateLocus(
-            //     this.$store.state.chr,
-            //     this.$store.state.start,
-            //     this.$store.state.end,
-            // );
         },
 
         topAssociations(top) {
