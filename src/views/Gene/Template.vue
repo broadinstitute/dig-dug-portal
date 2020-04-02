@@ -1,6 +1,7 @@
 <template>
     <!-- Header -->
     <div>
+
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- body -->

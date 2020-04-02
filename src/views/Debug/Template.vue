@@ -1,10 +1,10 @@
 <template>
     <!-- Header -->
     <div>
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
-
+        <page-header :disease-group="$parent.diseaseGroup.value" :front-contents="$parent.frontContents"></page-header>
         <!-- body -->
         <div class="container-fluid mdkp-body">
+            <div>{{$parent.hello}} {{$parent.diseaseGroup.value}}</div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">
@@ -19,7 +19,7 @@
                         <a
                                 class="edit-btn"
                                 onclick="mdkp.utility.showHideElement('phenotypeSearchHolder');"
-                        >Select phenotype</a>
+                        >Select {{$parent.hello}} </a>
                     </div>
                     <div class="col-md-8 gene-page-header-body regionInfo">
                         <div
@@ -143,6 +143,6 @@
         </div>
 
         <!-- Footer-->
-        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+        <page-footer :disease-group="$parent.diseaseGroup.value"></page-footer>
     </div>
 </template>

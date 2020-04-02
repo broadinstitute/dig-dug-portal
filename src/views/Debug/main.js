@@ -1,6 +1,6 @@
 import Vue from "vue";
-import CompositionApi, {onBeforeMount} from "@vue/composition-api"
-import { useBioPortal, useKp4cd } from "@/utils/setups";
+import CompositionApi, {ref} from "@vue/composition-api"
+import { useBioPortal, useKp4cd, usePageSetup } from "@/utils/setups";
 import { useActions } from "vuex-composition-helpers/dist";  // without importing from dist this doesn't work
 
 import Template from "./Template.vue";
@@ -17,19 +17,23 @@ Vue.config.productionTip = false;
 Vue.use(CompositionApi);
 new Vue({
     store,
+
     setup(props, { root }) {
         const { queryRegion } = useActions(root.$store, ['queryRegion']);
         queryRegion();
-        useBioPortal(root);
-        useKp4cd(root);
+        const hello = ref('hello');
+        return {
+            hello,
+            ...usePageSetup(root)
+        }
     },
 
     components: {
-        PageHeader,
-        PageFooter,
         PhenotypeSelectPicker,
         VariantsTable,
         LocusZoom,
+        PageHeader,
+        PageFooter,
     },
 
     render(createElement, context) {
@@ -97,6 +101,7 @@ new Vue({
 
         // TODO: kp4cd !!! (interplay between bioportal and kp4cd => how does this work in reactive api?)
         diseaseGroup(group) {
+            console.log('watcher change', group);
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 

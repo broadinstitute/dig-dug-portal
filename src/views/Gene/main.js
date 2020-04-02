@@ -7,12 +7,12 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
+import {useBioPortal, useKp4cd} from "../../utils/setups";
 
 Vue.config.productionTip = false;
 
 new Vue({
     store,
-
     components: {
         PhenotypeSelectPicker,
         LocusZoom,

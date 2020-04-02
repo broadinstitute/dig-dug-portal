@@ -41,6 +41,7 @@ export default {
         },
 
         async getFrontContents(context, selectedDiseaseGroup) {
+            console.log('getFrontContents', context, selectedDiseaseGroup);
             let portal = selectedDiseaseGroup || 'md';
             let json = await fetch(`http://kp4cd.org/reset/views/portal_front?portal=` + portal)
                 .then(resp => resp.json());
