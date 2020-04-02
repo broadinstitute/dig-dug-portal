@@ -18,13 +18,11 @@ Vue.use(CompositionApi);
 new Vue({
     store,
 
-    setup(props, { root }) {
-        const { queryRegion } = useActions(root.$store, ['queryRegion']);
+    setup(props, context) {
+        const { queryRegion } = useActions(context.root.$store, ['queryRegion']);
         queryRegion();
-        const hello = ref('hello');
         return {
-            hello,
-            ...usePageSetup(root)
+            ...usePageSetup(context)
         }
     },
 
@@ -97,12 +95,6 @@ new Vue({
                 }
             }
 
-        },
-
-        // TODO: kp4cd !!! (interplay between bioportal and kp4cd => how does this work in reactive api?)
-        diseaseGroup(group) {
-            console.log('watcher change', group);
-            this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
         async selectedPhenotype(phenotype) {

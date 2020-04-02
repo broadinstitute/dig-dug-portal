@@ -13,6 +13,7 @@ Vue.config.productionTip = false;
 
 new Vue({
     store,
+
     components: {
         PhenotypeSelectPicker,
         LocusZoom,

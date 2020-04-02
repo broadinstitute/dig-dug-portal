@@ -14,7 +14,6 @@ export function useBioPortal(root) {
     });
 
     return {
-
         diseaseGroup: computed(diseaseGroup),
         phenotypes: computed(() => phenotypes),
     }
@@ -36,27 +35,28 @@ export function useKp4cd(root) {
     }
 }
 
-export function usePageSetup(root) {
-    const bioPortalHelper = createNamespacedHelpers(root.$store, 'bioPortal');
+export function usePageSetup(context) {
+    const bioPortalHelper = createNamespacedHelpers(context.root.$store, 'bioPortal');
     const { getDiseaseGroups, getPhenotypes } = bioPortalHelper.useActions(['getDiseaseGroups', 'getPhenotypes']);
     const { diseaseGroup } = bioPortalHelper.useGetters(['diseaseGroup']);  // getters called in this way are equivalent to composition-api `ref`s.
-
-    const kp4cdHelper = createNamespacedHelpers(root.$store, 'kp4cd');
-    const { getFrontContents } = kp4cdHelper.useActions(['getFrontContents']);
-    const { frontContents } = kp4cdHelper.useState(['frontContents']);
+    const { phenotypes } =  bioPortalHelper.useState(['phenotypes']);
 
     // setup the global bioportal data
     getDiseaseGroups();
     getPhenotypes();
+
+    const kp4cdHelper = createNamespacedHelpers(context.root.$store, 'kp4cd');
+    const { getFrontContents } = kp4cdHelper.useActions(['getFrontContents']);
+    const { frontContents } = kp4cdHelper.useState(['frontContents']);
+
     watchEffect(() => {
         // need to access diseaseGroup -> value -> name instead of diseaseGroup -> name since diseaseGroup is wrapped as a ref
-        if (diseaseGroup.value) {
-            getFrontContents(diseaseGroup.value.name);
-        }
+        getFrontContents(diseaseGroup.value.name || 'md');
     });
 
     return {
         diseaseGroup: computed(() => diseaseGroup),
+        // phenotypes: computed(() => phenotypes),
         frontContents: computed(() => {
             let contents = frontContents;
             if (contents.length === 0) {
