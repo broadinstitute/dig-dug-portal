@@ -3,10 +3,20 @@
    - Includes constants like hostname (which can still be set via an environmental variable)
 */
 
-import querystring from "querystring";
+import querystring from "query-string";
 
 // Constants
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
+export const BIO_INDEX_TYPE = Object.freeze({
+    Gene: 'gene',
+    Genes: 'genes',
+    PhenotypeAssociations: 'phenotype-associations',
+    GlobalEnrichment: 'global-enrichment',
+    Associations: 'associations',
+    TopAssociations: 'top-associations',
+    Variant: 'variant',
+    Variants: 'variants',
+});
 
 // Methods
 /*  bioIndex Query Chain Iterator
@@ -14,43 +24,46 @@ export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
     - Features like "pausing" and "more of..." need to maintain a sense of where on a chain of continuations they are,
         so that when users unpause or get more data after some time, they don't get data they already downloaded.
 */
-async function* continuedIterableQuery(json, errHandler = null) {
-    // NOTE: an existing response has to be passed in to *iterateQuery on initialization
-    // if the continuation from the previous response isn't null, we can move the generator forward
-    while (json.continuation) {
-        let qs = querystring.encode({ token: json.continuation });
-        json = await fetch(`${BIO_INDEX_HOST}/api/cont?${qs}`)
-            .then(resp => {
-                if (resp.status !== 200) {
-                    throw Error(resp.status.toString());
-                }
+export async function* beginIterableQuery(json, errHandler) {
+    const { index, q, limit } = json;
+    yield* iterateOnQuery({ index, q, limit }, errHandler);
+};
 
-                return resp;
-            })
-            .then(resp => resp.json())
-            .catch(errHandler);
-
-        // note that generators are implicitly recursive:
-        // they pass in their previous yields
-        // into their args the next time they are called
+async function* iterateOnQuery(json, errHandler) {
+    // NOTE: we're implicitly guarded by beginIterableQuery having correct base case information,
+    // i.e. `{ index, q, limit }` – but this should be OK as long as iterateOnQuery is respected as private.
+    do {
+        let queryStr = makeBioIndexQueryStr(json);
+        json = await portalFetch(queryStr, errHandler);
         yield json;
-    }
+    } while(json.continuation);
 }
 
-export async function* iterableQuery(index, { q, limit }, errHandler = null) {
-    let qs = querystring.encode({ q, limit });
-    let json = await fetch(`${BIO_INDEX_HOST}/api/query/${index}?${qs}`)
+async function portalFetch(query, errHandler) {
+    let json = await fetch(query)
         .then(resp => {
             if (resp.status !== 200) {
                 throw Error(resp.status.toString());
             }
-
             return resp;
         })
         .then(resp => resp.json())
         .catch(errHandler);
-
-    // yield the result of the base case
-    yield json;
-    yield* continuedIterableQuery(json, errHandler);
+    return json;
 };
+
+
+// Private methods
+function makeBioIndexQueryStr(json) {
+    const { index, q, limit, continuation } = json;
+    // check for the continuation first, since index && q are going to be true in all valid cases
+    // (they will only be false in malformed/invalid cases)
+    if (continuation) {
+        const qs = querystring.stringify({ token: continuation }, { skipNull: true });
+        return `${BIO_INDEX_HOST}/api/bio/cont?${qs}`;
+    } else if (index && q) {
+        const qs = querystring.stringify({ q, limit }, { skipNull: true });
+        return `${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`
+    }
+};
+

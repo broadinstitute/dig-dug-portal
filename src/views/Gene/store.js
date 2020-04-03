@@ -13,9 +13,9 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        genes: bioIndex("Genes"),
-        associations: bioIndex("Associations"),
-        topAssociations: bioIndex("TopAssociations"),
+        genes: bioIndex("genes"),
+        associations: bioIndex("associations"),
+        topAssociations: bioIndex("top-associations"),
     },
     state: {
         // only used at the start
@@ -42,10 +42,13 @@ export default new Vuex.Store({
             state.phenotypeParam = null;
             state.phenotype = state.bioPortal.phenotypeMap[name];
         },
-        setLocus(state) {
-            state.chr = state.newChr || state.chr;
-            state.start = state.newStart || state.start;
-            state.end = state.newEnd || state.end;
+        setLocus(state, region = {}) {
+            state.chr = region.chr || state.newChr || state.chr;
+            state.start = region.start || state.newStart || state.start;
+            state.end = region.end || state.newEnd || state.end;
+            state.newChr = state.chr;
+            state.newStart = state.start;
+            state.newEnd = state.end;
             state.gene = null;
 
             keyParams.set({
@@ -75,6 +78,14 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        async onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
+            const { chr, start, end } = context.state;
+            if (newChr !== chr || newStart !== start || newEnd !== end) {
+                await context.dispatch(`${module}/query`, { q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
+                //context.commit(`setLocus`, { chr: newChr, start: newStart, end: newEnd });
+            }
+        },
+
         async onPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);
         },
@@ -99,7 +110,6 @@ export default new Vuex.Store({
             if (context.state.gene) {
                 context.dispatch('searchGene');
             } else {
-                context.commit('setLocus');
                 context.commit('setSelectedPhenotype', null);
                 context.commit('genes/clearData');
                 context.commit('associations/clearData');
@@ -123,8 +133,9 @@ export default new Vuex.Store({
 
                 // get the associations for this phenotype in the region
                 context.commit("setSelectedPhenotype", phenotype);
-                context.dispatch('associations/query', { q });
+                await context.dispatch('associations/query', { q });
             }
         },
+
     }
 });

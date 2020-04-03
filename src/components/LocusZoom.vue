@@ -5,31 +5,27 @@
 <script>
 import Vue from "vue";
 import LocusZoom from "locuszoom";
+import lzDataSources from "@/utils/lz/lzDataSources";
+
+import {BioIndexLZSourceJIT} from "@/utils/lz/lzReader";
+import {sortPanels, LZ_TYPE} from "@/utils/lz/lzUtils";
+import {BIO_INDEX_TO_LZ} from "@/utils/dataMappingUtils";
 
 export default Vue.component("locuszoom", {
     props: [
-        "gene",
-        "recomb",
-        "phewas",
-        "constraint",
-        "ld",
-        "assoc",
         "panels",
-        "chrom",
+        "modules",
+        "chr",
         "start",
         "end",
-        "intervals"
     ],
-    data() {
-        return {};
-    },
     mounted() {
         let panelOptions = {
             //unnamespaced: true,
             proportional_height: 1,
             dashboard: null
         };
-        let panels = this.panels.map(p =>
+        let panels = sortPanels(this.panels).map(p =>
             LocusZoom.Layouts.get("panel", p, { ...panelOptions })
         );
 
@@ -37,36 +33,32 @@ export default Vue.component("locuszoom", {
             responsive_resize: "both",
             panels,
             state: {
-                chr: this.chrom,
+                chr: this.chr,
                 start: this.start,
                 end: this.end
             }
         };
-
         this.plot();
     },
     methods: {
         plot() {
             this.dataSources = new LocusZoom.DataSources();
+            this.modules.forEach(module => {
+                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSourceJIT({
+                    store: this.$store,
+                    module: module,
+                }));
+            });
 
-            if (this.assoc) {
-                this.dataSources.add("assoc", this.assoc);
-            }
-            if (this.constraint) {
-                this.dataSources.add("constraint", this.constraint);
-            }
-            if (this.ld) {
-                this.dataSources.add("ld", this.ld);
-            }
-            if (this.recomb) {
-                this.dataSources.add("recomb", this.recomb);
-            }
-            if (this.gene) {
-                this.dataSources.add("gene", this.gene);
-            }
-            if (this.intervals) {
-                this.dataSources.add("intervals", this.intervals);
-            }
+            Object.values(LZ_TYPE).filter(dataType => !this.modules.map(m => BIO_INDEX_TO_LZ[m]).includes(dataType))
+                .forEach(dataType => {
+                    if (this[dataType]) {
+                        this.dataSources.add(dataType, this[dataType]);
+                    } else {
+                        this.dataSources.add(dataType, lzDataSources.defaultSource[dataType]);
+                    }
+                });
+
             this.lzplot = LocusZoom.populate(
                 "#locuszoom",
                 this.dataSources,
@@ -76,9 +68,6 @@ export default Vue.component("locuszoom", {
         updateLocus(chr, start, end) {
             this.lzplot.applyState({ chr, start, end });
         },
-        updateVariants(assocData) {
-            this.assoc[1].data = assocData;
-        }
     }
 });
 </script>

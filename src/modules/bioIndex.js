@@ -1,6 +1,6 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
-import { BIO_INDEX_HOST, iterableQuery } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, beginIterableQuery } from "@/utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -93,7 +93,7 @@ export default function (index, extend) {
             async count(context, { q }) {
                 let qs = queryString.stringify({ q });
                 let json = await fetch(
-                    `${BIO_INDEX_HOST}/api/count/${index}?${qs}`
+                    `${BIO_INDEX_HOST}/api/bio/count/${index}?${qs}`
                 )
                     .then(resp => resp.json())
                     .catch(error => {
@@ -121,7 +121,7 @@ export default function (index, extend) {
                         context.commit("setIterableQuery",
                             // TODO: refactor error handler out to utils?
                             // TODO: what would be the best error message for debugging?
-                            iterableQuery(index, { q, limit: limit || context.limit }, (error) => {
+                            beginIterableQuery({ q, index, limit: limit || context.limit }, (error) => {
                                 // errHandler:
                                 // if error, print out the error code (and continuation?)
                                 // then force a cancel (i.e. aborted and not loading)
@@ -136,7 +136,6 @@ export default function (index, extend) {
                         );
                         let response = await context.state.iterableQuery.next();
                         // set the initial data
-                        //context.commit("setResponse", response.value);
                         data = response.value.data;
                         profile = response.value.profile;
                     }
@@ -168,7 +167,6 @@ export default function (index, extend) {
                 }
 
                 context.commit('setResponse', { data, profile });
-
             },
         }
     };

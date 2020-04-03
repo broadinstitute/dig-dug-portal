@@ -80,7 +80,8 @@ a:hover { text-decoration: none !important; }
 .front-logo-tagline {
     color: #fff;
     width: 400px;
-    font-size: 25px;
+    font-family: Roboto;
+    font-size: 24px;
     display: block;
     float: left;
 }
