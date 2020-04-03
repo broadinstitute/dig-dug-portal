@@ -1,5 +1,5 @@
 import Vue from "vue";
-import CompositionApi, {ref} from "@vue/composition-api"
+import CompositionApi from "@vue/composition-api"
 import { useBioPortal, useKp4cd, usePageSetup } from "@/utils/setups";
 import { useActions } from "vuex-composition-helpers/dist";  // without importing from dist this doesn't work
 
@@ -19,11 +19,14 @@ new Vue({
     store,
 
     setup(props, context) {
+
         const { queryRegion } = useActions(context.root.$store, ['queryRegion']);
         queryRegion();
+
         return {
-            ...usePageSetup(context)
+            ...usePageSetup(context),
         }
+
     },
 
     components: {
