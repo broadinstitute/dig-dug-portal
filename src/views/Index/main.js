@@ -55,6 +55,9 @@ new Vue({
         geneOrRegion() {
             return this.$store.state.geneOrRegion;
         },
+        varID() {
+            return this.$store.state.varID;
+        },
         datasetsInfo() {
             let datasets = this.$store.state.kp4cd.datasetsInfo;
 
@@ -70,6 +73,11 @@ new Vue({
         geneOrRegion() {
             this.$store.commit('setInvalidGeneOrRegion', false);
         },
+        // In future set the var ID is invalid = false
+        // varID() {
+        //     this.$store.commit('setInvalidGeneOrRegion', false);
+        // },
+
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getNewsFeed", group.name);
             this.$store.dispatch("kp4cd/getFrontContents", group.name);

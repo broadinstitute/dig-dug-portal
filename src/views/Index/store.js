@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
+import variantUtils from "@/utils/variantUtils";
 
 Vue.use(Vuex);
 
@@ -15,6 +16,9 @@ export default new Vuex.Store({
     state: {
         geneOrRegion: null,
         invalidGeneOrRegion: false,
+        varID: null,
+        // fix this infure
+        // invalidVarID: false,
     },
     mutations: {
         setInvalidGeneOrRegion(state, flag) {
@@ -35,6 +39,17 @@ export default new Vuex.Store({
             } else {
                 context.commit('setInvalidGeneOrRegion', true);
             }
+        },
+
+        async exploreVariant(context) {
+            let variantID = context.state.variantID
+            let chr = variantID.split(":")[0]
+            let position = variantID.split(":")[1]
+            let ref = variantID.split(":")[2]
+            let alt = variantID.split(":")[3]
+            let varID = { chr, position, ref, alt }
+            // let varID = variantUtils.parseVariantID(context.state.variantID)
+            window.location.href = `./variant.html?chr=${varID.chr}&position=${varID.position}&ref=${varID.ref}&alt=${varID.alt}`;
         }
     }
 });
