@@ -7,7 +7,9 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
+import PhenotypeSignal from "@/components/PhenotypeSignal";
 import lzDataSources from "@/utils/lz/lzDataSources";
+import groupBy from "lodash/groupBy";
 
 Vue.config.productionTip = false;
 
@@ -18,12 +20,13 @@ new Vue({
         PhenotypeSelectPicker,
         LocusZoom,
         VariantsTable,
+        PhenotypeSignal,
         PageHeader,
-        PageFooter,
+        PageFooter
     },
 
     created() {
-        this.$store.dispatch('queryRegion');
+        this.$store.dispatch("queryRegion");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -45,7 +48,7 @@ new Vue({
         },
 
         diseaseGroup() {
-            return this.$store.getters['bioPortal/diseaseGroup'];
+            return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
         phenotypes() {
@@ -57,13 +60,15 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function (gene) {
-                return gene.type == 'protein_coding'
+            return this.$store.state.genes.data.filter(function(gene) {
+                return gene.type == "protein_coding";
             });
         },
 
         associations() {
-            return this.$store.state.associations.data.sort((a, b) => a.pValue - b.pValue);
+            return this.$store.state.associations.data.sort(
+                (a, b) => a.pValue - b.pValue
+            );
         },
 
         // Give the top associations, find the best one across all unique
@@ -76,7 +81,9 @@ new Vue({
                 let assoc = data[i];
 
                 // skip associations not part of the disease group
-                if (!this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]) {
+                if (
+                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
+                ) {
                     continue;
                 }
 
@@ -89,6 +96,18 @@ new Vue({
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
+        topAssociationsGrouped() {
+            let data = this.topAssociations;
+            data.forEach(
+                element =>
+                    (element[
+                        "group"
+                    ] = this.$store.state.bioPortal.phenotypeMap[
+                        element.phenotype
+                    ].group)
+            );
+            return groupBy(data, "group");
+        },
 
         // Column-major associations for locuszoom
         lzAssociations() {
@@ -97,7 +116,7 @@ new Vue({
                 position: [],
                 log_pvalue: [],
                 ref_allele: [],
-                variant: [],
+                variant: []
             };
 
             // transform associations to lz format
@@ -122,14 +141,13 @@ new Vue({
                 let phenotype = this.$store.state.bioPortal.phenotypeMap[param];
 
                 if (phenotype) {
-                    this.$store.dispatch('getAssociations', phenotype);
+                    this.$store.dispatch("getAssociations", phenotype);
                 }
             }
-
         },
 
         async selectedPhenotype(phenotype) {
-            await this.$store.dispatch('getAssociations', phenotype);
+            await this.$store.dispatch("getAssociations", phenotype);
             this.$children[0].$refs.lz.plot();
             // this.$children[0].$refs.lz.updateLocus(
             //     this.$store.state.chr,
@@ -141,14 +159,16 @@ new Vue({
         topAssociations(top) {
             if (!this.selectedPhenotype && top.length > 0) {
                 let topAssoc = top[0];
-                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[topAssoc.phenotype];
+                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
+                    topAssoc.phenotype
+                ];
 
-                this.$store.dispatch('getAssociations', topPhenotype);
+                this.$store.dispatch("getAssociations", topPhenotype);
             }
         },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
+        }
     }
 }).$mount("#app");
