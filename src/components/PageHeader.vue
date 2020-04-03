@@ -94,7 +94,7 @@ export default Vue.component("page-header", {
     },
     methods: {
         saveCurrentPage() {
-            Vue.$cookies.set("whereAmI", location.href);
+            Vue.$cookies.set("whereAmI", location.href, "", "", host.domain);
         }
     }
 });
