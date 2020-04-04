@@ -7,6 +7,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 import LoadingBar from "@/components/LoadingBar";
+import IGV from "@/components/IGV";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -16,7 +17,7 @@ new Vue({
     store,
 
     components: {
-        "loading-bar": LoadingBar
+        IGV
     },
     data: {
 
