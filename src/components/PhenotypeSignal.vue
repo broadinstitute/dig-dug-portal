@@ -2,7 +2,7 @@
 	<div>
 		<div v-for="key in Object.keys(phenotypes)">
 			<p>{{key}}</p>
-			<div v-for="item in phenotypes[key]">{{item.phenotype}} - {{item.pValue}}</div>
+			<div v-for="item in phenotypes[key]">{{item.description}} - {{item.pValue}}</div>
 		</div>
 	</div>
 </template>

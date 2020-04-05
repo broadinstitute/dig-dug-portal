@@ -99,12 +99,18 @@ new Vue({
         topAssociationsGrouped() {
             let data = this.topAssociations;
             data.forEach(
-                element =>
+                element => (
                     (element[
                         "group"
                     ] = this.$store.state.bioPortal.phenotypeMap[
                         element.phenotype
-                    ].group)
+                    ].group),
+                    (element[
+                        "description"
+                    ] = this.$store.state.bioPortal.phenotypeMap[
+                        element.phenotype
+                    ].description)
+                )
             );
             return groupBy(data, "group");
         },
