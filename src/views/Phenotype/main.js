@@ -69,7 +69,7 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         selectedPhenotype(phenotype) {
-            this.$store.dispatch("associations/query", { q: phenotype.name, limit: 2000 });
+            this.$store.dispatch("/query/associations", { q: phenotype.name, limit: 2000 });
         },
     },
 

@@ -16,19 +16,23 @@ export default new Vuex.Store({
     },
     state: {
         chr: keyParams.chr,
-        start: keyParams.position,
+        position: keyParams.position,
         ref: keyParams.ref,
         alt: keyParams.alt,
 
         newChr: keyParams.chr,
-        newStart: keyParams.position,
+        newPosition: keyParams.position,
         newRef: keyParams.ref,
         newAlt: keyParams.alt,
+        variantID: null,
+    },
+    getters: {
+        variantID(state) {
+            return `${state.chr}:${state.position}:${state.ref}:${state.alt}`;
+        },
     },
     mutations: {
-        // setPhenotypeName(state, name) {
-        //     state.phenotypeName = name;
-        // },
+
         setVariantID(state, variantID = {}) {
             state.chr = variantID.chr || state.newChr || state.chr;
             state.position = variantID.position || state.newPosition || state.position;
@@ -39,6 +43,7 @@ export default new Vuex.Store({
             state.newPosition = state.start;
             state.newRef = state.ref;
             state.newAlt = state.alt;
+            state.variant = null;
 
             keyParams.set({
                 chr: state.chr,
@@ -50,13 +55,21 @@ export default new Vuex.Store({
 
     },
     actions: {
-        // onPhenotypeChange(context, phenotype) {
-        //     keyParams.set({ phenotype: phenotype.name });
-        //     context.commit("setPhenotypeName", phenotype.name);
-        // },
-        onVariantIDChange(context, variantID) {
-            keyParams.set({ variantID: context.state.variantID });
-            context.commit("setVariantID", variantID);
+
+        async onVariantIDChange(context, variantID) {
+            context.state.newChr = variantID.chr;
+            context.state.newPosition = variantID.position;
+            context.state.newRef = locus.ref;
+            context.state.newAlt = locus.alt;
+
+            // update the variantID
+            context.commit('setVariantID');
+            context.dispatch('queryVariant');
+        },
+
+        async queryVariant(context) {
+            // find all the transcript Consequences for a given variant
+            context.dispatch('variant/query', { q: context.getters.variantID });
         },
     }
 

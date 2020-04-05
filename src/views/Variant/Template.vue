@@ -29,12 +29,27 @@
                             class="gene-page-header-search-holder"
                             style="display: none;"
                         >
-                            <!-- this neeeds to be variant select picker -->
-                            <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
+                            <div class="variant-search">
+                                <div class="col-md-3 input-wrapper">
+                                    <input
+                                        v-model="$store.state.variant"
+                                        type="text"
+                                        class="form-control input-default"
+                                        style="margin-left: 15px;padding-left: 30px;"
+                                        placeholder="Search Variant"
+                                    />
+                                </div>
+                                <div class="col-md-2 input-wrapper">
+                                    <button
+                                        id="variantSearchGo"
+                                        class="btn btn-primary"
+                                        type="button"
+                                        @click="$store.dispatch('queryVariant')"
+                                    >GO</button>
+                                </div>
+                            </div>
+                            {{$store.state.variant}}
                         </div>
-                        <!-- <span
-                            v-if="$parent.selectedPhenotype"
-                        >{{$parent.selectedPhenotype.description}}</span>-->
                     </div>
                 </div>
             </div>
