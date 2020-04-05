@@ -8,43 +8,34 @@
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-4 gene-page-header-title"></div>
+                    <!-- change this to variantSearchHolder 
+                    mdkp.utility.showHideElement('phenotypeSearchHolder')
+                    -->
                     <div class="col-md-4 gene-page-header-title">
-                        Phenotype
+                        Variant
                         <a
                             class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('phenotypeSearchHolder');"
-                        >Set phenotype</a>
+                            onclick="mdkp.utility.showHideElement('variantSearchHolder');"
+                        >Set variant ID</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title"></div>
                     <div class="col-md-4 gene-page-header-body">
-                        <span>Manhattan Plot</span>
+                        <span>Variant Info</span>
                     </div>
-                    <div class="col-md-4 gene-page-header-body regionInfo">
+                    <!-- change this class to variantInfo -->
+                    <div class="col-md-4 gene-page-header-body variantInfo">
                         <div
-                            id="phenotypeSearchHolder"
+                            id="variantSearchHolder"
                             class="gene-page-header-search-holder"
                             style="display: none;"
                         >
+                            <!-- this neeeds to be variant select picker -->
                             <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
                         </div>
-                        <span
+                        <!-- <span
                             v-if="$parent.selectedPhenotype"
-                        >{{$parent.selectedPhenotype.description}}</span>
+                        >{{$parent.selectedPhenotype.description}}</span>-->
                     </div>
-                </div>
-            </div>
-
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <manhattan-plot
-                        v-bind:variants="$store.state.associations.data"
-                        v-bind:phenotype="$store.state.selectedPhenotype"
-                    ></manhattan-plot>
-                </div>
-            </div>
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <mplot-variants-table v-bind:variants="$parent.topVariants"></mplot-variants-table>
                 </div>
             </div>
         </div>

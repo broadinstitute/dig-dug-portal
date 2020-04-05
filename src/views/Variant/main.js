@@ -52,24 +52,39 @@ new Vue({
             return this.$store.state.bioPortal.phenotypes;
         },
 
-        topVariants() {
-            return this.$store.state.associations.data.slice(0, 200);
-        },
+        // topVariants() {
+        //     return this.$store.state.associations.data.slice(0, 200);
+        // },
 
-        selectedPhenotype() {
-            let name = this.$store.state.phenotypeName;
+        // selectedPhenotype() {
+        //     let name = this.$store.state.phenotypeName;
 
-            // lookup the phenotype object from the bio portal once downloaded
-            return this.$store.state.bioPortal.phenotypeMap[name];
+        //     // lookup the phenotype object from the bio portal once downloaded
+        //     return this.$store.state.bioPortal.phenotypeMap[name];
+        // },
+
+        selectedVariant() {
+            let variantID = this.$store.state.variantID;
         },
+        transcriptConsequence() {
+            let variantData = this.$store.state.variant.data
+            let transcriptConsequence = variantData.transcriptConsequence
+            //this is incomplete since you might have to transform the data - create a map for desired tabular format
+            return transcriptConsequence
+        }
+
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        selectedPhenotype(phenotype) {
-            this.$store.dispatch("associations/query", { q: phenotype.name, limit: 2000 });
+        // selectedPhenotype(phenotype) {
+        //     this.$store.dispatch("associations/query", { q: phenotype.name, limit: 2000 });
+        // },
+        selectedVariant(variantID) {
+            //this should dispatch this function whenever there is change in variant ID
+            this.$store.dispatch("api/bio/query/variant", { q: variantID, limit: 2000 });
         },
     },
 
