@@ -17,12 +17,17 @@
 
 					<div class="table-filter">
 						<label>Search a gene</label>
-						<input id="geneSearch" type="text" v-model="searchGene" placeholder="Gene ID" />
+						<input id="geneSearch" type="text" v-model.lazy.trim="searchGene" placeholder="Gene ID" />
 					</div>
 
 					<div class="table-filter">
 						<label>Filter by prob score</label>&gt;=
-						<input id="probFilter" type="text" v-model="searchScore" placeholder="Prob score" />
+						<input
+							id="probFilter"
+							type="text"
+							v-model.lazy.number="searchScore"
+							placeholder="Prob score"
+						/>
 					</div>
 				</div>
 				<div id="regionFilter">
@@ -36,11 +41,16 @@
 						</div>
 						<div class="table-filter">
 							<label>Region start</label>
-							<input id="geneStart" type="text" v-model="chromStart" placeholder="Start position" />
+							<input
+								id="geneStart"
+								type="text"
+								v-model.lazy.number="chromStart"
+								placeholder="Start position"
+							/>
 						</div>
 						<div class="table-filter">
 							<label>Region end</label>
-							<input id="geneEnd" type="text" v-model="chromEnd" placeholder="End position" />
+							<input id="geneEnd" type="text" v-model.lazy.number="chromEnd" placeholder="End position" />
 						</div>
 					</div>
 				</div>
