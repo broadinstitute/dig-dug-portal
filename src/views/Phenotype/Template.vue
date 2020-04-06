@@ -36,10 +36,7 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <manhattan-plot
-                        v-bind:variants="$store.state.associations.data"
-                        v-bind:phenotype="$store.state.selectedPhenotype"
-                    ></manhattan-plot>
+                    <manhattan-plot v-bind:phenotypes="$store.getters.associations"></manhattan-plot>
                 </div>
             </div>
             <div class="card mdkp-card">

@@ -11,7 +11,6 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import MplotVariantsTable from "@/components/MplotVariantsTable.vue";
-import keyParams from "@/utils/keyParams";
 
 new Vue({
     store,
@@ -27,6 +26,9 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+
+        // load all the initial phenotype associations
+        this.$store.dispatch("loadAssociations");
     },
 
     render(createElement, context) {
@@ -53,23 +55,24 @@ new Vue({
         },
 
         topVariants() {
-            return this.$store.state.associations.data.slice(0, 200);
-        },
+            let data = this.$store.getters.associations;
+            let variants = [];
 
-        selectedPhenotype() {
-            let name = this.$store.state.phenotypeName;
+            for (let phenotype in data) {
+                variants = variants.concat(data[phenotype]);
+            }
 
-            // lookup the phenotype object from the bio portal once downloaded
-            return this.$store.state.bioPortal.phenotypeMap[name];
+            // sort all the variants by pValue
+            variants.sort((a, b) => a.pValue - b.pValue);
+
+            // return the top 100
+            return variants.slice(0, 100);
         },
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
-        selectedPhenotype(phenotype) {
-            this.$store.dispatch("associations/query", { q: phenotype.name, limit: 2000 });
         },
     },
 
