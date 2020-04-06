@@ -42,14 +42,8 @@ export default new Vuex.Store({
         },
 
         async exploreVariant(context) {
-            let variantID = context.state.variantID
-            let chr = variantID.split(":")[0]
-            let position = variantID.split(":")[1]
-            let ref = variantID.split(":")[2]
-            let alt = variantID.split(":")[3]
-            let varID = { chr, position, ref, alt }
-            // let varID = variantUtils.parseVariantID(context.state.variantID)
-            window.location.href = `./variant.html?chr=${varID.chr}&position=${varID.position}&ref=${varID.ref}&alt=${varID.alt}`;
+            let varID = variantUtils.parseVariantID(context.state.variantID)
+            window.location.href = `./variant.html?chr=${varID.chr}&pos=${varID.pos}&ref=${varID.ref}&alt=${varID.alt}`;
         }
     }
 });

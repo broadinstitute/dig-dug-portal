@@ -23,7 +23,6 @@ new Vue({
     },
 
     created() {
-        //qury for the given variantID
         this.$store.dispatch('queryVariant');
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
@@ -70,7 +69,6 @@ new Vue({
 
         variant(variantID) {
             //this should dispatch this function whenever there is change in variant ID
-
             this.$store.dispatch('queryVariant', { q: variantID, limit: 2000 });
         },
     },

@@ -32,23 +32,23 @@
                             <div class="variant-search">
                                 <div class="col-md-3 input-wrapper">
                                     <input
-                                        v-model="$store.state.variant"
+                                        v-model="$store.state.variantID"
                                         type="text"
                                         class="form-control input-default"
                                         style="margin-left: 15px;padding-left: 30px;"
                                         placeholder="Search Variant"
                                     />
-                                </div>
-                                <div class="col-md-2 input-wrapper">
-                                    <button
-                                        id="variantSearchGo"
-                                        class="btn btn-primary"
-                                        type="button"
-                                        @click="$store.dispatch('queryVariant')"
-                                    >GO</button>
+                                    <div class="col-md-2 input-wrapper">
+                                        <button
+                                            id="variantSearchGo"
+                                            class="btn btn-primary"
+                                            type="button"
+                                            @click="$store.dispatch('queryVariant')"
+                                        >GO</button>
+                                    </div>
                                 </div>
                             </div>
-                            {{$store.state.variant}}
+                            {{$store.state.chr}}:{{$store.state.pos}}:{{$store.state.ref}}:{{$store.state.alt}}
                         </div>
                     </div>
                 </div>
