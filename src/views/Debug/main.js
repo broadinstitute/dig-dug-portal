@@ -6,8 +6,11 @@ import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
-import LoadingBar from "@/components/LoadingBar";
 import IGV from "@/components/IGV";
+import PageHeader from "../../components/PageHeader";
+import PageFooter from "../../components/PageFooter";
+import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
+import {associationsToIGVAnnotationTrackData} from "../../utils/igvUtils";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -17,19 +20,18 @@ new Vue({
     store,
 
     components: {
+        PageHeader,
+        PageFooter,
+        PhenotypeSelectPicker,
         IGV
-    },
-    data: {
-
-    },
-
-    created() {
-        this.$store.dispatch("associations/count", { q: 'slc30a8' })
-        this.$store.dispatch("associations/query", { q: 'slc30a8' })
     },
 
     render(createElement, context) {
         return createElement(Template);
+    },
+
+    methods: {
+        associationsToIGVAnnotationTrackData,
     },
 
     computed: {
@@ -59,7 +61,4 @@ new Vue({
         }
     },
 
-    watch: {
-
-    }
 }).$mount("#app");

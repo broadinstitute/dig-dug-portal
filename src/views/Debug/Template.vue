@@ -91,7 +91,12 @@
 
                 </div>
 
-                <igv></igv>
+                <igv
+                    v-bind:modules="[{ 'top-associations': $parent.associationsToIGVAnnotationTrackData }]"
+                    v-bind:chr="8"
+                    v-bind:start="10000"
+                    v-bind:end="20000"
+                ></igv>
 
             </div>
 

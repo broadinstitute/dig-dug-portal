@@ -4,6 +4,7 @@
 */
 
 import querystring from "query-string";
+import {cloneDeep} from "lodash";
 
 // Constants
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
@@ -50,6 +51,21 @@ async function portalFetch(query, errHandler) {
         .then(resp => resp.json())
         .catch(errHandler);
     return json;
+};
+
+// return all of the data in the query chain at once
+async function fullQuery(json, errHandler) {
+    let query = await beginIterableQuery(json,errHandler);
+    let data = [];
+    let continuation;
+
+    do {
+        const { currentData, currentContinuation } = query.next();
+        data.push(currentData);
+        continuation = currentContinuation;
+    } while(continuation);
+
+    return data;
 };
 
 

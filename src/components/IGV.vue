@@ -3,82 +3,34 @@
 </template>
 <script>
 import Vue from "vue";
-import igv from "igv";
+import igv from "../../../igv.js/dist/igv.esm.js";
 
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"
+import { makeBioIndexIGVTrack, associationsToIGVAnnotationTrackData } from "@/utils/igvUtils"
+import { BIO_INDEX_TYPE } from "@/utils/bioIndexUtils"
 
 export default Vue.component("igv", {
+    props: [
+        "modules",
+        "chr",
+        "start",
+        "end",
+    ],
     mounted() {
         var igvDiv = document.getElementById("igv-div");
-        var optionsRemote =
-            {
-                genome: "hg38",
-                locus: "chr8:127,736,588-127,739,371",
-                tracks: [
-                    {
-                        "name": "HG00103",
-                        "url": "https://s3.amazonaws.com/1000genomes/data/HG00103/alignment/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram",
-                        "indexURL": "https://s3.amazonaws.com/1000genomes/data/HG00103/alignment/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram.crai",
-                        "format": "cram"
-                    }
-                ]
-            };
 
-    var optionsLocal =
-        {
-            genome: "hg19",
-            locus: 'chr1:629,422-16,522,294',
-            tracks: [
-                        {
-                            name: "Copy number",
-                            type: "seg",
-                            displayMode: "EXPANDED",
-                            features: [
-                                {
-                                    chr: "1",
-                                    start: 3218610,
-                                    end: 4749076,
-                                    value: -0.2239,
-                                    sample: "TCGA-OR-A5J2-01"
-                                },
-                                {
-                                    chr: "1",
-                                    start: 4750119,
-                                    end: 11347492,
-                                    value: -0.8391,
-                                    sample: "TCGA-OR-A5J2-01"
-                                }
-                            ]
-                        },
-                        {
-                            name: "Associations",
-                            type: "annotation",
-                            sourceType: "custom",
-                            source: {
-                                url: `${BIO_INDEX_HOST}/api/bio/query/top-associations?q=$CHR:$START-$END`,
-                                method: "GET",
-                                contentType: "application/json",
-                                parser: (json) => {
-                                    if (typeof json.data != 'undefined') {
-                                        return [{
-                                            chr: "1",
-                                            start: 3218610,
-                                            end: 4749076,
-                                            score: -0.2239,
-                                        }]
-                                    }
-                                    return []; 
-                                },
-                            },
-                       }
-                    ]
+        let moduleTracks = this.modules.map(moduleObj => {
+            const module = Object.keys(moduleObj)[0];
+            const translator = Object.values(moduleObj)[0];
+            return makeBioIndexIGVTrack({ module, translator });
+        });
+
+        var optionsLocal = {
+            genome: "hg19",  // TODO: update?
+            locus: `chr${this.chr}:${this.start}-${this.end}`,
+            tracks: moduleTracks,
         };
 
-
         igv.createBrowser(igvDiv, optionsLocal)
-                .then(function (browser) {
-                    console.log("Created IGV browser");
-                })
     }
 })
 
