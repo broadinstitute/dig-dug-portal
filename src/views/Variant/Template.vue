@@ -20,7 +20,10 @@
                     </div>
                     <div class="col-md-4 gene-page-header-title"></div>
                     <div class="col-md-4 gene-page-header-body">
-                        <span>Variant Info</span>
+                        <span>
+                            Variant Info
+                            {{$store.state.chr}}:{{$store.state.pos}}:{{$store.state.ref}}:{{$store.state.alt}}
+                        </span>
                     </div>
                     <!-- change this class to variantInfo -->
                     <div class="col-md-4 gene-page-header-body variantInfo">
@@ -30,26 +33,34 @@
                             style="display: none;"
                         >
                             <div class="variant-search">
-                                <div class="col-md-3 input-wrapper">
+                                <div class="col-md-10 input-wrapper">
                                     <input
                                         v-model="$store.state.variantID"
                                         type="text"
                                         class="form-control input-default"
-                                        style="margin-left: 15px;padding-left: 30px;"
+                                        style="margin-left: 15px;padding-top: 30px;padding-left:30px"
                                         placeholder="Search Variant"
                                     />
+
                                     <div class="col-md-2 input-wrapper">
                                         <button
-                                            id="variantSearchGo"
+                                            id="regionSearchGo"
                                             class="btn btn-primary"
                                             type="button"
-                                            @click="$store.dispatch('queryVariant')"
+                                            @click="$store.dispatch('onVariantIDChange')"
                                         >GO</button>
                                     </div>
                                 </div>
                             </div>
-                            {{$store.state.chr}}:{{$store.state.pos}}:{{$store.state.ref}}:{{$store.state.alt}}
                         </div>
+                        <tr v-for="row in $store.state.variant.data">
+                            <td>dann_rankscore {{row}}</td>
+                        </tr>
+
+                        <!-- <div
+                            v-for="row in $store.state.variant.data"
+                            :title="row.transcriptConsequence"
+                        ></div>-->
                     </div>
                 </div>
             </div>

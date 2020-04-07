@@ -53,11 +53,23 @@ new Vue({
         },
 
         transcriptConsequence() {
-            let variantData = this.$store.state.variant.data;
-            console.log(variantData)
-            let transcriptConsequence = variantData.transcriptConsequence;
+            let transcriptConsequenceData = {
+                amino_acids,
+                biotype,
+                cadd_phred,
+                cadd_raw,
+                cadd_raw,
+                consequence_terms: []
+            }
+            let data = this.$store.state.variant.data
+            data.forEach(v => {
+                transcriptConsequenceData.amino_acids.push(v.transcriptConsequence.amino_acids);
+
+            })
+
+
             //this is incomplete since you might have to transform the data - create a map for desired tabular format
-            return transcriptConsequence
+            return transcriptConsequenceData
         }
 
     },

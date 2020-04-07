@@ -28,6 +28,7 @@ export default new Vuex.Store({
     },
     getters: {
         variantID(state) {
+            console.log("i was here")
             return `${state.chr}:${state.pos}:${state.ref}:${state.alt}`;
         },
     },
@@ -56,11 +57,11 @@ export default new Vuex.Store({
     },
     actions: {
 
-        async onVariantIDChange(context, variantID) {
-            context.state.newChr = variantID.chr;
-            context.state.newPos = variantID.pos;
-            context.state.newRef = locus.ref;
-            context.state.newAlt = locus.alt;
+        async onVariantIDChange(context) {
+            // context.state.newChr = context.state.chr;
+            // context.state.newPos = context.state.pos;
+            // context.state.newRef = context.state.ref;
+            // context.state.newAlt = context.state.alt;
 
             // update the variantID
             context.commit('setVariantID');
@@ -70,7 +71,12 @@ export default new Vuex.Store({
         async queryVariant(context) {
             // context.commit('setVariantID')
             // find all the transcript Consequences for a given variant
+
+            // context.commit("setVariantID")
             context.dispatch('variant/query', { q: context.getters.variantID });
+            console.log("I am queryVariant")
+
+
         },
     }
 
