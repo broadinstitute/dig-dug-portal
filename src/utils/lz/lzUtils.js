@@ -20,21 +20,21 @@ export const PANEL_ORDER = Object.freeze([
     'association',
     'association_catalog',
     'association_credible_set',
+    'phewas',
     'genes',
     'intervals',
-    'phewas',
     'annotation_catalog',
     'annotation_credible_set',
 ]);
 
-export function sortPanels(panels) {
+export function sortPanels(panels, panelOrderMap=PANEL_ORDER) {
     // _.invert swaps keys and values, i.e. [ "val" ] === { 0: "val" } => { "val": 0 }
-    const panelOrderMap = _.invert(PANEL_ORDER);
+    const panelOrder = _.invert(panelOrderMap);
     return panels.sort(function (x, y) {
-        if (panelOrderMap[x] < panelOrderMap[y]) {
+        if (panelOrder[x] < panelOrder[y]) {
             return -1;
         }
-        if (panelOrderMap[x] > panelOrderMap[y]) {
+        if (panelOrder[x] > panelOrder[y]) {
             return 1;
         }
         return 0;
@@ -48,12 +48,3 @@ export const calcLog = function (values) {
         return (-1) * Math.log(values);
     }
 };
-
-/* LZ Mappings */
-// Used to transform BioIndex types into LZ types
-export const BIO_INDEX_TO_LZ = Object.freeze({
-    [BIO_INDEX_TYPE.PhenotypeAssociations]: [LZ_TYPE.assoc],
-    [BIO_INDEX_TYPE.Associations]: [LZ_TYPE.assoc],
-    [BIO_INDEX_TYPE.TopAssociations]: [LZ_TYPE.assoc],
-    [BIO_INDEX_TYPE.Genes]: [LZ_TYPE.gene],
-});

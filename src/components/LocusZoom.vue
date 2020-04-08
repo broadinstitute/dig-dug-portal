@@ -7,8 +7,8 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "@/utils/lz/lzDataSources";
 
-import {BioIndexLZSource} from "@/utils/lz/lzReader";
-import {sortPanels, LZ_TYPE, BIO_INDEX_TO_LZ} from "@/utils/lz/lzUtils";
+import { BioIndexLZSource } from "@/utils/lz/lzReader";
+import { sortPanels, LZ_TYPE } from "@/utils/lz/lzUtils";
 
 export default Vue.component("locuszoom", {
     props: [
@@ -46,16 +46,15 @@ export default Vue.component("locuszoom", {
         plot() {
             this.dataSources = new LocusZoom.DataSources();
             this.modules.forEach(moduleObj => {
-                const { module, translator, layer } = moduleObj;
-                console.log(moduleObj);
-                this.dataSources.add(layer, new BioIndexLZSource({
+                const { module, translator, target } = moduleObj;
+                this.dataSources.add(target, new BioIndexLZSource({
                     store: this.$store,
                     module,
                     translator,
                 }));
             });
 
-            const configuredLzTypes = Object.keys(this.modules).flatMap(m => BIO_INDEX_TO_LZ[m]);
+            const configuredLzTypes = this.modules.map(module => module.target);
             Object.values(LZ_TYPE)
                 .filter(lzType => !configuredLzTypes.includes(lzType))
                 .forEach(dataType => {

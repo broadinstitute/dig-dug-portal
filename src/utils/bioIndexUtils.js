@@ -82,3 +82,51 @@ function makeBioIndexQueryStr(json) {
         return `${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`
     }
 };
+
+const arityFilter = {
+    [BIO_INDEX_TYPE.Associations]: function(args) {
+        const { phenotype, chromosome, start, end } = args;
+        return { phenotype, chromosome, start, end };
+    },
+    [BIO_INDEX_TYPE.PhenotypeAssociations]: function(args) {
+        const { phenotype } = args;
+        return { phenotype };
+    },
+    [BIO_INDEX_TYPE.TopAssociations]: function(args) {
+        const { chromosome, start, end } = args;
+        return { chromosome, start, end };
+    },
+    [BIO_INDEX_TYPE.Variants]: function(args) {
+        const { chromosome, start, end } = args;
+        return { chromosome, start, end };
+    }
+};
+
+function queryTemplate(args) {
+    let queryTemplateStr = '';
+    if (args) {
+        const { phenotype, varId, chromosome, start, end, position } = args;
+        // logic below is based on the hierarchy of arities for bioIndex.
+        if (phenotype) {
+            queryTemplateStr = queryTemplateStr.concat(phenotype)
+        } else if (varId) {
+            queryTemplateStr = queryTemplateStr.concat(varId)
+        }
+        if (chromosome && (position || start && end)) {
+            if (!(queryTemplateStr === '')) {
+                queryTemplateStr = queryTemplateStr.concat(',');
+            }
+            queryTemplateStr = queryTemplateStr.concat(`${chromosome}:`);
+            if (position) {
+                queryTemplateStr = queryTemplateStr.concat(`${position}`);
+            } else if (start && end) {
+                queryTemplateStr = queryTemplateStr.concat(`${start}-${end}`);
+            }
+        }
+    }
+    return queryTemplateStr;
+}
+
+export function moduleQueryTemplate(module, args) {
+    return queryTemplate(arityFilter[module](args));
+}

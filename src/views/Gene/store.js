@@ -6,6 +6,7 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
+import { moduleQueryTemplate } from "../../utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -16,6 +17,7 @@ export default new Vuex.Store({
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
         topAssociations: bioIndex("top-associations"),
+        variants: bioIndex("variants"),
     },
     state: {
         // only used at the start
@@ -81,8 +83,15 @@ export default new Vuex.Store({
         async onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
             const { chr, start, end } = context.state;
             if (newChr !== chr || newStart !== start || newEnd !== end) {
-                await context.dispatch(`${module}/query`, { q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
-                //context.commit(`setLocus`, { chr: newChr, start: newStart, end: newEnd });
+                const query = moduleQueryTemplate(module, {
+                    phenotype: context.state.phenotype.name,
+                    // varId?
+                    chromosome: newChr,
+                    start: newStart,
+                    end: newEnd,
+                });
+                console.log(module, query);
+                await context.dispatch(`${module}/query`, { q: query });
             }
         },
 

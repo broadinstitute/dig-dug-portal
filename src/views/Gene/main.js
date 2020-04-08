@@ -8,7 +8,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
 
-import { useTranslations } from "@/utils/dataMappingUtils"
+import { useTranslations, translate, associationsFromVariants, associationsForLZ } from "@/utils/dataMappingUtils"
 
 Vue.config.productionTip = false;
 
@@ -36,6 +36,7 @@ new Vue({
 
     methods: {
         ...useTranslations,
+        associationsForLZFromVariants: translate({ from: associationsFromVariants, to: associationsForLZ })
     },
 
     computed: {

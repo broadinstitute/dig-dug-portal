@@ -129,9 +129,9 @@
                             { 'module': 'associations',
                               'target': 'assoc',
                               'translator': $parent.associationsForLZ },
-                            { 'module': 'associations',
+                            { 'module': 'variants',
                               'target': 'phewas',
-                              'translator': $parent.associationsForLZ },
+                              'translator': $parent.associationsForLZFromVariants },
                         ]"
                         
                         v-bind:chr="$store.state.chr"

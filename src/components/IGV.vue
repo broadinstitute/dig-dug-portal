@@ -23,7 +23,7 @@ export default Vue.component("igv", {
         });
 
         var optionsLocal = {
-            genome: "hg38",  // TODO: update?
+            genome: "hg19",
             locus: `chr${this.chr}:${this.start}-${this.end}`,
             tracks: moduleTracks,
         };

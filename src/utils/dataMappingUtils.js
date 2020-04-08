@@ -1,9 +1,9 @@
 import { calcLog } from '@/utils/lz/lzUtils'
 import { cloneDeep } from "lodash";
 
-function jsonTransform(schemaMap, inputJson, query) {
-    return jsonQuery(query, { data: inputJson }).map(schemaMap)
-};
+// function jsonTransform(schemaMap, inputJson, query) {
+//     return jsonQuery(query, { data: inputJson }).map(schemaMap)
+// };
 
 export const translate = ({from = id => id, to}) => data => to(from(data))
 // VALID: translate({ from: associationsFromVariants, to: associationsForLZ });
@@ -12,15 +12,22 @@ export const translate = ({from = id => id, to}) => data => to(from(data))
 
 
 /* BioIndex Decompositions */
+// name these like xFromY
 export const associationsFromVariants = variants => {
-    return _.flatten(variants
-                .map(variants => variants.associations)
-                .map((association, index) => ({
+    console.log(variants);
+    const translation = variants
+            .filter(variants => variants.associations)
+            .map(variants => variants.associations)
+            .flatMap((associations, index) => {
+                const fullAssociations = associations.map(association => ({
                     chromosome: variants[index].chromosome,
                     position: variants[index].position,
                     ...association,
                 }))
-            )
+                return fullAssociations;
+            })
+
+    return translation;
 };
 
 export const useDecompositions = {
@@ -28,7 +35,9 @@ export const useDecompositions = {
 };
 
 /* LocusZoom Datamapping */
+// name these like xForY -> xForLZ
 export const associationsForLZ = associations => {
+    console.log('associations', associations);
     const translation = associations.map(association => ({
         id: association.varId,
         chr: association.chromosome,
@@ -36,18 +45,18 @@ export const associationsForLZ = associations => {
         end: association.position,
         position: association.position,
         pvalue: association.pValue,
-        log_pvalue: calcLog(association.pValue),
+        log_pvalue: calcLog(association.pValue).toPrecision(4),
         variant: association.varId,
         ref_allele: association.varId,
         trait_group: association.phenotype,
         trait_label: association.phenotype,
     }));
-    console.log('translation', translation);
     return translation
 
 };
 
 /* IGV Datamapping */
+// name these like xForY -> xForIGV
 export const associationsForIGV = associations => {
     return associations.map(association => {
         const annotation = cloneDeep(association);
@@ -58,7 +67,7 @@ export const associationsForIGV = associations => {
             start: association.position,
             end: association.position,
             ...annotation,
-            log_pvalue: calcLog(association.pValue),
+            // log_pvalue: calcLog(association.pValue),
         }
     });
 }

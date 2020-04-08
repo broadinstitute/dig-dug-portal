@@ -35,7 +35,7 @@ const TEMPLATE_TRACK = {
     name: null,
     type: null,  // e.g. annotation, GWAS, seg,...
     height: 300,
-    visibilityWindow: 50000,
+    visibilityWindow: 5000,
     sourceType: "custom",
     source: null
 }
