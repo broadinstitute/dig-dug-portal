@@ -66,8 +66,6 @@ new Vue({
                 transcriptConsequenceData.amino_acids.push(v.transcriptConsequence.amino_acids);
 
             })
-
-
             //this is incomplete since you might have to transform the data - create a map for desired tabular format
             return transcriptConsequenceData
         }

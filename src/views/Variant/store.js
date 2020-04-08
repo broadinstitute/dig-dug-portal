@@ -5,6 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
+import variantUtils from "@/utils/variantUtils";
 
 Vue.use(Vuex);
 
@@ -28,7 +29,7 @@ export default new Vuex.Store({
     },
     getters: {
         variantID(state) {
-            console.log("i was here")
+            // console.log("i was here")
             return `${state.chr}:${state.pos}:${state.ref}:${state.alt}`;
         },
     },
@@ -64,7 +65,7 @@ export default new Vuex.Store({
             // context.state.newAlt = context.state.alt;
 
             // update the variantID
-            context.commit('setVariantID');
+            context.commit('setVariantID', variantID);
             context.dispatch('queryVariant');
         },
 
@@ -73,8 +74,10 @@ export default new Vuex.Store({
             // find all the transcript Consequences for a given variant
 
             // context.commit("setVariantID")
+            // let varID = variantUtils.parseVariantID(context.state.variantID)
+
             context.dispatch('variant/query', { q: context.getters.variantID });
-            console.log("I am queryVariant")
+            // console.log("I am queryVariant")
 
 
         },

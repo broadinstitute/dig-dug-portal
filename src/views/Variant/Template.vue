@@ -47,7 +47,7 @@
                                             id="regionSearchGo"
                                             class="btn btn-primary"
                                             type="button"
-                                            @click="$store.dispatch('onVariantIDChange')"
+                                            @click="$store.dispatch('queryVariant')"
                                         >GO</button>
                                     </div>
                                 </div>
@@ -61,7 +61,7 @@
                     <td>amino_acids {{row.transcriptConsequence.amino_acids}}</td>
                     <td>biotype {{row.transcriptConsequence.biotype}}</td>
                     <td>cadd_phred {{row.transcriptConsequence.cadd_phred}}</td>
-
+                    <td>transcript_id {{row.transcriptConsequence.transcript_id}}</td>
                     <!-- <td>consequence_terms {{row.transcriptConsequence.consequence_terms}</td> -->
                 </tr>
             </div>
