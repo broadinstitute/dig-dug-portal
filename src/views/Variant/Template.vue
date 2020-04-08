@@ -53,16 +53,17 @@
                                 </div>
                             </div>
                         </div>
-                        <tr v-for="row in $store.state.variant.data">
-                            <td>dann_rankscore {{row}}</td>
-                        </tr>
-
-                        <!-- <div
-                            v-for="row in $store.state.variant.data"
-                            :title="row.transcriptConsequence"
-                        ></div>-->
                     </div>
                 </div>
+            </div>
+            <div class="col-md-4 gene-page-header-body">
+                <tr v-for="row in $store.state.variant.data">
+                    <td>amino_acids {{row.transcriptConsequence.amino_acids}}</td>
+                    <td>biotype {{row.transcriptConsequence.biotype}}</td>
+                    <td>cadd_phred {{row.transcriptConsequence.cadd_phred}}</td>
+
+                    <!-- <td>consequence_terms {{row.transcriptConsequence.consequence_terms}</td> -->
+                </tr>
             </div>
         </div>
 
