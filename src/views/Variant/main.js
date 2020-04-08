@@ -9,6 +9,7 @@ Vue.config.productionTip = false;
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
+import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 
 import keyParams from "@/utils/keyParams";
 
@@ -19,7 +20,7 @@ new Vue({
         PhenotypeSelectPicker,
         PageHeader,
         PageFooter,
-        //need components for variant page
+        TranscriptConsequenceTable,
     },
 
     created() {
@@ -40,7 +41,6 @@ new Vue({
             if (contents.length === 0) {
                 return {};
             }
-
             return contents[0];
         },
 
@@ -53,19 +53,18 @@ new Vue({
         },
 
         transcriptConsequence() {
-            let transcriptConsequenceData = {
-                amino_acids,
-                biotype,
-                cadd_phred,
-                cadd_raw,
-                cadd_raw,
-                consequence_terms: []
-            }
+            console.log("I am here")
+            // console.log(this.$store.state.variant)
             let data = this.$store.state.variant.data
-            data.forEach(v => {
-                transcriptConsequenceData.amino_acids.push(v.transcriptConsequence.amino_acids);
-            })
-            //this is incomplete since you might have to transform the data - create a map for desired tabular format
+            let transcriptConsequenceData = []
+            for (let i in data) {
+                let consequence = data[i].transcriptConsequence
+                transcriptConsequenceData.push({
+                    amino_acids: consequence.amino_acids, transcript_id: consequence.transcript_id,
+                    biotype: consequence.biotype, cadd_raw: consequence.cadd_raw, cadd_phred: consequence.cadd_phred,
+                    consequence_terms: consequence.consequence_terms[i]
+                })
+            }
             return transcriptConsequenceData
         }
     },

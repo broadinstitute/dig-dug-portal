@@ -18,12 +18,15 @@ export default new Vuex.Store({
         invalidGeneOrRegion: false,
         variantID: null,
         // fix this infure
-        // invalidVarID: false,
+        invalidVariantID: false,
     },
     mutations: {
         setInvalidGeneOrRegion(state, flag) {
             state.invalidGeneOrRegion = flag;
         },
+        setInvalidVariantID(state, flag) {
+            state.invalidVariantID = flag;
+        }
     },
     state: {},
     actions: {
@@ -41,10 +44,16 @@ export default new Vuex.Store({
             }
         },
 
-        async exploreVariant(context) {
+        exploreVariant(context) {
+            let varID = variantUtils.parseVariantID(context.state.variantID)
+            //check for undefined, null, empty strings etc 
+            if (!!varID) {
+                window.location.href = `./variant.html?variant=${varID}`;
+            }
+            else {
+                context.commit('setInvalidVariantID', true);
+            }
 
-            let varID = await variantUtils.parseVariantID(context.state.variantID)
-            window.location.href = `./variant.html?chr=${varID.chr}&pos=${varID.pos}&ref=${varID.ref}&alt=${varID.alt}`;
         }
     }
 });

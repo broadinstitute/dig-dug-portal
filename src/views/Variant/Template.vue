@@ -22,7 +22,7 @@
                     <div class="col-md-4 gene-page-header-body">
                         <span>
                             Variant Info
-                            {{$store.state.chr}}:{{$store.state.pos}}:{{$store.state.ref}}:{{$store.state.alt}}
+                            {{$store.state.variantID}}
                         </span>
                     </div>
                     <!-- change this class to variantInfo -->
@@ -35,7 +35,7 @@
                             <div class="variant-search">
                                 <div class="col-md-10 input-wrapper">
                                     <input
-                                        v-model="$store.state.variantID"
+                                        v-model="$store.state.newVariantID"
                                         type="text"
                                         class="form-control input-default"
                                         style="margin-left: 15px;padding-top: 30px;padding-left:30px"
@@ -44,7 +44,7 @@
 
                                     <div class="col-md-2 input-wrapper">
                                         <button
-                                            id="regionSearchGo"
+                                            id="variantSearchGo"
                                             class="btn btn-primary"
                                             type="button"
                                             @click="$store.dispatch('queryVariant')"
@@ -57,13 +57,9 @@
                 </div>
             </div>
             <div class="col-md-4 gene-page-header-body">
-                <tr v-for="row in $store.state.variant.data">
-                    <td>amino_acids {{row.transcriptConsequence.amino_acids}}</td>
-                    <td>biotype {{row.transcriptConsequence.biotype}}</td>
-                    <td>cadd_phred {{row.transcriptConsequence.cadd_phred}}</td>
-                    <td>transcript_id {{row.transcriptConsequence.transcript_id}}</td>
-                    <!-- <td>consequence_terms {{row.transcriptConsequence.consequence_terms}</td> -->
-                </tr>
+                <transcript-consequence-table
+                    v-bind:transcriptConsequence="$parent.transcriptConsequence"
+                ></transcript-consequence-table>
             </div>
         </div>
 
