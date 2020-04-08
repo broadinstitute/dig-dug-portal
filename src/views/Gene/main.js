@@ -9,7 +9,6 @@ import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
 import lzDataSources from "@/utils/lz/lzDataSources";
-import groupBy from "lodash/groupBy";
 
 Vue.config.productionTip = false;
 
@@ -95,24 +94,6 @@ new Vue({
 
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
-        },
-        topAssociationsGrouped() {
-            let data = this.topAssociations;
-            data.forEach(
-                element => (
-                    (element[
-                        "group"
-                    ] = this.$store.state.bioPortal.phenotypeMap[
-                        element.phenotype
-                    ].group),
-                    (element[
-                        "description"
-                    ] = this.$store.state.bioPortal.phenotypeMap[
-                        element.phenotype
-                    ].description)
-                )
-            );
-            return groupBy(data, "group");
         },
 
         // Column-major associations for locuszoom

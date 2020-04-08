@@ -1,0 +1,90 @@
+.phenotype-group.ANTHROPOMETRIC div.progress-bar,
+.reference.color-1 {
+    background-color: #048845;
+}
+.phenotype-group.ATRIAL.FIBRILLATION div.progress-bar,
+.reference.color-2 {
+    background-color: #9aca3c;
+}
+.phenotype-group.CARDIOVASCULAR div.progress-bar,
+.reference.color-3 {
+    background-color: #6fc7b6;
+}
+.phenotype-group.ECG.TRAITS div.progress-bar,
+.reference.color-4 {
+    background-color: #8490c8;
+}
+.phenotype-group.GLYCEMIC div.progress-bar,
+.reference.color-5 {
+    background-color: #9f78ac;
+}
+.phenotype-group.HEMORRHAGIC.STROKE div.progress-bar,
+.reference.color-6 {
+    background-color: #bf61a5;
+}
+.phenotype-group.HEPATIC div.progress-bar,
+.reference.color-7 {
+    background-color: #f88084;
+}
+.phenotype-group.ISCHEMIC.STROKE div.progress-bar,
+.reference.color-8 {
+    background-color: #ee3124;
+}
+.phenotype-group.LIPIDS div.progress-bar,
+.reference.color-9 {
+    background-color: #faa553;
+}
+.phenotype-group.METABOLITE div.progress-bar,
+.reference.color-10 {
+    background-color: #fcd700;
+}
+.phenotype-group.MRI.TRAITS div.progress-bar,
+.reference.color-11 {
+    background-color: #f5a4c7;
+}
+.phenotype-group.MUSCULOSKELETAL div.progress-bar,
+.reference.color-12 {
+    background-color: #cee6c1;
+}
+.phenotype-group.OCULAR div.progress-bar,
+.reference.color-13 {
+    background-color: #fff9b8;
+}
+.phenotype-group.OTHER div.progress-bar,
+.reference.color-14 {
+    background-color: #d4d4d4;
+}
+.phenotype-group.PSYCHIATRIC div.progress-bar,
+.reference.color-15 {
+    background-color: #5555ff;
+}
+.phenotype-group.RENAL div.progress-bar,
+.reference.color-16 {
+    background-color: #facacc;
+}
+.phenotype-group.SLEEP.AND.CIRCADIAN div.progress-bar,
+.reference.color-17 {
+    background-color: #d5a768;
+}
+.phenotype-group.STROKE div.progress-bar,
+.reference.color-18 {
+    background-color: #ffff00;
+}
+.phenotype-group-header {
+    cursor: pointer;
+    text-align: right;
+}
+.marker {
+    position: absolute;
+    width: 10px;
+    height: 2rem;
+    background-color: rgba(218, 218, 218, 0.2);
+    z-index: 10;
+    cursor: help;
+}
+.progress {
+    position: relative;
+}
+.bar-desc {
+    float: right;
+}

@@ -89,7 +89,7 @@
 			<div class="card mdkp-card">
 				<div class="card-body">
 					<h4 class="card-title">New phenotypes with signal</h4>
-					<phenotype-signal :phenotypes="$parent.topAssociationsGrouped"></phenotype-signal>
+					<phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
 				</div>
 			</div>
 
