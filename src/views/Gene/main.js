@@ -7,7 +7,8 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
-import lzDataSources from "@/utils/lz/lzDataSources";
+
+import { useTranslations } from "@/utils/dataMappingUtils"
 
 Vue.config.productionTip = false;
 
@@ -31,6 +32,10 @@ new Vue({
 
     render(createElement, context) {
         return createElement(Template);
+    },
+
+    methods: {
+        ...useTranslations,
     },
 
     computed: {

@@ -4,9 +4,7 @@
 <script>
 import Vue from "vue";
 import igv from "../../../igv.js/dist/igv.esm.js";
-
-import { makeBioIndexIGVTrack, associationsToIGVAnnotationTrackData } from "@/utils/igvUtils"
-import { BIO_INDEX_TYPE } from "@/utils/bioIndexUtils"
+import { makeBioIndexIGVTrack } from "@/utils/igvUtils"
 
 export default Vue.component("igv", {
     props: [
@@ -19,13 +17,13 @@ export default Vue.component("igv", {
         var igvDiv = document.getElementById("igv-div");
 
         let moduleTracks = this.modules.map(moduleObj => {
-            const module = Object.keys(moduleObj)[0];
-            const translator = Object.values(moduleObj)[0];
-            return makeBioIndexIGVTrack({ module, translator });
+            const { module, target, translator } = moduleObj;
+            const track = target;
+            return makeBioIndexIGVTrack({ module, track, translator });
         });
 
         var optionsLocal = {
-            genome: "hg19",  // TODO: update?
+            genome: "hg38",  // TODO: update?
             locus: `chr${this.chr}:${this.start}-${this.end}`,
             tracks: moduleTracks,
         };

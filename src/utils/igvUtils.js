@@ -18,7 +18,6 @@
 // interaction
 
 // Variants -> Annotation
-import {cloneDeep} from "lodash";
 import {BIO_INDEX_TYPE, BIO_INDEX_HOST} from "@/utils/bioIndexUtils";
 
 function variantsToIgvAnnotations(variants) {
@@ -34,9 +33,9 @@ function variantsToIgvAnnotations(variants) {
 
 const TEMPLATE_TRACK = {
     name: null,
-    type: "annotation",
+    type: null,  // e.g. annotation, GWAS, seg,...
     height: 300,
-    visibilityWindow: 200000,
+    visibilityWindow: 50000,
     sourceType: "custom",
     source: null
 }
@@ -56,33 +55,15 @@ function makeSourceURLFunction(regionBasedModule) {
     }
 };
 
-export function makeBioIndexIGVTrack({ module, translator }) {
+export function makeBioIndexIGVTrack({ module, track, translator }) {
     return {
         ...TEMPLATE_TRACK,
         name: module,
+        type: track,
         source: {
             ...TEMPLATE_SOURCE,
             url: makeSourceURLFunction(module),
-            parser: translator,
+            parser: json => translator(JSON.parse(json).data),
         }
-    }
-}
-
-export const associationsToIGVAnnotationTrackData = response => {
-    const json = JSON.parse(response);
-    if (typeof json.data == 'undefined') {
-        return []
-    } else {
-        return json.data.map(element => {
-            const annotation = cloneDeep(element);
-            annotation['chromosome'] = undefined;
-            annotation['position'] = undefined;
-            return {
-                chr: element.chromosome,
-                start: element.position,
-                end: element.position,
-                ...annotation,
-            }
-        });
     }
 }

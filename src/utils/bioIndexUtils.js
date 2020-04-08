@@ -4,7 +4,7 @@
 */
 
 import querystring from "query-string";
-import {cloneDeep} from "lodash";
+import * as _ from "lodash";
 
 // Constants
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
@@ -82,4 +82,3 @@ function makeBioIndexQueryStr(json) {
         return `${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`
     }
 };
-

@@ -1,3 +1,5 @@
+import {BIO_INDEX_TYPE} from '@/utils/bioIndexUtils'
+
 export const LZ_TYPE = Object.freeze({
     assoc: 'assoc',
     gene: 'gene',
@@ -5,15 +7,24 @@ export const LZ_TYPE = Object.freeze({
     ld: 'ld',
     constraint: 'constraint',
     intervals: 'intervals',
+    phewas: 'phewas',
 });
 
 export const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';
 // panel ordering
 // https://github.com/statgen/locuszoom/wiki/Panel#general
 // https://github.com/statgen/locuszoom/wiki/Data-Layer#supported-layout-directives---allmost-data-layer-types
+
 export const PANEL_ORDER = Object.freeze([
     // TODO: your ordering here
-    'association', 'genes', 'intervals'
+    'association',
+    'association_catalog',
+    'association_credible_set',
+    'genes',
+    'intervals',
+    'phewas',
+    'annotation_catalog',
+    'annotation_credible_set',
 ]);
 
 export function sortPanels(panels) {
@@ -30,14 +41,6 @@ export function sortPanels(panels) {
     });
 }
 
-export function isEmpty(obj) {
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key))
-            return false;
-    }
-    return true;
-}
-
 export const calcLog = function (values) {
     if (values instanceof Array) {
         return values.map(Math.log).map(data => (-1) * data);
@@ -46,57 +49,11 @@ export const calcLog = function (values) {
     }
 };
 
-export function dataFilter(format, propertyName) {
-    return function (propertyValue) {
-        return function (pointData) {
-            return pointData.filter(datum => datum[propertyName] == propertyValue);  // we want casting
-        };
-    };
-};
-
-export function dataRangeFilter(format, property) {
-    return function (start, end) {
-        return function (rangedData) {
-            let startIndex = findLeastStart(start, end,
-                point => (rangedData[property] || rangedData.map(item => item[property])).indexOf(point));
-            let endIndex = findMostEnd(start, end,
-                point => (rangedData[property] || rangedData.map(item => item[property])).lastIndexOf(point));
-
-            if (startIndex !== -1 && endIndex !== -1) {
-                const value = rangedData.slice(startIndex, endIndex !== -1 ? endIndex + 1 : rangedData.length);
-                return value;
-            }
-
-            return [];
-        }
-
-    }
-}
-
-function findLeastStart(start, end, indexSearch) {
-    let startIndex = -1;
-    let k = start;
-    while (true) {
-        startIndex = indexSearch(k);
-        if (startIndex == -1 && k < end) {
-            k++;
-        } else {
-            break;
-        }
-    }
-    return startIndex;
-}
-
-function findMostEnd(start, end, indexSearch) {
-    let endIndex = -1;
-    let j = end;
-    while (true) {
-        endIndex = indexSearch(j);
-        if (endIndex == -1 && j > start) {
-            j--;
-        } else {
-            break;
-        }
-    }
-    return endIndex;
-}
+/* LZ Mappings */
+// Used to transform BioIndex types into LZ types
+export const BIO_INDEX_TO_LZ = Object.freeze({
+    [BIO_INDEX_TYPE.PhenotypeAssociations]: [LZ_TYPE.assoc],
+    [BIO_INDEX_TYPE.Associations]: [LZ_TYPE.assoc],
+    [BIO_INDEX_TYPE.TopAssociations]: [LZ_TYPE.assoc],
+    [BIO_INDEX_TYPE.Genes]: [LZ_TYPE.gene],
+});

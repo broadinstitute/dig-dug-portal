@@ -92,10 +92,17 @@
                 </div>
 
                 <igv
-                    v-bind:modules="[{ 'top-associations': $parent.associationsToIGVAnnotationTrackData }]"
-                    v-bind:chr="8"
-                    v-bind:start="10000"
-                    v-bind:end="20000"
+                    v-bind:modules="[
+                        { 'module': 'top-associations',
+                          'target': 'annotation',
+                          'translator': $parent.associationsForIGV },
+                        { 'module': 'variants',
+                          'target': 'annotation',
+                          'translator': $parent.associationsForIGVFromVariants },
+                    ]"
+                    v-bind:chr="$store.state.chr"
+                    v-bind:start="$store.state.start"
+                    v-bind:end="$store.state.end"
                 ></igv>
 
             </div>

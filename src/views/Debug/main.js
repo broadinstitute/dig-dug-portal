@@ -10,7 +10,8 @@ import IGV from "@/components/IGV";
 import PageHeader from "../../components/PageHeader";
 import PageFooter from "../../components/PageFooter";
 import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
-import {associationsToIGVAnnotationTrackData} from "../../utils/igvUtils";
+import { associationsForIGV } from "@/utils/dataMappingUtils";
+import { translate, associationsFromVariants } from "@/utils/dataMappingUtils";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -31,7 +32,8 @@ new Vue({
     },
 
     methods: {
-        associationsToIGVAnnotationTrackData,
+        associationsForIGV,
+        associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV})
     },
 
     computed: {
