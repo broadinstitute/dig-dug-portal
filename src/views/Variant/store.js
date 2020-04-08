@@ -70,12 +70,11 @@ export default new Vuex.Store({
         },
 
         async queryVariant(context) {
-            // context.commit('setVariantID')
-            // find all the transcript Consequences for a given variant
 
-            // context.commit("setVariantID")
-            // let varID = variantUtils.parseVariantID(context.state.variantID)
 
+            // if (context.state.variantID) {
+
+            // }
             context.dispatch('variant/query', { q: context.getters.variantID });
             // console.log("I am queryVariant")
 

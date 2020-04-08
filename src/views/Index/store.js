@@ -16,7 +16,7 @@ export default new Vuex.Store({
     state: {
         geneOrRegion: null,
         invalidGeneOrRegion: false,
-        varID: null,
+        variantID: null,
         // fix this infure
         // invalidVarID: false,
     },
@@ -42,7 +42,8 @@ export default new Vuex.Store({
         },
 
         async exploreVariant(context) {
-            let varID = variantUtils.parseVariantID(context.state.variantID)
+
+            let varID = await variantUtils.parseVariantID(context.state.variantID)
             window.location.href = `./variant.html?chr=${varID.chr}&pos=${varID.pos}&ref=${varID.ref}&alt=${varID.alt}`;
         }
     }

@@ -1,11 +1,12 @@
 
 const REGION_REGEXP = /(?:chr)?(\d{1,2}|x|y|xy|mt?):(\d+)(?:([+/-])(\d+))?/
 
-function parseVariantID(variantID) {
+async function parseVariantID(variantID) {
     //example varID -> 8:118184783:C:T 
     //8_118184783_C_T - should be valid input as well
     //should work for lower case as well
     //eventually it should be able to use rsid as input 
+    
     let parsedVar = variantID.split(/\s*[:_,]\s*/)
     let chr = parsedVar[0]
     let pos = parsedVar[1]

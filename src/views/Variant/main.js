@@ -64,12 +64,10 @@ new Vue({
             let data = this.$store.state.variant.data
             data.forEach(v => {
                 transcriptConsequenceData.amino_acids.push(v.transcriptConsequence.amino_acids);
-
             })
             //this is incomplete since you might have to transform the data - create a map for desired tabular format
             return transcriptConsequenceData
         }
-
     },
 
     watch: {
