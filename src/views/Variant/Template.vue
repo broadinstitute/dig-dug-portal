@@ -56,10 +56,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 gene-page-header-body">
+            <div class="col-md-10">
                 <transcript-consequence-table
                     v-bind:transcriptConsequence="$parent.transcriptConsequence"
                 ></transcript-consequence-table>
+
+                <transcription-factors-table
+                    v-bind:transcriptionFactors="$parent.transcriptionFactors"
+                ></transcription-factors-table>
             </div>
         </div>
 

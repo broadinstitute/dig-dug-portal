@@ -2,7 +2,7 @@
     <div>
         <b-table
             hover
-            :items="transcriptConsequence"
+            :items="transcriptionFactors"
             :fields="fields"
             :per-page="10"
             :current-page="1"
@@ -21,42 +21,38 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("transcript-consequence-table", {
-    props: ["transcriptConsequence"],
+export default Vue.component("transcription-factors-table", {
+    props: ["transcriptionFactors"],
     data() {
         return {
             fields: [
                 {
-                    key: "amino_acids",
-                    label: "amino_acids"
+                    key: "varId",
+                    label: "varId"
                 },
                 {
-                    key: "biotype",
-                    label: "biotype"
+                    key: "positionWeightMatrix",
+                    label: "positionWeightMatrix"
                 },
                 {
-                    key: "transcript_id",
-                    label: "transcript_id"
+                    key: "delta",
+                    label: "delta"
                 },
                 {
-                    key: "transcript_id",
-                    label: "transcript_id"
+                    key: "position",
+                    label: "position"
                 },
                 {
-                    key: "cadd_raw",
-                    label: "cadd_raw"
+                    key: "strand",
+                    label: "strand"
                 },
                 {
-                    key: "cadd_raw",
-                    label: "cadd_raw"
+                    key: "refScore",
+                    label: "refScore"
                 },
                 {
-                    key: "cadd_phred",
-                    label: "cadd_phred"
-                },
-                {
-                    key: "consequence_terms",
-                    label: "consequence_terms"
+                    key: "altScore",
+                    label: "altScore"
                 }
             ]
         };
