@@ -71,15 +71,21 @@ new Vue({
 
         transcriptionFactors() {
             let data = this.$store.state.variant.data
-            let transcriptionFactorsData = [];
+            // let transcriptionFactorsData = [];
             for (let i in data) {
                 let transcriptionFactors = data[i].transcriptionFactors
-                for (let j in transcriptionFactors) {
-                    transcriptionFactorsData.push(transcriptionFactors[j])
-                }
-                return transcriptionFactorsData
+                return transcriptionFactors
             }
-        }
+        },
+
+        associations() {
+            let data = this.$store.state.variant.data
+            // let transcriptionFactorsData = [];
+            for (let i in data) {
+                let associations = data[i].associations
+                return associations
+            }
+        },
     },
 
     watch: {
@@ -87,10 +93,12 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
-        variant(variantID) {
+        //currently not being used
+        variant() {
             //this should dispatch this function whenever there is change in variant ID
-            this.$store.dispatch('queryVariant', { q: variantID, limit: 2000 });
+            this.$store.dispatch('queryVariant', { q: context.state.newVariantID, limit: 20 });
         },
+
     },
 
 }).$mount("#app");

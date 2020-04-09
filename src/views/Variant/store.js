@@ -28,30 +28,22 @@ export default new Vuex.Store({
         setVariantID(state, variantID) {
             state.variantID = variantID || state.newVariantID;
             state.newVariantID = state.variantID
-            keyParams.set({ variant: state.variantID })
+            keyParams.set({ variant: state.newVariantID })
         },
 
     },
     actions: {
 
-        // async onVariantIDChange(context) {
-        //     // context.state.newChr = context.state.chr;
-        //     // context.state.newPos = context.state.pos;
-        //     // context.state.newRef = context.state.ref;
-        //     // context.state.newAlt = context.state.alt;
-
-        //     // update the variantID
-        //     context.commit('setVariantID', variantID);
-        //     context.dispatch('queryVariant');
-        // },
-
         async queryVariant(context) {
-            context.commit('setVariantID');
-
-            context.dispatch('variant/query', { q: context.state.variantID });
-            // console.log("I am queryVariant")
-
-
+            let varID = variantUtils.parseVariantID(context.state.newVariantID)
+            if (!!varID) {
+                context.commit('setVariantID');
+                //context.commit('transcriptConsequence/clearData');
+                context.dispatch('variant/query', { q: varID });
+            }
+            else {
+                context.commit('setInvalidVariantID', true);
+            }
         },
     }
 
