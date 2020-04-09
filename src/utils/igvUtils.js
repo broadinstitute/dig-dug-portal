@@ -18,7 +18,8 @@
 // interaction
 
 // Variants -> Annotation
-import {BIO_INDEX_TYPE, BIO_INDEX_HOST} from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
+import { moduleQueryTemplate } from "./bioIndexUtils";
 
 function variantsToIgvAnnotations(variants) {
     return variants.map(variant => (
@@ -55,15 +56,66 @@ function makeSourceURLFunction(regionBasedModule) {
     }
 };
 
-export function makeBioIndexIGVTrack({ module, track, translator }) {
+export function makeBioIndexIGVTrack({ module, track, translator, source }) {
     return {
         ...TEMPLATE_TRACK,
         name: module,
         type: track,
-        source: {
+        source: source || {
             ...TEMPLATE_SOURCE,
             url: makeSourceURLFunction(module),
             parser: json => translator(JSON.parse(json).data),
         }
+    }
+}
+
+export function makeBioIndexIGVTrackWithReader({ module, track, translator }) {
+    const bioIndexIGVSource = new BioIndexIGVReader({
+        module,
+        translator,
+    });
+    return makeBioIndexIGVTrack({
+        module,
+        track,
+        translator,
+        source: bioIndexIGVSource,
+    });
+}
+
+/**
+ * A custom feature reader implementation
+ * The purpose of the BioIndexIGVReader is to totally complete a query up to its limit.
+ * Required methods:
+ *    constructor
+ *    readFeatures
+ */
+class BioIndexIGVReader {
+
+    constructor(config) {
+        this.module = config.module;
+        this.translator = config.translator;
+    }
+
+    async readFeatures(chr, start, end) {
+
+        const data =
+            await fullQuery({
+                index: this.module,
+                q: moduleQueryTemplate(this.module, {
+                    chromosome: chr,
+                    start: start,
+                    end: end
+                })
+            }, () => {
+                throw Error('module query failed')
+            });
+
+        return this.translator(data);
+
+        // if (!response.ok) {
+        //     throw Error(response.statusText);
+        // } else {
+        //     return data;
+        // }
     }
 }

@@ -133,7 +133,7 @@
                               'target': 'phewas',
                               'translator': $parent.associationsForLZFromVariants },
                         ]"
-                        
+                    
                         v-bind:chr="$store.state.chr"
                         v-bind:start="$store.state.start"
                         v-bind:end="$store.state.end"

@@ -14,8 +14,7 @@ export const translate = ({from = id => id, to}) => data => to(from(data))
 /* BioIndex Decompositions */
 // name these like xFromY
 export const associationsFromVariants = variants => {
-    console.log(variants);
-    const translation = variants
+    const associations = variants
             .filter(variants => variants.associations)
             .map(variants => variants.associations)
             .flatMap((associations, index) => {
@@ -26,8 +25,7 @@ export const associationsFromVariants = variants => {
                 }))
                 return fullAssociations;
             })
-
-    return translation;
+    return associations;
 };
 
 export const useDecompositions = {

@@ -54,7 +54,7 @@ async function portalFetch(query, errHandler) {
 };
 
 // return all of the data in the query chain at once
-async function fullQuery(json, errHandler) {
+export async function fullQuery(json, errHandler) {
     let query = await beginIterableQuery(json,errHandler);
     let data = [];
     let continuation;

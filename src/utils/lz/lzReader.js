@@ -38,7 +38,6 @@ BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
             if (err) {
                 reject(new Error(err));
             }
-            console.log('parse', self.parser(data));
             resolve(self.parser(data));
         });
     });

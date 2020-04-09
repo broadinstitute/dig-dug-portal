@@ -3,7 +3,7 @@
 </template>
 <script>
 import Vue from "vue";
-import igv from "../../../igv.js/dist/igv.esm.js";
+import igv from "igv";
 import { makeBioIndexIGVTrack } from "@/utils/igvUtils"
 
 export default Vue.component("igv", {
@@ -31,6 +31,8 @@ export default Vue.component("igv", {
         igv.createBrowser(igvDiv, optionsLocal)
     }
 })
+
+
 
 // igv.browser.loadTrack({
 //     url: 'https://data.broadinstitute.org/igvdata/test/igv-web/segmented_data_080520.seg.gz',
