@@ -7,7 +7,8 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import VariantsTable from "@/components/VariantsTable";
-import lzDataSources from "@/utils/lz/lzDataSources";
+
+import { associationsForLZ } from "@/utils/dataMappingUtils"
 
 Vue.config.productionTip = false;
 
@@ -27,6 +28,10 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+    },
+
+    methods: {
+        associationsForLZ
     },
 
     render(createElement, context) {
