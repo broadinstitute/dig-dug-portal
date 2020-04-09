@@ -39,8 +39,9 @@ export default new Vuex.Store({
 
         removePhenotype(state, phenotypeName) {
             state.phenotypes = state.phenotypes.filter(p => p.name !== phenotypeName);
-            state.filters[phenotypeName] = null;
-            state.newFilters[phenotypeName] = null;
+
+            delete state.filters[phenotypeName];
+            delete state.newFilters[phenotypeName];
         },
 
         expandFilters(state) {

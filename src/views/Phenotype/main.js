@@ -53,10 +53,11 @@ new Vue({
 
         associations() {
             let assocs = {};
+            let phenotypes = this.$store.state.phenotypes;
             let filters = this.$store.getters.phenotypeFilters;
 
-            for (let i in this.$store.state.phenotypes) {
-                let phenotype = this.$store.state.phenotypes[i];
+            for (let i in phenotypes) {
+                let phenotype = phenotypes[i];
                 let name = phenotype.name;
                 let moduleName = `__assocs__${name}`;
                 let filter = filters[name];
@@ -182,6 +183,7 @@ new Vue({
 
             // update browser
             keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+            this.$store.commit('updateFilters');
         },
 
         diseaseGroup(group) {
