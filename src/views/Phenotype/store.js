@@ -2,54 +2,99 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
-import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import keyParams from "@/utils/keyParams";
 
 Vue.use(Vuex);
-
-// default to no registered phenotype modules
-let phenotypeVariants = {};
-
-// if there is a parameter, register modules
-if (!!keyParams.phenotype) {
-    keyParams.phenotype.split(',').forEach(p => {
-        phenotypeVariants[`__assocs__${p}`] = bioIndex('phenotype-associations');
-    });
-}
 
 export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-
-        // for every phenotype at start, register a module for it
-        ...phenotypeVariants,
     },
     state: {
+        // phenotypes needs to be an array so colors don't change!
+        phenotypes: [],
+        newPhenotype: null,
+
+        // filters per phenotype [phenotype] ={ pValue, n, beta, ... }
+        filters: {},
+        newFilters: {},
+        applyAll: true,
+        allFilters: {
+            pValue: null,
+            beta: null,
+            n: null,
+        },
     },
     mutations: {
-    },
-    actions: {
-        loadAssociations(context) {
-            let phenotypeModules = Object.keys(context.state).filter(m => m.startsWith('__assocs__'));
+        setNewPhenotype(state, phenotype) {
+            if (!state.phenotypes.find(p => p.name == phenotype.name)) {
+                state.phenotypes.push(phenotype);
 
-            // dispatch the query for each
-            phenotypeModules.forEach(m => {
-                context.dispatch(`${m}/query`, { q: m.substr(10), limit: 2500 });
-            });
+                // add a set of filters for this phenotype
+                state.filters[phenotype.name] = Object.assign({}, state.allFilters);
+                state.newFilters[phenotype.name] = Object.assign({}, state.allFilters);
+            }
+        },
+
+        removePhenotype(state, phenotypeName) {
+            state.phenotypes = state.phenotypes.filter(p => p.name !== phenotypeName);
+            state.filters[phenotypeName] = null;
+            state.newFilters[phenotypeName] = null;
+        },
+
+        expandFilters(state) {
+            state.applyAll = !state.applyAll;
+        },
+
+        updateFilters(state) {
+            if (state.applyAll) {
+                for (let i in state.phenotypes) {
+                    let name = state.phenotypes[i].name;
+
+                    // apply to each phenotype
+                    state.newFilters[name] = Object.assign({}, state.allFilters);
+                }
+            }
+
+            // update all the filters
+            state.filters = Object.assign({}, state.newFilters);
         }
     },
-    getters: {
-        associations(state) {
-            let phenotypeModules = Object.keys(state).filter(m => m.startsWith('__assocs__'));
-            let assocs = {};
-
-            phenotypeModules.forEach(m => {
-                assocs[m.substr(10)] = state[m].data
-            });
-
-            return assocs;
+    actions: {
+        onPhenotypeChange(context, phenotype) {
+            context.commit('setNewPhenotype', phenotype);
         },
-    }
+    },
+    getters: {
+        phenotypeFilters(state) {
+            let phenotypeFilters = {};
+            let stateFilters = state.filters;
+
+            for (let i in state.phenotypes) {
+                let phenotype = state.phenotypes[i];
+                let filters = stateFilters[phenotype.name];
+
+                // filter for each parameter
+                let pFilter = filters.pValue ? (a => a.pValue <= filters.pValue) : (a => true);
+                let nFilter = filters.n ? (a => a.n >= filters.n) : (a => true);
+                let bFilter = (a => true);
+
+                // set the beta filter if a choice is made
+                switch (filters.beta) {
+                    case "negative":
+                        bFilter = (a => a.beta < 0);
+                        break;
+                    case "positive":
+                        bFilter = (a => a.beta > 0);
+                        break;
+                }
+
+                // combine the filters together
+                phenotypeFilters[phenotype.name] = (a => pFilter(a) && nFilter(a) && bFilter(a));
+            }
+
+            return phenotypeFilters;
+        },
+    },
 });

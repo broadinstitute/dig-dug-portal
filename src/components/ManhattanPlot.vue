@@ -7,7 +7,7 @@ import Vue from "vue";
 import c3 from "c3";
 
 export default Vue.component("manhattan-plot", {
-    props: ["phenotypes"],
+    props: ["phenotypes", "colors"],
 
     data() {
         return {
@@ -27,14 +27,15 @@ export default Vue.component("manhattan-plot", {
                 type: "scatter"
             },
             legend: {
-                position: "right"
+                show: false
             },
             zoom: {
                 enabled: false,
                 rescale: false
             },
+            colors: this.colors || {},
             point: {
-                r: 3
+                r: 5
             },
             axis: {
                 x: {
@@ -88,7 +89,7 @@ export default Vue.component("manhattan-plot", {
             }
 
             // update the chart
-            this.chart.load({ xs, columns });
+            this.chart.load({ xs, columns, colors: this.colors || {} });
         }
     }
 });

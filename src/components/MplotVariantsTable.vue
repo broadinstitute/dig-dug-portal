@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-table hover :fields="fields" :items="variants" :tbody-tr-class="rowClass">
+        <b-table hover small :fields="fields" :items="variants" :tbody-tr-class="rowClass">
             <template v-slot:cell(varId)="data">{{ data.value }}</template>
             <template v-slot:cell(pValue)="data">{{ data.value }}</template>
             <template v-slot:cell(chromosome)="data">{{ data.value }}</template>
@@ -21,7 +21,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("mplot-variants-table", {
-    props: ["variants"],
+    props: ["variants", "phenotypeMap"],
     data() {
         return {
             fields: [
@@ -30,20 +30,37 @@ export default Vue.component("mplot-variants-table", {
                     label: "varId",
                     sortable: false
                 },
+                ,
+                {
+                    key: "phenotype",
+                    label: "Phenotype",
+                    sortable: true,
+                    formatter: "phenotypeFormatter"
+                },
                 {
                     key: "pValue",
-                    label: "p-value",
+                    label: "P-Value",
                     sortable: true
                 },
                 {
-                    key: "chromosome",
-                    label: "Chromosome",
+                    key: "beta",
+                    label: "Effect (beta)",
                     sortable: true
                 },
                 {
-                    key: "position",
-                    label: "Position",
-                    sortable: false
+                    key: "stdErr",
+                    label: "Standard Error",
+                    sortable: true
+                },
+                {
+                    key: "zScore",
+                    label: "Z-Score",
+                    sortable: true
+                },
+                {
+                    key: "n",
+                    label: "N",
+                    sortable: true
                 }
             ]
         };
@@ -52,8 +69,10 @@ export default Vue.component("mplot-variants-table", {
         rowClass(item, type) {
             if (!item || type !== "row") return;
             if (item.pValue < 2.5e-6) return "variant-table-row high";
+        },
+        phenotypeFormatter(value) {
+            return this.phenotypeMap[value].name;
         }
     }
 });
 </script>
-

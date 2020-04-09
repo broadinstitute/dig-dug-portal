@@ -34,7 +34,7 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 import "vue-select/dist/vue-select.css";
 
 export default Vue.component("phenotype-selectpicker", {
-    props: ["phenotypes"],
+    props: ["phenotypes", "clearSelected"],
 
     data() {
         return {
