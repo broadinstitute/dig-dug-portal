@@ -52,18 +52,21 @@ export default Vue.component("tissue-enrichment", {
             baseFields: [
                 {
                     key: "tissue",
-                    label: "Tissue",
-                    sortable: false
+                    label: "Tissue"
                 },
                 {
                     key: "method",
-                    label: "Method",
-                    sortable: false
+                    label: "Method"
                 },
                 {
                     key: "annotation",
                     label: "Annotation",
-                    sortable: false
+                    formatter(s) {
+                        return s.replace(
+                            /([a-z])([A-Z0-9])/g,
+                            (m, p1, p2) => `${p1} ${p2}`
+                        );
+                    }
                 }
             ]
         };
@@ -98,24 +101,6 @@ export default Vue.component("tissue-enrichment", {
             }
 
             return fields;
-        }
-    },
-    methods: {
-        smallNumFormatter(value, key, item) {
-            return !!value ? Number.parseFloat(value).toFixed(2) : "-";
-        },
-        pValueFormatter(value, key, item) {
-            if (!value) {
-                return "-";
-            }
-
-            let x = Number.parseFloat(value);
-
-            if (x < 1e-5) {
-                return x;
-            } else {
-                return x.toFixed(5);
-            }
         }
     }
 });
