@@ -7,7 +7,7 @@ import Vue from "vue";
 import c3 from "c3";
 
 export default Vue.component("manhattan-plot", {
-    props: ["phenotypes", "colors"],
+    props: ["loadedAssociations", "unloadedAssociations", "colors"],
 
     data() {
         return {
@@ -59,7 +59,7 @@ export default Vue.component("manhattan-plot", {
     },
 
     watch: {
-        phenotypes(data) {
+        loadedAssociations(data) {
             let columns = [];
             let xs = {};
 
@@ -90,6 +90,10 @@ export default Vue.component("manhattan-plot", {
 
             // update the chart
             this.chart.load({ xs, columns, colors: this.colors || {} });
+        },
+
+        unloadedAssociations(phenotypes) {
+            this.chart.unload(phenotypes);
         }
     }
 });

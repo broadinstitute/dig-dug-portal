@@ -137,12 +137,13 @@
                     </table>
                     <manhattan-plot
                         class="mb-3"
-                        v-bind:phenotypes="$parent.associations"
+                        :loaded-associations="$parent.associationsByPhenotype"
+                        :unloaded-associations="$parent.unloadedPhenotypes"
                         :colors="$parent.colors"
                     ></manhattan-plot>
                     <mplot-variants-table
-                        :variants="$parent.topVariants"
-                        :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        :variants="$parent.associationsByVarId"
+                        :phenotypes="$store.state.phenotypes"
                         :per-page="10"
                     ></mplot-variants-table>
                 </div>

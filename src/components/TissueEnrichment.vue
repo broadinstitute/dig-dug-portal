@@ -1,31 +1,25 @@
 <template>
     <div>
-        <b-pagination
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-            aria-controls="variants-table"
-        ></b-pagination>
+        <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
         <b-table
             hover
             small
             responsive
             bordered
             :items="tissues"
-            :sort-by.sync="sortBy"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
             :tbody-tr-class="rowClass"
         >
             <template v-slot:thead-top="data">
-                <b-th colspan="2">
-                    <span class="sr-only">Tissue, Method, Annotation</span>
+                <b-th colspan="3">
+                    <span class="sr-only">Tissue</span>
                 </b-th>
                 <b-th
                     :key="phenotype.name"
                     v-for="(phenotype, i) in phenotypes"
-                    colspan="3"
+                    colspan="2"
                     class="reference"
                     :class="'color-' + (i+1)"
                 >
@@ -56,7 +50,6 @@ export default Vue.component("tissue-enrichment", {
             perPage: 10,
             currentPage: 1,
             rows: 500,
-            sortBy: "minP",
             baseFields: [
                 {
                     key: "tissue",
@@ -66,42 +59,36 @@ export default Vue.component("tissue-enrichment", {
                 {
                     key: "method",
                     label: "Method",
-                    sortable: true
+                    sortable: false
+                },
+                {
+                    key: "annotation",
+                    label: "Annotation",
+                    sortable: false
                 }
-                //     {
-                //         key: "annotation",
-                //         label: "Annotation",
-                //         sortable: true
-                //     }
             ]
         };
     },
 
     computed: {
         fields() {
-            let fields = this.baseFields.concat([]); // create new array
+            let fields = this.baseFields;
 
             for (let i in this.phenotypes) {
                 let p = this.phenotypes[i];
 
                 fields = fields.concat([
                     {
-                        key: `${p.name}_expectedSNPs`,
-                        label: `Expected SNPs`,
-                        sortable: true,
-                        formatter: "smallNumFormatter"
+                        key: `${p.name}_pValue`,
+                        label: `P-Value`,
+                        sortable: false,
+                        formatter: "pValueFormatter"
                     },
                     {
                         key: `${p.name}_SNPs`,
                         label: `SNPs`,
-                        sortable: true,
-                        formatter: "smallNumFormatter"
-                    },
-                    {
-                        key: `${p.name}_pValue`,
-                        label: `P-Value`,
-                        sortable: true,
-                        formatter: "pValueFormatter"
+                        sortable: false,
+                        formatter: x => (!!x ? x.toFixed(0) : "-")
                     }
                 ]);
             }
