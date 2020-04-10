@@ -12,7 +12,7 @@
             :current-page="currentPage"
         >
             <template v-slot:thead-top="data">
-                <b-th colspan="3">
+                <b-th colspan="2">
                     <span class="sr-only">Variant</span>
                 </b-th>
                 <b-th
@@ -25,7 +25,14 @@
                     <span style="color:white">{{phenotype.description}}</span>
                 </b-th>
             </template>
-            <template v-slot:cell(allele)="r">{{r.item.reference}}/{{r.item.alt}}</template>
+            <template v-slot:cell(locus)="r">
+                <a
+                    :href="`/gene.html?chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
+                >{{r.item.chromosome}}:{{r.item.position}}</a>
+            </template>
+            <template v-slot:cell(allele)="r">
+                <a :href="`/variant.html?variant=${r.item.varId}`">{{alleleFormatter(r.item)}}</a>
+            </template>
         </b-table>
     </div>
 </template>
@@ -50,12 +57,8 @@ export default Vue.component("mplot-variants-table", {
             rows: 500,
             baseFields: [
                 {
-                    key: "chromosome",
-                    label: "Chr"
-                },
-                {
-                    key: "position",
-                    label: "Position"
+                    key: "locus",
+                    label: "Locus"
                 },
                 {
                     key: "allele",
@@ -109,10 +112,24 @@ export default Vue.component("mplot-variants-table", {
             let x = Number.parseFloat(value);
 
             if (x < 1e-5) {
-                return x;
+                return x.toExponential(2);
             } else {
-                return x.toFixed(5);
+                return x.toFixed(4);
             }
+        },
+        alleleFormatter(item) {
+            let ref = item.reference;
+            let alt = item.alt;
+
+            if (ref.length > 3) {
+                ref = ref.substr(0, 3) + "...";
+            }
+
+            if (alt.length > 3) {
+                alt = alt.substr(0, 3) + "...";
+            }
+
+            return `${ref}/${alt}`;
         }
     }
 });

@@ -102,6 +102,22 @@ export default Vue.component("tissue-enrichment", {
 
             return fields;
         }
+    },
+
+    methods: {
+        pValueFormatter(value, key, item) {
+            if (!value) {
+                return "-";
+            }
+
+            let x = Number.parseFloat(value);
+
+            if (x < 1e-5) {
+                return x.toExponential(2);
+            } else {
+                return x.toFixed(4);
+            }
+        }
     }
 });
 </script>

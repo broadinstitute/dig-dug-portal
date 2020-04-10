@@ -24,6 +24,7 @@ export default new Vuex.Store({
             pValue: null,
             beta: null,
             n: null,
+            chr: null,
         },
     },
     mutations: {
@@ -77,8 +78,9 @@ export default new Vuex.Store({
                 let filters = stateFilters[phenotype.name];
 
                 // filter for each parameter
-                let pFilter = filters.pValue ? (a => a.pValue <= filters.pValue) : (a => true);
-                let nFilter = filters.n ? (a => a.n >= filters.n) : (a => true);
+                let pFilter = (!!filters.pValue) ? (a => a.pValue < filters.pValue) : (a => true);
+                let nFilter = (!!filters.n) ? (a => a.n > filters.n) : (a => true);
+                let cFilter = (!!filters.chr) ? (a => a.chromosome === filters.chr) : (a => true);
                 let bFilter = (a => true);
 
                 // set the beta filter if a choice is made
@@ -92,7 +94,9 @@ export default new Vuex.Store({
                 }
 
                 // combine the filters together
-                phenotypeFilters[phenotype.name] = (a => pFilter(a) && nFilter(a) && bFilter(a));
+                phenotypeFilters[phenotype.name] = (a) => {
+                    return pFilter(a) && nFilter(a) && cFilter(a) && bFilter(a);
+                };
             }
 
             return phenotypeFilters;

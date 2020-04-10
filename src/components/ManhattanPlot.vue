@@ -35,7 +35,7 @@ export default Vue.component("manhattan-plot", {
             },
             colors: this.colors || {},
             point: {
-                r: 5
+                r: 4
             },
             axis: {
                 x: {

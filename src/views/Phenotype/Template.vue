@@ -19,10 +19,12 @@
                         >{{phenotype.description}}</button>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
-                        <phenotype-selectpicker
-                            :phenotypes="$store.state.bioPortal.phenotypes"
-                            :clear-selected="true"
-                        ></phenotype-selectpicker>
+                        <div style="font-size: 16px">
+                            <phenotype-selectpicker
+                                :phenotypes="$store.state.bioPortal.phenotypes"
+                                :clear-selected="true"
+                            ></phenotype-selectpicker>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -33,8 +35,9 @@
                         <thead>
                             <th>Phenotype</th>
                             <th>P-Value</th>
-                            <th>Samples</th>
+                            <th>Sample Size (N)</th>
                             <th>Effect</th>
+                            <th>Chromosome</th>
                         </thead>
                         <tbody>
                             <tr v-if="$store.state.applyAll">
@@ -48,7 +51,7 @@
                                 <td>
                                     <div class="input-group input-group-sm">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text">&lt;=</span>
+                                            <span class="input-group-text">&lt;</span>
                                         </div>
                                         <input
                                             v-model="$store.state.allFilters.pValue"
@@ -61,7 +64,7 @@
                                 <td>
                                     <div class="input-group input-group-sm">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text">&gt;=</span>
+                                            <span class="input-group-text">&gt;</span>
                                         </div>
                                         <input
                                             v-model="$store.state.allFilters.n"
@@ -78,10 +81,23 @@
                                             @change="$store.commit('updateFilters')"
                                             class="custom-select"
                                         >
-                                            <option disabled selected value></option>
+                                            <option selected value></option>
                                             <option value="negative">Negative (beta &lt; 0.0)</option>
                                             <option value="positive">Positive (beta &gt; 0.0)</option>
                                         </select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">=</span>
+                                        </div>
+                                        <input
+                                            v-model="$store.state.allFilters.chr"
+                                            @change="$store.commit('updateFilters')"
+                                            type="text"
+                                            class="form-control"
+                                        />
                                     </div>
                                 </td>
                             </tr>
@@ -120,15 +136,30 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <select
-                                        v-model="$store.state.filters[phenotype.name].beta"
-                                        @change="$store.commit('updateFilters')"
-                                        class="custom-select"
-                                    >
-                                        <option selected value></option>
-                                        <option value="negative">Negative (beta &lt; 0.0)</option>
-                                        <option value="positive">Positive (beta &gt; 0.0)</option>
-                                    </select>
+                                    <div class="input-group input-group-sm">
+                                        <select
+                                            v-model="$store.state.filters[phenotype.name].beta"
+                                            @change="$store.commit('updateFilters')"
+                                            class="custom-select"
+                                        >
+                                            <option selected value></option>
+                                            <option value="negative">Negative (beta &lt; 0.0)</option>
+                                            <option value="positive">Positive (beta &gt; 0.0)</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">=</span>
+                                        </div>
+                                        <input
+                                            v-model="$store.state.filters[phenotype.name].chr"
+                                            @change="$store.commit('updateFilters')"
+                                            type="text"
+                                            class="form-control"
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

@@ -72,13 +72,15 @@ new Vue({
             let data = [];
             let variants = {};
             let phenotypes = this.$store.state.phenotypes;
+            let filters = this.$store.getters.phenotypeFilters;
 
             // get all the data from all phenotypes
             for (let i in phenotypes) {
                 let phenotype = phenotypes[i];
                 let name = phenotype.name;
+                let filter = filters[name];
                 let moduleName = `__assocs__${name}`;
-                let moduleData = this.$store.state[moduleName].data;
+                let moduleData = this.$store.state[moduleName].data.filter(filter);
 
                 for (let k in moduleData) {
                     let r = moduleData[k];
