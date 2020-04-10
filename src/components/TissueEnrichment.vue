@@ -81,13 +81,12 @@ export default Vue.component("tissue-enrichment", {
                     {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
-                        sortable: false,
-                        formatter: "pValueFormatter"
+                        formatter: "pValueFormatter",
+                        sortable: false
                     },
                     {
                         key: `${p.name}_SNPs`,
                         label: `SNPs`,
-                        sortable: false,
                         formatter: x => (!!x ? x.toFixed(0) : "-")
                     }
                 ]);

@@ -77,7 +77,8 @@ export default Vue.component("mplot-variants-table", {
                     {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
-                        formatter: "pValueFormatter"
+                        formatter: "pValueFormatter",
+                        sortable: false
                     },
                     {
                         key: `${p.name}_beta`,

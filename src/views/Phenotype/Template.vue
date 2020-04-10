@@ -120,17 +120,15 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="input-group input-group-sm">
-                                        <select
-                                            v-model="$store.state.filters[phenotype.name].beta"
-                                            @change="$store.commit('updateFilters')"
-                                            class="custom-select"
-                                        >
-                                            <option disabled selected value></option>
-                                            <option value="negative">Negative (beta &lt; 0.0)</option>
-                                            <option value="positive">Positive (beta &gt; 0.0)</option>
-                                        </select>
-                                    </div>
+                                    <select
+                                        v-model="$store.state.filters[phenotype.name].beta"
+                                        @change="$store.commit('updateFilters')"
+                                        class="custom-select"
+                                    >
+                                        <option selected value></option>
+                                        <option value="negative">Negative (beta &lt; 0.0)</option>
+                                        <option value="positive">Positive (beta &gt; 0.0)</option>
+                                    </select>
                                 </td>
                             </tr>
                         </tbody>
