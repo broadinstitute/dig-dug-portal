@@ -7,14 +7,16 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import lzDataSources from "@/utils/lz/lzDataSources";
 
-import {BioIndexLZSourceJIT} from "@/utils/lz/lzReader";
-import {sortPanels, LZ_TYPE} from "@/utils/lz/lzUtils";
-import {BIO_INDEX_TO_LZ} from "@/utils/dataMappingUtils";
+import { BioIndexLZSource } from "@/utils/lz/lzReader";
+import { sortPanels, LZ_TYPE } from "@/utils/lz/lzUtils";
 
 export default Vue.component("locuszoom", {
     props: [
         "panels",
         "modules",
+
+        ...Object.values(LZ_TYPE),
+
         "chr",
         "start",
         "end",
@@ -43,18 +45,22 @@ export default Vue.component("locuszoom", {
     methods: {
         plot() {
             this.dataSources = new LocusZoom.DataSources();
-            this.modules.forEach(module => {
-                this.dataSources.add(BIO_INDEX_TO_LZ[module], new BioIndexLZSourceJIT({
+            this.modules.forEach(moduleObj => {
+                const { module, translator, target } = moduleObj;
+                this.dataSources.add(target, new BioIndexLZSource({
                     store: this.$store,
-                    module: module,
+                    module,
+                    translator,
                 }));
             });
 
-            Object.values(LZ_TYPE).filter(dataType => !this.modules.map(m => BIO_INDEX_TO_LZ[m]).includes(dataType))
+            const configuredLzTypes = this.modules.map(module => module.target);
+            Object.values(LZ_TYPE)
+                .filter(lzType => !configuredLzTypes.includes(lzType))
                 .forEach(dataType => {
                     if (this[dataType]) {
                         this.dataSources.add(dataType, this[dataType]);
-                    } else {
+                    } else if(lzDataSources.defaultSource[dataType]) {
                         this.dataSources.add(dataType, lzDataSources.defaultSource[dataType]);
                     }
                 });
