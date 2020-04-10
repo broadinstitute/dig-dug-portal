@@ -12,7 +12,7 @@
                     <div class="col-md-8 gene-page-header-body">
                         <button
                             v-for="(phenotype, i) in $store.state.phenotypes"
-                            class="btn mr-3 reference p-2 rounded"
+                            class="btn mr-1 reference p-2 rounded"
                             style="color:white"
                             :class="'color-' + (i+1)"
                             @click="$store.commit('removePhenotype', phenotype.name);"
