@@ -10,7 +10,6 @@
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
-            :tbody-tr-class="rowClass"
         >
             <template v-slot:thead-top="data">
                 <b-th colspan="3">
@@ -82,12 +81,18 @@ export default Vue.component("tissue-enrichment", {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
                         formatter: "pValueFormatter",
-                        sortable: false
+                        tdClass(x) {
+                            return !!x && x < 1e-5
+                                ? "variant-table-cell high"
+                                : "";
+                        }
                     },
                     {
                         key: `${p.name}_SNPs`,
                         label: `SNPs`,
-                        formatter: x => (!!x ? x.toFixed(0) : "-")
+                        formatter(x) {
+                            return !!x ? x.toFixed(0) : "-";
+                        }
                     }
                 ]);
             }
@@ -96,11 +101,6 @@ export default Vue.component("tissue-enrichment", {
         }
     },
     methods: {
-        rowClass(item, type) {
-            if (!!item && type === "row") {
-                if (item.minP < 5e-8) return "variant-table-row high";
-            }
-        },
         smallNumFormatter(value, key, item) {
             return !!value ? Number.parseFloat(value).toFixed(2) : "-";
         },

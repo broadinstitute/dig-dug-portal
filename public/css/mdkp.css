@@ -483,6 +483,10 @@ a.edit-btn {
     background-color: #d0efff;
 }
 
+.variant-table-cell.high {
+    background-color: #d0efff;
+}
+
 .c3 .c3-axis-x path, .c3 .c3-axis-x line {
     fill: none;
     stroke: #000;

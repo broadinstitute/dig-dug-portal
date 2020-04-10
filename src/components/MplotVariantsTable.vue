@@ -10,7 +10,6 @@
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
-            :tbody-tr-class="rowClass"
         >
             <template v-slot:thead-top="data">
                 <b-th colspan="3">
@@ -78,12 +77,18 @@ export default Vue.component("mplot-variants-table", {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
                         formatter: "pValueFormatter",
-                        sortable: false
+                        tdClass(x) {
+                            return !!x && x < 1e-5
+                                ? "variant-table-cell high"
+                                : "";
+                        }
                     },
                     {
                         key: `${p.name}_beta`,
                         label: `Beta`,
-                        formatter: x => (!!x ? x.toFixed(4) : "-")
+                        formatter(x) {
+                            return !!x ? x.toFixed(4) : "-";
+                        }
                     }
                 ]);
             }
@@ -93,11 +98,6 @@ export default Vue.component("mplot-variants-table", {
     },
 
     methods: {
-        rowClass(item, type) {
-            if (!!item && type === "row") {
-                if (item.minP < 2.5e-6) return "variant-table-row high";
-            }
-        },
         phenotypeFormatter(value) {
             return this.phenotypeMap[value].name;
         },
