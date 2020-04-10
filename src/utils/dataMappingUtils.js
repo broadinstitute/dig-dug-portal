@@ -35,7 +35,6 @@ export const useDecompositions = {
 /* LocusZoom Datamapping */
 // name these like xForY -> xForLZ
 export const associationsForLZ = associations => {
-    console.log('associations', associations);
     const translation = associations.map(association => ({
         id: association.varId,
         chr: association.chromosome,

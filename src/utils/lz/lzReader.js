@@ -8,7 +8,6 @@ function readOnCoords(store, moduleIndex) {
                 return await store.dispatch(`onLocusZoomCoords`, { module: moduleStore, newChr: chromosome, newStart: start, newEnd: end })
                     .then(() => {
                         let value = store.getters[`${moduleStore}/data`];
-                        console.log('value', value)
                         if (value) {
                             return callback(value);
                         }
