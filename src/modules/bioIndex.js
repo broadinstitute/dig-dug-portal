@@ -85,7 +85,15 @@ export default function (index, extend) {
 
                 // total time profile
                 state.profile.fetch += json.profile.fetch;
-            }
+            },
+
+            resetModule(state) {
+                state.data = [];
+                state.iterableQuery = null;
+                state.aborted = true;
+                state.loading = false;
+            },
+
         },
 
         // dispatch methods

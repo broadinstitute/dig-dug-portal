@@ -19,7 +19,7 @@ export default Vue.component("igv", {
         let moduleTracks = this.modules.map(moduleObj => {
             const { module, target, translator } = moduleObj;
             const track = target;
-            return makeBioIndexIGVTrackWithReader({ module, track, translator });
+            return makeBioIndexIGVTrackWithReader({ store: this.$store, module, track, translator });
         });
 
         var optionsLocal = {

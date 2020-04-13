@@ -56,6 +56,7 @@ export const associationsForLZ = associations => {
 /* IGV Datamapping */
 // name these like xForY -> xForIGV
 export const associationsForIGV = associations => {
+    console.log('associations', associations);
     return associations.map(association => {
         const annotation = cloneDeep(association);
         annotation['chromosome'] = undefined;

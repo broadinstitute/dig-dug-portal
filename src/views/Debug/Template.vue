@@ -96,9 +96,6 @@
                         { 'module': 'top-associations',
                           'target': 'annotation',
                           'translator': $parent.associationsForIGV },
-                        { 'module': 'variants',
-                          'target': 'annotation',
-                          'translator': $parent.associationsForIGVFromVariants },
                     ]"
                     v-bind:chr="$store.state.chr"
                     v-bind:start="$store.state.start"

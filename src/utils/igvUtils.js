@@ -18,8 +18,7 @@
 // interaction
 
 // Variants -> Annotation
-import { BIO_INDEX_HOST, fullQueryFromUrl } from "@/utils/bioIndexUtils";
-import { moduleQueryTemplate } from "./bioIndexUtils";
+import { BIO_INDEX_HOST, fullQueryFromUrl, moduleQueryTemplate, camelKebab } from "@/utils/bioIndexUtils";
 
 function variantsToIgvAnnotations(variants) {
     return variants.map(variant => (
@@ -56,7 +55,7 @@ function makeSourceURLFunction(regionBasedModule) {
     }
 };
 
-export function makeBioIndexIGVTrack({ module, track, translator }) {
+function makeBioIndexIGVTrack({ module, track, translator }) {
     return {
         ...TEMPLATE_TRACK,
         name: module,
@@ -69,8 +68,9 @@ export function makeBioIndexIGVTrack({ module, track, translator }) {
     }
 }
 
-export function makeBioIndexIGVTrackWithReader({ module, track, translator }) {
+export function makeBioIndexIGVTrackWithReader({ store, module, track, translator }) {
     const bioIndexIGVSource = new BioIndexIGVReader({
+        store,
         module,
         translator,
     });
@@ -95,10 +95,24 @@ class BioIndexIGVReader {
     async readFeatures(chr, start, end) {
         let url = makeSourceURLFunction(this.config.module)({chr, start, end})
         let features;
-        const data = await fullQueryFromUrl(url);
+
+        // const data = await fullQueryFromUrl(url);
+        let data = [];
+        let chrNum = chr.split('chr')[1];
+        data = await this.config.store.dispatch('onIGVCoords', { module: this.config.module, newChr: chrNum, newStart: start, newEnd: end })
+                .then(() => {
+                    let value = this.config.store.getters[`${camelKebab(this.config.module)}/data`];
+                    console.log('value', value);
+                    if (value) {
+                        return value;
+                    }
+                    const emptyObject = [];
+                    return emptyObject;
+        });
         if (data) {
             if (typeof this.config.translator === "function") {
                 features = this.config.translator(data);
+                console.log('features', this.config.translator, features);
             }
         }
         return features;

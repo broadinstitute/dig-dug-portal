@@ -4,6 +4,8 @@ import Vuex from "vuex";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
 
+import { moduleQueryTemplate, camelKebab } from "@/utils/bioIndexUtils"
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -17,7 +19,7 @@ export default new Vuex.Store({
         chr: keyParams.chr,
         start: keyParams.start,
         end: keyParams.end,
-        phenotype: null,
+        phenotype: keyParams.phenotype,
 
         // user-entered search fields
         newChr: keyParams.chr,
@@ -26,7 +28,8 @@ export default new Vuex.Store({
         gene: null,
     },
     mutations: {
-        setLocus(state, region = {}) {
+
+         setLocus(state, region = {}) {
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
             state.end = region.end || state.newEnd || state.end;
@@ -42,5 +45,21 @@ export default new Vuex.Store({
             });
         },
     },
-    actions: {}
+    actions: {
+        async onIGVCoords(context, { module, newChr, newStart, newEnd }) {
+            const { chr, start, end } = context.state;
+            if (newChr !== chr || newStart !== start || newEnd !== end) {
+                context.commit(`${camelKebab(module)}/resetModule`);
+                const query = moduleQueryTemplate(module, {
+                    phenotype: context.state.phenotype.name,
+                    // varId?
+                    chromosome: newChr,
+                    start: newStart,
+                    end: newEnd,
+                });
+                console.log(module, query);
+                await context.dispatch(`${camelKebab(module)}/query`, { q: query });
+            }
+        },
+    },
 });

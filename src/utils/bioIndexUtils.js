@@ -149,3 +149,9 @@ function queryTemplate(args) {
 export function moduleQueryTemplate(module, args) {
     return queryTemplate(arityFilter[module](args));
 }
+
+export function camelKebab(kebabcase) {
+    const words = kebabcase.split('-');
+    const capitalWords = words.splice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1));
+    return [].concat(words[0]).concat(capitalWords).join('');
+}
