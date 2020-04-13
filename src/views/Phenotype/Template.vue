@@ -7,44 +7,55 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-4 gene-page-header-title"></div>
-                    <div class="col-md-4 gene-page-header-title">
-                        Phenotype
-                        <a
-                            class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('phenotypeSearchHolder');"
-                        >Set phenotype</a>
-                    </div>
-                    <div class="col-md-4 gene-page-header-title"></div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <span>Manhattan Plot</span>
-                    </div>
-                    <div class="col-md-4 gene-page-header-body regionInfo">
-                        <div
-                            id="phenotypeSearchHolder"
-                            class="gene-page-header-search-holder"
-                            style="display: none;"
+                    <div class="col-md-8 gene-page-header-title">Phenotypes</div>
+                    <div class="col-md-4 gene-page-header-title">Add Phenotype</div>
+                    <div class="col-md-8 gene-page-header-body">
+                        <button
+                            v-for="(phenotype, i) in $store.state.phenotypes"
+                            class="btn mr-1 reference p-2 rounded phenotype-btn"
+                            style="color:white"
+                            :class="'color-' + (i+1)"
+                            @click="$store.commit('removePhenotype', phenotype.name);"
                         >
-                            <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
+                            <span class="remove" aria-hidden="true">&times;</span>
+                            {{phenotype.description}}
+                        </button>
+                    </div>
+                    <div class="col-md-4 gene-page-header-body">
+                        <div style="font-size: 16px">
+                            <phenotype-selectpicker
+                                :phenotypes="$store.state.bioPortal.phenotypes"
+                                :clear-selected="true"
+                            ></phenotype-selectpicker>
                         </div>
-                        <span
-                            v-if="$parent.selectedPhenotype"
-                        >{{$parent.selectedPhenotype.description}}</span>
                     </div>
                 </div>
             </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <manhattan-plot
-                        v-bind:variants="$store.state.associations.data"
-                        v-bind:phenotype="$store.state.selectedPhenotype"
-                    ></manhattan-plot>
+                    <h4>Find overlapping variants across phenotypes</h4>
+                    <variant-finder
+                        :phenotypes="$store.state.phenotypes"
+                        :associations="$parent.associations"
+                    ></variant-finder>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <mplot-variants-table v-bind:variants="$parent.topVariants"></mplot-variants-table>
+                    <h4 class="card-title">
+                        Enriched Annotations for:
+                        <span
+                            v-for="phenotype in $store.state.phenotypes"
+                            class="item"
+                        >{{phenotype.description}}</span>
+                    </h4>
+                    <enrichment-table
+                        :phenotypes="$store.state.phenotypes"
+                        :annotations="$parent.annotations"
+                        :per-page="10"
+                    ></enrichment-table>
                 </div>
             </div>
         </div>

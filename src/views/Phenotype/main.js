@@ -9,8 +9,9 @@ Vue.config.productionTip = false;
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
-import MplotVariantsTable from "@/components/MplotVariantsTable.vue";
+import VariantFinder from "@/components/VariantFinder.vue";
+import EnrichmentTable from "@/components/EnrichmentTable.vue";
+import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
 
 new Vue({
@@ -20,8 +21,8 @@ new Vue({
         PhenotypeSelectPicker,
         PageHeader,
         PageFooter,
-        ManhattanPlot,
-        MplotVariantsTable
+        VariantFinder,
+        EnrichmentTable
     },
 
     created() {
@@ -48,28 +49,89 @@ new Vue({
             return this.$store.getters['bioPortal/diseaseGroup'];
         },
 
-        phenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
+        associations() {
+            let data = [];
+            let phenotypes = this.$store.state.phenotypes;
+
+            for (let i in phenotypes) {
+                let phenotype = phenotypes[i];
+                let name = phenotype.name;
+                let moduleName = `__assocs__${name}`;
+                let moduleData = this.$store.state[moduleName].data;
+
+                data = data.concat(moduleData);
+            }
+
+            return data;
         },
 
-        topVariants() {
-            return this.$store.state.associations.data.slice(0, 200);
+        annotations() {
+            let data = [];
+            let phenotypes = this.$store.state.phenotypes;
+
+            // get all the data from all phenotypes
+            for (let i in phenotypes) {
+                let phenotype = phenotypes[i];
+                let name = phenotype.name;
+                let moduleName = `__enrichment__${name}`;
+                let moduleData = this.$store.state[moduleName].data;
+
+                data = data.concat(moduleData);
+            }
+
+            return data;
         },
 
-        selectedPhenotype() {
-            let name = this.$store.state.phenotypeName;
-
-            // lookup the phenotype object from the bio portal once downloaded
-            return this.$store.state.bioPortal.phenotypeMap[name];
-        },
+        phenotypeToAdd() {
+            return this.$store.state.newPhenotype;
+        }
     },
 
     watch: {
+        '$store.state.bioPortal.phenotypeMap': function (phenotypeMap) {
+            let phenotypeNames = (keyParams.phenotype || '').split(',');
+
+            // add all the keyParam phenotype modules
+            for (let i in phenotypeNames) {
+                let name = phenotypeNames[i];
+                let phenotype = phenotypeMap[name];
+
+                if (!!phenotype) {
+                    this.$store.commit('setNewPhenotype', phenotype);
+                }
+            };
+        },
+
+        // register modules for new phenotypes
+        '$store.state.phenotypes': function (phenotypes) {
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+
+            // create modules for each phenotype
+            for (let i in phenotypes) {
+                let phenotype = phenotypes[i];
+                let name = phenotype.name;
+                let assocModule = `__assocs__${name}`;
+                let enrichmentModule = `__enrichment__${name}`;
+
+                // register a new associations module for this phenotype
+                if (!this.$store.state[assocModule]) {
+                    this.$store.registerModule(assocModule, bioIndex('phenotype-associations'));
+                    this.$store.dispatch(`${assocModule}/query`, { q: name, limit: 2500 });
+                }
+
+                // register a new enrichment module for this phenotype
+                if (!this.$store.state[enrichmentModule]) {
+                    this.$store.registerModule(enrichmentModule, bioIndex('global-enrichment'));
+                    this.$store.dispatch(`${enrichmentModule}/query`, { q: name });
+                }
+            }
+
+            // cause the associations to be updated
+            this.$store.commit('updateFilters');
+        },
+
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
-        selectedPhenotype(phenotype) {
-            this.$store.dispatch("associations/query", { q: phenotype.name, limit: 2000 });
         },
     },
 

@@ -7,7 +7,7 @@ import Vue from "vue";
 import c3 from "c3";
 
 export default Vue.component("manhattan-plot", {
-    props: ["variants", "dataset", "phenotype"],
+    props: ["associations", "colors"],
 
     data() {
         return {
@@ -17,24 +17,26 @@ export default Vue.component("manhattan-plot", {
 
     mounted() {
         this.chart = c3.generate({
+            bindto: "#chart",
             size: {
-                height: 500
+                height: 400
             },
             data: {
-                xs: {
-                    data: "data_x"
-                },
-                type: "scatter",
-                columns: []
+                xs: {},
+                columns: [],
+                type: "scatter"
+            },
+            legend: {
+                show: false
             },
             zoom: {
                 enabled: false,
                 rescale: false
             },
+            colors: this.colors || {},
             point: {
-                r: 5
+                r: 4
             },
-            bindto: "#chart",
             axis: {
                 x: {
                     label: "Chromosome",
@@ -50,34 +52,58 @@ export default Vue.component("manhattan-plot", {
                     }
                 },
                 y: {
-                    label: "-log10 P"
+                    label: "-log10(p)"
                 }
             }
         });
     },
 
+    methods: {
+        associationsToUnload(assocs) {
+            let loadedPhenotypes = Object.keys(this.chart.x());
+            let unload = loadedPhenotypes.filter(p => !assocs[p]);
+
+            return unload;
+        }
+    },
+
     watch: {
-        variants(variantsData) {
-            let xs = ["data_x"];
-            let ys = ["data"];
+        associations(data) {
+            let columns = [];
+            let xs = {};
 
-            variantsData.forEach(v => {
-                let p_value = v.pValue;
-                let pos = chromosomeStart[v.chromosome] + v.position;
-                xs.push(pos); // Pos
-                ys.push(-Math.log10(p_value)); // P_VALUE
-            });
+            // data is in the format { [phenotype]: [associations] }
+            for (let k in data) {
+                let v = data[k];
 
-            if (variantsData.length == 0) {
-                this.chart.unload({});
-            } else {
-                this.chart.load({
-                    columns: [xs, ys],
-                    names: {
-                        data: this.dataset
-                    }
-                });
+                if (v.length == 0) {
+                    continue;
+                }
+
+                xs[k] = `${k}_x`;
+
+                // calculate the x-position
+                columns.push([
+                    `${k}_x`,
+                    ...v.map(assoc => {
+                        let chr = chromosomeStart[assoc.chromosome];
+                        let pos = assoc.position;
+
+                        return chr + pos;
+                    })
+                ]);
+
+                // extract the p-values
+                columns.push([k, ...v.map(assoc => -Math.log10(assoc.pValue))]);
             }
+
+            // update the chart
+            this.chart.load({
+                xs,
+                columns,
+                colors: this.colors || {},
+                unload: this.associationsToUnload(data)
+            });
         }
     }
 });

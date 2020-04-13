@@ -6,9 +6,8 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
-import VariantsTable from "@/components/VariantsTable";
-
 import { associationsForLZ } from "@/utils/dataMappingUtils"
+import AssociationsTable from "@/components/AssociationsTable";
 
 Vue.config.productionTip = false;
 
@@ -18,7 +17,7 @@ new Vue({
     components: {
         PhenotypeSelectPicker,
         LocusZoom,
-        VariantsTable,
+        AssociationsTable,
         PageHeader,
         PageFooter,
     },
@@ -68,7 +67,7 @@ new Vue({
         },
 
         associations() {
-            return this.$store.state.associations.data.sort((a, b) => a.pValue - b.pValue);
+            return this.$store.state.associations.data;
         },
 
         // Give the top associations, find the best one across all unique
