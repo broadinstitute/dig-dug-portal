@@ -34,7 +34,7 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4>Variant Finder</h4>
+                    <h4>Find overlapping variants across phenotypes</h4>
                     <variant-finder
                         :phenotypes="$store.state.phenotypes"
                         :associations="$parent.associations"
