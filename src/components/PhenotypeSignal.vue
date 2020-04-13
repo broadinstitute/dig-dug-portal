@@ -1,35 +1,86 @@
 <template>
-	<div>
-		<b-container fluid="sm" v-for="key in Object.keys(topAssociationsGrouped)">
+	<div class="phenotypes-with-signal-wrapper">
+		<b-container fluid="sm">
 			<b-form-row>
-				<div class="phenotype-group-header col-sm-3" v-b-toggle="key2id(key)">{{ key }}:</div>
+				<div class="col-sm-3"></div>
+				<div class="col-sm-9">
+					<div class="legend-scale">
+						<span class="legend-left">0</span>
+						<span class="legend-center">-log10(p)</span>
+						<span class="legend-right" v-if="phenotypes[0]">{{getEvalue(phenotypes[0]["pValue"])}}</span>
+					</div>
+					<div class="legend"></div>
+				</div>
+			</b-form-row>
+		</b-container>
+		<b-container fluid="sm" v-for="key in Object.keys(topAssociationsGrouped)" :key="key">
+			<b-form-row>
+				<div class="phenotype-group-header col-sm-3" v-b-toggle="key2id(key)">
+					{{ key }}
+					<b-icon-arrows-expand></b-icon-arrows-expand>
+				</div>
 
-				<div class="col-sm-9 pt-1">
-					<b-progress class="phenotype-group" :class="key" height="2rem">
+				<div class="col-md-9 pt-1">
+					<b-progress class="phenotype-group" :class="key" height="1.5rem">
 						<template v-for="(item, i) in topAssociationsGrouped[key]">
-							<b-progress-bar v-if="i == 0" :value="log2css(item.pValue)">
-								<span class="bar-desc">{{item.description}} - {{item.pValue}}</span>
-							</b-progress-bar>
-							<span
-								v-b-tooltip
-								v-b-hover="highlight"
-								class="marker"
-								v-else
-								:title="item.description"
-								:style="{'margin-left': 'calc('+log2css(item.pValue)+'% - 10px'}"
-							>&nbsp;</span>
+							<template v-if="i == 0">
+								<b-progress-bar
+									:key="item.phenotype"
+									:value="log2css(item.pValue)"
+									:title="item.description"
+									show
+									v-b-tooltip
+									:class="{'progress-bar-striped': isActive}"
+									@mouseover="this.isActive = true"
+									@mouseout="this.isActive = false"
+								></b-progress-bar>
+								<span
+									class="bar-desc first"
+									:style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
+									@click="$store.commit('setPhenotypeByName', item.phenotype)"
+									v-b-tooltip.right
+									title="Click to set phenotype"
+								>{{item.description}} ({{item.pValue}})</span>
+							</template>
+							<template v-else>
+								<!-- <div
+									v-if="item.pValue <= 5e-3"
+									class="highlight-bar"
+									:class="{'highlight-bar-bg': isActive}"
+									:style="{'width': log2css(item.pValue)+'%'}"
+								>
+									<span v-b-tooltip class="marker" v-b-hover="highlight" :title="item.description">&nbsp;</span>
+								</div>-->
+								<phenotype-signal-item
+									v-if="item.pValue <= 5e-3"
+									:title="item.description"
+									:width="log2css(item.pValue)"
+								></phenotype-signal-item>
+							</template>
 						</template>
 					</b-progress>
 					<b-collapse :id="key2id(key)" accordion="my-accordion">
-						<div v-for="item in topAssociationsGrouped[key]">
-							{{item.description}} - {{item.pValue}} - {{log2css(item.pValue)}}
-							<b-progress
-								height="2rem"
-								class="phenotype-group"
-								:class="item.group"
-								:value="log2css(item.pValue)"
-							></b-progress>
-						</div>
+						<template v-for="(item, i) in topAssociationsGrouped[key]">
+							<template v-if="i != 0 && item.pValue <= 5e-3">
+								<b-progress height="1.5rem" class="phenotype-group" :class="item.group">
+									<b-progress-bar :value="log2css(item.pValue)">
+										<span
+											class="bar-desc"
+											:style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
+											@click="$store.commit('setPhenotypeByName', item.phenotype)"
+											v-b-tooltip.right
+											title="Click to set phenotype"
+										>{{item.description}} ({{item.pValue}})</span>
+									</b-progress-bar>
+								</b-progress>
+								<!-- <b-progress
+									height="1.5rem"
+									class="phenotype-group"
+									:class="item.group"
+									:value="log2css(item.pValue)"
+								></b-progress>-->
+							</template>
+						</template>
 					</b-collapse>
 				</div>
 			</b-form-row>
@@ -40,19 +91,33 @@
 <script>
 import Vue from "vue";
 import groupBy from "lodash/groupBy";
+import { BootstrapVueIcons } from "bootstrap-vue";
+import PhenotypeSignalItem from "@/components/PhenotypeSignalItem.vue";
+
+window.$ = window.jQuery = require("jquery");
+
+Vue.use(BootstrapVueIcons);
 
 export default Vue.component("phenotype-signal", {
-	props: ["phenotypes"],
+	components: {
+		PhenotypeSignalItem
+	},
+	props: {
+		phenotypes: Array
+	},
 
 	data() {
-		return {};
+		return {
+			isHovered: false,
+			isActive: false
+		};
 	},
+
 	computed: {
-		topAssociationsHighest() {
+		topAssociationsHighest: function() {
 			return this.phenotypes[0]["pValue"];
 		},
-
-		topAssociationsGrouped() {
+		topAssociationsGrouped: function() {
 			let data = this.phenotypes;
 
 			data.forEach(
@@ -78,10 +143,10 @@ export default Vue.component("phenotype-signal", {
 			const maxp = 100;
 			const minv = -Math.log10(10);
 			const maxv = -Math.log10(this.topAssociationsHighest);
-
 			const scale = (maxv - minv) / (maxp - minp);
 
-			return -(Math.log(value) - minv) / scale + minp;
+			let calculated = -(Math.log(value) - minv) / scale + minp;
+			return calculated > 100 ? 100 : calculated;
 		},
 		key2id(key) {
 			return key
@@ -89,12 +154,17 @@ export default Vue.component("phenotype-signal", {
 				.split(" ")
 				.join("_");
 		},
-		highlight(isHovered) {
-			if (isHovered) {
-				console.log("Hi");
-			}
+		getEvalue(number) {
+			return -Math.floor(Math.log10(number));
 		}
 	}
+});
+
+$(document).ready(function() {
+	$(".marker").hover(function() {
+		//$(".highlight-bar").toggleClass("highlight-bar-bg");
+		console.log("jquery here");
+	});
 });
 </script>
 

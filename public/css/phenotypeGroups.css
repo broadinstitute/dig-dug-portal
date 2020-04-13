@@ -74,17 +74,80 @@
     cursor: pointer;
     text-align: right;
 }
+.container-sm {
+    margin-left: inherit;
+}
+.progress {
+    background-color: transparent;
+}
 .marker {
     position: absolute;
     width: 10px;
-    height: 2rem;
-    background-color: rgba(218, 218, 218, 0.2);
-    z-index: 10;
+    height: 1.5rem;
+    background-color: rgba(204, 204, 204, 0.6);
+    z-index: 5;
     cursor: help;
+    right: 0;
+    visibility: visible;
 }
-.progress {
-    position: relative;
-}
+
 .bar-desc {
-    float: right;
+    position: absolute;
+    white-space: nowrap;
+    font-weight: bold;
+    color: #000000;
+}
+
+.bar-desc:hover {
+    color: #5555ff;
+    cursor: pointer;
+}
+
+.bar-desc.first {
+    margin: 3px auto;
+}
+
+.highlight-bar {
+    position: absolute;
+    left: 0;
+    color: blue;
+    height: 1.5rem;
+    cursor: help;
+    /* box-shadow: inset 0 0 0 3px rgba(0, 255, 0, 0.6); */
+}
+
+.hidden {
+    display: none;
+}
+.highlight-bar-bg {
+    background-color: rgba(218, 218, 218, 0.5);
+}
+
+.legend {
+    height: 10px;
+    border-color: #000000;
+    border-style: solid;
+    border-width: 0 2px 2px 2px;
+    margin-bottom: 20px;
+}
+
+.legend-scale {
+    text-align: center;
+}
+.legend-left {
+    position: absolute;
+    left: 2px;
+}
+.legend-center {
+    text-align: center;
+    font-weight: bold;
+    margin: auto;
+    width: 50%;
+}
+.legend-right {
+    position: absolute;
+    right: 2px;
+}
+.collapse .progress {
+    margin: 10px auto;
 }
