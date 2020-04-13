@@ -125,9 +125,6 @@ new Vue({
                     this.$store.dispatch(`${enrichmentModule}/query`, { q: name });
                 }
             }
-
-            // cause the associations to be updated
-            this.$store.commit('updateFilters');
         },
 
         diseaseGroup(group) {

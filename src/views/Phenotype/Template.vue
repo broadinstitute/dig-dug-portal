@@ -25,7 +25,7 @@
                         <div style="font-size: 16px">
                             <phenotype-selectpicker
                                 :phenotypes="$store.state.bioPortal.phenotypes"
-                                :clear-selected="true"
+                                :clear-on-selected="true"
                             ></phenotype-selectpicker>
                         </div>
                     </div>
