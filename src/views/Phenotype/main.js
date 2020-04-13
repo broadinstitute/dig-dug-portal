@@ -145,6 +145,9 @@ new Vue({
 
         // register modules for new phenotypes
         '$store.state.phenotypes': function (phenotypes) {
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+
+            // create modules for each phenotype
             for (let i in phenotypes) {
                 let phenotype = phenotypes[i];
                 let name = phenotype.name;
@@ -163,9 +166,6 @@ new Vue({
                     this.$store.dispatch(`${enrichmentModule}/query`, { q: name });
                 }
             }
-
-            // update browser url
-            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
 
             // cause the associations to be updated
             this.$store.commit('updateFilters');
