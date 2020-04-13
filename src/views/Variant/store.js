@@ -24,7 +24,6 @@ export default new Vuex.Store({
 
     },
     mutations: {
-
         setVariantID(state, variantID) {
             state.variantID = variantID || state.newVariantID;
             state.newVariantID = state.variantID
@@ -38,7 +37,6 @@ export default new Vuex.Store({
             let varID = variantUtils.parseVariantID(context.state.newVariantID)
             if (!!varID) {
                 context.commit('setVariantID');
-                //context.commit('transcriptConsequence/clearData');
                 context.dispatch('variant/query', { q: varID });
             }
             else {

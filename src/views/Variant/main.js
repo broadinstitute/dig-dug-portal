@@ -59,33 +59,50 @@ new Vue({
             let transcriptConsequenceData = []
             //the table in the template code requires input to be list of maps
             for (let i in data) {
-                let consequence = data[i].transcriptConsequence
-                transcriptConsequenceData.push({
-                    amino_acids: consequence.amino_acids, transcript_id: consequence.transcript_id,
-                    biotype: consequence.biotype, cadd_raw: consequence.cadd_raw, cadd_phred: consequence.cadd_phred,
-                    consequence_terms: consequence.consequence_terms[i]
-                })
+
+                let consequence = data[i].hasOwnProperty("transcriptConsequence") ? data[i].transcriptConsequence : undefined;
+                //if consequence does not exit return nothing
+
+                console.log(consequence)
+                //let keys = Object.keys(consequence);
+                //console.log(keys)
+                //filter on these properties to check if they exist or not
+                if (!!consequence) {
+                    console.log("I am here")
+                    transcriptConsequenceData.push({
+                        amino_acids: consequence.hasOwnProperty("amino_acids") ? consequence.amino_acids : '', transcript_id: consequence.transcript_id,
+                        biotype: consequence.biotype, cadd_raw: consequence.cadd_raw, cadd_phred: consequence.cadd_phred,
+                        consequence_terms: consequence.hasOwnProperty("consequence_terms") ? consequence.consequence_terms[i] : '',
+                    })
+                }
+
             }
             return transcriptConsequenceData
         },
 
         transcriptionFactors() {
             let data = this.$store.state.variant.data
-            // let transcriptionFactorsData = [];
             for (let i in data) {
                 let transcriptionFactors = data[i].transcriptionFactors
                 return transcriptionFactors
             }
         },
 
-        associations() {
+
+
+        associationsFromVariant() {
             let data = this.$store.state.variant.data
-            // let transcriptionFactorsData = [];
             for (let i in data) {
                 let associations = data[i].associations
+                console.log(associations)
                 return associations
             }
         },
+    },
+    methods: {
+        // associationsFromVariant
+        // associationFromVariantForLZ//valid when i define this in DataMapUtils
+        //I can either write it here using translator or Datamaputils
     },
 
     watch: {

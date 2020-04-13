@@ -57,14 +57,17 @@
                 </div>
             </div>
             <div class="col-md-10">
-                <transcript-consequence-table
-                    v-bind:transcriptConsequence="$parent.transcriptConsequence"
-                ></transcript-consequence-table>
+                <div v-if="$parent.transcriptConsequence">
+                    <transcript-consequence-table
+                        v-bind:transcriptConsequence="$parent.transcriptConsequence"
+                    ></transcript-consequence-table>
+                </div>
 
                 <transcription-factors-table
                     v-bind:transcriptionFactors="$parent.transcriptionFactors"
                 ></transcription-factors-table>
             </div>
+            <!-- <locuszoom [{}]</locuszoom> -->
         </div>
 
         <!-- Footer-->
