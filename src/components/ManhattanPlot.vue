@@ -7,7 +7,7 @@ import Vue from "vue";
 import c3 from "c3";
 
 export default Vue.component("manhattan-plot", {
-    props: ["loadedAssociations", "unloadedAssociations", "colors"],
+    props: ["associations", "colors"],
 
     data() {
         return {
@@ -58,8 +58,17 @@ export default Vue.component("manhattan-plot", {
         });
     },
 
+    methods: {
+        associationsToUnload(assocs) {
+            let loadedPhenotypes = Object.keys(this.chart.x());
+            let unload = loadedPhenotypes.filter(p => !assocs[p]);
+
+            return unload;
+        }
+    },
+
     watch: {
-        loadedAssociations(data) {
+        associations(data) {
             let columns = [];
             let xs = {};
 
@@ -89,11 +98,12 @@ export default Vue.component("manhattan-plot", {
             }
 
             // update the chart
-            this.chart.load({ xs, columns, colors: this.colors || {} });
-        },
-
-        unloadedAssociations(phenotypes) {
-            this.chart.unload(phenotypes);
+            this.chart.load({
+                xs,
+                columns,
+                colors: this.colors || {},
+                unload: this.associationsToUnload(data)
+            });
         }
     }
 });

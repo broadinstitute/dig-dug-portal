@@ -120,12 +120,7 @@
                 </tbody>
             </table>
         </div>
-        <manhattan-plot
-            class="mb-3"
-            :loaded-associations="associationsByPhenotype"
-            :unloaded-associations="unloadedPhenotypes"
-            :colors="colors"
-        ></manhattan-plot>
+        <manhattan-plot class="mb-3" :associations="associationsByPhenotype" :colors="colors"></manhattan-plot>
         <associations-table
             :associations="filteredAssociations"
             :phenotypes="phenotypes"
@@ -156,6 +151,7 @@ export default Vue.component("variant-finder", {
 
     data() {
         return {
+            loadedPhenotypes: [],
             updateKey: 0,
             filters: {},
             allFilters: {
@@ -261,16 +257,6 @@ export default Vue.component("variant-finder", {
             }
 
             return assocs;
-        },
-
-        // For the manhattan plot, need to have a list of phenotype that
-        // have been unloaded (if the phenotype list changes).
-        unloadedPhenotypes() {
-            let assocs = this.associationsByPhenotype;
-            let loaded = this.phenotypes.map(p => p.name);
-
-            // any keys in the map
-            return Object.keys(assocs).filter(p => loaded.indexOf(p) < 0);
         },
 
         colors() {
