@@ -137,7 +137,10 @@
                     <h4
                         class="card-title"
                     >Top variants for Phenotype: {{$parent.selectedPhenotype.description}}</h4>
-                    <variants-table v-bind:variants="$parent.associations"></variants-table>
+                    <associations-table
+                        :phenotypes="[$parent.selectedPhenotype]"
+                        :associations="$parent.associations"
+                    ></associations-table>
                 </div>
             </div>
         </div>

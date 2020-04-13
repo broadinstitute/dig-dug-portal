@@ -10,10 +10,11 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
-import MplotVariantsTable from "@/components/MplotVariantsTable.vue";
-import TissueEnrichment from "@/components/TissueEnrichment.vue";
+import AssociationsTable from "@/components/AssociationsTable.vue";
+import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
+import colorIndex from "@/utils/colors";
 
 new Vue({
     store,
@@ -23,8 +24,8 @@ new Vue({
         PageHeader,
         PageFooter,
         ManhattanPlot,
-        MplotVariantsTable,
-        TissueEnrichment
+        AssociationsTable,
+        EnrichmentTable
     },
 
     created() {
@@ -68,58 +69,6 @@ new Vue({
             return assocs;
         },
 
-        associationsByVarId() {
-            let data = [];
-            let variants = {};
-            let phenotypes = this.$store.state.phenotypes;
-            let filters = this.$store.getters.phenotypeFilters;
-
-            // get all the data from all phenotypes
-            for (let i in phenotypes) {
-                let phenotype = phenotypes[i];
-                let name = phenotype.name;
-                let filter = filters[name];
-                let moduleName = `__assocs__${name}`;
-                let moduleData = this.$store.state[moduleName].data.filter(filter);
-
-                for (let k in moduleData) {
-                    let r = moduleData[k];
-                    let dataIndex = variants[r.varId];
-
-                    if (!dataIndex) {
-                        dataIndex = data.length;
-                        variants[r.varId] = dataIndex;
-
-                        data.push({
-                            varId: r.varId,
-                            chromosome: r.chromosome,
-                            position: r.position,
-                            reference: r.reference,
-                            alt: r.alt,
-                            minP: 2.0,
-                        });
-                    }
-
-                    // add the columns for each phenotype
-                    data[dataIndex][`${name}_pValue`] = r.pValue;
-                    data[dataIndex][`${name}_beta`] = r.beta;
-                    data[dataIndex][`${name}_stdErr`] = r.stdErr;
-                    data[dataIndex][`${name}_zScore`] = r.zScore;
-                    data[dataIndex][`${name}_n`] = r.n;
-
-                    // lowest p-value across all phenotypes
-                    if (!!r.pValue && r.pValue < data[dataIndex].minP) {
-                        data[dataIndex].minP = r.pValue;
-                    }
-                }
-            }
-
-            // sort all the records by phenotype p-value
-            data.sort((a, b) => a.minP - b.minP);
-
-            return data;
-        },
-
         unloadedPhenotypes() {
             let phenotypes = this.$store.state.phenotypes.map(p => p.name);
             let modules = Object.keys(this.$store.state).filter(s => s.startsWith('__assocs__'));
@@ -139,9 +88,26 @@ new Vue({
             return colors;
         },
 
-        tissues() {
+        associations() {
             let data = [];
-            let tissues = {};
+            let phenotypes = this.$store.state.phenotypes;
+            let filters = this.$store.getters.phenotypeFilters;
+
+            for (let i in phenotypes) {
+                let phenotype = phenotypes[i];
+                let name = phenotype.name;
+                let filter = filters[name];
+                let moduleName = `__assocs__${name}`;
+                let moduleData = this.$store.state[moduleName].data.filter(filter);
+
+                data = data.concat(moduleData);
+            }
+
+            return data;
+        },
+
+        annotations() {
+            let data = [];
             let phenotypes = this.$store.state.phenotypes;
 
             // get all the data from all phenotypes
@@ -151,37 +117,8 @@ new Vue({
                 let moduleName = `__enrichment__${name}`;
                 let moduleData = this.$store.state[moduleName].data;
 
-                for (let k in moduleData) {
-                    let r = moduleData[k];
-                    let tmaa = `${r.tissue}_${r.method || 'NA'}_${r.annotation}_${r.ancestry}`;
-                    let dataIndex = tissues[tmaa];
-
-                    if (!dataIndex) {
-                        dataIndex = data.length;
-                        tissues[tmaa] = dataIndex;
-
-                        data.push({
-                            tissue: r.tissue,
-                            method: r.method,
-                            annotation: r.annotation,
-                            minP: 2.0,
-                        });
-                    }
-
-                    // add the columns for each phenotype
-                    data[dataIndex][`${name}_expectedSNPs`] = r.expectedSNPs;
-                    data[dataIndex][`${name}_SNPs`] = r.SNPs;
-                    data[dataIndex][`${name}_pValue`] = r.pValue;
-
-                    // lowest p-value across all phenotypes
-                    if (!!r.pValue && r.pValue < data[dataIndex].minP) {
-                        data[dataIndex].minP = r.pValue;
-                    }
-                }
+                data = data.concat(moduleData);
             }
-
-            // sort all the records by phenotype p-value
-            data.sort((a, b) => a.minP - b.minP);
 
             return data;
         },
@@ -240,25 +177,3 @@ new Vue({
     },
 
 }).$mount("#app");
-
-// hard-coded array of colors to match colors.css
-let colorIndex = [
-    "#048845",
-    "#9ACA3C",
-    "#6FC7B6",
-    "#8490C8",
-    "#9F78AC",
-    "#BF61A5",
-    "#F88084",
-    "#EE3124",
-    "#fAA553",
-    "#FCD700",
-    "#F5A4C7",
-    "#CEE6C1",
-    "#FFF9B8",
-    "#D4D4D4",
-    "#5555FF",
-    "#FACACC",
-    "#D5A768",
-    "#FFFF00",
-];

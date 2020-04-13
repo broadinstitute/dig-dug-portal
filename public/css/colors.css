@@ -1,18 +1,50 @@
-.phenotype-group.ANTHROPOMETRIC, .reference.color-1 { background-color: #048845; }
-.phenotype-group.ATRIAL.FIBRILLATION, .reference.color-2 { background-color: #9ACA3C; }
-.phenotype-group.CARDIOVASCULAR, .reference.color-3 { background-color: #6FC7B6; }
-.phenotype-group.ECG.TRAITS, .reference.color-4 { background-color: #8490C8; }
-.phenotype-group.GLYCEMIC, .reference.color-5 { background-color: #9F78AC; }
-.phenotype-group.HEMORRHAGIC.STROKE, .reference.color-6 { background-color: #BF61A5; }
-.phenotype-group.HEPATIC, .reference.color-7 { background-color: #F88084; }
-.phenotype-group.ISCHEMIC.STROKE, .reference.color-8 { background-color: #EE3124; }
-.phenotype-group.LIPIDS, .reference.color-9 { background-color: #fAA553; }
-.phenotype-group.METABOLITE, .reference.color-10 { background-color: #FCD700; }
-.phenotype-group.MRI.TRAITS, .reference.color-11 { background-color: #F5A4C7; }
-.phenotype-group.MUSCULOSKELETAL, .reference.color-12 { background-color: #CEE6C1; }
-.phenotype-group.OCULAR, .reference.color-13 { background-color: #FFF9B8; }
-.phenotype-group.OTHER, .reference.color-14 { background-color: #D4D4D4; }
-.phenotype-group.PSYCHIATRIC, .reference.color-15 { background-color: #5555FF; }
-.phenotype-group.RENAL, .reference.color-16 { background-color: #FACACC; }
-.phenotype-group.SLEEP.AND.CIRCADIAN, .reference.color-17 { background-color: #D5A768; }
-.phenotype-group.STROKE, .reference.color-18 { background-color: #FFFF00; }
+.phenotype-group.ANTHROPOMETRIC { background-color: #048845; }
+.phenotype-group.ATRIAL.FIBRILLATION { background-color: #9ACA3C; }
+.phenotype-group.CARDIOVASCULAR { background-color: #6FC7B6; }
+.phenotype-group.ECG.TRAITS { background-color: #8490C8; }
+.phenotype-group.GLYCEMIC { background-color: #9F78AC; }
+.phenotype-group.HEMORRHAGIC.STROKE { background-color: #BF61A5; }
+.phenotype-group.HEPATIC { background-color: #F88084; }
+.phenotype-group.ISCHEMIC.STROKE { background-color: #EE3124; }
+.phenotype-group.LIPIDS { background-color: #fAA553; }
+.phenotype-group.METABOLITE { background-color: #FCD700; }
+.phenotype-group.MRI.TRAITS { background-color: #F5A4C7; }
+.phenotype-group.MUSCULOSKELETAL { background-color: #CEE6C1; }
+.phenotype-group.OCULAR { background-color: #FFF9B8; }
+.phenotype-group.OTHER { background-color: #D4D4D4; }
+.phenotype-group.PSYCHIATRIC { background-color: #5555FF; }
+.phenotype-group.RENAL { background-color: #FACACC; }
+.phenotype-group.SLEEP.AND.CIRCADIAN { background-color: #D5A768; }
+.phenotype-group.STROKE { background-color: #FFFF00; }
+
+.reference.color-1 { background-color: #048845; }
+.reference.color-2 { background-color: #8490C8; }
+.reference.color-3 { background-color: #BF61A5; }
+.reference.color-4 { background-color: #EE3124; }
+.reference.color-5 { background-color: #FCD700; }
+.reference.color-6 { background-color: #5555FF; }
+.reference.color-7 { background-color: #9ACA3C; }
+.reference.color-8 { background-color: #9F78AC; }
+.reference.color-9 { background-color: #F88084; }
+.reference.color-10 { background-color: #F5A4C7; }
+.reference.color-11 { background-color: #CEE6C1; }
+.reference.color-12 { background-color: #FFFF00; }
+.reference.color-13 { background-color: #6FC7B6; }
+.reference.color-14 { background-color: #D5A768; }
+.reference.color-15 { background-color: #D4D4D4; }
+
+.text.color-1 { color: #048845; }
+.text.color-2 { color: #8490C8; }
+.text.color-3 { color: #BF61A5; }
+.text.color-4 { color: #EE3124; }
+.text.color-5 { color: #FCD700; }
+.text.color-6 { color: #5555FF; }
+.text.color-7 { color: #9ACA3C; }
+.text.color-8 { color: #9F78AC; }
+.text.color-9 { color: #F88084; }
+.text.color-10 { color: #F5A4C7; }
+.text.color-11 { color: #CEE6C1; }
+.text.color-12 { color: #FFFF00; }
+.text.color-13 { color: #6FC7B6; }
+.text.color-14 { color: #D5A768; }
+.text.color-15 { color: #D4D4D4; }
