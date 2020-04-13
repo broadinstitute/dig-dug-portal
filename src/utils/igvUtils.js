@@ -109,6 +109,7 @@ class BioIndexIGVReader {
                     const emptyObject = [];
                     return emptyObject;
         });
+
         if (data) {
             if (typeof this.config.translator === "function") {
                 features = this.config.translator(data);

@@ -35,7 +35,6 @@ export const useDecompositions = {
 /* LocusZoom Datamapping */
 // name these like xForY -> xForLZ
 export const associationsForLZ = associations => {
-    console.log('associations', associations);
     const translation = associations.map(association => ({
         id: association.varId,
         chr: association.chromosome,
@@ -56,7 +55,6 @@ export const associationsForLZ = associations => {
 /* IGV Datamapping */
 // name these like xForY -> xForIGV
 export const associationsForIGV = associations => {
-    console.log('associations', associations);
     return associations.map(association => {
         const annotation = cloneDeep(association);
         annotation['chromosome'] = undefined;
@@ -65,8 +63,9 @@ export const associationsForIGV = associations => {
             chr: association.chromosome,
             start: association.position,
             end: association.position,
+            value: calcLog(association.pValue),
             ...annotation,
-            // log_pvalue: calcLog(association.pValue),
+            log_pvalue: calcLog(association.pValue),
         }
     });
 }
