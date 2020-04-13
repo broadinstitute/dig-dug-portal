@@ -9,12 +9,10 @@ Vue.config.productionTip = false;
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
-import AssociationsTable from "@/components/AssociationsTable.vue";
+import VariantFinder from "@/components/VariantFinder.vue";
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
-import colorIndex from "@/utils/colors";
 
 new Vue({
     store,
@@ -23,8 +21,7 @@ new Vue({
         PhenotypeSelectPicker,
         PageHeader,
         PageFooter,
-        ManhattanPlot,
-        AssociationsTable,
+        VariantFinder,
         EnrichmentTable
     },
 
@@ -75,17 +72,6 @@ new Vue({
             let unloaded = modules.map(s => s.substr(10)).filter(s => phenotypes.indexOf(s) < 0);
 
             return unloaded;
-        },
-
-        colors() {
-            let colors = {};
-            let phenotypes = this.$store.state.phenotypes;
-
-            for (let i in phenotypes) {
-                colors[phenotypes[i].name] = colorIndex[i];
-            }
-
-            return colors;
         },
 
         associations() {
