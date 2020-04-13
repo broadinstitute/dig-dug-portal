@@ -40,7 +40,7 @@ async function* iterateOnQuery(json, errHandler) {
     } while(json.continuation);
 }
 
-async function portalFetch(query, errHandler) {
+export async function portalFetch(query, errHandler) {
     let json = await fetch(query)
         .then(resp => {
             if (resp.status !== 200) {
@@ -55,18 +55,37 @@ async function portalFetch(query, errHandler) {
 
 // return all of the data in the query chain at once
 export async function fullQuery(json, errHandler) {
-    let query = await beginIterableQuery(json,errHandler);
-    let data = [];
-    let continuation;
+    let query = await beginIterableQuery(json, errHandler);
+    let currentData = [];
+    let currentContinuation;
 
     do {
-        const { currentData, currentContinuation } = query.next();
-        data.push(currentData);
-        continuation = currentContinuation;
-    } while(continuation);
+        const { data, continuation } = query.next();
+        currentData.push(data);
+        currentContinuation = continuation;
+    } while(currentContinuation);
 
     return data;
 };
+
+export async function fullQueryFromUrl(initialUrl, errHandler) {
+
+    let { data, continuation } = await portalFetch(initialUrl, errHandler);
+    let collectedData = data;
+    let currentContinuation = continuation;
+
+    do {
+
+        const newUrl = makeBioIndexQueryStr({ continuation: currentContinuation });
+        let { data, continuation } = await portalFetch(newUrl, errHandler)
+        collectedData = collectedData.concat(data);
+        currentContinuation = continuation;
+
+    } while(currentContinuation);
+
+    return collectedData;
+
+}
 
 
 // Private methods

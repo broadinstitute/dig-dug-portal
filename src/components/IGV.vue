@@ -4,7 +4,7 @@
 <script>
 import Vue from "vue";
 import igv from "igv";
-import { makeBioIndexIGVTrack } from "@/utils/igvUtils"
+import { makeBioIndexIGVTrack, makeBioIndexIGVTrackWithReader } from "@/utils/igvUtils"
 
 export default Vue.component("igv", {
     props: [
@@ -19,7 +19,7 @@ export default Vue.component("igv", {
         let moduleTracks = this.modules.map(moduleObj => {
             const { module, target, translator } = moduleObj;
             const track = target;
-            return makeBioIndexIGVTrack({ module, track, translator });
+            return makeBioIndexIGVTrackWithReader({ module, track, translator });
         });
 
         var optionsLocal = {

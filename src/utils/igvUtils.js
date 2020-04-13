@@ -18,7 +18,7 @@
 // interaction
 
 // Variants -> Annotation
-import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, fullQueryFromUrl } from "@/utils/bioIndexUtils";
 import { moduleQueryTemplate } from "./bioIndexUtils";
 
 function variantsToIgvAnnotations(variants) {
@@ -56,12 +56,12 @@ function makeSourceURLFunction(regionBasedModule) {
     }
 };
 
-export function makeBioIndexIGVTrack({ module, track, translator, source }) {
+export function makeBioIndexIGVTrack({ module, track, translator }) {
     return {
         ...TEMPLATE_TRACK,
         name: module,
         type: track,
-        source: source || {
+        source: {
             ...TEMPLATE_SOURCE,
             url: makeSourceURLFunction(module),
             parser: json => translator(JSON.parse(json).data),
@@ -74,12 +74,11 @@ export function makeBioIndexIGVTrackWithReader({ module, track, translator }) {
         module,
         translator,
     });
-    return makeBioIndexIGVTrack({
-        module,
-        track,
-        translator,
-        source: bioIndexIGVSource,
-    });
+    return {
+        name: module,
+        type: track,
+        reader: bioIndexIGVSource,
+    };
 }
 
 /**
@@ -90,32 +89,18 @@ export function makeBioIndexIGVTrackWithReader({ module, track, translator }) {
  *    readFeatures
  */
 class BioIndexIGVReader {
-
     constructor(config) {
-        this.module = config.module;
-        this.translator = config.translator;
+        this.config = config;
     }
-
     async readFeatures(chr, start, end) {
-
-        const data =
-            await fullQuery({
-                index: this.module,
-                q: moduleQueryTemplate(this.module, {
-                    chromosome: chr,
-                    start: start,
-                    end: end
-                })
-            }, () => {
-                throw Error('module query failed')
-            });
-
-        return this.translator(data);
-
-        // if (!response.ok) {
-        //     throw Error(response.statusText);
-        // } else {
-        //     return data;
-        // }
+        let url = makeSourceURLFunction(this.config.module)({chr, start, end})
+        let features;
+        const data = await fullQueryFromUrl(url);
+        if (data) {
+            if (typeof this.config.translator === "function") {
+                features = this.config.translator(data);
+            }
+        }
+        return features;
     }
 }
