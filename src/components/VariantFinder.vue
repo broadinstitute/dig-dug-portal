@@ -151,7 +151,6 @@ export default Vue.component("variant-finder", {
 
     data() {
         return {
-            loadedPhenotypes: [],
             updateKey: 0,
             filters: {},
             allFilters: {
