@@ -40,7 +40,7 @@
             </b-table>
         </div>
         <div v-else>
-            <h4 v-if="associations.length > 0">No colocated variants across phenotypes found</h4>
+            <h4 v-if="associations.length > 0">No overlapping associations across phenotypes</h4>
         </div>
     </div>
 </template>
