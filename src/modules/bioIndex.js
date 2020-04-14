@@ -1,6 +1,7 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
-import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, fullQueryWithJson } from "@/utils/bioIndexUtils";
+import { beginIterableQuery } from "../utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -20,13 +21,6 @@ export default function (index, extend) {
                 count: null,
                 profile: {},
 
-                // bioIndex query chain state
-                // semantics of aborted and loading:
-                // aborted => completed chain of queries, or cancelled them
-                // loading => there exists a chain of queries that has been called, but might not yet be loading next one yet
-                // can't be both aborted and loading at the same time ( loading |- !aborted )
-                aborted: false,
-                loading: false,
                 iterableQuery: null,
             };
         },
@@ -51,8 +45,8 @@ export default function (index, extend) {
                 state.data = [];
             },
 
-            setIterableQuery(state, tc) {
-                state.iterableQuery = tc;
+            setIterableQuery(state, iterableQuery) {
+                state.iterableQuery = iterableQuery;
             },
             clearIterableQuery(state) {
                 state.iterableQuery = null;
@@ -67,14 +61,6 @@ export default function (index, extend) {
                 state.count = n;
             },
 
-            setAbort(state, flag) {
-                state.aborted = flag;
-            },
-
-            setLoading(state, flag) {
-                state.loading = flag;
-            },
-
             appendData(state, json) {
                 state.data = state.data.concat(json.data);
 
@@ -85,13 +71,6 @@ export default function (index, extend) {
 
                 // total time profile
                 state.profile.fetch += json.profile.fetch;
-            },
-
-            resetModule(state) {
-                state.data = [];
-                state.iterableQuery = null;
-                state.aborted = true;
-                state.loading = false;
             },
 
         },
@@ -111,32 +90,42 @@ export default function (index, extend) {
                 context.commit("setCount", json.count);
             },
             async query(context, queryPayload) {
-                let completedQuery;
                 let profile = {
                     fetch: 0
                 };
 
-                context.commit("setAbort", false);
-                context.commit("setLoading", true);
-
                 if (queryPayload) {
-
+                    let query;
                     const { q, limit } = queryPayload;
-                    completedQuery = await fullQuery({ q, index, limit: limit || context.limit },
-                        (json) => {
-                            profile.fetch += json.profile.fetch;
-                        },
-                        (error) => {
-                            console.log(error.message);
-                            context.commit('setAbort', true);
-                            context.commit("setLoading", false);
-                        });
 
-                    context.commit('setResponse', { data: completedQuery, profile });
+                    let accumulatedData = [];
+                    let json = {};
+
+                    if (!context.state.iterableQuery) {
+                        query = await beginIterableQuery({ q, index, limit: limit || context.limit },
+                                (json) => {
+                                    profile.fetch += json.profile.fetch;
+                                },
+                                (error) => {
+                                    console.log(error.message);
+                                });
+
+                        console.log(context.state.iterableQuery);
+                        context.commit('setIterableQuery', query);
+                        console.log(context.state.iterableQuery);
+                    }
+
+                    if (context.state.iterableQuery) {
+                        do {
+                            json = await context.state.iterableQuery.next();
+                            accumulatedData.push(...json.value.data);
+                        } while(json.value.continuation && !context.state.pause);
+                        context.commit('clearIterableQuery');
+                        context.commit('setResponse', { data: accumulatedData, profile });
+                    }
 
                 }
-                context.commit('setAbort', true);
-                context.commit("setLoading", false);
+
             },
         }
     };

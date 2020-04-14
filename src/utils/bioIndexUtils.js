@@ -54,7 +54,7 @@ export async function portalFetch(query, errHandler) {
 };
 
 // return all of the data in the query chain at once
-export async function fullQuery(json, resolveHandler, errHandler) {
+export async function fullQueryWithJson(json, resolveHandler, errHandler) {
     const initialUrl = makeBioIndexQueryStr(json);
     return fullQueryFromUrl(initialUrl, resolveHandler, errHandler);
 };
