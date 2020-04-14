@@ -2,9 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
-import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import keyParams from "@/utils/keyParams";
 
 Vue.use(Vuex);
 
@@ -12,21 +10,27 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        associations: bioIndex("phenotype-associations")
     },
     state: {
-        phenotypeName: keyParams.phenotype,
-        phenotypes: null
+        // phenotypes needs to be an array so colors don't change!
+        phenotypes: [],
+        newPhenotype: null,
     },
     mutations: {
-        setPhenotypeName(state, name) {
-            state.phenotypeName = name;
-        }
+        setNewPhenotype(state, phenotype) {
+            if (!state.phenotypes.find(p => p.name == phenotype.name)) {
+                state.phenotypes.push(phenotype);
+            }
+        },
+
+        removePhenotype(state, phenotypeName) {
+            state.phenotypes = state.phenotypes.filter(p => p.name !== phenotypeName);
+            state.newPhenotype = null;
+        },
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            keyParams.set({ phenotype: phenotype.name });
-            context.commit("setPhenotypeName", phenotype.name);
-        }
-    }
+            context.commit('setNewPhenotype', phenotype);
+        },
+    },
 });

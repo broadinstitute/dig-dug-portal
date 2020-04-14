@@ -1,9 +1,10 @@
 <template>
     <div>
         <vue-typeahead-bootstrap
+            v-model="userText"
             :data="phenotypeOptions"
             :serializer="s => s.description"
-            @hit="$store.dispatch('onPhenotypeChange', $event)"
+            @hit="onPhenotypeSelected($event)"
         >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
@@ -34,10 +35,11 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 import "vue-select/dist/vue-select.css";
 
 export default Vue.component("phenotype-selectpicker", {
-    props: ["phenotypes"],
+    props: ["phenotypes", "clearOnSelected"],
 
     data() {
         return {
+            userText: null,
             selectedPhenotype: null
         };
     },
@@ -52,6 +54,15 @@ export default Vue.component("phenotype-selectpicker", {
 
                 return 0;
             });
+        }
+    },
+    methods: {
+        onPhenotypeSelected(event) {
+            this.$store.dispatch("onPhenotypeChange", event);
+
+            if (this.clearOnSelected) {
+                this.userText = null;
+            }
         }
     }
 });

@@ -17,7 +17,6 @@ import Url from "url-parse";
 // get the query string
 const qs = window.location.search;
 const params = queryString.parse(qs, {
-    arrayFormat: 'comma',
     parseNumbers: true,
     parseBooleans: true,
 });
