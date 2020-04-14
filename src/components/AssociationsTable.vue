@@ -101,8 +101,14 @@ export default Vue.component("associations-table", {
                     },
                     {
                         key: `${p.name}_beta`,
-                        label: `Beta`,
-                        formatter: Formatters.betaFormatter
+                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
+                        formatter: x => {
+                            if (p.dichotomous) {
+                                x = Math.exp(x);
+                            }
+
+                            return Formatters.floatFormatter(x);
+                        }
                     }
                 ]);
             }
@@ -121,7 +127,6 @@ export default Vue.component("associations-table", {
             for (let i in this.associations) {
                 let r = this.associations[i];
                 let dataIndex = groups[r.varId];
-                let phenotypeName = r.phenotype;
 
                 if (!dataIndex) {
                     dataIndex = data.length;
