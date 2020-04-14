@@ -53,6 +53,24 @@ export async function portalFetch(query, errHandler) {
     return json;
 };
 
+export async function fullQuery(queryJson, { continueCondition, resolveHandler, errHandler }) {
+    let query = await beginIterableQuery(queryJson, errHandler);
+    let accumulatedData = [];
+    let done = false;
+    do {
+
+        let responseJson = await query.next();
+        done = responseJson.done;
+
+        if (!done) {
+            accumulatedData = accumulatedData.concat(responseJson.value.data);
+            resolveHandler(responseJson.value);
+        }
+
+    } while(continueCondition && !done);
+    return accumulatedData;
+}
+
 // return all of the data in the query chain at once
 export async function fullQueryWithJson(json, resolveHandler, errHandler) {
     const initialUrl = makeBioIndexQueryStr(json);

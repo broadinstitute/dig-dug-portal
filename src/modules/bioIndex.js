@@ -1,7 +1,6 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
-import { BIO_INDEX_HOST, fullQueryWithJson } from "@/utils/bioIndexUtils";
-import { beginIterableQuery } from "../utils/bioIndexUtils";
+import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -20,7 +19,9 @@ export default function (index, extend) {
                 data: [],
                 count: null,
                 profile: {},
+                progress: null,
 
+                paused: false,
                 iterableQuery: null,
             };
         },
@@ -30,11 +31,10 @@ export default function (index, extend) {
                 return state.data;
             },
             percentComplete(state) {
-                if (!state.count) {
+                if (!state.progress) {
                     return null;
                 }
-
-                return Math.min(state.data.length / state.count, 1.0);
+                return Math.min(state.progress.bytes_read / state.progress.bytes_total, 1.0);
             }
         },
 
@@ -61,17 +61,9 @@ export default function (index, extend) {
                 state.count = n;
             },
 
-            appendData(state, json) {
-                state.data = state.data.concat(json.data);
-
-                // if there was a count, and we have more, match
-                if (state.count && state.data.length > state.count) {
-                    state.count = state.data.length;
-                }
-
-                // total time profile
-                state.profile.fetch += json.profile.fetch;
-            },
+            setProgress(state, progress) {
+                state.progress = progress;
+            }
 
         },
 
@@ -89,41 +81,29 @@ export default function (index, extend) {
 
                 context.commit("setCount", json.count);
             },
+
             async query(context, queryPayload) {
                 let profile = {
-                    fetch: 0
+                    fetch: 0,
+                    query: 0,
                 };
 
                 if (queryPayload) {
-                    let query;
                     const { q, limit } = queryPayload;
-
-                    let accumulatedData = [];
-                    let json = {};
-
-                    if (!context.state.iterableQuery) {
-                        query = await beginIterableQuery({ q, index, limit: limit || context.limit },
-                                (json) => {
-                                    profile.fetch += json.profile.fetch;
-                                },
-                                (error) => {
-                                    console.log(error.message);
-                                });
-
-                        console.log(context.state.iterableQuery);
-                        context.commit('setIterableQuery', query);
-                        console.log(context.state.iterableQuery);
-                    }
-
-                    if (context.state.iterableQuery) {
-                        do {
-                            json = await context.state.iterableQuery.next();
-                            accumulatedData.push(...json.value.data);
-                        } while(json.value.continuation && !context.state.pause);
-                        context.commit('clearIterableQuery');
-                        context.commit('setResponse', { data: accumulatedData, profile });
-                    }
-
+                    let data = await fullQuery(
+                        { q, index, limit: limit || context.state.limit },
+                        {
+                            continueCondition: !context.state.paused,
+                            resolveHandler: (json) => {
+                                profile.fetch += json.profile.fetch;
+                                profile.query += json.profile.query;
+                                context.commit("setProgress", json.progress);
+                            },
+                            errHandler: (error) => {
+                                console.log(error.message);
+                            },
+                        })
+                    context.commit('setResponse', { data: data, profile });
                 }
 
             },
