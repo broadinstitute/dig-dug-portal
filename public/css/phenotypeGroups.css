@@ -80,6 +80,20 @@
 .progress {
     background-color: transparent;
 }
+.progress-bar:hover {
+    background-image: linear-gradient(
+        45deg,
+        hsla(0, 0%, 100%, 0.15) 25%,
+        transparent 0,
+        transparent 50%,
+        hsla(0, 0%, 100%, 0.15) 0,
+        hsla(0, 0%, 100%, 0.15) 75%,
+        transparent 0,
+        transparent
+    );
+    background-size: 1rem 1rem;
+    cursor: help;
+}
 .marker {
     position: absolute;
     width: 10px;
@@ -103,24 +117,16 @@
     cursor: pointer;
 }
 
-.bar-desc.first {
-    margin: 3px auto;
-}
-
 .highlight-bar {
     position: absolute;
     left: 0;
     color: blue;
     height: 1.5rem;
     cursor: help;
-    /* box-shadow: inset 0 0 0 3px rgba(0, 255, 0, 0.6); */
 }
 
 .hidden {
     display: none;
-}
-.highlight-bar-bg {
-    background-color: rgba(218, 218, 218, 0.5);
 }
 
 .legend {

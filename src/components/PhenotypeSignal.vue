@@ -30,29 +30,20 @@
 									:title="item.description"
 									show
 									v-b-tooltip
-									:class="{'progress-bar-striped': isActive}"
-									@mouseover="this.isActive = true"
-									@mouseout="this.isActive = false"
-								></b-progress-bar>
-								<span
-									class="bar-desc first"
-									:style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
-									@click="$store.commit('setPhenotypeByName', item.phenotype)"
-									v-b-tooltip.right
-									title="Click to set phenotype"
-								>{{item.description}} ({{item.pValue}})</span>
+								>
+									<span
+										class="bar-desc"
+										:style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
+										@click="$store.commit('setPhenotypeByName', item.phenotype)"
+										v-b-tooltip.right
+										title="Click to set phenotype"
+									>{{item.description}} ({{item.pValue}})</span>
+								</b-progress-bar>
 							</template>
 							<template v-else>
-								<!-- <div
-									v-if="item.pValue <= 5e-3"
-									class="highlight-bar"
-									:class="{'highlight-bar-bg': isActive}"
-									:style="{'width': log2css(item.pValue)+'%'}"
-								>
-									<span v-b-tooltip class="marker" v-b-hover="highlight" :title="item.description">&nbsp;</span>
-								</div>-->
 								<phenotype-signal-item
 									v-if="item.pValue <= 5e-3"
+									:key="item.phenotype"
 									:title="item.description"
 									:width="log2css(item.pValue)"
 								></phenotype-signal-item>
@@ -73,12 +64,6 @@
 										>{{item.description}} ({{item.pValue}})</span>
 									</b-progress-bar>
 								</b-progress>
-								<!-- <b-progress
-									height="1.5rem"
-									class="phenotype-group"
-									:class="item.group"
-									:value="log2css(item.pValue)"
-								></b-progress>-->
 							</template>
 						</template>
 					</b-collapse>
@@ -158,13 +143,6 @@ export default Vue.component("phenotype-signal", {
 			return -Math.floor(Math.log10(number));
 		}
 	}
-});
-
-$(document).ready(function() {
-	$(".marker").hover(function() {
-		//$(".highlight-bar").toggleClass("highlight-bar-bg");
-		console.log("jquery here");
-	});
 });
 </script>
 
