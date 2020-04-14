@@ -30,6 +30,3 @@ export default Vue.component("phenotype-signal-item", {
 	}
 });
 </script>
-
-<style>
-</style>

@@ -53,7 +53,12 @@
 					<b-collapse :id="key2id(key)" accordion="my-accordion">
 						<template v-for="(item, i) in topAssociationsGrouped[key]">
 							<template v-if="i != 0 && item.pValue <= 5e-3">
-								<b-progress height="1.5rem" class="phenotype-group" :class="item.group">
+								<b-progress
+									height="1.5rem"
+									class="phenotype-group"
+									:class="item.group"
+									:key="item.phenotype"
+								>
 									<b-progress-bar :value="log2css(item.pValue)">
 										<span
 											class="bar-desc"
@@ -79,8 +84,6 @@ import groupBy from "lodash/groupBy";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import PhenotypeSignalItem from "@/components/PhenotypeSignalItem.vue";
 
-window.$ = window.jQuery = require("jquery");
-
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("phenotype-signal", {
@@ -93,7 +96,6 @@ export default Vue.component("phenotype-signal", {
 
 	data() {
 		return {
-			isHovered: false,
 			isActive: false
 		};
 	},
