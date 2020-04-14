@@ -124,14 +124,11 @@
                     <locuszoom
                         ref="lz"
                         v-if="$parent.selectedPhenotype !== null"
-                        v-bind:panels="['association','genes','intervals', 'phewas']"
+                        v-bind:panels="['association','genes','intervals',]"
                         v-bind:modules="[
                             { 'module': 'associations',
                               'target': 'assoc',
                               'translator': $parent.associationsForLZ },
-                            { 'module': 'variants',
-                              'target': 'phewas',
-                              'translator': $parent.associationsForLZFromVariants },
                         ]"
                     
                         v-bind:chr="$store.state.chr"

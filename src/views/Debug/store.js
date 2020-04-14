@@ -49,7 +49,6 @@ export default new Vuex.Store({
         async onIGVCoords(context, { module, newChr, newStart, newEnd }) {
             const { chr, start, end } = context.state;
             if (newChr !== chr || newStart !== start || newEnd !== end) {
-                context.commit(`${camelKebab(module)}/resetModule`);
                 const query = moduleQueryTemplate(module, {
                     phenotype: context.state.phenotype.name,
                     // varId?
@@ -57,7 +56,6 @@ export default new Vuex.Store({
                     start: newStart,
                     end: newEnd,
                 });
-                console.log(module, query);
                 await context.dispatch(`${camelKebab(module)}/query`, { q: query });
             }
         },

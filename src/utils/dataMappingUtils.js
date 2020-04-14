@@ -63,9 +63,10 @@ export const associationsForIGV = associations => {
             chr: association.chromosome,
             start: association.position,
             end: association.position,
-            value: calcLog(association.pValue),
             ...annotation,
             log_pvalue: calcLog(association.pValue),
+            // for GWAS:
+            value: calcLog(association.pValue),
         }
     });
 }
