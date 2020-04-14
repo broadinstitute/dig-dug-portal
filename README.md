@@ -1,6 +1,44 @@
 # Welcome to DIG Portal - Frontend
 
-This is the shared code base of the front-end-only resources for the new knowledge portals. It requires the [back-end server](https://github.com/broadinstitute/dig-dug-server) to be installed and started first.
+This is the shared code base of the front-end-only resources for the new knowledge portals. 
+
+## Prerequisites
+
+### Server
+
+The portal requires the [back-end server](https://github.com/broadinstitute/dig-dug-server) to be installed and started first.
+
+### Local project module dependencies
+
+The portal code is written in Javascript, the dependencies for which are managed using the node package manager `npm`,  which  needs to be installed before building the project. Information about how to install the node package manager can be found [here](https://www.npmjs.com/get-npm}).
+
+Once `npm` is installed, the portal code dependencies may be installed by typing the following:
+
+```shell script
+npm install
+```
+
+In addition, you may initially get some errors of the form:
+
+```  
+npm WARN <some-package> requires a peer of <some-other-package> but none is installed. You must install peer dependencies yourself.
+```
+
+This issue is generally resolved by installing the *<some-other-package>* independently as follows:
+
+``` 
+npm install <some-other-package>
+```
+
+### Running the portal
+
+Assuming that the server is running (in another terminal) then the portal code may be run as follows:
+
+```shell script
+npm run watch
+```
+
+This command compiles the portal distribution into a /dist for access by the running server.
 
 ---
 
