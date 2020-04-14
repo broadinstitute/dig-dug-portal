@@ -1,6 +1,6 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
-import { BIO_INDEX_HOST, beginIterableQuery } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -111,70 +111,32 @@ export default function (index, extend) {
                 context.commit("setCount", json.count);
             },
             async query(context, queryPayload) {
-                let data = [];
-                let profile = {};
+                let completedQuery;
+                let profile = {
+                    fetch: 0
+                };
 
-                // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
-                // in hindsight, could have used an `await`?
-                // context.dispatch("SETUP");
                 context.commit("setAbort", false);
                 context.commit("setLoading", true);
-                context.commit("clearData");
 
-                // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
-                // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.
-                if (!context.state.iterableQuery || context.state.iterableQuery.done) {
-                    if (queryPayload) {
-                        const { q, limit } = queryPayload;
-                        context.commit("setIterableQuery",
-                            // TODO: refactor error handler out to utils?
-                            // TODO: what would be the best error message for debugging?
-                            beginIterableQuery({ q, index, limit: limit || context.limit }, (error) => {
-                                // errHandler:
-                                // if error, print out the error code (and continuation?)
-                                // then force a cancel (i.e. aborted and not loading)
-                                console.log(error.message);
-                                context.commit('setAbort', true);
-                                context.commit("setLoading", false);
+                if (queryPayload) {
 
-                                // TODO: could force an illegal state as our error state so that other components know to fail?
-                                //  hack!
+                    const { q, limit } = queryPayload;
+                    completedQuery = await fullQuery({ q, index, limit: limit || context.limit },
+                        (json) => {
+                            profile.fetch += json.profile.fetch;
+                        },
+                        (error) => {
+                            console.log(error.message);
+                            context.commit('setAbort', true);
+                            context.commit("setLoading", false);
+                        });
 
-                            })
-                        );
-                        let response = await context.state.iterableQuery.next();
-                        // set the initial data
-                        data = response.value.data;
-                        profile = response.value.profile;
-                    }
-                }
-
-                // as long as the query is "in-progress" (i.e. loading and not yet aborted),
-                // then continue asking for promised queries from the generator
-                while (context.state.loading && !context.state.aborted) {
-                    let response = await context.state.iterableQuery.next();
-
-                    // if we run out of promised queries, then abort/exit the stream and claim it is no longer loading/in-progress
-                    // (we have to manually break the loop to prevent lag-time from the commits from producing invalid behavior)
-                    if (response.done) {
-                        // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
-                        // in hindsight, could have used an `await`?
-                        // context.dispatch("ABORT");
-                        context.commit('setAbort', true);
-                        context.commit('setLoading', false);
-                        context.commit('clearIterableQuery');
-                        break;
-                    } else {
-                        // if we were still in the stream of data (loading and not aborted) when we asked for a query from the chain,
-                        // then append the values from the response (which we assume will exist in a valid format if the chain isn't done) to our store.
-                        //context.commit('appendData', response.value);
-                        data = data.concat(response.value.data);
-                        profile.fetch += response.value.profile.fetch;
-                    }
+                    context.commit('setResponse', { data: completedQuery, profile });
 
                 }
-
-                context.commit('setResponse', { data, profile });
+                context.commit('setAbort', true);
+                context.commit("setLoading", false);
             },
         }
     };

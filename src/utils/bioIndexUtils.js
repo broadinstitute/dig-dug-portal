@@ -54,32 +54,28 @@ export async function portalFetch(query, errHandler) {
 };
 
 // return all of the data in the query chain at once
-export async function fullQuery(json, errHandler) {
-    let query = await beginIterableQuery(json, errHandler);
-    let currentData = [];
-    let currentContinuation;
-
-    do {
-        const { data, continuation } = query.next();
-        currentData.push(data);
-        currentContinuation = continuation;
-    } while(currentContinuation);
-
-    return data;
+export async function fullQuery(json, resolveHandler, errHandler) {
+    const initialUrl = makeBioIndexQueryStr(json);
+    return fullQueryFromUrl(initialUrl, resolveHandler, errHandler);
 };
 
-export async function fullQueryFromUrl(initialUrl, errHandler) {
+export async function fullQueryFromUrl(initialUrl, resolveHandler, errHandler) {
 
     let { data, continuation } = await portalFetch(initialUrl, errHandler);
-    let collectedData = data;
+    let collectedData = [].concat(data);
     let currentContinuation = continuation;
 
     do {
 
         const newUrl = makeBioIndexQueryStr({ continuation: currentContinuation });
-        let { data, continuation } = await portalFetch(newUrl, errHandler)
+        let response = await portalFetch(newUrl, errHandler);
+        let { data, continuation } = response;
         collectedData = collectedData.concat(data);
         currentContinuation = continuation;
+
+        if (!resolveHandler(response)) {
+            // break;
+        }
 
     } while(currentContinuation);
 
