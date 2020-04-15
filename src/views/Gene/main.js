@@ -29,6 +29,9 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+
+        console.log('hello!')
+
     },
 
     methods: {
