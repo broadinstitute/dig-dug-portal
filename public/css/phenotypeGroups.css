@@ -1,0 +1,159 @@
+.phenotype-group.ANTHROPOMETRIC > div.progress-bar
+{
+    background-color: #048845;
+}
+.phenotype-group.ATRIAL.FIBRILLATION > div.progress-bar
+{
+    background-color: #9aca3c;
+}
+.phenotype-group.CARDIOVASCULAR > div.progress-bar
+{
+    background-color: #6fc7b6;
+}
+.phenotype-group.ECG.TRAITS > div.progress-bar
+{
+    background-color: #8490c8;
+}
+.phenotype-group.GLYCEMIC > div.progress-bar
+{
+    background-color: #9f78ac;
+}
+.phenotype-group.HEMORRHAGIC.STROKE > div.progress-bar
+{
+    background-color: #bf61a5;
+}
+.phenotype-group.HEPATIC > div.progress-bar
+{
+    background-color: #f88084;
+}
+.phenotype-group.ISCHEMIC.STROKE > div.progress-bar
+{
+    background-color: #ee3124;
+}
+.phenotype-group.LIPIDS > div.progress-bar
+{
+    background-color: #faa553;
+}
+.phenotype-group.METABOLITE > div.progress-bar
+{
+    background-color: #fcd700;
+}
+.phenotype-group.MRI.TRAITS > div.progress-bar
+{
+    background-color: #f5a4c7;
+}
+.phenotype-group.MUSCULOSKELETAL > div.progress-bar
+{
+    background-color: #cee6c1;
+}
+.phenotype-group.OCULAR > div.progress-bar
+{
+    background-color: #fff9b8;
+}
+.phenotype-group.OTHER > div.progress-bar
+{
+    background-color: #d4d4d4;
+}
+.phenotype-group.PSYCHIATRIC > div.progress-bar
+{
+    background-color: #5555ff;
+}
+.phenotype-group.RENAL > div.progress-bar
+{
+    background-color: #facacc;
+}
+.phenotype-group.SLEEP.AND.CIRCADIAN > div.progress-bar
+{
+    background-color: #d5a768;
+}
+.phenotype-group.STROKE > div.progress-bar
+{
+    background-color: #ffff00;
+}
+.phenotype-group-header {
+    cursor: pointer;
+    text-align: right;
+}
+.container-sm {
+    margin-left: inherit;
+}
+.progress {
+    background-color: transparent;
+}
+.progress-bar:hover {
+    background-image: linear-gradient(
+        45deg,
+        hsla(0, 0%, 100%, 0.15) 25%,
+        transparent 0,
+        transparent 50%,
+        hsla(0, 0%, 100%, 0.15) 0,
+        hsla(0, 0%, 100%, 0.15) 75%,
+        transparent 0,
+        transparent
+    );
+    background-size: 1rem 1rem;
+    cursor: help;
+}
+.marker {
+    position: absolute;
+    width: 10px;
+    height: 1.5rem;
+    background-color: rgba(204, 204, 204, 0.6);
+    z-index: 5;
+    cursor: help;
+    right: 0;
+    visibility: visible;
+}
+
+.bar-desc {
+    position: absolute;
+    white-space: nowrap;
+    font-weight: bold;
+    color: #000000;
+}
+
+.bar-desc:hover {
+    color: #5555ff;
+    cursor: pointer;
+}
+
+.highlight-bar {
+    position: absolute;
+    left: 0;
+    color: blue;
+    height: 1.5rem;
+    cursor: help;
+}
+
+.hidden {
+    display: none;
+}
+
+.legend {
+    height: 10px;
+    border-color: #000000;
+    border-style: solid;
+    border-width: 0 2px 2px 2px;
+    margin-bottom: 20px;
+}
+
+.legend-scale {
+    text-align: center;
+}
+.legend-left {
+    position: absolute;
+    left: 2px;
+}
+.legend-center {
+    text-align: center;
+    font-weight: bold;
+    margin: auto;
+    width: 50%;
+}
+.legend-right {
+    position: absolute;
+    right: 2px;
+}
+.collapse .progress {
+    margin: 10px auto;
+}
