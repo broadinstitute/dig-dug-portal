@@ -40,7 +40,7 @@ async function* iterateOnQuery(json, errHandler) {
     } while(json.continuation);
 }
 
-async function portalFetch(query, errHandler) {
+export async function portalFetch(query, errHandler) {
     let json = await fetch(query)
         .then(resp => {
             if (resp.status !== 200) {
@@ -53,20 +53,44 @@ async function portalFetch(query, errHandler) {
     return json;
 };
 
-// return all of the data in the query chain at once
-export async function fullQuery(json, errHandler) {
-    let query = await beginIterableQuery(json,errHandler);
-    let data = [];
-    let continuation;
+export async function fullQuery(queryJson, { condition, resolveHandler, errHandler }) {
+    let query = await beginIterableQuery(queryJson, errHandler);
+    let accumulatedData = [];
+    let done = false;
 
     do {
-        const { currentData, currentContinuation } = query.next();
-        data.push(currentData);
-        continuation = currentContinuation;
-    } while(continuation);
+        let responseJson = await query.next();
+        done = responseJson.done;
 
-    return data;
-};
+        if (!done) {
+            accumulatedData = accumulatedData.concat(responseJson.value.data);
+            resolveHandler(responseJson.value);
+        }
+    } while(condition() && !done);
+
+    return accumulatedData;
+}
+
+export async function fullQueryFromUrl(initialUrl, resolveHandler, errHandler) {
+
+    let { data, continuation } = await portalFetch(initialUrl, errHandler);
+    let collectedData = [].concat(data);
+    let currentContinuation = continuation;
+
+    do {
+
+        const newUrl = makeBioIndexQueryStr({ continuation: currentContinuation });
+        let response = await portalFetch(newUrl, errHandler);
+        let { data, continuation } = response;
+        collectedData = collectedData.concat(data);
+        currentContinuation = continuation;
+
+    } while(currentContinuation);
+
+    return collectedData;
+
+}
+
 
 
 // Private methods
@@ -129,4 +153,10 @@ function queryTemplate(args) {
 
 export function moduleQueryTemplate(module, args) {
     return queryTemplate(arityFilter[module](args));
+}
+
+export function camelKebab(kebabcase) {
+    const words = kebabcase.split('-');
+    const capitalWords = words.splice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1));
+    return [].concat(words[0]).concat(capitalWords).join('');
 }
