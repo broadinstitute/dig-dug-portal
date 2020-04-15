@@ -28,6 +28,8 @@ new Vue({
     },
 
     created() {
+        console.log('Running in dev mode, console logs enabled.');
+
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
