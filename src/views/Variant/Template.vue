@@ -62,30 +62,31 @@
                         v-bind:transcriptConsequence="$parent.transcriptConsequence"
                     ></transcript-consequence-table>
                 </div>
-                <div v-if="$parent.transcriptionFactors">
+                <div v-show="$parent.transcriptionFactors">
                     <transcription-factors-table
                         v-bind:transcriptionFactors="$parent.transcriptionFactors"
                     ></transcription-factors-table>
                 </div>
-                <div v-if="$parent.intergenicConsequence">
+                <div v-show="$parent.intergenicConsequence">
                     <intergenicConsequence-table
                         v-bind:intergenicConsequence="$parent.intergenicConsequence"
                     ></intergenicConsequence-table>
                 </div>
             </div>
-            <locuszoom
-                ref="lz"
-                v-if="$parent.associations !== null"
-                v-bind:panels="['association','phewas']"
-                v-bind:modules="[
-                            { 'module': 'associations',
-                              'target': 'assoc',
-                              'translator': $parent.associationsForLZ },
+            <div class="card mdkp-card">
+                <locuszoom
+                    ref="lz"
+                    v-if="$store.state.variant.data.length>0"
+                    v-bind:panels="['phewas']"
+                    v-bind:modules="[
+                            { 'module': 'variant',
+                              'target': 'phewas',
+                              'translator': $parent.translatedAssociationsFromVariant },
                         ]"
-                v-bind:chr="$store.state.chr"
-                v-bind:start="$store.state.start"
-                v-bind:end="$store.state.end"
-            ></locuszoom>
+                    v-bind:chr="$store.state.chr"
+                    v-bind:position="$store.state.position"
+                ></locuszoom>
+            </div>
         </div>
 
         <!-- Footer-->

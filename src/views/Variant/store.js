@@ -19,6 +19,8 @@ export default new Vuex.Store({
     state: {
         variantID: keyParams.variant,
         newVariantID: keyParams.variant,
+        chr: keyParams.variant.split(':')[0],
+        position: keyParams.variant.split(':')[1],
     },
     getters: {
 
@@ -32,11 +34,19 @@ export default new Vuex.Store({
 
     },
     actions: {
+        async onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
+            const { chr, start, end } = context.state;
+            if (newChr !== chr || newStart !== start || newEnd !== end) {
+                await context.dispatch(`${module}/query`, { q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
+                //context.commit(`setLocus`, { chr: newChr, start: newStart, end: newEnd });
+            }
+        },
+
         async queryVariant(context) {
             let varID = variantUtils.parseVariantID(context.state.newVariantID)
             if (!!varID) {
                 context.commit('setVariantID');
-                context.dispatch('variant/query', { q: varID });
+                await context.dispatch('variant/query', { q: varID });
             }
             else {
                 context.commit('setInvalidVariantID', true);

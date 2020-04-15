@@ -12,7 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import IntergenicConsequenceTable from "@/components/IntergenicConsequenceTable";
-import { associationsForLZ } from "@/utils/dataMappingUtils";
+import { associationsFromVariant, translate, associationsForLZ } from "@/utils/dataMappingUtils";
 import LocusZoom from "@/components/LocusZoom";
 
 import keyParams from "@/utils/keyParams";
@@ -86,14 +86,13 @@ new Vue({
             }
         },
 
-        associations() {
-            let data = this.$store.state.variant.data
-            for (let i in data) {
-                let associations = data[i].associations
-                console.log(associations)
-                return associations
-            }
-        },
+        // associations() {
+        //     let data = this.$store.state.variant.data
+        //     for (let i in data) {
+        //         let associations = data[i].associations
+        //         return associations
+        //     }
+        // },
 
         intergenicConsequence() {
             let data = this.$store.state.variant.data
@@ -102,9 +101,14 @@ new Vue({
                 return [intergenicConsequence]
             }
         },
+        // translate({ from: associationsFromVariant, to: associationsForLZ }),
+
+
+
     },
     methods: {
-        associationsForLZ
+
+        translatedAssociationsFromVariant: translate({ from: associationsFromVariant, to: associationsForLZ }),
     },
 
     watch: {

@@ -6,7 +6,6 @@ import { cloneDeep } from "lodash";
 // };
 
 export const translate = ({ from = id => id, to }) => data => to(from(data))
-// VALID: translate({ from: associationsFromVariants, to: associationsForLZ });
 // VALID: translate({ to: associationsForIGV });
 // !!!INCORRECT!!!: translate({ from: associationsFromVariants });
 
