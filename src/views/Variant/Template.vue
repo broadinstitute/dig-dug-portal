@@ -57,17 +57,35 @@
                 </div>
             </div>
             <div class="col-md-10">
-                <div v-if="$parent.transcriptConsequence">
+                <div v-if="$parent.transcriptConsequence.length">
                     <transcript-consequence-table
                         v-bind:transcriptConsequence="$parent.transcriptConsequence"
                     ></transcript-consequence-table>
                 </div>
-
-                <transcription-factors-table
-                    v-bind:transcriptionFactors="$parent.transcriptionFactors"
-                ></transcription-factors-table>
+                <div v-if="$parent.transcriptionFactors">
+                    <transcription-factors-table
+                        v-bind:transcriptionFactors="$parent.transcriptionFactors"
+                    ></transcription-factors-table>
+                </div>
+                <div v-if="$parent.intergenicConsequence">
+                    <intergenicConsequence-table
+                        v-bind:intergenicConsequence="$parent.intergenicConsequence"
+                    ></intergenicConsequence-table>
+                </div>
             </div>
-            <!-- <locuszoom [{}]</locuszoom> -->
+            <locuszoom
+                ref="lz"
+                v-if="$parent.associations !== null"
+                v-bind:panels="['association','phewas']"
+                v-bind:modules="[
+                            { 'module': 'associations',
+                              'target': 'assoc',
+                              'translator': $parent.associationsForLZ },
+                        ]"
+                v-bind:chr="$store.state.chr"
+                v-bind:start="$store.state.start"
+                v-bind:end="$store.state.end"
+            ></locuszoom>
         </div>
 
         <!-- Footer-->

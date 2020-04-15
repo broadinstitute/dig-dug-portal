@@ -5,7 +5,7 @@ import { cloneDeep } from "lodash";
 //     return jsonQuery(query, { data: inputJson }).map(schemaMap)
 // };
 
-export const translate = ({from = id => id, to}) => data => to(from(data))
+export const translate = ({ from = id => id, to }) => data => to(from(data))
 // VALID: translate({ from: associationsFromVariants, to: associationsForLZ });
 // VALID: translate({ to: associationsForIGV });
 // !!!INCORRECT!!!: translate({ from: associationsFromVariants });
@@ -15,21 +15,35 @@ export const translate = ({from = id => id, to}) => data => to(from(data))
 // name these like xFromY
 export const associationsFromVariants = variants => {
     const associations = variants
-            .filter(variants => variants.associations)
-            .map(variants => variants.associations)
-            .flatMap((associations, index) => {
-                const fullAssociations = associations.map(association => ({
-                    chromosome: variants[index].chromosome,
-                    position: variants[index].position,
-                    ...association,
-                }))
-                return fullAssociations;
-            })
+        .filter(variants => variants.associations)
+        .map(variants => variants.associations)
+        .flatMap((associations, index) => {
+            const fullAssociations = associations.map(association => ({
+                chromosome: variants[index].chromosome,
+                position: variants[index].position,
+                ...association,
+            }))
+            return fullAssociations;
+        })
+    return associations;
+};
+
+export const associationsFromVariant = variant => {
+    const associations = variant
+        .filter(variant => variant.associations)
+        .map(variant => variant.associations)
+        .flatMap((associations, index) => {
+            const allAssociations = associations.map(association => ({
+                ...association,
+            }))
+            return allAssociations;
+        })
     return associations;
 };
 
 export const useDecompositions = {
     associationsFromVariants,
+    associationsFromVariant,
 };
 
 /* LocusZoom Datamapping */

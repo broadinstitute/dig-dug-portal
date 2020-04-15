@@ -32,7 +32,6 @@ export default new Vuex.Store({
 
     },
     actions: {
-
         async queryVariant(context) {
             let varID = variantUtils.parseVariantID(context.state.newVariantID)
             if (!!varID) {
