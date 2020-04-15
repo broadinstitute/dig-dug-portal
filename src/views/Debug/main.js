@@ -7,6 +7,8 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 import IGV from "@/components/IGV";
+import LoadingBar from "../../components/LoadingBar";
+
 import PageHeader from "../../components/PageHeader";
 import PageFooter from "../../components/PageFooter";
 import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
@@ -23,6 +25,7 @@ new Vue({
         PageHeader,
         PageFooter,
         PhenotypeSelectPicker,
+        LoadingBar,
         IGV
     },
 
@@ -33,7 +36,8 @@ new Vue({
     methods: {
         ...useTranslations,
         associationsForIGV,
-        associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV})
+        associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
+        pause: () => console.log('hello')
     },
 
     computed: {

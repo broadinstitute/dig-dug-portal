@@ -35,6 +35,9 @@ export default function (index, extend) {
                     return null;
                 }
                 return Math.min(state.progress.bytes_read / state.progress.bytes_total, 1.0);
+            },
+            paused(state) {
+                return state.paused;
             }
         },
 
@@ -63,12 +66,21 @@ export default function (index, extend) {
 
             setProgress(state, progress) {
                 state.progress = progress;
-            }
+            },
+
+            togglePause(state, flag) {
+                state.paused = flag || !state.paused;
+            },
 
         },
 
         // dispatch methods
         actions: {
+            async tap(context) {
+                console.log('tap', context.state.id);
+                context.commit('togglePause')
+                console.log('paused', context.getters.paused);
+            },
             async count(context, { q }) {
                 let qs = queryString.stringify({ q });
                 let json = await fetch(
@@ -89,11 +101,12 @@ export default function (index, extend) {
                 };
 
                 if (queryPayload) {
+                    await context.commit('togglePause', false); // unpausing
                     const { q, limit } = queryPayload;
                     let data = await fullQuery(
                         { q, index, limit: limit || context.state.limit },
                         {
-                            continueCondition: !context.state.paused,
+                            condition: () => !context.getters.paused,  // must be a function so it's re-read at the end of each query chain iteration
                             resolveHandler: (json) => {
                                 profile.fetch += json.profile.fetch;
                                 profile.query += json.profile.query;
