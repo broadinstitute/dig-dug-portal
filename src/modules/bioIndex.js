@@ -1,6 +1,6 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
-import { BIO_INDEX_HOST, beginIterableQuery } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -19,14 +19,9 @@ export default function (index, extend) {
                 data: [],
                 count: null,
                 profile: {},
+                progress: null,
 
-                // bioIndex query chain state
-                // semantics of aborted and loading:
-                // aborted => completed chain of queries, or cancelled them
-                // loading => there exists a chain of queries that has been called, but might not yet be loading next one yet
-                // can't be both aborted and loading at the same time ( loading |- !aborted )
-                aborted: false,
-                loading: false,
+                paused: false,
                 iterableQuery: null,
             };
         },
@@ -36,11 +31,13 @@ export default function (index, extend) {
                 return state.data;
             },
             percentComplete(state) {
-                if (!state.count) {
+                if (!state.progress) {
                     return null;
                 }
-
-                return Math.min(state.data.length / state.count, 1.0);
+                return Math.min(state.progress.bytes_read / state.progress.bytes_total, 1.0);
+            },
+            paused(state) {
+                return state.paused;
             }
         },
 
@@ -51,8 +48,8 @@ export default function (index, extend) {
                 state.data = [];
             },
 
-            setIterableQuery(state, tc) {
-                state.iterableQuery = tc;
+            setIterableQuery(state, iterableQuery) {
+                state.iterableQuery = iterableQuery;
             },
             clearIterableQuery(state) {
                 state.iterableQuery = null;
@@ -67,29 +64,23 @@ export default function (index, extend) {
                 state.count = n;
             },
 
-            setAbort(state, flag) {
-                state.aborted = flag;
+            setProgress(state, progress) {
+                state.progress = progress;
             },
 
-            setLoading(state, flag) {
-                state.loading = flag;
+            togglePause(state, flag) {
+                state.paused = flag || !state.paused;
             },
 
-            appendData(state, json) {
-                state.data = state.data.concat(json.data);
-
-                // if there was a count, and we have more, match
-                if (state.count && state.data.length > state.count) {
-                    state.count = state.data.length;
-                }
-
-                // total time profile
-                state.profile.fetch += json.profile.fetch;
-            }
         },
 
         // dispatch methods
         actions: {
+            async tap(context) {
+                console.log('tap', context.state.id);
+                context.commit('togglePause')
+                console.log('paused', context.getters.paused);
+            },
             async count(context, { q }) {
                 let qs = queryString.stringify({ q });
                 let json = await fetch(
@@ -102,71 +93,32 @@ export default function (index, extend) {
 
                 context.commit("setCount", json.count);
             },
+
             async query(context, queryPayload) {
-                let data = [];
-                let profile = {};
+                let profile = {
+                    fetch: 0,
+                    query: 0,
+                };
 
-                // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
-                // in hindsight, could have used an `await`?
-                // context.dispatch("SETUP");
-                context.commit("setAbort", false);
-                context.commit("setLoading", true);
-                context.commit("clearData");
-
-                // if we neither have an existing iterable query, or an existing query has "gone stale" (iterator done),
-                // then make a new chain of promised queries by calling a "base query" and instantiating *iterateQuery.
-                if (!context.state.iterableQuery || context.state.iterableQuery.done) {
-                    if (queryPayload) {
-                        const { q, limit } = queryPayload;
-                        context.commit("setIterableQuery",
-                            // TODO: refactor error handler out to utils?
-                            // TODO: what would be the best error message for debugging?
-                            beginIterableQuery({ q, index, limit: limit || context.limit }, (error) => {
-                                // errHandler:
-                                // if error, print out the error code (and continuation?)
-                                // then force a cancel (i.e. aborted and not loading)
+                if (queryPayload) {
+                    await context.commit('togglePause', false); // unpausing
+                    const { q, limit } = queryPayload;
+                    let data = await fullQuery(
+                        { q, index, limit: limit || context.state.limit },
+                        {
+                            condition: () => !context.getters.paused,  // must be a function so it's re-read at the end of each query chain iteration
+                            resolveHandler: (json) => {
+                                profile.fetch += json.profile.fetch;
+                                profile.query += json.profile.query;
+                                context.commit("setProgress", json.progress);
+                            },
+                            errHandler: (error) => {
                                 console.log(error.message);
-                                context.commit('setAbort', true);
-                                context.commit("setLoading", false);
-
-                                // TODO: could force an illegal state as our error state so that other components know to fail?
-                                //  hack!
-
-                            })
-                        );
-                        let response = await context.state.iterableQuery.next();
-                        // set the initial data
-                        data = response.value.data;
-                        profile = response.value.profile;
-                    }
+                            },
+                        })
+                    context.commit('setResponse', { data: data, profile });
                 }
 
-                // as long as the query is "in-progress" (i.e. loading and not yet aborted),
-                // then continue asking for promised queries from the generator
-                while (context.state.loading && !context.state.aborted) {
-                    let response = await context.state.iterableQuery.next();
-
-                    // if we run out of promised queries, then abort/exit the stream and claim it is no longer loading/in-progress
-                    // (we have to manually break the loop to prevent lag-time from the commits from producing invalid behavior)
-                    if (response.done) {
-                        // NOTE: using dispatching to encapsulate commits wasn't working well since commits need to be synchronous
-                        // in hindsight, could have used an `await`?
-                        // context.dispatch("ABORT");
-                        context.commit('setAbort', true);
-                        context.commit('setLoading', false);
-                        context.commit('clearIterableQuery');
-                        break;
-                    } else {
-                        // if we were still in the stream of data (loading and not aborted) when we asked for a query from the chain,
-                        // then append the values from the response (which we assume will exist in a valid format if the chain isn't done) to our store.
-                        //context.commit('appendData', response.value);
-                        data = data.concat(response.value.data);
-                        profile.fetch += response.value.profile.fetch;
-                    }
-
-                }
-
-                context.commit('setResponse', { data, profile });
             },
         }
     };
