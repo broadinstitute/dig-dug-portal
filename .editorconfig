@@ -3,7 +3,7 @@ root = true
 [*]
 insert_final_newline = true
 
-[*.{js,html,css}]
+[*.{js,html,css,vue,yml}]
 indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
