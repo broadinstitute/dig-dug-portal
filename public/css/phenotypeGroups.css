@@ -1,73 +1,55 @@
-.phenotype-group.ANTHROPOMETRIC > div.progress-bar
-{
+.phenotype_group.ANTHROPOMETRIC > div.progress-bar {
     background-color: #048845;
 }
-.phenotype-group.ATRIAL.FIBRILLATION > div.progress-bar
-{
+.phenotype_group.ATRIAL.FIBRILLATION > div.progress-bar {
     background-color: #9aca3c;
 }
-.phenotype-group.CARDIOVASCULAR > div.progress-bar
-{
+.phenotype_group.CARDIOVASCULAR > div.progress-bar {
     background-color: #6fc7b6;
 }
-.phenotype-group.ECG.TRAITS > div.progress-bar
-{
+.phenotype_group.ECG.TRAITS > div.progress-bar {
     background-color: #8490c8;
 }
-.phenotype-group.GLYCEMIC > div.progress-bar
-{
+.phenotype_group.GLYCEMIC > div.progress-bar {
     background-color: #9f78ac;
 }
-.phenotype-group.HEMORRHAGIC.STROKE > div.progress-bar
-{
+.phenotype_group.HEMORRHAGIC.STROKE > div.progress-bar {
     background-color: #bf61a5;
 }
-.phenotype-group.HEPATIC > div.progress-bar
-{
+.phenotype_group.HEPATIC > div.progress-bar {
     background-color: #f88084;
 }
-.phenotype-group.ISCHEMIC.STROKE > div.progress-bar
-{
+.phenotype_group.ISCHEMIC.STROKE > div.progress-bar {
     background-color: #ee3124;
 }
-.phenotype-group.LIPIDS > div.progress-bar
-{
+.phenotype_group.LIPIDS > div.progress-bar {
     background-color: #faa553;
 }
-.phenotype-group.METABOLITE > div.progress-bar
-{
+.phenotype_group.METABOLITE > div.progress-bar {
     background-color: #fcd700;
 }
-.phenotype-group.MRI.TRAITS > div.progress-bar
-{
+.phenotype_group.MRI.TRAITS > div.progress-bar {
     background-color: #f5a4c7;
 }
-.phenotype-group.MUSCULOSKELETAL > div.progress-bar
-{
+.phenotype_group.MUSCULOSKELETAL > div.progress-bar {
     background-color: #cee6c1;
 }
-.phenotype-group.OCULAR > div.progress-bar
-{
+.phenotype_group.OCULAR > div.progress-bar {
     background-color: #fff9b8;
 }
-.phenotype-group.OTHER > div.progress-bar
-{
+.phenotype_group.OTHER > div.progress-bar {
     background-color: #d4d4d4;
 }
-.phenotype-group.PSYCHIATRIC > div.progress-bar
-{
+.phenotype_group.PSYCHIATRIC > div.progress-bar {
     background-color: #5555ff;
 }
-.phenotype-group.RENAL > div.progress-bar
-{
+.phenotype_group.RENAL > div.progress-bar {
     background-color: #facacc;
 }
-.phenotype-group.SLEEP.AND.CIRCADIAN > div.progress-bar
-{
+.phenotype_group.SLEEP.AND.CIRCADIAN > div.progress-bar {
     background-color: #d5a768;
 }
-.phenotype-group.STROKE > div.progress-bar
-{
+.phenotype_group.STROKE > div.progress-bar {
     background-color: #ffff00;
 }
 .phenotype-group-header {
