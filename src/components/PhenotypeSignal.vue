@@ -24,7 +24,7 @@
                 </div>
 
                 <div class="col-md-9 pt-1">
-                    <b-progress class="phenotype-group" :class="key" height="1.5rem">
+                    <b-progress class="phenotype_group" :class="key" height="1.5rem">
                         <template v-for="(item, i) in topAssociationsGrouped[key]">
                             <template v-if="i == 0">
                                 <b-progress-bar
@@ -58,7 +58,7 @@
                             <template v-if="i != 0 && item.pValue <= 5e-3">
                                 <b-progress
                                     height="1.5rem"
-                                    class="phenotype-group"
+                                    class="phenotype_group"
                                     :class="item.group"
                                     :key="item.phenotype"
                                 >
