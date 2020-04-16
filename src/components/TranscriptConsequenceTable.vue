@@ -4,15 +4,14 @@
             hover
             :items="transcriptConsequence"
             :fields="fields"
-            :per-page="10"
-            :current-page="1"
+            :per-page="perPage"
+            :current-page="currPage"
         ></b-table>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 Vue.use(BootstrapVue);
@@ -58,15 +57,12 @@ export default Vue.component("transcript-consequence-table", {
                     key: "consequence_terms",
                     label: "consequence_terms"
                 }
-            ]
+            ],
+            perPage: 10,
+            currPage: 1
         };
     },
-    methods: {
-        // rowClass(item, type) {
-        //     if (!item || type !== "row") return;
-        //     if (item.pValue < 2.5e-6) return "variant-table-row high";
-        // }
-    }
+
 });
 </script>
 

@@ -57,7 +57,7 @@
                 </div>
             </div>
             <div class="col-md-10">
-                <div v-if="$parent.transcriptConsequence.length">
+                <div v-show="$parent.transcriptConsequence">
                     <transcript-consequence-table
                         v-bind:transcriptConsequence="$parent.transcriptConsequence"
                     ></transcript-consequence-table>
@@ -72,21 +72,26 @@
                         v-bind:intergenicConsequence="$parent.intergenicConsequence"
                     ></intergenicConsequence-table>
                 </div>
+                <div v-show="$parent.regulatoryConsequence">
+                    <regulatoryConsequence-table
+                        v-bind:regulatoryConsequence="$parent.regulatoryConsequence"
+                    ></regulatoryConsequence-table>
+                </div>
             </div>
-            <div class="card mdkp-card">
+            <!-- <div class="card mdkp-card">
                 <locuszoom
                     ref="lz"
                     v-if="$store.state.variant.data.length>0"
                     v-bind:panels="['phewas']"
                     v-bind:modules="[
-                            { 'module': $store.state.variant.data,
+                            { 'module': 'variant',
                               'target': 'phewas',
                               'translator': $parent.translatedAssociationsFromVariant },
                         ]"
                     v-bind:chr="$store.state.chr"
                     v-bind:position="$store.state.position"
                 ></locuszoom>
-            </div>
+            </div>-->
         </div>
 
         <!-- Footer-->

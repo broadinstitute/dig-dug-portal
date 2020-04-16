@@ -12,6 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import IntergenicConsequenceTable from "@/components/IntergenicConsequenceTable";
+import regulatoryConsequenceTable from "@/components/RegulatoryConsequenceTable";
 import { associationsFromVariant, translate, associationsForLZ } from "@/utils/dataMappingUtils";
 import LocusZoom from "@/components/LocusZoom";
 
@@ -27,6 +28,7 @@ new Vue({
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
         IntergenicConsequenceTable,
+        regulatoryConsequenceTable,
         LocusZoom,
     },
 
@@ -59,49 +61,51 @@ new Vue({
             return this.$store.state.bioPortal.phenotypes;
         },
 
-        transcriptConsequence() {
-            let data = this.$store.state.variant.data[0]
-            let transcriptConsequenceData = []
-
-            //if consequence does not exit return nothing
-            let consequence = data.hasOwnProperty("transcriptConsequence") ? data.transcriptConsequence : undefined;
-            //filter on these properties to check if they exist or not
-            if (!!consequence) {
-                transcriptConsequenceData.push({
-                    amino_acids: consequence.hasOwnProperty("amino_acids") ? consequence.amino_acids : '', transcript_id: consequence.transcript_id,
-                    biotype: consequence.biotype, cadd_raw: consequence.cadd_raw, cadd_phred: consequence.cadd_phred,
-                    consequence_terms: consequence.hasOwnProperty("consequence_terms") ? consequence.consequence_terms[0] : '',
-                })
+        variantData() {
+            let data = this.$store.state.variant.data
+            if (data.length > 0) {
+                return data[0]
             }
+            return {}
+        },
 
-            return transcriptConsequenceData
+        transcriptConsequence() {
+            //if consequence does not exit return nothing
+            if (!!this.variantData.transcriptConsequence) {
+                return [this.variantData.transcriptConsequence]
+            }
         },
 
         transcriptionFactors() {
-            let data = this.$store.state.variant.data[0]
-            let transcriptionFactors = data.transcriptionFactors
-            return transcriptionFactors
-
-        },
-
-        associations() {
-            if (this.$store.state.variant.data.length == 0) {
-                return []
+            if (!!this.variantData.transcriptionFactors) {
+                return this.variantData.transcriptionFactors
             }
-            let data = this.$store.state.variant.data[0]
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap
-
-            let associations = data.associations.map(assoc => {
-                return { ...assoc, phenotype: phenotypeMap[assoc.phenotype] }
-            });
-            return associations
-
         },
+
+        // associations() {
+        //     if (this.$store.state.variant.data.length == 0) {
+        //         return []
+        //     }
+        //     let data = this.$store.state.variant.data[0]
+        //     let phenotypeMap = this.$store.state.bioPortal.phenotypeMap
+
+        //     let associations = data.associations.map(assoc => {
+        //         return { ...assoc, phenotype: phenotypeMap[assoc.phenotype] }
+        //     });
+        //     return associations
+
+        // },
 
         intergenicConsequence() {
-            let data = this.$store.state.variant.data[0]
-            let intergenicConsequence = data.intergenicConsequence
-            return [intergenicConsequence]
+            if (!!this.variantData.intergenicConsequence) {
+                return [this.variantData.intergenicConsequence]
+            }
+        },
+
+        regulatoryConsequence() {
+            if (!!this.variantData.regulatoryConsequence) {
+                return [this.variantData.regulatoryConsequence]
+            }
         },
     },
     methods: {
