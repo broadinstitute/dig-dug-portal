@@ -247,6 +247,51 @@ a:hover {
     height: 50px;
 }
 
+.am-menu {
+    display: inline-block;
+    position: relative;
+ }
+
+.am-menu > .am-submenu {
+    display: none;
+    position: absolute;
+    z-index: 100000;
+    padding:0;
+    margin:0;
+}
+
+.am-menu:hover > .am-submenu {
+    display: block;
+}
+
+.am-submenu > li {
+    width: 100%;
+	background-color: rgba(120, 120, 120, .75);
+	font-size: 0.8em;
+	padding: 5px 15px 5px 15px;
+	border-bottom: solid 1px #666;
+	text-align: left;
+	list-style: none;
+}
+
+.am-submenu > li:hover {
+	background-color: rgba(90, 90, 90, 1);
+	font-size: 0.8em;
+	padding: 5px 15px 5px 15px;
+	border-bottom: solid 1px #666;
+	text-align: left;
+	list-style: none;
+}
+
+.am-submenu > li > a {
+	color: #fff;
+}
+
+.am-menu:hover > .am-submenu {
+	display: block;
+}
+
+
 .mdkp-footer,
 .cvdkp-footer,
 .sleepkp-footer,
