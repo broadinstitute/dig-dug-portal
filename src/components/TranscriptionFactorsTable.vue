@@ -19,6 +19,7 @@ Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import Formatters from "@/utils/formatters";
 
 export default Vue.component("transcription-factors-table", {
     props: ["transcriptionFactors"],
@@ -31,11 +32,13 @@ export default Vue.component("transcription-factors-table", {
                 },
                 {
                     key: "delta",
-                    label: "delta"
+                    label: "delta",
+                    formatter: Formatters.floatFormatter
                 },
                 {
                     key: "position",
-                    label: "position"
+                    label: "position",
+                    formatter: Formatters.intFormatter
                 },
                 {
                     key: "strand",
@@ -43,18 +46,19 @@ export default Vue.component("transcription-factors-table", {
                 },
                 {
                     key: "refScore",
-                    label: "refScore"
+                    label: "refScore",
+                    formatter: Formatters.floatFormatter
                 },
                 {
                     key: "altScore",
-                    label: "altScore"
+                    label: "altScore",
+                    formatter: Formatters.floatFormatter
                 }
             ],
             perPage: 10,
             currPage: 1
         };
-    },
-    methods: {}
+    }
 });
 </script>
 

@@ -12,13 +12,13 @@
 
 <script>
 import Vue from "vue";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import Formatters from "@/utils/formatters";
 
 export default Vue.component("transcript-consequence-table", {
     props: ["transcriptConsequence"],
@@ -47,11 +47,13 @@ export default Vue.component("transcript-consequence-table", {
                 },
                 {
                     key: "cadd_raw",
-                    label: "cadd_raw"
+                    label: "cadd_raw",
+                    formatter: Formatters.floatFormatter
                 },
                 {
                     key: "cadd_phred",
-                    label: "cadd_phred"
+                    label: "cadd_phred",
+                    formatter: Formatters.floatFormatter
                 },
                 {
                     key: "consequence_terms",
@@ -61,8 +63,7 @@ export default Vue.component("transcript-consequence-table", {
             perPage: 10,
             currPage: 1
         };
-    },
-
+    }
 });
 </script>
 

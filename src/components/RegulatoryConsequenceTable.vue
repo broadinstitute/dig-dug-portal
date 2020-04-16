@@ -12,7 +12,6 @@
 
 <script>
 import Vue from "vue";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -50,8 +49,7 @@ export default Vue.component("regulatoryConsequence-table", {
             perPage: 10,
             currPage: 1
         };
-    },
-
+    }
 });
 </script>
 

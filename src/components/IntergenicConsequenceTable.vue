@@ -42,12 +42,6 @@ export default Vue.component("intergenicConsequence-table", {
             perPage: 10,
             currPage: 1
         };
-    },
-    methods: {
-        // rowClass(item, type) {
-        //     if (!item || type !== "row") return;
-        //     if (item.pValue < 2.5e-6) return "variant-table-row high";
-        // }
     }
 });
 </script>
