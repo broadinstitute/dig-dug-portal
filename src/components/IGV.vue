@@ -13,6 +13,17 @@ export default Vue.component("igv", {
         "start",
         "end",
     ],
+    computed: {
+        region: () => {
+            if (this.chr && this.start && this.end) {
+                return {
+                    chr: this.chr,
+                    start: this.start,
+                    end: this.end,
+                }
+            }
+        },
+    },
     mounted() {
         var igvDiv = document.getElementById("igv-div");
 
@@ -29,6 +40,11 @@ export default Vue.component("igv", {
         };
 
         igv.createBrowser(igvDiv, optionsLocal)
+    },
+    watch: {
+        region(newRegion, oldRegion) {
+            console.log(newRegion, oldRegion);
+        },
     }
 })
 

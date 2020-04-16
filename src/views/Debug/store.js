@@ -28,7 +28,6 @@ export default new Vuex.Store({
         gene: null,
     },
     mutations: {
-
          setLocus(state, region = {}) {
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
