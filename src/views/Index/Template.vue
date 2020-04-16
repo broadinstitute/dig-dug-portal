@@ -31,6 +31,7 @@
                                                     type="text"
                                                     class="form-control input-default"
                                                     placeholder="Gene name or region"
+                                                    autocomplete="off"
                                                 />
                                             </div>
                                             <div class="col-md-2 input-wrapper">
@@ -48,12 +49,14 @@
                                         </div>
                                     </b-tab>
                                     <b-tab title="Explore by phenotype">
-                                        <phenotype-selectpicker
-                                            v-bind:phenotypes="$parent.phenotypes"
-                                        ></phenotype-selectpicker>
+                                        <div class="front-phenotype-search-wrapper">
+                                            <phenotype-selectpicker
+                                                v-bind:phenotypes="$parent.phenotypes"
+                                            ></phenotype-selectpicker>
+                                        </div>
                                     </b-tab>
                                     <b-tab
-                                        title="Set default disease group"
+                                        title="Explore by disease group"
                                         v-if="$parent.diseaseGroup.default"
                                     >
                                         <disease-group-select
