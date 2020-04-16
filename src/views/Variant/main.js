@@ -60,54 +60,51 @@ new Vue({
         },
 
         transcriptConsequence() {
-            let data = this.$store.state.variant.data
+            let data = this.$store.state.variant.data[0]
             let transcriptConsequenceData = []
-            for (let i in data) {
-                //if consequence does not exit return nothing
-                let consequence = data[i].hasOwnProperty("transcriptConsequence") ? data[i].transcriptConsequence : undefined;
-                //filter on these properties to check if they exist or not
-                if (!!consequence) {
-                    transcriptConsequenceData.push({
-                        amino_acids: consequence.hasOwnProperty("amino_acids") ? consequence.amino_acids : '', transcript_id: consequence.transcript_id,
-                        biotype: consequence.biotype, cadd_raw: consequence.cadd_raw, cadd_phred: consequence.cadd_phred,
-                        consequence_terms: consequence.hasOwnProperty("consequence_terms") ? consequence.consequence_terms[i] : '',
-                    })
-                }
+
+            //if consequence does not exit return nothing
+            let consequence = data.hasOwnProperty("transcriptConsequence") ? data.transcriptConsequence : undefined;
+            //filter on these properties to check if they exist or not
+            if (!!consequence) {
+                transcriptConsequenceData.push({
+                    amino_acids: consequence.hasOwnProperty("amino_acids") ? consequence.amino_acids : '', transcript_id: consequence.transcript_id,
+                    biotype: consequence.biotype, cadd_raw: consequence.cadd_raw, cadd_phred: consequence.cadd_phred,
+                    consequence_terms: consequence.hasOwnProperty("consequence_terms") ? consequence.consequence_terms[0] : '',
+                })
             }
+
             return transcriptConsequenceData
         },
 
         transcriptionFactors() {
-            let data = this.$store.state.variant.data
-            for (let i in data) {
-                let transcriptionFactors = data[i].transcriptionFactors
-                console.log(transcriptionFactors)
-                return transcriptionFactors
-            }
+            let data = this.$store.state.variant.data[0]
+            let transcriptionFactors = data.transcriptionFactors
+            return transcriptionFactors
+
         },
 
-        // associations() {
-        //     let data = this.$store.state.variant.data
-        //     for (let i in data) {
-        //         let associations = data[i].associations
-        //         return associations
-        //     }
-        // },
+        associations() {
+            if (this.$store.state.variant.data.length == 0) {
+                return []
+            }
+            let data = this.$store.state.variant.data[0]
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap
+
+            let associations = data.associations.map(assoc => {
+                return { ...assoc, phenotype: phenotypeMap[assoc.phenotype] }
+            });
+            return associations
+
+        },
 
         intergenicConsequence() {
-            let data = this.$store.state.variant.data
-            for (let i in data) {
-                let intergenicConsequence = data[i].intergenicConsequence
-                return [intergenicConsequence]
-            }
+            let data = this.$store.state.variant.data[0]
+            let intergenicConsequence = data.intergenicConsequence
+            return [intergenicConsequence]
         },
-        // translate({ from: associationsFromVariant, to: associationsForLZ }),
-
-
-
     },
     methods: {
-
         translatedAssociationsFromVariant: translate({ from: associationsFromVariant, to: associationsForLZ }),
     },
 

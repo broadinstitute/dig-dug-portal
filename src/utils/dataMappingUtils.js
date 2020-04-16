@@ -58,8 +58,8 @@ export const associationsForLZ = associations => {
         log_pvalue: calcLog(association.pValue).toPrecision(4),
         variant: association.varId,
         ref_allele: association.varId,
-        trait_group: association.phenotype,
-        trait_label: association.phenotype,
+        trait_group: association.phenotype.group,
+        trait_label: association.phenotype.description,
     }));
     return translation
 

@@ -79,7 +79,7 @@
                     v-if="$store.state.variant.data.length>0"
                     v-bind:panels="['phewas']"
                     v-bind:modules="[
-                            { 'module': 'variant',
+                            { 'module': $store.state.variant.data,
                               'target': 'phewas',
                               'translator': $parent.translatedAssociationsFromVariant },
                         ]"
