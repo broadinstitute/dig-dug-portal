@@ -138,11 +138,6 @@ new Vue({
         async selectedPhenotype(phenotype) {
             await this.$store.dispatch("getAssociations", phenotype);
             this.$children[0].$refs.lz.plot();
-            // this.$children[0].$refs.lz.updateLocus(
-            //     this.$store.state.chr,
-            //     this.$store.state.start,
-            //     this.$store.state.end,
-            // );
         },
 
         topAssociations(top) {

@@ -77,7 +77,7 @@ async function parseRegion(s, allowGeneLookup = true) {
         return region;
     }
 
-    // invalid region or gene
+    // invalid region or gene or variant
     return null;
 }
 
