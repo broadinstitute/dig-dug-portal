@@ -68,8 +68,8 @@ export default function (index, extend) {
                 state.progress = progress;
             },
 
-            togglePause(state, flag) {
-                state.paused = flag || !state.paused;
+            setPause(state, flag) {
+                state.paused = flag;
             },
 
         },
@@ -77,9 +77,7 @@ export default function (index, extend) {
         // dispatch methods
         actions: {
             async tap(context) {
-                console.log('tap', context.state.id);
-                context.commit('togglePause')
-                console.log('paused', context.getters.paused);
+                context.commit('setPause', !context.state.paused);
             },
             async count(context, { q }) {
                 let qs = queryString.stringify({ q });
@@ -101,7 +99,7 @@ export default function (index, extend) {
                 };
 
                 if (queryPayload) {
-                    await context.commit('togglePause', false); // unpausing
+                    await context.commit('setPause', false); // unpausing
                     const { q, limit } = queryPayload;
                     let data = await fullQuery(
                         { q, index, limit: limit || context.state.limit },
