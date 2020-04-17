@@ -29,6 +29,7 @@ export default new Vuex.Store({
     },
     mutations: {
          setLocus(state, region = {}) {
+            console.log('set locus')
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
             state.end = region.end || state.newEnd || state.end;
@@ -46,6 +47,7 @@ export default new Vuex.Store({
     },
     actions: {
         async onIGVCoords(context, { module, newChr, newStart, newEnd }) {
+            console.log('on igv coords')
             const { chr, start, end } = context.state;
             if (newChr !== chr || newStart !== start || newEnd !== end) {
                 const query = moduleQueryTemplate(module, {

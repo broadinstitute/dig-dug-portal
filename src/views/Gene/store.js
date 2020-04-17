@@ -90,8 +90,7 @@ export default new Vuex.Store({
                     start: newStart,
                     end: newEnd,
                 });
-                console.log(module, query);
-                await context.dispatch(`${module}/query`, { q: query });
+                context.dispatch(`${module}/query`, { q: query });
             }
         },
 

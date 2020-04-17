@@ -152,6 +152,7 @@ function queryTemplate(args) {
 }
 
 export function moduleQueryTemplate(module, args) {
+    console.log(module);
     return queryTemplate(arityFilter[module](args));
 }
 

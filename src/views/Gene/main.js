@@ -34,9 +34,18 @@ new Vue({
         return createElement(Template);
     },
 
+    data() {
+        return {
+            counter: 0,
+        }
+    },
+
     methods: {
         ...useTranslations,
-        associationsForLZFromVariants: translate({ from: associationsFromVariants, to: associationsForLZ })
+        associationsForLZFromVariants: translate({ from: associationsFromVariants, to: associationsForLZ }),
+        add() {
+            this.counter += 1;
+        }
     },
 
     computed: {
@@ -135,13 +144,7 @@ new Vue({
         },
 
         async selectedPhenotype(phenotype) {
-            await this.$store.dispatch('getAssociations', phenotype);
-            this.$children[0].$refs.lz.plot();
-            // this.$children[0].$refs.lz.updateLocus(
-            //     this.$store.state.chr,
-            //     this.$store.state.start,
-            //     this.$store.state.end,
-            // );
+            this.$store.dispatch('getAssociations', phenotype);
         },
 
         topAssociations(top) {
