@@ -78,7 +78,7 @@
                     ></regulatoryConsequence-table>
                 </div>
             </div>
-            <!-- <div class="card mdkp-card">
+            <div class="card mdkp-card">
                 <locuszoom
                     ref="lz"
                     v-if="$store.state.variant.data.length>0"
@@ -88,10 +88,10 @@
                               'target': 'phewas',
                               'translator': $parent.translatedAssociationsFromVariant },
                         ]"
-                    v-bind:chr="$store.state.chr"
-                    v-bind:position="$store.state.position"
+                    v-bind:chr="$store.state.variant.data.chromosome"
+                    v-bind:position="$store.state.variant.data.position"
                 ></locuszoom>
-            </div>-->
+            </div>
         </div>
 
         <!-- Footer-->

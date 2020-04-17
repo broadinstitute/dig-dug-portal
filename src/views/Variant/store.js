@@ -19,12 +19,8 @@ export default new Vuex.Store({
     state: {
         variantID: keyParams.variant,
         newVariantID: keyParams.variant,
-        chr: keyParams.variant.split(':')[0],
-        position: keyParams.variant.split(':')[1],
     },
-    getters: {
 
-    },
     mutations: {
         setVariantID(state, variantID) {
             state.variantID = variantID || state.newVariantID;
@@ -44,6 +40,7 @@ export default new Vuex.Store({
 
         async queryVariant(context) {
             let varID = variantUtils.parseVariant(context.state.newVariantID)
+            context.commit('setVariantID', varID);
             if (!!varID) {
                 context.commit('setVariantID');
                 await context.dispatch('variant/query', { q: varID });
