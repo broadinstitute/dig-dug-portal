@@ -26,6 +26,8 @@ cd /path/to/your/project/dig-dug-portal
 npm install
 ```
 
+Installations on Microsoft Windows may wish to use the **--no-optional** flag to avoid installation warnings due to the installation of packages targeting MacOSX (i.e. fsevents).
+
 #### Special Note to Mac OSX Developers
 
 Before installing the above npm dependencies on MacOSX, you may need to ensure that `node-gyp` is properly configured. 
