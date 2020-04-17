@@ -34,7 +34,6 @@ export default new Vuex.Store({
             const { chr, start, end } = context.state;
             if (newChr !== chr || newStart !== start || newEnd !== end) {
                 await context.dispatch(`${module}/query`, { q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
-                //context.commit(`setLocus`, { chr: newChr, start: newStart, end: newEnd });
             }
         },
 
@@ -44,9 +43,6 @@ export default new Vuex.Store({
             if (!!varID) {
                 context.commit('setVariantID');
                 await context.dispatch('variant/query', { q: varID });
-            }
-            else {
-                context.commit('setInvalidVariantID', true);
             }
         },
     }

@@ -82,20 +82,6 @@ new Vue({
             }
         },
 
-        // associations() {
-        //     if (this.$store.state.variant.data.length == 0) {
-        //         return []
-        //     }
-        //     let data = this.$store.state.variant.data[0]
-        //     let phenotypeMap = this.$store.state.bioPortal.phenotypeMap
-
-        //     let associations = data.associations.map(assoc => {
-        //         return { ...assoc, phenotype: phenotypeMap[assoc.phenotype] }
-        //     });
-        //     return associations
-
-        // },
-
         intergenicConsequence() {
             if (!!this.variantData.intergenicConsequence) {
                 return [this.variantData.intergenicConsequence]
@@ -118,8 +104,7 @@ new Vue({
         },
 
         variant() {
-            //this should dispatch this function whenever there is change in variant ID
-            this.$store.dispatch('queryVariant', { q: context.state.newVariantID, limit: 20 });
+            this.$store.dispatch('queryVariant', { q: context.state.newVariantID });
         },
 
     },

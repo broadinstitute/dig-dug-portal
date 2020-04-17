@@ -28,30 +28,30 @@ export default Vue.component("transcription-factors-table", {
             fields: [
                 {
                     key: "positionWeightMatrix",
-                    label: "positionWeightMatrix"
+                    label: "Position Weight Matrix"
                 },
                 {
                     key: "delta",
-                    label: "delta",
+                    label: "Delta",
                     formatter: Formatters.floatFormatter
                 },
                 {
                     key: "position",
-                    label: "position",
+                    label: "Position",
                     formatter: Formatters.intFormatter
                 },
                 {
                     key: "strand",
-                    label: "strand"
+                    label: "Strand"
                 },
                 {
                     key: "refScore",
-                    label: "refScore",
+                    label: "Reference Score",
                     formatter: Formatters.floatFormatter
                 },
                 {
                     key: "altScore",
-                    label: "altScore",
+                    label: "Alt Score",
                     formatter: Formatters.floatFormatter
                 }
             ],
@@ -61,4 +61,3 @@ export default Vue.component("transcription-factors-table", {
     }
 });
 </script>
-
