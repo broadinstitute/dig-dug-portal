@@ -14,19 +14,14 @@ export default new Vuex.Store({
         kp4cd,
     },
     state: {
-        geneOrRegion: null,
-        invalidGeneOrRegion: false,
-        variantID: null,
-        // fix this infure
-        invalidVariantID: false,
+        geneOrRegionOrVariant: null,
+        invalidGeneOrRegionOrVariant: false,
     },
     mutations: {
-        setInvalidGeneOrRegion(state, flag) {
-            state.invalidGeneOrRegion = flag;
+        setInvalidGeneOrRegionOrVariant(state, flag) {
+            state.invalidGeneOrRegionOrVariant = flag;
         },
-        setInvalidVariantID(state, flag) {
-            state.invalidVariantID = flag;
-        }
+
     },
     state: {},
     actions: {
@@ -34,24 +29,19 @@ export default new Vuex.Store({
             window.location.href = "./phenotype.html?phenotype=" + phenotype.name;
         },
 
-        async exploreRegion(context) {
-            let locus = await regionUtils.parseRegion(context.state.geneOrRegion);
+        async exploreRegionOrVariant(context) {
+            let locus = await regionUtils.parseRegion(context.state.geneOrRegionOrVariant);
+            let varID = await variantUtils.parseVariant(context.state.geneOrRegionOrVariant);
 
             if (locus) {
                 window.location.href = `./gene.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
-            } else {
-                context.commit('setInvalidGeneOrRegion', true);
             }
-        },
+            if (varID) {
 
-        exploreVariant(context) {
-            let varID = variantUtils.parseVariantID(context.state.variantID)
-            //check for undefined, null, empty strings etc 
-            if (!!varID) {
                 window.location.href = `./variant.html?variant=${varID}`;
             }
             else {
-                context.commit('setInvalidVariantID', true);
+                context.commit('setInvalidGeneOrRegionOrVariant', true);
             }
 
         }

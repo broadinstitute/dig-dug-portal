@@ -43,7 +43,7 @@ export default new Vuex.Store({
         },
 
         async queryVariant(context) {
-            let varID = variantUtils.parseVariantID(context.state.newVariantID)
+            let varID = variantUtils.parseVariant(context.state.newVariantID)
             if (!!varID) {
                 context.commit('setVariantID');
                 await context.dispatch('variant/query', { q: varID });
