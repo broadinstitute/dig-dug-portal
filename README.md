@@ -23,7 +23,7 @@ cd /path/to/your/project/dig-dug-portal
 npm install
 ```
 
-In addition, you may initially get some errors of the form:
+Installations on Microsoft Windows may wish to use the **--no-optional** flag to avoid installation warnings due to the installation of packages targeting MacOSX (i.e. fsevents). In addition, you may initially get some errors of the form:
 
 ```  
 npm WARN <some-package> requires a peer of <some-other-package> but none is installed. You must install peer dependencies yourself.
