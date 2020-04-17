@@ -1,0 +1,63 @@
+<template>
+    <div>
+        <b-table
+            hover
+            :items="transcriptionFactors"
+            :fields="fields"
+            :per-page="perPage"
+            :current-page="currPage"
+        ></b-table>
+    </div>
+</template>
+
+<script>
+import Vue from "vue";
+
+import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
+
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
+import Formatters from "@/utils/formatters";
+
+export default Vue.component("transcription-factors-table", {
+    props: ["transcriptionFactors"],
+    data() {
+        return {
+            fields: [
+                {
+                    key: "positionWeightMatrix",
+                    label: "Position Weight Matrix"
+                },
+                {
+                    key: "delta",
+                    label: "Delta",
+                    formatter: Formatters.floatFormatter
+                },
+                {
+                    key: "position",
+                    label: "Position",
+                    formatter: Formatters.intFormatter
+                },
+                {
+                    key: "strand",
+                    label: "Strand"
+                },
+                {
+                    key: "refScore",
+                    label: "Reference Score",
+                    formatter: Formatters.floatFormatter
+                },
+                {
+                    key: "altScore",
+                    label: "Alt Score",
+                    formatter: Formatters.floatFormatter
+                }
+            ],
+            perPage: 10,
+            currPage: 1
+        };
+    }
+});
+</script>

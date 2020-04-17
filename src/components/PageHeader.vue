@@ -33,21 +33,50 @@
                 />
             </div>
             <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
-                <ul :class="diseaseGroup.name+'kp-menu'">
-                    <li>
+                <ul :class="diseaseGroup.name+'kp-menu kp-menu'">
+                    <li class="am-menu">
                         <a href="/">Home</a>
                     </li>
-                    <li>
+                    <li class="am-menu">
                         <a :href="'http://kp4cd.org/datasets/' + diseaseGroup.name">Data</a>
                     </li>
-                    <li>
+                    <li class="am-menu">
                         <a href>Tools</a>
                     </li>
-                    <li>
+                    <li class="am-menu">
                         <a href>Information</a>
+                        <ul class="am-submenu">
+                            <li page="information">
+                                <a :href="'http://kp4cd.org/about/' + diseaseGroup.name">About</a>
+                            </li>
+                            <li page="information">
+                                <a
+                                    :href="'http://kp4cd.org/collaborate/' + diseaseGroup.name"
+                                >Collaborate</a>
+                            </li>
+                            <li page="information">
+                                <a :href="'http://kp4cd.org/policies/' + diseaseGroup.name">Policies</a>
+                            </li>
+                            <li page="information">
+                                <a
+                                    :href="'http://kp4cd.org/resources/' + diseaseGroup.name"
+                                >Resources</a>
+                            </li>
+                            <li page="information">
+                                <a
+                                    :href="'http://kp4cd.org/publications/' + diseaseGroup.name"
+                                >Publications</a>
+                            </li>
+                            <li page="information">
+                                <a :href="'http://kp4cd.org/new_features/' + diseaseGroup.name">News</a>
+                            </li>
+                            <li page="information">
+                                <a :href="'http://kp4cd.org/contacts/' + diseaseGroup.name">Contacts</a>
+                            </li>
+                        </ul>
                     </li>
-                    <li>
-                        <a href>Help</a>
+                    <li class="am-menu">
+                        <a href="http://kp4cd.org/contact">Help</a>
                     </li>
                     <li v-if="user">
                         <a href="/logout" :class="diseaseGroup.name+'kp-login'">Logout</a>

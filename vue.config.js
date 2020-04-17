@@ -32,6 +32,14 @@ module.exports = {
             title: "Debug Page",
             chunks: ["chunk-vendors", "chunk-common", "debug"]
 
-        }
+        },
+        variant: {
+            entry: "src/views/Variant/main.js",
+            template: "public/index.html",
+            filename: "variant.html",
+            title: "Variant Info",
+            chunks: ["chunk-vendors", "chunk-common", "variant"]
+
+        },
     }
 };

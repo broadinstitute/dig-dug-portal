@@ -23,14 +23,14 @@
 
                             <div class="col-md-12 portal-front-tabs">
                                 <b-tabs content-class="mt-3" align="center">
-                                    <b-tab title="Explore by region" active>
+                                    <b-tab title="Explore by region or Variant" active>
                                         <div class="front-gene-search-wrapper">
                                             <div class="col-md-10 input-wrapper">
                                                 <input
-                                                    v-model="$store.state.geneOrRegion"
+                                                    v-model="$store.state.geneOrRegionOrVariant"
                                                     type="text"
                                                     class="form-control input-default"
-                                                    placeholder="Gene name or region"
+                                                    placeholder="Gene, region, or variant"
                                                 />
                                             </div>
                                             <div class="col-md-2 input-wrapper">
@@ -38,22 +38,25 @@
                                                     id="regionSearchGo"
                                                     class="btn btn-primary"
                                                     type="button"
-                                                    @click="$store.dispatch('exploreRegion')"
+                                                    @click="$store.dispatch('exploreRegionOrVariant')"
                                                 >GO</button>
                                             </div>
                                             <div
                                                 class="text-danger"
                                                 v-show="$store.state.invalidGeneOrRegion"
-                                            >Invalid gene name or region</div>
+                                            >Invalid gene name or region or variant</div>
                                         </div>
                                     </b-tab>
+
                                     <b-tab title="Explore by phenotype">
-                                        <phenotype-selectpicker
-                                            v-bind:phenotypes="$parent.phenotypes"
-                                        ></phenotype-selectpicker>
+                                        <div class="front-phenotype-search-wrapper">
+                                            <phenotype-selectpicker
+                                                v-bind:phenotypes="$parent.phenotypes"
+                                            ></phenotype-selectpicker>
+                                        </div>
                                     </b-tab>
                                     <b-tab
-                                        title="Set default disease group"
+                                        title="Explore by disease group"
                                         v-if="$parent.diseaseGroup.default"
                                     >
                                         <disease-group-select
