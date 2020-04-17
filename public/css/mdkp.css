@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css?family=Roboto+Condensed:100,200,300,400italic,400,700,700italic|Open+Sans:400,600, 700,700italic,600italic,600,400italic|Oswald:400,300,700");
 
-body {
+body.kp-default {
     background-color: #eee;
     font-family: "Roboto", Arial, sans-serif;
 }
@@ -92,14 +92,13 @@ a:hover {
 .front-logo-tagline {
     color: #fff;
     width: 400px;
-    font-family: Roboto;
     font-size: 24px;
     display: block;
     float: left;
 }
 
 .front-logo-tagline-mdkp {
-    transform: translate(0%, 20%);
+    transform: translate(0%, 23%);
 }
 
 .front-logo-tagline-t2dkp {
@@ -111,11 +110,11 @@ a:hover {
 }
 
 .front-logo-tagline-cdkp {
-    transform: translate(0%, 29%);
+    transform: translate(0%, 35%);
 }
 
 .front-logo-tagline-sleepkp {
-    transform: translate(0%, 29%);
+    transform: translate(0%, 35%);
 }
 
 .front-banner-ui-tabs {
@@ -247,6 +246,51 @@ a:hover {
     background-color: #55aaee;
     height: 50px;
 }
+
+.am-menu {
+    display: inline-block;
+    position: relative;
+ }
+
+.am-menu > .am-submenu {
+    display: none;
+    position: absolute;
+    z-index: 100000;
+    padding:0;
+    margin:0;
+}
+
+.am-menu:hover > .am-submenu {
+    display: block;
+}
+
+.am-submenu > li {
+    width: 100%;
+	background-color: rgba(120, 120, 120, .75);
+	font-size: 0.8em;
+	padding: 5px 15px 5px 15px;
+	border-bottom: solid 1px #666;
+	text-align: left;
+	list-style: none;
+}
+
+.am-submenu > li:hover {
+	background-color: rgba(90, 90, 90, 1);
+	font-size: 0.8em;
+	padding: 5px 15px 5px 15px;
+	border-bottom: solid 1px #666;
+	text-align: left;
+	list-style: none;
+}
+
+.am-submenu > li > a {
+	color: #fff;
+}
+
+.am-menu:hover > .am-submenu {
+	display: block;
+}
+
 
 .mdkp-footer,
 .cvdkp-footer,
@@ -511,7 +555,7 @@ div.filtering-tools table td, div.filtering-tools table th {
     text-align: center;
 }
 
-.front-gene-search-wrapper {
+.front-gene-search-wrapper, .front-phenotype-search-wrapper {
     width: 50%;
     margin: auto;
 }
@@ -520,7 +564,7 @@ div.filtering-tools table td, div.filtering-tools table th {
     display: inline-block;
 }
 
-.front-gene-search-wrapper .input-wrapper .input-default {
+.front-gene-search-wrapper .input-wrapper .input-default, .front-phenotype-search-wrapper input {
     height: 50px;
     background-color: rgba(255, 255, 255, 0.75);
     border-color: #fff;
@@ -587,16 +631,12 @@ div.filtering-tools table td, div.filtering-tools table th {
     background-color: #d0efff;
 }
 
-<<<<<<< HEAD
 .variant-table-cell.high {
     background-color: #d0efff;
 }
 
-.c3 .c3-axis-x path, .c3 .c3-axis-x line {
-=======
 .c3 .c3-axis-x path,
 .c3 .c3-axis-x line {
->>>>>>> origin/phenotype-signal
     fill: none;
     stroke: #000;
     stroke-width: 0.5px;
