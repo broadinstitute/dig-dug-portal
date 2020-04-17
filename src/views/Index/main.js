@@ -28,8 +28,6 @@ new Vue({
     },
 
     created() {
-        console.log('Running in dev mode, console logs enabled.');
-
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
@@ -54,12 +52,10 @@ new Vue({
 
             return contents[0];
         },
-        geneOrRegion() {
-            return this.$store.state.geneOrRegion;
+        geneOrRegionOrVariant() {
+            return this.$store.state.geneOrRegionOrVariant;
         },
-        variantID() {
-            return this.$store.state.variantID;
-        },
+
         datasetsInfo() {
             let datasets = this.$store.state.kp4cd.datasetsInfo;
 
@@ -71,12 +67,8 @@ new Vue({
     },
 
     watch: {
-        geneOrRegion() {
-            this.$store.commit('setInvalidGeneOrRegion', false);
-        },
-
-        variantID() {
-            this.$store.commit('setInvalidVariantID', false);
+        geneOrRegionOrVariant() {
+            this.$store.commit('setInvalidGeneOrRegionOrVariant', false);
         },
 
         diseaseGroup(group) {
