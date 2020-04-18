@@ -81,6 +81,15 @@ new Vue({
             return this.$store.state.associations.data.sort((a, b) => a.pValue - b.pValue);
         },
 
+        associationsWithTraitgroup() {
+            return this.$store.state.associations.data
+                    .map(association => Object.assign(association, {
+                        trait_group: 'trait_group',
+                        trait_label: 'trait_label',
+                    }))
+                    .sort((a, b) => a.pValue - b.pValue);
+        },
+
         // Give the top associations, find the best one across all unique
         // phenotypes available.
         topAssociations() {
