@@ -67,34 +67,20 @@ export default Vue.component("locuszoom", {
         },
         plot() {
             this.dataSources = new LocusZoom.DataSources();
-            this.modules.forEach(moduleObj => {
-                const { module, translator, target } = moduleObj;
-                this.dataSources.add(target, new BioIndexLZSource({
-                    store: this.$store,
-                    promiseMaker: this.promiseMakerFor(target),
-                    module,
-                    translator,
-                }));
-            });
 
-            const configuredLzTypes = this.modules.map(module => module.target);
-            
-            Object.values(LZ_TYPE)
-                .filter(lzType => !configuredLzTypes.includes(lzType))
-                .forEach(dataType => {
-                    if (this[dataType]) {
-                        console.log(dataType)
-                        const { module, translator } = this[dataType];
-                        this.dataSources.add(dataType, new BioIndexLZSource({
-                            store: this.$store,
-                            promiseMaker: this.promiseMakerFor(dataType),
-                            module,
-                            translator,
-                        }));
-                    } else if(lzDataSources.defaultSource[dataType]) {
-                        this.dataSources.add(dataType, lzDataSources.defaultSource[dataType]);
-                    }
-                });
+            Object.values(LZ_TYPE).forEach(lzType => {
+                if (this[lzType]) {
+                    const { module, translator, target } = this[lzType];
+                    this.dataSources.add(lzType, new BioIndexLZSource({
+                        store: this.$store,
+                        module,
+                        promiseMaker: this.promiseMakerFor(lzType),
+                        translator,
+                    }));
+                } else if(lzDataSources.defaultSource[lzType]) {
+                    this.dataSources.add(lzType, lzDataSources.defaultSource[lzType]);
+                }
+            });
 
             this.lzplot = LocusZoom.populate(
                 "#locuszoom",
@@ -107,22 +93,48 @@ export default Vue.component("locuszoom", {
         },
     },
     watch: {
-        // ensure that the data is responsive
-        modules(n, o) {
-            n.forEach((module, index) => {
-                if(module.data.length !== o[index].data.length) {
-                    const resolve = this.dataResolvers[module.target];
-                    resolve(module.data);
-                    console.log('resolve module');
-                }
-            })
-        },
         assoc(n, o) {
-            // if(this.dataResolvers['assoc']) {
-            //     const resolve = this.dataResolvers['assoc'];
-            //     resolve(n.data);
-            // }
-        }
+            if(this['assoc'] && n.data.length !== o.data.length) {
+                const resolve = this.dataResolvers['assoc'];
+                resolve(n.data);
+            } 
+        },
+        gene(n, o) {
+            if(this['gene'] && n.data.length !== o.data.length) {
+                const resolve = this.dataResolvers['gene'];
+                resolve(n.data);
+            } 
+        },
+        ld(n, o) {
+            if(this['ld'] && n.data.length !== o.data.length) {
+                const resolve = this.dataResolvers['ld'];
+                resolve(n.data);
+            } 
+        },
+        phewas(n, o) {
+            if(this['phewas'] && n.data.length !== o.data.length) {
+                const resolve = this.dataResolvers['phewas'];
+                resolve(n.data);
+            } 
+        },
+        recomb(n, o) {
+            if(this['recomb'] && n.data.length !== o.data.length) {
+                const resolve = this.dataResolvers['recomb'];
+                resolve(n.data);
+            } 
+        },
+        constraint(n, o) {
+            if(this['constraint'] && n.data.length !== o.data.length) {
+                const resolve = this.dataResolvers['constraint'];
+                resolve(n.data);
+            } 
+        },
+        intervals(n, o) {
+            if(this['intervals'] && n.data.length !== o.data.length) {
+                const resolve = this.dataResolvers['intervals'];
+                resolve(n.data);
+            } 
+        }, 
     }
     
 });

@@ -1,10 +1,10 @@
 import LocusZoom from "locuszoom";
 
-function readOnCoords(store, moduleIndex, makePromiseForNewData) {
+function readOnCoords(store, makePromiseForNewData) {
     return {
         async fetch({ chromosome, start, end }, callback) {
             try {
-                store.dispatch(`onLocusZoomCoords`, { module: moduleIndex, newChr: chromosome, newStart: start, newEnd: end });
+                store.dispatch(`onLocusZoomCoords`, { newChr: chromosome, newStart: start, newEnd: end });
                 return makePromiseForNewData().then(callback);
             } catch (e) {
                 return callback(null, e);
@@ -18,20 +18,17 @@ export const BioIndexLZSource = LocusZoom.Data.Source.extend(function (init) {
 });
 
 BioIndexLZSource.prototype.parseInit = function (params) {
-    const { store, module, translator, promiseMaker } = params;
+    const { store, translator, promiseMaker } = params;
     this.params = params;
     this.translator = translator;
     this.promiseMaker = promiseMaker;
-    this.reader = readOnCoords(store, module, promiseMaker);
-
-    this.sideEffect = null;
-
+    this.reader = readOnCoords(store, promiseMaker);
 };
 
 BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;
     const cacheKey = this.getCacheKey(state, chain, fields);
-    if (self.enableCache && typeof(cacheKey) !== 'undefined' && cacheKey === this._cachedKey) {
+    if (self.enableCache && typeof(cacheKey) !== 'undefined' && cacheKey === self._cachedKey) {
         return Promise.resolve(self._cachedResponse);  // Resolve to the value of the current promise
     } else {
         return new Promise((resolve, reject) => {
@@ -47,6 +44,5 @@ BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
 };
 
 BioIndexLZSource.prototype.getCacheKey = function(state, chain, fields) {
-    console.log(state);
     return JSON.stringify(state.chr) + JSON.stringify(state.start) + JSON.stringify(state.start);
 };
