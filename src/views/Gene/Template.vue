@@ -129,10 +129,6 @@
                             'data': $parent.associations,
                             'translator': $parent.associationsForLZ,
                         }"
-                        v-bind:phewas="{
-                            'data': $parent.associationsWithTraitgroup,
-                            'translator': $parent.associationsForLZ,
-                        }"
 
                         v-bind:chr="$store.state.chr"
                         v-bind:start="$store.state.start"
