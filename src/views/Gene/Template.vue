@@ -123,7 +123,7 @@
                     <locuszoom
                         ref="lz"
 
-                        v-bind:panels="['association','genes','intervals','phewas',]"
+                        v-bind:panels="['association','genes','intervals',]"
                         
                         v-bind:assoc="{
                             'data': $parent.associations,
