@@ -12,11 +12,15 @@ import LoadingBar from "../../components/LoadingBar";
 import PageHeader from "../../components/PageHeader";
 import PageFooter from "../../components/PageFooter";
 import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
-import { useTranslations, associationsForIGV, translate, associationsFromVariants } from "@/utils/dataMappingUtils";
+import { associationsForIGV, } from "@/utils/dataMappingUtils";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
+// for debugging actions
+store.subscribeAction((action, state) => {
+    console.log('action dispatch', action.type, action.payload)
+})
 
 new Vue({
     store,
@@ -34,10 +38,7 @@ new Vue({
     },
 
     methods: {
-        ...useTranslations,
         associationsForIGV,
-        associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
-        pause: () => console.log('hello')
     },
 
     computed: {

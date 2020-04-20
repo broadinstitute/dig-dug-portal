@@ -13,14 +13,16 @@ export default Vue.component("igv", {
         "start",
         "end",
     ],
+    data() {
+        return {
+
+        }
+    },
     computed: {
-        region: () => {
+        region: function() {
             if (this.chr && this.start && this.end) {
-                return {
-                    chr: this.chr,
-                    start: this.start,
-                    end: this.end,
-                }
+                const { chr, start, end } = this;
+                return { chr, start, end };
             }
         },
     },
@@ -39,11 +41,13 @@ export default Vue.component("igv", {
             tracks: moduleTracks,
         };
 
-        igv.createBrowser(igvDiv, optionsLocal)
+        igv.createBrowser(igvDiv, optionsLocal).then(function (browser) {
+            igv.browser = browser;
+        });
     },
     watch: {
         region(newRegion, oldRegion) {
-            console.log(newRegion, oldRegion);
+            igv.browser.search(`chr${newRegion.chr}:${newRegion.start}-${newRegion.end}`)
         },
     }
 })

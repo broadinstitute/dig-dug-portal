@@ -3,14 +3,15 @@ import Vuex from "vuex";
 
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
+import regionUtils from "@/utils/regionUtils";
 
 import { moduleQueryTemplate, camelKebab } from "@/utils/bioIndexUtils"
 
 Vue.use(Vuex);
 
+
 export default new Vuex.Store({
     modules: {
-        associations: bioIndex("associations"),
         topAssociations: bioIndex("top-associations"),
         variants: bioIndex("variants"),
     },
@@ -28,7 +29,11 @@ export default new Vuex.Store({
         gene: null,
     },
     mutations: {
-         setLocus(state, region = {}) {
+        setSelectedPhenotype(state, phenotype) {
+            state.phenotypeParam = null;
+            state.phenotype = phenotype;
+        },
+        setLocus(state, region = {}) {
             console.log('set locus')
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
@@ -45,6 +50,11 @@ export default new Vuex.Store({
             });
         },
     },
+    getters: {
+        region(state) {
+            return `${state.chr}:${state.start}-${state.end}`;
+        },
+    },
     actions: {
         async onIGVCoords(context, { module, newChr, newStart, newEnd }) {
             console.log('on igv coords')
@@ -58,6 +68,39 @@ export default new Vuex.Store({
                     end: newEnd,
                 });
                 await context.dispatch(`${camelKebab(module)}/query`, { q: query });
+            }
+        },
+
+        // weird 2-way call dispatch between queryRegion and searchGene, dangerous.
+        async searchGene(context) {
+            if (context.state.gene) {
+                let locus = await regionUtils.parseRegion(context.state.gene);
+
+                if (locus) {
+                    context.state.newChr = locus.chr;
+                    context.state.newStart = locus.start;
+                    context.state.newEnd = locus.end;
+
+                    // update the locus
+                    context.commit('setLocus');
+                    context.dispatch('queryRegion');
+                }
+            }
+        },
+
+        async queryRegion(context) {
+            console.log('queryRegion context', context.state.gene);
+            if (context.state.gene) {
+                context.dispatch('searchGene');
+            } else {
+                // update the locus
+                context.commit('setLocus');
+
+                context.commit('setSelectedPhenotype', null);
+                context.commit('topAssociations/clearData');
+
+                // find all the top associations and genes in the region
+                context.dispatch('topAssociations/query', { q: context.getters.region });
             }
         },
     },
