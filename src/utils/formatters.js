@@ -29,11 +29,13 @@ function annotationFormatter(s) {
 }
 
 function consequenceFormatter(s) {
-    return s.replace(/_/g, ' ').replace(/(^| )([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+    if (!!s) {
+        return s.replace(/_/g, ' ').replace(/(^| )([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+    }
 }
 
 function dbSNPFormatter(dbSNP) {
-    return !!dbSNP ? dbSNP : '-';
+    return dbSNP;
 }
 
 function floatFormatter(pValue) {
