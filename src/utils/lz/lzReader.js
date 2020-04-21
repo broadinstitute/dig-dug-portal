@@ -46,3 +46,29 @@ BioIndexLZSource.prototype.getRequest = function (state, chain, fields) {
 BioIndexLZSource.prototype.getCacheKey = function(state, chain, fields) {
     return JSON.stringify(state.chr) + JSON.stringify(state.start) + JSON.stringify(state.start);
 };
+
+// ALazyRandomFilterPhewas = LocusZoom.Data.LazyData(lzPhewasFilter);
+// ILazyRandomFilterPhewas = ALazyRandomFilterPhewas(phewas_forest);
+
+LocusZoom.Data.LazySource = LocusZoom.Data.Source.extend(function(lazyData) {
+    this._lazyData = lazyData;
+},'LazyJSON');
+LocusZoom.Data.LazySource.prototype.getRequest = function(state, chain, fields) {
+    this._lazyData = this._lazyData({state, chain, fields})
+    return Promise.resolve(this._lazyData());
+};
+LocusZoom.Data.LazySource.prototype.toJSON = function() {
+    return [Object.getPrototypeOf(this).constructor.SOURCE_NAME, this._lazyData()];
+};
+LocusZoom.Data.LazyData = (reduceFunc) => (initState) => {
+    var current_state = initState;
+    var handle_state = (args) => {
+        if (typeof args !== "undefined") {
+            current_state = (reduceFunc(current_state)(args));
+            return LocusZoom.Data.TLazy(reduceFunc)(current_state);
+        } else {
+            return current_state;
+        }
+    }; // only return on evaluation
+    return handle_state;
+};

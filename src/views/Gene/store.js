@@ -120,14 +120,12 @@ export default new Vuex.Store({
                 // find all the top associations and genes in the region
                 context.dispatch('topAssociations/query', { q: context.getters.region });
                 context.dispatch('genes/query', { q: context.getters.region });
-                context.dispatch('getAssociations');
             }
         },
 
         // fetches all the associations for the selected phenotype
-        async getAssociations(context, phenotype, region) {
+        async getAssociations(context, phenotype) {
             if (phenotype) {
-
                 // update the url with the new phenotype
                 keyParams.set({ phenotype: phenotype.name });
                 //mdkp.utility.showHideElement("phenotypeSearchHolder");
