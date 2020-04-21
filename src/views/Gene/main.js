@@ -64,7 +64,7 @@ new Vue({
 
         genes() {
             return this.$store.state.genes.data.filter(function (gene) {
-                return gene.type == "protein_coding";
+                return gene.type == "protein_coding" && gene.source == 'symbol';
             });
         },
 
