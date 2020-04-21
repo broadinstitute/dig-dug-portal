@@ -11,12 +11,31 @@ function alleleFormatter(reference, alt) {
     return `${reference}/${alt}`;
 }
 
+function ancestryFormatter(s) {
+    const ancestries = {
+        AA: "African American",
+        AF: "African",
+        EA: "East Asian",
+        EU: "European",
+        HS: "Hispanic/Latin",
+        SA: "South Asian",
+    }
+
+    return ancestries[s] || "Mixed";
+}
+
 function annotationFormatter(s) {
     return s.replace(/([a-z])([A-Z0-9])/g, (m, p1, p2) => `${p1} ${p2}`);
 }
 
+function consequenceFormatter(s) {
+    if (!!s) {
+        return s.replace(/_/g, ' ').replace(/(^| )([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+    }
+}
+
 function dbSNPFormatter(dbSNP) {
-    return !!dbSNP ? dbSNP : '-';
+    return dbSNP;
 }
 
 function floatFormatter(pValue) {
@@ -49,12 +68,18 @@ function phenotypeFormatter(phenotype) {
 }
 
 function tissueFormatter(tissue) {
-    return !!tissue ? tissue.description : '-';
+    if (!tissue) {
+        return '-';
+    }
+
+    return consequenceFormatter(tissue.description);
 }
 
 export default {
     alleleFormatter,
+    ancestryFormatter,
     annotationFormatter,
+    consequenceFormatter,
     dbSNPFormatter,
     floatFormatter,
     intFormatter,

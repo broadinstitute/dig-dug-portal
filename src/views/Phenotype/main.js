@@ -116,7 +116,7 @@ new Vue({
                 // register a new associations module for this phenotype
                 if (!this.$store.state[assocModule]) {
                     this.$store.registerModule(assocModule, bioIndex('phenotype-associations'));
-                    this.$store.dispatch(`${assocModule}/query`, { q: name, limit: 2500 });
+                    this.$store.dispatch(`${assocModule}/query`, { q: name, limit: 25000 });
                 }
 
                 // register a new enrichment module for this phenotype
