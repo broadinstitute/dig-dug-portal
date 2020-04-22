@@ -1,4 +1,8 @@
+import Vue from "vue";
 import LocusZoom from "locuszoom";
+import VueCompositionApi from '@vue/composition-api';
+import { ref } from "@vue/composition-api";
+Vue.use(VueCompositionApi)
 
 function readOnCoords(store, makePromiseForNewData) {
     return {
@@ -47,28 +51,95 @@ BioIndexLZSource.prototype.getCacheKey = function(state, chain, fields) {
     return JSON.stringify(state.chr) + JSON.stringify(state.start) + JSON.stringify(state.start);
 };
 
-// ALazyRandomFilterPhewas = LocusZoom.Data.LazyData(lzPhewasFilter);
-// ILazyRandomFilterPhewas = ALazyRandomFilterPhewas(phewas_forest);
 
-LocusZoom.Data.LazySource = LocusZoom.Data.Source.extend(function(lazyData) {
-    this._lazyData = lazyData;
+
+
+
+
+
+
+export const LazySource = LocusZoom.Data.Source.extend(function(lazyDataWrapper) {
+    this._lazyData = lazyDataWrapper;
 },'LazyJSON');
-LocusZoom.Data.LazySource.prototype.getRequest = function(state, chain, fields) {
+LazySource.prototype.getRequest = function(state, chain, fields) {
+    store.dispatch(`onLocusZoomCoords`, { newChr: state.chr, newStart: state.start, newEnd: state.end });
     this._lazyData = this._lazyData({state, chain, fields})
     return Promise.resolve(this._lazyData());
 };
-LocusZoom.Data.LazySource.prototype.toJSON = function() {
+LazySource.prototype.toJSON = function() {
     return [Object.getPrototypeOf(this).constructor.SOURCE_NAME, this._lazyData()];
 };
-LocusZoom.Data.LazyData = (reduceFunc) => (initState) => {
+
+
+export const LazyDataChain = (reduceFunc) => (initState) => {
     var current_state = initState;
     var handle_state = (args) => {
         if (typeof args !== "undefined") {
             current_state = (reduceFunc(current_state)(args));
-            return LocusZoom.Data.TLazy(reduceFunc)(current_state);
+            return LazyDataChain(reduceFunc)(current_state);
         } else {
             return current_state;
         }
     }; // only return on evaluation
     return handle_state;
 };
+
+export const LazyDataRef = translator => data => {
+    const dataRef = ref(data);
+    const handle_state = args => () =>translator(dataRef.value)
+    return handle_state;
+};
+
+
+export const SimpleSource = LocusZoom.Data.Source.extend(function(params) {
+    this._store = params.store;
+    this._data = params.data;
+    this._cachedKey = null;
+},'SimpleSource');
+SimpleSource.prototype.getRequest = function(state, chain, fields) {
+    console.log('simple source', 'getRequest', state, this._store);
+
+    let cacheKey = this.getCacheKey(state, chain, fields);
+    if (this.enableCache && typeof(cacheKey) !== 'undefined' && cacheKey !== this._cachedKey) {
+        this._store.dispatch('onLocusZoomCoords', {
+            newChr: state.chr,
+            newStart: state.start,
+            newEnd: state.end,
+        });
+        return Promise.resolve(this._data);
+    } else {
+        return Promise.resolve(this._data);
+    }
+
+};
+SimpleSource.prototype.toJSON = function() {
+    return [Object.getPrototypeOf(this).constructor.SOURCE_NAME, this._data];
+};
+SimpleSource.prototype.getCacheKey = function(state, chain, fields) {
+    return JSON.stringify(state.chr) + JSON.stringify(state.start) + JSON.stringify(state.start);
+};
+
+
+// export const DispatchSource = LocusZoom.Data.Source.extend(function(store, data) {
+//     this._store = store;
+//     this._data = data;
+//     this._enableCache = true;
+//     this._cachedKey = null;
+// },'DispatchSource');
+// DispatchSource.prototype.getRequest = function(state, chain, fields) {
+//     const self = this;
+//     const cacheKey = this.getCacheKey(state, chain, fields);
+//     if (self.enableCache && typeof(cacheKey) !== 'undefined' && cacheKey !== self._cachedKey) {
+//         self._store.dispatch(`onLocusZoomCoords`, { newChr: state.chr, newStart: state.start, newEnd: state.end });
+//         self._cachedKey = cacheKey;
+//         return
+//     } else {
+//         return Promise.resolve(self._data);  // Resolve to the value of the current promise
+//     }
+// };
+// // DispatchSource.prototype.toJSON = function() {
+// //     return [Object.getPrototypeOf(this).constructor.SOURCE_NAME, this._lazyData()];
+// // };
+// DispatchSource.prototype.getCacheKey = function(state, chain, fields) {
+//     return JSON.stringify(state.chr) + JSON.stringify(state.start) + JSON.stringify(state.start);
+// };

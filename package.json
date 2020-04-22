@@ -19,6 +19,7 @@
     "lodash": "^4.17.15",
     "lodash.merge": "^4.6.2",
     "query-string": "^6.11.1",
+    "reference-pointer": "0.0.2",
     "rollup": "^1.20.0",
     "url-parse": "^1.4.7",
     "vue": "^2.6.11",

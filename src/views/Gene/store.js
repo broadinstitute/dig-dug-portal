@@ -84,7 +84,7 @@ export default new Vuex.Store({
             const { chr, start, end } = context.state;
             if (newChr !== chr || newStart !== start || newEnd !== end) {
                 context.commit('setLocus', { chr: newChr, start: newStart, end: newEnd })
-                context.dispatch('getAssociations');
+                await context.dispatch('getAssociations');
             }
         },
 

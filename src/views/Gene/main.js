@@ -144,13 +144,8 @@ new Vue({
         },
 
         async selectedPhenotype(phenotype) {
-            // TODO this has to come before you make the dispatch to the store
-            this.$children[0].$refs.lz.updateLocus(
-                this.$store.state.chr,
-                this.$store.state.start,
-                this.$store.state.end,
-            );
             this.$store.dispatch('getAssociations', phenotype);
+            // this.$children[0].$refs.lz.refresh();
         },
 
         topAssociations(top) {
