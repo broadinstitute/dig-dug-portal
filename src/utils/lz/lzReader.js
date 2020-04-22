@@ -51,54 +51,12 @@ BioIndexLZSource.prototype.getCacheKey = function(state, chain, fields) {
     return JSON.stringify(state.chr) + JSON.stringify(state.start) + JSON.stringify(state.start);
 };
 
-
-
-
-
-
-
-
-export const LazySource = LocusZoom.Data.Source.extend(function(lazyDataWrapper) {
-    this._lazyData = lazyDataWrapper;
-},'LazyJSON');
-LazySource.prototype.getRequest = function(state, chain, fields) {
-    store.dispatch(`onLocusZoomCoords`, { newChr: state.chr, newStart: state.start, newEnd: state.end });
-    this._lazyData = this._lazyData({state, chain, fields})
-    return Promise.resolve(this._lazyData());
-};
-LazySource.prototype.toJSON = function() {
-    return [Object.getPrototypeOf(this).constructor.SOURCE_NAME, this._lazyData()];
-};
-
-
-export const LazyDataChain = (reduceFunc) => (initState) => {
-    var current_state = initState;
-    var handle_state = (args) => {
-        if (typeof args !== "undefined") {
-            current_state = (reduceFunc(current_state)(args));
-            return LazyDataChain(reduceFunc)(current_state);
-        } else {
-            return current_state;
-        }
-    }; // only return on evaluation
-    return handle_state;
-};
-
-export const LazyDataRef = translator => data => {
-    const dataRef = ref(data);
-    const handle_state = args => () =>translator(dataRef.value)
-    return handle_state;
-};
-
-
 export const SimpleSource = LocusZoom.Data.Source.extend(function(params) {
     this._store = params.store;
     this._data = params.data;
     this._cachedKey = null;
 },'SimpleSource');
 SimpleSource.prototype.getRequest = function(state, chain, fields) {
-    console.log('simple source', 'getRequest', state, this._store);
-
     let cacheKey = this.getCacheKey(state, chain, fields);
     if (this.enableCache && typeof(cacheKey) !== 'undefined' && cacheKey !== this._cachedKey) {
         this._store.dispatch('onLocusZoomCoords', {
@@ -106,10 +64,8 @@ SimpleSource.prototype.getRequest = function(state, chain, fields) {
             newStart: state.start,
             newEnd: state.end,
         });
-        return Promise.resolve(this._data);
-    } else {
-        return Promise.resolve(this._data);
     }
+    return Promise.resolve(this._data);
 
 };
 SimpleSource.prototype.toJSON = function() {
