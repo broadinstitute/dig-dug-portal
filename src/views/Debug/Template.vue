@@ -90,7 +90,9 @@
                     </div>
 
                 </div>
-
+                <loading-bar 
+                    v-bind:moduleIndex="'top-associations'">
+                </loading-bar>
                 <igv
                     v-bind:modules="[
                         { 'module': 'top-associations',
