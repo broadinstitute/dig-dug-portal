@@ -680,9 +680,6 @@ div.filtering-tools table td, div.filtering-tools table th {
     display: block;
 }
 
-#news-feed ul.news-items li span {
-}
-
 #news-feed ul.news-items li span p {
     display: contents;
 }
@@ -729,3 +726,9 @@ polyline {
 .slice-label {
     font-size: 12px;
 }
+
+.p-bellow-section-header {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
