@@ -34,7 +34,9 @@ export default Vue.component("error-message", {
 <style scoped>
 .countDown {
 	float: right;
+	font-size: 1.5rem;
+	font-weight: 700;
 	color: rgb(255, 255, 255);
-	font-weight: bold;
+	line-height: 1;
 }
 </style>
