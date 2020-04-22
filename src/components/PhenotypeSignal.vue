@@ -3,7 +3,7 @@
         <b-container fluid="sm">
             <b-form-row>
                 <div class="col-sm-3"></div>
-                <div class="col-sm-9">
+                <div class="col-sm-8 phenotype_group_wrapper">
                     <div class="legend-scale">
                         <span class="legend-left">0</span>
                         <span class="legend-center">-log10(p)</span>
@@ -23,7 +23,7 @@
                     <b-icon-arrows-expand></b-icon-arrows-expand>
                 </div>
 
-                <div class="col-md-9 pt-1">
+                <div class="col-md-8 pt-1 phenotype_group_wrapper">
                     <b-progress class="phenotype_group" :class="key" height="1.5rem">
                         <template v-for="(item, i) in topAssociationsGrouped[key]">
                             <template v-if="i == 0">
