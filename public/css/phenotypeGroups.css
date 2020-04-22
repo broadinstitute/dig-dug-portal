@@ -53,14 +53,34 @@
     background-color: #ffff00;
 }
 
+.new-phenotypes-with-signal-wrapper {
+    height: 400px;
+    border: solid 1px #ccc;
+    border-left: none;
+    border-right: none;
+    box-shadow: inset 0px 0px 3px rgba(0,0,0,0.25);
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+
+.phenotypes-with-signal-wrapper .container-sm {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
 .phenotype_group_wrapper {
     padding: 5px 0 !important;
+    width: 55%;
+    position: relative;
 
 }
 .phenotype-group-header {
     cursor: pointer;
     text-align: left;
     padding-top: 5px;
+    position: relative;
+    width: 20%;
+    padding-left: 15px;
 }
 
 .phenotype-group-header .b-icon.bi {
@@ -99,11 +119,16 @@ span.marker {
     height: 1.3rem;
     background-color: rgba(255, 255, 255, 0.45);
     z-index: 5;
-    /*cursor: help;*/
     right: 0;
     visibility: visible;
     mix-blend-mode: soft-light;
     top: 0.1rem;
+}
+
+.highlight-bar:hover  span.marker {
+    background-color: rgba(255, 200, 0, 1);
+    mix-blend-mode: normal;
+    border-right: solid 1px #333;
 }
 
 .bar-desc {
