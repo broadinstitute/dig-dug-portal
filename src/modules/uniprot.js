@@ -26,10 +26,15 @@ export default {
         //this returns gene information using exact gene name in tab separated file
         async getUniprotGeneInfo(context, gene, format) {
             let limit = 10;
-            let json = await fetch(`https://www.uniprot.org/uniprot/?query=gene_exact` + gene + `format` + format + `include=no&limit` + limit)
-                .then(resp => resp.json());
+            let xml = await fetch(`https://www.uniprot.org/uniprot/?query=gene_exact` + gene + `format` + format + `include=no&limit` + limit)
+                .then(resp => resp.xml());
+           // xml.evaluate()
+            //process this xml using xpath
+            //create a object "uniprotObject"
+
             // set the data
-            context.commit('setUniprotGeneInfo', json)
+            
+            context.commit('setUniprotGeneInfo', uniprotObject)
         },
     },
 }

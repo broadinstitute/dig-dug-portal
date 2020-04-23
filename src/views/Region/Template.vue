@@ -90,10 +90,11 @@
                     <h4
                         class="card-title"
                     >Genes in the region associated with phenotypes with signal</h4>
-                    <div
-                        v-for="row in $parent.genes"
-                        :class="'gene-with-signal '+row.type"
-                    >{{row.name}}</div>
+                    <div v-for="row in $parent.genes" :class="'gene-with-signal '+row.type">
+                        <a :href="`/gene.html?gene=${row.name}`">{{row.name}}</a>
+                    </div>
+
+
                 </div>
             </div>
 

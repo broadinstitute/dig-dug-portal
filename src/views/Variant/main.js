@@ -16,8 +16,6 @@ import regulatoryConsequenceTable from "@/components/RegulatoryConsequenceTable"
 import { associationsFromVariant, translate, associationsForLZ } from "@/utils/dataMappingUtils";
 import LocusZoom from "@/components/LocusZoom";
 
-import keyParams from "@/utils/keyParams";
-
 new Vue({
     store,
 
