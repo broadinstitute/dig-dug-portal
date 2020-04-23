@@ -2,7 +2,7 @@
     <div class="phenotypes-with-signal-wrapper new-phenotypes-with-signal-wrapper">
         <a
             href="javascript:;"
-            onclick="mdkp.utility.popOutElement('new-phenotypes-with-signal-wrapper');"
+            v-on:click="popOutElement('new-phenotypes-with-signal-wrapper')"
             class="pop-out-icon"
         >&nbsp;</a>
         <b-container fluid="sm">
@@ -91,10 +91,14 @@ import Vue from "vue";
 import groupBy from "lodash/groupBy";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import PhenotypeSignalItem from "@/components/PhenotypeSignalItem.vue";
+import uiUtils from "@/utils/uiUtils";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("phenotype-signal", {
+    modules: {
+        uiUtils
+    },
     components: {
         PhenotypeSignalItem
     },
@@ -145,6 +149,9 @@ export default Vue.component("phenotype-signal", {
         },
         getEvalue(number) {
             return -Math.floor(Math.log10(number));
+        },
+        popOutElement(ELEMENT) {
+            uiUtils.popOutElement(ELEMENT);
         }
     }
 });
