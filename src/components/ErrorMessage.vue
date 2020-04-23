@@ -22,6 +22,7 @@
 <script>
 import Vue from "vue";
 import pluralize from "pluralize";
+import EventBus from "@/utils/eventBus";
 
 export default Vue.component("error-message", {
 	props: ["dismissible", "timeout"],
@@ -32,6 +33,9 @@ export default Vue.component("error-message", {
 			errors: []
 			//errors: ["error1", "error2"]
 		};
+	},
+	mounted() {
+		EventBus.$on("NEW_ERROR", this.errorNew);
 	},
 	methods: {
 		countDownChanged(dismissCountDown) {
