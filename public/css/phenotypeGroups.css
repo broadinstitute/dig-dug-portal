@@ -2,7 +2,7 @@
     background-color: #048845;
 }
 .phenotype_group.ATRIAL.FIBRILLATION > div.progress-bar {
-    background-color: #9aca3c;
+    background-color: #7aaa1c;
 }
 .phenotype_group.CARDIOVASCULAR > div.progress-bar {
     background-color: #6fc7b6;
@@ -22,35 +22,41 @@
 .phenotype_group.ISCHEMIC.STROKE > div.progress-bar {
     background-color: #ee3124;
 }
+.phenotype_group.INFLAMMATORY.BOWEL > div.progress-bar {
+    background-color: #007bff;
+}
 .phenotype_group.LIPIDS > div.progress-bar {
     background-color: #faa553;
 }
+.phenotype_group.LUNG > div.progress-bar {
+    background-color: #0000ff;
+}
 .phenotype_group.METABOLITE > div.progress-bar {
-    background-color: #fcd700;
+    background-color: #fcc500;
 }
 .phenotype_group.MRI.TRAITS > div.progress-bar {
     background-color: #f5a4c7;
 }
 .phenotype_group.MUSCULOSKELETAL > div.progress-bar {
-    background-color: #cee6c1;
+    background-color: #aec6a1;
 }
 .phenotype_group.OCULAR > div.progress-bar {
-    background-color: #fff9b8;
+    background-color: #ccc698;
 }
 .phenotype_group.OTHER > div.progress-bar {
-    background-color: #d4d4d4;
+    background-color: #b4b4b4;
 }
 .phenotype_group.PSYCHIATRIC > div.progress-bar {
     background-color: #5555ff;
 }
 .phenotype_group.RENAL > div.progress-bar {
-    background-color: #facacc;
+    background-color: #ff55ff;
 }
 .phenotype_group.SLEEP.AND.CIRCADIAN > div.progress-bar {
     background-color: #d5a768;
 }
 .phenotype_group.STROKE > div.progress-bar {
-    background-color: #ffff00;
+    background-color: #cccc00;
 }
 
 .new-phenotypes-with-signal-wrapper {
@@ -117,11 +123,11 @@ span.marker {
     position: absolute;
     width: 3px;
     height: 1.3rem;
-    background-color: rgba(255, 255, 255, 0.45);
+    background-color: rgba(255, 255, 255, 0.25);
     z-index: 5;
     right: 0;
     visibility: visible;
-    mix-blend-mode: soft-light;
+    mix-blend-mode: screen;
     top: 0.1rem;
 }
 
