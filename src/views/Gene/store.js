@@ -92,7 +92,7 @@ export default new Vuex.Store({
 
         async searchGene(context) {
             if (context.state.gene) {
-                let locus = await regionUtils.parseRegion(context.state.gene);
+                let locus = await regionUtils.parseRegion(context.state.gene, true, 50000);
 
                 if (locus) {
                     context.state.newChr = locus.chr;

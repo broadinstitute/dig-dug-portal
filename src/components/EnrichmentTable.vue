@@ -13,7 +13,7 @@
                 :current-page="currentPage"
             >
                 <template v-slot:thead-top="data">
-                    <b-th colspan="3">
+                    <b-th colspan="4">
                         <span class="sr-only">Tissue</span>
                     </b-th>
                     <b-th
@@ -66,7 +66,13 @@ export default Vue.component("enrichment-table", {
                 },
                 {
                     key: "tissue",
-                    label: "Tissue"
+                    label: "Tissue",
+                    formatter: Formatters.tissueFormatter
+                },
+                {
+                    key: "ancestry",
+                    label: "Ancestry",
+                    formatter: Formatters.ancestryFormatter
                 }
             ]
         };
@@ -112,7 +118,7 @@ export default Vue.component("enrichment-table", {
             // get all the data from all phenotypes
             for (let i in this.annotations) {
                 let r = this.annotations[i];
-                let t = r.tissue;
+                let t = !!r.tissue ? r.tissue.id : "NA";
                 let m = r.method || "NA";
                 let group = `${t}_${m}_${r.annotation}_${r.ancestry}`;
                 let dataIndex = groups[group];
@@ -125,6 +131,7 @@ export default Vue.component("enrichment-table", {
                         tissue: r.tissue,
                         method: r.method,
                         annotation: r.annotation,
+                        ancestry: r.ancestry,
                         minP: 2.0
                     });
                 }
