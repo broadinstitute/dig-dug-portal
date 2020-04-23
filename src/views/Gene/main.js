@@ -9,12 +9,15 @@ import LocusZoom from "@/components/LocusZoom";
 import { associationsForLZ } from "@/utils/dataMappingUtils";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
+import uiUtils from "@/utils/uiUtils";
 
 Vue.config.productionTip = false;
 
 new Vue({
     store,
-
+    modules: {
+        uiUtils,
+    },
     components: {
         PhenotypeSelectPicker,
         LocusZoom,
@@ -32,7 +35,10 @@ new Vue({
     },
 
     methods: {
-        associationsForLZ
+        associationsForLZ,
+        showHideElement: function (ELEMENT) {
+            uiUtils.showHideElement(ELEMENT);
+        },
     },
 
     render(createElement, context) {

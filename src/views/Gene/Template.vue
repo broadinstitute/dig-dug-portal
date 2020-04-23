@@ -11,22 +11,18 @@
                         Chromosome: Start position - End position
                         <a
                             class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('regionSearchHolder');"
+                            v-on:click="$parent.showHideElement('regionSearchHolder')"
                         >Edit position / Search gene</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title">
                         Phenotype
                         <a
                             class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('phenotypeSearchHolder');"
+                            v-on:click="$parent.showHideElement('phenotypeSearchHolder')"
                         >Select phenotype</a>
                     </div>
                     <div class="col-md-8 gene-page-header-body regionInfo">
-                        <div
-                            id="regionSearchHolder"
-                            class="gene-page-header-search-holder"
-                            style="display: none;"
-                        >
+                        <div id="regionSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="region-search">
                                 <div class="col-md-1 input-wrapper">
                                     <input
@@ -76,7 +72,10 @@
                         {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.end}}
                     </div>
                     <div class="col-md-4 gene-page-header-body">
-                        <div id="phenotypeSearchHolder" class="gene-page-header-search-holder">
+                        <div
+                            id="phenotypeSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
                             <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
                         </div>
                         <span

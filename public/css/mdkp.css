@@ -756,3 +756,7 @@ polyline {
 .pop-out-icon:hover {
     background-image: url(../images/pop_out_over.svg);
 }
+
+.hidden {
+    display: none;
+}
