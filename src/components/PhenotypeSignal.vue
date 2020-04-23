@@ -1,5 +1,10 @@
 <template>
     <div class="phenotypes-with-signal-wrapper new-phenotypes-with-signal-wrapper">
+        <a
+            href="javascript:;"
+            onclick="mdkp.utility.popOutElement('new-phenotypes-with-signal-wrapper');"
+            class="pop-out-icon"
+        >&nbsp;</a>
         <b-container fluid="sm">
             <b-form-row>
                 <div class="phenotype-group-header"></div>
