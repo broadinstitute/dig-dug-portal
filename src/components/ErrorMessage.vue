@@ -1,32 +1,53 @@
 <template>
-	<div>
+	<div v-if="errors">
+		{{errors}}
+		<button @click="errorNew(Math.random())">new error</button>
 		<b-alert
-			:show="show"
+			v-model="show"
 			fade
 			variant="danger"
 			:dismissible="dismissible"
+			@dismissed="errorClear"
 			@dismiss-count-down="countDownChanged"
 		>
-			<strong>Error:</strong>
-			{{error}}
-			<span class="countDown" v-if="timeOut">{{dismissCountDown}}</span>
+			<strong>We've encountered the following {{errorWord}}:</strong>
+			<span class="countDown" v-if="timeout">{{dismissCountDown}}</span>
+			<ul>
+				<li v-for="(error, i) in errors" :key="i">{{error}}</li>
+			</ul>
 		</b-alert>
 	</div>
 </template>
 
 <script>
 import Vue from "vue";
+import pluralize from "pluralize";
+
 export default Vue.component("error-message", {
-	props: ["error", "dismissible", "timeOut"],
+	props: ["dismissible", "timeout"],
 	data() {
 		return {
-			show: this.timeOut || true,
-			dismissCountDown: 0
+			show: false,
+			dismissCountDown: 0,
+			errors: []
+			//errors: ["error1", "error2"]
 		};
 	},
 	methods: {
 		countDownChanged(dismissCountDown) {
 			this.dismissCountDown = dismissCountDown;
+		},
+		errorNew(error) {
+			this.errors.push(error);
+			this.show = this.timeout || true;
+		},
+		errorClear() {
+			this.errors = [];
+		}
+	},
+	computed: {
+		errorWord() {
+			return pluralize("error", this.errors.length);
 		}
 	}
 });
@@ -36,7 +57,7 @@ export default Vue.component("error-message", {
 	float: right;
 	font-size: 1.5rem;
 	font-weight: 700;
-	color: rgb(255, 255, 255);
+	color: rgba(255, 255, 255, 0.8);
 	line-height: 1;
 }
 </style>
