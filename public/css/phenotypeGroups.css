@@ -40,6 +40,9 @@
 .phenotype_group.MUSCULOSKELETAL > div.progress-bar {
     background-color: #aec6a1;
 }
+.phenotype_group.NEUROLOGICAL > div.progress-bar {
+    background-color: #33ff00;
+}
 .phenotype_group.OCULAR > div.progress-bar {
     background-color: #ccc698;
 }
