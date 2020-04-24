@@ -45,8 +45,8 @@ function consequenceFormatter(s) {
 function consequenceMeaning(s) {
     const consequences = {
         "transcript_ablation": "It deletes a region that includes a transcript feature.",
-        "splice_donor variant": "It is a splice variant that changes the 2-base region at the 5' end of an intron.",
-        "splice_acceptor variant": "It is a splice variant that changes the 2-base region at the 3' end of an intron.",
+        "splice_donor_variant": "It is a splice variant that changes the 2-base region at the 5' end of an intron.",
+        "splice_acceptor_variant": "It is a splice variant that changes the 2-base region at the 3' end of an intron.",
         "stop_gained": "It is a sequence variant that introduces a stop codon, leading to a shortened transcript.",
         "frameshift_variant": "It causes a frameshift, disrupting the translational reading frame because the number of nucleotides inserted or deleted is not a multiple of three.",
         "stop_lost": "It is a sequence variant that changes a stop codon, resulting in an elongated transcript.",
