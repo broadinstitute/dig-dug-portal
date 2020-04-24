@@ -15,9 +15,6 @@ Vue.config.productionTip = false;
 
 new Vue({
     store,
-    modules: {
-        uiUtils,
-    },
     components: {
         PhenotypeSelectPicker,
         LocusZoom,
@@ -43,6 +40,21 @@ new Vue({
 
     render(createElement, context) {
         return createElement(Template);
+    },
+
+    data() {
+        return {
+            counter: 0,
+        }
+    },
+
+    methods: {
+        ...useTranslations,
+        ...uiUtils,
+        associationsForLZFromVariants: translate({ from: associationsFromVariants, to: associationsForLZ }),
+        add() {
+            this.counter += 1;
+        }
     },
 
     computed: {
