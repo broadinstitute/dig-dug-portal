@@ -88,7 +88,9 @@ export default Vue.component("phewas-table", {
             });
 
             // filter associations w/ no phenotype data (not in portal!)
-            return assocs.filter(a => !!a.phenotype);
+            return assocs
+                .filter(a => !!a.phenotype)
+                .sort((a, b) => a.pValue - b.pValue);
         }
     },
 

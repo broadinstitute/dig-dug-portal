@@ -88,7 +88,7 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">PheWAS</h4>
+                        <h4 class="card-title">Phenotype-Wide Associations (PheWAS)</h4>
                         <locuszoom
                             ref="lz"
                             v-if="$store.state.variant.data.length>0"
