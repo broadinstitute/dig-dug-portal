@@ -12,7 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
-import { associationsFromVariant, translate, associationsForLZ } from "@/utils/dataMappingUtils";
+import { calcLog } from "@/utils/lz/lzUtils";
 import LocusZoom from "@/components/LocusZoom";
 import Formatters from "@/utils/formatters";
 
@@ -66,6 +66,34 @@ new Vue({
             return {}
         },
 
+        lzAssociations() {
+            let phenotypes = this.$store.state.bioPortal.phenotypeMap;
+
+            if (!!this.variantData) {
+                let associations = this.variantData.associations;
+                let chromosome = this.variantData.chromosome;
+                let position = this.variantData.position;
+                let varId = this.variantData.varId;
+
+                if (!associations) {
+                    return [];
+                }
+
+                let assocs = associations.map(a => {
+                    return {
+                        ...a,
+                        varId,
+                        chromosome,
+                        position,
+                        phenotype: phenotypes[a.phenotype]
+                    };
+                });
+
+                // filter associations w/ no phenotype data (not in portal!)
+                return assocs.filter(a => !!a.phenotype);
+            }
+        },
+
         consequence() {
             if (!!this.variantData) {
                 return Formatters.consequenceFormatter(this.variantData.consequence);
@@ -79,7 +107,25 @@ new Vue({
         }
     },
     methods: {
-        translatedAssociationsFromVariant: translate({ from: associationsFromVariant, to: associationsForLZ }),
+        lzAssociationsTransform(associations) {
+            let assocs = associations.map(a => {
+                return {
+                    id: a.varId,
+                    chr: a.chromosome,
+                    start: a.position,
+                    end: a.position + 1,
+                    position: a.position,
+                    pvalue: a.pValue,
+                    log_pvalue: calcLog(a.pValue),
+                    variant: a.varId,
+                    ref_allele: a.varId,
+                    trait_group: a.phenotype.group,
+                    trait_label: a.phenotype.description,
+                };
+            });
+
+            return assocs;
+        }
     },
 
     watch: {

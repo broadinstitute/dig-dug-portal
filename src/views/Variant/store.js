@@ -30,10 +30,11 @@ export default new Vuex.Store({
 
     },
     actions: {
-        async onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
+        async onLocusZoomCoords(context, { newChr, newStart, newEnd }) {
             const { chr, start, end } = context.state;
+
             if (newChr !== chr || newStart !== start || newEnd !== end) {
-                await context.dispatch(`${module}/query`, { q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
+                context.dispatch(`variant/query`, { q: context.state.variantID });
             }
         },
 
