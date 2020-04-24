@@ -11,12 +11,11 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
-import IntergenicConsequenceTable from "@/components/IntergenicConsequenceTable";
-import regulatoryConsequenceTable from "@/components/RegulatoryConsequenceTable";
-import { associationsFromVariant, translate, associationsForLZ } from "@/utils/dataMappingUtils";
+import PheWASTable from "@/components/PheWASTable.vue";
+import { calcLog } from "@/utils/lz/lzUtils";
 import LocusZoom from "@/components/LocusZoom";
-
-import keyParams from "@/utils/keyParams";
+import Formatters from "@/utils/formatters";
+import uiUtils from "@/utils/uiUtils";
 
 new Vue({
     store,
@@ -27,8 +26,7 @@ new Vue({
         PageFooter,
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
-        IntergenicConsequenceTable,
-        regulatoryConsequenceTable,
+        PheWASTable,
         LocusZoom,
     },
 
@@ -69,33 +67,68 @@ new Vue({
             return {}
         },
 
-        transcriptConsequence() {
-            //if consequence does not exit return nothing
-            if (!!this.variantData.transcriptConsequence) {
-                return [this.variantData.transcriptConsequence]
+        lzAssociations() {
+            let phenotypes = this.$store.state.bioPortal.phenotypeMap;
+
+            if (!!this.variantData) {
+                let associations = this.variantData.associations;
+                let chromosome = this.variantData.chromosome;
+                let position = this.variantData.position;
+                let varId = this.variantData.varId;
+
+                if (!associations) {
+                    return [];
+                }
+
+                let assocs = associations.map(a => {
+                    return {
+                        ...a,
+                        varId,
+                        chromosome,
+                        position,
+                        phenotype: phenotypes[a.phenotype]
+                    };
+                });
+
+                // filter associations w/ no phenotype data (not in portal!)
+                return assocs.filter(a => !!a.phenotype);
             }
         },
 
-        transcriptionFactors() {
-            if (!!this.variantData.transcriptionFactors) {
-                return this.variantData.transcriptionFactors
+        consequence() {
+            if (!!this.variantData) {
+                return Formatters.consequenceFormatter(this.variantData.consequence);
             }
         },
 
-        intergenicConsequence() {
-            if (!!this.variantData.intergenicConsequence) {
-                return [this.variantData.intergenicConsequence]
+        consequenceMeaning() {
+            if (!!this.variantData) {
+                return Formatters.consequenceMeaning(this.variantData.consequence);
             }
-        },
-
-        regulatoryConsequence() {
-            if (!!this.variantData.regulatoryConsequence) {
-                return [this.variantData.regulatoryConsequence]
-            }
-        },
+        }
     },
     methods: {
-        translatedAssociationsFromVariant: translate({ from: associationsFromVariant, to: associationsForLZ }),
+        ...uiUtils,
+
+        lzAssociationsTransform(associations) {
+            let assocs = associations.map(a => {
+                return {
+                    id: a.varId,
+                    chr: a.chromosome,
+                    start: a.position,
+                    end: a.position + 1,
+                    position: a.position,
+                    pvalue: a.pValue,
+                    log_pvalue: calcLog(a.pValue),
+                    variant: a.varId,
+                    ref_allele: a.varId,
+                    trait_group: a.phenotype.group,
+                    trait_label: a.phenotype.description,
+                };
+            });
+
+            return assocs;
+        }
     },
 
     watch: {

@@ -6,15 +6,15 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
-import { associationsForLZ } from "@/utils/dataMappingUtils";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
+import uiUtils from "@/utils/uiUtils";
+import { useTranslations, translate, associationsFromVariants, associationsForLZ } from "@/utils/dataMappingUtils"
 
 Vue.config.productionTip = false;
 
 new Vue({
     store,
-
     components: {
         PhenotypeSelectPicker,
         LocusZoom,
@@ -32,11 +32,29 @@ new Vue({
     },
 
     methods: {
-        associationsForLZ
+        associationsForLZ,
+        showHideElement: function (ELEMENT) {
+            uiUtils.showHideElement(ELEMENT);
+        },
     },
 
     render(createElement, context) {
         return createElement(Template);
+    },
+
+    data() {
+        return {
+            counter: 0,
+        }
+    },
+
+    methods: {
+        ...useTranslations,
+        ...uiUtils,
+        associationsForLZFromVariants: translate({ from: associationsFromVariants, to: associationsForLZ }),
+        add() {
+            this.counter += 1;
+        }
     },
 
     computed: {
@@ -136,18 +154,15 @@ new Vue({
         },
 
         async selectedPhenotype(phenotype) {
-            await this.$store.dispatch("getAssociations", phenotype);
-            this.$children[0].$refs.lz.plot();
+            this.$store.dispatch('getAssociations', phenotype);
         },
 
         topAssociations(top) {
             if (!this.selectedPhenotype && top.length > 0) {
                 let topAssoc = top[0];
-                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
-                    topAssoc.phenotype
-                ];
-
-                this.$store.dispatch("getAssociations", topPhenotype);
+                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[topAssoc.phenotype];
+                // get the associations for this phenotype in the region
+                this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
 

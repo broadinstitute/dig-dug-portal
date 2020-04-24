@@ -7,31 +7,21 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-4 gene-page-header-title"></div>
-                    <!-- change this to variantSearchHolder 
-                    mdkp.utility.showHideElement('phenotypeSearchHolder')
-                    -->
+                    <div class="col-md-8 gene-page-header-title">Variant</div>
                     <div class="col-md-4 gene-page-header-title">
-                        Variant
-                        <a
-                            class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('variantSearchHolder');"
-                        >Set variant ID</a>
+                        <a class="edit-btn">Set Variant</a>
                     </div>
-                    <div class="col-md-4 gene-page-header-title"></div>
-                    <div class="col-md-4 gene-page-header-body">
+                    <div class="col-md-8 gene-page-header-body">
                         <span>
-                            Variant Info
-                            {{$store.state.variantID}}
+                            {{$parent.variantData.varId}}
+                            <span
+                                v-if="$parent.variantData.dbSNP"
+                            >/ {{$parent.variantData.dbSNP}}</span>
                         </span>
                     </div>
                     <!-- change this class to variantInfo -->
                     <div class="col-md-4 gene-page-header-body variantInfo">
-                        <div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder"
-                            style="display: none;"
-                        >
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder">
                             <div class="variant-search">
                                 <div class="col-md-10 input-wrapper">
                                     <input
@@ -40,57 +30,68 @@
                                         class="form-control input-default"
                                         style="margin-left: 15px;padding-top: 30px;padding-left:30px"
                                         placeholder="Search Variant"
+                                        @change="$store.dispatch('queryVariant')"
                                     />
-
-                                    <div class="col-md-2 input-wrapper">
-                                        <button
-                                            id="variantSearchGo"
-                                            class="btn btn-primary"
-                                            type="button"
-                                            @click="$store.dispatch('queryVariant')"
-                                        >GO</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-10">
-                <div v-show="$parent.transcriptConsequence">
-                    <transcript-consequence-table
-                        v-bind:transcriptConsequence="$parent.transcriptConsequence"
-                    ></transcript-consequence-table>
+            <div v-if="$parent.variantData">
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">Most Severe Consequence</h4>
+                        <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
+                    </div>
                 </div>
-                <div v-show="$parent.transcriptionFactors">
-                    <transcription-factors-table
-                        v-bind:transcriptionFactors="$parent.transcriptionFactors"
-                    ></transcription-factors-table>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">Transcript Consequences</h4>
+                        <div v-if="$parent.variantData.transcriptConsequences">
+                            <transcript-consequence-table
+                                v-bind:transcriptConsequences="$parent.variantData.transcriptConsequences"
+                            ></transcript-consequence-table>
+                        </div>
+                        <div v-else class="card-body">
+                            <h4>None found</h4>
+                        </div>
+                    </div>
                 </div>
-                <div v-show="$parent.intergenicConsequence">
-                    <intergenicConsequence-table
-                        v-bind:intergenicConsequence="$parent.intergenicConsequence"
-                    ></intergenicConsequence-table>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">Transcription Factors</h4>
+                        <div v-if="$parent.variantData.transcriptionFactors">
+                            <transcription-factors-table
+                                v-bind:transcriptionFactors="$parent.variantData.transcriptionFactors"
+                            ></transcription-factors-table>
+                        </div>
+                        <div v-else class="card-body">
+                            <h4>None found</h4>
+                        </div>
+                    </div>
                 </div>
-                <div v-show="$parent.regulatoryConsequence">
-                    <regulatoryConsequence-table
-                        v-bind:regulatoryConsequence="$parent.regulatoryConsequence"
-                    ></regulatoryConsequence-table>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">Phenotype-Wide Associations (PheWAS)</h4>
+                        <locuszoom
+                            ref="lz"
+                            v-if="$parent.variantData"
+                            v-bind:panels="['phewas']"
+                            v-bind:phewas="{
+                              'data': $parent.lzAssociations,
+                              'translator': $parent.lzAssociationsTransform
+                            }"
+                            v-bind:chr="$store.state.variant.data.chromosome"
+                            v-bind:start="$store.state.variant.data.position"
+                            v-bind:end="$store.state.variant.data.position+1"
+                        ></locuszoom>
+                        <phewas-table
+                            :associations="$parent.variantData.associations"
+                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        ></phewas-table>
+                    </div>
                 </div>
-            </div>
-            <div class="card mdkp-card">
-                <locuszoom
-                    ref="lz"
-                    v-if="$store.state.variant.data.length>0"
-                    v-bind:panels="['phewas']"
-                    v-bind:modules="[
-                            { 'module': 'variant',
-                              'target': 'phewas',
-                              'translator': $parent.translatedAssociationsFromVariant },
-                        ]"
-                    v-bind:chr="$store.state.variant.data.chromosome"
-                    v-bind:position="$store.state.variant.data.position"
-                ></locuszoom>
             </div>
         </div>
 

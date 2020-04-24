@@ -1,11 +1,12 @@
 <template>
     <div>
+        <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
         <b-table
             hover
             :items="transcriptionFactors"
             :fields="fields"
             :per-page="perPage"
-            :current-page="currPage"
+            :current-page="currentPage"
         ></b-table>
     </div>
 </template>
@@ -55,9 +56,15 @@ export default Vue.component("transcription-factors-table", {
                     formatter: Formatters.floatFormatter
                 }
             ],
-            perPage: 10,
-            currPage: 1
+            perPage: 5,
+            currentPage: 1
         };
+    },
+
+    computed: {
+        rows() {
+            return this.transcriptionFactors.length;
+        }
     }
 });
 </script>

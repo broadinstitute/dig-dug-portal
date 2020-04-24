@@ -1,5 +1,3 @@
-import { BIO_INDEX_TYPE } from '@/utils/bioIndexUtils'
-
 export const LZ_TYPE = Object.freeze({
     assoc: 'assoc',
     gene: 'gene',
