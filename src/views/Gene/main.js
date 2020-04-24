@@ -47,11 +47,7 @@ new Vue({
     },
 
     methods: {
-        ...useTranslations,
-        associationsForLZFromVariants: translate({ from: associationsFromVariants, to: associationsForLZ }),
-        add() {
-            this.counter += 1;
-        }
+
     },
 
     computed: {
