@@ -45,8 +45,8 @@ export default new Vuex.Store({
 
             let xml = await fetch(`https://www.uniprot.org/uniprot/?query=gene_exact=` + geneName + `format=` + format + `include=no&limit=` + limit)
                 .then(resp => resp.text())
-                .then(xmlString => xmlString.evaluate('//lineage', xmlString, null, XPathResult.STRING_TYPE, null))
-                .then(data => console.log(data));
+            // .then(xmlString => xmlString.evaluate('//lineage', xmlString, null, XPathResult.STRING_TYPE, null))
+            // .then(data => console.log(data));
 
 
             // .then(response => response.text())
@@ -54,7 +54,7 @@ export default new Vuex.Store({
             // .then(data => console.log(data))
             //process this xml using xpath
             // let uniprotObject = data.evaluate('//lineage', data, null, XPathResult.STRING_TYPE, null);
-            console.log(uniprotObject)
+            // console.log(uniprotObject)
 
 
         },

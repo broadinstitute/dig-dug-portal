@@ -18,7 +18,7 @@ Vue.use(BootstrapVueIcons);
 new Vue({
     store,
     modules: {
-        uiUtils,
+
     },
     components: {
         PageHeader,
