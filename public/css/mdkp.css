@@ -470,10 +470,11 @@ div.filtering-tools table td, div.filtering-tools table th {
 
 .phenotype-btn > span.remove {
     font-family: 'Roboto';
+    font-size: 1.2em;
     position: absolute;
     background-color: #ccc;
     color: #000;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 800;
     width: 18px;
     height: 18px;
@@ -732,3 +733,31 @@ polyline {
     margin-bottom: 20px;
 }
 
+.popped-out {
+    position: fixed;
+    z-index: 100;
+    top: 2%;
+    width: 96%;
+    left: 2%;
+    height: 96% !important;
+}
+
+.pop-out-icon {
+    display: block;
+    background-image: url(../images/pop_out.svg);
+    width: 20px;
+    height: 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    float: right;
+    margin-top: 5px;
+    margin-right: 5px;
+}
+
+.pop-out-icon:hover {
+    background-image: url(../images/pop_out_over.svg);
+}
+
+.hidden {
+    display: none;
+}
