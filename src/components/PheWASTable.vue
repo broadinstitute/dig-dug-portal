@@ -74,7 +74,7 @@ export default Vue.component("phewas-table", {
 
     computed: {
         rows() {
-            return this.associations ? this.associations.length : 0;
+            return this.pheWASAssociations.length;
         },
 
         pheWASAssociations() {
