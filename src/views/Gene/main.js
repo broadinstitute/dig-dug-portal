@@ -17,9 +17,12 @@ Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
+<<<<<<< HEAD
     modules: {
 
     },
+=======
+>>>>>>> master
     components: {
         PageHeader,
         PageFooter,
@@ -47,7 +50,6 @@ new Vue({
     },
 
     methods: {
-
     },
 
     computed: {
