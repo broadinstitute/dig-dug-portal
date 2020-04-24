@@ -1,8 +1,4 @@
-import Vue from "vue";
 import LocusZoom from "locuszoom";
-import VueCompositionApi from '@vue/composition-api';
-import { ref } from "@vue/composition-api";
-Vue.use(VueCompositionApi)
 
 function readOnCoords(store, makePromiseForNewData) {
     return {
@@ -51,9 +47,10 @@ BioIndexLZSource.prototype.getCacheKey = function(state, chain, fields) {
     return JSON.stringify(state.chr) + JSON.stringify(state.start) + JSON.stringify(state.start);
 };
 
-export const SimpleSource = LocusZoom.Data.Source.extend(function(params) {
+const SimpleSource = LocusZoom.Data.Source.extend(function(params) {
     this._store = params.store;
     this._data = params.data;
+    this._positionUpdater = params.positionUpdater;
     this._cachedKey = null;
     this._dispatch = _.debounce(shouldDispatch(this), 1000);
 },'SimpleSource');
@@ -71,13 +68,13 @@ SimpleSource.prototype.getCacheKey = function(state, chain, fields) {
 
 function shouldDispatch(self) {
     return (state, cacheKey) => {
-        console.log('check dispatching', Date.now());
         if (typeof(cacheKey) !== 'undefined' && cacheKey !== self._cachedKey) {
-            self._store.dispatch('onLocusZoomCoords', {
-                newChr: state.chr,
-                newStart: state.start,
-                newEnd: state.end,
-            });
+            // self._store.dispatch('onLocusZoomCoords', {
+            //     newChr: state.chr,
+            //     newStart: state.start,
+            //     newEnd: state.end,
+            // });
+            self._positionUpdater(state);
         }
     }
 }

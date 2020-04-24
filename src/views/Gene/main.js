@@ -145,15 +145,14 @@ new Vue({
 
         async selectedPhenotype(phenotype) {
             this.$store.dispatch('getAssociations', phenotype);
-            // this.$children[0].$refs.lz.refresh();
         },
 
         topAssociations(top) {
             if (!this.selectedPhenotype && top.length > 0) {
                 let topAssoc = top[0];
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[topAssoc.phenotype];
-
-                this.$store.dispatch('getAssociations', topPhenotype);
+                // get the associations for this phenotype in the region
+                this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
 
