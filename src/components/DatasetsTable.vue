@@ -3,10 +3,12 @@
         <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
         <b-table
             hover
-            :items="transcriptionFactors"
+            :items="datasets"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
+            :sort-name="sortName"
+            :sort-order="sortOrder"
         ></b-table>
     </div>
 </template>
@@ -22,48 +24,49 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
-export default Vue.component("transcription-factors-table", {
-    props: ["transcriptionFactors"],
+export default Vue.component("datasets-table", {
+    props: ["datasets"],
     data() {
         return {
             fields: [
                 {
-                    key: "positionWeightMatrix",
-                    label: "Position Weight Matrix"
+                    key: "name",
+                    label: "Name"
                 },
                 {
-                    key: "delta",
-                    label: "Delta",
-                    formatter: Formatters.floatFormatter
+                    key: "tech",
+                    label: "Tech"
                 },
                 {
-                    key: "position",
-                    label: "Position",
+                    key: "ancestry",
+                    label: "Ancestry",
+                    formatter: Formatters.ancestryFormatter
+                },
+                {
+                    key: "cases",
+                    label: "Cases",
                     formatter: Formatters.intFormatter
                 },
                 {
-                    key: "strand",
-                    label: "Strand"
+                    key: "controls",
+                    label: "Controls",
+                    formatter: Formatters.intFormatter
                 },
                 {
-                    key: "refScore",
-                    label: "Reference Score",
-                    formatter: Formatters.floatFormatter
-                },
-                {
-                    key: "altScore",
-                    label: "Alt Score",
-                    formatter: Formatters.floatFormatter
+                    key: "subjects",
+                    label: "Subjects",
+                    formatter: Formatters.intFormatter
                 }
             ],
             perPage: 5,
-            currentPage: 1
+            currentPage: 1,
+            sortName: "subjects",
+            sortOrder: "desc"
         };
     },
-
     computed: {
         rows() {
-            return this.transcriptionFactors.length;
+            return this.datasets.length;
         }
     }
 });

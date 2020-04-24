@@ -7,19 +7,10 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">Phenotypes</div>
-                    <div class="col-md-4 gene-page-header-title">Add Phenotype</div>
+                    <div class="col-md-8 gene-page-header-title">Phenotype</div>
+                    <div class="col-md-4 gene-page-header-title">Set Phenotype</div>
                     <div class="col-md-8 gene-page-header-body">
-                        <button
-                            v-for="(phenotype, i) in $store.state.phenotypes"
-                            class="btn mr-1 reference p-2 rounded phenotype-btn"
-                            style="color:white"
-                            :class="'color-' + (i+1)"
-                            @click="$store.commit('removePhenotype', phenotype.name);"
-                        >
-                            <span class="remove" aria-hidden="true">&times;</span>
-                            {{phenotype.description}}
-                        </button>
+                        <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
                         <div style="font-size: 16px">
@@ -32,30 +23,54 @@
                 </div>
             </div>
 
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4>Find overlapping variants across phenotypes</h4>
-                    <variant-finder
-                        :phenotypes="$store.state.phenotypes"
-                        :associations="$parent.associations"
-                    ></variant-finder>
+            <div v-if="$store.state.phenotype">
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">Association Plots</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <img :src="$parent.manhattanPlot" />
+                            </div>
+                            <div class="col-md-6">
+                                <img :src="$parent.qqPlot" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4 class="card-title">
-                        Enriched Annotations for:
-                        <span
-                            v-for="phenotype in $store.state.phenotypes"
-                            class="item"
-                        >{{phenotype.description}}</span>
-                    </h4>
-                    <enrichment-table
-                        :phenotypes="$store.state.phenotypes"
-                        :annotations="$parent.annotations"
-                        :per-page="10"
-                    ></enrichment-table>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4
+                            class="card-title"
+                        >Datasets Associated with {{$store.state.phenotype.description}}</h4>
+                        <datasets-table :datasets="$store.state.datasets.data"></datasets-table>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4
+                            class="card-title"
+                        >Genome Wide Associations for {{$store.state.phenotype.description}}</h4>
+                        <associations-table
+                            :phenotypes="[$store.state.phenotype]"
+                            :associations="$store.state.associations.data"
+                            :per-page="10"
+                        ></associations-table>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4
+                            class="card-title"
+                        >Globally Enriched Annotations for {{$store.state.phenotype.description}}</h4>
+                        <enrichment-table
+                            :phenotypes="[$store.state.phenotype]"
+                            :annotations="$store.state.annotations.data"
+                            :per-page="10"
+                        ></enrichment-table>
+                    </div>
                 </div>
             </div>
         </div>
