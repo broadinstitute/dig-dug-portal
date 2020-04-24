@@ -21,20 +21,25 @@ export default new Vuex.Store({
 
     },
     state: {
-        gene: keyParams.gene,
-
+        geneName: keyParams.gene,
+        newGeneName: keyParams.gene,
     },
 
     mutations: {
-        setGene(state, gene) {
-            state.gene = gene || state.newGene;
-            state.newGene = state.gene
-            keyParams.set({ gene: state.newGene })
+        setGene(state, geneName) {
+            state.geneName = geneName || state.newGeneName;
+            state.newGeneName = state.geneName
+            keyParams.set({ gene: state.newGeneName })
         },
 
     },
     actions: {
-
+        async queryGene(context) {
+            let geneName = context.state.geneName
+            console.log(geneName)
+            context.commit('setGene', context.state.geneName);
+            await context.dispatch('gene/query', { q: geneName });
+        },
 
     }
 

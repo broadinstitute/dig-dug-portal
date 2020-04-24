@@ -10,7 +10,7 @@
                     <div class="col-md-4 gene-page-header-title"></div>
 
                     <div class="col-md-4 gene-page-header-title">
-                        Variant
+                        Gene
                         <a
                             class="edit-btn"
                             onclick="mdkp.utility.showHideElement('geneSearchHolder');"
@@ -20,7 +20,7 @@
                     <div class="col-md-4 gene-page-header-body">
                         <span>
                             Gene Info
-                            {{$store.state.gene}}
+                            {{$store.state.geneName}}
                         </span>
                     </div>
                     <!-- change this class to variantInfo -->
@@ -33,11 +33,11 @@
                             <div class="variant-search">
                                 <div class="col-md-10 input-wrapper">
                                     <input
-                                        v-model="$store.state.newGene"
+                                        v-model="$store.state.newGeneName"
                                         type="text"
                                         class="form-control input-default"
                                         style="margin-left: 15px;padding-top: 30px;padding-left:30px"
-                                        placeholder="Search Variant"
+                                        placeholder="Search Gene"
                                     />
 
                                     <div class="col-md-2 input-wrapper">

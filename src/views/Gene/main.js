@@ -6,6 +6,11 @@ import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
+import PageHeader from "@/components/PageHeader.vue";
+import PageFooter from "@/components/PageFooter.vue";
+
+
+
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
@@ -14,13 +19,18 @@ new Vue({
     store,
 
     components: {
-
+        PageHeader,
+        PageFooter,
     },
     data: {
 
     },
 
     created() {
+        this.$store.dispatch('queryGene');
+        // get the disease group and set of phenotypes available
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
 
     },
 
@@ -29,12 +39,31 @@ new Vue({
     },
 
     computed: {
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+
+        diseaseGroup() {
+            return this.$store.getters['bioPortal/diseaseGroup'];
+        },
+
+        phenotypes() {
+            return this.$store.state.bioPortal.phenotypes;
+        },
         uniprotData() {
             return this.$store.state.uniprot.data;
         },
     },
 
     watch: {
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
 
     }
 }).$mount("#app");
