@@ -122,6 +122,7 @@
     background-size: 1rem 1rem;
     /*cursor: help;*/
 }
+
 span.marker {
     position: absolute;
     width: 3px;
@@ -197,4 +198,24 @@ span.marker {
 }
 .collapse .progress {
     margin: 10px auto;
+}
+
+.bar-desc > .options-4-actions {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color:#fff;
+    font-weight: 400;
+    padding: 10px;
+    border-radius: 5px;
+    right:-50%;
+    z-index: 20;
+}
+
+.bar-desc:hover > .options-4-actions {
+    display: block;
+}
+
+.bar-desc:hover > .options-4-actions > div:hover {
+    color: #aaaaff;
 }

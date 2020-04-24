@@ -42,10 +42,17 @@
                                     <span
                                         class="bar-desc"
                                         :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
-                                        @click="$store.commit('setPhenotypeByName', item.phenotype)"
-                                        v-b-tooltip.right
-                                        title="Click to set phenotype"
-                                    >{{item.description}} ({{item.pValue}})</span>
+                                    >
+                                        {{item.description}} ({{item.pValue}})
+                                        <div class="options-4-actions">
+                                            <div
+                                                @click="$store.commit('setPhenotypeByName', item.phenotype)"
+                                            >Click to set phenotype</div>
+                                            <div
+                                                v-on:click="openPage('phenotype.html',{'phenotype':item.phenotype})"
+                                            >Go to phenotype page</div>
+                                        </div>
+                                    </span>
                                 </b-progress-bar>
                             </template>
                             <template v-else>
@@ -71,10 +78,17 @@
                                         <span
                                             class="bar-desc"
                                             :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
-                                            @click="$store.commit('setPhenotypeByName', item.phenotype)"
-                                            v-b-tooltip.right
-                                            title="Click to set phenotype"
-                                        >{{item.description}} ({{item.pValue}})</span>
+                                        >
+                                            {{item.description}} ({{item.pValue}})
+                                            <div class="options-4-actions">
+                                                <div
+                                                    @click="$store.commit('setPhenotypeByName', item.phenotype)"
+                                                >Click to set phenotype</div>
+                                                <div
+                                                    v-on:click="openPage('phenotype.html',{'phenotype':item.phenotype})"
+                                                >Go to phenotype page</div>
+                                            </div>
+                                        </span>
                                     </b-progress-bar>
                                 </b-progress>
                             </template>
@@ -152,6 +166,9 @@ export default Vue.component("phenotype-signal", {
         },
         popOutElement(ELEMENT) {
             uiUtils.popOutElement(ELEMENT);
+        },
+        openPage(PAGE, PARAMETER) {
+            uiUtils.openPage(PAGE, PARAMETER);
         }
     }
 });

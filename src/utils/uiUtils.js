@@ -4,9 +4,19 @@ let popOutElement = function (ELEMENT) {
 }
 
 let showHideElement = function (ELEMENT) {
-    console.log("wwwwww");
     let element = checkExist(ELEMENT);
     element.classList.toggle("hidden");
+};
+
+let openPage = function (PAGE, PARAMETERS) {
+
+    let redirectURL = "./" + PAGE + "?";
+
+    for (let [key, value] of Object.entries(PARAMETERS)) {
+        console.log(`${key}: ${value}`);
+        redirectURL += key + "=" + value + "&";
+    }
+    window.location.href = redirectURL;
 };
 
 let checkExist = function (ELEMENT) {
@@ -21,4 +31,5 @@ let checkExist = function (ELEMENT) {
 export default {
     popOutElement,
     showHideElement,
+    openPage,
 }
