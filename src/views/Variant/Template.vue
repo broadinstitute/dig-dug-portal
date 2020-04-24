@@ -9,10 +9,7 @@
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">Variant</div>
                     <div class="col-md-4 gene-page-header-title">
-                        <a
-                            class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('variantSearchHolder');"
-                        >Set Variant</a>
+                        <a class="edit-btn">Set Variant</a>
                     </div>
                     <div class="col-md-8 gene-page-header-body">
                         <span>
@@ -24,11 +21,7 @@
                     </div>
                     <!-- change this class to variantInfo -->
                     <div class="col-md-4 gene-page-header-body variantInfo">
-                        <div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder"
-                            style="display: none;"
-                        >
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder">
                             <div class="variant-search">
                                 <div class="col-md-10 input-wrapper">
                                     <input
@@ -37,16 +30,8 @@
                                         class="form-control input-default"
                                         style="margin-left: 15px;padding-top: 30px;padding-left:30px"
                                         placeholder="Search Variant"
+                                        @change="$store.dispatch('queryVariant')"
                                     />
-
-                                    <div class="col-md-2 input-wrapper">
-                                        <button
-                                            id="variantSearchGo"
-                                            class="btn btn-primary"
-                                            type="button"
-                                            @click="$store.dispatch('queryVariant')"
-                                        >GO</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -91,15 +76,15 @@
                         <h4 class="card-title">Phenotype-Wide Associations (PheWAS)</h4>
                         <locuszoom
                             ref="lz"
-                            v-if="$store.state.variant.data.length>0"
+                            v-if="$parent.variantData"
                             v-bind:panels="['phewas']"
-                            v-bind:modules="[
-                            { 'module': 'variant',
-                              'target': 'phewas',
-                              'translator': $parent.translatedAssociationsFromVariant },
-                        ]"
+                            v-bind:phewas="{
+                              'data': $parent.lzAssociations,
+                              'translator': $parent.lzAssociationsTransform
+                            }"
                             v-bind:chr="$store.state.variant.data.chromosome"
-                            v-bind:position="$store.state.variant.data.position"
+                            v-bind:start="$store.state.variant.data.position"
+                            v-bind:end="$store.state.variant.data.position+1"
                         ></locuszoom>
                         <phewas-table
                             :associations="$parent.variantData.associations"

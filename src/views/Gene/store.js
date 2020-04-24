@@ -6,9 +6,14 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
+<<<<<<< HEAD
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 // import variantUtils from "@/utils/variantUtils";
+=======
+import regionUtils from "@/utils/regionUtils";
+import { moduleQueryTemplate } from "../../utils/bioIndexUtils";
+>>>>>>> master
 
 Vue.use(Vuex);
 
@@ -55,7 +60,6 @@ export default new Vuex.Store({
             //process this xml using xpath
             // let uniprotObject = data.evaluate('//lineage', data, null, XPathResult.STRING_TYPE, null);
             // console.log(uniprotObject)
-
 
         },
 

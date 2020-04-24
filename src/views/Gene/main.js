@@ -40,6 +40,20 @@ new Vue({
         return createElement(Template);
     },
 
+    data() {
+        return {
+            counter: 0,
+        }
+    },
+
+    methods: {
+        ...useTranslations,
+        associationsForLZFromVariants: translate({ from: associationsFromVariants, to: associationsForLZ }),
+        add() {
+            this.counter += 1;
+        }
+    },
+
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;

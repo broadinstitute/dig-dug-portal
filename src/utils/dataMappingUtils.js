@@ -6,6 +6,7 @@ import { cloneDeep } from "lodash";
 // };
 
 export const translate = ({ from = id => id, to }) => data => to(from(data))
+// VALID: translate({ from: associationsFromVariants, to: associationsForLZ });
 // VALID: translate({ to: associationsForIGV });
 // !!!INCORRECT!!!: translate({ from: associationsFromVariants });
 
@@ -27,22 +28,8 @@ export const associationsFromVariants = variants => {
     return associations;
 };
 
-export const associationsFromVariant = variant => {
-    const associations = variant
-        .filter(variant => variant.associations)
-        .map(variant => variant.associations)
-        .flatMap((associations, index) => {
-            const allAssociations = associations.map(association => ({
-                ...association,
-            }))
-            return allAssociations;
-        })
-    return associations;
-};
-
 export const useDecompositions = {
     associationsFromVariants,
-    associationsFromVariant,
 };
 
 /* LocusZoom Datamapping */
@@ -58,8 +45,8 @@ export const associationsForLZ = associations => {
         log_pvalue: calcLog(association.pValue).toPrecision(4),
         variant: association.varId,
         ref_allele: association.varId,
-        trait_group: association.phenotype,
-        trait_label: association.phenotype,
+        // trait_group: association.phenotype.group,
+        // trait_label: association.phenotype.description,
     }));
     return translation
 
@@ -77,7 +64,9 @@ export const associationsForIGV = associations => {
             start: association.position,
             end: association.position,
             ...annotation,
-            // log_pvalue: calcLog(association.pValue),
+            log_pvalue: calcLog(association.pValue),
+            // for GWAS:
+            value: calcLog(association.pValue),
         }
     });
 }
