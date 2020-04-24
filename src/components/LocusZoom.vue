@@ -117,42 +117,48 @@ export default Vue.component("locuszoom", {
                 this.dataUpdated('assoc')
             } 
         },
-        // gene(n, o) {
-        //     if(this['gene'] && n.data.length !== o.data.length) {
-        //         const resolve = this.dataResolvers['gene'];
-        //         resolve(n.data);
-        //     } 
-        // },
-        // ld(n, o) {
-        //     if(this['ld'] && n.data.length !== o.data.length) {
-        //         const resolve = this.dataResolvers['ld'];
-        //         resolve(n.data);
-        //     } 
-        // },
-        // phewas(n, o) {
-        //     if(this['phewas'] && n.data.length !== o.data.length) {
-        //         const resolve = this.dataResolvers['phewas'];
-        //         resolve(n.data);
-        //     } 
-        // },
-        // recomb(n, o) {
-        //     if(this['recomb'] && n.data.length !== o.data.length) {
-        //         const resolve = this.dataResolvers['recomb'];
-        //         resolve(n.data);
-        //     } 
-        // },
-        // constraint(n, o) {
-        //     if(this['constraint'] && n.data.length !== o.data.length) {
-        //         const resolve = this.dataResolvers['constraint'];
-        //         resolve(n.data);
-        //     } 
-        // },
-        // intervals(n, o) {
-        //     if(this['intervals'] && n.data.length !== o.data.length) {
-        //         const resolve = this.dataResolvers['intervals'];
-        //         resolve(n.data);
-        //     } 
-        // }, 
+        gene(n, o) {
+            if(this['gene'] && n.data.length !== o.data.length) {
+                this.dataSources.add('gene', ['SimpleSource', { positionUpdater: this.updatePosition, store: this.$store, data: n.translator(n.data) }])
+                this.refresh();
+                this.dataUpdated('gene')
+            } 
+        },
+        ld(n, o) {
+            if(this['ld'] && n.data.length !== o.data.length) {
+                this.dataSources.add('ld', ['SimpleSource', { positionUpdater: this.updatePosition, store: this.$store, data: n.translator(n.data) }])
+                this.refresh();
+                this.dataUpdated('ld')
+            } 
+        },
+        phewas(n, o) {
+            if(this['phewas'] && n.data.length !== o.data.length) {
+                this.dataSources.add('phewas', ['SimpleSource', { positionUpdater: this.updatePosition, store: this.$store, data: n.translator(n.data) }])
+                this.refresh();
+                this.dataUpdated('phewas')
+            } 
+        },
+        recomb(n, o) {
+            if(this['recomb'] && n.data.length !== o.data.length) {
+                this.dataSources.add('recomb', ['SimpleSource', { positionUpdater: this.updatePosition, store: this.$store, data: n.translator(n.data) }])
+                this.refresh();
+                this.dataUpdated('recomb')
+            } 
+        },
+        constraint(n, o) {
+            if(this['constraint'] && n.data.length !== o.data.length) {
+                this.dataSources.add('constraint', ['SimpleSource', { positionUpdater: this.updatePosition, store: this.$store, data: n.translator(n.data) }])
+                this.refresh();
+                this.dataUpdated('constraint')
+            }
+        },
+        intervals(n, o) {
+            if(this['intervals'] && n.data.length !== o.data.length) {
+                this.dataSources.add('intervals', ['SimpleSource', { positionUpdater: this.updatePosition, store: this.$store, data: n.translator(n.data) }])
+                this.refresh();
+                this.dataUpdated('intervals')
+            } 
+        }, 
     }
     
 });
