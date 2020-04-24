@@ -58,6 +58,13 @@ new Vue({
         uniprotData() {
             return this.$store.state.uniprot.data;
         },
+        geneData() {
+            let data = this.$store.state.geneName.data
+            if (data.length > 0) {
+                return data[0]
+            }
+            return {}
+        },
     },
 
     watch: {

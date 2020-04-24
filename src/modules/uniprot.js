@@ -9,7 +9,7 @@ export default {
     // initial module state
     state() {
         return {
-            uniprot: [],
+            uniprotGeneInfo: [],
         };
     },
 
@@ -28,12 +28,10 @@ export default {
             let limit = 10;
             let xml = await fetch(`https://www.uniprot.org/uniprot/?query=gene_exact` + gene + `format` + format + `include=no&limit` + limit)
                 .then(resp => resp.xml());
-           // xml.evaluate()
             //process this xml using xpath
-            //create a object "uniprotObject"
+            let uniprotObject = xml.evaluate('//lineage', xml, null, XPathResult.STRING_TYPE, null);
+            console.log(uniprotObject)
 
-            // set the data
-            
             context.commit('setUniprotGeneInfo', uniprotObject)
         },
     },
