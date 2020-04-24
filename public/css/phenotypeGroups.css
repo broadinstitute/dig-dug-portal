@@ -2,7 +2,7 @@
     background-color: #048845;
 }
 .phenotype_group.ATRIAL.FIBRILLATION > div.progress-bar {
-    background-color: #9aca3c;
+    background-color: #7aaa1c;
 }
 .phenotype_group.CARDIOVASCULAR > div.progress-bar {
     background-color: #6fc7b6;
@@ -22,45 +22,74 @@
 .phenotype_group.ISCHEMIC.STROKE > div.progress-bar {
     background-color: #ee3124;
 }
+.phenotype_group.INFLAMMATORY.BOWEL > div.progress-bar {
+    background-color: #007bff;
+}
 .phenotype_group.LIPIDS > div.progress-bar {
     background-color: #faa553;
 }
+.phenotype_group.LUNG > div.progress-bar {
+    background-color: #0000ff;
+}
 .phenotype_group.METABOLITE > div.progress-bar {
-    background-color: #fcd700;
+    background-color: #fcc500;
 }
 .phenotype_group.MRI.TRAITS > div.progress-bar {
     background-color: #f5a4c7;
 }
 .phenotype_group.MUSCULOSKELETAL > div.progress-bar {
-    background-color: #cee6c1;
+    background-color: #aec6a1;
+}
+.phenotype_group.NEUROLOGICAL > div.progress-bar {
+    background-color: #33ff00;
 }
 .phenotype_group.OCULAR > div.progress-bar {
-    background-color: #fff9b8;
+    background-color: #ccc698;
 }
 .phenotype_group.OTHER > div.progress-bar {
-    background-color: #d4d4d4;
+    background-color: #b4b4b4;
 }
 .phenotype_group.PSYCHIATRIC > div.progress-bar {
     background-color: #5555ff;
 }
 .phenotype_group.RENAL > div.progress-bar {
-    background-color: #facacc;
+    background-color: #ff55ff;
 }
 .phenotype_group.SLEEP.AND.CIRCADIAN > div.progress-bar {
     background-color: #d5a768;
 }
 .phenotype_group.STROKE > div.progress-bar {
-    background-color: #ffff00;
+    background-color: #cccc00;
+}
+
+.new-phenotypes-with-signal-wrapper {
+    height: 400px;
+    border: solid 1px #ccc;
+    border-left: none;
+    border-right: none;
+    box-shadow: inset 0px 0px 3px rgba(0,0,0,0.25);
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+
+.phenotypes-with-signal-wrapper .container-sm {
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 .phenotype_group_wrapper {
     padding: 5px 0 !important;
+    width: 55%;
+    position: relative;
 
 }
 .phenotype-group-header {
     cursor: pointer;
     text-align: left;
     padding-top: 5px;
+    position: relative;
+    width: 20%;
+    padding-left: 15px;
 }
 
 .phenotype-group-header .b-icon.bi {
@@ -93,17 +122,23 @@
     background-size: 1rem 1rem;
     /*cursor: help;*/
 }
+
 span.marker {
     position: absolute;
     width: 3px;
     height: 1.3rem;
-    background-color: rgba(255, 255, 255, 0.45);
+    background-color: rgba(255, 255, 255, 0.25);
     z-index: 5;
-    /*cursor: help;*/
     right: 0;
     visibility: visible;
-    mix-blend-mode: soft-light;
+    mix-blend-mode: screen;
     top: 0.1rem;
+}
+
+.highlight-bar:hover  span.marker {
+    background-color: rgba(255, 200, 0, 1);
+    mix-blend-mode: normal;
+    border-right: solid 1px #333;
 }
 
 .bar-desc {
@@ -163,4 +198,24 @@ span.marker {
 }
 .collapse .progress {
     margin: 10px auto;
+}
+
+.bar-desc > .options-4-actions {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color:#fff;
+    font-weight: 400;
+    padding: 10px;
+    border-radius: 5px;
+    right:-50%;
+    z-index: 20;
+}
+
+.bar-desc:hover > .options-4-actions {
+    display: block;
+}
+
+.bar-desc:hover > .options-4-actions > div:hover {
+    color: #aaaaff;
 }

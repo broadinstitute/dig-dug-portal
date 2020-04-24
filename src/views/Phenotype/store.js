@@ -3,6 +3,7 @@ import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
+import bioIndex from "@/modules/bioIndex";
 
 Vue.use(Vuex);
 
@@ -10,27 +11,31 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
+        associations: bioIndex('phenotype-associations'),
+        annotations: bioIndex('global-enrichment'),
+        datasets: bioIndex('datasets')
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
-        phenotypes: [],
+        phenotype: null,
         newPhenotype: null,
     },
     mutations: {
-        setNewPhenotype(state, phenotype) {
-            if (!state.phenotypes.find(p => p.name == phenotype.name)) {
-                state.phenotypes.push(phenotype);
-            }
-        },
-
-        removePhenotype(state, phenotypeName) {
-            state.phenotypes = state.phenotypes.filter(p => p.name !== phenotypeName);
-            state.newPhenotype = null;
+        setPhenotype(state, phenotype) {
+            state.phenotype = phenotype;
         },
     },
     actions: {
         onPhenotypeChange(context, phenotype) {
-            context.commit('setNewPhenotype', phenotype);
+            context.commit('setPhenotype', phenotype);
         },
+
+        queryPhenotype(context) {
+            let query = { q: context.state.phenotype.name };
+
+            context.dispatch('associations/query', query);
+            context.dispatch('annotations/query', query);
+            context.dispatch('datasets/query', query);
+        }
     },
 });

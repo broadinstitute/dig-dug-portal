@@ -1,12 +1,20 @@
 <template>
     <div>
+        <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
         <b-table
             hover
-            :items="transcriptConsequence"
+            :items="transcriptConsequences"
             :fields="fields"
             :per-page="perPage"
-            :current-page="currPage"
-        ></b-table>
+            :current-page="currentPage"
+        >
+            <template
+                v-slot:cell(consequence)="v"
+            >{{consequenceFormatter(v.item.consequence_terms[0])}}</template>
+            <template v-slot:cell(gene)="v">
+                <a :href="'/gene.html?gene=' + v.item.gene_id">{{v.item.gene_id}}</a>
+            </template>
+        </b-table>
     </div>
 </template>
 
@@ -21,49 +29,53 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
 export default Vue.component("transcript-consequence-table", {
-    props: ["transcriptConsequence"],
+    props: ["transcriptConsequences"],
     data() {
         return {
             fields: [
                 {
-                    key: "amino_acids",
-                    label: "amino_acids"
+                    key: "consequence",
+                    label: "Consequence"
+                },
+                {
+                    key: "gene",
+                    label: "Gene"
+                },
+                {
+                    key: "transcript_id",
+                    label: "Transcript"
                 },
                 {
                     key: "biotype",
-                    label: "biotype"
+                    label: "BIO Type",
+                    formatter: Formatters.bioTypeFormatter
                 },
                 {
-                    key: "transcript_id",
-                    label: "transcript_id"
+                    key: "distance",
+                    label: "Distance",
+                    formatter: Formatters.intFormatter
                 },
                 {
-                    key: "transcript_id",
-                    label: "transcript_id"
+                    key: "impact",
+                    label: "Impact"
                 },
                 {
-                    key: "cadd_raw",
-                    label: "cadd_raw"
-                },
-                {
-                    key: "cadd_raw",
-                    label: "cadd_raw",
-                    formatter: Formatters.floatFormatter
-                },
-                {
-                    key: "cadd_phred",
-                    label: "cadd_phred",
-                    formatter: Formatters.floatFormatter
-                },
-                {
-                    key: "consequence_terms",
-                    label: "consequence_terms"
+                    key: "amino_acids",
+                    label: "Amino Acids"
                 }
             ],
-            perPage: 10,
-            currPage: 1
+            perPage: 5,
+            currentPage: 1
         };
+    },
+
+    computed: {
+        rows() {
+            return this.transcriptConsequences.length;
+        }
+    },
+    methods: {
+        consequenceFormatter: Formatters.consequenceFormatter
     }
 });
 </script>
-

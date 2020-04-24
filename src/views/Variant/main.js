@@ -11,10 +11,10 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
-import IntergenicConsequenceTable from "@/components/IntergenicConsequenceTable";
-import regulatoryConsequenceTable from "@/components/RegulatoryConsequenceTable";
+import PheWASTable from "@/components/PheWASTable.vue";
 import { associationsFromVariant, translate, associationsForLZ } from "@/utils/dataMappingUtils";
 import LocusZoom from "@/components/LocusZoom";
+import Formatters from "@/utils/formatters";
 
 new Vue({
     store,
@@ -25,8 +25,7 @@ new Vue({
         PageFooter,
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
-        IntergenicConsequenceTable,
-        regulatoryConsequenceTable,
+        PheWASTable,
         LocusZoom,
     },
 
@@ -67,30 +66,17 @@ new Vue({
             return {}
         },
 
-        transcriptConsequence() {
-            //if consequence does not exit return nothing
-            if (!!this.variantData.transcriptConsequence) {
-                return [this.variantData.transcriptConsequence]
+        consequence() {
+            if (!!this.variantData) {
+                return Formatters.consequenceFormatter(this.variantData.consequence);
             }
         },
 
-        transcriptionFactors() {
-            if (!!this.variantData.transcriptionFactors) {
-                return this.variantData.transcriptionFactors
+        consequenceMeaning() {
+            if (!!this.variantData) {
+                return Formatters.consequenceMeaning(this.variantData.consequence);
             }
-        },
-
-        intergenicConsequence() {
-            if (!!this.variantData.intergenicConsequence) {
-                return [this.variantData.intergenicConsequence]
-            }
-        },
-
-        regulatoryConsequence() {
-            if (!!this.variantData.regulatoryConsequence) {
-                return [this.variantData.regulatoryConsequence]
-            }
-        },
+        }
     },
     methods: {
         translatedAssociationsFromVariant: translate({ from: associationsFromVariant, to: associationsForLZ }),
