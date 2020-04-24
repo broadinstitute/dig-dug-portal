@@ -3,12 +3,10 @@
         <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
         <b-table
             hover
-            :items="datasets"
+            :items="sortedDatasets"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
-            :sort-name="sortName"
-            :sort-order="sortOrder"
         ></b-table>
     </div>
 </template>
@@ -67,6 +65,9 @@ export default Vue.component("datasets-table", {
     computed: {
         rows() {
             return this.datasets.length;
+        },
+        sortedDatasets() {
+            return this.datasets.sort((a, b) => b.subjects - a.subjects);
         }
     }
 });
