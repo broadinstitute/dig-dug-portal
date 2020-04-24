@@ -37,7 +37,7 @@ async function* iterateOnQuery(json, errHandler) {
         let queryStr = makeBioIndexQueryStr(json);
         json = await portalFetch(queryStr, errHandler);
         yield json;
-    } while(json.continuation);
+    } while (json.continuation);
 }
 
 export async function portalFetch(query, errHandler) {
@@ -53,7 +53,7 @@ export async function portalFetch(query, errHandler) {
     return json;
 };
 
-export async function fullQuery(queryJson, { condition=()=>true, resolveHandler, errHandler }) {
+export async function fullQuery(queryJson, { condition, resolveHandler, errHandler }) {
     let query = await beginIterableQuery(queryJson, errHandler);
     let accumulatedData = [];
     let done = false;
@@ -66,7 +66,7 @@ export async function fullQuery(queryJson, { condition=()=>true, resolveHandler,
             accumulatedData = accumulatedData.concat(responseJson.value.data);
             resolveHandler(responseJson.value);
         }
-    } while(condition() && !done);
+    } while (condition() && !done);
 
     return accumulatedData;
 }
@@ -85,7 +85,7 @@ export async function fullQueryFromUrl(initialUrl, resolveHandler, errHandler) {
         collectedData = collectedData.concat(data);
         currentContinuation = continuation;
 
-    } while(currentContinuation);
+    } while (currentContinuation);
 
     return collectedData;
 
@@ -108,19 +108,19 @@ function makeBioIndexQueryStr(json) {
 };
 
 const arityFilter = {
-    [BIO_INDEX_TYPE.Associations]: function(args) {
+    [BIO_INDEX_TYPE.Associations]: function (args) {
         const { phenotype, chromosome, start, end } = args;
         return { phenotype, chromosome, start, end };
     },
-    [BIO_INDEX_TYPE.PhenotypeAssociations]: function(args) {
+    [BIO_INDEX_TYPE.PhenotypeAssociations]: function (args) {
         const { phenotype } = args;
         return { phenotype };
     },
-    [BIO_INDEX_TYPE.TopAssociations]: function(args) {
+    [BIO_INDEX_TYPE.TopAssociations]: function (args) {
         const { chromosome, start, end } = args;
         return { chromosome, start, end };
     },
-    [BIO_INDEX_TYPE.Variants]: function(args) {
+    [BIO_INDEX_TYPE.Variants]: function (args) {
         const { chromosome, start, end } = args;
         return { chromosome, start, end };
     }

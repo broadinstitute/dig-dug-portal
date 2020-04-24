@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
+import variantUtils from "@/utils/variantUtils";
 
 Vue.use(Vuex);
 
@@ -13,13 +14,14 @@ export default new Vuex.Store({
         kp4cd,
     },
     state: {
-        geneOrRegion: null,
-        invalidGeneOrRegion: false,
+        geneOrRegionOrVariant: null,
+        invalidGeneOrRegionOrVariant: false,
     },
     mutations: {
-        setInvalidGeneOrRegion(state, flag) {
-            state.invalidGeneOrRegion = flag;
+        setInvalidGeneOrRegionOrVariant(state, flag) {
+            state.invalidGeneOrRegionOrVariant = flag;
         },
+
     },
     state: {},
     actions: {
@@ -27,14 +29,21 @@ export default new Vuex.Store({
             window.location.href = "./phenotype.html?phenotype=" + phenotype.name;
         },
 
-        async exploreRegion(context) {
-            let locus = await regionUtils.parseRegion(context.state.geneOrRegion);
+        async exploreRegionOrVariant(context) {
+            let locus = await regionUtils.parseRegion(context.state.geneOrRegionOrVariant, true, 50000);
+            let varID = await variantUtils.parseVariant(context.state.geneOrRegionOrVariant);
 
             if (locus) {
                 window.location.href = `./gene.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
-            } else {
-                context.commit('setInvalidGeneOrRegion', true);
             }
+            if (varID) {
+
+                window.location.href = `./variant.html?variant=${varID}`;
+            }
+            else {
+                context.commit('setInvalidGeneOrRegionOrVariant', true);
+            }
+
         }
     }
 });

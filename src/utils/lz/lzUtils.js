@@ -1,5 +1,3 @@
-import {BIO_INDEX_TYPE} from '@/utils/bioIndexUtils'
-
 export const LZ_TYPE = Object.freeze({
     assoc: 'assoc',
     gene: 'gene',
@@ -27,7 +25,7 @@ export const PANEL_ORDER = Object.freeze([
     'annotation_credible_set',
 ]);
 
-export function sortPanels(panels, panelOrderMap=PANEL_ORDER) {
+export function sortPanels(panels, panelOrderMap = PANEL_ORDER) {
     // _.invert swaps keys and values, i.e. [ "val" ] === { 0: "val" } => { "val": 0 }
     const panelOrder = _.invert(panelOrderMap);
     return panels.sort(function (x, y) {
@@ -42,9 +40,5 @@ export function sortPanels(panels, panelOrderMap=PANEL_ORDER) {
 }
 
 export const calcLog = function (values) {
-    if (values instanceof Array) {
-        return values.map(Math.log).map(data => (-1) * data);
-    } else {
-        return (-1) * Math.log(values);
-    }
+    return -Math.log10(values);
 };

@@ -9,9 +9,9 @@ Vue.config.productionTip = false;
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import VariantFinder from "@/components/VariantFinder.vue";
+import AssociationsTable from "@/components/AssociationsTable.vue";
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
-import bioIndex from "@/modules/bioIndex";
+import DatasetsTable from "@/components/DatasetsTable.vue";
 import keyParams from "@/utils/keyParams";
 
 new Vue({
@@ -21,8 +21,9 @@ new Vue({
         PhenotypeSelectPicker,
         PageHeader,
         PageFooter,
-        VariantFinder,
-        EnrichmentTable
+        AssociationsTable,
+        EnrichmentTable,
+        DatasetsTable,
     },
 
     created() {
@@ -49,82 +50,36 @@ new Vue({
             return this.$store.getters['bioPortal/diseaseGroup'];
         },
 
-        associations() {
-            let data = [];
-            let phenotypes = this.$store.state.phenotypes;
+        manhattanPlot() {
+            let phenotype = this.$store.state.phenotype;
 
-            for (let i in phenotypes) {
-                let phenotype = phenotypes[i];
-                let name = phenotype.name;
-                let moduleName = `__assocs__${name}`;
-                let moduleData = this.$store.state[moduleName].data;
-
-                data = data.concat(moduleData);
+            if (!!phenotype) {
+                return `https://dig-analysis-data.s3.amazonaws.com/out/metaanalysis/plots/${phenotype.name}/manhattan.png`;
             }
-
-            return data;
         },
 
-        annotations() {
-            let data = [];
-            let phenotypes = this.$store.state.phenotypes;
+        qqPlot() {
+            let phenotype = this.$store.state.phenotype;
 
-            // get all the data from all phenotypes
-            for (let i in phenotypes) {
-                let phenotype = phenotypes[i];
-                let name = phenotype.name;
-                let moduleName = `__enrichment__${name}`;
-                let moduleData = this.$store.state[moduleName].data;
-
-                data = data.concat(moduleData);
+            if (!!phenotype) {
+                return `https://dig-analysis-data.s3.amazonaws.com/out/metaanalysis/plots/${phenotype.name}/qq.png`;
             }
-
-            return data;
-        },
-
-        phenotypeToAdd() {
-            return this.$store.state.newPhenotype;
         }
     },
 
     watch: {
         '$store.state.bioPortal.phenotypeMap': function (phenotypeMap) {
-            let phenotypeNames = (keyParams.phenotype || '').split(',');
+            let name = keyParams.phenotype;
+            let phenotype = phenotypeMap[name];
 
-            // add all the keyParam phenotype modules
-            for (let i in phenotypeNames) {
-                let name = phenotypeNames[i];
-                let phenotype = phenotypeMap[name];
-
-                if (!!phenotype) {
-                    this.$store.commit('setNewPhenotype', phenotype);
-                }
-            };
+            if (!!phenotype) {
+                this.$store.commit('setPhenotype', phenotype);
+                keyParams.set({ phenotype: phenotype.name });
+            }
         },
 
-        // register modules for new phenotypes
-        '$store.state.phenotypes': function (phenotypes) {
-            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
-
-            // create modules for each phenotype
-            for (let i in phenotypes) {
-                let phenotype = phenotypes[i];
-                let name = phenotype.name;
-                let assocModule = `__assocs__${name}`;
-                let enrichmentModule = `__enrichment__${name}`;
-
-                // register a new associations module for this phenotype
-                if (!this.$store.state[assocModule]) {
-                    this.$store.registerModule(assocModule, bioIndex('phenotype-associations'));
-                    this.$store.dispatch(`${assocModule}/query`, { q: name, limit: 2500 });
-                }
-
-                // register a new enrichment module for this phenotype
-                if (!this.$store.state[enrichmentModule]) {
-                    this.$store.registerModule(enrichmentModule, bioIndex('global-enrichment'));
-                    this.$store.dispatch(`${enrichmentModule}/query`, { q: name });
-                }
-            }
+        '$store.state.phenotype': function (phenotype) {
+            this.$store.dispatch('queryPhenotype');
         },
 
         diseaseGroup(group) {

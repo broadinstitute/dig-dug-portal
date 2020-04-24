@@ -6,6 +6,7 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
+import { moduleQueryTemplate } from "../../utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -16,6 +17,7 @@ export default new Vuex.Store({
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
         topAssociations: bioIndex("top-associations"),
+        variants: bioIndex("variants"),
     },
     state: {
         // only used at the start
@@ -78,11 +80,11 @@ export default new Vuex.Store({
         },
     },
     actions: {
-        async onLocusZoomCoords(context, { module, newChr, newStart, newEnd }) {
+        async onLocusZoomCoords(context, { newChr, newStart, newEnd }) {
             const { chr, start, end } = context.state;
             if (newChr !== chr || newStart !== start || newEnd !== end) {
-                await context.dispatch(`${module}/query`, { q: `${context.state.phenotype.name},${newChr}:${newStart}-${newEnd}` });
-                //context.commit(`setLocus`, { chr: newChr, start: newStart, end: newEnd });
+                context.commit('setLocus', { chr: newChr, start: newStart, end: newEnd })
+                await context.dispatch('getAssociations');
             }
         },
 
@@ -92,7 +94,7 @@ export default new Vuex.Store({
 
         async searchGene(context) {
             if (context.state.gene) {
-                let locus = await regionUtils.parseRegion(context.state.gene);
+                let locus = await regionUtils.parseRegion(context.state.gene, true, 50000);
 
                 if (locus) {
                     context.state.newChr = locus.chr;
@@ -118,23 +120,18 @@ export default new Vuex.Store({
                 // find all the top associations and genes in the region
                 context.dispatch('topAssociations/query', { q: context.getters.region });
                 context.dispatch('genes/query', { q: context.getters.region });
-                context.dispatch('getAssociations');
             }
         },
 
         // fetches all the associations for the selected phenotype
         async getAssociations(context, phenotype) {
             if (phenotype) {
-                let q = `${phenotype.name},${context.getters.region}`;
-
                 // update the url with the new phenotype
                 keyParams.set({ phenotype: phenotype.name });
                 //mdkp.utility.showHideElement("phenotypeSearchHolder");
-
-                // get the associations for this phenotype in the region
-                context.commit("setSelectedPhenotype", phenotype);
-                await context.dispatch('associations/query', { q });
             }
+            let q = `${context.state.phenotype.name},${context.getters.region}`;
+            context.dispatch('associations/query', { q });
         },
 
     }

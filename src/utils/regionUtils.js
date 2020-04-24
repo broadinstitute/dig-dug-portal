@@ -8,7 +8,7 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 const REGION_REGEXP = /(?:chr)?(1\d?|2[0-2]?|[3-9]|x|y|xy|mt?)[:_](\d+)(?:([+/-])(\d+))?/i;
 
 // parse a region as either a gene name, ENS ID, or chr:start-stop
-async function parseRegion(s, allowGeneLookup = true) {
+async function parseRegion(s, allowGeneLookup = true, geneRegionExpand = 0) {
     let match = s.replace(/,/g, '').match(REGION_REGEXP);
 
     // region matched, return chrom, start, and stop
@@ -51,8 +51,8 @@ async function parseRegion(s, allowGeneLookup = true) {
                 .then(json => {
                     return {
                         chr: json.seq_region_name,
-                        start: json.start,
-                        end: json.end,
+                        start: Math.max(json.start - geneRegionExpand, 0),
+                        end: json.end + geneRegionExpand,
                     }
                 });
 
@@ -69,15 +69,15 @@ async function parseRegion(s, allowGeneLookup = true) {
 
                 return {
                     chr: json.data[0].chromosome,
-                    start: json.data[0].start,
-                    end: json.data[0].end,
+                    start: Math.max(json.data[0].start - geneRegionExpand, 0),
+                    end: json.data[0].end + geneRegionExpand,
                 }
             });
 
         return region;
     }
 
-    // invalid region or gene
+    // invalid region or gene or variant
     return null;
 }
 

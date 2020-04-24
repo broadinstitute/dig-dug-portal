@@ -1,7 +1,10 @@
 <template>
     <div class="disease-group-select">
         <select v-model="diseaseGroup" @change="changeDiseaseGroup(diseaseGroup);">
-            <option v-for="group in diseaseGroups" v-bind:value="group.name">{{ group.description }}</option>
+            <option
+                v-for="group in visibleDiseaseGroups"
+                v-bind:value="group.name"
+            >{{ group.description }}</option>
         </select>
     </div>
 </template>
@@ -25,6 +28,12 @@ export default Vue.component("disease-group-select", {
         return {
             diseaseGroup: null
         };
+    },
+
+    computed: {
+        visibleDiseaseGroups() {
+            return this.diseaseGroups.filter(g => !g.default);
+        }
     },
 
     methods: {

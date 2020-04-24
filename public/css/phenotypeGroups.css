@@ -1,0 +1,221 @@
+.phenotype_group.ANTHROPOMETRIC > div.progress-bar {
+    background-color: #048845;
+}
+.phenotype_group.ATRIAL.FIBRILLATION > div.progress-bar {
+    background-color: #7aaa1c;
+}
+.phenotype_group.CARDIOVASCULAR > div.progress-bar {
+    background-color: #6fc7b6;
+}
+.phenotype_group.ECG.TRAITS > div.progress-bar {
+    background-color: #8490c8;
+}
+.phenotype_group.GLYCEMIC > div.progress-bar {
+    background-color: #9f78ac;
+}
+.phenotype_group.HEMORRHAGIC.STROKE > div.progress-bar {
+    background-color: #bf61a5;
+}
+.phenotype_group.HEPATIC > div.progress-bar {
+    background-color: #f88084;
+}
+.phenotype_group.ISCHEMIC.STROKE > div.progress-bar {
+    background-color: #ee3124;
+}
+.phenotype_group.INFLAMMATORY.BOWEL > div.progress-bar {
+    background-color: #007bff;
+}
+.phenotype_group.LIPIDS > div.progress-bar {
+    background-color: #faa553;
+}
+.phenotype_group.LUNG > div.progress-bar {
+    background-color: #0000ff;
+}
+.phenotype_group.METABOLITE > div.progress-bar {
+    background-color: #fcc500;
+}
+.phenotype_group.MRI.TRAITS > div.progress-bar {
+    background-color: #f5a4c7;
+}
+.phenotype_group.MUSCULOSKELETAL > div.progress-bar {
+    background-color: #aec6a1;
+}
+.phenotype_group.NEUROLOGICAL > div.progress-bar {
+    background-color: #33ff00;
+}
+.phenotype_group.OCULAR > div.progress-bar {
+    background-color: #ccc698;
+}
+.phenotype_group.OTHER > div.progress-bar {
+    background-color: #b4b4b4;
+}
+.phenotype_group.PSYCHIATRIC > div.progress-bar {
+    background-color: #5555ff;
+}
+.phenotype_group.RENAL > div.progress-bar {
+    background-color: #ff55ff;
+}
+.phenotype_group.SLEEP.AND.CIRCADIAN > div.progress-bar {
+    background-color: #d5a768;
+}
+.phenotype_group.STROKE > div.progress-bar {
+    background-color: #cccc00;
+}
+
+.new-phenotypes-with-signal-wrapper {
+    height: 400px;
+    border: solid 1px #ccc;
+    border-left: none;
+    border-right: none;
+    box-shadow: inset 0px 0px 3px rgba(0,0,0,0.25);
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+
+.phenotypes-with-signal-wrapper .container-sm {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.phenotype_group_wrapper {
+    padding: 5px 0 !important;
+    width: 55%;
+    position: relative;
+
+}
+.phenotype-group-header {
+    cursor: pointer;
+    text-align: left;
+    padding-top: 5px;
+    position: relative;
+    width: 20%;
+    padding-left: 15px;
+}
+
+.phenotype-group-header .b-icon.bi {
+    display: inline-block;
+    overflow: visible;
+    vertical-align: -0.15em;
+    position: absolute;
+    right: 5px;
+    top: 8px;
+}
+
+.container-sm {
+    margin-left: inherit;
+}
+.progress {
+    background-color: transparent;
+    border-radius: 0;
+}
+.progress-bar:hover {
+    background-image: linear-gradient(
+        45deg,
+        hsla(0, 0%, 100%, 0.15) 25%,
+        transparent 0,
+        transparent 50%,
+        hsla(0, 0%, 100%, 0.15) 0,
+        hsla(0, 0%, 100%, 0.15) 75%,
+        transparent 0,
+        transparent
+    );
+    background-size: 1rem 1rem;
+    /*cursor: help;*/
+}
+
+span.marker {
+    position: absolute;
+    width: 3px;
+    height: 1.3rem;
+    background-color: rgba(255, 255, 255, 0.25);
+    z-index: 5;
+    right: 0;
+    visibility: visible;
+    mix-blend-mode: screen;
+    top: 0.1rem;
+}
+
+.highlight-bar:hover  span.marker {
+    background-color: rgba(255, 200, 0, 1);
+    mix-blend-mode: normal;
+    border-right: solid 1px #333;
+}
+
+.bar-desc {
+    position: absolute;
+    font-size: 1.2em;
+    white-space: nowrap;
+    font-weight: bold;
+    color: #000000;
+}
+
+.bar-desc:hover {
+    color: #5555ff;
+    cursor: pointer;
+}
+
+.highlight-bar {
+    position: absolute;
+    left: 0;
+    color: blue;
+    height: 1.5rem;
+    /*cursor: help;*/
+}
+
+.highlight-bar .b-tooltip {
+    right: 0 !important;
+}
+
+.hidden {
+    display: none;
+}
+
+.legend {
+    height: 10px;
+    border-color: #000000;
+    border-style: solid;
+    border-width: 0 1px 1px 1px;
+    margin-bottom: 5px;
+}
+
+.legend-scale {
+    text-align: center;
+    font-size: 14px;
+}
+.legend-left {
+    position: absolute;
+    left: 2px;
+}
+.legend-center {
+    text-align: center;
+    font-weight: bold;
+    margin: auto;
+    width: 50%;
+}
+.legend-right {
+    position: absolute;
+    right: 2px;
+}
+.collapse .progress {
+    margin: 10px auto;
+}
+
+.bar-desc > .options-4-actions {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color:#fff;
+    font-weight: 400;
+    padding: 10px;
+    border-radius: 5px;
+    right:-50%;
+    z-index: 20;
+}
+
+.bar-desc:hover > .options-4-actions {
+    display: block;
+}
+
+.bar-desc:hover > .options-4-actions > div:hover {
+    color: #aaaaff;
+}

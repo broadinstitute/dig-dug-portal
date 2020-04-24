@@ -13,7 +13,7 @@
                 :current-page="currentPage"
             >
                 <template v-slot:thead-top="data">
-                    <b-th colspan="3">
+                    <b-th colspan="5">
                         <span class="sr-only">Variant</span>
                     </b-th>
                     <b-th
@@ -28,7 +28,7 @@
                 </template>
                 <template v-slot:cell(locus)="r">
                     <a
-                        :href="`/gene.html?chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
+                        :href="`/region.html?chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
                     >{{locusFormatter(r.item)}}</a>
                 </template>
                 <template v-slot:cell(allele)="r">
@@ -36,6 +36,9 @@
                 </template>
                 <template v-slot:cell(dbSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
+                </template>
+                <template v-slot:cell(symbol)="r">
+                    <a :href="`/gene.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
                 </template>
             </b-table>
         </div>
@@ -76,6 +79,15 @@ export default Vue.component("associations-table", {
                 {
                     key: "dbSNP",
                     label: "dbSNP"
+                },
+                {
+                    key: "consequence",
+                    label: "Consequence",
+                    formatter: Formatters.consequenceFormatter
+                },
+                {
+                    key: "symbol",
+                    label: "Gene"
                 }
             ]
         };
@@ -101,8 +113,14 @@ export default Vue.component("associations-table", {
                     },
                     {
                         key: `${p.name}_beta`,
-                        label: `Beta`,
-                        formatter: Formatters.betaFormatter
+                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
+                        formatter: x => {
+                            if (p.dichotomous) {
+                                x = Math.exp(x);
+                            }
+
+                            return Formatters.floatFormatter(x);
+                        }
                     }
                 ]);
             }
@@ -121,7 +139,6 @@ export default Vue.component("associations-table", {
             for (let i in this.associations) {
                 let r = this.associations[i];
                 let dataIndex = groups[r.varId];
-                let phenotypeName = r.phenotype;
 
                 if (!dataIndex) {
                     dataIndex = data.length;
@@ -132,6 +149,9 @@ export default Vue.component("associations-table", {
                         chromosome: r.chromosome,
                         position: r.position,
                         reference: r.reference,
+                        dbSNP: r.dbSNP,
+                        consequence: r.consequence,
+                        gene: r.gene,
                         alt: r.alt,
                         minP: 1.0
                     });

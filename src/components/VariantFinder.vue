@@ -120,9 +120,9 @@
                 </tbody>
             </table>
         </div>
-        <manhattan-plot class="mb-3" :associations="associationsByPhenotype" :colors="colors"></manhattan-plot>
+        <manhattan-plot class="mb-3" :associations="overlappingVariants" :colors="colors"></manhattan-plot>
         <associations-table
-            :associations="filteredAssociations"
+            :associations="overlappingVariants"
             :phenotypes="phenotypes"
             :per-page="10"
         ></associations-table>
@@ -232,12 +232,36 @@ export default Vue.component("variant-finder", {
             return phenotypeFilters;
         },
 
-        filteredAssociations() {
+        overlappingVariants() {
+            let variants = {};
+            let n = this.phenotypes.length;
             let filters = this.phenotypeFilters;
 
-            return this.associations.filter(r => {
-                return filters[r.phenotype](r);
-            });
+            if (n == 1) {
+                let filter = filters[this.phenotypes[0].name];
+                return this.associations.filter(filter);
+            }
+
+            for (let i in this.associations) {
+                let r = this.associations[i];
+
+                // skip variants that aren't filtered
+                if (!filters[r.phenotype](r)) {
+                    continue;
+                }
+
+                // add empty entry
+                if (!variants[r.varId]) {
+                    variants[r.varId] = [];
+                }
+
+                // add to the variant list
+                variants[r.varId].push(r);
+            }
+
+            return Object.values(variants)
+                .filter(xs => xs.length == n)
+                .flat();
         },
 
         // For the manhattan plot, the associations need to be in a map like
