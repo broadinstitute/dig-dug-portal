@@ -11,10 +11,7 @@
 
                     <div class="col-md-4 gene-page-header-title">
                         Gene
-                        <a
-                            class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('geneSearchHolder');"
-                        >Set Gene</a>
+                        <a class="edit-btn">Set Gene</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title"></div>
                     <div class="col-md-4 gene-page-header-body">
@@ -25,11 +22,7 @@
                     </div>
                     <!-- change this class to variantInfo -->
                     <div class="col-md-4 gene-page-header-body variantInfo">
-                        <div
-                            id="geneSearchHolder"
-                            class="gene-page-header-search-holder"
-                            style="display: none;"
-                        >
+                        <div id="geneSearchHolder" class="gene-page-header-search-holder">
                             <div class="variant-search">
                                 <div class="col-md-10 input-wrapper">
                                     <input
