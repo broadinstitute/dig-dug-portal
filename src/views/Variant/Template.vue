@@ -41,34 +41,34 @@
             <div v-if="$parent.variantData">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Consequence</h4>
+                        <h4 class="card-title">Most Severe Consequence</h4>
                         <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
                     </div>
                 </div>
                 <div class="card mdkp-card">
-                    <div v-if="$parent.variantData.transcriptConsequences" class="card-body">
+                    <div class="card-body">
                         <h4 class="card-title">Transcript Consequences</h4>
-                        <div>
+                        <div v-if="$parent.variantData.transcriptConsequences">
                             <transcript-consequence-table
                                 v-bind:transcriptConsequences="$parent.variantData.transcriptConsequences"
                             ></transcript-consequence-table>
                         </div>
-                    </div>
-                    <div v-else class="card-body">
-                        <h4>No Transcript Consequences</h4>
+                        <div v-else class="card-body">
+                            <h4>None found</h4>
+                        </div>
                     </div>
                 </div>
                 <div class="card mdkp-card">
-                    <div v-if="$parent.variantData.transcriptionFactors" class="card-body">
+                    <div class="card-body">
                         <h4 class="card-title">Transcription Factors</h4>
-                        <div>
+                        <div v-if="$parent.variantData.transcriptionFactors">
                             <transcription-factors-table
                                 v-bind:transcriptionFactors="$parent.variantData.transcriptionFactors"
                             ></transcription-factors-table>
                         </div>
-                    </div>
-                    <div v-else class="card-body">
-                        <h4>No Transcription Factors</h4>
+                        <div v-else class="card-body">
+                            <h4>None found</h4>
+                        </div>
                     </div>
                 </div>
                 <div class="card mdkp-card">
