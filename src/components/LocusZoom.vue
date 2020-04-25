@@ -136,15 +136,15 @@ export default Vue.component("locuszoom", {
         },
 
         /* Creates an LZVueSource for a type and set of loaded data for it.
-         * The source is added to the set of data sources for LocusZoom. If
-         * the source was previously loaded, LocusZoom will discard the old
-         * one pointing to the same type.
+         * The source is added to the set of data sources for LocusZoom.
+         *
+         * After registering it, add a watch on the computed property for
+         * the data loaded by the app. This watch needs to be applied
+         * immediately as it's possible the data was already loaded by the
+         * app and we need the watch function to trigger.
          */
         createSource(lzType) {
             let params = { lzupdate: this.lzUpdate };
-
-            // Make this watch immediate, because it's possible that the
-            // data has already been loaded by the time LocusZoom is mounting.
             let watchOptions = { immediate: true };
 
             // register the data source with LocusZoom
