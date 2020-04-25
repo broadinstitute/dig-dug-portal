@@ -132,7 +132,7 @@
                         v-bind:panels="['association','genes','intervals']"
                         v-bind:assoc="{
                             'data': $parent.associations,
-                            'translator': $parent.associationsFromLZ,
+                            'translator': $parent.associationsForLZ,
                         }"
                         v-bind:chr="$store.state.chr"
                         v-bind:start="$store.state.start"

@@ -56,8 +56,7 @@ const SimpleSource = LocusZoom.Data.Source.extend(function (params) {
 }, 'SimpleSource');
 SimpleSource.prototype.getRequest = function (state, chain, fields) {
     let cacheKey = this.getCacheKey(state, chain, fields);
-    // this._dispatch(state, cacheKey);
-    console.log('reader data', this._data)
+    this._dispatch(state, cacheKey);
     return Promise.resolve(this._data);
 };
 SimpleSource.prototype.toJSON = function () {
