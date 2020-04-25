@@ -1,242 +1,194 @@
 <template>
-    <div id="locuszoom"></div>
+    <div id="lz"></div>
 </template>
 
 <script>
 import Vue from "vue";
 import LocusZoom from "locuszoom";
-import lzDataSources from "@/utils/lz/lzDataSources";
 
-import {
-    BioIndexLZSource,
-    LazySource,
-    LazyDataChain,
-    LazyDataRef,
-    DispatchSource,
-    SimpleSource
-} from "@/utils/lz/lzReader";
-import { sortPanels, LZ_TYPE } from "@/utils/lz/lzUtils";
-
-import * as _ from "lodash";
+import { LZ_TYPE, DEFAULT_PANEL_OPTIONS } from "@/utils/lz/lzConstants";
+import LZDataSources from "@/utils/lz/lzDataSources";
+import LZVueSource from "@/utils/lz/lzVueSource";
 
 export default Vue.component("locuszoom", {
     props: [
         "panels",
-        "modules",
 
-        ...Object.values(LZ_TYPE),
-
+        // initial locus, can be used to reset, too
         "chr",
         "start",
-        "end"
+        "end",
+
+        // refresh sync flag (optional)
+        "refresh",
+
+        // computed properties for each data source type
+        ...Object.values(LZ_TYPE)
     ],
+
+    /* This is the last region LocusZoom requested to be loaded.
+     * It is used both as a cache to know if LocusZoom is requesting
+     * the same region be loaded multiple times, and so the app/store
+     * can know where LocusZoom is compared to the region stored in
+     * the properties.
+     *
+     * It is set to the same region as that of the bound properties
+     * initially. Otherwise, when the page initially loads, LocusZoom
+     * will request that the region be fetched.
+     *
+     * WE DO NOT WANT TO DO THIS!!
+     *
+     * This is because the page itself will load the data on its own
+     * when ready and we don't want to load it multiple times. Once
+     * the data has been loaded, any scrolling from LocusZoom will update
+     * the region here and cause a reload.
+     *
+     * Likewise, if the page loads new data on its own, the computed
+     * property watch of this component will pick up the change and
+     * refresh LocusZoom.
+     */
+
     data() {
         return {
-            myStart: this.start,
-            myEnd: this.end,
-            desired: {
-                start: null,
-                end: null
-            },
-            updatedTargets: []
+            lzchr: this.chr,
+            lzstart: this.start,
+            lzend: this.end
         };
     },
+
+    /* Called when the component is added to the DOM. Set up the
+     * panels and layout of LocusZoom here.
+     */
     mounted() {
-        let panelOptions = {
-            //unnamespaced: true,
-            proportional_height: 1,
-            dashboard: {
-                components: [
-                    {
-                        type: "resize_to_data",
-                        position: "right"
-                    },
-                    {
-                    type: "region_scale",
-                    position: "left"
-                    }
-                ]
-            }
-        };
-        let panels = sortPanels(this.panels).map(p =>
-            LocusZoom.Layouts.get("panel", p, { ...panelOptions })
-        );
+        let panels = this.panels.map(p => {
+            return LocusZoom.Layouts.get("panel", p, {
+                ...DEFAULT_PANEL_OPTIONS
 
-        this.layout = {
-            responsive_resize: "both",
-            panels,
-            state: {
-                chr: this.chr,
-                start: this.myStart,
-                end: this.myEnd
-            }
-        };
+                // TODO: override/extend defaults here...
+            });
+        });
 
+        // create the data source collection
         this.dataSources = new LocusZoom.DataSources();
 
+        // register all the possible data sources
         Object.values(LZ_TYPE).forEach(lzType => {
-            if (this[lzType]) {
-                const { name, data, translator } = this[lzType];
-                this.dataSources.add(lzType, [
-                    "SimpleSource",
-                    {
-                        positionUpdater: this.updatePosition,
-                        store: this.$store,
-                        data: translator(data)
-                    }
-                ]);
-            } else if (lzDataSources.defaultSource[lzType]) {
-                this.dataSources.add(
-                    lzType,
-                    lzDataSources.defaultSource[lzType]
-                );
+            if (!!this[lzType]) {
+                this.createSource(lzType, this[lzType]);
+            } else {
+                let source = LZDataSources[lzType];
+
+                if (!!source) {
+                    this.dataSources.add(lzType, source);
+                }
             }
         });
 
-        this.lzplot = LocusZoom.populate(
-            "#locuszoom",
-            this.dataSources,
-            this.layout
-        );
+        // create the final plot with a layout and initial state
+        this.lzplot = LocusZoom.populate("#lz", this.dataSources, {
+            panels,
+            responsive_resize: "both",
+            state: {
+                chr: this.chr,
+                start: this.start,
+                end: this.end
+            }
+        });
     },
     methods: {
-        updatePosition(lzState) {
-            const { chr, start, end } = lzState;
-            this.desired.start = start;
-            this.desired.end = end;
-            this.dataUpdated();
+        /* Posts a custom event that the app can listen for and - when
+         * received - dispatch whatever messages are necessary to load data.
+         */
+        requestUpdate() {
+            this.$emit("lzupdate", {
+                chr: this.lzchr,
+                start: this.lzstart,
+                end: this.lzend
+            });
         },
-        refresh() {
-            this.lzplot.refresh();
-        },
-        dataUpdated(target) {
-            if (target) {
-                this.updatedTargets.push(target);
-            } else {
-                this.updatedTargets.push(
-                    ...Object.values(LZ_TYPE).filter(lzType => this[lzType])
-                );
+
+        /* This is called whenever one of the LZVueSource objects had a
+         * getRequest made by LocusZoom with a region.
+         *
+         * If the region requested is different from the region already
+         * loaded, then the `lzupdate` event is emitted with the new
+         * region. This allows the app to dispatch whatever actions are
+         * necessary to load the data in question.
+         *
+         * If the region is invalid or not different, then it is assumed
+         * that the LZVueSource's data promise either already has the
+         * data loaded or will soon (and the promise was already returned
+         * to LocusZoom).
+         */
+        lzUpdate({ chr, start, end }, chain, fields) {
+            if (
+                chr !== this.lzchr ||
+                start !== this.lzstart ||
+                end !== this.lzend
+            ) {
+                this.lzchr = chr;
+                this.lzstart = start;
+                this.lzend = end;
+
+                // request that the app/store load more data
+                this.requestUpdate();
             }
+        },
 
-            const stillUpdating = Object.values(LZ_TYPE)
-                .filter(lzType => this[lzType])
-                .every(lzType => {
-                    return !this.updatedTargets.includes(lzType);
-                });
+        /* Creates an LZVueSource for a type and set of loaded data for it.
+         * The source is added to the set of data sources for LocusZoom. If
+         * the source was previously loaded, LocusZoom will discard the old
+         * one pointing to the same type.
+         */
+        createSource(lzType) {
+            let params = { lzupdate: this.lzUpdate };
 
-            if (!stillUpdating) {
-                // if i'm not still updating, then dispatch desired coordinates
-                this.$store.dispatch("onLocusZoomCoords", {
-                    newChr: this.chr,
-                    newStart: this.desired.start,
-                    newEnd: this.desired.end
-                });
-                this.desired.start = null;
-                this.desired.end = null;
-                this.updatedTargets = [];
+            // Make this watch immediate, because it's possible that the
+            // data has already been loaded by the time LocusZoom is mounting.
+            let watchOptions = { immediate: true };
+
+            // register the data source with LocusZoom
+            this.dataSources.add(lzType, ["LZVueSource", params]);
+
+            // add a custom watch for this property
+            this.$watch(
+                lzType,
+                function(data) {
+                    this.propertyWatch(lzType, data);
+                },
+                watchOptions
+            );
+        },
+
+        /* The data for a particular data type was updated. Make sure that
+         * the type exists and is a valid LocusZoom source. Then add a new
+         * LZVueSource for it with the data filled in.
+         */
+        propertyWatch(lzType, data) {
+            let source = this.dataSources.sources[lzType];
+
+            if (!!source) {
+                source.resolve(data);
+
+                /* Force redraw. This handles a case where LocusZoom didn't
+                 * actually request any data, but data has been provided
+                 * none-the-less.
+                 */
+                this.lzplot.refresh();
             }
         }
     },
-    watch: { 
-        assoc(n, o) {
-            if (this["assoc"] && n.data.length !== o.data.length) {
-                this.dataSources.add("assoc", [
-                    "SimpleSource",
-                    {
-                        positionUpdater: this.updatePosition,
-                        store: this.$store,
-                        data: n.translator(n.data)
-                    }
-                ]);
-                this.refresh();
-                this.dataUpdated("assoc");
-            }
-        },
-        gene(n, o) {
-            if (this["gene"] && n.data.length !== o.data.length) {
-                this.dataSources.add("gene", [
-                    "SimpleSource",
-                    {
-                        positionUpdater: this.updatePosition,
-                        store: this.$store,
-                        data: n.translator(n.data)
-                    }
-                ]);
-                this.refresh();
-                this.dataUpdated("gene");
-            }
-        },
-        ld(n, o) {
-            if (this["ld"] && n.data.length !== o.data.length) {
-                this.dataSources.add("ld", [
-                    "SimpleSource",
-                    {
-                        positionUpdater: this.updatePosition,
-                        store: this.$store,
-                        data: n.translator(n.data)
-                    }
-                ]);
-                this.refresh();
-                this.dataUpdated("ld");
-            }
-        },
-        phewas(n, o) {
-            if (this["phewas"] && n.data.length !== o.data.length) {
-                this.dataSources.add("phewas", [
-                    "SimpleSource",
-                    {
-                        positionUpdater: this.updatePosition,
-                        store: this.$store,
-                        data: n.translator(n.data)
-                    }
-                ]);
 
-                console.log(n.translator(n.data), this.myStart, this.myEnd);
+    watch: {
+        refresh(flag) {
+            if (!!flag) {
+                this.requestUpdate();
 
-                this.refresh();
-                this.dataUpdated("phewas");
-            }
-        },
-        recomb(n, o) {
-            if (this["recomb"] && n.data.length !== o.data.length) {
-                this.dataSources.add("recomb", [
-                    "SimpleSource",
-                    {
-                        positionUpdater: this.updatePosition,
-                        store: this.$store,
-                        data: n.translator(n.data)
-                    }
-                ]);
-                this.refresh();
-                this.dataUpdated("recomb");
-            }
-        },
-        constraint(n, o) {
-            if (this["constraint"] && n.data.length !== o.data.length) {
-                this.dataSources.add("constraint", [
-                    "SimpleSource",
-                    {
-                        positionUpdater: this.updatePosition,
-                        store: this.$store,
-                        data: n.translator(n.data)
-                    }
-                ]);
-                this.refresh();
-                this.dataUpdated("constraint");
-            }
-        },
-        intervals(n, o) {
-            if (this["intervals"] && n.data.length !== o.data.length) {
-                this.dataSources.add("intervals", [
-                    "SimpleSource",
-                    {
-                        positionUpdater: this.updatePosition,
-                        store: this.$store,
-                        data: n.translator(n.data)
-                    }
-                ]);
-                this.refresh();
-                this.dataUpdated("intervals");
+                /* If refresh was bound with v-bind:refresh.sync, then this
+                 * will reset it to false, so that the app can set it to
+                 * true again later and this watch will trip again.
+                 */
+                this.$emit("update:refresh", false);
             }
         }
     }
