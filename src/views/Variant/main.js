@@ -15,6 +15,7 @@ import PheWASTable from "@/components/PheWASTable.vue";
 import { calcLog } from "@/utils/lz/lzUtils";
 import LocusZoom from "@/components/LocusZoom";
 import Formatters from "@/utils/formatters";
+import uiUtils from "@/utils/uiUtils";
 
 new Vue({
     store,
@@ -107,9 +108,10 @@ new Vue({
         }
     },
     methods: {
+        ...uiUtils,
+
         lzAssociationsTransform(associations) {
             let assocs = associations.map(a => {
-                console.log(a, a.pValue, calcLog(a.pValue))
                 return {
                     id:  Math.random(),
                     chr: a.chromosome,

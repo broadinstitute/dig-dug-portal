@@ -10,15 +10,11 @@ import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
 import uiUtils from "@/utils/uiUtils";
 import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils"
-import { calcLog } from "@/utils/lz/lzUtils";
 
 Vue.config.productionTip = false;
 
 new Vue({
     store,
-    modules: {
-        uiUtils,
-    },
     components: {
         PhenotypeSelectPicker,
         LocusZoom,
@@ -54,26 +50,7 @@ new Vue({
 
     methods: {
         ...useTranslations,
-        lzAssociationsTransform(associations) {
-            let assocs = associations.map(a => {
-                console.log(a, a.palue, calcLog(a.pValue))
-                return {
-                    id: a.varId,
-                    chr: a.chromosome,
-                    start: a.position,
-                    end: a.position + 1,
-                    position: a.position,
-                    pvalue: a.pValue,
-                    log_pvalue: calcLog(a.pValue),
-                    variant: a.varId,
-                    ref_allele: a.varId,
-                    trait_group: a.phenotype.group,
-                    trait_label: a.phenotype.description,
-                };
-            });
-
-            return assocs;
-        },
+        ...uiUtils,
     },
 
     computed: {

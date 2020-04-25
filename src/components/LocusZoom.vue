@@ -137,7 +137,7 @@ export default Vue.component("locuszoom", {
             }
         }
     },
-    watch: {
+    watch: { 
         assoc(n, o) {
             if (this["assoc"] && n.data.length !== o.data.length) {
                 this.dataSources.add("assoc", [
