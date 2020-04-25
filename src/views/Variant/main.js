@@ -113,10 +113,10 @@ new Vue({
         lzAssociationsTransform(associations) {
             let assocs = associations.map(a => {
                 return {
-                    id: a.varId,
+                    id:  Math.random(),
                     chr: a.chromosome,
                     start: a.position,
-                    end: a.position + 1,
+                    end: a.position,
                     position: a.position,
                     pvalue: a.pValue,
                     log_pvalue: calcLog(a.pValue),
@@ -128,7 +128,7 @@ new Vue({
             });
 
             return assocs;
-        }
+        },
     },
 
     watch: {

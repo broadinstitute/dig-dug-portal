@@ -129,7 +129,7 @@
                     >Associations for {{$parent.selectedPhenotype.description}}</h4>
                     <locuszoom
                         ref="lz"
-                        v-bind:panels="['association','genes','intervals',]"
+                        v-bind:panels="['association','genes','intervals']"
                         v-bind:assoc="{
                             'data': $parent.associations,
                             'translator': $parent.associationsForLZ,

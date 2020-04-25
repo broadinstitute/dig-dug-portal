@@ -9,7 +9,7 @@ import LocusZoom from "@/components/LocusZoom";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
 import uiUtils from "@/utils/uiUtils";
-import { useTranslations, translate, associationsFromVariants, associationsForLZ } from "@/utils/dataMappingUtils"
+import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils"
 
 Vue.config.productionTip = false;
 
@@ -51,10 +51,6 @@ new Vue({
     methods: {
         ...useTranslations,
         ...uiUtils,
-        associationsForLZFromVariants: translate({ from: associationsFromVariants, to: associationsForLZ }),
-        add() {
-            this.counter += 1;
-        }
     },
 
     computed: {

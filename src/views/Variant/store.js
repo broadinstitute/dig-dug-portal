@@ -31,11 +31,7 @@ export default new Vuex.Store({
     },
     actions: {
         async onLocusZoomCoords(context, { newChr, newStart, newEnd }) {
-            const { chr, start, end } = context.state;
-
-            if (newChr !== chr || newStart !== start || newEnd !== end) {
-                context.dispatch(`variant/query`, { q: context.state.variantID });
-            }
+            context.dispatch(`variant/query`, { q: context.state.variantID });
         },
 
         async queryVariant(context) {

@@ -69,11 +69,6 @@ SimpleSource.prototype.getCacheKey = function (state, chain, fields) {
 function shouldDispatch(self) {
     return (state, cacheKey) => {
         if (typeof (cacheKey) !== 'undefined' && cacheKey !== self._cachedKey) {
-            // self._store.dispatch('onLocusZoomCoords', {
-            //     newChr: state.chr,
-            //     newStart: state.start,
-            //     newEnd: state.end,
-            // });
             self._positionUpdater(state);
         }
     }

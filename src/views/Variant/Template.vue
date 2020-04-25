@@ -75,16 +75,18 @@
                     <div class="card-body">
                         <h4 class="card-title">Phenotype-Wide Associations (PheWAS)</h4>
                         <locuszoom
-                            ref="lz"
-                            v-if="$parent.variantData"
+
                             v-bind:panels="['phewas']"
+
                             v-bind:phewas="{
                               'data': $parent.lzAssociations,
                               'translator': $parent.lzAssociationsTransform
                             }"
-                            v-bind:chr="$store.state.variant.data.chromosome"
-                            v-bind:start="$store.state.variant.data.position"
-                            v-bind:end="$store.state.variant.data.position+1"
+
+                            v-bind:chr="$store.state.variant.data[0].chromosome"
+                            v-bind:start="$store.state.variant.data[0].position"
+                            v-bind:end="$store.state.variant.data[0].position + 1"
+
                         ></locuszoom>
                         <phewas-table
                             :associations="$parent.variantData.associations"
