@@ -7,11 +7,10 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
-import { associationsForLZ } from "@/utils/dataMappingUtils";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
 import uiUtils from "@/utils/uiUtils";
-import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils"
+import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils";
 import ErrorMessage from "@/components/ErrorMessage";
 
 Vue.config.productionTip = false;
@@ -36,28 +35,27 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
-   render(createElement, context) {
+    render(createElement, context) {
         return createElement(Template);
     },
 
     data() {
         return {
-            counter: 0,
-        }
+            counter: 0
+        };
     },
     methods: {
         associationsForLZ,
-        showHideElement: function (ELEMENT) {
+        showHideElement: function(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
         },
         RRR: function(payLoad) {
             EventBus.$emit("NEW_ERROR", payLoad);
         },
         ...useTranslations,
-        ...uiUtils,
+        ...uiUtils
     },
 
-   
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -82,7 +80,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function (gene) {
+            return this.$store.state.genes.data.filter(function(gene) {
                 return gene.type == "protein_coding";
             });
         },
