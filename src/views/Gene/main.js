@@ -11,7 +11,7 @@ import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
 import uiUtils from "@/utils/uiUtils";
 import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils";
-import ErrorMessage from "@/components/ErrorMessage";
+import ErrorMessage, { onError } from "@/components/ErrorMessage";
 
 Vue.config.productionTip = false;
 
@@ -46,11 +46,9 @@ new Vue({
     },
     methods: {
         associationsForLZ,
+        onError,
         showHideElement: function(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
-        },
-        onError: function(payLoad) {
-            EventBus.$emit("NEW_ERROR", payLoad);
         },
         ...useTranslations,
         ...uiUtils

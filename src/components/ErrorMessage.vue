@@ -56,7 +56,12 @@ export default Vue.component("error-message", {
         }
     }
 });
+
+export const onError = function(payLoad) {
+    EventBus.$emit("NEW_ERROR", payLoad);
+};
 </script>
+
 <style scoped>
 .countDown {
     float: right;
