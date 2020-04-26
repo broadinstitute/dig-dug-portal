@@ -180,6 +180,24 @@ export default Vue.component("locuszoom", {
     },
 
     watch: {
+        /* The refresh property allows the LocusZoom component to be aware
+         * of external properties that should cause LocusZoom to request
+         * new data.
+         *
+         * An example of this would be a phenotype property changing which
+         * means associations should be loaded. But since LocusZoom is only
+         * aware of the region for its state, it can't know to request data.
+         *
+         * The template using this component can v-bind:refresh to the
+         * phenotype computed property and - when it changes - this watch
+         * will trigger and then emit the lzupdate event.
+         *
+         * Additionally, sometimes it may be nice to use this as something
+         * that can be triggered multiple times with a flag. In that case,
+         * it can be bound with .sync (e.g. v-bind:refresh.sync) and after
+         * this triggers it will be reset back to false so that the app
+         * can set it to true again in the future, causing another refresh.
+         */
         refresh(flag) {
             if (!!flag) {
                 this.requestUpdate();
