@@ -49,7 +49,7 @@ new Vue({
         showHideElement: function(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
         },
-        RRR: function(payLoad) {
+        onError: function(payLoad) {
             EventBus.$emit("NEW_ERROR", payLoad);
         },
         ...useTranslations,

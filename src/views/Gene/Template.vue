@@ -94,7 +94,7 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <button @click="$parent.RRR(Math.random())">new event error</button>
+                    <button @click="$parent.onError(Math.random())">new event error</button>
                     <h4 class="card-title">Genes overlapping region</h4>
                     <div
                         v-for="row in $parent.genes"
