@@ -127,12 +127,13 @@
                         class="card-title"
                     >Associations for {{$store.state.phenotype.description}}</h4>
                     <locuszoom
+                        v-if="$store.state.phenotype"
                         :panels="['association','genes','intervals']"
                         :assoc="$parent.lzAssociations"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
                         :end="$store.state.end"
-                        :refresh="$store.state.phenotype"
+                        :phenotype="$store.state.phenotype.name"
                         @lzupdate="$store.dispatch('loadAssociations', $event)"
                     ></locuszoom>
                 </div>

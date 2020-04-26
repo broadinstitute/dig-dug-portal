@@ -20,8 +20,9 @@ export default Vue.component("locuszoom", {
         "start",
         "end",
 
-        // refresh sync flag (optional)
-        "refresh",
+        // custom LocusZoom state (all optional)
+        "phenotype",
+        "variant",
 
         // computed properties for each data source type
         ...Object.values(LZ_TYPE)
@@ -51,9 +52,26 @@ export default Vue.component("locuszoom", {
 
     data() {
         return {
-            lzchr: this.chr,
-            lzstart: this.start,
-            lzend: this.end
+            /* This is our desired state.
+             *
+             * It can be set either by the app updating the properties
+             * bound to the component or by LocusZoom itself requesting
+             * a particular state (e.g. user scrolling).
+             */
+            desiredState: {
+                chr: this.chr,
+                start: this.start,
+                end: this.end,
+                phenotype: this.phenotype,
+                variant: this.variant
+            },
+
+            /* This is the last requested state.
+             *
+             * It is our internal representation of the last desired state
+             * that was emitted back to the app to be loaded.
+             */
+            requestedState: {}
         };
     },
 
@@ -85,80 +103,69 @@ export default Vue.component("locuszoom", {
             }
         });
 
-        // create the final plot with a layout and initial state
+        // create the final plot with a layout and desired state
         this.lzplot = LocusZoom.populate("#lz", this.dataSources, {
             panels,
             responsive_resize: "both",
-            state: {
-                chr: this.chr,
-                start: this.start,
-                end: this.end
-            }
+
+            // this must be a copy since LocusZoom modifies the object passed
+            state: Object.assign({}, this.desiredState)
         });
     },
     methods: {
-        /* Posts a custom event that the app can listen for and - when
-         * received - dispatch whatever messages are necessary to load data.
-         */
-        requestUpdate() {
-            this.$emit("lzupdate", {
-                chr: this.lzchr,
-                start: this.lzstart,
-                end: this.lzend
-            });
-        },
-
         /* This is called whenever one of the LZVueSource objects had a
-         * getRequest made by LocusZoom with a region.
+         * getRequest made by LocusZoom with a region. So it's possible
+         * to be called multiple times with the same state.
          *
-         * If the region requested is different from the region already
-         * loaded, then the `lzupdate` event is emitted with the new
-         * region. This allows the app to dispatch whatever actions are
-         * necessary to load the data in question.
+         * This represents a desired state that LocusZoom wants to load.
          *
-         * If the region is invalid or not different, then it is assumed
-         * that the LZVueSource's data promise either already has the
-         * data loaded or will soon (and the promise was already returned
-         * to LocusZoom).
+         * If the state (desired) from LocusZoom differs from the last
+         * requested state, then we update and emit an event requesting
+         * that the app load it.
+         *
+         * If the is not different, then it is assumed that the sources's
+         * data promise either already has the data loaded or will soon
+         * and the promise was already returned to LocusZoom via a previous
+         * getRequest method.
          */
-        lzUpdate({ chr, start, end }, chain, fields) {
-            let valid = !!chr && !!start && !!end;
-            let updated =
-                chr !== this.lzchr ||
-                start !== this.lzstart ||
-                end !== this.lzend;
+        lzUpdate(state, chain, fields) {
+            let keys = Object.keys(this.desiredState);
 
-            if (valid && updated) {
-                this.lzchr = chr;
-                this.lzstart = start;
-                this.lzend = end;
+            // are all the state keys the same as the last requested state?
+            let same = keys.every(key => {
+                return state[key] === this.requestedState[key];
+            });
+
+            if (!same) {
+                this.desiredState = _.pick(state, keys);
+                this.requestedState = _.pick(state, keys);
 
                 // request that the app/store load more data
-                this.requestUpdate();
+                this.$emit("lzupdate", this.requestedState);
             }
         },
 
         /* This is called whenever we need LocusZoom to change its internal
          * state (region) to something else entirely. Eventually this will
-         * result in lzUpdate being called and an lzupdate event being
-         * fired.
+         * result in lzUpdate being called with our new, desired state, and
+         * an lzupdate event being fired to the app.
          *
-         * This action is wrapped in debounce, because quite often all the
-         * properties are updated together, which means we'll get multiple
-         * watches triggered, and applyState will be tripped multiple times
-         * in a row. Those should be coalesced them into a single apply
+         * This actual update is wrapped in debounce, because quite often
+         * multiple properties are updated together, which means we'll get
+         * multiple watches triggered, and applyState will be tripped multiple
+         * times in a row. Those should be coalesced them into a single apply
          * made to LocusZoom.
          */
-        applyState() {
-            let plot = this.lzplot;
-            let state = {
-                chr: this.chr,
-                start: this.start,
-                end: this.end
+        applyState(updatedState) {
+            this.desiredState = { ...this.desiredState, ...updatedState };
+
+            // apply the update to LocusZoom
+            let update = function() {
+                this.lzplot.applyState(this.desiredState);
             };
 
             // wait a bit for possible, additional state changes
-            _.debounce(() => plot.applyState(state), 100)();
+            _.debounce(update.bind(this), 100)();
         },
 
         /* Creates an LZVueSource for a type and set of loaded data for it.
@@ -212,46 +219,25 @@ export default Vue.component("locuszoom", {
     },
 
     watch: {
-        /* The refresh property allows the LocusZoom component to be aware
-         * of external properties that should cause LocusZoom to request
-         * new data.
-         *
-         * An example of this would be a phenotype property changing which
-         * means associations should be loaded. But since LocusZoom is only
-         * aware of the region for its state, it can't know to request data.
-         *
-         * The template using this component can v-bind:refresh to the
-         * phenotype computed property and - when it changes - this watch
-         * will trigger and then emit the lzupdate event.
-         *
-         * Additionally, sometimes it may be nice to use this as something
-         * that can be triggered multiple times with a flag. In that case,
-         * it can be bound with .sync (e.g. v-bind:refresh.sync) and after
-         * this triggers it will be reset back to false so that the app
-         * can set it to true again in the future, causing another refresh.
-         */
-        refresh(flag) {
-            if (!!flag) {
-                this.requestUpdate();
-
-                /* If refresh was bound with v-bind:refresh.sync, then this
-                 * will reset it to false, so that the app can set it to
-                 * true again later and this watch will trip again.
-                 */
-                this.$emit("update:refresh", false);
-            }
-        },
-
         /* The original region has been updated.
          */
         chr(chr) {
-            this.applyState();
+            this.applyState({ chr });
         },
         start(start) {
-            this.applyState();
+            this.applyState({ start });
         },
         end(end) {
-            this.applyState();
+            this.applyState({ end });
+        },
+
+        /* The page's custom LocusZoom state has been updated.
+         */
+        phenotype(phenotype) {
+            this.applyState({ phenotype });
+        },
+        varId(varId) {
+            this.applyState({ varId });
         }
     }
 });

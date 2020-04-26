@@ -48,7 +48,11 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">PheWAS Associations</h4>
-                        <locuszoom :panels="['phewas']" :phewas="$parent.lzAssociations"></locuszoom>
+                        <locuszoom
+                            :panels="['phewas']"
+                            :phewas="$parent.lzAssociations"
+                            :variant="$parent.variantData.varId"
+                        ></locuszoom>
                         <phewas-table
                             :associations="$parent.variantData.associations"
                             :phenotype-map="$store.state.bioPortal.phenotypeMap"

@@ -115,16 +115,10 @@ export default new Vuex.Store({
             }
         },
 
-        async loadAssociations(context, state) {
-            if (!context.state.phenotype) {
-                return;
-            }
-
-            // if the state is null, then used the page's state
-            let { chr, start, end } = state || context.state;
+        async loadAssociations(context, lzstate) {
+            let { chr, start, end, phenotype } = lzstate;
 
             // construct the query
-            let phenotype = context.state.phenotype.name;
             let query = {
                 q: `${phenotype},${chr}:${start}-${end}`
             };
