@@ -236,8 +236,8 @@ export default Vue.component("locuszoom", {
         phenotype(phenotype) {
             this.applyState({ phenotype });
         },
-        varId(varId) {
-            this.applyState({ varId });
+        variant(variant) {
+            this.applyState({ variant });
         }
     }
 });
