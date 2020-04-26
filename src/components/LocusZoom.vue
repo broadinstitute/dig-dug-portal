@@ -9,6 +9,7 @@ import LocusZoom from "locuszoom";
 import { LZ_TYPE, DEFAULT_PANEL_OPTIONS } from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
 import LZVueSource from "@/utils/lz/lzVueSource";
+import * as _ from "lodash";
 
 export default Vue.component("locuszoom", {
     props: [
@@ -121,11 +122,13 @@ export default Vue.component("locuszoom", {
          * to LocusZoom).
          */
         lzUpdate({ chr, start, end }, chain, fields) {
-            if (
+            let valid = !!chr && !!start && !!end;
+            let updated =
                 chr !== this.lzchr ||
                 start !== this.lzstart ||
-                end !== this.lzend
-            ) {
+                end !== this.lzend;
+
+            if (valid && updated) {
                 this.lzchr = chr;
                 this.lzstart = start;
                 this.lzend = end;
@@ -133,6 +136,29 @@ export default Vue.component("locuszoom", {
                 // request that the app/store load more data
                 this.requestUpdate();
             }
+        },
+
+        /* This is called whenever we need LocusZoom to change its internal
+         * state (region) to something else entirely. Eventually this will
+         * result in lzUpdate being called and an lzupdate event being
+         * fired.
+         *
+         * This action is wrapped in debounce, because quite often all the
+         * properties are updated together, which means we'll get multiple
+         * watches triggered, and applyState will be tripped multiple times
+         * in a row. Those should be coalesced them into a single apply
+         * made to LocusZoom.
+         */
+        applyState() {
+            let plot = this.lzplot;
+            let state = {
+                chr: this.chr,
+                start: this.start,
+                end: this.end
+            };
+
+            // wait a bit for possible, additional state changes
+            _.debounce(() => plot.applyState(state), 100)();
         },
 
         /* Creates an LZVueSource for a type and set of loaded data for it.
@@ -169,11 +195,17 @@ export default Vue.component("locuszoom", {
 
             if (!!source) {
                 source.resolve(data);
+            }
 
-                /* Force redraw. This handles a case where LocusZoom didn't
-                 * actually request any data, but data has been provided
-                 * none-the-less.
-                 */
+            /* Force redraw. This handles a case where LocusZoom didn't
+             * actually request any data, but data has been provided
+             * none-the-less.
+             *
+             * NOTE: sometimes a property update happens before LocusZoom
+             * has actually been initialized. In that case, we still need
+             * to resolve the data, but just can't refresh.
+             */
+            if (!!this.lzplot) {
                 this.lzplot.refresh();
             }
         }
@@ -208,6 +240,18 @@ export default Vue.component("locuszoom", {
                  */
                 this.$emit("update:refresh", false);
             }
+        },
+
+        /* The original region has been updated.
+         */
+        chr(chr) {
+            this.applyState();
+        },
+        start(start) {
+            this.applyState();
+        },
+        end(end) {
+            this.applyState();
         }
     }
 });
