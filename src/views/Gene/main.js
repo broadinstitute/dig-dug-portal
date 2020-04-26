@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
+import EventBus from "@/utils/eventBus";
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
@@ -9,6 +10,9 @@ import LocusZoom from "@/components/LocusZoom";
 import { associationsForLZ } from "@/utils/dataMappingUtils";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
+import uiUtils from "@/utils/uiUtils";
+import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils"
+import ErrorMessage from "@/components/ErrorMessage";
 
 Vue.config.productionTip = false;
 
@@ -20,6 +24,7 @@ new Vue({
         LocusZoom,
         AssociationsTable,
         PhenotypeSignal,
+        ErrorMessage,
         PageHeader,
         PageFooter
     },
@@ -31,14 +36,28 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
-    methods: {
-        associationsForLZ
-    },
-
-    render(createElement, context) {
+   render(createElement, context) {
         return createElement(Template);
     },
 
+    data() {
+        return {
+            counter: 0,
+        }
+    },
+    methods: {
+        associationsForLZ,
+        showHideElement: function (ELEMENT) {
+            uiUtils.showHideElement(ELEMENT);
+        },
+        RRR: function(payLoad) {
+            EventBus.$emit("NEW_ERROR", payLoad);
+        },
+        ...useTranslations,
+        ...uiUtils,
+    },
+
+   
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;

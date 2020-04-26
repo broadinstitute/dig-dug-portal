@@ -5,6 +5,13 @@
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
+            <error-message></error-message>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <error-message dismissible></error-message>
+                    <error-message timeout="10"></error-message>
+                </div>
+            </div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">
@@ -87,9 +94,8 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Genes in the region associated with phenotypes with signal</h4>
+                    <button @click="$parent.RRR(Math.random())">new event error</button>
+                    <h4 class="card-title">Genes overlapping region</h4>
                     <div
                         v-for="row in $parent.genes"
                         :class="'gene-with-signal '+row.type"
