@@ -18,22 +18,18 @@
                         Chromosome: Start position - End position
                         <a
                             class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('regionSearchHolder');"
+                            v-on:click="$parent.showHideElement('regionSearchHolder')"
                         >Edit position / Search gene</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title">
                         Phenotype
                         <a
                             class="edit-btn"
-                            onclick="mdkp.utility.showHideElement('phenotypeSearchHolder');"
+                            v-on:click="$parent.showHideElement('phenotypeSearchHolder')"
                         >Select phenotype</a>
                     </div>
                     <div class="col-md-8 gene-page-header-body regionInfo">
-                        <div
-                            id="regionSearchHolder"
-                            class="gene-page-header-search-holder"
-                            style="display: none;"
-                        >
+                        <div id="regionSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="region-search">
                                 <div class="col-md-1 input-wrapper">
                                     <input
@@ -83,7 +79,10 @@
                         {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.end}}
                     </div>
                     <div class="col-md-4 gene-page-header-body">
-                        <div id="phenotypeSearchHolder" class="gene-page-header-search-holder">
+                        <div
+                            id="phenotypeSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
                             <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
                         </div>
                         <span
@@ -105,7 +104,12 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">New phenotypes with signal</h4>
+                    <h4
+                        class="card-title"
+                    >Phenotypes with signal in {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
+                    <div
+                        class="p-bellow-section-header"
+                    >*Showing phenotypes with p-value &lt;= 5e-3. To reset the page with a phenotype of interest, click a phenotype name. To view phenotypes in a phenotype group, click phenotype group name or expand icon. White bars indicate p-values of the phenotypes in phenotype groups. Bars are rendered in logarithmic scale</div>
                     <phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
                 </div>
             </div>
@@ -126,32 +130,29 @@
                     </div>
                 </div>
             </div>
-            <div class="card mdkp-card">
-                <div v-show="$parent.selectedPhenotype" class="card-body">
+            <div v-if="$parent.selectedPhenotype" class="card mdkp-card">
+                <div class="card-body">
                     <h4
-                        v-if="$parent.selectedPhenotype"
                         class="card-title"
-                    >LocusZoom Associations for Phenotype: {{$parent.selectedPhenotype.description}}</h4>
+                    >Associations for {{$parent.selectedPhenotype.description}}</h4>
                     <locuszoom
                         ref="lz"
-                        v-if="$parent.selectedPhenotype !== null"
                         v-bind:panels="['association','genes','intervals']"
-                        v-bind:modules="[
-                            { 'module': 'associations',
-                              'target': 'assoc',
-                              'translator': $parent.associationsForLZ },
-                        ]"
+                        v-bind:assoc="{
+                            'data': $parent.associations,
+                            'translator': $parent.associationsForLZ,
+                        }"
                         v-bind:chr="$store.state.chr"
                         v-bind:start="$store.state.start"
                         v-bind:end="$store.state.end"
                     ></locuszoom>
                 </div>
             </div>
-            <div class="card mdkp-card">
-                <div v-if="$parent.selectedPhenotype" class="card-body">
+            <div v-if="$parent.selectedPhenotype" class="card mdkp-card">
+                <div class="card-body">
                     <h4
                         class="card-title"
-                    >Top variants for Phenotype: {{$parent.selectedPhenotype.description}}</h4>
+                    >Top Associations for {{$parent.selectedPhenotype.description}}</h4>
                     <associations-table
                         :phenotypes="[$parent.selectedPhenotype]"
                         :associations="$parent.associations"

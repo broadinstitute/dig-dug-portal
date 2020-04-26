@@ -148,11 +148,11 @@ export default Vue.component("phenotype-signal", {
         log2css(value) {
             const minp = 0;
             const maxp = 100;
-            const minv = -Math.log10(10);
+            const minv = Math.log10(10);
             const maxv = -Math.log10(this.topAssociationsHighest);
             const scale = (maxv - minv) / (maxp - minp);
 
-            let calculated = -(Math.log(value) - minv) / scale + minp;
+            let calculated = (-Math.log10(value) - minv) / scale + minp;
             return calculated > 100 ? 100 : calculated;
         },
         key2id(key) {
