@@ -4,10 +4,10 @@
         :class="{'progress-bar-striped': isActive}"
         :style="{'width': width +'%'}"
         v-b-hover="highlight"
-        v-b-tooltip.top
-        :title="title"
     >
-        <span class="marker">&nbsp;</span>
+        <span class="marker">
+            <span class="tool-tip">{{title}}</span>
+        </span>
     </div>
 </template>
 

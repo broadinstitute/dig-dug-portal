@@ -7,7 +7,10 @@
         >&nbsp;</a>
         <b-container fluid="sm">
             <b-form-row>
-                <div class="phenotype-group-header"></div>
+                <div
+                    class="phenotype-group-header"
+                    style="font-size: 0.8em; color: #f00;"
+                >*Click to view individual phenotypes</div>
                 <div class="phenotype_group_wrapper">
                     <div class="legend-scale" style="width: calc(100% + 10px)">
                         <span class="legend-left">0</span>
@@ -32,13 +35,7 @@
                     <b-progress class="phenotype_group" :class="key" height="1.5rem">
                         <template v-for="(item, i) in topAssociationsGrouped[key]">
                             <template v-if="i == 0">
-                                <b-progress-bar
-                                    :key="item.phenotype"
-                                    :value="log2css(item.pValue)"
-                                    :title="item.description+' ('+item.pValue+')'"
-                                    show
-                                    v-b-tooltip
-                                >
+                                <b-progress-bar :key="item.phenotype" :value="log2css(item.pValue)">
                                     <span
                                         class="bar-desc"
                                         :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
