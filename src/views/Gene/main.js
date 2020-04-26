@@ -102,8 +102,10 @@ new Vue({
 
         // the associations in LZ format
         lzAssociations() {
+            let data = this.$store.state.associations.data;
+            let threshold = 1000 / data.length;
             let assocs = this.$store.state.associations.data
-                .filter(v => v.pValue * Math.random() < 0.02)
+                .filter(v => v.pValue < 1e-5 || Math.random() < threshold)
                 .map(v => {
                     return {
                         id: v.varId,
