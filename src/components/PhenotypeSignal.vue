@@ -7,10 +7,10 @@
         >&nbsp;</a>
         <b-container fluid="sm">
             <b-form-row>
-                <div
-                    class="phenotype-group-header"
-                    style="font-size: 0.8em; color: #f00;"
-                >*Click to view individual phenotypes</div>
+                <div class="phenotype-group-header" style="font-size: 0.8em; color: #f00;">
+                    *Click group name to view phenotypes
+                    <br />*Hover phenotype to view options
+                </div>
                 <div class="phenotype_group_wrapper">
                     <div class="legend-scale" style="width: calc(100% + 10px)">
                         <span class="legend-left">0</span>
