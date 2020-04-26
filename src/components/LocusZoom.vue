@@ -160,9 +160,9 @@ export default Vue.component("locuszoom", {
             );
         },
 
-        /* The data for a particular data type was updated. Make sure that
-         * the type exists and is a valid LocusZoom source. Then add a new
-         * LZVueSource for it with the data filled in.
+        /* The data for a particular data type was updated. Make sure the
+         * source exists, then resolve the source's promise with the new
+         * data and tell LocusZoom to redraw.
          */
         propertyWatch(lzType, data) {
             let source = this.dataSources.sources[lzType];
