@@ -34,7 +34,7 @@ export default new Vuex.Store({
             let varID = await variantUtils.parseVariant(context.state.geneOrRegionOrVariant);
 
             if (locus) {
-                window.location.href = `./gene.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
             }
             if (varID) {
 

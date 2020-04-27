@@ -24,7 +24,7 @@
                                 @change="$store.dispatch('queryVariant')"
                             />
                         </div>
-                        <span>
+                        <span v-if="$parent.variantData">
                             {{$parent.variantData.varId}}
                             <span
                                 v-if="$parent.variantData.dbSNP"

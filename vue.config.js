@@ -17,12 +17,12 @@ module.exports = {
             title: "Phenotype Page",
             chunks: ["chunk-vendors", "chunk-common", "phenotype"]
         },
-        gene: {
-            entry: "src/views/Gene/main.js",
+        region: {
+            entry: "src/views/Region/main.js",
             template: "public/index.html",
-            filename: "gene.html",
-            title: "Gene Info",
-            chunks: ["chunk-vendors", "chunk-common", "gene"]
+            filename: "region.html",
+            title: "Region Info",
+            chunks: ["chunk-vendors", "chunk-common", "region"]
 
         },
         debug: {
@@ -39,6 +39,14 @@ module.exports = {
             filename: "variant.html",
             title: "Variant Info",
             chunks: ["chunk-vendors", "chunk-common", "variant"]
+
+        },
+        gene: {
+            entry: "src/views/Gene/main.js",
+            template: "public/index.html",
+            filename: "gene.html",
+            title: "Gene Info",
+            chunks: ["chunk-vendors", "chunk-common", "gene"]
 
         },
     }

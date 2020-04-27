@@ -1,12 +1,14 @@
+
+
 import Vue from "vue";
 import Vuex from "vuex";
 
-import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import regionUtils from "@/utils/regionUtils";
-import { moduleQueryTemplate } from "../../utils/bioIndexUtils";
+import keyParams from "@/utils/keyParams";
+import uniprot from "@/modules/uniprot";
+// import variantUtils from "@/utils/variantUtils";
 
 Vue.use(Vuex);
 
@@ -14,117 +16,49 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        genes: bioIndex("genes"),
-        associations: bioIndex("associations"),
-        topAssociations: bioIndex("top-associations"),
-        variants: bioIndex("variants"),
+        gene: bioIndex("gene"),
+        uniprot,
+
     },
     state: {
-        // only used at the start
-        phenotypeParam: keyParams.phenotype,
-
-        // user-entered locus
-        chr: keyParams.chr,
-        start: keyParams.start,
-        end: keyParams.end,
-        phenotype: null,
-
-        // user-entered search fields
-        newChr: keyParams.chr,
-        newStart: keyParams.start,
-        newEnd: keyParams.end,
-        gene: null,
+        geneName: keyParams.gene,
+        newGeneName: keyParams.gene,
     },
+
     mutations: {
-        setSelectedPhenotype(state, phenotype) {
-            state.phenotypeParam = null;
-            state.phenotype = phenotype;
+        setGene(state, geneName) {
+            state.geneName = geneName || state.newGeneName;
+            state.newGeneName = state.geneName
+            keyParams.set({ gene: state.newGeneName })
         },
-        setPhenotypeByName(state, name) {
-            state.phenotypeParam = null;
-            state.phenotype = state.bioPortal.phenotypeMap[name];
-        },
-        setLocus(state, region = {}) {
-            state.chr = region.chr || state.newChr || state.chr;
-            state.start = region.start || state.newStart || state.start;
-            state.end = region.end || state.newEnd || state.end;
-            state.newChr = state.chr;
-            state.newStart = state.start;
-            state.newEnd = state.end;
-            state.gene = null;
 
-            keyParams.set({
-                chr: state.chr,
-                start: state.start,
-                end: state.end,
-            });
-        },
-    },
-    getters: {
-        // The phenotype is a getter because it depends on the bioPortal
-        // having loaded all the phenotype objects from the database.
-        phenotype(state) {
-            for (let i in state.bioPortal.phenotypes) {
-                let phenotype = state.bioPortal.phenotypes[i];
-
-                if (phenotype.name === keyParams.phenotype) {
-                    return phenotype;
-                }
-            }
-
-            // not set or not found
-            return null;
-        },
-        region(state) {
-            return `${state.chr}:${state.start}-${state.end}`;
-        },
     },
     actions: {
-        async onPhenotypeChange(context, phenotype) {
-            context.commit('setSelectedPhenotype', phenotype);
+        async queryGene(context) {
+            let geneName = context.state.geneName
+            console.log(geneName)
+            context.commit('setGene', context.state.geneName);
+            await context.dispatch('gene/query', { q: geneName });
+
+            let limit = 10;
+            let format = 'xml';
+
+            let xml = await fetch(`https://www.uniprot.org/uniprot/?query=gene_exact=` + geneName + `format=` + format + `include=no&limit=` + limit)
+                .then(resp => resp.text())
+            // .then(xmlString => xmlString.evaluate('//lineage', xmlString, null, XPathResult.STRING_TYPE, null))
+            // .then(data => console.log(data));
+
+
+            // .then(response => response.text())
+            // .then(xmlString => $.parseXML(xmlString))
+            // .then(data => console.log(data))
+            //process this xml using xpath
+            // let uniprotObject = data.evaluate('//lineage', data, null, XPathResult.STRING_TYPE, null);
+            // console.log(uniprotObject)
+
         },
 
-        async searchGene(context) {
-            if (context.state.gene) {
-                let locus = await regionUtils.parseRegion(context.state.gene, true, 50000);
 
-                if (locus) {
-                    context.state.newChr = locus.chr;
-                    context.state.newStart = locus.start;
-                    context.state.newEnd = locus.end;
-
-                    // update the locus
-                    context.commit('setLocus');
-                    context.dispatch('queryRegion');
-                }
-            }
-        },
-
-        async queryRegion(context) {
-            if (context.state.gene) {
-                context.dispatch('searchGene');
-            } else {
-                context.commit('setSelectedPhenotype', null);
-                context.commit('genes/clearData');
-                context.commit('associations/clearData');
-                context.commit('topAssociations/clearData');
-
-                // find all the top associations and genes in the region
-                context.dispatch('topAssociations/query', { q: context.getters.region });
-                context.dispatch('genes/query', { q: context.getters.region });
-            }
-        },
-
-        async loadAssociations(context, lzstate) {
-            let { chr, start, end, phenotype } = lzstate;
-
-            // construct the query
-            let query = {
-                q: `${phenotype},${chr}:${start}-${end}`
-            };
-
-            // load the association
-            context.dispatch('associations/query', query);
-        }
     }
+
 });
