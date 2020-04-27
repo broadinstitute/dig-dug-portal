@@ -1,3 +1,4 @@
+/*
 import { calcLog } from '@/utils/lz/lzUtils'
 import { cloneDeep } from "lodash";
 
@@ -11,7 +12,7 @@ export const translate = ({ from = id => id, to }) => data => to(from(data))
 // !!!INCORRECT!!!: translate({ from: associationsFromVariants });
 
 
-/* BioIndex Decompositions */
+// BioIndex Decompositions
 // name these like xFromY
 export const associationsFromVariants = variants => {
     const associations = variants
@@ -32,7 +33,7 @@ export const useDecompositions = {
     associationsFromVariants,
 };
 
-/* LocusZoom Datamapping */
+// LocusZoom Datamapping
 // name these like xForY -> xForLZ
 export const associationsForLZ = associations => {
     const translation = associations.map(association => ({
@@ -51,8 +52,7 @@ export const associationsForLZ = associations => {
     return translation
 
 };
-
-/* IGV Datamapping */
+// IGV Datamapping
 // name these like xForY -> xForIGV
 export const associationsForIGV = associations => {
     return associations.map(association => {
@@ -75,3 +75,5 @@ export const useTranslations = {
     associationsForLZ,
     associationsForIGV,
 }
+
+*/

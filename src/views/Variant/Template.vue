@@ -12,7 +12,7 @@
                         <a class="edit-btn">Set Variant</a>
                     </div>
                     <div class="col-md-8 gene-page-header-body">
-                        <span>
+                        <span v-if="$parent.variantData">
                             {{$parent.variantData.varId}}
                             <span
                                 v-if="$parent.variantData.dbSNP"
@@ -29,7 +29,7 @@
                                         type="text"
                                         class="form-control input-default"
                                         style="margin-left: 15px;padding-top: 30px;padding-left:30px"
-                                        placeholder="Search Variant"
+                                        placeholder="Variant or dbSNP"
                                         @change="$store.dispatch('queryVariant')"
                                     />
                                 </div>
@@ -43,6 +43,16 @@
                     <div class="card-body">
                         <h4 class="card-title">Most Severe Consequence</h4>
                         <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
+                    </div>
+                </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">PheWAS Associations</h4>
+                        <locuszoom :panels="['phewas']" :phewas="$parent.lzAssociations"></locuszoom>
+                        <phewas-table
+                            :associations="$parent.variantData.associations"
+                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        ></phewas-table>
                     </div>
                 </div>
                 <div class="card mdkp-card">
@@ -69,29 +79,6 @@
                         <div v-else class="card-body">
                             <h4>None found</h4>
                         </div>
-                    </div>
-                </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">Phenotype-Wide Associations (PheWAS)</h4>
-                        <locuszoom
-
-                            v-bind:panels="['phewas']"
-
-                            v-bind:phewas="{
-                              'data': $parent.lzAssociations,
-                              'translator': $parent.lzAssociationsTransform
-                            }"
-
-                            v-bind:chr="$store.state.variant.data[0].chromosome"
-                            v-bind:start="$store.state.variant.data[0].position"
-                            v-bind:end="$store.state.variant.data[0].position + 1"
-
-                        ></locuszoom>
-                        <phewas-table
-                            :associations="$parent.variantData.associations"
-                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
-                        ></phewas-table>
                     </div>
                 </div>
             </div>

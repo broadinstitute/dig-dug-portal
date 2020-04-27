@@ -78,9 +78,7 @@
                         >
                             <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
                         </div>
-                        <span
-                            v-if="$parent.selectedPhenotype"
-                        >{{$parent.selectedPhenotype.description}}</span>
+                        <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
                     </div>
                 </div>
             </div>
@@ -122,32 +120,32 @@
                     </div>
                 </div>
             </div>
-            <div v-if="$parent.selectedPhenotype" class="card mdkp-card">
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
+                        v-if="$store.state.phenotype"
                         class="card-title"
-                    >Associations for {{$parent.selectedPhenotype.description}}</h4>
+                    >Associations for {{$store.state.phenotype.description}}</h4>
                     <locuszoom
-                        ref="lz"
-                        v-bind:panels="['association','genes','intervals']"
-                        v-bind:assoc="{
-                            'data': $parent.associations,
-                            'translator': $parent.associationsForLZ,
-                        }"
-                        v-bind:chr="$store.state.chr"
-                        v-bind:start="$store.state.start"
-                        v-bind:end="$store.state.end"
+                        v-if="$store.state.phenotype"
+                        :panels="['association','genes','intervals']"
+                        :assoc="$parent.lzAssociations"
+                        :chr="$store.state.chr"
+                        :start="$store.state.start"
+                        :end="$store.state.end"
+                        :phenotype="$store.state.phenotype.name"
+                        @lzupdate="$store.dispatch('loadAssociations', $event)"
                     ></locuszoom>
                 </div>
             </div>
-            <div v-if="$parent.selectedPhenotype" class="card mdkp-card">
+            <div v-if="$store.state.phenotype" class="card mdkp-card">
                 <div class="card-body">
                     <h4
                         class="card-title"
-                    >Top Associations for {{$parent.selectedPhenotype.description}}</h4>
+                    >Top Associations for {{$store.state.phenotype.description}}</h4>
                     <associations-table
-                        :phenotypes="[$parent.selectedPhenotype]"
-                        :associations="$parent.associations"
+                        :phenotypes="[$store.state.phenotype]"
+                        :associations="$store.state.associations.data"
                     ></associations-table>
                 </div>
             </div>
