@@ -1,64 +1,64 @@
-.phenotype_group.ANTHROPOMETRIC > div.progress-bar {
+.pws-phenotype-group.ANTHROPOMETRIC div.pws-progress-bar {
     background-color: #048845;
 }
-.phenotype_group.ATRIAL.FIBRILLATION > div.progress-bar {
+.pws-phenotype-group.ATRIAL.FIBRILLATION div.pws-progress-bar {
     background-color: #7aaa1c;
 }
-.phenotype_group.CARDIOVASCULAR > div.progress-bar {
+.pws-phenotype-group.CARDIOVASCULAR div.pws-progress-bar {
     background-color: #6fc7b6;
 }
-.phenotype_group.ECG.TRAITS > div.progress-bar {
+.pws-phenotype-group.ECG.TRAITS  div.pws-progress-bar {
     background-color: #8490c8;
 }
-.phenotype_group.GLYCEMIC > div.progress-bar {
+.pws-phenotype-group.GLYCEMIC  div.pws-progress-bar {
     background-color: #9f78ac;
 }
-.phenotype_group.HEMORRHAGIC.STROKE > div.progress-bar {
+.pws-phenotype-group.HEMORRHAGIC.STROKE  div.pws-progress-bar {
     background-color: #bf61a5;
 }
-.phenotype_group.HEPATIC > div.progress-bar {
+.pws-phenotype-group.HEPATIC  div.pws-progress-bar {
     background-color: #f88084;
 }
-.phenotype_group.ISCHEMIC.STROKE > div.progress-bar {
+.pws-phenotype-group.ISCHEMIC.STROKE  div.pws-progress-bar {
     background-color: #ee3124;
 }
-.phenotype_group.INFLAMMATORY.BOWEL > div.progress-bar {
+.pws-phenotype-group.INFLAMMATORY.BOWEL  div.pws-progress-bar {
     background-color: #007bff;
 }
-.phenotype_group.LIPIDS > div.progress-bar {
+.pws-phenotype-group.LIPIDS  div.pws-progress-bar {
     background-color: #faa553;
 }
-.phenotype_group.LUNG > div.progress-bar {
+.pws-phenotype-group.LUNG  div.pws-progress-bar {
     background-color: #0000ff;
 }
-.phenotype_group.METABOLITE > div.progress-bar {
+.pws-phenotype-group.METABOLITE  div.pws-progress-bar {
     background-color: #fcc500;
 }
-.phenotype_group.MRI.TRAITS > div.progress-bar {
+.pws-phenotype-group.MRI.TRAITS  div.pws-progress-bar {
     background-color: #f5a4c7;
 }
-.phenotype_group.MUSCULOSKELETAL > div.progress-bar {
+.pws-phenotype-group.MUSCULOSKELETAL  div.pws-progress-bar {
     background-color: #aec6a1;
 }
-.phenotype_group.NEUROLOGICAL > div.progress-bar {
+.pws-phenotype-group.NEUROLOGICAL  div.pws-progress-bar {
     background-color: #33ff00;
 }
-.phenotype_group.OCULAR > div.progress-bar {
+.pws-phenotype-group.OCULAR  div.pws-progress-bar {
     background-color: #ccc698;
 }
-.phenotype_group.OTHER > div.progress-bar {
+.pws-phenotype-group.OTHER  div.pws-progress-bar {
     background-color: #b4b4b4;
 }
-.phenotype_group.PSYCHIATRIC > div.progress-bar {
+.pws-phenotype-group.PSYCHIATRIC  div.pws-progress-bar {
     background-color: #5555ff;
 }
-.phenotype_group.RENAL > div.progress-bar {
+.pws-phenotype-group.RENAL  div.pws-progress-bar {
     background-color: #ff55ff;
 }
-.phenotype_group.SLEEP.AND.CIRCADIAN > div.progress-bar {
+.pws-phenotype-group.SLEEP.AND.CIRCADIAN div.pws-progress-bar {
     background-color: #d5a768;
 }
-.phenotype_group.STROKE > div.progress-bar {
+.pws-phenotype-group.STROKE div.pws-progress-bar {
     background-color: #cccc00;
 }
 
@@ -70,45 +70,50 @@
     box-shadow: inset 0px 0px 3px rgba(0,0,0,0.25);
     background-color: #f5f5f5;
     border-radius: 5px;
+    overflow: auto;
 }
 
-.phenotypes-with-signal-wrapper .container-sm {
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-.phenotype_group_wrapper {
-    padding: 5px 0 !important;
+.pws-phenotype-group-wrapper {
+    padding: 0 !important;
     width: 55%;
     position: relative;
-
+    display: inline-block;
 }
-.phenotype-group-header {
+.pws-phenotype-group-header {
     cursor: pointer;
+    display: inline-block;
     text-align: left;
-    padding-top: 5px;
+    padding-top: 2px;
     position: relative;
     width: 20%;
     padding-left: 15px;
+    vertical-align: top;
 }
 
-.phenotype-group-header .b-icon.bi {
+.pws-phenotype-group-header .b-icon.bi {
     display: inline-block;
     overflow: visible;
     vertical-align: -0.15em;
     position: absolute;
     right: 5px;
-    top: 8px;
+    top: 5px;
 }
 
-.container-sm {
-    margin-left: inherit;
-}
-.progress {
+.pws-progress {
     background-color: transparent;
     border-radius: 0;
+    font-size: 0.75rem;
 }
-.progress-bar:hover {
+
+.pws-phenotype-row {
+    margin-bottom: 5px;
+}
+
+.pws-progress-bar {
+    height: 25px;
+}
+
+.pws-progress-bar:hover {
     background-image: linear-gradient(
         45deg,
         hsla(0, 0%, 100%, 0.15) 25%,
@@ -123,10 +128,20 @@
     /*cursor: help;*/
 }
 
+.pws-phenotype-summary-row {
+    position: absolute;
+    top: 2px;
+    height: 22px;
+}
+
+.pws-phenotype-summary-row > .pws-progress-bar {
+    background-color: transparent !important;
+}
+
 span.marker {
     position: absolute;
     width: 3px;
-    height: 1.3rem;
+    height: 17px;
     background-color: rgba(255, 255, 255, 0.25);
     z-index: 5;
     right: 0;
@@ -135,15 +150,33 @@ span.marker {
     top: 0.1rem;
 }
 
-.highlight-bar:hover  span.marker {
+.pws-phenotype-summary-row:hover  span.marker {
     background-color: rgba(255, 200, 0, 1);
     mix-blend-mode: normal;
     border-right: solid 1px #333;
 }
 
+.pws-phenotype-summary-row span.marker > span.tool-tip {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color: #fff;
+    top: -30px;
+    left:-30px;
+    font-size: 14px;
+    padding: 3px 10px;
+    z-index: 20;
+    border-radius: 5px;
+    white-space: nowrap;
+}
+
+.pws-phenotype-summary-row:hover span.marker > span.tool-tip {
+    display: block;
+}
+
 .bar-desc {
     position: absolute;
-    font-size: 1.2em;
+    font-size: 1em;
     white-space: nowrap;
     font-weight: bold;
     color: #000000;
@@ -159,7 +192,6 @@ span.marker {
     left: 0;
     color: blue;
     height: 1.5rem;
-    /*cursor: help;*/
 }
 
 .highlight-bar .b-tooltip {
@@ -218,22 +250,4 @@ span.marker {
 
 .bar-desc:hover > .options-4-actions > div:hover {
     color: #aaaaff;
-}
-
-.highlight-bar > span.marker > span.tool-tip {
-    display: none;
-    position: absolute;
-    background-color: #000000;
-    color: #fff;
-    top: -130%;
-    left:-30px;
-    font-size: 14px;
-    padding: 3px 10px;
-    z-index: 20;
-    border-radius: 5px;
-    white-space: nowrap;
-}
-
-.highlight-bar:hover > span.marker > span.tool-tip {
-    display: block;
 }

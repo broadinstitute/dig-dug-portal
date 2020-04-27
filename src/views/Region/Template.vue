@@ -92,19 +92,19 @@
                     </div>
                 </div>
             </div>
-            <!--
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
                         class="card-title"
-                    >Phenotypes with signal in {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
+                    >Variant associations with p-value &lt;= 5e-3 in the region: {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
                     <div class="p-bellow-section-header">
-                        <sup>*</sup> Showing phenotypes with p-value &lt;= 5e-3. To reset the page with a phenotype of interest, click a phenotype name. To view phenotypes in a phenotype group, click phenotype group name or expand icon. White bars indicate p-values of the phenotypes in phenotype groups.
+                        <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for phenotypes in a group. Hover over bar or expand the group to see associations for individual phenotypes.
                     </div>
                     <phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
                 </div>
             </div>
-            -->
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4

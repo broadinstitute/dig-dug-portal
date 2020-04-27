@@ -1,19 +1,16 @@
 <template>
-    <div class="phenotypes-with-signal-wrapper new-phenotypes-with-signal-wrapper">
+    <div class="new-phenotypes-with-signal-wrapper">
         <a
             href="javascript:;"
             v-on:click="popOutElement('new-phenotypes-with-signal-wrapper')"
             class="pop-out-icon"
         >&nbsp;</a>
-        <b-container fluid="sm">
-            <b-form-row>
-                <div class="phenotype-group-header" style="font-size: 0.8em; color: #f00;">
-                    <sup>*</sup> Expand group to view traits
-                    <br />
-                    <sup>*</sup> Hover trait to view options
-                </div>
-                <div class="phenotype_group_wrapper">
-                    <div class="legend-scale" style="width: calc(100% + 10px)">
+
+        <div class="pws-phenotype-group-container">
+            <div class="pws-phenotype-group-row">
+                <div class="pws-phenotype-group-header">Phenotype group</div>
+                <div class="pws-phenotype-group-wrapper">
+                    <div class="legend-scale">
                         <span class="legend-left">0</span>
                         <span class="legend-center">-log10(p)</span>
                         <span
@@ -21,80 +18,70 @@
                             v-if="phenotypes[0]"
                         >{{getEvalue(phenotypes[0]["pValue"])}}</span>
                     </div>
-                    <div class="legend" style="width: calc(100% + 10px)"></div>
+                    <div class="legend"></div>
                 </div>
-            </b-form-row>
-        </b-container>
-        <b-container fluid="sm" v-for="key in Object.keys(topAssociationsGrouped)" :key="key">
-            <b-form-row>
-                <div class="phenotype-group-header" v-b-toggle="key2id(key)">
-                    {{ key }}
+            </div>
+        </div>
+        <div
+            v-for="key in Object.keys(topAssociationsGrouped)"
+            class="pws-phenotype-group-container pws-phenotype-group"
+            :class="key"
+            :key="key"
+        >
+            <div class="pws-phenotype-group-row">
+                <div
+                    class="pws-phenotype-group-header"
+                    v-on:click="showHideByClass('pws-phenotype-row '+key2id(key))"
+                >
+                    {{key}}
                     <b-icon-arrows-expand></b-icon-arrows-expand>
                 </div>
-
-                <div class="pt-1 phenotype_group_wrapper">
-                    <b-progress class="phenotype_group" :class="key" height="1.5rem">
-                        <template v-for="(item, i) in topAssociationsGrouped[key]">
-                            <template v-if="i == 0">
-                                <b-progress-bar :key="item.phenotype" :value="log2css(item.pValue)">
-                                    <span
-                                        class="bar-desc"
-                                        :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
-                                    >
-                                        {{item.description}} ({{item.pValue}})
-                                        <div class="options-4-actions">
-                                            <div
-                                                @click="$store.commit('setPhenotypeByName', item.phenotype)"
-                                            >Click to set phenotype</div>
-                                            <div
-                                                v-on:click="openPage('phenotype.html',{'phenotype':item.phenotype})"
-                                            >Go to phenotype page</div>
-                                        </div>
-                                    </span>
-                                </b-progress-bar>
-                            </template>
-                            <template v-else>
-                                <phenotype-signal-item
-                                    v-if="item.pValue <= 5e-3"
-                                    :key="item.phenotype"
-                                    :title="item.description+' ('+item.pValue+')'"
-                                    :width="log2css(item.pValue)"
-                                ></phenotype-signal-item>
-                            </template>
+                <div class="pws-phenotype-group-wrapper">
+                    <template v-for="(item, i) in topAssociationsGrouped[key]">
+                        <template v-if="i != 0">
+                            <div
+                                v-if="item.pValue <= 5e-3"
+                                class="pws-phenotype-summary-row"
+                                :style="{'width': +log2css(item.pValue)+'%'}"
+                            >
+                                <div class="pws-progress-bar" style="width: 100%"></div>
+                                <span class="marker">
+                                    <span class="tool-tip">{{item.description+' ('+item.pValue+')'}}</span>
+                                </span>
+                            </div>
                         </template>
-                    </b-progress>
-                    <b-collapse :id="key2id(key)" accordion="my-accordion">
-                        <template v-for="(item, i) in topAssociationsGrouped[key]">
-                            <template v-if="i != 0 && item.pValue <= 5e-3">
-                                <b-progress
-                                    height="1.5rem"
-                                    class="phenotype_group"
-                                    :class="item.group"
-                                    :key="item.phenotype"
+                        <div class="pws-phenotype-row" :class="i != 0 ? key2id(key)+' hidden':''">
+                            <div
+                                class="pws-progress-bar"
+                                :key="item.phenotype"
+                                :value="log2css(item.pValue)"
+                                :style="{'width': +log2css(item.pValue)+'%'}"
+                            >
+                                <span
+                                    class="bar-desc"
+                                    :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
                                 >
-                                    <b-progress-bar :value="log2css(item.pValue)">
-                                        <span
-                                            class="bar-desc"
-                                            :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
-                                        >
-                                            {{item.description}} ({{item.pValue}})
-                                            <div class="options-4-actions">
-                                                <div
-                                                    @click="$store.commit('setPhenotypeByName', item.phenotype)"
-                                                >Click to set phenotype</div>
-                                                <div
-                                                    v-on:click="openPage('phenotype.html',{'phenotype':item.phenotype})"
-                                                >Go to phenotype page</div>
-                                            </div>
-                                        </span>
-                                    </b-progress-bar>
-                                </b-progress>
-                            </template>
-                        </template>
-                    </b-collapse>
+                                    {{item.description}} ({{item.pValue}})
+                                    <div class="options-4-actions">
+                                        <div
+                                            @click="$store.commit('setPhenotypeByName', item.phenotype)"
+                                        >Click to set phenotype</div>
+                                        <div
+                                            v-on:click="openPage('phenotype.html',{'phenotype':item.phenotype})"
+                                        >Go to phenotype page</div>
+                                    </div>
+                                </span>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-            </b-form-row>
-        </b-container>
+            </div>
+        </div>
+    </div>
+</template>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -165,6 +152,9 @@ export default Vue.component("phenotype-signal", {
         },
         openPage(PAGE, PARAMETER) {
             uiUtils.openPage(PAGE, PARAMETER);
+        },
+        showHideByClass(CLASS) {
+            uiUtils.showHideByClass(CLASS);
         }
     }
 });

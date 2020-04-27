@@ -27,9 +27,21 @@ let checkExist = function (ELEMENT) {
     return element;
 }
 
+let showHideByClass = function (CLASS) {
+    console.log(CLASS);
+    let element = document.getElementsByClassName(CLASS);
+    let x = element.length;
+
+    console.log(x);
+    for (let i = 0; i <= x; i++) {
+        element[i].classList.toggle("hidden");
+    }
+};
+
 
 export default {
     popOutElement,
     showHideElement,
     openPage,
+    showHideByClass,
 }
