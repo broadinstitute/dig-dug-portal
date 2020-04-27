@@ -78,17 +78,13 @@
                         >
                             <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
                         </div>
-                        <span
-                            v-if="$parent.selectedPhenotype"
-                        >{{$parent.selectedPhenotype.description}}</span>
+                        <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
                     </div>
                 </div>
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Genes in the region associated with phenotypes with signal</h4>
+                    <h4 class="card-title">Genes overlapping region</h4>
                     <div v-for="row in $parent.genes" :class="'gene-with-signal '+row.type">
                         <a :href="`/gene.html?gene=${row.name}`">{{row.name}}</a>
                     </div>
@@ -99,10 +95,10 @@
                 <div class="card-body">
                     <h4
                         class="card-title"
-                    >New phenotypes with signal in {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
-                    <div
-                        class="p-bellow-section-header"
-                    >*Showing phenotypes with p-value <= 5e-3. To reset the page with a phenotype of interest, click a phenotype name. To view phenotypes in a phenotype group, click phenotype group name or expand icon. White bars indicate p-values of the phenotypes in phenotype groups. Bars are rendered in logarithmic scale</div>
+                    >Phenotypes with signal in {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
+                    <div class="p-bellow-section-header">
+                        <sup>*</sup> Showing phenotypes with p-value &lt;= 5e-3. To reset the page with a phenotype of interest, click a phenotype name. To view phenotypes in a phenotype group, click phenotype group name or expand icon. White bars indicate p-values of the phenotypes in phenotype groups.
+                    </div>
                     <phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
                 </div>
             </div>
@@ -124,32 +120,31 @@
                 </div>
             </div>
             <div class="card mdkp-card">
-                <div v-show="$parent.selectedPhenotype" class="card-body">
+                <div class="card-body">
                     <h4
-                        v-if="$parent.selectedPhenotype"
+                        v-if="$store.state.phenotype"
                         class="card-title"
-                    >LocusZoom Associations for Phenotype: {{$parent.selectedPhenotype.description}}</h4>
+                    >Associations for {{$store.state.phenotype.description}}</h4>
                     <locuszoom
-                        ref="lz"
-                        v-bind:panels="['association','genes','intervals',]"
-                        v-bind:assoc="{
-                            'data': $parent.associations,
-                            'translator': $parent.associationsForLZ,
-                        }"
-                        v-bind:chr="$store.state.chr"
-                        v-bind:start="$store.state.start"
-                        v-bind:end="$store.state.end"
+                        v-if="$store.state.phenotype"
+                        :panels="['association','genes','intervals']"
+                        :assoc="$parent.lzAssociations"
+                        :chr="$store.state.chr"
+                        :start="$store.state.start"
+                        :end="$store.state.end"
+                        :phenotype="$store.state.phenotype.name"
+                        @lzupdate="$store.dispatch('loadAssociations', $event)"
                     ></locuszoom>
                 </div>
             </div>
-            <div class="card mdkp-card">
-                <div v-if="$parent.selectedPhenotype" class="card-body">
+            <div v-if="$store.state.phenotype" class="card mdkp-card">
+                <div class="card-body">
                     <h4
                         class="card-title"
-                    >Top variants for Phenotype: {{$parent.selectedPhenotype.description}}</h4>
+                    >Top Associations for {{$store.state.phenotype.description}}</h4>
                     <associations-table
-                        :phenotypes="[$parent.selectedPhenotype]"
-                        :associations="$parent.associations"
+                        :phenotypes="[$store.state.phenotype]"
+                        :associations="$store.state.associations.data"
                     ></associations-table>
                 </div>
             </div>

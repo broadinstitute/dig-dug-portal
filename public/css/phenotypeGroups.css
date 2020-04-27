@@ -208,7 +208,7 @@ span.marker {
     font-weight: 400;
     padding: 10px;
     border-radius: 5px;
-    right:-50%;
+    left:50%;
     z-index: 20;
 }
 
@@ -218,4 +218,22 @@ span.marker {
 
 .bar-desc:hover > .options-4-actions > div:hover {
     color: #aaaaff;
+}
+
+.highlight-bar > span.marker > span.tool-tip {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color: #fff;
+    top: -130%;
+    left:-30px;
+    font-size: 14px;
+    padding: 3px 10px;
+    z-index: 20;
+    border-radius: 5px;
+    white-space: nowrap;
+}
+
+.highlight-bar:hover > span.marker > span.tool-tip {
+    display: block;
 }

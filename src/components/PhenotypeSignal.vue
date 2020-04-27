@@ -7,9 +7,13 @@
         >&nbsp;</a>
         <b-container fluid="sm">
             <b-form-row>
-                <div class="phenotype-group-header"></div>
+                <div class="phenotype-group-header" style="font-size: 0.8em; color: #f00;">
+                    <sup>*</sup> Expand group to view traits
+                    <br />
+                    <sup>*</sup> Hover trait to view options
+                </div>
                 <div class="phenotype_group_wrapper">
-                    <div class="legend-scale">
+                    <div class="legend-scale" style="width: calc(100% + 10px)">
                         <span class="legend-left">0</span>
                         <span class="legend-center">-log10(p)</span>
                         <span
@@ -17,7 +21,7 @@
                             v-if="phenotypes[0]"
                         >{{getEvalue(phenotypes[0]["pValue"])}}</span>
                     </div>
-                    <div class="legend"></div>
+                    <div class="legend" style="width: calc(100% + 10px)"></div>
                 </div>
             </b-form-row>
         </b-container>
@@ -32,13 +36,7 @@
                     <b-progress class="phenotype_group" :class="key" height="1.5rem">
                         <template v-for="(item, i) in topAssociationsGrouped[key]">
                             <template v-if="i == 0">
-                                <b-progress-bar
-                                    :key="item.phenotype"
-                                    :value="log2css(item.pValue)"
-                                    :title="item.description"
-                                    show
-                                    v-b-tooltip
-                                >
+                                <b-progress-bar :key="item.phenotype" :value="log2css(item.pValue)">
                                     <span
                                         class="bar-desc"
                                         :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
@@ -59,7 +57,7 @@
                                 <phenotype-signal-item
                                     v-if="item.pValue <= 5e-3"
                                     :key="item.phenotype"
-                                    :title="item.description"
+                                    :title="item.description+' ('+item.pValue+')'"
                                     :width="log2css(item.pValue)"
                                 ></phenotype-signal-item>
                             </template>
@@ -146,13 +144,21 @@ export default Vue.component("phenotype-signal", {
     },
     methods: {
         log2css(value) {
-            const minp = 0;
+            console.log("raw value:" + value);
+            /*const minp = 0;
             const maxp = 100;
             const minv = -Math.log10(10);
             const maxv = -Math.log10(this.topAssociationsHighest);
             const scale = (maxv - minv) / (maxp - minp);
 
-            let calculated = -(Math.log(value) - minv) / scale + minp;
+            let calculated = -(Math.log(value) - minv) / scale + minp; */
+
+            const maxWidth = Math.log10(this.topAssociationsHighest);
+            const barWidth = Math.log10(value);
+
+            let calculated = (barWidth / maxWidth) * 100;
+
+            console.log("calculated value:" + calculated);
             return calculated > 100 ? 100 : calculated;
         },
         key2id(key) {

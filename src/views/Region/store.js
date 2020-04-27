@@ -80,14 +80,6 @@ export default new Vuex.Store({
         },
     },
     actions: {
-        async onLocusZoomCoords(context, { newChr, newStart, newEnd }) {
-            const { chr, start, end } = context.state;
-            if (newChr !== chr || newStart !== start || newEnd !== end) {
-                context.commit('setLocus', { chr: newChr, start: newStart, end: newEnd })
-                await context.dispatch('getAssociations');
-            }
-        },
-
         async onPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);
         },
@@ -123,16 +115,16 @@ export default new Vuex.Store({
             }
         },
 
-        // fetches all the associations for the selected phenotype
-        async getAssociations(context, phenotype) {
-            if (phenotype) {
-                // update the url with the new phenotype
-                keyParams.set({ phenotype: phenotype.name });
-                //mdkp.utility.showHideElement("phenotypeSearchHolder");
-            }
-            let q = `${context.state.phenotype.name},${context.getters.region}`;
-            context.dispatch('associations/query', { q });
-        },
+        async loadAssociations(context, lzstate) {
+            let { chr, start, end, phenotype } = lzstate;
 
+            // construct the query
+            let query = {
+                q: `${phenotype},${chr}:${start}-${end}`
+            };
+
+            // load the association
+            context.dispatch('associations/query', query);
+        }
     }
 });
