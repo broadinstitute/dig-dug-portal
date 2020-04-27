@@ -13,6 +13,7 @@ import AssociationsTable from "@/components/AssociationsTable.vue";
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import keyParams from "@/utils/keyParams";
+import uiUtils from "@/utils/uiUtils";
 
 new Vue({
     store,
@@ -65,6 +66,10 @@ new Vue({
                 return `https://dig-analysis-data.s3.amazonaws.com/out/metaanalysis/plots/${phenotype.name}/qq.png`;
             }
         }
+    },
+
+    methods: {
+        ...uiUtils,
     },
 
     watch: {

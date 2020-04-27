@@ -7,18 +7,24 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">Phenotype</div>
-                    <div class="col-md-4 gene-page-header-title">Set Phenotype</div>
-                    <div class="col-md-8 gene-page-header-body">
-                        <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
+                    <div class="col-md-12 gene-page-header-title">
+                        Phenotype
+                        <a
+                            class="edit-btn"
+                            v-on:click="$parent.showHideElement('phenotypeSearchHolder')"
+                        >Select phenotype</a>
                     </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <div style="font-size: 16px">
+                    <div class="col-md-12 gene-page-header-body">
+                        <div
+                            id="phenotypeSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
                             <phenotype-selectpicker
                                 :phenotypes="$store.state.bioPortal.phenotypes"
                                 :clear-on-selected="true"
                             ></phenotype-selectpicker>
                         </div>
+                        <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
                     </div>
                 </div>
             </div>

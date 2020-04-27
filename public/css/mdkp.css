@@ -492,15 +492,15 @@ div.filtering-tools table td, div.filtering-tools table th {
 }
 
 #phenotypeSearchHolder {
-    padding: 15px 10px 15px 10px;
+
 }
 
-#phenotypeSearchHolder .bootstrap-select {
-    width: 100%;
-}
-
-#phenotypeSearchHolder button.dropdown-toggle {
-    border: solid 1px #ccc;
+#phenotypeSearchHolder input.form-control {
+    border-radius: 0;
+    border: solid 1px #ddd;
+    height:65px;
+    width:100%;
+    font-size: 20px;
 }
 
 #regionSearchHolder .region-search {
@@ -531,7 +531,7 @@ div.filtering-tools table td, div.filtering-tools table th {
     top: 25%;
 }
 
-#regionSearchHolder .input-default {
+#regionSearchHolder .input-default, #variantSearchHolder .input-default {
     height: 100%;
     width: 100%;
     border: 0;

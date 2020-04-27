@@ -7,37 +7,33 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">Variant</div>
-                    <div class="col-md-4 gene-page-header-title">
-                        <a class="edit-btn">Set Variant</a>
+                    <div class="col-md-12 gene-page-header-title">
+                        Variant
+                        <a
+                            class="edit-btn"
+                            v-on:click="$parent.showHideElement('variantSearchHolder')"
+                        >Set variant</a>
                     </div>
-                    <div class="col-md-8 gene-page-header-body">
-                        <span v-if="$parent.variantData">
+                    <div class="col-md-12 gene-page-header-body">
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
+                            <input
+                                v-model="$store.state.newVariantID"
+                                type="text"
+                                class="form-control input-default"
+                                placeholder="Search Variant"
+                                @change="$store.dispatch('queryVariant')"
+                            />
+                        </div>
+                        <span>
                             {{$parent.variantData.varId}}
                             <span
                                 v-if="$parent.variantData.dbSNP"
                             >/ {{$parent.variantData.dbSNP}}</span>
                         </span>
                     </div>
-                    <!-- change this class to variantInfo -->
-                    <div class="col-md-4 gene-page-header-body variantInfo">
-                        <div id="variantSearchHolder" class="gene-page-header-search-holder">
-                            <div class="variant-search">
-                                <div class="col-md-10 input-wrapper">
-                                    <input
-                                        v-model="$store.state.newVariantID"
-                                        type="text"
-                                        class="form-control input-default"
-                                        style="margin-left: 15px;padding-top: 30px;padding-left:30px"
-                                        placeholder="Variant or dbSNP"
-                                        @change="$store.dispatch('queryVariant')"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
+
             <div v-if="$parent.variantData">
                 <div class="card mdkp-card">
                     <div class="card-body">
