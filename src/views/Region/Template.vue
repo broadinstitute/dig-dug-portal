@@ -76,7 +76,9 @@
                             id="phenotypeSearchHolder"
                             class="gene-page-header-search-holder hidden"
                         >
-                            <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
+                            <phenotype-selectpicker
+                                v-bind:phenotypes="$store.state.bioPortal.phenotypes"
+                            ></phenotype-selectpicker>
                         </div>
                         <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
                     </div>

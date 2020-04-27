@@ -38,7 +38,7 @@
                     <a :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
                 </template>
                 <template v-slot:cell(symbol)="r">
-                    <a :href="`/region.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
+                    <a :href="`/gene.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
                 </template>
             </b-table>
         </div>
