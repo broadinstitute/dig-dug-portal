@@ -1,19 +1,28 @@
 <template>
     <div>
-        <div class="pws-bubble-view phenotypes-with-signal-wrapper-bubble">
+        <div class="pws-bubble-view new-phenotypes-with-signal-wrapper">
+            <a
+                href="javascript:;"
+                v-on:click="popOutElement('pws-bubble-view')"
+                class="pop-out-icon"
+            >&nbsp;</a>
             <div
                 v-for="row in topAssociations"
                 class="bubble"
-                :class="row.pValue <= 5e-3 ? row.pValue <= 2.5e-6 ? 'phenotype-with-signal high' : 'phenotype-with-signal moderate hidden' : 'phenotype-with-signal none hidden'"
+                :class="row.pValue <= 5e-3 ? row.pValue <= 2.5e-6 ? 'phenotype-with-signal high' : 'phenotype-with-signal moderate' : 'phenotype-with-signal none'"
             >{{row.description}}</div>
         </div>
 
-        <div class="new-phenotypes-with-signal-wrapper">
+        <div class="pws-bar-view new-phenotypes-with-signal-wrapper hidden">
             <a
                 href="javascript:;"
-                v-on:click="popOutElement('new-phenotypes-with-signal-wrapper')"
+                v-on:click="popOutElement('pws-bar-view')"
                 class="pop-out-icon"
             >&nbsp;</a>
+
+            <div class="p-bellow-section-header">
+                <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for phenotypes in a group. Hover over bar or expand the group to see associations for individual phenotypes.
+            </div>
 
             <div class="pws-phenotype-group-container">
                 <div class="pws-phenotype-group-row">
@@ -55,11 +64,8 @@
                                     @click="showHideByClass('pws-phenotype-row '+key2id(key))"
                                 >
                                     <div class="pws-progress-bar" style="width: 100%"></div>
-                                    <span class="marker">
-                                        <span
-                                            class="tool-tip"
-                                        >{{item.description+' ('+item.pValue+')'}}</span>
-                                    </span>
+
+                                    <span class="tool-tip">{{item.description+' ('+item.pValue+')'}}</span>
                                 </div>
                             </template>
                             <div
@@ -152,7 +158,7 @@ export default Vue.component("phenotype-signal", {
             data.forEach(element => {
                 let phenotype = phenotypeMap[element.phenotype];
 
-                element["group"] = phenotype.group;
+                element["group"] = phenotype.group.toUpperCase();
                 element["description"] = phenotype.description;
             });
 

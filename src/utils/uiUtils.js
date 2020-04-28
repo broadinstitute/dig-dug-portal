@@ -3,17 +3,36 @@ let popOutElement = function (ELEMENT) {
     element.classList.toggle("popped-out");
 }
 
-let showHideElement = function (ELEMENT) {
+let showHideElement = function (ELEMENT, SEARCHBOX) {
     let element = checkExist(ELEMENT);
     element.classList.toggle("hidden");
+    if (element.classList.contains("hidden") == false && SEARCHBOX != null) {
+        let searchInput = checkExist(SEARCHBOX);
+        searchInput.focus();
+    }
 };
+
+let switchViews = function (VIEWS) {
+    let x = VIEWS.length;
+    var currentElement;
+
+    for (let i = 0; i < x; i++) {
+        let element = checkExist(VIEWS[i]);
+        if (element.classList.contains("hidden") == false) {
+            element.classList.add("hidden");
+            currentElement = (i + 1 == x) ? 0 : i + 1;
+        };
+    }
+
+    let celement = checkExist(VIEWS[currentElement]);
+    celement.classList.remove("hidden");
+}
 
 let openPage = function (PAGE, PARAMETERS) {
 
     let redirectURL = "./" + PAGE + "?";
 
     for (let [key, value] of Object.entries(PARAMETERS)) {
-        console.log(`${key}: ${value}`);
         redirectURL += key + "=" + value + "&";
     }
     window.location.href = redirectURL;
@@ -28,11 +47,10 @@ let checkExist = function (ELEMENT) {
 }
 
 let showHideByClass = function (CLASS) {
-    console.log(CLASS);
+
     let element = document.getElementsByClassName(CLASS);
     let x = element.length;
 
-    console.log(x);
     for (let i = 0; i <= x; i++) {
         element[i].classList.toggle("hidden");
     }
@@ -44,4 +62,5 @@ export default {
     showHideElement,
     openPage,
     showHideByClass,
+    switchViews,
 }

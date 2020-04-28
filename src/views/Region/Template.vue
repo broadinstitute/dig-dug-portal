@@ -11,7 +11,7 @@
                         Chromosome: Start position - End position
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('regionSearchHolder')"
+                            v-on:click="$parent.showHideElement('regionSearchHolder','region_gene_search')"
                         >Edit position / Search gene</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title">
@@ -56,6 +56,7 @@
                                         class="form-control input-default"
                                         style="margin-left: 15px;padding-left: 30px;"
                                         placeholder="Search gene"
+                                        id="region_gene_search"
                                     />
                                     <span class="gene-search-or">OR</span>
                                 </div>
@@ -98,30 +99,18 @@
                     <h4
                         class="card-title"
                     >Variant associations with p-value &lt;= 5e-3 in the region: {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
-                    <div class="p-bellow-section-header">
-                        <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for phenotypes in a group. Hover over bar or expand the group to see associations for individual phenotypes.
+
+                    <div style="text-align: right; padding-bottom: 5px;">
+                        <div
+                            href="javascript:;"
+                            v-on:click="$parent.switchViews(['pws-bubble-view','pws-bar-view']);"
+                            class="switch-view btn btn-secondary btn-sm"
+                        >Switch view</div>
                     </div>
+
                     <phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
                 </div>
             </div>
-            <!--
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Phenotypes with signal in {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
-                    <div class="phenotypes-with-signal-wrapper">
-                        <div
-                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                            v-for="row in $parent.topAssociations"
-                            :class="row.pValue <= 5e-3 ? row.pValue <= 2.5e-6 ? 'phenotype-with-signal high' : 'phenotype-with-signal moderate' : 'phenotype-with-signal none'"
-                            :title="row.pValue"
-                            :slot-scope="row.phenotype.name"
-                        >{{$store.state.bioPortal.phenotypeMap[row.phenotype].description}}</div>
-                    </div>
-                </div>
-            </div>
-            -->
             <documentation :q="foo"></documentation>
             <div class="card mdkp-card">
                 <div class="card-body">

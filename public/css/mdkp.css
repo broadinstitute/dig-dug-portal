@@ -508,7 +508,6 @@ div.filtering-tools table td, div.filtering-tools table th {
 }
 
 #regionSearchHolder .input-wrapper {
-    overflow: hidden;
     display: inline-block;
     min-height: 100%;
     position: relative;
@@ -543,11 +542,22 @@ div.filtering-tools table td, div.filtering-tools table th {
     font-size: 20px;
 }
 
-#regionSearchHolder #regionSearchGo {
+#variantSearchHolder div {
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#variantSearchHolder div.search-example {
+    font-size: 14px;
+    padding-top: 8px;
+}
+
+#regionSearchHolder #regionSearchGo, #variantSearchHolder #variantSearchGo {
     position: absolute;
     padding: 0;
     top: 13px;
-    right: 6px;
+    right: calc(50% - 20px);
     height: 40px;
     width: 40px;
     border-radius: 30px;
@@ -750,8 +760,8 @@ polyline {
     background-position: center;
     background-repeat: no-repeat;
     float: right;
-    margin-top: 5px;
-    margin-right: 5px;
+    margin-top: -10px;
+    margin-right: -10px;
 }
 
 .pop-out-icon:hover {
