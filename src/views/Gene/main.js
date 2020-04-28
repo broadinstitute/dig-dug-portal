@@ -8,7 +8,6 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import Alert, { postAlert } from "@/components/Alert";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -41,9 +40,7 @@ new Vue({
         };
     },
 
-    methods: {
-        postAlert
-    },
+    methods: {},
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
