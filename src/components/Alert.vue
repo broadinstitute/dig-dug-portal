@@ -12,6 +12,7 @@ export default Vue.component("alert", {
     },
     mounted() {
         EventBus.$on("ALERT", this.showAlert);
+        EventBus.$on("CLOSE_ALERT", this.closeAlert);
     },
     methods: {
         showAlert(alert) {
@@ -19,22 +20,31 @@ export default Vue.component("alert", {
                 info: "Information",
                 success: "Sucesss",
                 warning: "Warning",
-                danger: "Error"
+                danger: "Error!",
+                secondary: "System Notice"
             };
             this.$bvToast.toast(alert.message, {
+                id: alert.params ? alert.params.id : null,
                 variant: alert.type,
                 title: title[alert.type],
                 solid: true,
                 toaster: "b-toaster-bottom-right",
                 autoHideDelay: 10000,
-                noAutoHide: alert.fixed,
-                appendToast: true
+                noAutoHide: alert.params ? alert.params.noHide : false,
+                appendToast: true,
+                noCloseButton: alert.params ? alert.params.noClose : false
             });
+        },
+        closeAlert(id) {
+            this.$bvToast.hide(id);
         }
     }
 });
 
-export const postAlert = function(type, message, fixed = false) {
-    EventBus.$emit("ALERT", { type, message, fixed });
+export const postAlert = function(type, message, params) {
+    EventBus.$emit("ALERT", { type, message, params });
+};
+export const closeAlert = function(id) {
+    EventBus.$emit("CLOSE_ALERT", id);
 };
 </script>
