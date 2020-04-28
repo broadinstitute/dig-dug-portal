@@ -1,5 +1,4 @@
-<template>
-</template>
+<template></template>
 
 <script>
 import Vue from "vue";
@@ -12,24 +11,30 @@ export default Vue.component("alert", {
         };
     },
     mounted() {
-        EventBus.$on("ALERT", this.postAlert );
+        EventBus.$on("ALERT", this.postAlert);
     },
     methods: {
         postAlert(alert) {
-            const title = {"info": "Information", "success": "Sucesss", "warning": "Warning", "danger": "Error"};
+            const title = {
+                info: "Information",
+                success: "Sucesss",
+                warning: "Warning",
+                danger: "Error"
+            };
             this.$bvToast.toast(alert.message, {
                 variant: alert.type,
                 title: title[alert.type],
                 solid: true,
-                toaster: 'b-toaster-bottom-right',
+                toaster: "b-toaster-bottom-right",
                 autoHideDelay: 10000,
+                noAutoHide: alert.fixed,
                 appendToast: true
             });
         }
     }
 });
 
-export const postAlert = function(type, message) {
-    EventBus.$emit("ALERT", {type:type, message: message});
+export const postAlert = function(type, message, fixed = false) {
+    EventBus.$emit("ALERT", { type, message, fixed });
 };
 </script>
