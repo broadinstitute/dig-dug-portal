@@ -2,7 +2,11 @@
     <div>
         <!-- Header -->
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
-
+        <alert></alert>
+                <b-button @click="$parent.postAlert('info', 'this is an info message')">info</b-button>
+        <b-button @click="$parent.postAlert('success', 'this is a success message')">success</b-button>
+        <b-button @click="$parent.postAlert('danger', 'this is an error message')">danger</b-button>
+         <b-button @click="$parent.postAlert('warning', 'this is a warning message')">warn</b-button>
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
