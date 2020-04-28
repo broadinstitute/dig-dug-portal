@@ -104,7 +104,7 @@
                     <phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
                 </div>
             </div>
-
+            <!--
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
@@ -121,6 +121,7 @@
                     </div>
                 </div>
             </div>
+            -->
             <documentation :q="foo"></documentation>
             <div class="card mdkp-card">
                 <div class="card-body">

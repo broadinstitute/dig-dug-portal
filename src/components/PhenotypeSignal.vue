@@ -43,6 +43,7 @@
                                 v-if="item.pValue <= 5e-3"
                                 class="pws-phenotype-summary-row"
                                 :style="{'width': +log2css(item.pValue)+'%'}"
+                                @click="showHideByClass('pws-phenotype-row '+key2id(key))"
                             >
                                 <div class="pws-progress-bar" style="width: 100%"></div>
                                 <span class="marker">
@@ -56,6 +57,7 @@
                                 :key="item.phenotype"
                                 :value="log2css(item.pValue)"
                                 :style="{'width': +log2css(item.pValue)+'%'}"
+                                @click="(i === 0) ? showHideByClass('pws-phenotype-row '+key2id(key)) : i"
                             >
                                 <span
                                     class="bar-desc"
