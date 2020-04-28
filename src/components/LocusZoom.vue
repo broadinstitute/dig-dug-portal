@@ -80,11 +80,10 @@ export default Vue.component("locuszoom", {
      */
     mounted() {
         let panels = this.panels.map(p => {
-            return LocusZoom.Layouts.get("panel", p, {
-                ...DEFAULT_PANEL_OPTIONS
+            let options = DEFAULT_PANEL_OPTIONS[p] || {};
+            let panel = LocusZoom.Layouts.get("panel", p, options);
 
-                // TODO: override/extend defaults here...
-            });
+            return panel;
         });
 
         // create the data source collection
@@ -106,7 +105,10 @@ export default Vue.component("locuszoom", {
         // create the final plot with a layout and desired state
         this.lzplot = LocusZoom.populate("#lz", this.dataSources, {
             panels,
-            responsive_resize: "both",
+            responsive_resize: "width_only",
+
+            // total height
+            height: panels.map(p => p.height).reduce((a, b) => a + b, 0),
 
             // this must be a copy since LocusZoom modifies the object passed
             state: Object.assign({}, this.desiredState)
@@ -128,20 +130,21 @@ export default Vue.component("locuszoom", {
          * and the promise was already returned to LocusZoom via a previous
          * getRequest method.
          */
-        lzUpdate(state, chain, fields) {
+        lzUpdate(lztype, state, chain, fields) {
             let keys = Object.keys(this.desiredState);
+            let requestedState = this.requestedState[lztype] || {};
 
             // are all the state keys the same as the last requested state?
             let same = keys.every(key => {
-                return state[key] === this.requestedState[key];
+                return state[key] === requestedState[key];
             });
 
             if (!same) {
                 this.desiredState = _.pick(state, keys);
-                this.requestedState = _.pick(state, keys);
+                this.requestedState[lztype] = _.pick(state, keys);
 
                 // request that the app/store load more data
-                this.$emit("lzupdate", this.requestedState);
+                this.$emit(`lzupdate-${lztype}`, this.requestedState[lztype]);
             }
         },
 
@@ -177,11 +180,16 @@ export default Vue.component("locuszoom", {
          * app and we need the watch function to trigger.
          */
         createSource(lzType) {
-            let params = { lzupdate: this.lzUpdate };
             let watchOptions = { immediate: true };
 
             // register the data source with LocusZoom
-            this.dataSources.add(lzType, ["LZVueSource", params]);
+            this.dataSources.add(lzType, [
+                "LZVueSource",
+                {
+                    lzupdate: this.lzUpdate,
+                    lztype: lzType
+                }
+            ]);
 
             // add a custom watch for this property
             this.$watch(

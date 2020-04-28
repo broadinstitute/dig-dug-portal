@@ -17,17 +17,14 @@ export const LZ_TYPE = Object.freeze({
 /* Default panel options.
  */
 export const DEFAULT_PANEL_OPTIONS = {
-    proportional_height: 1,
-    dashboard: {
-        components: [
-            {
-                type: "resize_to_data",
-                position: "right"
-            },
-            {
-                type: "region_scale",
-                position: "left"
-            }
-        ]
-    }
+    'association': {
+        proportional_height: 1,
+        height: 200,
+        min_height: 200,
+    },
+    'genes': {
+        proportional_height: 1,
+        height: 50,
+        min_height: 50,
+    },
 };

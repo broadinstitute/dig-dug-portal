@@ -8,6 +8,7 @@ import LocusZoom from "locuszoom";
  */
 function LZVueParams(params) {
     this._lzupdate = params.lzupdate;
+    this._lztype = params.lztype;
 
     // create the promise for a future getRequest
     this._promise = new Promise(r => {
@@ -42,7 +43,7 @@ LZVueSource.prototype.getRequest = function (state, chain, fields) {
     let promise = this._promise;
 
     // make the request for data
-    this._lzupdate(state, chain, fields);
+    this._lzupdate(this._lztype, state, chain, fields);
 
     /* If the source has already loaded the data, then we'll return the
      * current promise as it's already been resolved and then make a new
@@ -69,5 +70,5 @@ LZVueSource.prototype.toJSON = function () {
 /* Overridden LocusZoom method.
  */
 LZVueSource.prototype.getCacheKey = function (state, chain, fields) {
-    return `${state.chr}:${state.start}-${state.end}`;
+    return Object.values(state).join(':');
 };

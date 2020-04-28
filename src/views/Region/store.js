@@ -115,6 +115,11 @@ export default new Vuex.Store({
             }
         },
 
+        async loadLZData(context, lzstate) {
+            context.dispatch('loadAssociations', lzstate);
+            context.dispatch('loadRegions', lzstate);
+        },
+
         async loadAssociations(context, lzstate) {
             let { chr, start, end, phenotype } = lzstate;
 
@@ -125,6 +130,6 @@ export default new Vuex.Store({
 
             // load the association
             context.dispatch('associations/query', query);
-        }
+        },
     }
 });

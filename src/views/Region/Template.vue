@@ -29,7 +29,7 @@
                                         v-model="$store.state.newChr"
                                         type="text"
                                         class="form-control input-default"
-                                        placeholder="Chromosome"
+                                        placeholder="chr"
                                     />
                                 </div>
                                 <div class="col-md-3 input-wrapper">
@@ -37,7 +37,7 @@
                                         v-model="$store.state.newStart"
                                         type="text"
                                         class="form-control input-default"
-                                        placeholder="Start position"
+                                        placeholder="start"
                                     />
                                 </div>
                                 <div class="col-md-3 input-wrapper">
@@ -45,7 +45,7 @@
                                         v-model="$store.state.newEnd"
                                         type="text"
                                         class="form-control input-default"
-                                        placeholder="End position"
+                                        placeholder="end"
                                     />
                                 </div>
 
@@ -122,7 +122,6 @@
                 </div>
             </div>
             -->
-            <documentation :q="foo"></documentation>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
@@ -131,13 +130,13 @@
                     >Associations for {{$store.state.phenotype.description}}</h4>
                     <locuszoom
                         v-if="$store.state.phenotype"
-                        :panels="['association','genes','intervals']"
+                        :panels="['association','genes']"
                         :assoc="$parent.lzAssociations"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
                         :end="$store.state.end"
                         :phenotype="$store.state.phenotype.name"
-                        @lzupdate="$store.dispatch('loadAssociations', $event)"
+                        @lzupdate-assoc="$store.dispatch('loadAssociations', $event)"
                     ></locuszoom>
                 </div>
             </div>

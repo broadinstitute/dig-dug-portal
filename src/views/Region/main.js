@@ -104,7 +104,7 @@ new Vue({
         lzAssociations() {
             let data = this.$store.state.associations.data;
             let threshold = 1000 / data.length;
-            let assocs = this.$store.state.associations.data
+            let assocs = data
                 .filter(v => v.pValue < 1e-5 || Math.random() < threshold)
                 .map(v => {
                     return {
@@ -117,7 +117,7 @@ new Vue({
                 });
 
             return assocs;
-        }
+        },
     },
 
     watch: {
