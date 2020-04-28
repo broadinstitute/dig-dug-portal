@@ -11,10 +11,10 @@ export default Vue.component("alert", {
         };
     },
     mounted() {
-        EventBus.$on("ALERT", this.postAlert);
+        EventBus.$on("ALERT", this.showAlert);
     },
     methods: {
-        postAlert(alert) {
+        showAlert(alert) {
             const title = {
                 info: "Information",
                 success: "Sucesss",
