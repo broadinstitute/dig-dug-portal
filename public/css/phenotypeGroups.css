@@ -136,33 +136,25 @@
 
 .pws-phenotype-summary-row > .pws-progress-bar {
     background-color: transparent !important;
+    border-right: solid 3px rgba(255, 255, 255, 0.25);
+    height: 21px;
 }
 
-span.marker {
-    position: absolute;
-    width: 3px;
-    height: 17px;
-    background-color: rgba(255, 255, 255, 0.25);
-    z-index: 5;
-    right: 0;
-    visibility: visible;
-    mix-blend-mode: screen;
-    top: 0.1rem;
-}
-
-.pws-phenotype-summary-row:hover  span.marker {
-    background-color: rgba(255, 200, 0, 1);
-    mix-blend-mode: normal;
+.pws-phenotype-summary-row:hover {
     border-right: solid 1px #333;
 }
 
-.pws-phenotype-summary-row span.marker > span.tool-tip {
+.pws-phenotype-summary-row:hover > .pws-progress-bar {
+    border-right: solid 3px rgba(255, 251, 0, 1);
+}
+
+.pws-phenotype-summary-row span.tool-tip {
     display: none;
     position: absolute;
     background-color: #000000;
     color: #fff;
     top: -30px;
-    left:-30px;
+    right: -100px;
     font-size: 14px;
     padding: 3px 10px;
     z-index: 20;
@@ -170,7 +162,7 @@ span.marker {
     white-space: nowrap;
 }
 
-.pws-phenotype-summary-row:hover span.marker > span.tool-tip {
+.pws-phenotype-summary-row:hover span.tool-tip {
     display: block;
 }
 

@@ -46,9 +46,7 @@
                                 @click="showHideByClass('pws-phenotype-row '+key2id(key))"
                             >
                                 <div class="pws-progress-bar" style="width: 100%"></div>
-                                <span class="marker">
-                                    <span class="tool-tip">{{item.description+' ('+item.pValue+')'}}</span>
-                                </span>
+                                <span class="tool-tip">{{item.description+' ('+item.pValue+')'}}</span>
                             </div>
                         </template>
                         <div class="pws-phenotype-row" :class="i != 0 ? key2id(key)+' hidden':''">
