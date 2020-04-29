@@ -4,8 +4,8 @@
             <div>
                 Powered by the
                 <span
-                    style="font-weight:600; font-size: 1.2em; vertical-align:-.1em;"
-                >AMP-T2DKP</span> platform
+                    style="font-weight:500; font-size: 1.2em; vertical-align:-.1em;"
+                >HuGeAMP</span>
             </div>
         </div>
     </div>

@@ -27,10 +27,12 @@
         </div>
         <div :class="'row '+diseaseGroup.name+'kp-header'">
             <div :class="diseaseGroup+'kp-logo-wrapper col-md-4'">
-                <img
-                    :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
-                    :class="diseaseGroup.name+'kp-logo'"
-                />
+                <a href="/">
+                    <img
+                        :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
+                        :class="diseaseGroup.name+'kp-logo'"
+                    />
+                </a>
             </div>
             <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
                 <ul :class="diseaseGroup.name+'kp-menu kp-menu'">

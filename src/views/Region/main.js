@@ -33,9 +33,7 @@ new Vue({
 
     methods: {
         associationsForLZ,
-        showHideElement: function (ELEMENT) {
-            uiUtils.showHideElement(ELEMENT);
-        },
+        ...uiUtils,
     },
 
     render(createElement, context) {
