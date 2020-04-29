@@ -25,7 +25,7 @@
         <div
             v-for="phenotypeList in topAssociationsGrouped"
             class="pws-phenotype-group-container pws-phenotype-group"
-            v-show="isVisible(phenotypeList[0].pValue)"
+            v-show="showAll || phenotypeList[0].pValue <= groupThreshold"
             :class="phenotypeList[0].phenotype.group"
         >
             <div class="pws-phenotype-group-row">
@@ -101,9 +101,20 @@ import uiUtils from "@/utils/uiUtils";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("phenotype-signal", {
-    props: ["phenotypes", "threshold"],
     modules: {
         uiUtils
+    },
+
+    props: {
+        phenotypes: Array,
+        groupThreshold: {
+            type: Number,
+            default: 1e-5
+        },
+        phenotypeThreshold: {
+            type: Number,
+            default: 5e-3
+        }
     },
 
     data() {
@@ -114,14 +125,12 @@ export default Vue.component("phenotype-signal", {
     },
 
     computed: {
-        signalThreshold() {
-            return this.threshold || 1e-5;
-        },
         topAssociationsHighest: function() {
             return this.phenotypes[0].pValue;
         },
         topAssociationsGrouped: function() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            let threshold = this.phenotypeThreshold;
             let grouped = [];
             let groupMap = {};
 
@@ -129,19 +138,22 @@ export default Vue.component("phenotype-signal", {
                 let phenotype = phenotypeMap[assoc.phenotype];
                 let index = groupMap[phenotype.group];
 
-                if (index === undefined) {
-                    index = grouped.length;
-                    grouped.push([]);
-                    groupMap[phenotype.group] = index;
-                }
+                // don't keep
+                if (assoc.pValue <= threshold) {
+                    if (index === undefined) {
+                        index = grouped.length;
+                        grouped.push([]);
+                        groupMap[phenotype.group] = index;
+                    }
 
-                grouped[index].push({
-                    ...assoc,
-                    phenotype,
-                    hideShowId: phenotype.group
-                        .replace(/\s+/g, "_")
-                        .toLowerCase()
-                });
+                    grouped[index].push({
+                        ...assoc,
+                        phenotype,
+                        hideShowId: phenotype.group
+                            .replace(/\s+/g, "_")
+                            .toLowerCase()
+                    });
+                }
             });
 
             for (let i = 0; i < grouped.length; i++) {
@@ -156,9 +168,6 @@ export default Vue.component("phenotype-signal", {
 
         toggleShowAll() {
             this.showAll = !this.showAll;
-        },
-        isVisible(p) {
-            return this.showAll || p < this.signalThreshold;
         },
         log2css(value) {
             const maxWidth = Math.log10(this.topAssociationsHighest);
