@@ -15,7 +15,7 @@
                         <span class="legend-center">-log10(p)</span>
                         <span
                             class="legend-right"
-                            v-if="phenotypes[0]"
+                            v-if="phenotypes.length > 0"
                         >{{getEvalue(phenotypes[0]["pValue"])}}</span>
                     </div>
                     <div class="legend"></div>
@@ -25,7 +25,7 @@
         <div
             v-for="phenotypeList in topAssociationsGrouped"
             class="pws-phenotype-group-container pws-phenotype-group"
-            v-if="isVisible(phenotypeList[0].pValue)"
+            v-show="isVisible(phenotypeList[0].pValue)"
             :class="phenotypeList[0].phenotype.group"
         >
             <div class="pws-phenotype-group-row">
@@ -37,8 +37,8 @@
                     <b-icon-arrows-expand></b-icon-arrows-expand>
                 </div>
                 <div class="pws-phenotype-group-wrapper">
-                    <template v-for="(item, i) in phenotypeList">
-                        <template v-if="i != 0">
+                    <div v-for="(item, i) in phenotypeList">
+                        <div v-show="i != 0">
                             <div
                                 class="pws-phenotype-summary-row"
                                 :style="{'width': +log2css(item.pValue)+'%'}"
@@ -51,7 +51,7 @@
                                     >{{item.phenotype.description+' ('+item.pValue+')'}}</span>
                                 </span>
                             </div>
-                        </template>
+                        </div>
                         <div
                             class="pws-phenotype-row"
                             :class="i != 0 ? item.hideShowId + ' hidden':''"
@@ -78,7 +78,7 @@
                                 </span>
                             </div>
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -96,21 +96,14 @@
 import Vue from "vue";
 import groupBy from "lodash/groupBy";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import PhenotypeSignalItem from "@/components/PhenotypeSignalItem.vue";
 import uiUtils from "@/utils/uiUtils";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("phenotype-signal", {
+    props: ["phenotypes", "threshold"],
     modules: {
         uiUtils
-    },
-    components: {
-        PhenotypeSignalItem
-    },
-    props: {
-        phenotypes: Array,
-        threshold: Number
     },
 
     data() {
@@ -121,8 +114,11 @@ export default Vue.component("phenotype-signal", {
     },
 
     computed: {
+        signalThreshold() {
+            return this.threshold || 1e-5;
+        },
         topAssociationsHighest: function() {
-            return this.phenotypes[0]["pValue"];
+            return this.phenotypes[0].pValue;
         },
         topAssociationsGrouped: function() {
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
@@ -162,7 +158,7 @@ export default Vue.component("phenotype-signal", {
             this.showAll = !this.showAll;
         },
         isVisible(p) {
-            return this.showAll || p < (this.threshold || 5e-8);
+            return this.showAll || p < this.signalThreshold;
         },
         log2css(value) {
             const maxWidth = Math.log10(this.topAssociationsHighest);

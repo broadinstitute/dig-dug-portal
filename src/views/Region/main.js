@@ -78,15 +78,14 @@ new Vue({
         // phenotypes available.
         topAssociations() {
             let data = this.$store.state.topAssociations.data;
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let assocMap = {};
 
             for (let i in data) {
                 let assoc = data[i];
 
                 // skip associations not part of the disease group
-                if (
-                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
-                ) {
+                if (!phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
 

@@ -6,7 +6,6 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
-import { moduleQueryTemplate } from "../../utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -24,7 +23,7 @@ export default new Vuex.Store({
         phenotypeParam: keyParams.phenotype,
 
         //
-        signalThreshold: 5e-8,
+        signalThreshold: 1e-5,
 
         // user-entered locus
         chr: keyParams.chr,

@@ -96,9 +96,11 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        Trait associations with
-                        <tt>P-Value &lt;&nbsp;</tt>
-                        <input v-model="$store.state.signalThreshold" />
+                        Variant associations with
+                        <tt>
+                            P-Value &lt;=
+                            <u>1e-5</u>
+                        </tt>
                         in the region: {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}
                     </h4>
                     <div class="p-bellow-section-header">
