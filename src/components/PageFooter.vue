@@ -2,10 +2,12 @@
     <div v-if="diseaseGroup">
         <div :class="'container-fluid '+diseaseGroup.name+'kp-footer'">
             <div>
-                Powered by the
-                <span
-                    style="font-weight:500; font-size: 1.2em; vertical-align:-.1em;"
-                >HuGeAMP</span>
+                <a href="http://kp4cd.org/" style="color: #fff !important;">
+                    Powered by the
+                    <span
+                        style="font-weight:500; font-size: 1.2em; vertical-align:-.1em;"
+                    >HuGeAMP</span>
+                </a>
             </div>
         </div>
     </div>
