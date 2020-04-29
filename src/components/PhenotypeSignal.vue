@@ -48,7 +48,7 @@
                                 <span class="marker">
                                     <span
                                         class="tool-tip"
-                                    >{{item.phenotype.description+' ('+item.pValue+')'}}</span>
+                                    >{{item.phenotype.description+' ('+pFormatter(item.pValue)+')'}}</span>
                                 </span>
                             </div>
                         </div>
@@ -66,7 +66,7 @@
                                     class="bar-desc"
                                     :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
                                 >
-                                    {{item.phenotype.description}} ({{item.pValue}})
+                                    {{item.phenotype.description}} ({{pFormatter(item.pValue)}})
                                     <div class="options-4-actions">
                                         <div
                                             @click="$store.commit('setPhenotypeByName', item.phenotype.name)"
@@ -97,6 +97,7 @@ import Vue from "vue";
 import groupBy from "lodash/groupBy";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import uiUtils from "@/utils/uiUtils";
+import Formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVueIcons);
 
@@ -165,6 +166,8 @@ export default Vue.component("phenotype-signal", {
     },
     methods: {
         ...uiUtils,
+
+        pFormatter: Formatters.floatFormatter,
 
         toggleShowAll() {
             this.showAll = !this.showAll;
