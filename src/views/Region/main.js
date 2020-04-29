@@ -72,6 +72,10 @@ new Vue({
             });
         },
 
+        phenotypes() {
+            return [this.$store.state.phenotype];
+        },
+
         // Give the top associations, find the best one across all unique
         // phenotypes available.
         topAssociations() {

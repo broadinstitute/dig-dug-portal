@@ -51,7 +51,7 @@
 
                                 <div class="col-md-3 input-wrapper">
                                     <input
-                                        v-model="$store.state.gene"
+                                        v-model="$store.state.searchGene"
                                         type="text"
                                         class="form-control input-default"
                                         style="margin-left: 15px;padding-left: 30px;"
@@ -135,7 +135,7 @@
                         class="card-title"
                     >Top Associations for {{$store.state.phenotype.description}}</h4>
                     <associations-table
-                        :phenotypes="[$store.state.phenotype]"
+                        :phenotypes="$parent.phenotypes"
                         :associations="$store.state.associations.data"
                     ></associations-table>
                 </div>
