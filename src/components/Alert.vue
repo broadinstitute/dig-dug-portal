@@ -31,11 +31,9 @@ export default Vue.component("alert", {
                 solid: true,
                 toaster: "b-toaster-bottom-right",
                 autoHideDelay: 10000,
-                noAutoHide: alert.params.noHide ? alert.params.noHide : false,
+                noAutoHide: alert.params ? alert.params.noHide : false,
                 appendToast: true,
-                noCloseButton: alert.params.noClose
-                    ? alert.params.noClose
-                    : false
+                noCloseButton: alert.params ? alert.params.noClose : false
             });
         },
         closeAlert(id) {
