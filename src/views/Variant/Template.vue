@@ -30,7 +30,7 @@
                                     id="variantSearchGo"
                                     class="btn btn-primary"
                                     type="button"
-                                    @click="$store.dispatch('queryVariant')"
+                                    @click="$store.dispatch('queryVariant', $store.state.newVariantID)"
                                 >GO</button>
                             </div>
                             <div class="col-md-6 search-example">
