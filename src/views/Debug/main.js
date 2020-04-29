@@ -14,6 +14,8 @@ import PageFooter from "../../components/PageFooter";
 import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
 import { useTranslations, associationsForIGV, translate, associationsFromVariants } from "@/utils/dataMappingUtils";
 
+import GAEventLog from "../../components/GAEventLog";
+
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
@@ -26,7 +28,8 @@ new Vue({
         PageFooter,
         PhenotypeSelectPicker,
         LoadingBar,
-        IGV
+        IGV,
+        GAEventLog
     },
 
     render(createElement, context) {
@@ -34,9 +37,9 @@ new Vue({
     },
 
     methods: {
-        ...useTranslations,
-        associationsForIGV,
-        associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
+        //...useTranslations,
+        //associationsForIGV,
+        //associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
         pause: () => console.log('hello')
     },
 

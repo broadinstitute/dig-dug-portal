@@ -1,15 +1,15 @@
 import axios from 'axios'
 
-const ANALYTICS_EVENT_LOG_SERVICE = "mock/eventlog";
+const ANALYTICS_EVENT_LOG_ENDPOINT = "/eventlog?action=";
 
 // Defined Actions
-const ga_test_action = "Google Analytics Test Action"
+const GA_TEST_ACTION = "Google Analytics Test Action"
 
 // Defined Categories
-const ga_test_category = "Google Analytics Test Category"
+const GA_TEST_CATEGORY = "Google Analytics Test Category"
 
 // Defined Labels
-const ga_test_label = "Google Analytics Test Label"
+const GA_TEST_LABEL = "Google Analytics Test Label"
 
 /**
  * Issue an Event Log notification for Google Analytics reporting, to the
@@ -25,12 +25,37 @@ const ga_test_label = "Google Analytics Test Label"
  * @public
  */
 const logAnalyticsEvent = async function (action, category, label, value) {
-    //const response = await axios.get(ANALYTICS_EVENT_LOG_SERVICE);
-    //let ack = response.data;
-    //return ack;
-    throw Error("Not yet implemented!");
-}
+
+    let eventUrl = ANALYTICS_EVENT_LOG_ENDPOINT;
+    if(action) {
+        eventUrl = eventUrl.concat(action);
+    } else {
+        eventUrl = eventUrl.concat("event");
+    }
+    if(category) {
+        eventUrl = eventUrl.concat("&category=",category);
+    } else {
+        eventUrl = eventUrl.concat("&category=","global");
+    }
+    if(label && value) {
+        eventUrl = eventUrl.concat("&label=",label,"&value=",value);
+    }
+
+    let result =  await axios.get(eventUrl)
+        .then(response => {
+            if(response) {
+                return response.data
+            } else {
+                throw new Error("Unknown outcome of Google Analytics Events Logging?")
+            }
+        })
+        .catch(error => {
+            console.log(error)
+        })
+
+        return result
+    }
 
 export default {
-    logAnalyticsEvent,
+    logAnalyticsEvent
 }

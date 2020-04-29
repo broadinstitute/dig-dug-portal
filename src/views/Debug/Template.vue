@@ -9,6 +9,8 @@
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
 
+                    <ga-event-log></ga-event-log>
+
                     <div class="col-md-8 gene-page-header-title">
                         Chromosome: Start position - End position
                         <a
@@ -90,7 +92,7 @@
                     </div>
 
                 </div>
-                <loading-bar 
+                <loading-bar
                     v-bind:moduleIndex="'top-associations'">
                 </loading-bar>
                 <igv
