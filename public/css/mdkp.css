@@ -639,8 +639,10 @@ div.filtering-tools table td, div.filtering-tools table th {
 }
 
 .phenotype-with-signal.moderate {
-    background-color: #d0efff;
-    border: solid 1px #30b7f6;
+    /*background-color: #d0efff;
+    border: solid 1px #30b7f6;*/
+    background-color: #ffffb3;
+    border: solid 1px #ffcc44;
 }
 
 .phenotype-with-signal.none {
