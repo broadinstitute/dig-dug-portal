@@ -25,13 +25,13 @@ export default new Vuex.Store({
         setVariantID(state, variantID) {
             state.variantID = variantID || state.newVariantID;
             state.newVariantID = state.variantID
-            keyParams.set({ variant: state.newVariantID })
+            keyParams.set({ variant: state.newVariantID });
         },
     },
 
     actions: {
-        async queryVariant(context) {
-            let varID = variantUtils.parseVariant(context.state.variantID);
+        async queryVariant(context, newVarId) {
+            let varID = variantUtils.parseVariant(newVarId || context.state.variantID);
 
             if (!!varID) {
                 context.commit('setVariantID', varID);

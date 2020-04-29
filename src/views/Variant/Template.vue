@@ -11,18 +11,32 @@
                         Variant
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('variantSearchHolder')"
+                            v-on:click="$parent.showHideElement('variantSearchHolder','variant_search_input')"
                         >Set variant</a>
                     </div>
                     <div class="col-md-12 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
-                            <input
-                                v-model="$store.state.newVariantID"
-                                type="text"
-                                class="form-control input-default"
-                                placeholder="Search Variant"
-                                @change="$store.dispatch('queryVariant')"
-                            />
+                            <div class="col-md-5">
+                                <input
+                                    v-model="$store.state.newVariantID"
+                                    type="text"
+                                    class="form-control input-default"
+                                    placeholder="Search Variant"
+                                    id="variant_search_input"
+                                />
+                            </div>
+                            <div class="col-md-1 input-wrapper">
+                                <button
+                                    id="variantSearchGo"
+                                    class="btn btn-primary"
+                                    type="button"
+                                    @click="$store.dispatch('queryVariant', $store.state.newVariantID)"
+                                >GO</button>
+                            </div>
+                            <div class="col-md-6 search-example">
+                                <strong>Search format examples</strong>
+                                <br />rs11716727, chr3:12489012_C_T, 3_12489012_C/T, 3:12489012_C/T, chr3:12489012:C:T
+                            </div>
                         </div>
                         <span v-if="$parent.variantData">
                             {{$parent.variantData.varId}}

@@ -46,7 +46,6 @@ a:hover {
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
-    margin: 0 -15px 0 -15px;
     padding: 30px 0 50px 0;
 }
 
@@ -382,6 +381,8 @@ a:hover {
     height: 50px;
     width: 100%;
     font-size: 16px;
+    background-color: rgba(255, 255, 255, 0.75);
+    border-color: #fff;
 }
 
 .header-disease-group-select-wrapper {
@@ -507,8 +508,17 @@ div.filtering-tools table td, div.filtering-tools table th {
     height: 100%;
 }
 
+.region-search-examples {
+    text-align: center;
+    color: #fff;
+    padding-bottom: 10px;
+}
+
+.region-search-examples a {
+    color: #fff !important;
+}
+
 #regionSearchHolder .input-wrapper {
-    overflow: hidden;
     display: inline-block;
     min-height: 100%;
     position: relative;
@@ -543,11 +553,22 @@ div.filtering-tools table td, div.filtering-tools table th {
     font-size: 20px;
 }
 
-#regionSearchHolder #regionSearchGo {
+#variantSearchHolder div {
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#variantSearchHolder div.search-example {
+    font-size: 14px;
+    padding-top: 8px;
+}
+
+#regionSearchHolder #regionSearchGo, #variantSearchHolder #variantSearchGo {
     position: absolute;
     padding: 0;
     top: 13px;
-    right: 6px;
+    right: calc(50% - 20px);
     height: 40px;
     width: 40px;
     border-radius: 30px;
@@ -569,6 +590,7 @@ div.filtering-tools table td, div.filtering-tools table th {
     height: 50px;
     background-color: rgba(255, 255, 255, 0.75);
     border-color: #fff;
+    width: calc(100% - 65px) !important;
 }
 
 .front-gene-search-wrapper #regionSearchGo {
@@ -580,6 +602,7 @@ div.filtering-tools table td, div.filtering-tools table th {
     border: solid 1px rgba(255, 255, 255, 1);
     text-align: center;
     color: #666;
+    margin-left: 10px;
 }
 
 .phenotypes-with-signal-wrapper {
@@ -615,8 +638,10 @@ div.filtering-tools table td, div.filtering-tools table th {
 }
 
 .phenotype-with-signal.moderate {
-    background-color: #d0efff;
-    border: solid 1px #30b7f6;
+    /*background-color: #d0efff;
+    border: solid 1px #30b7f6;*/
+    background-color: #ffffb3;
+    border: solid 1px #ffcc44;
 }
 
 .phenotype-with-signal.none {
@@ -740,6 +765,7 @@ polyline {
     width: 96%;
     left: 2%;
     height: 96% !important;
+    max-height: 96% !important;
 }
 
 .pop-out-icon {
@@ -750,8 +776,8 @@ polyline {
     background-position: center;
     background-repeat: no-repeat;
     float: right;
-    margin-top: 5px;
-    margin-right: 5px;
+    margin-top: -10px;
+    margin-right: -10px;
 }
 
 .pop-out-icon:hover {
@@ -760,4 +786,8 @@ polyline {
 
 .hidden {
     display: none;
+}
+
+.front-page-body {
+    background-color: #fff !important;
 }
