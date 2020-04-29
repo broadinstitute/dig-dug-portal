@@ -98,7 +98,7 @@
                     <h4 class="card-title">
                         Variant associations with
                         <tt>
-                            <u>P-Value &lt;= 5e-3</u>
+                            <u>P-Value &#x2264; 5e-3</u>
                         </tt>
                         in the region: {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}
                     </h4>
