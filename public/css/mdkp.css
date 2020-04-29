@@ -766,6 +766,7 @@ polyline {
     width: 96%;
     left: 2%;
     height: 96% !important;
+    max-height: 96% !important;
 }
 
 .pop-out-icon {
