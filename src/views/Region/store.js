@@ -50,7 +50,7 @@ export default new Vuex.Store({
             state.newChr = state.chr;
             state.newStart = state.start;
             state.newEnd = state.end;
-            state.gene = null;
+            state.searchGene = null;
 
             keyParams.set({
                 chr: state.chr,
@@ -84,7 +84,7 @@ export default new Vuex.Store({
         },
 
         async findGene(context) {
-            if (context.state.searchGHene) {
+            if (context.state.searchGene) {
                 let locus = await regionUtils.parseRegion(context.state.searchGene, true, 50000);
 
                 if (locus) {
@@ -100,7 +100,7 @@ export default new Vuex.Store({
         },
 
         async queryRegion(context) {
-            if (context.state.gene) {
+            if (context.state.searchGene) {
                 context.dispatch('findGene');
             } else {
                 context.commit('setSelectedPhenotype', null);
