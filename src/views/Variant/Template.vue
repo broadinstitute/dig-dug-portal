@@ -11,7 +11,7 @@
                         Variant
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('variantSearchHolder')"
+                            @click="$parent.showHideElement('variantSearchHolder')"
                         >Set variant</a>
                     </div>
                     <div class="col-md-12 gene-page-header-body">
@@ -21,7 +21,7 @@
                                 type="text"
                                 class="form-control input-default"
                                 placeholder="Search Variant"
-                                @change="$store.dispatch('queryVariant')"
+                                @change="$store.dispatch('queryVariant', $store.state.newVariantID)"
                             />
                         </div>
                         <span v-if="$parent.variantData">
