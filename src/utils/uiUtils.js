@@ -9,6 +9,7 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
     if (element.classList.contains("hidden") == false && SEARCHBOX != null) {
         let searchInput = checkExist(SEARCHBOX);
         searchInput.focus();
+        searchInput.select();
     }
 };
 
