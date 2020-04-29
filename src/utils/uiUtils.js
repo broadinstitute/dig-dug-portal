@@ -28,15 +28,16 @@ let checkExist = function (ELEMENT) {
 }
 
 let showHideByClass = function (CLASS) {
-    console.log(CLASS);
-    let element = document.getElementsByClassName(CLASS);
-    let x = element.length;
+    let elements = document.getElementsByClassName(CLASS);
 
-    console.log(x);
-    for (let i = 0; i <= x; i++) {
-        element[i].classList.toggle("hidden");
+    for (let i = 0; i < elements.length; i++) {
+        let e = elements.item(i);
+
+        if (!!e.classList) {
+            e.classList.toggle("hidden");
+        }
     }
-};
+}
 
 
 export default {

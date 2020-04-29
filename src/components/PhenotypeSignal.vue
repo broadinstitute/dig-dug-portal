@@ -1,10 +1,10 @@
 <template>
-    <div class="new-phenotypes-with-signal-wrapper">
-        <a
+    <div>
+        <!--<a
             href="javascript:;"
             v-on:click="popOutElement('new-phenotypes-with-signal-wrapper')"
             class="pop-out-icon"
-        >&nbsp;</a>
+        >&nbsp;</a>-->
 
         <div class="pws-phenotype-group-container">
             <div class="pws-phenotype-group-row">
@@ -23,53 +23,56 @@
             </div>
         </div>
         <div
-            v-for="key in Object.keys(topAssociationsGrouped)"
+            v-for="phenotypeList in topAssociationsGrouped"
             class="pws-phenotype-group-container pws-phenotype-group"
-            :class="key"
-            :key="key"
+            v-if="isVisible(phenotypeList[0].pValue)"
+            :class="phenotypeList[0].phenotype.group"
         >
             <div class="pws-phenotype-group-row">
                 <div
                     class="pws-phenotype-group-header"
-                    v-on:click="showHideByClass('pws-phenotype-row '+key2id(key))"
+                    @click="showHideByClass('pws-phenotype-row '+phenotypeList[0].hideShowId)"
                 >
-                    {{key}}
+                    {{phenotypeList[0].phenotype.group}}
                     <b-icon-arrows-expand></b-icon-arrows-expand>
                 </div>
                 <div class="pws-phenotype-group-wrapper">
-                    <template v-for="(item, i) in topAssociationsGrouped[key]">
+                    <template v-for="(item, i) in phenotypeList">
                         <template v-if="i != 0">
                             <div
-                                v-if="item.pValue <= 5e-3"
                                 class="pws-phenotype-summary-row"
                                 :style="{'width': +log2css(item.pValue)+'%'}"
-                                @click="showHideByClass('pws-phenotype-row '+key2id(key))"
+                                @click="showHideByClass('pws-phenotype-row '+item.hideShowId)"
                             >
                                 <div class="pws-progress-bar" style="width: 100%"></div>
                                 <span class="marker">
-                                    <span class="tool-tip">{{item.description+' ('+item.pValue+')'}}</span>
+                                    <span
+                                        class="tool-tip"
+                                    >{{item.phenotype.description+' ('+item.pValue+')'}}</span>
                                 </span>
                             </div>
                         </template>
-                        <div class="pws-phenotype-row" :class="i != 0 ? key2id(key)+' hidden':''">
+                        <div
+                            class="pws-phenotype-row"
+                            :class="i != 0 ? item.hideShowId + ' hidden':''"
+                        >
                             <div
                                 class="pws-progress-bar"
-                                :key="item.phenotype"
                                 :value="log2css(item.pValue)"
                                 :style="{'width': +log2css(item.pValue)+'%'}"
-                                @click="(i === 0) ? showHideByClass('pws-phenotype-row '+key2id(key)) : i"
+                                @click="(i === 0) ? showHideByClass('pws-phenotype-row '+item.hideShowId) : i"
                             >
                                 <span
                                     class="bar-desc"
                                     :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
                                 >
-                                    {{item.description}} ({{item.pValue}})
+                                    {{item.phenotype.description}} ({{item.pValue}})
                                     <div class="options-4-actions">
                                         <div
-                                            @click="$store.commit('setPhenotypeByName', item.phenotype)"
+                                            @click="$store.commit('setPhenotypeByName', item.phenotype.name)"
                                         >Click to set phenotype</div>
                                         <div
-                                            v-on:click="openPage('phenotype.html',{'phenotype':item.phenotype})"
+                                            @click="openPage('phenotype.html',{'phenotype':item.phenotype.name})"
                                         >Go to phenotype page</div>
                                     </div>
                                 </span>
@@ -79,10 +82,12 @@
                 </div>
             </div>
         </div>
-    </div>
-</template>
-                </div>
-            </div>
+
+        <div v-if="!showAll">
+            <a class="btn" @click="toggleShowAll">Show all...</a>
+        </div>
+        <div v-else>
+            <a class="btn" @click="toggleShowAll">Show less...</a>
         </div>
     </div>
 </template>
@@ -104,12 +109,14 @@ export default Vue.component("phenotype-signal", {
         PhenotypeSignalItem
     },
     props: {
-        phenotypes: Array
+        phenotypes: Array,
+        threshold: Number
     },
 
     data() {
         return {
-            isActive: false
+            isActive: false,
+            showAll: false
         };
     },
 
@@ -118,20 +125,45 @@ export default Vue.component("phenotype-signal", {
             return this.phenotypes[0]["pValue"];
         },
         topAssociationsGrouped: function() {
-            let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            let grouped = [];
+            let groupMap = {};
 
-            data.forEach(element => {
-                let phenotype = phenotypeMap[element.phenotype];
+            this.phenotypes.forEach(assoc => {
+                let phenotype = phenotypeMap[assoc.phenotype];
+                let index = groupMap[phenotype.group];
 
-                element["group"] = phenotype.group;
-                element["description"] = phenotype.description;
+                if (index === undefined) {
+                    index = grouped.length;
+                    grouped.push([]);
+                    groupMap[phenotype.group] = index;
+                }
+
+                grouped[index].push({
+                    ...assoc,
+                    phenotype,
+                    hideShowId: phenotype.group
+                        .replace(/\s+/g, "_")
+                        .toLowerCase()
+                });
             });
 
-            return groupBy(data, "group");
+            for (let i = 0; i < grouped.length; i++) {
+                grouped[i] = grouped[i].sort((a, b) => a.pValue - b.pValue);
+            }
+
+            return grouped.sort((a, b) => a[0].pValue - b[0].pValue);
         }
     },
     methods: {
+        ...uiUtils,
+
+        toggleShowAll() {
+            this.showAll = !this.showAll;
+        },
+        isVisible(p) {
+            return this.showAll || p < (this.threshold || 5e-8);
+        },
         log2css(value) {
             const maxWidth = Math.log10(this.topAssociationsHighest);
             const barWidth = Math.log10(value);
@@ -140,23 +172,8 @@ export default Vue.component("phenotype-signal", {
 
             return calculated > 100 ? 100 : calculated;
         },
-        key2id(key) {
-            return key
-                .toLowerCase()
-                .split(" ")
-                .join("_");
-        },
         getEvalue(number) {
             return -Math.floor(Math.log10(number));
-        },
-        popOutElement(ELEMENT) {
-            uiUtils.popOutElement(ELEMENT);
-        },
-        openPage(PAGE, PARAMETER) {
-            uiUtils.openPage(PAGE, PARAMETER);
-        },
-        showHideByClass(CLASS) {
-            uiUtils.showHideByClass(CLASS);
         }
     }
 });

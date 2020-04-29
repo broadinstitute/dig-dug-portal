@@ -23,6 +23,9 @@ export default new Vuex.Store({
         // only used at the start
         phenotypeParam: keyParams.phenotype,
 
+        //
+        signalThreshold: 5e-8,
+
         // user-entered locus
         chr: keyParams.chr,
         start: keyParams.start,

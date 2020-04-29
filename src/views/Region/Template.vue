@@ -95,13 +95,19 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Variant associations with p-value &lt;= 5e-3 in the region: {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
+                    <h4 class="card-title">
+                        Trait associations with
+                        <tt>P-Value &lt;&nbsp;</tt>
+                        <input v-model="$store.state.signalThreshold" />
+                        in the region: {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}
+                    </h4>
                     <div class="p-bellow-section-header">
                         <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for phenotypes in a group. Hover over bar or expand the group to see associations for individual phenotypes.
                     </div>
-                    <phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
+                    <phenotype-signal
+                        :phenotypes="$parent.topAssociations"
+                        :threshold="$store.state.signalThreshold"
+                    ></phenotype-signal>
                 </div>
             </div>
             <!--
