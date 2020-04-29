@@ -1,19 +1,23 @@
 let popOutElement = function (ELEMENT) {
     let element = checkExist(ELEMENT);
-    element.classList.toggle("popped-out");
+
+    if (!!element && !!element.classList) {
+        element.classList.toggle("popped-out");
+    }
 }
 
 let showHideElement = function (ELEMENT) {
     let element = checkExist(ELEMENT);
-    element.classList.toggle("hidden");
+
+    if (!!element && !!element.classList) {
+        element.classList.toggle("hidden");
+    }
 };
 
 let openPage = function (PAGE, PARAMETERS) {
-
     let redirectURL = "./" + PAGE + "?";
 
     for (let [key, value] of Object.entries(PARAMETERS)) {
-        console.log(`${key}: ${value}`);
         redirectURL += key + "=" + value + "&";
     }
     window.location.href = redirectURL;
