@@ -32,13 +32,21 @@
             <div v-if="$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Association Plots</h4>
                         <div class="row">
                             <div class="col-md-6">
-                                <img :src="$parent.manhattanPlot" />
+                                <h4 class="card-title">Association Plots</h4>
+                                <b-tabs content-class="mt-3">
+                                    <b-tab title="Manhattan" active>
+                                        <img style="width: 100%" :src="$parent.manhattanPlot" />
+                                    </b-tab>
+                                    <b-tab title="QQ">
+                                        <img style="width: 100%" :src="$parent.qqPlot" />
+                                    </b-tab>
+                                </b-tabs>
                             </div>
                             <div class="col-md-6">
-                                <img :src="$parent.qqPlot" />
+                                <h4 class="card-title">Documentation</h4>
+                                <div>TODO:</div>
                             </div>
                         </div>
                     </div>
