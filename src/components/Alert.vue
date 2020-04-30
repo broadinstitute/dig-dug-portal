@@ -39,8 +39,7 @@ export default Vue.component("alert", {
         },
         closeAlert(id) {
             this.$bvToast.hide(id);
-        },
-        updateAlert(id, message) {}
+        }
     }
 });
 
@@ -68,9 +67,10 @@ const postAlertNotice = function(message) {
 const closeAlert = function(id) {
     EventBus.$emit("CLOSE_ALERT", id);
 };
-const updateAlert = function(id, message) {
-    EventBus.$emit("UPDATE_ALERT", { id, message });
-};
+//TO DO
+// const updateAlert = function(id, message) {
+//     EventBus.$emit("UPDATE_ALERT", { id, message });
+// };
 
-export { postAlert, postAlertError, postAlertNotice, closeAlert, updateAlert };
+export { postAlert, postAlertError, postAlertNotice, closeAlert };
 </script>
