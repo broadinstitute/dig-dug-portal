@@ -2,7 +2,7 @@
     <!-- Header -->
     <div>
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
-        <alert></alert>
+
         <!-- body -->
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">

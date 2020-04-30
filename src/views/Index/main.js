@@ -43,6 +43,8 @@ new Vue({
         return createElement(Template);
     },
 
+    methods: { postAlert, postAlertNotice, postAlertError, closeAlert },
+
     computed: {
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];

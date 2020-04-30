@@ -47,7 +47,8 @@ new Vue({
         };
     },
 
-    methods: {},
+    methods: { postAlert, postAlertNotice, postAlertError, closeAlert },
+
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;

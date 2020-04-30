@@ -76,7 +76,11 @@ new Vue({
     },
 
     methods: {
-        ...uiUtils
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert
     },
 
     watch: {

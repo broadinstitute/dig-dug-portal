@@ -2,7 +2,6 @@
     <div>
         <!-- Header -->
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
-        <alert></alert>
 
         <!-- Body -->
         <div v-if="$parent.diseaseGroup">

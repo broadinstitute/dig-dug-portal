@@ -2,6 +2,7 @@
 
 <script>
 import Vue from "vue";
+import Counter from "@/utils/idCounter";
 import EventBus from "@/utils/eventBus";
 
 export default Vue.component("alert", {
@@ -47,7 +48,7 @@ const postAlert = function(type, message, params) {
     EventBus.$emit("ALERT", { type, message, params });
 };
 const postAlertError = function(message) {
-    const id = "alert_" + ~~(Math.random() * 1001);
+    const id = Counter.getUniqueId("alert");
     EventBus.$emit("ALERT", {
         type: "danger",
         message: message,
@@ -56,7 +57,7 @@ const postAlertError = function(message) {
     return id;
 };
 const postAlertNotice = function(message) {
-    const id = "alert_" + ~~(Math.random() * 1001);
+    const id = Counter.getUniqueId("alert");
     EventBus.$emit("ALERT", {
         type: "secondary",
         message: message,
