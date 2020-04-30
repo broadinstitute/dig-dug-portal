@@ -10,7 +10,12 @@ import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
 import uiUtils from "@/utils/uiUtils";
 import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils";
-import Alert, { postAlert, closeAlert } from "@/components/Alert";
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 Vue.config.productionTip = false;
 
@@ -54,6 +59,8 @@ new Vue({
         ...useTranslations,
         ...uiUtils,
         postAlert,
+        postAlertNotice,
+        postAlertError,
         closeAlert
     },
 
