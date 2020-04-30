@@ -2,6 +2,7 @@
     <div>
         <!-- Header -->
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <alert></alert>
 
         <!-- Body -->
         <div v-if="$parent.diseaseGroup">
@@ -31,6 +32,7 @@
                                                     type="text"
                                                     class="form-control input-default"
                                                     placeholder="Gene, region, or variant"
+                                                    autocomplete="off"
                                                 />
                                             </div>
                                             <div class="col-md-2 input-wrapper">

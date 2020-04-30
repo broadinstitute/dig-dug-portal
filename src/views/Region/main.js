@@ -22,13 +22,13 @@ Vue.config.productionTip = false;
 new Vue({
     store,
     components: {
+        PageHeader,
+        PageFooter,
+        Alert,
         PhenotypeSelectPicker,
         LocusZoom,
         AssociationsTable,
-        PhenotypeSignal,
-        Alert,
-        PageHeader,
-        PageFooter
+        PhenotypeSignal
     },
 
     created() {
