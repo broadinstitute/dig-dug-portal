@@ -8,7 +8,9 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
-// import variantUtils from "@/utils/variantUtils";
+
+
+
 
 Vue.use(Vuex);
 
@@ -23,42 +25,31 @@ export default new Vuex.Store({
     state: {
         geneName: keyParams.gene,
         newGeneName: keyParams.gene,
+        uniprotDoc: null,
     },
 
     mutations: {
-        setGene(state, geneName) {
+        setGeneName(state, geneName) {
             state.geneName = geneName || state.newGeneName;
             state.newGeneName = state.geneName
             keyParams.set({ gene: state.newGeneName })
         },
-
+        setUniprotDoc(state, doc) {
+            state.uniprotDoc = doc
+        },
     },
     actions: {
         async queryGene(context) {
             let geneName = context.state.geneName
-            console.log(geneName)
-            context.commit('setGene', context.state.geneName);
-            await context.dispatch('gene/query', { q: geneName });
+            context.commit('setGeneName', context.state.geneName);
+            //get the bioportal information for queried gene
+            context.dispatch('gene/query', { q: geneName });
+            //get the data from uniprot for queried gene
+            context.dispatch('uniprot/getUniprotGeneInfo', geneName)
 
-            let limit = 10;
-            let format = 'xml';
-
-            let xml = await fetch(`https://www.uniprot.org/uniprot/?query=gene_exact=` + geneName + `format=` + format + `include=no&limit=` + limit)
-                .then(resp => resp.text())
-            // .then(xmlString => xmlString.evaluate('//lineage', xmlString, null, XPathResult.STRING_TYPE, null))
-            // .then(data => console.log(data));
-
-
-            // .then(response => response.text())
-            // .then(xmlString => $.parseXML(xmlString))
-            // .then(data => console.log(data))
-            //process this xml using xpath
-            // let uniprotObject = data.evaluate('//lineage', data, null, XPathResult.STRING_TYPE, null);
-            // console.log(uniprotObject)
-
+            //do I need to do this if I am commiting the data in uniprot module
+            context.commit('setUniprotDoc', context.state.uniprot)
         },
-
-
     }
 
 });
