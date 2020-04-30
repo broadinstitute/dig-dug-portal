@@ -1,7 +1,11 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
 import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
-import EventBus from "@/utils/eventBus";
+import {
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -103,13 +107,9 @@ export default function(index, extend) {
                 if (queryPayload) {
                     await context.commit("setPause", false); // unpausing
                     const { q, limit } = queryPayload;
-                    let alertID = new Date().getTime().toString();
-                    EventBus.$emit("ALERT", {
-                        type: "secondary",
-                        message:
-                            "Loading data for " + index + ". Please wait ...",
-                        params: { id: alertID, noHide: true, noClose: true }
-                    });
+                    let alertID = postAlertNotice(
+                        "Loading " + index + ". Please wait ... "
+                    );
                     let data = await fullQuery(
                         { q, index, limit: limit || context.state.limit },
                         {
@@ -125,7 +125,7 @@ export default function(index, extend) {
                         }
                     );
                     context.commit("setResponse", { data: data, profile });
-                    EventBus.$emit("CLOSE_ALERT", alertID);
+                    closeAlert(alertID);
                 }
             }
         }
