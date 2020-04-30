@@ -120,7 +120,7 @@ export default function(index, extend) {
                                 context.commit("setProgress", json.progress);
                             },
                             errHandler: error => {
-                                console.log(error.message);
+                                postAlertError(error.message);
                             }
                         }
                     );
