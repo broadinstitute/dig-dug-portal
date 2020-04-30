@@ -13,6 +13,7 @@ export default Vue.component("alert", {
     mounted() {
         EventBus.$on("ALERT", this.showAlert);
         EventBus.$on("CLOSE_ALERT", this.closeAlert);
+        EventBus.$on("UPDATE_ALERT", this.updateAlert);
     },
     methods: {
         showAlert(alert) {
@@ -38,14 +39,38 @@ export default Vue.component("alert", {
         },
         closeAlert(id) {
             this.$bvToast.hide(id);
-        }
+        },
+        updateAlert(id, message) {}
     }
 });
 
-export const postAlert = function(type, message, params) {
+const postAlert = function(type, message, params) {
     EventBus.$emit("ALERT", { type, message, params });
 };
-export const closeAlert = function(id) {
+const postAlertError = function(message) {
+    const id = "alert_" + ~~(Math.random() * 1001);
+    EventBus.$emit("ALERT", {
+        type: "danger",
+        message: message,
+        params: { noHide: true, id: id }
+    });
+    return id;
+};
+const postAlertNotice = function(message) {
+    const id = "alert_" + ~~(Math.random() * 1001);
+    EventBus.$emit("ALERT", {
+        type: "secondary",
+        message: message,
+        params: { noHide: true, noClose: true, id: id }
+    });
+    return id;
+};
+const closeAlert = function(id) {
     EventBus.$emit("CLOSE_ALERT", id);
 };
+const updateAlert = function(id, message) {
+    EventBus.$emit("UPDATE_ALERT", { id, message });
+};
+
+export { postAlert, postAlertError, postAlertNotice, closeAlert, updateAlert };
 </script>
