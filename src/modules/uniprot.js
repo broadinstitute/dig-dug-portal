@@ -35,17 +35,14 @@ export default {
             return geneNames
         },
 
-        //display as table with type and id as two columns
         dbReference(state) {
             let doc = state.uniprotDoc
             let dbReferences = []
             if (!!doc) {
                 let dbReferenceArrayObj = doc.uniprot.entry.dbReference
-
                 for (let i in dbReferenceArrayObj) {
                     let attributes = jsonQuery('_attributes[*]', { data: dbReferenceArrayObj[i] }).value
                     let propertyAttributes = jsonQuery('property[**]_attributes[**][*]', { data: dbReferenceArrayObj[i] }).value
-                    let types = jsonQuery('type[**]', { data: propertyAttributes }).value
                     let values = jsonQuery('value[**]', { data: propertyAttributes }).value
                     dbReferences.push({ "source": attributes[0], "id": attributes[1], "proteinSeqID": values[0], "moleculeType": values[1] })
                 }
@@ -53,13 +50,32 @@ export default {
             }
         },
 
-        //get the accession ids
-        //display as bubbles or table with single row
         accession(state) {
             let doc = state.uniprotDoc
-            let references = []
-            references.push(_.get(doc.uniprot.entry.dbReference, '_text'))
-            return references
+            if (!!doc) {
+                let entryObject = doc.uniprot.entry
+                // let entryAttribute = jsonQuery('_attribute[**]', { data: entryObject }).value
+                let acessionIds = jsonQuery('_text[]', { data: entryObject.accession, output: [] }).value
+                if (typeof (acessionIds) == "string") {
+                    return [acessionIds]
+                }
+                return acessionIds
+            }
+
+        },
+
+        geneFunction(state) {
+            let doc = state.uniprotDoc
+            if (!!doc) {
+                let commentObject = doc.uniprot.entry.comment
+                for (let i in commentObject) {
+                    if (commentObject[i]._attributes.type == 'function') {
+                        let geneFunction = jsonQuery('text[**]', { data: commentObject[i] }).value
+                        return geneFunction[1]
+                    }
+                }
+
+            }
         },
         //display just as text
         proteinExistence(state) {

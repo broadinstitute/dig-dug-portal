@@ -47,8 +47,24 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mdkp-card" v-if="$parent.geneFunction">
+                <h4 class="card-title">Gene Function</h4>
+                <div>{{$parent.geneFunction}}</div>
+            </div>
+            <div class="card mdkp-card" v-else>
+                <h4>Gene function not found</h4>
+            </div>
+
             <div class="card mdkp-card" v-if="$parent.dbReference">
+                <h4 class="card-title">DB References</h4>
                 <dbreferences-table v-bind:dbreferences="$parent.dbReference"></dbreferences-table>
+            </div>
+            <div class="card mdkp-card" v-if="$parent.accession">
+                <h4 class="card-title">Swiss Prot Accesssion IDs</h4>
+                <div v-for="row in $parent.accession" :class="'gene-with-signal '+row">
+                    <a :href="`https://www.uniprot.org/uniprot/${row}`">{{row}}</a>
+                </div>
             </div>
         </div>
 

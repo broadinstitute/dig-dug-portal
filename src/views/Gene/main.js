@@ -67,11 +67,15 @@ new Vue({
         dbReference() {
             return this.$store.getters['uniprot/dbReference'];
         },
-
+        accession() {
+            return this.$store.getters['uniprot/accession'];
+        },
+        geneFunction() {
+            return this.$store.getters['uniprot/geneFunction'];
+        },
         geneNames() {
             return this.$store.getters['uniprot/geneNames'];
         },
-
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
