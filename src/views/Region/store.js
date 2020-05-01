@@ -6,7 +6,6 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
-import { moduleQueryTemplate } from "../../utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -33,7 +32,7 @@ export default new Vuex.Store({
         newChr: keyParams.chr,
         newStart: keyParams.start,
         newEnd: keyParams.end,
-        gene: null,
+        searchGene: null,
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
@@ -51,7 +50,7 @@ export default new Vuex.Store({
             state.newChr = state.chr;
             state.newStart = state.start;
             state.newEnd = state.end;
-            state.gene = null;
+            state.searchGene = null;
 
             keyParams.set({
                 chr: state.chr,
@@ -84,9 +83,9 @@ export default new Vuex.Store({
             context.commit('setSelectedPhenotype', phenotype);
         },
 
-        async searchGene(context) {
-            if (context.state.gene) {
-                let locus = await regionUtils.parseRegion(context.state.gene, true, 50000);
+        async findGene(context) {
+            if (context.state.searchGene) {
+                let locus = await regionUtils.parseRegion(context.state.searchGene, true, 50000);
 
                 if (locus) {
                     context.state.newChr = locus.chr;
@@ -101,8 +100,8 @@ export default new Vuex.Store({
         },
 
         async queryRegion(context) {
-            if (context.state.gene) {
-                context.dispatch('searchGene');
+            if (context.state.searchGene) {
+                context.dispatch('findGene');
             } else {
                 context.commit('setSelectedPhenotype', null);
                 context.commit('genes/clearData');

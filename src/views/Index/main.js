@@ -12,9 +12,25 @@ import AboutPortalSection from "@/components/frontPage/AboutPortalSection.vue";
 import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue";
 import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
+import uiUtils from "@/utils/uiUtils";
 
 new Vue({
     store,
+
+    data: {
+        searchExamples: {
+            "md": { "gene": "SLC30A8", "variant": "rs13266634", "region": "9:21,940,000-22,190,000" },
+            "t2d": { "gene": "SLC30A8", "variant": "rs13266634", "region": "9:21,940,000-22,190,000" },
+            "cvd": { "gene": "LPA", "variant": "rs10965215", "region": "9:20,940,000-21,800,000" },
+            "cd": { "gene": "HDAC9", "variant": "rs2984613", "region": "7:18,100,000-18,300,000" },
+            "sleep": { "gene": "PAX8", "variant": "rs62158211", "region": "2:113,873,524-114,136,577" }
+
+        }
+    },
+
+    methods: {
+        ...uiUtils,
+    },
 
     components: {
         PageHeader,
@@ -63,7 +79,7 @@ new Vue({
                 return {};
             }
             return datasets[0];
-        }
+        },
     },
 
     watch: {
@@ -76,5 +92,6 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
             this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
         },
+
     }
 }).$mount("#app");

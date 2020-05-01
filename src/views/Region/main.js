@@ -33,9 +33,7 @@ new Vue({
 
     methods: {
         associationsForLZ,
-        showHideElement: function (ELEMENT) {
-            uiUtils.showHideElement(ELEMENT);
-        },
+        ...uiUtils,
     },
 
     render(createElement, context) {
@@ -72,6 +70,10 @@ new Vue({
             return this.$store.state.genes.data.filter(function (gene) {
                 return gene.source == 'symbol';
             });
+        },
+
+        phenotypes() {
+            return [this.$store.state.phenotype];
         },
 
         // Give the top associations, find the best one across all unique

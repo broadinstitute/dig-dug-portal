@@ -21,7 +21,9 @@ export default new Vuex.Store({
         setInvalidGeneOrRegionOrVariant(state, flag) {
             state.invalidGeneOrRegionOrVariant = flag;
         },
-
+        setExample(state, example) {
+            state.geneOrRegionOrVariant = example;
+        }
     },
     state: {},
     actions: {

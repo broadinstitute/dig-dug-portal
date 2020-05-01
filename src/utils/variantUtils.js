@@ -1,6 +1,6 @@
 
 // matches a string to a variant ID string (same as used in BioIndex)
-const VARID_REGEXP = /(?:chr)?(1\d?|2[0-2]?|[3-9]|x|y|xy|mt?)[:_](\d+)[:_]([agct]+)[:_/]([agct]+)/i;
+const VARID_REGEXP = /(?:chr)?(1\d?|2[0-2]?|[3-9]|x|y|xy|mt?)[:_\-](\d+)[:_\-]([agct]+)[:_/\-]([agct]+)/i;
 const DBSNP_REGEXP = /rs\d+/;
 
 
