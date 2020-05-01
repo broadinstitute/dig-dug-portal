@@ -13,6 +13,12 @@ import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue"
 import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 import uiUtils from "@/utils/uiUtils";
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 new Vue({
     store,
@@ -35,6 +41,7 @@ new Vue({
     components: {
         PageHeader,
         PageFooter,
+        Alert,
         PhenotypeSelectPicker,
         NewsFeedSection,
         AboutPortalSection,
@@ -52,9 +59,11 @@ new Vue({
         return createElement(Template);
     },
 
+    methods: { postAlert, postAlertNotice, postAlertError, closeAlert },
+
     computed: {
         diseaseGroup() {
-            return this.$store.getters['bioPortal/diseaseGroup'];
+            return this.$store.getters["bioPortal/diseaseGroup"];
         },
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
@@ -84,14 +93,13 @@ new Vue({
 
     watch: {
         geneOrRegionOrVariant() {
-            this.$store.commit('setInvalidGeneOrRegionOrVariant', false);
+            this.$store.commit("setInvalidGeneOrRegionOrVariant", false);
         },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getNewsFeed", group.name);
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
             this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
-        },
-
+        }
     }
 }).$mount("#app");

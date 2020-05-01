@@ -1,6 +1,11 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
 import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
+import {
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -22,7 +27,7 @@ export default function (index, extend) {
                 progress: null,
 
                 paused: false,
-                iterableQuery: null,
+                iterableQuery: null
             };
         },
 
@@ -34,7 +39,10 @@ export default function (index, extend) {
                 if (!state.progress) {
                     return null;
                 }
-                return Math.min(state.progress.bytes_read / state.progress.bytes_total, 1.0);
+                return Math.min(
+                    state.progress.bytes_read / state.progress.bytes_total,
+                    1.0
+                );
             },
             paused(state) {
                 return state.paused;
@@ -43,7 +51,6 @@ export default function (index, extend) {
 
         // commit methods
         mutations: {
-
             clearData(state) {
                 state.data = [];
             },
@@ -70,14 +77,13 @@ export default function (index, extend) {
 
             setPause(state, flag) {
                 state.paused = flag;
-            },
-
+            }
         },
 
         // dispatch methods
         actions: {
             async tap(context) {
-                context.commit('setPause', !context.state.paused);
+                context.commit("setPause", !context.state.paused);
             },
             async count(context, { q }) {
                 let qs = queryString.stringify({ q });
@@ -95,29 +101,33 @@ export default function (index, extend) {
             async query(context, queryPayload) {
                 let profile = {
                     fetch: 0,
-                    query: 0,
+                    query: 0
                 };
 
                 if (queryPayload) {
-                    await context.commit('setPause', false); // unpausing
+                    await context.commit("setPause", false); // unpausing
                     const { q, limit } = queryPayload;
+                    let alertID = postAlertNotice(
+                        "Loading " + index + ". Please wait ... "
+                    );
                     let data = await fullQuery(
                         { q, index, limit: limit || context.state.limit },
                         {
-                            condition: () => !context.getters.paused,  // must be a function so it's re-read at the end of each query chain iteration
-                            resolveHandler: (json) => {
+                            condition: () => !context.getters.paused, // must be a function so it's re-read at the end of each query chain iteration
+                            resolveHandler: json => {
                                 profile.fetch += json.profile.fetch;
                                 profile.query += json.profile.query;
                                 context.commit("setProgress", json.progress);
                             },
-                            errHandler: (error) => {
-                                console.log(error.message);
-                            },
-                        })
-                    context.commit('setResponse', { data: data, profile });
+                            errHandler: error => {
+                                postAlertError(error.message);
+                            }
+                        }
+                    );
+                    context.commit("setResponse", { data: data, profile });
+                    closeAlert(alertID);
                 }
-
-            },
+            }
         }
     };
 

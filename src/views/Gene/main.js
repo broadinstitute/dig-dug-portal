@@ -3,13 +3,18 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap-vue/dist/bootstrap-vue.css';
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 
-
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -17,23 +22,19 @@ Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
-    modules: {
-
-    },
+    modules: {},
     components: {
         PageHeader,
         PageFooter,
+        Alert
     },
-    data: {
-
-    },
+    data: {},
 
     created() {
-        this.$store.dispatch('queryGene');
+        this.$store.dispatch("queryGene");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
     },
 
     render(createElement, context) {
@@ -42,12 +43,11 @@ new Vue({
 
     data() {
         return {
-            counter: 0,
-        }
+            counter: 0
+        };
     },
 
-    methods: {
-    },
+    methods: { postAlert, postAlertNotice, postAlertError, closeAlert },
 
     computed: {
         frontContents() {
@@ -60,7 +60,7 @@ new Vue({
         },
 
         diseaseGroup() {
-            return this.$store.getters['bioPortal/diseaseGroup'];
+            return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
         phenotypes() {
@@ -70,18 +70,17 @@ new Vue({
             return this.$store.state.uniprot.data;
         },
         geneData() {
-            let data = this.$store.state.geneName.data
+            let data = this.$store.state.geneName.data;
             if (data.length > 0) {
-                return data[0]
+                return data[0];
             }
-            return {}
-        },
+            return {};
+        }
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
-
+        }
     }
 }).$mount("#app");

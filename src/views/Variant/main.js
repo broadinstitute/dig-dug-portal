@@ -15,18 +15,25 @@ import PheWASTable from "@/components/PheWASTable.vue";
 import LocusZoom from "@/components/LocusZoom";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 new Vue({
     store,
 
     components: {
-        PhenotypeSelectPicker,
         PageHeader,
         PageFooter,
+        Alert,
+        PhenotypeSelectPicker,
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
         PheWASTable,
-        LocusZoom,
+        LocusZoom
     },
 
     created() {
@@ -49,7 +56,7 @@ new Vue({
         },
 
         diseaseGroup() {
-            return this.$store.getters['bioPortal/diseaseGroup'];
+            return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
         variantData() {
@@ -78,7 +85,7 @@ new Vue({
                     id: phenotype.name,
                     log_pvalue: -Math.log10(a.pValue),
                     trait_group: phenotype.group,
-                    trait_label: phenotype.description,
+                    trait_label: phenotype.description
                 };
             });
 
@@ -87,29 +94,36 @@ new Vue({
 
         consequence() {
             if (!!this.variantData) {
-                return Formatters.consequenceFormatter(this.variantData.consequence);
+                return Formatters.consequenceFormatter(
+                    this.variantData.consequence
+                );
             }
         },
 
         consequenceMeaning() {
             if (!!this.variantData) {
-                return Formatters.consequenceMeaning(this.variantData.consequence);
+                return Formatters.consequenceMeaning(
+                    this.variantData.consequence
+                );
             }
         }
     },
 
     methods: {
         ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert
     },
 
     watch: {
-        '$store.state.bioPortal.phenotypes': function (phenotypes) {
-            this.$store.dispatch('queryVariant');
+        "$store.state.bioPortal.phenotypes": function(phenotypes) {
+            this.$store.dispatch("queryVariant");
         },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
-    },
-
+        }
+    }
 }).$mount("#app");

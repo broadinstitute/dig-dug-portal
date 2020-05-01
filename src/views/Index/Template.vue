@@ -50,6 +50,7 @@
                                                     class="form-control input-default"
                                                     placeholder="Gene, region, or variant"
                                                     style="display:inline-block"
+                                                    autocomplete="off"
                                                 />
                                                 <button
                                                     id="regionSearchGo"

@@ -14,17 +14,24 @@ import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 new Vue({
     store,
 
     components: {
-        PhenotypeSelectPicker,
         PageHeader,
         PageFooter,
+        Alert,
+        PhenotypeSelectPicker,
         AssociationsTable,
         EnrichmentTable,
-        DatasetsTable,
+        DatasetsTable
     },
 
     created() {
@@ -48,7 +55,7 @@ new Vue({
         },
 
         diseaseGroup() {
-            return this.$store.getters['bioPortal/diseaseGroup'];
+            return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
         manhattanPlot() {
@@ -70,26 +77,29 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert
     },
 
     watch: {
-        '$store.state.bioPortal.phenotypeMap': function (phenotypeMap) {
+        "$store.state.bioPortal.phenotypeMap": function(phenotypeMap) {
             let name = keyParams.phenotype;
             let phenotype = phenotypeMap[name];
 
             if (!!phenotype) {
-                this.$store.commit('setPhenotype', phenotype);
+                this.$store.commit("setPhenotype", phenotype);
                 keyParams.set({ phenotype: phenotype.name });
             }
         },
 
-        '$store.state.phenotype': function (phenotype) {
-            this.$store.dispatch('queryPhenotype');
+        "$store.state.phenotype": function(phenotype) {
+            this.$store.dispatch("queryPhenotype");
         },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
-    },
-
+        }
+    }
 }).$mount("#app");

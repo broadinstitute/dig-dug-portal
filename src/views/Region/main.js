@@ -9,19 +9,26 @@ import LocusZoom from "@/components/LocusZoom";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
 import uiUtils from "@/utils/uiUtils";
-import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils"
+import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils";
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 Vue.config.productionTip = false;
 
 new Vue({
     store,
     components: {
+        PageHeader,
+        PageFooter,
+        Alert,
         PhenotypeSelectPicker,
         LocusZoom,
         AssociationsTable,
-        PhenotypeSignal,
-        PageHeader,
-        PageFooter
+        PhenotypeSignal
     },
 
     created() {
@@ -42,13 +49,17 @@ new Vue({
 
     data() {
         return {
-            counter: 0,
-        }
+            counter: 0
+        };
     },
 
     methods: {
         ...useTranslations,
         ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert
     },
 
     computed: {
@@ -68,7 +79,7 @@ new Vue({
 
         genes() {
             return this.$store.state.genes.data.filter(function (gene) {
-                return gene.source == 'symbol';
+                return gene.source == "symbol";
             });
         },
 
@@ -114,8 +125,8 @@ new Vue({
                         variant: v.varId,
                         position: v.position,
                         log_pvalue: -Math.log10(v.pValue),
-                        ref_allele: v.reference,
-                    }
+                        ref_allele: v.reference
+                    };
                 });
 
             return assocs;
@@ -123,7 +134,7 @@ new Vue({
     },
 
     watch: {
-        '$store.state.bioPortal.phenotypeMap': function (phenotypeMap) {
+        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
             // if there's a phenotypeParam, then pick that phenotype
@@ -131,7 +142,7 @@ new Vue({
                 let phenotype = phenotypeMap[param];
 
                 if (phenotype) {
-                    this.$store.commit('setSelectedPhenotype', phenotype);
+                    this.$store.commit("setSelectedPhenotype", phenotype);
                 }
             }
         },
@@ -139,7 +150,9 @@ new Vue({
         topAssociations(top) {
             if (!this.selectedPhenotype && top.length > 0) {
                 let topAssoc = top[0];
-                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[topAssoc.phenotype];
+                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
+                    topAssoc.phenotype
+                ];
 
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
