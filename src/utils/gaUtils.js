@@ -1,6 +1,4 @@
-import axios from 'axios'
-
-const ANALYTICS_EVENT_LOG_ENDPOINT = "/eventlog?action=";
+import queryString from "query-string";
 
 // Defined Actions
 const GA_TEST_ACTION = "Google Analytics Test Action"
@@ -25,25 +23,17 @@ const GA_TEST_LABEL = "Google Analytics Test Label"
  * @public
  */
 const logAnalyticsEvent = async function (action, category, label, value) {
+    let queryParams = {
+        action,
+        category,
+        label,
+        value,
+    };
 
-    let eventUrl = ANALYTICS_EVENT_LOG_ENDPOINT;
-    if(action) {
-        eventUrl = eventUrl.concat(action);
-    } else {
-        eventUrl = eventUrl.concat("event");
-    }
-    if(category) {
-        eventUrl = eventUrl.concat("&category=",category);
-    } else {
-        eventUrl = eventUrl.concat("&category=","global");
-    }
-    if(label && value) {
-        eventUrl = eventUrl.concat("&label=",label,"&value=",value);
-    }
-
-    let result =  await axios.get(eventUrl)
+    let qs = queryString.stringify(queryParams, { skipNull: true });
+    let result = await fetch(`/eventlog?${qs}`)
         .then(response => {
-            if(response) {
+            if (response) {
                 return response.data
             } else {
                 throw new Error("Unknown outcome of Google Analytics Events Logging?")
@@ -53,8 +43,8 @@ const logAnalyticsEvent = async function (action, category, label, value) {
             console.log(error)
         })
 
-        return result
-    }
+    return result
+}
 
 export default {
     logAnalyticsEvent
