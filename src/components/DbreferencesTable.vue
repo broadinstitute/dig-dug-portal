@@ -31,8 +31,20 @@ export default Vue.component("dbreferences-table", {
         return {
             fields: [
                 {
-                    key: "references",
-                    label: "references"
+                    key: "id",
+                    label: "ID"
+                },
+                {
+                    key: "source",
+                    label: "Source"
+                },
+                {
+                    key: "moleculeType",
+                    label: "Molecule Type"
+                },
+                {
+                    key: "proteinSeqID",
+                    label: "Protein Sequence ID"
                 }
             ],
             perPage: 5,

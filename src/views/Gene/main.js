@@ -64,8 +64,8 @@ new Vue({
             return this.$store.getters['bioPortal/diseaseGroup'];
         },
 
-        references() {
-            return this.$store.getters['uniprot/references'];
+        dbReference() {
+            return this.$store.getters['uniprot/dbReference'];
         },
 
         geneNames() {

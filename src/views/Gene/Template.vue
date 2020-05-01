@@ -47,8 +47,8 @@
                     </div>
                 </div>
             </div>
-            <div class="card mdkp-card" v-if="$parent.references">
-                <dbreferences-table v-bind:dbreferences="$parent.references"></dbreferences-table>
+            <div class="card mdkp-card" v-if="$parent.dbReference">
+                <dbreferences-table v-bind:dbreferences="$parent.dbReference"></dbreferences-table>
             </div>
         </div>
 

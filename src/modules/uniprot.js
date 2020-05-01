@@ -7,7 +7,7 @@
 import $ from "jquery";
 import queryString from "query-string";
 import convert from "xml-js";
-import jq from "node-jq"
+import jsonQuery from "json-query";
 
 export default {
     namespaced: true,
@@ -27,27 +27,49 @@ export default {
 
     },
     getters: {
+        //display as a table name and synonym as columns
         geneNames(state) {
             let geneNames = []
             let doc = state.uniprotDoc
             geneNames.push({ 'gene': _.get(doc.uniprot.entry.gene.name[0], '_text') })
             return geneNames
         },
-        references(state) {
-            let doc = state.uniprotDoc
-            let references = []
-            if (!!doc) {
-                references.push({ 'references': _.get(doc.uniprot.entry.dbReference[0].property[0]._attributes, 'type') })
 
+        //display as table with type and id as two columns
+        dbReference(state) {
+            let doc = state.uniprotDoc
+            let dbReferences = []
+            if (!!doc) {
+                let dbReferenceArrayObj = doc.uniprot.entry.dbReference
+
+                for (let i in dbReferenceArrayObj) {
+                    let attributes = jsonQuery('_attributes[*]', { data: dbReferenceArrayObj[i] }).value
+                    let propertyAttributes = jsonQuery('property[**]_attributes[**][*]', { data: dbReferenceArrayObj[i] }).value
+                    let types = jsonQuery('type[**]', { data: propertyAttributes }).value
+                    let values = jsonQuery('value[**]', { data: propertyAttributes }).value
+                    dbReferences.push({ "source": attributes[0], "id": attributes[1], "proteinSeqID": values[0], "moleculeType": values[1] })
+                }
+                return dbReferences
             }
-            return references
         },
+
         //get the accession ids
+        //display as bubbles or table with single row
         accession(state) {
             let doc = state.uniprotDoc
             let references = []
             references.push(_.get(doc.uniprot.entry.dbReference, '_text'))
             return references
+        },
+        //display just as text
+        proteinExistence(state) {
+            let doc = state.uniprotDoc
+            let references = []
+            references.push(_.get(doc.uniprot.entry.dbReference, '_text'))
+            return references
+        },
+        feature(state) {
+
         }
 
     },
