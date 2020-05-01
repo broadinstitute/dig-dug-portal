@@ -33,20 +33,28 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <h4 class="card-title">Association Plots</h4>
-                                <b-tabs content-class="mt-3">
+                                <b-tabs content-class>
                                     <b-tab title="Manhattan" active>
-                                        <img style="width: 100%" :src="$parent.manhattanPlot" />
+                                        <div class="col-md-6">
+                                            <img style="width: 100%" :src="$parent.manhattanPlot" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Documentation</h6>
+                                            <p>Add method description for M-plot here</p>
+                                        </div>
                                     </b-tab>
                                     <b-tab title="QQ">
-                                        <img style="width: 100%" :src="$parent.qqPlot" />
+                                        <div class="col-md-6">
+                                            <img style="width: 100%" :src="$parent.qqPlot" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Documentation</h6>
+                                            <p>Add method description QQ-plot here</p>
+                                        </div>
                                     </b-tab>
                                 </b-tabs>
-                            </div>
-                            <div class="col-md-6">
-                                <h4 class="card-title">Documentation</h4>
-                                <div>TODO:</div>
                             </div>
                         </div>
                     </div>
