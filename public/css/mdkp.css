@@ -320,7 +320,7 @@ a:hover {
 .cdkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
-    min-width: 1250px !important;
+    min-width: 1024px !important;
 }
 
 .portal-front-tabs {

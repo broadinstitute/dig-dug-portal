@@ -2,64 +2,59 @@
     <div>
         <div class="pws-merged-view">
             <h6>Traits with p-value &lt;= 2.5e-6</h6>
-            <div style="width: 90%; text-align: right;     margin-bottom: -30px;">
-                <div
-                    v-for="row in topAssociatedGroups"
-                    style="display:inline-block; font-size: 12px;padding-right: 10px"
-                >
-                    <div
-                        class="bubble phenotype-group"
-                        :class=" row"
-                        :style="{'height': '10px','width':'10px','display':'inline-block'}"
-                    >&nbsp;</div>
+            <div class="pws-group-legend-wrapper">
+                <div v-for="row in topAssociatedGroups" class="pws-group-legend">
+                    <div class="pws-group-legend-box phenotype-group" :class=" row">&nbsp;</div>
                     {{row}}
                 </div>
             </div>
-            <div style="height: 100px; position:relative; text-align: center; margin: 30px 0; ">
-                <div
-                    v-for="(row, i) in topAssociations"
-                    v-if="row.pValue <= 2.5e-6"
-                    style="display:inline-block; height: 100%; text-align: center; width: 120px;"
-                >
+            <div class="pws-top-phenotypes-wrapper">
+                <div class="pws-top-phenotypes-bars-wrapper">
                     <div
-                        v-if="i == 0"
-                        style="width: 5px;height: 80%;position: absolute;border-bottom: 1px solid rgb(204, 204, 204);border-top: 1px solid rgb(204, 204, 204);margin-left: -5px;"
+                        v-for="(row, i) in topAssociations"
+                        v-if="row.pValue <= 2.5e-6"
+                        class="pws-top-each-phenotype-wrapper"
                     >
-                        <div
-                            style="position: absolute;top: -5px;font-size: 10px;right: 10px;"
-                        >{{getEvalue(row.pValue)}}</div>
-                        <div
-                            style="position: absolute;top: 40%;font-size: 10px;right: 10px;white-space: nowrap;"
-                        >-log10(p)</div>
-                        <div style="position: absolute;bottom: -5px;font-size: 10px;right: 10px;">0</div>
-                    </div>
-                    <div
-                        style="width:100%; height:80%; position: relative; border-bottom:solid 1px #ccc;"
-                        :style=" i == 0 ? 'border-left:solid 1px #ccc;':'' "
-                    >
-                        <div
-                            class="btn btn-sm btn-leight"
-                            style="font-size: 13px; position: absolute; width: 100%; left:0; text-align: center;"
-                            :style="{'top': (65 - log2css(row.pValue))+'%'}"
-                        >{{row.pValue}}</div>
-                        <div
-                            class="bubble phenotype-group"
-                            :class=" row.group"
-                            :style="{'height': +log2css(row.pValue)+'%','width':'20px', 'padding':'0','position':'absolute','bottom':'0','margin':'0','left':'calc(50% - 10px)'}"
-                        >&nbsp;</div>
-                    </div>
-                    <div
-                        class="btn btn-sm btn-link associated-phenotype-high"
-                        style="font-size: 13px; height: 20%; position: relative; line-height: 14px;width: 100%"
-                    >
-                        {{row.description}}
-                        <div class="options-4-actions">
+                        <div v-if="i == 0" class="pws-top-phenotypes-yaxis-wrapper" style>
                             <div
-                                @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                            >Click to set phenotype</div>
+                                style="position: absolute;top: -5px;font-size: 10px;right: 10px;"
+                            >{{getEvalue(row.pValue)}}</div>
                             <div
-                                v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                            >Go to phenotype page</div>
+                                style="position: absolute;top: 40%;font-size: 10px;right: 10px;white-space: nowrap;"
+                            >-log10(p)</div>
+                            <div
+                                style="position: absolute;bottom: -5px;font-size: 10px;right: 10px;"
+                            >0</div>
+                        </div>
+                        <div class="pws-top-each-phenotype">
+                            <div
+                                class="btn btn-sm btn-leight pws-top-each-phenotype-pvalue"
+                                :style="{'top': (65 - log2css(row.pValue))+'%'}"
+                            >{{row.pValue}}</div>
+                            <div
+                                class="bubble phenotype-group pws-top-each-phenotype-bar"
+                                :class=" row.group"
+                                :style="{'height': +log2css(row.pValue)+'%'}"
+                            >&nbsp;</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pws-top-phenotypes-names-wrapper">
+                    <div
+                        v-for="(row, i) in topAssociations"
+                        v-if="row.pValue <= 2.5e-6"
+                        class="pws-top-each-phenotype-wrapper"
+                    >
+                        <div class="btn btn-sm btn-link pws-top-each-phenotype-name">
+                            {{row.description}}
+                            <div class="options-4-actions">
+                                <div
+                                    @click="$store.commit('setPhenotypeByName', row.phenotype)"
+                                >Click to set phenotype</div>
+                                <div
+                                    v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
+                                >Go to phenotype page</div>
+                            </div>
                         </div>
                     </div>
                 </div>
