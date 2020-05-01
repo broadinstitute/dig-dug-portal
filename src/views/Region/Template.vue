@@ -103,12 +103,14 @@
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div
                             href="javascript:;"
-                            v-on:click="$parent.switchViews(['pws-bubble-view','pws-bar-view']);"
+                            v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
                             class="switch-view btn btn-secondary btn-sm"
-                        >Switch view</div>
+                        >View in phenotype group</div>
                     </div>
 
-                    <phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
+                    <!--<phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>-->
+
+                    <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                 </div>
             </div>
             <div class="card mdkp-card">

@@ -8,6 +8,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
+import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import uiUtils from "@/utils/uiUtils";
 import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils";
 import Alert, {
@@ -28,7 +29,9 @@ new Vue({
         PhenotypeSelectPicker,
         LocusZoom,
         AssociationsTable,
-        PhenotypeSignal
+        PhenotypeSignalMixed,
+        PageHeader,
+        PageFooter
     },
 
     created() {
