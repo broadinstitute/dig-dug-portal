@@ -27,12 +27,16 @@ export default {
 
     },
     getters: {
-        //display as a table name and synonym as columns
+
         geneNames(state) {
             let geneNames = []
             let doc = state.uniprotDoc
-            geneNames.push({ 'gene': _.get(doc.uniprot.entry.gene.name[0], '_text') })
-            return geneNames
+            if (!!doc) {
+                let geneNameInfo = doc.uniprot.entry.gene.name
+                geneNames = jsonQuery('_text[*]', { data: geneNameInfo }).value
+                return geneNames
+            }
+
         },
 
         dbReference(state) {

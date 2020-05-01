@@ -55,6 +55,12 @@
             <div class="card mdkp-card" v-else>
                 <h4>Gene function not found</h4>
             </div>
+            <div class="card mdkp-card" v-if="$parent.geneNames">
+                <h4 class="card-title">Gene Synonyms</h4>
+                <div v-for="row in $parent.geneNames" :class="'gene-with-signal '+row">
+                    <a :href="`/gene.html?gene=${row}`">{{row}}</a>
+                </div>
+            </div>
 
             <div class="card mdkp-card" v-if="$parent.dbReference">
                 <h4 class="card-title">DB References</h4>
