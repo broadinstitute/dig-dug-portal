@@ -100,8 +100,9 @@ export default {
         async getUniprotGeneInfo(context, gene) {
             let limit = 1;
             let format = 'xml'
-            let organism = 9606
-            let qs = queryString.stringify({ limit: 1, query: `gene_exact:${gene}`, format: format, organism: organism }, { skipNull: true });
+            let organism = 9606; // homosapein
+            let query = 'gene_exact';
+            let qs = queryString.stringify({ limit: 1, query: `${query}:${gene}`, format: format, organism: organism }, { skipNull: true });
             let uniprotDoc = await fetch(`https://www.uniprot.org/uniprot/?${qs}`)
                 .then(response => response.text())
                 .then(responseJson => JSON.parse(convert.xml2json(responseJson, { compact: true, spaces: 4 })))
