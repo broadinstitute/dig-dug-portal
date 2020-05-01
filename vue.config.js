@@ -2,6 +2,12 @@ module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
+    configureWebpack: config => {
+        if (process.env.NODE_ENV !== 'production') {
+            config.devtool = 'inline-source-map';
+        }
+    },
+    productionSourceMap: false,
     pages: {
         index: {
             entry: "src/views/Index/main.js",

@@ -3,8 +3,8 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "build": "vue-cli-service build",
-    "watch": "vue-cli-service build --watch --mode development",
+    "build": "vue-cli-service build --mode development",
+    "watch": "vue-cli-service build --mode development --watch",
     "deploy": "vue-cli-service build --mode production"
   },
   "dependencies": {
