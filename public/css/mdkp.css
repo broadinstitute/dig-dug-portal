@@ -508,7 +508,7 @@ div.filtering-tools table th {
 .region-search-examples {
     text-align: center;
     color: #fff;
-    padding-bottom: 10px;
+    margin-top: 10px;
 }
 
 .region-search-examples a {
@@ -584,6 +584,7 @@ div.filtering-tools table th {
 
 .front-gene-search-wrapper .input-wrapper {
     display: inline-block;
+    padding: 0;
 }
 
 .front-gene-search-wrapper .input-wrapper .input-default,
