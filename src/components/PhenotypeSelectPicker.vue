@@ -35,12 +35,6 @@ export default Vue.component("phenotype-selectpicker", {
             userText: this.defaultPhenotype || null
         };
     },
-    mounted() {
-        this.$nextTick(() => {
-            if (!this.defaultPhenotype && this.$store.state.phenotype)
-                this.userText = this.$store.state.phenotype.description;
-        });
-    },
     computed: {
         phenotypeOptions() {
             if (!this.phenotypes) {
