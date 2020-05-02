@@ -1,47 +1,45 @@
 <template>
-    <div>
-        <vue-typeahead-bootstrap
-            v-model="userText"
-            :data="phenotypeOptions"
-            :serializer="s => s.description"
-            @hit="onPhenotypeSelected($event)"
-        >
-            <template slot="suggestion" slot-scope="{ data, htmlText }">
-                <span v-html="htmlText"></span>&nbsp;
-                <small class="text-secondary">{{ data.group }}</small>
-            </template>
-        </vue-typeahead-bootstrap>
-    </div>
+    <vue-typeahead-bootstrap
+        v-model="userText"
+        ref="phenotypeSelect"
+        placeholder="Type in a phenotype ..."
+        :data="phenotypeOptions"
+        :serializer="s => s.description"
+        @hit="onPhenotypeSelected($event)"
+    >
+        <template slot="suggestion" slot-scope="{ data, htmlText }">
+            <span v-html="htmlText"></span>&nbsp;
+            <small class="text-secondary">{{ data.group }}</small>
+        </template>
+    </vue-typeahead-bootstrap>
 </template>
 
 <script>
 import Vue from "vue";
 import _ from "lodash";
 
+import keyParams from "@/utils/keyParams";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-
-import vSelect from "vue-select";
-
-Vue.component("v-select", vSelect);
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-import "vue-select/dist/vue-select.css";
-
 export default Vue.component("phenotype-selectpicker", {
-    props: ["phenotypes", "clearOnSelected"],
+    props: ["phenotypes", "clearOnSelected", "defaultPhenotype"],
 
     data() {
         return {
-            userText: null,
-            selectedPhenotype: null
+            userText: this.defaultPhenotype || null
         };
+    },
+    mounted() {
+        this.$nextTick(() => {
+            if (!this.defaultPhenotype && this.$store.state.phenotype)
+                this.userText = this.$store.state.phenotype.description;
+        });
     },
     computed: {
         phenotypeOptions() {
