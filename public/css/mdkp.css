@@ -249,14 +249,14 @@ a:hover {
 .am-menu {
     display: inline-block;
     position: relative;
- }
+}
 
 .am-menu > .am-submenu {
     display: none;
     position: absolute;
     z-index: 100000;
-    padding:0;
-    margin:0;
+    padding: 0;
+    margin: 0;
 }
 
 .am-menu:hover > .am-submenu {
@@ -265,31 +265,30 @@ a:hover {
 
 .am-submenu > li {
     width: 100%;
-	background-color: rgba(120, 120, 120, .75);
-	font-size: 0.8em;
-	padding: 5px 15px 5px 15px;
-	border-bottom: solid 1px #666;
-	text-align: left;
-	list-style: none;
+    background-color: rgba(120, 120, 120, 0.75);
+    font-size: 0.8em;
+    padding: 5px 15px 5px 15px;
+    border-bottom: solid 1px #666;
+    text-align: left;
+    list-style: none;
 }
 
 .am-submenu > li:hover {
-	background-color: rgba(90, 90, 90, 1);
-	font-size: 0.8em;
-	padding: 5px 15px 5px 15px;
-	border-bottom: solid 1px #666;
-	text-align: left;
-	list-style: none;
+    background-color: rgba(90, 90, 90, 1);
+    font-size: 0.8em;
+    padding: 5px 15px 5px 15px;
+    border-bottom: solid 1px #666;
+    text-align: left;
+    list-style: none;
 }
 
 .am-submenu > li > a {
-	color: #fff;
+    color: #fff;
 }
 
 .am-menu:hover > .am-submenu {
-	display: block;
+    display: block;
 }
-
 
 .mdkp-footer,
 .cvdkp-footer,
@@ -449,7 +448,8 @@ div.filtering-tools {
     padding-top: 8px;
 }
 
-div.filtering-tools table td, div.filtering-tools table th {
+div.filtering-tools table td,
+div.filtering-tools table th {
     padding-right: 10px;
     padding-left: 10px;
     border-right: solid 1px #fff;
@@ -463,7 +463,7 @@ div.filtering-tools table td, div.filtering-tools table th {
 }
 
 .phenotype-btn {
-    position: relative
+    position: relative;
 }
 
 .phenotype-btn.mr-1 {
@@ -471,7 +471,7 @@ div.filtering-tools table td, div.filtering-tools table th {
 }
 
 .phenotype-btn > span.remove {
-    font-family: 'Roboto';
+    font-family: "Roboto";
     font-size: 1.2em;
     position: absolute;
     background-color: #ccc;
@@ -493,15 +493,11 @@ div.filtering-tools table td, div.filtering-tools table th {
     color: #fff;
 }
 
-#phenotypeSearchHolder {
-
-}
-
 #phenotypeSearchHolder input.form-control {
     border-radius: 0;
     border: solid 1px #ddd;
-    height:65px;
-    width:100%;
+    height: 65px;
+    width: 100%;
     font-size: 20px;
 }
 
@@ -542,7 +538,8 @@ div.filtering-tools table td, div.filtering-tools table th {
     top: 25%;
 }
 
-#regionSearchHolder .input-default, #variantSearchHolder .input-default {
+#regionSearchHolder .input-default,
+#variantSearchHolder .input-default {
     height: 100%;
     width: 100%;
     border: 0;
@@ -565,7 +562,8 @@ div.filtering-tools table td, div.filtering-tools table th {
     padding-top: 8px;
 }
 
-#regionSearchHolder #regionSearchGo, #variantSearchHolder #variantSearchGo {
+#regionSearchHolder #regionSearchGo,
+#variantSearchHolder #variantSearchGo {
     position: absolute;
     padding: 0;
     top: 13px;
@@ -578,7 +576,8 @@ div.filtering-tools table td, div.filtering-tools table th {
     text-align: center;
 }
 
-.front-gene-search-wrapper, .front-phenotype-search-wrapper {
+.front-gene-search-wrapper,
+.front-phenotype-search-wrapper {
     width: 50%;
     margin: auto;
 }
@@ -587,11 +586,12 @@ div.filtering-tools table td, div.filtering-tools table th {
     display: inline-block;
 }
 
-.front-gene-search-wrapper .input-wrapper .input-default, .front-phenotype-search-wrapper input {
+.front-gene-search-wrapper .input-wrapper .input-default,
+.front-phenotype-search-wrapper input {
     height: 50px;
     background-color: rgba(255, 255, 255, 0.75);
     border-color: #fff;
-    width: calc(100% - 65px) !important;
+    width: 100%;
 }
 
 .front-gene-search-wrapper #regionSearchGo {

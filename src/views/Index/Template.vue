@@ -51,14 +51,8 @@
                                                     placeholder="Gene, region, or variant"
                                                     style="display:inline-block"
                                                     autocomplete="off"
+                                                    @change="$store.dispatch('exploreRegionOrVariant')"
                                                 />
-                                                <button
-                                                    id="regionSearchGo"
-                                                    class="btn btn-primary"
-                                                    type="button"
-                                                    @click="$store.dispatch('exploreRegionOrVariant')"
-                                                    style="display:inline-block"
-                                                >GO</button>
                                             </div>
 
                                             <div
