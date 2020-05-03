@@ -9,6 +9,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import DbreferencesTable from "@/components/DbreferencesTable.vue";
+import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
     postAlert,
@@ -49,7 +50,13 @@ new Vue({
         };
     },
 
-    methods: { postAlert, postAlertNotice, postAlertError, closeAlert },
+    methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+    },
 
     computed: {
         frontContents() {
@@ -64,20 +71,42 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
+        symbolName() {
+            let data = this.$store.state.genes.data;
+
+            for (let i in data) {
+                if (data[i].source === 'symbol') {
+                    return data[i].name;
+                }
+            }
+        },
+
+        aliasNames() {
+            return this.$store.state.genes.data
+                .filter(g => g.source === 'alias')
+                .map(g => g.name);
+        },
+
+        alternateNames() {
+            return this.$store.state.genes.data
+                .filter(g => g.source !== 'symbol')
+                .map(g => g.name);
+        },
+
         dbReference() {
             return this.$store.getters['uniprot/dbReference'];
         },
+
         accession() {
             return this.$store.getters['uniprot/accession'];
         },
+
         geneFunction() {
             return this.$store.getters['uniprot/geneFunction'];
         },
+
         geneNames() {
             return this.$store.getters['uniprot/geneNames'];
-        },
-        phenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
         },
 
         gene() {

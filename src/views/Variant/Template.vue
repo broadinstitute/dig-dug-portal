@@ -40,9 +40,10 @@
                         </div>
                         <span v-if="$parent.variantData">
                             {{$parent.variantData.varId}}
-                            <span
-                                v-if="$parent.variantData.dbSNP"
-                            >/ {{$parent.variantData.dbSNP}}</span>
+                            <span v-if="$parent.variantData.dbSNP">
+                                <span style="color: gray">/</span>
+                                {{$parent.variantData.dbSNP}}
+                            </span>
                         </span>
                     </div>
                 </div>
