@@ -4,6 +4,7 @@
 import Vue from "vue";
 import Counter from "@/utils/idCounter";
 import EventBus from "@/utils/eventBus";
+import logErrorEvent from "@/utils/gaUtils";
 
 export default Vue.component("alert", {
     data() {
@@ -47,13 +48,28 @@ export default Vue.component("alert", {
 const postAlert = function(type, message, params) {
     EventBus.$emit("ALERT", { type, message, params });
 };
-const postAlertError = function(message) {
+
+/**
+ * Post an application "Error" alert.
+ * Note: 'context' could be more explicit than simply "danger"?
+ *
+ * @param {string} [message]
+ * @param {string} [context]
+ * @return {string} unique numeric identifier of the alert
+ * @public
+ */
+const postAlertError = function(message, context) {
     const id = Counter.getUniqueId("alert");
+    context = context ? context: "danger";
     EventBus.$emit("ALERT", {
-        type: "danger",
+        type: context, //"danger",
         message: message,
         params: { noHide: true, id: id }
     });
+
+    // Logging this alert to Google Analytics
+    logErrorEvent(context, message);
+
     return id;
 };
 const postAlertNotice = function(message) {

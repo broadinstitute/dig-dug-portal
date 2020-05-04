@@ -120,7 +120,7 @@ export default function (index, extend) {
                                 context.commit("setProgress", json.progress);
                             },
                             errHandler: error => {
-                                postAlertError(error.message);
+                                postAlertError(error.message,"BioIndex");
                             }
                         }
                     );

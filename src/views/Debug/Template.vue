@@ -9,6 +9,16 @@
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
 
+                    <div class="col-md-1 gene-page-header-title">
+                        Variant
+                        <a
+                            class="edit-btn"
+                            v-on:click="$parent.postAlertError('variantSearchHolder','variant_search_input')"
+                        >Test Error Alert</a>
+                    </div>
+
+                    <alert></alert>
+
                     <ga-event-log></ga-event-log>
 
                     <div class="col-md-8 gene-page-header-title">

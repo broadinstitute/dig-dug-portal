@@ -1,13 +1,15 @@
 import queryString from "query-string";
 
 // Defined Actions
-const GA_TEST_ACTION = "Google Analytics Test Action"
+const GA_TEST_EVENT_ACTION = "Google Analytics Test Action"
+const GA_APPLICATION_ERROR_EVENT_ACTION = "Application Error"
 
 // Defined Categories
 const GA_TEST_CATEGORY = "Google Analytics Test Category"
 
 // Defined Labels
 const GA_TEST_LABEL = "Google Analytics Test Label"
+const GA_MESSAGE_LABEL = "Message"
 
 /**
  * Issue an Event Log notification for Google Analytics reporting, to the
@@ -19,7 +21,7 @@ const GA_TEST_LABEL = "Google Analytics Test Label"
  * @param {string} [category]
  * @param {string} [label]
  * @param {string} [value]
- * @return {string}
+ * @return null
  * @public
  */
 const logAnalyticsEvent = async function (action, category, label, value) {
@@ -31,7 +33,7 @@ const logAnalyticsEvent = async function (action, category, label, value) {
     };
 
     let qs = queryString.stringify(queryParams, { skipNull: true });
-    let result = await fetch(`/eventlog?${qs}`)
+    return await fetch(`/eventlog?${qs}`)
         .then(response => {
             if (response) {
                 return response.data
@@ -42,10 +44,29 @@ const logAnalyticsEvent = async function (action, category, label, value) {
         .catch(error => {
             console.log(error)
         })
-
-    return result
 }
 
+/**
+ * Issue an Application Error Event Log notification for Google Analytics (GA) reporting, to the server.
+ * The "context" of the event specifies the GA event "category" and the message is sent as the
+ * GA event value for a hard coded label "message".
+ *
+ * @param {string} [context]
+ * @param {string} [message]
+ * @return null
+ * @public
+ */
+const logErrorEvent = async function (context, message) {
+    logAnalyticsEvent(
+        GA_APPLICATION_ERROR_EVENT_ACTION,
+        context,
+        GA_MESSAGE_LABEL,
+        message
+    );
+}
+
+
 export default {
-    logAnalyticsEvent
+    logAnalyticsEvent,
+    logErrorEvent,
 }
