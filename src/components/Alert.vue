@@ -20,7 +20,7 @@ export default Vue.component("alert", {
         showAlert(alert) {
             const title = {
                 info: "Information",
-                success: "Sucesss",
+                success: "Success",
                 warning: "Warning",
                 danger: "Error!",
                 primary: "Notice",
