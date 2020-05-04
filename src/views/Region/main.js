@@ -112,6 +112,9 @@ new Vue({
                 }
             }
 
+            // region loaded, hide search
+            uiUtils.hideElement('regionSearchHolder');
+
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
@@ -131,6 +134,9 @@ new Vue({
                         ref_allele: v.reference
                     };
                 });
+
+            // phenotype data loaded, close search
+            uiUtils.hideElement('phenotypeSearchHolder');
 
             return assocs;
         }
