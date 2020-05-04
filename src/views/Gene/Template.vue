@@ -52,22 +52,25 @@
 
             <div class="gene-page-header card mdkp-card" v-if="$parent.region">
                 <div class="row card-body">
-                    <div class="col-md-2 gene-page-header-title">Chromosome</div>
-                    <div class="col-md-3 gene-page-header-title">Start</div>
-                    <div class="col-md-3 gene-page-header-title">End</div>
-                    <div class="col-md-2 gene-page-header-title">Size</div>
-                    <div class="col-md-2 gene-page-header-title">Region</div>
-                    <div class="col-md-2 gene-page-header-body">{{$parent.region.chromosome}}</div>
+                    <div class="col-md-1 gene-page-header-title">Chr</div>
+                    <div class="col-md-2 gene-page-header-title">Start</div>
+                    <div class="col-md-2 gene-page-header-title">End</div>
+                    <div class="col-md-2 gene-page-header-title">Length</div>
+                    <div class="col-md-2 gene-page-header-title">Assembly</div>
+                    <div class="col-md-3 gene-page-header-title">Region</div>
+
+                    <div class="col-md-1 gene-page-header-body">{{$parent.region.chromosome}}</div>
                     <div
-                        class="col-md-3 gene-page-header-body"
+                        class="col-md-2 gene-page-header-body"
                     >{{$parent.region.start.toLocaleString()}}</div>
                     <div
-                        class="col-md-3 gene-page-header-body"
+                        class="col-md-2 gene-page-header-body"
                     >{{$parent.region.end.toLocaleString()}}</div>
                     <div
                         class="col-md-2 gene-page-header-body"
                     >{{($parent.region.end - $parent.region.start).toLocaleString()}} bp</div>
-                    <div class="col-md-2 gene-page-header-body">
+                    <div class="col-md-2 gene-page-header-body">GRCh37</div>
+                    <div class="col-md-3 gene-page-header-body">
                         <div class="btn-group">
                             <a
                                 type="button"

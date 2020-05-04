@@ -64,6 +64,8 @@ new Vue({
 
             // there should only be one variant returned
             if (data.length > 0) {
+                this.hideElement('variantSearchHolder');
+
                 return data[0];
             }
         },
@@ -118,7 +120,7 @@ new Vue({
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypes": function(phenotypes) {
+        "$store.state.bioPortal.phenotypes": function (phenotypes) {
             this.$store.dispatch("queryVariant");
         },
 
