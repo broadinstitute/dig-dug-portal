@@ -59,8 +59,12 @@
                 <div class="card-body">
                     <div v-if="$parent.geneNames">
                         <h4 class="card-title">Alternative Names</h4>
-                        <div v-for="row in $parent.alternateNames" :class="'gene-with-signal '+row">
-                            <a :href="`/gene.html?gene=${row}`">{{row}}</a>
+                        <div
+                            v-for="gene in $parent.alternateNames"
+                            class="gene-with-signal protein_coding"
+                            :key="gene.name"
+                        >
+                            <a :href="`/gene.html?gene=${gene.name}`">{{gene.name}}</a>
                         </div>
                     </div>
                 </div>
@@ -78,7 +82,10 @@
                 <div class="card-body">
                     <div v-if="$parent.accession">
                         <h4 class="card-title">Swiss Prot Accesssion IDs</h4>
-                        <div v-for="row in $parent.accession" :class="'gene-with-signal '+row">
+                        <div
+                            v-for="row in $parent.accession"
+                            class="gene-with-signal protein_coding"
+                        >
                             <a :href="`https://www.uniprot.org/uniprot/${row}`">{{row}}</a>
                         </div>
                     </div>

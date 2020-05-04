@@ -82,15 +82,17 @@ new Vue({
         },
 
         aliasNames() {
-            return this.$store.state.genes.data
-                .filter(g => g.source === 'alias')
-                .map(g => g.name);
+            return this.$store.state.genes.data.filter(g => g.source === 'alias');
         },
 
         alternateNames() {
             return this.$store.state.genes.data
                 .filter(g => g.source !== 'symbol')
-                .map(g => g.name);
+                .sort((a, b) => {
+                    if (a.source < b.source) return -1;
+                    if (a.source > b.source) return 1;
+                    return 0;
+                });
         },
 
         dbReference() {
