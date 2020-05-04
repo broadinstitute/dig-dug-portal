@@ -31,7 +31,7 @@ const logAnalyticsEvent = async function (action, category, label, value) {
     };
 
     let qs = queryString.stringify(queryParams, { skipNull: true });
-    let result = await fetch(`/eventlog?${qs}`)
+    let result = await fetch(urlencode(`/eventlog?${qs}`))
         .then(response => {
             if (response) {
                 return response.data
