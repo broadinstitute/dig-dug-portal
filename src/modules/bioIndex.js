@@ -9,7 +9,7 @@ import {
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
-export default function (index, extend) {
+export default function(index, extend) {
     let module = {
         namespaced: true,
         limit: null,
@@ -120,7 +120,8 @@ export default function (index, extend) {
                                 context.commit("setProgress", json.progress);
                             },
                             errHandler: error => {
-                                postAlertError(error.message);
+                                closeAlert(alertID);
+                                postAlertError(error.detail);
                             }
                         }
                     );
