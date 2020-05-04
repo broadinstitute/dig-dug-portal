@@ -34,10 +34,6 @@ new Vue({
         }
     },
 
-    methods: {
-        ...uiUtils,
-    },
-
     components: {
         PageHeader,
         PageFooter,
@@ -59,7 +55,13 @@ new Vue({
         return createElement(Template);
     },
 
-    methods: { postAlert, postAlertNotice, postAlertError, closeAlert },
+    methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert
+    },
 
     computed: {
         diseaseGroup() {

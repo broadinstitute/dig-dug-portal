@@ -43,6 +43,14 @@ new Vue({
         return createElement(Template);
     },
 
+    methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert
+    },
+
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -73,14 +81,6 @@ new Vue({
                 return `https://dig-analysis-data.s3.amazonaws.com/out/metaanalysis/plots/${phenotype.name}/qq.png`;
             }
         }
-    },
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert
     },
 
     watch: {

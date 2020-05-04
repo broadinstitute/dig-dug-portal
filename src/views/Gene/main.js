@@ -48,7 +48,12 @@ new Vue({
         return createElement(Template);
     },
 
-    methods: { postAlert, postAlertNotice, postAlertError, closeAlert },
+    methods: {
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert
+    },
 
     computed: {
         frontContents() {

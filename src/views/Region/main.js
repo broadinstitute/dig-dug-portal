@@ -29,9 +29,7 @@ new Vue({
         PhenotypeSelectPicker,
         LocusZoom,
         AssociationsTable,
-        PhenotypeSignalMixed,
-        PageHeader,
-        PageFooter
+        PhenotypeSignalMixed
     },
 
     created() {
@@ -39,11 +37,6 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-    },
-
-    methods: {
-        associationsForLZ,
-        ...uiUtils,
     },
 
     render(createElement, context) {
@@ -57,6 +50,7 @@ new Vue({
     },
 
     methods: {
+        associationsForLZ,
         ...useTranslations,
         ...uiUtils,
         postAlert,

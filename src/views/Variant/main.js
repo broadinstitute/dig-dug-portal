@@ -45,6 +45,14 @@ new Vue({
         return createElement(Template);
     },
 
+    methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert
+    },
+
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -109,13 +117,6 @@ new Vue({
         }
     },
 
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert
-    },
 
     watch: {
         "$store.state.bioPortal.phenotypes": function(phenotypes) {
