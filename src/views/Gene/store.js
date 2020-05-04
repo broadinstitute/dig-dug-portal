@@ -18,6 +18,7 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
+        gene: bioIndex("gene"),
         genes: bioIndex("genes"),
         uniprot,
 
@@ -31,18 +32,58 @@ export default new Vuex.Store({
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
         },
+        setGene(state, { name, chromosome, start, end }) {
+            state.geneName = name;
+            state.geneRegion = `${chromosome}:${start}-${end}`;
+        }
+    },
+
+    getters: {
+        region(state) {
+            let data = state.gene.data;
+
+            if (data.length > 0) {
+                let gene = data[0];
+
+                return {
+                    chromosome: gene.chromosome,
+                    start: gene.start,
+                    end: gene.end,
+                }
+            }
+        },
+
+        canonicalSymbol(state) {
+            let data = state.genes.data;
+
+            for (let i in data) {
+                if (data[i].source === 'symbol') {
+                    return data[i].name;
+                }
+            }
+        }
     },
 
     actions: {
-        async queryGene(context) {
-            let geneName = context.state.geneName;
-
-            context.commit('setGeneName', context.state.geneName);
-
-            // get the bioindex information for queried gene
-            context.dispatch('genes/query', { q: geneName });
-            context.dispatch('uniprot/getUniprotGeneInfo', geneName);
+        async queryGeneName(context, geneName) {
+            if (!!geneName) {
+                context.dispatch('gene/query', { q: geneName });
+            }
         },
-    }
 
+        async queryGeneRegion(context, region) {
+            let { chromosome, start, end } = region || context.getters.region;
+            let q = `${chromosome}:${start}-${end}`;
+
+            context.dispatch('genes/query', { q });
+        },
+
+        async queryUniprot(context, symbol) {
+            let name = symbol || context.getters.canonicalSymbol;
+
+            if (!!symbol) {
+                context.dispatch('uniprot/getUniprotGeneInfo', name);
+            }
+        }
+    },
 });

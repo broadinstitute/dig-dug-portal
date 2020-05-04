@@ -34,7 +34,8 @@ new Vue({
     data: {},
 
     created() {
-        this.$store.dispatch("queryGene");
+        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -71,14 +72,12 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
-        symbolName() {
-            let data = this.$store.state.genes.data;
+        region() {
+            return this.$store.getters.region;
+        },
 
-            for (let i in data) {
-                if (data[i].source === 'symbol') {
-                    return data[i].name;
-                }
-            }
+        symbolName() {
+            return this.$store.getters.canonicalSymbol;
         },
 
         aliasNames() {
@@ -124,6 +123,16 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+
+        // the region for the gene was found
+        region(region) {
+            this.$store.dispatch('queryGeneRegion', region);
+        },
+
+        // the canonical symbol was found
+        symbolName(symbol) {
+            this.$store.dispatch('queryUniprot', symbol);
         }
     }
 }).$mount("#app");
