@@ -19,7 +19,7 @@
 
         methods: {
             async fetchResults() {
-                this.value = await gaUtils.logAnalyticsEvent();
+                this.value = await gaUtils.logAnalyticsEvent("Click","GAEventLog Test","Event Sent","True");
             }
         },
     })

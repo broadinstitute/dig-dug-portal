@@ -10,11 +10,9 @@
                 <div class="row card-body">
 
                     <div class="col-md-1 gene-page-header-title">
-                        Variant
-                        <a
-                            class="edit-btn"
-                            v-on:click="$parent.postAlertError('variantSearchHolder','variant_search_input')"
-                        >Test Error Alert</a>
+                        <button @click="$parent.postAlertError('Error Alert!','Debug.vue')">
+                            Test Error Alert
+                        </button>
                     </div>
 
                     <alert></alert>
