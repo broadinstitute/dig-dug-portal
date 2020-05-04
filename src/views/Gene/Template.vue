@@ -30,7 +30,7 @@
                                     id="variantSearchGo"
                                     class="btn btn-primary"
                                     type="button"
-                                    @click="$store.dispatch('queryGene')"
+                                    @click="$store.dispatch('queryGeneName')"
                                 >GO</button>
                             </div>
                             <div class="col-md-3 search-example">
@@ -38,7 +38,40 @@
                                 <br />Ensembl, HGNC, UCSC, RGD, MGD
                             </div>
                         </div>
-                        <span v-if="$parent.symbolName">{{$parent.symbolName}}</span>
+                        <div v-if="$parent.symbolName">
+                            <span>
+                                {{$parent.symbolName}}
+                                <span
+                                    v-if="$parent.symbolName !== $store.state.geneName"
+                                >({{$store.state.geneName}})</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gene-page-header card mdkp-card" v-if="$parent.region">
+                <div class="row card-body">
+                    <div class="col-md-2 gene-page-header-title">Chromosome</div>
+                    <div class="col-md-3 gene-page-header-title">Start</div>
+                    <div class="col-md-3 gene-page-header-title">End</div>
+                    <div class="col-md-2 gene-page-header-title">Size</div>
+                    <div class="col-md-2 gene-page-header-title">Region</div>
+                    <div class="col-md-2 gene-page-header-body">{{$parent.region.chromosome}}</div>
+                    <div
+                        class="col-md-3 gene-page-header-body"
+                    >{{$parent.region.start.toLocaleString()}}</div>
+                    <div
+                        class="col-md-3 gene-page-header-body"
+                    >{{$parent.region.end.toLocaleString()}}</div>
+                    <div
+                        class="col-md-2 gene-page-header-body"
+                    >{{($parent.region.end - $parent.region.start).toLocaleString()}} bp</div>
+                    <div class="col-md-2 gene-page-header-body">
+                        <a
+                            class="btn btn-light"
+                            :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start}&end=${$parent.region.end}`"
+                        >Explore...</a>
                     </div>
                 </div>
             </div>

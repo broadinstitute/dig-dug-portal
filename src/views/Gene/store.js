@@ -65,9 +65,11 @@ export default new Vuex.Store({
     },
 
     actions: {
-        async queryGeneName(context, geneName) {
-            if (!!geneName) {
-                context.dispatch('gene/query', { q: geneName });
+        async queryGeneName(context, symbol) {
+            let name = symbol || context.state.geneName;
+
+            if (!!name) {
+                context.dispatch('gene/query', { q: name });
             }
         },
 
