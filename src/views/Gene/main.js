@@ -30,7 +30,12 @@ new Vue({
         Alert,
         DbreferencesTable,
     },
-    data: {},
+
+    data() {
+        return {
+            counter: 0
+        };
+    },
 
     created() {
         this.$store.dispatch("queryGene");
@@ -41,12 +46,6 @@ new Vue({
 
     render(createElement, context) {
         return createElement(Template);
-    },
-
-    data() {
-        return {
-            counter: 0
-        };
     },
 
     methods: { postAlert, postAlertNotice, postAlertError, closeAlert },

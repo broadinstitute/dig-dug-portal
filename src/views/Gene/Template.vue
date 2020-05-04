@@ -67,7 +67,7 @@
                 <dbreferences-table v-bind:dbreferences="$parent.dbReference"></dbreferences-table>
             </div>
             <div class="card mdkp-card" v-if="$parent.accession">
-                <h4 class="card-title">Swiss Prot Accesssion IDs</h4>
+                <h4 class="card-title">Swiss Prot Accession IDs</h4>
                 <div v-for="row in $parent.accession" :class="'gene-with-signal '+row">
                     <a :href="`https://www.uniprot.org/uniprot/${row}`">{{row}}</a>
                 </div>
