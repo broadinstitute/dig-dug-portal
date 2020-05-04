@@ -127,6 +127,7 @@ new Vue({
 
         // the region for the gene was found
         region(region) {
+            this.hideElement('variantSearchHolder')
             this.$store.dispatch('queryGeneRegion', region);
         },
 

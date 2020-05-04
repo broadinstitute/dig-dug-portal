@@ -42,7 +42,7 @@
                             <span>
                                 {{$parent.symbolName}}
                                 <span
-                                    v-if="$parent.symbolName !== $store.state.geneName"
+                                    v-if="$parent.symbolName.toLowerCase() !== $store.state.geneName.toLowerCase()"
                                 >({{$store.state.geneName}})</span>
                             </span>
                         </div>
@@ -68,10 +68,18 @@
                         class="col-md-2 gene-page-header-body"
                     >{{($parent.region.end - $parent.region.start).toLocaleString()}} bp</div>
                     <div class="col-md-2 gene-page-header-body">
-                        <a
-                            class="btn btn-light"
-                            :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start}&end=${$parent.region.end}`"
-                        >Explore...</a>
+                        <div class="btn-group">
+                            <a
+                                type="button"
+                                class="btn btn-light"
+                                :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start}&end=${$parent.region.end}`"
+                            >Explore</a>
+                            <a
+                                type="button"
+                                class="btn btn-light text-nowrap"
+                                :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start-50000}&end=${$parent.region.end+50000}`"
+                            >&plusmn; 50 kb</a>
+                        </div>
                     </div>
                 </div>
             </div>

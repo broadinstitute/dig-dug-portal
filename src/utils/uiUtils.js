@@ -3,13 +3,40 @@ let popOutElement = function (ELEMENT) {
     element.classList.toggle("popped-out");
 }
 
+let hideElement = function (ELEMENT) {
+    let element = checkExist(ELEMENT);
+
+    if (!!element) {
+        element.classList.add('hidden');
+    }
+};
+
+let showElement = function (ELEMENT, SEARCHBOX) {
+    let element = checkExist(ELEMENT);
+
+    if (!!element) {
+        element.classList.remove('hidden');
+
+        if (!!SEARCHBOX) {
+            let searchInput = checkExist(SEARCHBOX);
+
+            if (!!searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+        }
+    }
+};
+
 let showHideElement = function (ELEMENT, SEARCHBOX) {
     let element = checkExist(ELEMENT);
-    element.classList.toggle("hidden");
-    if (element.classList.contains("hidden") == false && SEARCHBOX != null) {
-        let searchInput = checkExist(SEARCHBOX);
-        searchInput.focus();
-        searchInput.select();
+
+    if (!!element) {
+        if (element.classList.contains('hidden')) {
+            showElement(ELEMENT, SEARCHBOX);
+        } else {
+            hideElement(ELEMENT);
+        }
     }
 };
 
@@ -60,6 +87,8 @@ let showHideByClass = function (CLASS) {
 
 export default {
     popOutElement,
+    hideElement,
+    showElement,
     showHideElement,
     openPage,
     showHideByClass,

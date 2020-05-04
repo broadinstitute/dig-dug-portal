@@ -108,14 +108,13 @@ export default {
                 .then(response => response.text())
                 .then(responseJson => JSON.parse(convert.xml2json(responseJson, { compact: true, spaces: 4 })))
 
-
             closeAlert(alertID);
 
             if (!!uniprotDoc) {
+                context.commit('setUniprotDoc', uniprotDoc)
+            } else {
                 // TODO: postAlertError(some error message);
             }
-
-            context.commit('setUniprotDoc', uniprotDoc)
         },
     },
 }
