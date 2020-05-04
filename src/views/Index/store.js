@@ -37,12 +37,9 @@ export default new Vuex.Store({
 
             if (locus) {
                 window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
-            }
-            if (varID) {
-
+            } else if (varID) {
                 window.location.href = `./variant.html?variant=${varID}`;
-            }
-            else {
+            } else {
                 context.commit('setInvalidGeneOrRegionOrVariant', true);
             }
 
