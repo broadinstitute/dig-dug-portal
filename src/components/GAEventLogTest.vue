@@ -19,7 +19,9 @@
 
         methods: {
             async fetchResults() {
-                this.value = await gaUtils.logAnalyticsEvent();
+                console.log("GAEventLogTest.vue.fetchResults() called!");
+                await gaUtils.logAnalyticsEvent("Testing Google Event Log", "GAEventLogTest.vue","Called?","True");
+                this.value = ' Event Sent!'
             }
         },
     })
