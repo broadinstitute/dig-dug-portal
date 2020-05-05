@@ -15,21 +15,27 @@ const GA_MESSAGE_LABEL = "Message"
  * Issue an Event Log notification for Google Analytics reporting, to the
  * dig-dug-server endpoint of form '/eventlog?action=<action>&category=<category>&label=<label>&value=<value>'
  *
- * where the <?> tokens are strings either constrained by the string constants defined in this file or free text.
+ * For information about Event data, see
+ * https://developers.google.com/analytics/devguides/collection/analyticsjs/events
  *
- * @param {string} [action]
- * @param {string} [category]
- * @param {string} [label]
- * @param {string} [value]
+ * @param {string} [category] - typically the object that was interacted with (e.g. 'Video'), independent reporting tag
+ * @param {string} [action] - The type of interaction (e.g. 'play'), independent reporting tag
+ * @param {string} [label] - (Optional) Useful for categorizing events (e.g. 'Fall Campaign'), independent reporting tag
+ * @param {number} [value] - (Optional) A numeric value associated with the event (e.g. 42, a timestamp, etc.)
  * @return null
  * @public
  */
-const logAnalyticsEvent = async function (action, category, label, value) {
+const logAnalyticsEvent = async function (category, action, label, value) {
+
+    if(isNaN(value)) {
+        value = 1
+    }
+
     let queryParams = {
         action,
         category,
         label,
-        value,
+        value
     };
 
     let qs = queryString.stringify(queryParams, { skipNull: true });
