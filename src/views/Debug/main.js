@@ -14,7 +14,7 @@ import PageFooter from "../../components/PageFooter";
 import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
 import { useTranslations, associationsForIGV, translate, associationsFromVariants } from "@/utils/dataMappingUtils";
 
-import GAEventLog from "../../components/GAEventLogTest";
+import GAEventLog from "../../components/GAEventLog";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
