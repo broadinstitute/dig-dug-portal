@@ -18,6 +18,8 @@ const GA_MESSAGE_LABEL = "Message"
  * For information about Event data, see
  * https://developers.google.com/analytics/devguides/collection/analyticsjs/events
  *
+ * TODO: this function should capture the local portal page context of the event for forwarding to the /eventlog service
+ *
  * @param {string} [category] - typically the object that was interacted with (e.g. 'Video'), independent reporting tag
  * @param {string} [action] - The type of interaction (e.g. 'play'), independent reporting tag
  * @param {string} [label] - (Optional) Useful for categorizing events (e.g. 'Fall Campaign'), independent reporting tag
