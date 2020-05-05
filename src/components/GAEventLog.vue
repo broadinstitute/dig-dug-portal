@@ -19,7 +19,8 @@
 
         methods: {
             async fetchResults() {
-                this.value = await gaUtils.logAnalyticsEvent();
+                await gaUtils.logAnalyticsEvent("test","GA_event_log_vue","called","true");
+                this.value = "Event Sent!";
             }
         },
     })
