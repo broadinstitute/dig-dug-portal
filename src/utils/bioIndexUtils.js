@@ -43,6 +43,7 @@ async function* iterateOnQuery(json, errHandler) {
 export async function portalFetch(query, errHandler) {
     let resp = await fetch(query);
     let json = await resp.json();
+
     if (resp.status === 200) {
         return json;
     } else {
