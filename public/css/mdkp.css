@@ -499,6 +499,10 @@ div.filtering-tools table th {
     height: 65px;
     width: 100%;
     font-size: 20px;
+    background-image: url("/images/searchicon.png");
+    background-position: 10px 20px;
+    background-repeat: no-repeat;
+    padding-left: 40px;
 }
 
 #regionSearchHolder .region-search {

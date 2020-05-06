@@ -20,8 +20,9 @@
                             class="gene-page-header-search-holder hidden"
                         >
                             <phenotype-selectpicker
+                                v-if="$store.state.phenotype"
                                 :phenotypes="$store.state.bioPortal.phenotypes"
-                                :clear-on-selected="true"
+                                :default-phenotype="$store.state.phenotype.description"
                             ></phenotype-selectpicker>
                         </div>
                         <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
