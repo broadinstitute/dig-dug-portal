@@ -16,6 +16,12 @@
                     :href="`/phenotype.html?phenotype=${r.item.phenotype.name}`"
                 >{{phenotypeFormatter(r.item.phenotype)}}</a>
             </template>
+            <template
+                v-slot:cell(continuousEffect)="r"
+            >{{!!r.item.phenotype.dichotomous ? null : floatFormatter(r.item.beta)}}</template>
+            <template
+                v-slot:cell(dichotomousEffect)="r"
+            >{{!!r.item.phenotype.dichotomous ? floatFormatter(Math.exp(r.item.beta)) : null}}</template>
         </b-table>
     </div>
 </template>
@@ -54,8 +60,13 @@ export default Vue.component("phewas-table", {
                     }
                 },
                 {
-                    key: "beta",
-                    label: "Effect (Beta)",
+                    key: "continuousEffect",
+                    label: "Beta",
+                    formatter: Formatters.floatFormatter
+                },
+                {
+                    key: "dichotomousEffect",
+                    label: "Odds Ratio",
                     formatter: Formatters.floatFormatter
                 },
                 {
@@ -95,7 +106,8 @@ export default Vue.component("phewas-table", {
     },
 
     methods: {
-        phenotypeFormatter: Formatters.phenotypeFormatter
+        phenotypeFormatter: Formatters.phenotypeFormatter,
+        floatFormatter: Formatters.floatFormatter
     }
 });
 </script>
