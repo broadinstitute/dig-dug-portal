@@ -3,11 +3,10 @@
 
  */
 
-// var convert = require('xml-js');
-import $ from "jquery";
 import queryString from "query-string";
 import convert from "xml-js";
 import jsonQuery from "json-query";
+import { postAlertNotice, postAlertError, closeAlert } from "@/components/Alert";
 
 export default {
     namespaced: true,
@@ -98,15 +97,24 @@ export default {
     actions: {
         //this returns gene information using exact gene name in tab separated file
         async getUniprotGeneInfo(context, gene) {
-            let limit = 1;
             let format = 'xml'
             let organism = 9606; // homosapein
             let query = 'gene_exact';
             let qs = queryString.stringify({ limit: 1, query: `${query}:${gene}`, format: format, organism: organism }, { skipNull: true });
+
+            let alertID = postAlertNotice('Loading Uniprot data...');
+
             let uniprotDoc = await fetch(`https://www.uniprot.org/uniprot/?${qs}`)
                 .then(response => response.text())
                 .then(responseJson => JSON.parse(convert.xml2json(responseJson, { compact: true, spaces: 4 })))
-            context.commit('setUniprotDoc', uniprotDoc)
+
+            closeAlert(alertID);
+
+            if (!!uniprotDoc) {
+                context.commit('setUniprotDoc', uniprotDoc)
+            } else {
+                // TODO: postAlertError(some error message);
+            }
         },
     },
 }

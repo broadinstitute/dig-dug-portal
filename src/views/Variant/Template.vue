@@ -35,14 +35,15 @@
                             </div>
                             <div class="col-md-6 search-example">
                                 <strong>Search format examples</strong>
-                                <br />rs11716727, chr3:12489012_C_T, 3_12489012_C/T, 3:12489012_C/T, chr3:12489012:C:T
+                                <br />rs11716727, chr3:12489012_C_T, 3_12489012:C/T, chr3_12489012-C-T
                             </div>
                         </div>
                         <span v-if="$parent.variantData">
                             {{$parent.variantData.varId}}
-                            <span
-                                v-if="$parent.variantData.dbSNP"
-                            >/ {{$parent.variantData.dbSNP}}</span>
+                            <span v-if="$parent.variantData.dbSNP">
+                                <span style="color: gray">/</span>
+                                {{$parent.variantData.dbSNP}}
+                            </span>
                         </span>
                     </div>
                 </div>

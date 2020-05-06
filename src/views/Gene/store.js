@@ -19,37 +19,73 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         gene: bioIndex("gene"),
+        genes: bioIndex("genes"),
         uniprot,
 
     },
     state: {
         geneName: keyParams.gene,
-        newGeneName: keyParams.gene,
-        uniprotDoc: null,
     },
 
     mutations: {
         setGeneName(state, geneName) {
-            state.geneName = geneName || state.newGeneName;
-            state.newGeneName = state.geneName
-            keyParams.set({ gene: state.newGeneName })
+            state.geneName = geneName || state.geneName;
+            keyParams.set({ gene: state.geneName });
         },
-        setUniprotDoc(state, doc) {
-            state.uniprotDoc = doc
-        },
+        setGene(state, { name, chromosome, start, end }) {
+            state.geneName = name;
+            state.geneRegion = `${chromosome}:${start}-${end}`;
+        }
     },
-    actions: {
-        async queryGene(context) {
-            let geneName = context.state.geneName
-            context.commit('setGeneName', context.state.geneName);
-            //get the bioportal information for queried gene
-            context.dispatch('gene/query', { q: geneName });
-            //get the data from uniprot for queried gene
-            context.dispatch('uniprot/getUniprotGeneInfo', geneName)
 
-            //do I need to do this if I am commiting the data in uniprot module
-            context.commit('setUniprotDoc', context.state.uniprot)
+    getters: {
+        region(state) {
+            let data = state.gene.data;
+
+            if (data.length > 0) {
+                let gene = data[0];
+
+                return {
+                    chromosome: gene.chromosome,
+                    start: gene.start,
+                    end: gene.end,
+                }
+            }
         },
-    }
 
+        canonicalSymbol(state) {
+            let data = state.genes.data;
+
+            for (let i in data) {
+                if (data[i].source === 'symbol') {
+                    return data[i].name;
+                }
+            }
+        }
+    },
+
+    actions: {
+        async queryGeneName(context, symbol) {
+            let name = symbol || context.state.geneName;
+
+            if (!!name) {
+                context.dispatch('gene/query', { q: name });
+            }
+        },
+
+        async queryGeneRegion(context, region) {
+            let { chromosome, start, end } = region || context.getters.region;
+            let q = `${chromosome}:${start}-${end}`;
+
+            context.dispatch('genes/query', { q });
+        },
+
+        async queryUniprot(context, symbol) {
+            let name = symbol || context.getters.canonicalSymbol;
+
+            if (!!symbol) {
+                context.dispatch('uniprot/getUniprotGeneInfo', name);
+            }
+        }
+    },
 });

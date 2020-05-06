@@ -9,6 +9,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import DbreferencesTable from "@/components/DbreferencesTable.vue";
+import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
     postAlert,
@@ -38,7 +39,8 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("queryGene");
+        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -49,10 +51,11 @@ new Vue({
     },
 
     methods: {
+        ...uiUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
     },
 
     computed: {
@@ -68,20 +71,42 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
+        region() {
+            return this.$store.getters.region;
+        },
+
+        symbolName() {
+            return this.$store.getters.canonicalSymbol;
+        },
+
+        aliasNames() {
+            return this.$store.state.genes.data.filter(g => g.source === 'alias');
+        },
+
+        alternateNames() {
+            return this.$store.state.genes.data
+                .filter(g => g.source !== 'symbol')
+                .sort((a, b) => {
+                    if (a.source < b.source) return -1;
+                    if (a.source > b.source) return 1;
+                    return 0;
+                });
+        },
+
         dbReference() {
             return this.$store.getters['uniprot/dbReference'];
         },
+
         accession() {
             return this.$store.getters['uniprot/accession'];
         },
+
         geneFunction() {
             return this.$store.getters['uniprot/geneFunction'];
         },
+
         geneNames() {
             return this.$store.getters['uniprot/geneNames'];
-        },
-        phenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
         },
 
         gene() {
@@ -97,6 +122,17 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+
+        // the region for the gene was found
+        region(region) {
+            this.hideElement('variantSearchHolder')
+            this.$store.dispatch('queryGeneRegion', region);
+        },
+
+        // the canonical symbol was found
+        symbolName(symbol) {
+            this.$store.dispatch('queryUniprot', symbol);
         }
     }
 }).$mount("#app");

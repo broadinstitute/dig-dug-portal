@@ -40,7 +40,13 @@ export default Vue.component("alert", {
             });
         },
         closeAlert(id) {
-            this.$bvToast.hide(id);
+            /* This is using a setTimeout because it's possible to post
+             * the alert and close faster than the toast can be added
+             * to the DOM. If that happens, the toast will stay up and
+             * never close. By waiting 100 ms, the DOM has enough time
+             * to add it, and then we can close it.
+             */
+            setTimeout((() => this.$bvToast.hide(id)).bind(this), 100);
         }
     }
 });
