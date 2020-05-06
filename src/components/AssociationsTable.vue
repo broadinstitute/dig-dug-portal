@@ -1,12 +1,6 @@
 <template>
     <div>
         <div v-if="rows > 0">
-            <b-pagination
-                class="pagination-sm justify-content-end"
-                v-model="currentPage"
-                :total-rows="rows"
-                :per-page="perPage"
-            ></b-pagination>
             <b-table
                 hover
                 small
@@ -45,6 +39,12 @@
                     <a :href="`/gene.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
                 </template>
             </b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
         </div>
         <div v-else>
             <h4 v-if="associations.length > 0">No overlapping associations across phenotypes</h4>

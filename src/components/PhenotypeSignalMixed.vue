@@ -63,7 +63,7 @@
             <h6>Traits with p-value &gt; 2.5e-6</h6>
             <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">
                 <div
-                    v-for="(row, i) in topAssociations"
+                    v-for="(row, i) in topAssociations2nd"
                     v-if="row.pValue > 2.5e-6 && i <= 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
@@ -236,6 +236,22 @@ export default Vue.component("phenotype-signal-mixed", {
             });
 
             return data;
+        },
+        topAssociations2nd: function() {
+            let data = this.phenotypes;
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            let filteredData = [];
+
+            data.forEach(element => {
+                let phenotype = phenotypeMap[element.phenotype];
+
+                element["group"] = phenotype.group.toUpperCase();
+                element["description"] = phenotype.description;
+
+                if (element.pValue > 2.5e-6) filteredData.push(element);
+            });
+
+            return filteredData;
         },
         topAssociatedGroups: function() {
             let data = this.phenotypes;

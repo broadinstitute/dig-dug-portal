@@ -148,6 +148,7 @@
 .pws-top-phenotypes-wrapper {
     overflow-x: auto;
     overflow-y: hidden;
+    margin-bottom: 15px;
 }
 
 .pws-top-phenotypes-bars-wrapper {

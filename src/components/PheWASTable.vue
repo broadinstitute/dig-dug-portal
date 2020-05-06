@@ -1,11 +1,5 @@
 <template>
     <div>
-        <b-pagination
-            class="pagination-sm justify-content-end"
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-        ></b-pagination>
         <b-table
             hover
             small
@@ -27,6 +21,12 @@
                 v-slot:cell(dichotomousEffect)="r"
             >{{!!r.item.phenotype.dichotomous ? floatFormatter(Math.exp(r.item.beta)) : null}}</template>
         </b-table>
+        <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+        ></b-pagination>
     </div>
 </template>
 

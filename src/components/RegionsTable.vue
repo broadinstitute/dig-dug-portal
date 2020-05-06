@@ -1,12 +1,6 @@
 <template>
     <div>
         <div v-if="rows > 0">
-            <b-pagination
-                class="pagination-sm justify-content-end"
-                v-model="currentPage"
-                :total-rows="rows"
-                :per-page="perPage"
-            ></b-pagination>
             <b-table
                 hover
                 small
@@ -23,6 +17,12 @@
                     >{{r.item.chromosome}}:{{r.item.start}}-{{r.item.end}}</a>
                 </template>
             </b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
         </div>
         <div v-else>
             <h4 v-if="regions.length > 0">No annotated regions</h4>

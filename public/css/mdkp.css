@@ -811,9 +811,14 @@ polyline {
 .pagination.b-pagination {
     border: solid 1px #dddddd;
     border-radius: 25px;
-    float: right;
     padding: 3px 10px;
     font-size: 15px;
+    width: fit-content;
+    margin: auto;
+}
+
+.pagination.b-pagination .page-item {
+    display: inline-block;
 }
 
 .pagination.b-pagination .page-link {

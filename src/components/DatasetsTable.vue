@@ -1,11 +1,5 @@
 <template>
     <div>
-        <b-pagination
-            class="pagination-sm justify-content-end"
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-        ></b-pagination>
         <b-table
             hover
             small
@@ -15,6 +9,12 @@
             :per-page="perPage"
             :current-page="currentPage"
         ></b-table>
+        <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+        ></b-pagination>
     </div>
 </template>
 
