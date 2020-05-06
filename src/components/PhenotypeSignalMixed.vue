@@ -41,7 +41,7 @@
                 </div>
                 <div class="pws-top-phenotypes-names-wrapper">
                     <div
-                        v-for="(row, i) in topAssociations"
+                        v-for="row in topAssociations"
                         v-if="row.pValue <= 2.5e-6"
                         class="pws-top-each-phenotype-wrapper"
                     >
@@ -60,28 +60,31 @@
                 </div>
             </div>
 
-            <h6>Traits with p-value &lt;= 5e-3 and &gt;= 2.5e-6</h6>
-            <div class="phenotypes-with-signal-wrapper" style="height: 150px; margin-bottom: 10px">
+            <h6>Traits with p-value &gt; 2.5e-6</h6>
+            <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">
                 <div
-                    v-for="row in topAssociations"
-                    v-if="row.pValue > 2.5e-6 && row.pValue <= 5e-3"
-                    class="bubble phenotype-with-signal moderate"
+                    v-for="(row, i) in topAssociations"
+                    v-if="row.pValue > 2.5e-6 && i <= 30"
+                    class="bubble phenotype-with-signal"
+                    :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
                 >{{row.description}}</div>
+                <small>
+                    <a
+                        href="javascript:;"
+                        v-on:click="showHideElement('no-signal-wrapper',)"
+                    >>> View more traits</a>
+                </small>
             </div>
-            <small>
-                <a
-                    href="javascript:;"
-                    v-on:click="showHideElement('no-signal-wrapper',)"
-                >View traits with p-value &gt; 5e-3</a>
-            </small>
+
             <div
                 class="phenotypes-with-signal-wrapper no-signal-wrapper hidden"
-                style="height: 150px;"
+                style="height: auto !important;"
             >
                 <div
-                    v-for="row in topAssociations"
-                    v-if="row.pValue > 5e-3"
-                    class="bubble phenotype-with-signal none"
+                    v-for="(row, i) in topAssociations"
+                    v-if="row.pValue > 2.5e-6 && i > 30"
+                    class="bubble phenotype-with-signal"
+                    :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
                 >{{row.description}}</div>
             </div>
         </div>
