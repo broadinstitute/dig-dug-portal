@@ -57,7 +57,7 @@
                     <div class="card-body">
                         <h4
                             class="card-title"
-                        >Genome Wide Associations for {{$store.state.phenotype.description}}</h4>
+                        >Genome-wide, bottom-line associations for {{$store.state.phenotype.description}}</h4>
                         <associations-table
                             :phenotypes="[$store.state.phenotype]"
                             :associations="$store.state.associations.data"
