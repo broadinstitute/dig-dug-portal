@@ -6,7 +6,11 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 
-import { LZ_TYPE, DEFAULT_PANEL_OPTIONS } from "@/utils/lz/lzConstants";
+import {
+    LZ_TYPE,
+    BASE_PANEL_OPTIONS,
+    PANEL_OPTIONS
+} from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
 import LZVueSource from "@/utils/lz/lzVueSource";
 import * as _ from "lodash";
@@ -81,7 +85,8 @@ export default Vue.component("locuszoom", {
     mounted() {
         let panels = this.panels.map(p => {
             return LocusZoom.Layouts.get("panel", p, {
-                ...DEFAULT_PANEL_OPTIONS
+                ...BASE_PANEL_OPTIONS,
+                ...PANEL_OPTIONS[p]
 
                 // TODO: override/extend defaults here...
             });
@@ -106,7 +111,7 @@ export default Vue.component("locuszoom", {
         // create the final plot with a layout and desired state
         this.lzplot = LocusZoom.populate("#lz", this.dataSources, {
             panels,
-            responsive_resize: "both",
+            responsive_resize: "width_only",
 
             // this must be a copy since LocusZoom modifies the object passed
             state: Object.assign({}, this.desiredState)

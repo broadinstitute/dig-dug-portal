@@ -14,9 +14,9 @@ export const LZ_TYPE = Object.freeze({
     phewas: 'phewas',
 });
 
-/* Default panel options.
+/*
  */
-export const DEFAULT_PANEL_OPTIONS = {
+export const BASE_PANEL_OPTIONS = {
     proportional_height: 1,
     dashboard: {
         components: [
@@ -30,4 +30,11 @@ export const DEFAULT_PANEL_OPTIONS = {
             }
         ]
     }
+}
+
+/* panel options by panel type
+ */
+export const PANEL_OPTIONS = {
+    'association': { min_height: 240, height: 240 },
+    'genes': { min_height: 240, height: 240 },
 };
