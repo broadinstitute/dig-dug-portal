@@ -10,7 +10,6 @@ import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignal from "@/components/PhenotypeSignal";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import uiUtils from "@/utils/uiUtils";
-import { associationsForLZ, useTranslations } from "@/utils/dataMappingUtils";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -50,8 +49,6 @@ new Vue({
     },
 
     methods: {
-        associationsForLZ,
-        ...useTranslations,
         ...uiUtils,
         postAlert,
         postAlertNotice,

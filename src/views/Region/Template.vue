@@ -123,7 +123,7 @@
                     >Associations for {{$store.state.phenotype.description}}</h4>
                     <locuszoom
                         v-if="$store.state.phenotype"
-                        :panels="['association','genes','intervals']"
+                        :panels="['association','genes']"
                         :assoc="$parent.lzAssociations"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
