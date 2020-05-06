@@ -14,6 +14,7 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         variant: bioIndex("variant"),
+        regions: bioIndex("regions"),
     },
 
     state: {
@@ -38,5 +39,11 @@ export default new Vuex.Store({
                 context.dispatch('variant/query', { q: varID });
             }
         },
+
+        async queryRegions(context, { chromosome, position }) {
+            let q = `${chromosome}:${position}`;
+
+            context.dispatch('regions/query', { q });
+        }
     }
 });

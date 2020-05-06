@@ -12,6 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
+import RegionsTable from "@/components/RegionsTable.vue";
 import LocusZoom from "@/components/LocusZoom";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
@@ -33,6 +34,7 @@ new Vue({
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
         PheWASTable,
+        RegionsTable,
         LocusZoom
     },
 
@@ -124,6 +126,10 @@ new Vue({
                     this.variantData.consequence
                 );
             }
+        },
+
+        regions() {
+            return this.$store.state.regions.data;
         }
     },
 
@@ -135,6 +141,12 @@ new Vue({
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+
+        variantData(data) {
+            if (!!data) {
+                this.$store.dispatch('queryRegions', data);
+            }
         }
     }
 }).$mount("#app");
