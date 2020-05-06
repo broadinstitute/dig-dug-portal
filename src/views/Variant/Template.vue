@@ -67,12 +67,6 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Annotated regions overlapping {{$parent.variantName}}</h4>
-                        <regions-table :regions="$parent.regions"></regions-table>
-                    </div>
-                </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
                         <h4 class="card-title">Transcript Consequences</h4>
                         <div v-if="$parent.variantData.transcriptConsequences">
                             <transcript-consequence-table
@@ -97,6 +91,12 @@
                         <div v-else class="card-body">
                             <h4>None found</h4>
                         </div>
+                    </div>
+                </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">Annotated regions overlapping {{$parent.variantName}}</h4>
+                        <regions-table :regions="$parent.regions"></regions-table>
                     </div>
                 </div>
             </div>
