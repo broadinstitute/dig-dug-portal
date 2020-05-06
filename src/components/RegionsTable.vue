@@ -7,7 +7,7 @@
                 small
                 bordered
                 responsive="sm"
-                :items="regions"
+                :items="sortedRegions"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -15,7 +15,7 @@
                 <template v-slot:cell(region)="r">
                     <a
                         :href="`/region.html?chr=${r.item.chromosome}&start=${r.item.start}&end=${r.item.end}`"
-                    >{{r.item.start}}-{{r.item.end}}</a>
+                    >{{r.item.chromosome}}:{{r.item.start}}-{{r.item.end}}</a>
                 </template>
             </b-table>
         </div>
@@ -71,6 +71,10 @@ export default Vue.component("regions-table", {
     computed: {
         rows() {
             return this.regions.length;
+        },
+
+        sortedRegions() {
+            return this.regions.sort((a, b) => a.start - b.start);
         }
     },
 
