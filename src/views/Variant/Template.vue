@@ -80,7 +80,9 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Transcription Factors</h4>
+                        <h4
+                            class="card-title"
+                        >Transcription factor binding motifs altered by {{$parent.variantName}}</h4>
                         <div v-if="$parent.variantData.transcriptionFactors">
                             <transcription-factors-table
                                 v-bind:transcriptionFactors="$parent.variantData.transcriptionFactors"

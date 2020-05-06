@@ -76,6 +76,16 @@ new Vue({
             }
         },
 
+        variantName() {
+            let data = this.variantData;
+
+            if (!!data && data.dbSNP) {
+                return data.dbSNP;
+            }
+
+            return this.$store.state.variantID;
+        },
+
         lzAssociations() {
             let phenotypes = this.$store.state.bioPortal.phenotypeMap;
             let associations = this.variantData.associations;
@@ -119,7 +129,7 @@ new Vue({
 
 
     watch: {
-        "$store.state.bioPortal.phenotypes": function(phenotypes) {
+        "$store.state.bioPortal.phenotypes": function (phenotypes) {
             this.$store.dispatch("queryVariant");
         },
 
