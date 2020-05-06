@@ -1,10 +1,14 @@
 <template>
     <div>
-        <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
+        <b-pagination
+            class="pagination-sm justify-content-end"
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+        ></b-pagination>
         <b-table
             hover
             small
-            bordered
             responsive="sm"
             :items="pheWASAssociations"
             :fields="fields"

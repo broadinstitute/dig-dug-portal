@@ -802,3 +802,22 @@ polyline {
 .front-page-body {
     background-color: #fff !important;
 }
+
+.pagination.b-pagination {
+    border: solid 1px #dddddd;
+    border-radius: 25px;
+    float: right;
+    padding: 3px 10px;
+    font-size: 15px;
+}
+
+.pagination.b-pagination .page-link {
+    border: solid 1px #fff !important;
+    border-radius: 20px;
+    min-width: 31px;
+    height: 31px;
+}
+
+.pagination.b-pagination .page-item:last-child .page-link, .pagination.b-pagination .page-item:first-child .page-link {
+    border-radius: 20px;
+}
