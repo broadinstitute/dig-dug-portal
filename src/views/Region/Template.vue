@@ -70,7 +70,7 @@
                                 </div>
                             </div>
                         </div>
-                        {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.end}}
+                        {{$parent.regionString}}
                     </div>
                     <div class="col-md-4 gene-page-header-body">
                         <div
@@ -100,7 +100,7 @@
                 <div class="card-body">
                     <h4
                         class="card-title"
-                    >Variant associations with p-value &lt;= 5e-3 in the region: {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
+                    >Variant associations with p-value &lt;= 5e-3 in the region: {{$parent.regionString}}</h4>
 
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div

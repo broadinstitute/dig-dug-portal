@@ -84,6 +84,10 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
+        regionString() {
+            return `${this.$store.state.chr}:${this.$store.state.start.toLocaleString()}-${this.$store.state.end.toLocaleString()}`;
+        },
+
         // Give the top associations, find the best one across all unique
         // phenotypes available.
         topAssociations() {
