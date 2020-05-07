@@ -78,6 +78,7 @@
                                 v-if="$store.state.phenotype"
                                 :phenotypes="$store.state.bioPortal.phenotypes"
                                 :default-phenotype="$store.state.phenotype.description"
+                                showFocus="true"
                             ></phenotype-selectpicker>
                         </div>
                         <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
