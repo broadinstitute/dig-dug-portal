@@ -34,7 +34,14 @@ new Vue({
 
     data() {
         return {
-            counter: 0
+            counter: 0,
+            externalResources: {
+                "ensembl": "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
+                "hgnc": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                "mgd": "http://www.informatics.jax.org/marker/",
+                "rgd": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=",
+                "ucsc": "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+            }
         };
     },
 

@@ -422,6 +422,10 @@ a.edit-btn {
     z-index: 15;
 }
 
+a.edit-btn:hover {
+    cursor: pointer;
+}
+
 .gene-page-header-search-holder {
     position: absolute;
     top: 0;
@@ -561,7 +565,7 @@ div.filtering-tools table th {
     vertical-align: top;
 }
 
-#variantSearchHolder div.search-example {
+#variantSearchHolder div.search-example, div.search-example {
     font-size: 14px;
     padding-top: 8px;
 }
@@ -646,6 +650,11 @@ div.filtering-tools table th {
 .gene-with-signal.antisense {
     background-color: #b7eab7;
     border: solid 1px #72ce49;
+}
+
+.gene-with-signal.none {
+    background-color: #eee;
+    border: solid 1px #ccc;
 }
 
 .phenotype-with-signal.high {
