@@ -840,3 +840,11 @@ polyline {
 .pagination.b-pagination .page-item:last-child .page-link, .pagination.b-pagination .page-item:first-child .page-link {
     border-radius: 20px;
 }
+
+.alternative-names span::after {
+    content: ", ";
+}
+
+.alternative-names span:last-child::after {
+    content: "";
+}

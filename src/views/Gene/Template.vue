@@ -49,12 +49,12 @@
                         <div class="btn-group" v-if="$parent.region">
                             <a
                                 type="button"
-                                class="btn btn-light btn-lg"
+                                class="btn btn-link btn-lg"
                                 :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start}&end=${$parent.region.end}`"
                             >{{$parent.region.chromosome}}:{{$parent.region.start.toLocaleString()}}-{{$parent.region.end.toLocaleString()}}</a>
                             <a
                                 type="button"
-                                class="btn btn-light btn-lg text-nowrap"
+                                class="btn btn-link btn-lg text-nowrap"
                                 :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start-50000}&end=${$parent.region.end+50000}`"
                             >Extend &plusmn; 50 kb</a>
                         </div>
@@ -66,7 +66,7 @@
                 <div class="card-body row">
                     <div class="col-md-8">
                         <div v-if="$parent.geneFunction">
-                            <h5>Gene function</h5>
+                            <h4>Function</h4>
                             <div>{{$parent.geneFunction}}</div>
                         </div>
                         <div v-else>
@@ -74,13 +74,14 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div v-if="$parent.geneNames">
-                            <strong>Alternative Names:&nbsp;</strong>
+                        <h4>Info</h4>
+                        <div v-if="$parent.geneNames" class="alternative-names">
+                            <strong>Alternative names:&nbsp;</strong>
                             <span
                                 v-for="gene in $parent.alternateNames"
                                 v-if="gene.source == 'alias'"
                                 :key="gene.name"
-                            >{{gene.name+"&nbsp;&nbsp;"}}</span>
+                            >{{gene.name}}</span>&nbsp;
                         </div>
                         <div>
                             <strong>Length:</strong>
