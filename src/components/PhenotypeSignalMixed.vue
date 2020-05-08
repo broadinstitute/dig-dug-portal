@@ -28,33 +28,26 @@
                         </div>
                         <div class="pws-top-each-phenotype">
                             <div
-                                class="btn btn-sm btn-leight pws-top-each-phenotype-pvalue"
-                                :style="{'top': (65 - log2css(row.pValue))+'%'}"
-                            >{{row.pValue}}</div>
+                                class="btn btn-sm btn-link pws-top-each-phenotype-name"
+                                :style="{'top': (80 - log2css(row.pValue))+'%' }"
+                            >
+                                <div class="name-wrapper">{{row.description}}</div>
+                                <div class="options-4-actions">
+                                    <div
+                                        @click="$store.commit('setPhenotypeByName', row.phenotype)"
+                                    >Click to set phenotype</div>
+                                    <div
+                                        v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
+                                    >Go to phenotype page</div>
+                                </div>
+                            </div>
+
                             <div
                                 class="bubble phenotype-group pws-top-each-phenotype-bar"
                                 :class=" row.group"
                                 :style="{'height': +log2css(row.pValue)+'%'}"
                             >&nbsp;</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="pws-top-phenotypes-names-wrapper">
-                    <div
-                        v-for="row in topAssociations"
-                        v-if="row.pValue <= 2.5e-6"
-                        class="pws-top-each-phenotype-wrapper"
-                    >
-                        <div class="btn btn-sm btn-link pws-top-each-phenotype-name">
-                            {{row.description}}
-                            <div class="options-4-actions">
-                                <div
-                                    @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                                >Click to set phenotype</div>
-                                <div
-                                    v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                                >Go to phenotype page</div>
-                            </div>
+                            <div class="pws-top-each-phenotype-pvalue">{{row.pValue}}</div>
                         </div>
                     </div>
                 </div>

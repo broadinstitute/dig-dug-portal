@@ -149,6 +149,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     margin-bottom: 15px;
+    height: 190px;
 }
 
 .pws-top-phenotypes-bars-wrapper {
@@ -194,10 +195,11 @@
 
 .pws-top-each-phenotype-pvalue {
     font-size: 13px;
-    position: absolute;
+    height: 20%;
+    position: relative;
+    line-height: 14px;
     width: 100%;
-    left:0;
-    text-align: center;
+    top: 90px;
 }
 
 .pws-top-each-phenotype-bar {
@@ -210,12 +212,22 @@
 }
 
 .pws-top-each-phenotype-name {
-    font-size: 13px;
-    height: 20%;
-    position: relative;
-    line-height: 14px;
-    width: 100%;
+
+    position: absolute;
+    left:0;
+    width: 100px;
+
+}
+
+.pws-top-each-phenotype-name > .name-wrapper {
+    position: absolute;
+    bottom: 0;
+    width: 100px;
     white-space: pre-line;
+    line-height: 15px;
+    text-align: center;
+    font-size: 13px;
+    left: 0;
 }
 
 .pws-top-each-phenotype-name > .options-4-actions {
@@ -227,7 +239,7 @@
     padding: 10px;
     border-radius: 5px;
     left:-12px;
-    top: -60px;
+    top: 10px;
     z-index: 20;
     white-space: nowrap;
     line-height: 1.5em;
