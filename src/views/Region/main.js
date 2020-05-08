@@ -72,7 +72,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function (gene) {
+            return this.$store.state.genes.data.filter(function(gene) {
                 return gene.source == "symbol";
             });
         },
@@ -82,7 +82,9 @@ new Vue({
         },
 
         regionString() {
-            return `${this.$store.state.chr}:${this.$store.state.start.toLocaleString()}-${this.$store.state.end.toLocaleString()}`;
+            return `${
+                this.$store.state.chr
+            }:${this.$store.state.start.toLocaleString()}-${this.$store.state.end.toLocaleString()}`;
         },
 
         // Give the top associations, find the best one across all unique
@@ -108,7 +110,7 @@ new Vue({
             }
 
             // region loaded, hide search
-            uiUtils.hideElement('regionSearchHolder');
+            uiUtils.hideElement("regionSearchHolder");
 
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
@@ -131,14 +133,14 @@ new Vue({
                 });
 
             // phenotype data loaded, close search
-            uiUtils.hideElement('phenotypeSearchHolder');
+            // uiUtils.hideElement("phenotypeSearchHolder");
 
             return assocs;
         }
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
+        "$store.state.bioPortal.phenotypeMap": function(phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
             // if there's a phenotypeParam, then pick that phenotype

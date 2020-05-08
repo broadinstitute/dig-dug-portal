@@ -28,12 +28,19 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("phenotype-selectpicker", {
-    props: ["phenotypes", "clearOnSelected", "defaultPhenotype"],
+    props: ["phenotypes", "clearOnSelected", "defaultPhenotype", "showFocus"],
 
     data() {
         return {
             userText: this.defaultPhenotype || null
         };
+    },
+    mounted() {
+        if (this.showFocus) {
+            this.$nextTick(() => {
+                this.$refs.phenotypeSelect.$refs.input.focus();
+            });
+        }
     },
     computed: {
         phenotypeOptions() {
