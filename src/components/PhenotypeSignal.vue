@@ -102,11 +102,6 @@
         </div>
     </div>
 </template>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
 
 <script>
 import Vue from "vue";
