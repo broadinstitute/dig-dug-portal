@@ -155,6 +155,10 @@ new Vue({
             }
         },
 
+        "$store.state.phenotype": function (phenotype) {
+            uiUtils.hideElement('phenotypeSearchHolder')
+        },
+
         topAssociations(top) {
             if (!this.selectedPhenotype && top.length > 0) {
                 let topAssoc = top[0];

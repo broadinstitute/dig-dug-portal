@@ -15,12 +15,14 @@
                         >Select phenotype</a>
                     </div>
                     <div class="col-md-12 gene-page-header-body">
-                        <div id="phenotypeSearchHolder" class="gene-page-header-search-holder">
+                        <div
+                            id="phenotypeSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
                             <phenotype-selectpicker
                                 v-if="$store.state.phenotype"
                                 :phenotypes="$store.state.bioPortal.phenotypes"
                                 :default-phenotype="$store.state.phenotype.description"
-                                showFocus="true"
                             ></phenotype-selectpicker>
                         </div>
                         <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>

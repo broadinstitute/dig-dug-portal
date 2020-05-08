@@ -84,7 +84,7 @@ new Vue({
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function(phenotypeMap) {
+        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let name = keyParams.phenotype;
             let phenotype = phenotypeMap[name];
 
@@ -94,8 +94,9 @@ new Vue({
             }
         },
 
-        "$store.state.phenotype": function(phenotype) {
+        "$store.state.phenotype": function (phenotype) {
             this.$store.dispatch("queryPhenotype");
+            uiUtils.hideElement('phenotypeSearchHolder');
         },
 
         diseaseGroup(group) {
