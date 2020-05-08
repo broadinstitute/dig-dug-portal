@@ -72,7 +72,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function(gene) {
+            return this.$store.state.genes.data.filter(function (gene) {
                 return gene.source == "symbol";
             });
         },
@@ -82,9 +82,11 @@ new Vue({
         },
 
         regionString() {
-            return `${
-                this.$store.state.chr
-            }:${this.$store.state.start.toLocaleString()}-${this.$store.state.end.toLocaleString()}`;
+            let chr = this.$store.state.chr;
+            let start = parseInt(this.$store.state.start).toLocaleString();
+            let end = parseInt(this.$store.state.end).toLocaleString();
+
+            return `${chr}:${start}-${end}`;
         },
 
         // Give the top associations, find the best one across all unique
@@ -140,7 +142,7 @@ new Vue({
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function(phenotypeMap) {
+        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
             // if there's a phenotypeParam, then pick that phenotype

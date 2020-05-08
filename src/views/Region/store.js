@@ -108,6 +108,12 @@ export default new Vuex.Store({
                 context.commit('associations/clearData');
                 context.commit('topAssociations/clearData');
 
+                if (context.state.newChr !== context.state.chr ||
+                    context.state.newStart !== context.state.start ||
+                    context.state.newEnd !== context.state.end) {
+                    context.commit('setLocus');
+                }
+
                 // find all the top associations and genes in the region
                 context.dispatch('topAssociations/query', { q: context.getters.region });
                 context.dispatch('genes/query', { q: context.getters.region });
