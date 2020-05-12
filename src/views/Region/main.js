@@ -32,7 +32,7 @@ new Vue({
     },
 
     created() {
-        this.$store.dispatch("queryRegion");
+
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -172,6 +172,7 @@ new Vue({
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+            this.$store.dispatch("queryRegion");
         }
     }
 }).$mount("#app");

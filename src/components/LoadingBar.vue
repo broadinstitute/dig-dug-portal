@@ -6,13 +6,13 @@
 
 <script>
 import Vue from "vue";
-import { camelKebab } from "@/utils/bioIndexUtils"
+import Formatters from "@/utils/formatters";
 export default Vue.component("loading-bar", {
     props: ["moduleIndex"],
-    data: (context) => {
+    data: context => {
         return {
-            module: camelKebab(context.moduleIndex),
-        }
-    },
+            module: Formatters.capitalizedFormatter(context.moduleIndex)
+        };
+    }
 });
 </script>

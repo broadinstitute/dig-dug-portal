@@ -1,6 +1,6 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
-import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
+import { query, match } from "@/utils/bioIndexUtils";
 import {
     postAlertNotice,
     postAlertError,
@@ -22,12 +22,8 @@ export default function (index, extend) {
 
                 // accumulated information from query responses
                 data: [],
-                count: null,
                 profile: {},
                 progress: null,
-
-                paused: false,
-                iterableQuery: null
             };
         },
 
@@ -35,6 +31,7 @@ export default function (index, extend) {
             data(state) {
                 return state.data;
             },
+
             percentComplete(state) {
                 if (!state.progress) {
                     return null;
@@ -44,9 +41,6 @@ export default function (index, extend) {
                     1.0
                 );
             },
-            paused(state) {
-                return state.paused;
-            }
         },
 
         // commit methods
@@ -55,81 +49,53 @@ export default function (index, extend) {
                 state.data = [];
             },
 
-            setIterableQuery(state, iterableQuery) {
-                state.iterableQuery = iterableQuery;
-            },
-            clearIterableQuery(state) {
-                state.iterableQuery = null;
-            },
-
             setResponse(state, json) {
                 state.data = json.data;
                 state.profile = json.profile;
             },
 
-            setCount(state, n) {
-                state.count = n;
-            },
-
             setProgress(state, progress) {
                 state.progress = progress;
             },
-
-            setPause(state, flag) {
-                state.paused = flag;
-            }
         },
 
         // dispatch methods
         actions: {
-            async tap(context) {
-                context.commit("setPause", !context.state.paused);
-            },
-            async count(context, { q }) {
-                let qs = queryString.stringify({ q });
-                let json = await fetch(
-                    `${BIO_INDEX_HOST}/api/bio/count/${index}?${qs}`
-                )
-                    .then(resp => resp.json())
-                    .catch(error => {
-                        count: null;
-                    });
-
-                context.commit("setCount", json.count);
-            },
-
-            async query(context, queryPayload) {
+            async query(context, { q, limit }) {
                 let profile = {
                     fetch: 0,
                     query: 0
                 };
 
-                if (queryPayload) {
-                    await context.commit("setPause", false); // unpausing
-                    const { q, limit } = queryPayload;
-                    let alertID = postAlertNotice(
-                        "Loading " + index + ". Please wait ... "
-                    );
-                    let data = await fullQuery(
-                        { q, index, limit: limit || context.state.limit },
-                        {
-                            condition: () => !context.getters.paused, // must be a function so it's re-read at the end of each query chain iteration
-                            resolveHandler: json => {
-                                profile.fetch += json.profile.fetch;
-                                profile.query += json.profile.query;
-                                context.commit("setProgress", json.progress);
-                            },
-                            errHandler: error => {
-                                closeAlert(alertID);
-                                postAlertError(error.detail);
-                            }
+                if (!!q) {
+                    let alertID = postAlertNotice(`Loading ${index}; please wait ...`);
+
+                    // fetch the data
+                    let data = await query(index, q, {
+                        limit: limit || context.state.limit,
+
+                        // updates progress
+                        resolveHandler: json => {
+                            profile.fetch += json.profile.fetch || 0;
+                            profile.query += json.profile.query || 0;
+
+                            // update progress bar
+                            context.commit("setProgress", json.progress);
+                        },
+
+                        // report errors
+                        errHandler: error => {
+                            closeAlert(alertID);
+                            postAlertError(error.detail);
                         }
-                    );
-                    context.commit("setResponse", { data: data, profile });
+                    });
+
+                    // data is loaded
+                    context.commit("setResponse", { data, profile });
                     closeAlert(alertID);
                 }
             }
-        }
+        },
     };
 
     // override module settings

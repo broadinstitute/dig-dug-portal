@@ -4,7 +4,7 @@ import Vuex from "vuex";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
 
-import { moduleQueryTemplate, camelKebab } from "@/utils/bioIndexUtils"
+import Formatters from "@/utils/formatters"
 
 Vue.use(Vuex);
 
@@ -28,7 +28,7 @@ export default new Vuex.Store({
         gene: null,
     },
     mutations: {
-         setLocus(state, region = {}) {
+        setLocus(state, region = {}) {
             console.log('set locus')
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
@@ -57,7 +57,7 @@ export default new Vuex.Store({
                     start: newStart,
                     end: newEnd,
                 });
-                await context.dispatch(`${camelKebab(module)}/query`, { q: query });
+                await context.dispatch(`${Formatters.capitalizedFormatter(module)}/query`, { q: query });
             }
         },
     },
