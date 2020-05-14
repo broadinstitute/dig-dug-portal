@@ -31,6 +31,13 @@ export default Vue.component("documentation", {
         });
         let json = fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
             .then(resp => resp.json())
+            .then(resp => {
+                if (resp.detail && resp.detail[0].type === "value_error.missing") {
+                    throw Error("In Documentation"+' '+resp.detail[0].type+' '+resp.detail[0].msg+' '+resp.detail[0].loc);
+                } else {
+                    return resp;
+                }
+            })
             .then(json => {
                 if (json.data.length > 0) {
 
@@ -69,12 +76,10 @@ export default Vue.component("documentation", {
                     this.content = json.data[0].content;
 
                 } else {
-                    console.error(
-                        "No content returned for given name " +
+                    throw new Error("No content returned for given name " +
                             this.name +
                             " and group " +
-                            docGroup
-                    );
+                    docGroup)
                 }
             });
     },
