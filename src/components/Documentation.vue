@@ -25,9 +25,7 @@ export default Vue.component("documentation", {
 
     created() {
         // fetch the documentation data and resolve it in data
-        let defaultDiseaseGroup = this.$store.getters["bioPortal/diseaseGroup"]
-            .name;
-        let docGroup = this.group || defaultDiseaseGroup;
+        let docGroup = this.group || this.$store.getters["bioPortal/diseaseGroup"].name || "md";
         let qs = queryString.stringify({
             q: this.name,
             group: docGroup
@@ -36,6 +34,27 @@ export default Vue.component("documentation", {
             .then(resp => resp.json())
             .then(json => {
                 if (json.data.length > 0) {
+
+                    const classMap = {
+                        h1: 'doc large-header',
+                        h2: 'doc medium-header',
+                        h3: 'doc small-header',
+                        h4: 'doc x-small-header',
+                        p:  'doc content',
+                        ul: 'doc list',
+                        li: 'doc item',
+                        em: 'doc italic',
+                        strong: 'doc bold',
+                        a: 'doc link',
+                    }
+                    
+                    const class_extensions = Object.keys(classMap)
+                        .map(key => ({
+                            type: 'output',
+                            regex: new RegExp(`<${key}(.*)>`, 'g'),
+                            replace: `<${key} class="${classMap[key]}" $1>`
+                        }));
+
                     const valid_tags = this.findTemplateTagsFromContent(
                         json.data[0].content
                     );
@@ -43,11 +62,13 @@ export default Vue.component("documentation", {
                         this.content_fill,
                         valid_tags
                     );
+
                     this.converter = new showdown.Converter({
-                        extensions: fill_extensions
+                        extensions: [...fill_extensions, ...class_extensions]
                     });
 
                     this.content = json.data[0].content;
+
                 } else {
                     console.error(
                         "No content returned for given name " +
@@ -58,7 +79,6 @@ export default Vue.component("documentation", {
                 }
             });
     },
-
     computed: {
         //render the content as it is if not markdown
         //if else markdown - implemented by Kenneth

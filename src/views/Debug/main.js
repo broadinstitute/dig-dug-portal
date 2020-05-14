@@ -21,7 +21,8 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import GAEventLog from "@/components/GAEventLog";
+
+import Documentation from "@/components/Documentation"
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -37,7 +38,7 @@ new Vue({
         LoadingBar,
         IGV,
         Alert,
-        GAEventLog
+        Documentation,
     },
 
     render(createElement, context) {
