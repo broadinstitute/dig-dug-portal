@@ -145,7 +145,13 @@
                 </div>
             </div>
             <div v-if="$parent.diseaseGroup">
-                <documentation></documentation>
+                <documentation
+                    :name="'test.template'"
+                    :content_fill="{
+                gene: 'slc308',
+                disease: 'Cardio metabolic disorder',
+            }"
+                ></documentation>
             </div>
         </div>
 
