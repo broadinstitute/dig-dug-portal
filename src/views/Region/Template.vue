@@ -144,7 +144,9 @@
                     ></associations-table>
                 </div>
             </div>
-            <Documentation :name="welcome.template" :group="$parent.diseaseGroup"></Documentation>
+            <div v-if="$parent.diseaseGroup">
+                <documentation></documentation>
+            </div>
         </div>
 
         <!-- Footer-->

@@ -88,16 +88,6 @@ export default {
             commit('setPhenotypes', json.data);
         },
 
-        async getDocumentation({ state, commit }) {
-            let group = queryString.stringify({ q: state.host.subDomain }, { skipNull: true }); //get this from state as well??
-            let qs = "welcome.template" //get this from state
-            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
-                .then(resp => resp.json());
-
-            //set the documentation content
-            commit('setDocumentation', json.data);
-
-
-        },
+       
     }
 }

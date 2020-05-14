@@ -8,7 +8,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
-import Documentation from "@components/Documentation";
+import Documentation from "@/components/Documentation";
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -38,7 +38,7 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getDocumentation");
+
     },
 
     render(createElement, context) {
