@@ -30,15 +30,16 @@ export default Vue.component("documentation", {
             group: docGroup  //get this from state
         });
         let json = fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
-            .then(resp => resp.json())
             .then(resp => {
-                if (response.status === 422) {
-                    throw Error("In Documentation"+' '+resp.detail[0].type+' '+resp.detail[0].msg+' '+resp.detail[0].loc);
+                if (resp.status === 422) {
+                    throw Error("missing parameters");
+                    // throw Error("In Documentation"+' '+resp.json().detail[0].type+' '+resp.json().detail[0].msg+' '+resp.json().detail[0].loc);
                 }
-                if (response.status === 200) {
+                if (resp.status === 200) {
                     return resp;
                 }
             })
+            .then(resp => resp.json())
             .then(json => {
                 if (json.data.length > 0) {
 
