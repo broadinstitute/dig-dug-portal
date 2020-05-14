@@ -1,5 +1,6 @@
 <template>
     <div>
+        <analytics></analytics>
         <alert></alert>
 
         <!-- Menu header-->
@@ -111,12 +112,16 @@ import VueCookies from "vue-cookies";
 
 import host from "@/utils/hostUtils";
 
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics"
+
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
     props: ["diseaseGroup", "frontContents"],
 
-    components: {},
+    components: {
+        GoogleAnalytics,
+    },
 
     data() {
         return {};

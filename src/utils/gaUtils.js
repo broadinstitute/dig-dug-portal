@@ -28,7 +28,6 @@ const GA_MESSAGE_LABEL = "Message"
  * @public
  */
 const logAnalyticsEvent = async function (category, action, label, value) {
-
     if(isNaN(value)) {
         value = 1
     }
@@ -65,12 +64,14 @@ const logAnalyticsEvent = async function (category, action, label, value) {
  * @public
  */
 const logErrorEvent = async function (context, message) {
-    logAnalyticsEvent(
-        GA_APPLICATION_ERROR_EVENT_ACTION,
-        context,
-        GA_MESSAGE_LABEL,
-        message
-    );
+    if (process.env.NODE_ENV !== 'development') {
+        logAnalyticsEvent(
+            GA_APPLICATION_ERROR_EVENT_ACTION,
+            context,
+            GA_MESSAGE_LABEL,
+            message
+        );
+    }
 }
 
 
