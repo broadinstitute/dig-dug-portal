@@ -17,6 +17,7 @@ export default new Vuex.Store({
         associations: bioIndex("associations"),
         topAssociations: bioIndex("top-associations"),
         variants: bioIndex("variants"),
+        documentation: bioIndex("documentation"),
     },
     state: {
         // only used at the start
@@ -130,6 +131,12 @@ export default new Vuex.Store({
 
             // load the association
             context.dispatch('associations/query', query);
-        }
+        },
+
+        // loadDocumentationContent(context) {
+        //     let group = "md"
+        //     let name = "template string" //get it as props
+        //     context.dispatch('portal/documentation', query);
+        // }
     }
 });

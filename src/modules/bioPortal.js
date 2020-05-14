@@ -22,6 +22,7 @@ export default {
             diseaseGroups: [],
             phenotypes: [],
             phenotypeMap: {},
+            documentation: {}
         }
     },
 
@@ -38,6 +39,10 @@ export default {
             for (let i in state.phenotypes) {
                 state.phenotypeMap[state.phenotypes[i].name] = state.phenotypes[i];
             }
+        },
+
+        setDocumentation(state, data) {
+            state.documentation = data;
         },
     },
 
@@ -60,6 +65,7 @@ export default {
             // find the default
             return getters.defaultGroup;
         },
+
     },
 
     actions: {
@@ -80,6 +86,18 @@ export default {
 
             // set the list of phenotypes
             commit('setPhenotypes', json.data);
-        }
+        },
+
+        async getDocumentation({ state, commit }) {
+            let group = queryString.stringify({ q: state.host.subDomain }, { skipNull: true }); //get this from state as well??
+            let qs = "welcome.template" //get this from state
+            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
+                .then(resp => resp.json());
+
+            //set the documentation content
+            commit('setDocumentation', json.data);
+
+
+        },
     }
 }
