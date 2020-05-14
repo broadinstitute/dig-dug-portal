@@ -32,9 +32,10 @@ export default Vue.component("documentation", {
         let json = fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
             .then(resp => resp.json())
             .then(resp => {
-                if (resp.detail && resp.detail[0].type === "value_error.missing") {
+                if (response.status === 422) {
                     throw Error("In Documentation"+' '+resp.detail[0].type+' '+resp.detail[0].msg+' '+resp.detail[0].loc);
-                } else {
+                }
+                if (response.status === 200) {
                     return resp;
                 }
             })
