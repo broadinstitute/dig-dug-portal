@@ -1,34 +1,31 @@
 <template>
-    <div>
-        {{documentationContent}}
-    </div>
+    <div v-model="content">{{content}}</div>
 </template>
 
 <script>
 import Vue from "vue";
-import { camelKebab } from "@/utils/bioIndexUtils"
+import { camelKebab } from "@/utils/bioIndexUtils";
 export default Vue.component("documentation", {
-    props: ["name","group"],
-//fetch
-//if group is not defined --> get it from the store
-// name and group should be defined
+    props: ["name", "group"],
+    //fetch
+    //if group is not defined --> get it from the store
+    // name and group should be defined
 
-    data: (context) => {
+    data: context => {
         return {
-            module: camelKebab(context.moduleIndex),
-        }
+            content: null
+        };
     },
-    mounted(){
-        //fetch call
-        //get the content and resolve it in data
-
+    mounted() {
+        // fetch the documentation data and resolve it in data
+        let content = this.$store.dispatch("bioPortal/getDocumentation", name);
     },
-    computed:{
+    computed: {
         //render the content as it is if not markdown
         //if else markdown - implemented by Kenneth
-    },
-
-    
-
+        content() {
+            return this.content;
+        }
+    }
 });
 </script>
