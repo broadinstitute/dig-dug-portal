@@ -12,7 +12,8 @@ import LoadingBar from "@/components/LoadingBar";
 import PageHeader from "@/components/PageHeader";
 import PageFooter from "@/components/PageFooter";
 import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
-import { useTranslations, associationsForIGV, translate, associationsFromVariants } from "@/utils/dataMappingUtils";
+
+import Markdown from "@/components/Markdown"
 
 import Alert, {
     postAlert,
@@ -31,6 +32,7 @@ new Vue({
     store,
 
     components: {
+        Markdown,
         PageHeader,
         PageFooter,
         PhenotypeSelectPicker,
