@@ -1,6 +1,7 @@
 <template>
     <!-- Header -->
     <div>
+        
         <documentation
             :name="'welcome.template'"
             :group="'md'"
@@ -9,5 +10,6 @@
                 gene: 'slc308',
             }"
         ></documentation>
+
     </div>
 </template>

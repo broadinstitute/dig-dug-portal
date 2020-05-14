@@ -1,6 +1,5 @@
 <template>
-    <!-- <div>{{documentation}}</div> -->
-    <div v-html="test"></div>
+    <div v-html="documentationContent"></div>
 </template>
 
 <script>
@@ -28,8 +27,8 @@ export default Vue.component("documentation", {
         let docGroup = this.group || this.$store.getters["bioPortal/diseaseGroup"].name || "md";
         let qs = queryString.stringify({
             q: this.name,
-            group: docGroup
-        }); //get this from state
+            group: docGroup  //get this from state
+        });
         let json = fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
             .then(resp => resp.json())
             .then(json => {
@@ -47,12 +46,12 @@ export default Vue.component("documentation", {
                         strong: 'doc bold',
                         a: 'doc link',
                     }
-                    
-                    const class_extensions = Object.keys(classMap)
+
+                    const name_and_class_extensions = Object.keys(classMap)
                         .map(key => ({
                             type: 'output',
                             regex: new RegExp(`<${key}(.*)>`, 'g'),
-                            replace: `<${key} class="${classMap[key]}" $1>`
+                            replace: `<${key} id="${this.name}" class="${classMap[key]}" $1>`
                         }));
 
                     const valid_tags = this.findTemplateTagsFromContent(
@@ -64,7 +63,7 @@ export default Vue.component("documentation", {
                     );
 
                     this.converter = new showdown.Converter({
-                        extensions: [...fill_extensions, ...class_extensions]
+                        extensions: [...fill_extensions, ...name_and_class_extensions]
                     });
 
                     this.content = json.data[0].content;
@@ -80,12 +79,7 @@ export default Vue.component("documentation", {
             });
     },
     computed: {
-        //render the content as it is if not markdown
-        //if else markdown - implemented by Kenneth
-        documentation() {
-            return this.content;
-        },
-        test() {
+        documentationContent() {
             if (!!this.content) {
                 return this.converter.makeHtml(this.content);
             }
@@ -113,3 +107,19 @@ export default Vue.component("documentation", {
     }
 });
 </script>
+<style scoped>
+    .doc.link {}
+
+    .doc.large-header {}
+    .doc.medium-header {}
+    .doc.small-header {}
+    .doc.x-small-header {}
+
+    .doc.content {}
+
+    .doc.list {}
+    .doc.item {}
+
+    .doc.italic {}
+    .doc.bold {}
+</style>
