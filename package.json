@@ -3,8 +3,8 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "build": "vue-cli-service build --mode development",
     "watch": "vue-cli-service build --mode development --watch",
+    "build": "vue-cli-service build --mode development",
     "deploy": "vue-cli-service build --mode production"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "bootstrap-vue": "^2.6.1",
     "c3": "0.7.7",
     "core-js": "^2.6.11",
+    "git-repo-version": "^1.0.2",
     "igv": "http://igv.org/web/snapshot/igv-2.5.2.tgz",
     "jquery": "^3.4.1",
     "json-query": "^2.2.2",
