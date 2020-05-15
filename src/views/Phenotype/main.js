@@ -12,6 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
+import Documentation from "@/components/Documentation.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -31,7 +32,8 @@ new Vue({
         PhenotypeSelectPicker,
         AssociationsTable,
         EnrichmentTable,
-        DatasetsTable
+        DatasetsTable,
+        Documentation,
     },
 
     created() {

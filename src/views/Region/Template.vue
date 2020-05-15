@@ -101,7 +101,10 @@
                     <h4
                         class="card-title"
                     >Variant associations with p-value &lt;= 5e-3 in the region: {{$parent.regionString}}</h4>
-
+                    <!-- <documentation
+                        :name="'region.variantassociation.subheader'"
+                        :content_fill="{ }"
+                    ></documentation>-->
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div
                             href="javascript:;"
@@ -109,8 +112,6 @@
                             class="switch-view btn btn-secondary btn-sm"
                         >View in phenotype group</div>
                     </div>
-
-                    <!--<phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>-->
 
                     <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                 </div>
@@ -121,6 +122,13 @@
                         v-if="$store.state.phenotype"
                         class="card-title"
                     >Associations for {{$store.state.phenotype.description}}</h4>
+                    <documentation
+                        :name="'region.lz.subheader'"
+                        :content_fill="{
+                gene: 'slc308',
+                disease: 'Cardio metabolic disorder',
+            }"
+                    ></documentation>
                     <locuszoom
                         v-if="$store.state.phenotype"
                         :panels="['association','genes']"

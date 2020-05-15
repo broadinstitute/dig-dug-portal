@@ -22,13 +22,18 @@ export default Vue.component("documentation", {
         };
     },
 
-    created() {
+    mounted() {
         if (!!this.name) {
             // fetch the documentation data and resolve it in data
-            let docGroup = this.group || this.$store.getters["bioPortal/diseaseGroup"].name || "md";
+
+            // let docGroup =
+            //     this.group ||
+            //     this.$store.getters["bioPortal/diseaseGroup"].name ||
+            //     "md";
+            let docGroup = this.group || "md";
             let qs = queryString.stringify({
                 q: this.name,
-                group: docGroup  //get this from state
+                group: docGroup //get this from state
             });
             let json = fetch(`${BIO_INDEX_HOST}/api/portal/documentation?${qs}`)
                 .then(resp => {
@@ -43,26 +48,26 @@ export default Vue.component("documentation", {
                 .then(resp => resp.json())
                 .then(json => {
                     if (json.data.length > 0) {
-
                         const classMap = {
-                            h1: 'doc large-header',
-                            h2: 'doc medium-header',
-                            h3: 'doc small-header',
-                            h4: 'doc x-small-header',
-                            p:  'doc content',
-                            ul: 'doc list',
-                            li: 'doc item',
-                            em: 'doc italic',
-                            strong: 'doc bold',
-                            a: 'doc link',
-                        }
+                            h1: "doc large-header",
+                            h2: "doc medium-header",
+                            h3: "doc small-header",
+                            h4: "doc x-small-header",
+                            p: "doc content",
+                            ul: "doc list",
+                            li: "doc item",
+                            em: "doc italic",
+                            strong: "doc bold",
+                            a: "doc link"
+                        };
 
-                        const name_and_class_extensions = Object.keys(classMap)
-                            .map(key => ({
-                                type: 'output',
-                                regex: new RegExp(`<${key}(.*)>`, 'g'),
-                                replace: `<${key} id="${this.name}" class="${classMap[key]}" $1>`
-                            }));
+                        const name_and_class_extensions = Object.keys(
+                            classMap
+                        ).map(key => ({
+                            type: "output",
+                            regex: new RegExp(`<${key}(.*)>`, "g"),
+                            replace: `<${key} id="${this.name}" class="${classMap[key]}" $1>`
+                        }));
 
                         const valid_tags = this.findTemplateTagsFromContent(
                             json.data[0].content
@@ -73,16 +78,20 @@ export default Vue.component("documentation", {
                         );
 
                         this.converter = new showdown.Converter({
-                            extensions: [...fill_extensions, ...name_and_class_extensions]
+                            extensions: [
+                                ...fill_extensions,
+                                ...name_and_class_extensions
+                            ]
                         });
 
                         this.content = json.data[0].content;
-
                     } else {
-                        throw new Error("No content returned for given name " +
+                        throw new Error(
+                            "No content returned for given name " +
                                 this.name +
                                 " and group " +
-                        docGroup)
+                                docGroup
+                        );
                     }
                 });
         }
@@ -117,18 +126,28 @@ export default Vue.component("documentation", {
 });
 </script>
 <style scoped>
-    .doc.link {}
+.doc.link {
+}
 
-    .doc.large-header {}
-    .doc.medium-header {}
-    .doc.small-header {}
-    .doc.x-small-header {}
+.doc.large-header {
+}
+.doc.medium-header {
+}
+.doc.small-header {
+}
+.doc.x-small-header {
+}
 
-    .doc.content {}
+.doc.content {
+}
 
-    .doc.list {}
-    .doc.item {}
+.doc.list {
+}
+.doc.item {
+}
 
-    .doc.italic {}
-    .doc.bold {}
+.doc.italic {
+}
+.doc.bold {
+}
 </style>

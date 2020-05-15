@@ -14,6 +14,7 @@
                             v-on:click="$parent.showHideElement('phenotypeSearchHolder')"
                         >Select phenotype</a>
                     </div>
+
                     <div class="col-md-12 gene-page-header-body">
                         <div
                             id="phenotypeSearchHolder"
@@ -27,6 +28,7 @@
                         </div>
                         <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
                     </div>
+                    <documentation :name="'phenotype.title.subheader'" :content_fill="{  }"></documentation>
                 </div>
             </div>
 
@@ -47,7 +49,10 @@
                             </div>
                             <div class="col-md-6">
                                 <h4 class="card-title">Documentation</h4>
-                                <div>TODO:</div>
+                                <documentation
+                                    :name="'phenotype.associationplots.description'"
+                                    :content_fill="{  }"
+                                ></documentation>
                             </div>
                         </div>
                     </div>
