@@ -103,7 +103,7 @@
                     >Variant associations with p-value &lt;= 5e-3 in the region: {{$parent.regionString}}</h4>
                     <!-- <documentation
                         :name="'region.variantassociation.subheader'"
-                        :content_fill="{ }"
+                        :content-fill="{ }"
                     ></documentation>-->
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div
@@ -122,13 +122,7 @@
                         v-if="$store.state.phenotype"
                         class="card-title"
                     >Associations for {{$store.state.phenotype.description}}</h4>
-                    <documentation
-                        :name="'region.lz.subheader'"
-                        :content_fill="{
-                gene: 'slc308',
-                disease: 'Cardio metabolic disorder',
-            }"
-                    ></documentation>
+                    <documentation :name="'region.lz.subheader'"></documentation>
                     <locuszoom
                         v-if="$store.state.phenotype"
                         :panels="['association','genes']"

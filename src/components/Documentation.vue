@@ -10,7 +10,7 @@ import queryString from "query-string";
 import * as showdown from "showdown";
 
 export default Vue.component("documentation", {
-    props: ["name", "group", "content_fill"],
+    props: ["name", "group", "contentFill"],
     //fetch
     //if group is not defined --> get it from the store
     // name and group should be defined
@@ -73,7 +73,7 @@ export default Vue.component("documentation", {
                             json.data[0].content
                         );
                         const fill_extensions = this.makeExtensions(
-                            this.content_fill,
+                            this.contentFill,
                             valid_tags
                         );
 
@@ -112,8 +112,8 @@ export default Vue.component("documentation", {
             // we are able to use a slice here because the structure is always padded by both `{{` and `}}`
             return [...content.matchAll(regexp)].map(m => m[0].slice(2, -2));
         },
-        makeExtensions(content_fill, valid_tags) {
-            const replacements = Object.entries(content_fill)
+        makeExtensions(contentFill, valid_tags) {
+            const replacements = Object.entries(contentFill || {})
                 .filter(fill => valid_tags.includes(fill[0]))
                 .map(filler => ({
                     type: "lang",

@@ -49,10 +49,7 @@
                             </div>
                             <div class="col-md-6">
                                 <h4 class="card-title">Documentation</h4>
-                                <documentation
-                                    :name="'phenotype.associationplots.description'"
-                                    :content_fill="{  }"
-                                ></documentation>
+                                <documentation name="phenotype.associationplots.description"></documentation>
                             </div>
                         </div>
                     </div>
