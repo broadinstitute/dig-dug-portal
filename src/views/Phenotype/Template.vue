@@ -28,7 +28,6 @@
                         </div>
                         <span v-if="$store.state.phenotype">{{$store.state.phenotype.description}}</span>
                     </div>
-                    <documentation :name="'phenotype.title.subheader'" :content_fill="{  }"></documentation>
                 </div>
             </div>
 
