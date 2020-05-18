@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="pws-merged-view">
-            <h6>Traits with p-value &lt;= 2.5e-6</h6>
+            <h6>Traits with p-value &lt;= 5e-8</h6>
             <div class="pws-group-legend-wrapper">
                 <div v-for="row in topAssociatedGroups" class="pws-group-legend">
                     <div class="pws-group-legend-box phenotype-group" :class=" row">&nbsp;</div>
@@ -12,7 +12,7 @@
                 <div class="pws-top-phenotypes-bars-wrapper">
                     <div
                         v-for="(row, i) in topAssociations"
-                        v-if="row.pValue <= 2.5e-6"
+                        v-if="row.pValue <= 5e-8"
                         class="pws-top-each-phenotype-wrapper"
                     >
                         <div v-if="i == 0" class="pws-top-phenotypes-yaxis-wrapper" style>
@@ -53,11 +53,11 @@
                 </div>
             </div>
 
-            <h6>Traits with p-value &gt; 2.5e-6</h6>
+            <h6>Traits with p-value &gt; 5e-8</h6>
             <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">
                 <div
                     v-for="(row, i) in topAssociations2nd"
-                    v-if="row.pValue > 2.5e-6 && i <= 30"
+                    v-if="row.pValue > 5e-8 && i <= 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
                 >{{row.description}}</div>
@@ -75,7 +75,7 @@
             >
                 <div
                     v-for="(row, i) in topAssociations"
-                    v-if="row.pValue > 2.5e-6 && i > 30"
+                    v-if="row.pValue > 5e-8 && i > 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
                 >{{row.description}}</div>
@@ -227,6 +227,7 @@ export default Vue.component("phenotype-signal-mixed", {
                 element["group"] = phenotype.group.toUpperCase();
                 element["description"] = phenotype.description;
             });
+            console.log(data);
 
             return data;
         },
@@ -241,7 +242,7 @@ export default Vue.component("phenotype-signal-mixed", {
                 element["group"] = phenotype.group.toUpperCase();
                 element["description"] = phenotype.description;
 
-                if (element.pValue > 2.5e-6) filteredData.push(element);
+                if (element.pValue > 5e-8) filteredData.push(element);
             });
 
             return filteredData;

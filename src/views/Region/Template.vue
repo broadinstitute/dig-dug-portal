@@ -100,7 +100,7 @@
                 <div class="card-body">
                     <h4
                         class="card-title"
-                    >Variant associations with p-value &lt;= 5e-3 in the region: {{$parent.regionString}}</h4>
+                    >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
                     <!-- <documentation
                         :name="'region.variantassociation.subheader'"
                         :content-fill="{ }"
