@@ -26,10 +26,6 @@ export default Vue.component("documentation", {
         if (!!this.name) {
             // fetch the documentation data and resolve it in data
 
-            // let docGroup =
-            //     this.group ||
-            //     this.$store.getters["bioPortal/diseaseGroup"].name ||
-            //     "md";
             let docGroup = this.group || "md";
             let qs = queryString.stringify({
                 q: this.name,
