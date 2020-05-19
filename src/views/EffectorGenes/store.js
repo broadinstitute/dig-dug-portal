@@ -2,12 +2,16 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import effectorGenes from "@/modules/getEffectorGenes";
+import bioPortal from "@/modules/bioPortal";
+import kp4cd from "@/modules/kp4cd";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        effectorGenes
+        effectorGenes,
+        bioPortal,
+        kp4cd
     },
     state: {
         selectedPhenotype: null
