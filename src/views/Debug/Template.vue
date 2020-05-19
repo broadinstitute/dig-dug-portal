@@ -1,9 +1,8 @@
 <template>
     <!-- Header -->
     <div>
-
+        <analytics></analytics>
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
-
         <!-- body -->
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
@@ -13,6 +12,9 @@
                         <button @click="$parent.postAlertError('Error Alert!','Debug.vue')">
                             Test Error Alert
                         </button>
+
+                        <button @click="$parent.forceError()">Force Vue Error</button>
+                        <button ></button>
                     </div>
 
                     <alert></alert>

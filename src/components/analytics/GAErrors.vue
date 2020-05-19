@@ -2,82 +2,57 @@
 <script>
     import Vue from "vue";
     import gaUtils from "@/utils/gaUtils";
-    window.addEventListener("error", errorEvent => {
-        console.log("catching error");
+
+    /* HANDLER CALLBACKS */
+    // there are two of them because the argument structure is
+    // slightly different between Vue and the browser's own conventions
+
+    function vueErrorDescription(error, info) {
+        // combine error info into a single description (excluding stracktrace)
+        return [error.name+': '+error.message, info].join(', ');
+    };
+
+    function logError(errorDescription) {
         // get if i'm hitting dev or prod
-        const devOrProd = process.env.NODE_ENV;
+        const deploymentMode = process.env.NODE_ENV;
 
         // get current url (window.location.href) and query parameters
         const url = window.location.href;
         const query = window.location.search;
 
-        // get error
-        const { message, filename, lineno, colno, error } = errorEvent;
-
-        // get version of portal code (on portal)
-        // DONE: get version of server code (on server)
+        // DONE: get git version of server code (on server)
 
         gaUtils.logErrorEvent(
-            "error",
-            JSON.stringify({ url, query, devOrProd, msg, vm, trace }),
+            errorDescription,
+            deploymentMode,
+            url,
         );
+    };
+
+    /* HANDLERS */
+    // window handlers
+    // https://stackoverflow.com/a/37724538
+    window.addEventListener("error", errorEvent => {
+        console.log('trigger window ERROR listener');
+        logError(errorEvent.message);
+    });  // see 'useCapture' under https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+
+    // https://stackoverflow.com/a/49560222
+    window.addEventListener("unhandledrejection", rejectionEvent => {
+        console.log('trigger window UNHANDLED_REJECTION listener');
+        logError(rejectionEvent.message);
     });
 
-    // window.addEventListener("unhandledrejection", rejectionEvent => {
-    //     // get if i'm hitting dev or prod
-    //     // get current url (window.location.href) and query parameters
-    //     // get error
-
-        // get version of portal code (on portal)
-        // DONE: get version of server code (on server)
-
-    //     gaUtils.logErrorEvent(context, message);
-    // });
-
-    Vue.config.warnHandler = ({ msg, vm, trace }) => {
-        console.log('warn handler');
-
-        // get if i'm hitting dev or prod
-        const devOrProd = process.env.NODE_ENV;
-
-        // get current url (window.location.href) and query parameters
-        const url = window.location.href;
-        const query = window.location.search;
-
-        // get version of portal code (on portal)
-        // DONE: get version of server code (on server)
-
-        // get error
-        gaUtils.logErrorEvent(
-            "error",
-            JSON.stringify({ url, query, devOrProd, msg, vm, trace }),
-        );
+    Vue.config.warnHandler = (warning, _, info) => {
+        console.log('trigger vue WARN listener');
+        logError(vueErrorDescription(warning, info));
     };
 
-    Vue.config.errorHandler = ({ msg, vm, trace })  => {
-        console.log('vue error handler');
-        console.log(process.env)
-
-        // get if i'm hitting dev or prod
-        const devOrProd = process.env.NODE_ENV;
-
-        // get current url (window.location.href) and query parameters
-        const url = window.location.href;
-        const query = window.location.search;
-
-        // get version of portal code (on portal)
-        // DONE: get version of server code (on server)
-
-        // get error
-        gaUtils.logErrorEvent(
-            "error",
-            JSON.stringify({ url, query, devOrProd, msg, vm, trace }),
-        );
-
+    Vue.config.errorHandler = (error, _, info) => {
+        console.log('trigger vue ERROR listener');
+        logError(vueErrorDescription(error, info));
     };
 
-    export default Vue.component('ga-errors', {
-
-    })
+    export default Vue.component('ga-errors', {});
 
 </script>
