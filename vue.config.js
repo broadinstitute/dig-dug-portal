@@ -2,6 +2,12 @@ module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
+    configureWebpack: config => {
+        if (process.env.NODE_ENV !== 'production') {
+            config.devtool = 'inline-source-map';
+        }
+    },
+    productionSourceMap: false,
     pages: {
         index: {
             entry: "src/views/Index/main.js",
@@ -10,19 +16,36 @@ module.exports = {
             title: "Home",
             chunks: ["chunk-vendors", "chunk-common", "index"]
         },
-        manhattan: {
-            entry: "src/views/Manhattan/main.js",
+        phenotype: {
+            entry: "src/views/Phenotype/main.js",
             template: "public/index.html",
-            filename: "manhattan.html",
-            title: "Manhattan Page",
-            chunks: ["chunk-vendors", "chunk-common", "manhattan"]
+            filename: "phenotype.html",
+            title: "Phenotype Page",
+            chunks: ["chunk-vendors", "chunk-common", "phenotype"]
         },
-        geneFinder: {
-            entry: "src/views/GeneFinder/main.js",
+        region: {
+            entry: "src/views/Region/main.js",
             template: "public/index.html",
-            filename: "genefinder.html",
-            title: "Gene Finder",
-            chunks: ["chunk-vendors", "chunk-common", "geneFinder"]
+            filename: "region.html",
+            title: "Region Info",
+            chunks: ["chunk-vendors", "chunk-common", "region"]
+
+        },
+        debug: {
+            entry: "src/views/Debug/main.js",
+            template: "public/index.html",
+            filename: "debug.html",
+            title: "Debug Page",
+            chunks: ["chunk-vendors", "chunk-common", "debug"]
+
+        },
+        variant: {
+            entry: "src/views/Variant/main.js",
+            template: "public/index.html",
+            filename: "variant.html",
+            title: "Variant Info",
+            chunks: ["chunk-vendors", "chunk-common", "variant"]
+
         },
         gene: {
             entry: "src/views/Gene/main.js",

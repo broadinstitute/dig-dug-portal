@@ -1,60 +1,91 @@
+
+
 import Vue from "vue";
 import Vuex from "vuex";
 
-import $ from "jquery";
-import getAggregatedData from "@/modules/getAggregatedData";
-import graphPhenotype from "@/modules/graphPhenotype";
+import bioPortal from "@/modules/bioPortal";
+import bioIndex from "@/modules/bioIndex";
+import kp4cd from "@/modules/kp4cd";
+import keyParams from "@/utils/keyParams";
+import uniprot from "@/modules/uniprot";
+
+
+
 
 Vue.use(Vuex);
 
-var url = new URL(document.URL);
-let keyParam = {};
-var c = url.searchParams.forEach((value, key) => {
-    keyParam[key] = value;
-});
-
 export default new Vuex.Store({
     modules: {
-        variants: getAggregatedData,
-        phewas: getAggregatedData,
-        phenotypes: getAggregatedData,
-        graphPhenotype,
+        bioPortal,
+        kp4cd,
+        gene: bioIndex("gene"),
+        genes: bioIndex("genes"),
+        uniprot,
+
     },
     state: {
-        mdv: "mdv41",
-        chrom: keyParam.chrom,
-        start: Number(keyParam.start),
-        end: Number(keyParam.end),
-        phenotype: keyParam.phenotype,
-        phenotypeName: keyParam.phenotype,
-        newChrom: keyParam.chrom,
-        newStart: Number(keyParam.start),
-        newEnd: Number(keyParam.end),
+        geneName: keyParams.gene,
     },
-    mutations: {
-        setPhenotype(state, phenotype) {
-            state.phenotype = phenotype.id;
-            $.each(phenotype.phenotypes, function (index, PHENOTYPE) {
-                if (PHENOTYPE.phenotype_id == phenotype.id) { state.phenotypeName = PHENOTYPE.name };
-            })
-        },
-        setSelectedPhenotype(state, phenotype) {
-            state.phenotype = phenotype.phenotype_id;
-            state.phenotypeName = phenotype.name;
-        },
-    },
-    actions: {
-        setLocation(state) {
-            var chrom = this.state.newChrom;
-            var start = this.state.newStart;
-            var end = this.state.newEnd;
 
-            window.location.href = "./gene.html?gene=&chrom=" + chrom + "&start=" + start + "&end=" + end;
+    mutations: {
+        setGeneName(state, geneName) {
+            state.geneName = geneName || state.geneName;
+            keyParams.set({ gene: state.geneName });
         },
-        onPhenotypeChange(state, phenotype) {
-            console.log(phenotype);
-            mdkp.utility.showHideElement("phenotypeSearchHolder");
-            state.commit("setSelectedPhenotype", phenotype);
+        setGene(state, { name, chromosome, start, end }) {
+            state.geneName = name;
+            state.geneRegion = `${chromosome}:${start}-${end}`;
         }
-    }
+    },
+
+    getters: {
+        region(state) {
+            let data = state.gene.data;
+
+            if (data.length > 0) {
+                let gene = data[0];
+
+                return {
+                    chromosome: gene.chromosome,
+                    start: gene.start,
+                    end: gene.end,
+                }
+            }
+        },
+
+        canonicalSymbol(state) {
+            let data = state.genes.data;
+
+            for (let i in data) {
+                if (data[i].source === 'symbol') {
+                    return data[i].name;
+                }
+            }
+        }
+    },
+
+    actions: {
+        async queryGeneName(context, symbol) {
+            let name = symbol || context.state.geneName;
+
+            if (!!name) {
+                context.dispatch('gene/query', { q: name });
+            }
+        },
+
+        async queryGeneRegion(context, region) {
+            let { chromosome, start, end } = region || context.getters.region;
+            let q = `${chromosome}:${start}-${end}`;
+
+            context.dispatch('genes/query', { q });
+        },
+
+        async queryUniprot(context, symbol) {
+            let name = symbol || context.getters.canonicalSymbol;
+
+            if (!!symbol) {
+                context.dispatch('uniprot/getUniprotGeneInfo', name);
+            }
+        }
+    },
 });

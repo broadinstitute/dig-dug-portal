@@ -1,13 +1,16 @@
 <template>
-    <div id="chart"></div>
+    <div>
+        <div id="manhattan" style="width:100%; height: 300px"></div>
+    </div>
 </template>
 
 <script>
 import Vue from "vue";
 import c3 from "c3";
+import Formatters from "@/utils/formatters.js";
 
 export default Vue.component("manhattan-plot", {
-    props: ["variants", "dataset", "phenotype"],
+    props: ["associations", "colors"],
 
     data() {
         return {
@@ -17,67 +20,76 @@ export default Vue.component("manhattan-plot", {
 
     mounted() {
         this.chart = c3.generate({
+            bindto: "#manhattan",
             size: {
-                height: 500
+                height: 300
+            },
+            interaction: {
+                enabled: false
             },
             data: {
-                xs: {
-                    data: "data_x"
-                },
+                x: "x",
+                columns: [["x"], ["pValue"]],
                 type: "scatter",
-                columns: []
+                order: null
+            },
+            legend: {
+                show: false
             },
             zoom: {
                 enabled: false,
                 rescale: false
             },
             point: {
-                r: 5
+                r: 4
             },
-            bindto: "#chart",
+            tooltip: {
+                show: false,
+                focus: {
+                    expand: {
+                        enabled: false
+                    }
+                }
+            },
             axis: {
                 x: {
                     label: "Chromosome",
+                    min: 0,
+                    max: chromosomeStart.Y + chromosomeLength.Y,
                     tick: {
-                        format(pos) {
-                            for (let chrom in chromosomeStart) {
-                                if (chromosomeStart[chrom] == pos) {
-                                    return chrom;
-                                }
-                            }
-                        },
-                        values: chromosomes.map(c => chromosomeStart[c])
+                        values: chromosomes.map(c => chromosomeStart[c]),
+                        format: pos => chromosomePos[pos]
                     }
                 },
                 y: {
-                    label: "-log10 P"
+                    label: "-log10(p)"
                 }
             }
         });
     },
 
-    watch: {
-        variants(variants) {
-            let xs = ["data_x"];
-            let ys = ["data"];
+    computed: {
+        columns() {
+            let n = this.associations.length;
 
-            variants.forEach(v => {
-                let p_value = v[4][this.dataset][this.phenotype.phenotype_id];
-                let pos = chromosomeStart[v[1]] + v[2];
-                xs.push(pos); // Pos
-                ys.push(-Math.log10(p_value)); // P_VALUE
+            let x = new Array(n + 1);
+            let y = new Array(n + 1);
+
+            x[0] = "x";
+            y[0] = "pValue";
+
+            this.associations.forEach((r, i) => {
+                x[i + 1] = chromosomeStart[r.chromosome] + r.position;
+                y[i + 1] = -Math.log10(r.pValue);
             });
 
-            if (variants.length == 0) {
-                this.chart.unload({});
-            } else {
-                this.chart.load({
-                    columns: [xs, ys],
-                    names: {
-                        data: this.dataset
-                    }
-                });
-            }
+            return [x, y];
+        }
+    },
+
+    watch: {
+        columns(columns) {
+            this.chart.load({ columns });
         }
     }
 });
@@ -138,10 +150,14 @@ let chromosomes = [
 ];
 
 let chromosomeStart = {};
+let chromosomePos = {};
+
 let start = 0;
 for (let i in chromosomes) {
     let chrom = chromosomes[i];
     chromosomeStart[chrom] = start;
+    chromosomePos[start] = chrom;
+
     start += chromosomeLength[chrom];
 }
 </script>

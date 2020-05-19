@@ -2,156 +2,145 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import $ from "jquery";
-import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
+
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import LocusZoom from "@/components/LocusZoom";
-import VariantsTable from "@/components/VariantsTable";
-import DataSources from "@/utils/lzDataSources";
+import DbreferencesTable from "@/components/DbreferencesTable.vue";
+import Documentation from "@/components/Documentation.vue";
+import uiUtils from "@/utils/uiUtils";
+
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 Vue.config.productionTip = false;
+Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
-
+    modules: {},
     components: {
-        PhenotypeSelectPicker,
-        LocusZoom,
-        VariantsTable,
         PageHeader,
         PageFooter,
-        LocusZoom
+        Alert,
+        DbreferencesTable,
+        Documentation,
     },
-    data: {
-        geneSource: DataSources.defaultGeneSource,
-        recombSource: DataSources.defaultRecombSource,
-        ldSource: DataSources.defaultLDSource,
-        constraintSource: DataSources.defaultConstraintSource,
-        intervalsSource: DataSources.defaultIntervalsSource,
+
+    data() {
+        return {
+            counter: 0,
+            externalResources: {
+                "ensembl": "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
+                "hgnc": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                "mgd": "http://www.informatics.jax.org/marker/",
+                "rgd": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=",
+                "ucsc": "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+            }
+        };
     },
 
     created() {
-        let mdv = this.$store.state.mdv;
-        let chrom = this.$store.state.chrom;
-        let start = this.$store.state.start;
-        let end = this.$store.state.end;
-        let phenotype = this.$store.state.phenotype;
-        this.$store.commit("variants/setCall", "variants");
-        this.$store.commit("phenotypes/setCall", "phenotypes");
-        this.$store.dispatch("variants/getAggregatedData", {
-            mdv,
-            chrom,
-            start,
-            end,
-            phenotype
-        });
-        this.$store.dispatch("phenotypes/getAggregatedData", {
-            mdv,
-            chrom,
-            start,
-            end
-        });
-        this.$store.dispatch("graphPhenotype/list");
+        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        // get the disease group and set of phenotypes available
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
     render(createElement, context) {
         return createElement(Template);
     },
 
-    computed: {
-        variantsData() {
-            return this.$store.state.variants.aggregatedData.variants;
-        },
-        phenotypesData() {
-            var phenotypesList = this.$store.state.phenotypes.aggregatedData
-                .variants;
-
-            var phenotypesList = this.$store.state.phenotypes.aggregatedData.variants;
-
-            if (this.phenotypeMap && phenotypesList) {
-                var phenotypeMap = this.phenotypeMap;
-                phenotypesList.forEach(function (e) {
-                    $.each(phenotypeMap, function (j, r) {
-                        if ($.trim(e.phenotype) == $.trim(r.phenotype_id)) {
-                            e["name"] = r.name;
-                        }
-                    });
-                });
-                return phenotypesList;
-            }
-        },
-        phewasData() {
-            return this.$store.getters["phewas/aggregatedData"];
-        },
-        phenotype() {
-            return this.$store.state.phenotype;
-        },
-        phenotypes() {
-            let variants = this.$store.state.phenotypes.aggregatedData.variants;
-            if (!variants) return [];
-            return variants.map(v => v.phenotype);
-        },
-        phenotypeMap() {
-            return this.$store.getters["graphPhenotype/phenotypes"];
-        },
-        genesInRegion() {
-            let assocGenesTemp = [];
-            let assocGenes = [];
-
-            if (this.phenotypesData) {
-                this.phenotypesData.forEach(function (r) {
-                    assocGenesTemp.push(r.GENE);
-                });
-
-                $.each(assocGenesTemp, function (i, e) {
-                    if ($.inArray(e, assocGenes) === -1 && e != null) assocGenes.push(e);
-                });
-                return assocGenes;
-            }
-        },
-        computedAssoc() {
-            let assocData = [];
-            let phenotype = this.$store.state.phenotype;
-            // filter and transform the variants into LZ format
-            if (this.variantsData) {
-                this.variantsData.forEach(function (r) {
-                    if (r.phenotype == phenotype) {
-                        assocData.push({
-                            id: r.VAR_ID,
-                            position: parseInt(r.VAR_ID.match(/_(\d+)_/)[1]),
-                            log_pvalue: -Math.log10(r.P_VALUE),
-                            ref_allele: r.Reference_allele,
-                            variant: r.VAR_ID
-                        });
-                    }
-                });
-            }
-
-            return assocData;
-        },
+    methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
     },
 
+    computed: {
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+
+        region() {
+            return this.$store.getters.region;
+        },
+
+        symbolName() {
+            return this.$store.getters.canonicalSymbol;
+        },
+
+        aliasNames() {
+            return this.$store.state.genes.data.filter(g => g.source === 'alias');
+        },
+
+        alternateNames() {
+            return this.$store.state.genes.data
+                .filter(g => g.source !== 'symbol')
+                .sort((a, b) => {
+                    if (a.source < b.source) return -1;
+                    if (a.source > b.source) return 1;
+                    return 0;
+                });
+        },
+
+        dbReference() {
+            return this.$store.getters['uniprot/dbReference'];
+        },
+
+        accession() {
+            return this.$store.getters['uniprot/accession'];
+        },
+
+        geneFunction() {
+            return this.$store.getters['uniprot/geneFunction'];
+        },
+
+        geneNames() {
+            return this.$store.getters['uniprot/geneNames'];
+        },
+
+        gene() {
+            let data = this.$store.state.gene
+            if (data.length > 0) {
+                console.log(data[0])
+                return data[0]
+            }
+            return {};
+        }
+    },
 
     watch: {
-        computedAssoc(assocData) {
-            this.$children[0].$refs.lz.updateVariants(assocData);
-            this.$children[0].$refs.lz.plot();
-
-            //this.$emit('updateplot');
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        phenotype(phenotype) {
-            let mdv = this.$store.state.mdv;
-            let chrom = this.$store.state.chrom;
-            let start = this.$store.state.start;
-            let end = this.$store.state.end;
-            this.$store.dispatch("variants/getAggregatedData", {
-                mdv,
-                chrom,
-                start,
-                end,
-                phenotype
-            });
+
+        // the region for the gene was found
+        region(region) {
+            this.hideElement('variantSearchHolder')
+            this.$store.dispatch('queryGeneRegion', region);
+        },
+
+        // the canonical symbol was found
+        symbolName(symbol) {
+            this.$store.dispatch('queryUniprot', symbol);
         }
     }
 }).$mount("#app");

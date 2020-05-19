@@ -1,15 +1,26 @@
 <template>
-	<div class="container-fluid mdkp-footer">
-		<div>METABOLIC DISORDERS KNOWLEDGE PORTAL</div>
-	</div>
+    <div v-if="diseaseGroup">
+        <div :class="'container-fluid '+diseaseGroup.name+'kp-footer'">
+            <div>
+                <a href="http://kp4cd.org/" style="color: #fff !important;">
+                    Powered by the
+                    <span
+                        style="font-weight:500; font-size: 1.2em; vertical-align:-.1em;"
+                    >HuGeAMP</span>
+                </a>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
 import Vue from "vue";
 
 export default Vue.component("page-footer", {
-	data() {
-		return {};
-	}
+    props: ["diseaseGroup"],
+
+    data() {
+        return {};
+    }
 });
 </script>

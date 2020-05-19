@@ -1,29 +1,43 @@
 {
   "name": "dig-dug-t2dkp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
-    "build": "vue-cli-service build",
-    "watch": "vue-cli-service build --watch"
+    "build": "vue-cli-service build --mode development",
+    "watch": "vue-cli-service build --mode development --watch",
+    "deploy": "vue-cli-service build --mode production"
   },
   "dependencies": {
+    "@vue/composition-api": "^0.5.0",
     "bootstrap": "^4.4.1",
-    "bootstrap-vue": "^2.2.2",
-    "c3": "^0.7.11",
-    "core-js": "^2.6.5",
+    "bootstrap-vue": "^2.6.1",
+    "c3": "0.7.7",
+    "core-js": "^2.6.11",
+    "igv": "http://igv.org/web/snapshot/igv-2.5.2.tgz",
     "jquery": "^3.4.1",
+    "json-query": "^2.2.2",
     "jsonpath": "^1.0.2",
-    "locuszoom": "^0.9.1",
+    "locuszoom": "^0.10.2",
+    "lodash": "^4.17.15",
     "lodash.merge": "^4.6.2",
+    "query-string": "^6.11.1",
+    "reference-pointer": "0.0.2",
+    "rollup": "^1.20.0",
+    "showdown": "^1.9.1",
+    "url-parse": "^1.4.7",
     "portal-vue": "^2.1.7",
     "vue": "^2.6.11",
-    "vue-cookies": "^1.6.1",
-    "vue-select": "^3.4.0",
-    "vuex": "^3.0.1"
+    "vue-axios": "^2.1.5",
+    "vue-cookies": "^1.7.0",
+    "vue-select": "^3.7.1",
+    "vue-typeahead-bootstrap": "^1.0.2",
+    "vuex": "^3.1.3",
+    "xml-js": "^1.6.11"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.11.0",
-    "@vue/cli-service": "^3.11.0",
+    "@vue/cli-plugin-babel": "^3.12.1",
+    "@vue/cli-service": "^4.3.1",
+    "babel-plugin-transform-remove-console": "^6.9.4",
     "vue-template-compiler": "^2.6.11"
   }
 }

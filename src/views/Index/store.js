@@ -1,52 +1,48 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-import metadataModule from "@/modules/metadataModule";
-import graphPhenotype from "@/modules/graphPhenotype";
-import getVariantDataModule from "@/modules/getVariantDataModule";
+import bioPortal from "@/modules/bioPortal";
+import kp4cd from "@/modules/kp4cd";
+import regionUtils from "@/utils/regionUtils";
+import variantUtils from "@/utils/variantUtils";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        metadataModule,
-        graphPhenotype,
-        manhattan: getVariantDataModule,
-        table: getVariantDataModule,
+        bioPortal,
+        kp4cd,
     },
     state: {
-        selectedPhenotype: null,
-        selectedDataset: null,
-        phenotypes: null
+        geneOrRegionOrVariant: null,
+        invalidGeneOrRegionOrVariant: false,
     },
     mutations: {
-        setSelectedPhenotype(state, phenotype) {
-            state.selectedPhenotype = phenotype;
+        setInvalidGeneOrRegionOrVariant(state, flag) {
+            state.invalidGeneOrRegionOrVariant = flag;
         },
-        setSelectedDataset(state, dataset) {
-            state.selectedDataset = dataset;
-        },
-        setPhenotypes(state, phenotypes) {
-            state.phenotypes = phenotypes;
+        setExample(state, example) {
+            state.geneOrRegionOrVariant = example;
         }
     },
+    state: {},
     actions: {
-        onPhenotypeChange(context, selectedPhenotype) {
-            context.commit("table/clearData");
-            context.commit("manhattan/clearData");
-            context.commit("setSelectedPhenotype", selectedPhenotype);
+        async onPhenotypeChange(context, phenotype) {
+            window.location.href = "./phenotype.html?phenotype=" + phenotype.name;
         },
-        onDatasetChange(context, selectedDataset) {
-            context.commit("setSelectedDataset", selectedDataset);
-            context.commit("table/clearData");
-            context.commit("manhattan/clearData");
-            context.dispatch("performGetData");
-        },
-        performGetData(context) {
-            let dataset = context.state.selectedDataset;
-            let phenotype = context.state.selectedPhenotype;
-            context.dispatch("table/getData", { dataset, phenotype });
-            context.dispatch("manhattan/getData", { dataset, phenotype });
+
+        async exploreRegionOrVariant(context) {
+            let locus = await regionUtils.parseRegion(context.state.geneOrRegionOrVariant, true, 50000);
+            let varID = await variantUtils.parseVariant(context.state.geneOrRegionOrVariant);
+
+            if (locus) {
+                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+            } else if (varID) {
+                window.location.href = `./variant.html?variant=${varID}`;
+            } else {
+                context.commit('setInvalidGeneOrRegionOrVariant', true);
+            }
+
         }
     }
 });
