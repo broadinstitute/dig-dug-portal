@@ -29,10 +29,16 @@
                 </div>
             </div>
             <div :class="'row '+diseaseGroup.name+'kp-header'">
-                <div :class="diseaseGroup+'kp-logo-wrapper col-md-4'">
+                <div :class="diseaseGroup.name+'kp-logo-wrapper col-md-4'">
                     <img
+                        v-if="frontContents.field_banner_logo"
                         :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
                         :class="diseaseGroup.name+'kp-logo'"
+                    />
+                    <img
+                        v-else
+                        src="http://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
+                        class="mdkp-logo"
                     />
                 </div>
                 <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
