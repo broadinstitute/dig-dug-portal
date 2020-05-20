@@ -1,12 +1,5 @@
 <template>
-    <div class="text-center">
-        <div>
-            <b-button id="tooltip-button-1" variant="primary" @click="show = !show">I have a tooltip</b-button>
-        </div>
-        <b-tooltip :show.sync="show" target="tooltip-button-1" placement="top">
-            <div v-html="documentationContent"></div>
-        </b-tooltip>
-    </div>
+    <div v-html="documentationContent"></div>
 </template>
 
 <script>
@@ -25,8 +18,7 @@ export default Vue.component("documentation", {
     data: context => {
         return {
             content: null,
-            converter: null,
-            show: false
+            converter: null
         };
     },
 
@@ -153,5 +145,9 @@ export default Vue.component("documentation", {
 .doc.italic {
 }
 .doc.bold {
+}
+.tooltip {
+    display: block !important;
+    z-index: 10000;
 }
 </style>
