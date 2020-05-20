@@ -227,7 +227,6 @@ export default Vue.component("phenotype-signal-mixed", {
                 element["group"] = phenotype.group.toUpperCase();
                 element["description"] = phenotype.description;
             });
-            console.log(data);
 
             return data;
         },
