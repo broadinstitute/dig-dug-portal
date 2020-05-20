@@ -50,9 +50,7 @@
                                 <h4 class="card-title">Documentation</h4>
                                 <documentation
                                     name="phenotype.associationplots.description"
-                                    :content-fill="{
-                                        phenotype: $store.state.phenotype.description,
-                                    }"
+                                    :content-fill="$store.getters['documentationMap']"
                                 ></documentation>
                             </div>
                         </div>
