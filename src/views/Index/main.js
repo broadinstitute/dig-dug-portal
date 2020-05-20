@@ -12,6 +12,8 @@ import AboutPortalSection from "@/components/frontPage/AboutPortalSection.vue";
 import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue";
 import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -43,7 +45,8 @@ new Vue({
         AboutPortalSection,
         AboutProjectSection,
         DatasetsSection,
-        DiseaseGroupSelect
+        DiseaseGroupSelect,
+        TooltipDocumentation,
     },
 
     created() {

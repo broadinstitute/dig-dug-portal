@@ -23,6 +23,7 @@ import Alert, {
 
 
 import Documentation from "@/components/Documentation"
+import TooltipDocumentation from "@/components/TooltipDocumentation"
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -39,6 +40,7 @@ new Vue({
         IGV,
         Alert,
         Documentation,
+        TooltipDocumentation,
     },
 
     render(createElement, context) {
