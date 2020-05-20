@@ -1,13 +1,3 @@
-/**
- * Ensembl REST calls
- */
-
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-
-// matches a string to a region string (same as used in BioIndex)
-const REGION_REGEXP = /(?:chr)?(1\d?|2[0-2]?|[3-9]|x|y|xy|mt?)[:_](\d+)(?:([+/-])(\d+))?/i;
-
-
 
 function findTemplateTagsFromContent(content) {
     let regexp = /{{([A-Za-z]+)}}/g;
