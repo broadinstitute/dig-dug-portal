@@ -5,7 +5,9 @@
             <span id="tooltip-button-1" variant="primary" @click="show = !show">&#63;</span>
         </div>
         <b-tooltip :show.sync="show" target="tooltip-button-1" placement="top">
-            <div v-html="tooltipDocumentationContent"></div>
+            <div class="tooltip">
+                <documentation :name="name"></documentation>
+            </div>
         </b-tooltip>
     </div>
 </template>
@@ -107,33 +109,3 @@ export default Vue.component("tooltip-documentation", {
     methods: {}
 });
 </script>
-<style scoped>
-.doc.link {
-}
-
-.doc.large-header {
-}
-.doc.medium-header {
-}
-.doc.small-header {
-}
-.doc.x-small-header {
-}
-
-.doc.content {
-}
-
-.doc.list {
-}
-.doc.item {
-}
-
-.doc.italic {
-}
-.doc.bold {
-}
-.tooltip {
-    display: block !important;
-    z-index: 10000;
-}
-</style>

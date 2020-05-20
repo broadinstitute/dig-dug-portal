@@ -2,14 +2,17 @@ import queryString from "query-string";
 
 // Defined Actions
 const GA_TEST_EVENT_ACTION = "Google Analytics Test Action"
-const GA_APPLICATION_ERROR_EVENT_ACTION = "Application Error"
 
 // Defined Categories
 const GA_TEST_CATEGORY = "Google Analytics Test Category"
+const GA_APPLICATION_ERROR_EVENT_CATEGORY = "Application Error"
 
 // Defined Labels
 const GA_TEST_LABEL = "Google Analytics Test Label"
 const GA_MESSAGE_LABEL = "Message"
+
+const ERROR_ENDPOINT_NAME = 'eventLog'
+const EVENT_ENDPOINT_NAME = 'errorLog'
 
 /**
  * Issue an Event Log notification for Google Analytics reporting, to the
@@ -27,21 +30,15 @@ const GA_MESSAGE_LABEL = "Message"
  * @return null
  * @public
  */
-const logAnalyticsEvent = async function (category, action, label, value) {
+const logAnalyticsEvent = async function (category, action, params) {
 
+    let value;
     if(isNaN(value)) {
         value = 1
     }
 
-    let queryParams = {
-        action,
-        category,
-        label,
-        value
-    };
-
-    let qs = queryString.stringify(queryParams, { skipNull: true });
-    return await fetch(`/eventlog?${qs}`)
+    let qs = queryString.stringify({ action, category, value, ...params }, { skipNull: true });
+    return await fetch(`/eventLog?${qs}`)
         .then(response => {
             if (response) {
                 return response.data
@@ -64,12 +61,15 @@ const logAnalyticsEvent = async function (category, action, label, value) {
  * @return null
  * @public
  */
-const logErrorEvent = async function (context, message) {
+const logErrorEvent = async function (action, message, page) {
+    let params = {
+        page: page,
+        label: message,
+    }
     logAnalyticsEvent(
-        GA_APPLICATION_ERROR_EVENT_ACTION,
-        context,
-        GA_MESSAGE_LABEL,
-        message
+        GA_APPLICATION_ERROR_EVENT_CATEGORY,
+        action,
+        params
     );
 }
 

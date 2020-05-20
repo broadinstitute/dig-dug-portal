@@ -51,11 +51,15 @@ new Vue({
         //...useTranslations,
         //associationsForIGV,
         //associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
-        pause: () => console.log('hello'),
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+        pause: () => console.log('hello'),
+        forceError: () => {
+            null.hello()
+            throw new Error("error");
+        }
     },
 
     computed: {
