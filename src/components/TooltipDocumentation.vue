@@ -2,7 +2,7 @@
 <template>
     <div class="text-center">
         <div>
-            <b-button id="tooltip-button-1" variant="primary" @click="show = !show">I have a tooltip</b-button>
+            <span id="tooltip-button-1" variant="primary" @click="show = !show">&#63;</span>
         </div>
         <b-tooltip :show.sync="show" target="tooltip-button-1" placement="top">
             <div v-html="tooltipDocumentationContent"></div>
