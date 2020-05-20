@@ -1,8 +1,8 @@
-/* .tooltip {
+.tooltip {
   display: block !important;
   z-index: 10000;
-}
-  .tooltip-inner {
+
+  /* .tooltip-inner {
     background: black;
     color: white;
     border-radius: 16px;
@@ -91,3 +91,4 @@
     transition: opacity .15s;
   }
 } */
+}
