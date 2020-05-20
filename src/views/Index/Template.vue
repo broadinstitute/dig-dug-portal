@@ -52,10 +52,6 @@
                                                     href="javascript:;"
                                                     @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].region); $store.dispatch('exploreRegionOrVariant')"
                                                 >{{$parent.searchExamples[$parent.diseaseGroup.name].region}}</a>
-                                                <tooltip-documentation
-                                                    name="test.tooltip.index.regionexample"
-                                                    :group="'md'"
-                                                ></tooltip-documentation>
                                             </div>
                                             <div
                                                 class="text-danger"
