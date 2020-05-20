@@ -17,8 +17,6 @@ import { camelKebab } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import queryString from "query-string";
 import * as showdown from "showdown";
-// import { VTooltip } from "v-tooltip";
-// Vue.directive("tooltip", VTooltip);
 
 export default Vue.component("tooltip-documentation", {
     props: ["name", "group", "contentFill"],
