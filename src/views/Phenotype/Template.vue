@@ -71,12 +71,8 @@
                     <div class="card-body">
                         <h4
                             class="card-title"
-                        >Globally Enriched Annotations for {{$store.state.phenotype.description}}</h4>
-                        <enrichment-table
-                            :phenotypes="[$store.state.phenotype]"
-                            :annotations="$store.state.annotations.data"
-                            :per-page="10"
-                        ></enrichment-table>
+                        >Datasets Associated with {{$store.state.phenotype.description}}</h4>
+                        <datasets-table :datasets="$store.state.datasets.data"></datasets-table>
                     </div>
                 </div>
 
@@ -84,8 +80,12 @@
                     <div class="card-body">
                         <h4
                             class="card-title"
-                        >Datasets Associated with {{$store.state.phenotype.description}}</h4>
-                        <datasets-table :datasets="$store.state.datasets.data"></datasets-table>
+                        >Globally Enriched Annotations for {{$store.state.phenotype.description}}</h4>
+                        <enrichment-table
+                            :phenotypes="[$store.state.phenotype]"
+                            :annotations="$store.state.annotations.data"
+                            :per-page="10"
+                        ></enrichment-table>
                     </div>
                 </div>
             </div>
