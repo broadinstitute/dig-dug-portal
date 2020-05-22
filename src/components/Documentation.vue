@@ -12,9 +12,6 @@ import * as showdown from "showdown";
 
 export default Vue.component("documentation", {
     props: ["name", "group", "contentFill"],
-    //fetch
-    //if group is not defined --> get it from the store
-    // name and group should be defined
 
     data: context => {
         return {
@@ -26,7 +23,6 @@ export default Vue.component("documentation", {
     mounted() {
         if (!!this.name) {
             // fetch the documentation data and resolve it in data
-
             let docGroup = this.group || "md";
             let qs = queryString.stringify({
                 q: this.name,

@@ -19,8 +19,6 @@ function makeExtensions(contentFill, valid_tags) {
         regex: `{{${filler[0]}}}`,
         replace: filler[1]
     }));
-
-
 }
 
 
@@ -68,14 +66,6 @@ function makeConverter(content, contentFill, name) {
     });
     return converter
 }
-
-
-
-
-
-// parse a region as either a gene name, ENS ID, or chr:start-stop
-
-
 
 export default {
     makeExtensions,
