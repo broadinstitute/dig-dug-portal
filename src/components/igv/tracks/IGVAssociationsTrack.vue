@@ -1,27 +1,25 @@
+<template>
+    <igv-track
+        :num="num"
+        :index="MY_BIO_INDEX_TYPE"
+        :feature="feature"
+        :translator="associationsForIGV"
+    ></igv-track>
+</template>
+<script>
+import igv from "igv";
 import Vue from "vue";
-import Template from "./Template.vue";
 
-import IGV from "@/components/igv/IGV.vue"
-import IGVTrack from "@/components/igv/IGVTrack.vue"
-import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
-
+import { BioIndexReader } from "@/utils/igvUtils"
 import { cloneDeep } from "lodash";
+import IGVTrack from "@/components/igv/IGVTrack.vue"
 
-Vue.config.productionTip = false;
+const MY_BIO_INDEX_TYPE = 'associations';
 
-new Vue({
+export default Vue.component('igv-associations-track', {
     components: {
-        IGV,
-        IGVTrack,
-        IGVAssociationsTrack,
+        IGVTrack
     },
-
-    data() {
-        return {
-            nums: 3,
-        }
-    },
-
     methods: {
         associationsForIGV: function (associations) {
             return associations.map(association => {
@@ -37,11 +35,8 @@ new Vue({
                     value: association.pValue,
                 }
             });
-        },
-    },
+        }
+    }
+})
 
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-}).$mount("#app");
+</script>

@@ -6,9 +6,6 @@ import bioPortal from "@/modules/bioPortal";
 
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
-
-import { moduleQueryTemplate, camelKebab } from "@/utils/bioIndexUtils"
-
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -51,19 +48,6 @@ export default new Vuex.Store({
         },
     },
     actions: {
-        async onIGVCoords(context, { module, newChr, newStart, newEnd }) {
-            console.log('on igv coords')
-            const { chr, start, end } = context.state;
-            if (newChr !== chr || newStart !== start || newEnd !== end) {
-                const query = moduleQueryTemplate(module, {
-                    phenotype: context.state.phenotype.name,
-                    // varId?
-                    chromosome: newChr,
-                    start: newStart,
-                    end: newEnd,
-                });
-                await context.dispatch(`${camelKebab(module)}/query`, { q: query });
-            }
-        },
+
     },
 });

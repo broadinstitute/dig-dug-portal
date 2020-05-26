@@ -1,11 +1,19 @@
 <template>
     <div>
         <input type="number" v-model.number="$parent.nums"/>
-        <igv :xs="31" :sm="32">
+        <igv :chr="8"
+             :start="117912512"
+             :end="118238953">
             <igv-track
                 v-for="num in $parent.nums"
+                :num="num"
                 :key="num"
-                :xs="num"></igv-track>
+
+                :index="'associations'"
+                :feature="'T2D'"
+                :translator="$parent.associationsForIGV"
+            >
+            </igv-track>
         </igv>
     </div>
 </template>
