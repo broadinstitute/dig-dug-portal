@@ -1,4 +1,5 @@
 import Vue from "vue";
+import store from "./store"
 import Template from "./Template.vue";
 
 import IGV from "@/components/igv/IGV.vue"
@@ -10,6 +11,7 @@ import { cloneDeep } from "lodash";
 Vue.config.productionTip = false;
 
 new Vue({
+    store,
     components: {
         IGV,
         IGVTrack,

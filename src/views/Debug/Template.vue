@@ -3,7 +3,8 @@
         <input type="number" v-model.number="$parent.nums"/>
         <igv :chr="8"
              :start="117912512"
-             :end="118238953">
+             :end="118238953"
+             @igvupdate="$store.dispatch('igvUpdate', $event)">
             <igv-track
                 v-for="num in $parent.nums"
                 :num="num"

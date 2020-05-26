@@ -9,7 +9,7 @@
 import igv from "igv";
 import Vue from "vue";
 export default Vue.component('igv', {
-  props: ['chr', 'start', 'end'],
+  props: ['chr', 'start', 'end', "igvupdate"],
   data() {
       return {
           igvBrowser: null,
