@@ -99,20 +99,20 @@ class BioIndexIGVReader {
 
         let data = [];
 
-        data = await this.config.store.dispatch('onIGVCoords', { module: this.config.module, newChr: chrNum, newStart: start, newEnd: end })
-        .then(() => {
-            let value = this.config.store.getters[`${camelKebab(this.config.module)}/data`];
-            console.log('value', value);
-            if (value) {
-                return value;
-            }
-            const emptyObject = [];
-            return emptyObject;
-        });
+        // data = await this.config.store.dispatch('onIGVCoords', { module: this.config.module, newChr: chrNum, newStart: start, newEnd: end })
+        // .then(() => {
+        //     let value = this.config.store.getters[`${camelKebab(this.config.module)}/data`];
+        //     console.log('value', value);
+        //     if (value) {
+        //         return value;
+        //     }
+        //     const emptyObject = [];
+        //     return emptyObject;
+        // });
 
         // TODO: this is the localized version of BioIndexIGVReader
-        // let url = makeSourceURLFunction(this.config.module)({chr, start, end})
-        // data = await fullQueryFromUrl(url);
+        let url = makeSourceURLFunction(this.config.module)({chr, start, end})
+        data = await fullQueryFromUrl(url);
 
         let features;
         if (data) {

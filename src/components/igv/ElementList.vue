@@ -8,7 +8,7 @@
 <script>
 import igv from "igv";
 import Vue from "vue";
-export default Vue.component('element-list', {
+export default Vue.component('igv', {
   props: ['xs', 'sm'],
   data() {
       return {

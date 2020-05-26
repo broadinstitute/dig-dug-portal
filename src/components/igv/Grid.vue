@@ -6,16 +6,20 @@
 </template>
 <script>
 import igv from "igv";
+import { makeBioIndexIGVTrack, makeBioIndexIGVTrackWithReader } from "@/utils/igvUtils"
+
 import Vue from "vue";
 
-export default Vue.component('grid', {
+export default Vue.component('igv-track', {
   props: ['xs', 'sm'],
   created() {
     console.log('grid created')
-    this.$parent.igvBrowser.loadTrack({
-        name: 'HG02450'+`_${this.xs}`,
-        url: 'http://data.broadinstitute.org/igvdata/1KG/b37/data/HG02450/alignment/HG02450.mapped.ILLUMINA.bwa.ACB.low_coverage.20120522.bam',
-    })
+
+
+
+    this.$parent.igvBrowser.loadTrack(
+        makeBioIndexIGVTrackWithReader({ store: this.$store, module, track, translator })
+)
   },
   mounted() {
     console.log('grid mounted')
@@ -28,4 +32,6 @@ export default Vue.component('grid', {
     this.$parent.igvBrowser.removeTrackByName('HG02450'+`_${this.xs}`);
   },
 })
+
+
 </script>
