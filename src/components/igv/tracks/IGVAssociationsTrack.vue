@@ -1,10 +1,7 @@
 <template>
-    <igv-track
-        :num="num"
-        :index="MY_BIO_INDEX_TYPE"
-        :feature="feature"
-        :translator="associationsForIGV"
-    ></igv-track>
+    <div>
+        <pre>Track Phenotype: {{ phenotype }}</pre>
+    </div>
 </template>
 <script>
 import igv from "igv";
@@ -12,13 +9,38 @@ import Vue from "vue";
 
 import { BioIndexReader } from "@/utils/igvUtils"
 import { cloneDeep } from "lodash";
-import IGVTrack from "@/components/igv/IGVTrack.vue"
-
-const MY_BIO_INDEX_TYPE = 'associations';
 
 export default Vue.component('igv-associations-track', {
-    components: {
-        IGVTrack
+    props: ['phenotype'],
+    data() {
+        return {
+            index: 'associations',
+            salt: Math.floor((Math.random() * 10000)).toString()
+        }
+    },
+    created() {
+            console.log('igv track created', 'igv browser:', this.$parent.igvBrowser)
+            if (this.$parent.igvBrowser != null) {
+                this.$parent.igvBrowser.loadTrack({
+                        name: `${this.index}_${this.salt}`,
+                        type: 'annotation',
+                        reader: new BioIndexReader({
+                            index: this.index,
+                            feature: this.phenotype,
+                            translator: this.associationsForIGV,
+                        })
+                })
+            }
+    },
+    mounted() {
+        console.log('igv track mounted')
+    },
+    updated() {
+        console.log('igv track updated')
+    },
+    destroyed() {
+        console.log('igv track destroyed')
+        this.$parent.igvBrowser.removeTrackByName(`${this.index}_${this.salt}`);
     },
     methods: {
         associationsForIGV: function (associations) {

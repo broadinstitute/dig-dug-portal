@@ -1,6 +1,6 @@
 <template>
     <div>
-        <pre>Track num: {{ num }}</pre>
+        <pre>Track Feature: {{ feature }}</pre>
     </div>
 </template>
 <script>
@@ -9,7 +9,8 @@ import Vue from "vue";
 import igv from "igv";
 import { BioIndexReader } from "@/utils/igvUtils"
 
-export default Vue.component('igv-track', {
+// DEPRECATE! Removing export.
+Vue.component('igv-track', {
   props: [
       'num',
       'index',
@@ -22,18 +23,18 @@ export default Vue.component('igv-track', {
         }
     },
     created() {
-    console.log('igv track created')
-    if (this.$parent.igvBrowser != null) {
-        this.$parent.igvBrowser.loadTrack({
-                name: `${this.index}_${this.salt}`,
-                type: 'annotation',
-                reader: new BioIndexReader({
-                    index: this.index,
-                    feature: this.feature,
-                    translator: this.translator,
-                })
-        })
-    }
+        console.log('igv track created', 'igv browser:', this.$parent.igvBrowser)
+        if (this.$parent.igvBrowser != null) {
+            this.$parent.igvBrowser.loadTrack({
+                    name: `${this.index}_${this.salt}`,
+                    type: 'annotation',
+                    reader: new BioIndexReader({
+                        index: this.index,
+                        feature: this.feature,
+                        translator: this.translator,
+                    })
+            })
+        }
   },
   mounted() {
     console.log('igv track mounted')

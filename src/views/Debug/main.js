@@ -2,7 +2,6 @@ import Vue from "vue";
 import Template from "./Template.vue";
 
 import IGV from "@/components/igv/IGV.vue"
-import IGVTrack from "@/components/igv/IGVTrack.vue"
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
 
 import { cloneDeep } from "lodash";
@@ -12,31 +11,27 @@ Vue.config.productionTip = false;
 new Vue({
     components: {
         IGV,
-        IGVTrack,
         IGVAssociationsTrack,
     },
 
     data() {
         return {
             nums: 3,
+            newTrackPhenotype: '',
         }
     },
 
     methods: {
-        associationsForIGV: function (associations) {
-            return associations.map(association => {
-                const annotation = cloneDeep(association);
-                annotation['chromosome'] = undefined;
-                annotation['position'] = undefined;
-                return {
-                    chr: association.chromosome,
-                    start: association.position,
-                    end: association.position,
-                    ...annotation,
-                    // for GWAS:
-                    value: association.pValue,
+        addIGVTrack: function () {
+            // https://css-tricks.com/creating-vue-js-component-instances-programmatically/
+            const IGVAssociationsTrackClass = Vue.extend(IGVAssociationsTrack);
+            const instance = new IGVAssociationsTrackClass({
+                propsData: {
+                    phenotype: this.newTrackPhenotype,
                 }
-            });
+            }).bind(this);
+            instance.$mount();
+            this.$refs.igv.appendChild(instance.$el);
         },
     },
 
