@@ -48,6 +48,10 @@ export default new Vuex.Store({
         },
     },
     actions: {
-
+        igvUpdate(context, params) {
+            // TODO: use destructuring for params
+            console.log('igv update', params)
+            // context.state[params.index].commit('setResponse', params.response);
+        }
     },
 });

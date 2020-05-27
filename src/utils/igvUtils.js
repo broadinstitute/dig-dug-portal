@@ -33,12 +33,13 @@ export class BioIndexReader {
             errHandler: json => {
                 console.log('error', json);
             },
-        })
-        .then(response => {
+            finishHandler: response => {
+                this.$emit('igvupdate', response.json());
+            },
+        }).then(bioIndexData => {
             // TODO: abstract
-            let translatedResponse = this.translator(response);
-            console.log('end response', translatedResponse)
-            return translatedResponse;
+            let igvData = this.translator(bioIndexData);
+            return igvData;
         })
 
         return response;
