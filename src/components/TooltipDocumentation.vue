@@ -5,9 +5,7 @@
             <span id="tooltip-button-1" variant="primary" @click="show = !show">&#63;</span>
         </div>
         <b-tooltip :show.sync="show" target="tooltip-button-1" placement="top">
-            <div class="tooltip">
-                <documentation :name="name"></documentation>
-            </div>
+            <div v-html="tooltipDocumentationContent"></div>
         </b-tooltip>
     </div>
 </template>
@@ -20,9 +18,13 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import queryString from "query-string";
 import * as showdown from "showdown";
 import documentationParser from "@/utils/documentationUtils";
+import Documentation from "@/components/Documentation.vue";
 
 export default Vue.component("tooltip-documentation", {
     props: ["name", "group", "contentFill"],
+    components: {
+        Documentation
+    },
     data: context => {
         return {
             content: null,

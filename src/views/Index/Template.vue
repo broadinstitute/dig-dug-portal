@@ -65,7 +65,12 @@
                                                 >
                                                     <documentation name="test.home.example.region"></documentation>
                                                 </a>
+                                                <tooltip-documentation
+                                                    name="region.variantassociation.subheader"
+                                                    :group="'md'"
+                                                ></tooltip-documentation>
                                             </div>
+
                                             <div
                                                 class="text-danger"
                                                 v-show="$store.state.invalidGeneOrRegion"
