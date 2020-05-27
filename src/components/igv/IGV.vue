@@ -42,6 +42,9 @@ export default Vue.component('igv', {
   destroyed() {
       console.log('igv destroyed')
   },
+  methods: {
+      // TODO: addIGVTrack
+  },
   watch: {
 
   }

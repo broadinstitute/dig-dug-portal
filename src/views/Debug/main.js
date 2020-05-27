@@ -5,8 +5,6 @@ import Template from "./Template.vue";
 import IGV from "@/components/igv/IGV.vue"
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
 
-import { cloneDeep } from "lodash";
-
 Vue.config.productionTip = false;
 
 new Vue({
@@ -31,9 +29,9 @@ new Vue({
                 propsData: {
                     phenotype: this.newTrackPhenotype,
                 }
-            }).bind(this);
+            });
             instance.$mount();
-            this.$refs.igv.appendChild(instance.$el);
+            this.$children[0].$refs.igv.addIGVTrack(instance.$el);
         },
     },
 

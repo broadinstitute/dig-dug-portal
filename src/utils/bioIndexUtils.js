@@ -33,22 +33,22 @@ export function buildBioIndexQueryString(queryObj) {
 // NOTE: does pattern matching on the final three args make them necessary/mandatory for function to execute without errors?
 // => it does mean that in order for this code to not throw errors, those final parameters cannot be optional per se,
 //    but require an empty object for errors not to be reported.
-export async function query(index, q, { limit, resolveHandler, finishHandler }) {
+export async function query(index, q, { limit, resolveHandler, errHandler, finishHandler }) {
     let qs = querystring.stringify({ q, limit }, { skipNull: true });
     let req = fetch(`${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`);
 
     // perform the fetch, make sure it succeeds
-    return await processRequest(req, resolveHandler, finishHandler);
+    return await processRequest(req, resolveHandler, errHandler, finishHandler);
 }
 
 /* Perform a BioIndex match.
  */
-export async function match(index, q, { limit, resolveHandler, errHandler, endHandler }) {
+export async function match(index, q, { limit, resolveHandler, errHandler, finishHandler }) {
     let qs = querystring.stringify({ q, limit }, { skipNull: true });
     let req = fetch(`${BIO_INDEX_HOST}/api/bio/match/${index}?${qs}`);
 
     // perform the fetch, make sure it succeeds
-    return await processRequest(req, resolveHandler, errHandler, endHandler);
+    return await processRequest(req, resolveHandler, errHandler, finishHandler);
 }
 
 /* Follow continuations and continue reading all data.

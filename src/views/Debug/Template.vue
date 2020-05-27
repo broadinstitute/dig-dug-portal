@@ -5,8 +5,6 @@
         <input id='phenotype' v-model="$parent.newTrackPhenotype"/><br>
         <button v-on:click="$parent.addIGVTrack">Add Track</button>
 
-
-
         <!-- <input type="number" v-model.number="$parent.nums"/> -->
 
         <igv ref="igv"

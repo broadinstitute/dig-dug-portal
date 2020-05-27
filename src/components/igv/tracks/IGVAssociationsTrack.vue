@@ -22,11 +22,12 @@ export default Vue.component('igv-associations-track', {
             console.log('igv track created', 'igv browser:', this.$parent.igvBrowser)
             if (this.$parent.igvBrowser != null) {
                 this.$parent.igvBrowser.loadTrack({
+                        // TODO: Override name with label
                         name: `${this.index}_${this.salt}`,
                         type: 'annotation',
                         reader: new BioIndexReader({
                             index: this.index,
-                            feature: this.phenotype,
+                            queryString: this.queryStringMaker,
                             translator: this.associationsForIGV,
                         })
                 })
@@ -43,6 +44,9 @@ export default Vue.component('igv-associations-track', {
         this.$parent.igvBrowser.removeTrackByName(`${this.index}_${this.salt}`);
     },
     methods: {
+        queryStringMaker: function (chr, start, end) {
+            return `${this.phenotype},${chr}:${start}-${end}`;
+        },
         associationsForIGV: function (associations) {
             return associations.map(association => {
                 const annotation = cloneDeep(association);

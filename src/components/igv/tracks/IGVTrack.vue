@@ -9,7 +9,7 @@ import Vue from "vue";
 import igv from "igv";
 import { BioIndexReader } from "@/utils/igvUtils"
 
-// DEPRECATE! Removing export.
+// WARNING: DEPRECATED! Removing export.
 Vue.component('igv-track', {
   props: [
       'num',
