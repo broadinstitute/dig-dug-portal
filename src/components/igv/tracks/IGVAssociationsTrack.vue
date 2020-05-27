@@ -4,10 +4,12 @@
     </div>
 </template>
 <script>
-import igv from "igv";
 import Vue from "vue";
 
+import igv from "igv";
+import IGVEvents, { IGV_ADD_TRACK, IGV_REMOVE_TRACK } from "@/components/igv/IGVEvents"
 import { BioIndexReader } from "@/utils/igvUtils"
+
 import { cloneDeep } from "lodash";
 
 export default Vue.component('igv-associations-track', {
@@ -19,29 +21,26 @@ export default Vue.component('igv-associations-track', {
         }
     },
     created() {
-            console.log('igv track created', 'igv browser:', this.$parent.igvBrowser)
-            if (this.$parent.igvBrowser != null) {
-                this.$parent.igvBrowser.loadTrack({
-                        // TODO: Override name with label
-                        name: `${this.index}_${this.salt}`,
-                        type: 'annotation',
-                        reader: new BioIndexReader({
-                            index: this.index,
-                            queryString: this.queryStringMaker,
-                            translator: this.associationsForIGV,
-                        })
-                })
-            }
+        console.log('igv track created')
     },
     mounted() {
         console.log('igv track mounted')
+        IGVEvents.$emit(IGV_ADD_TRACK, {
+                name: `${this.index}_${this.salt}`,
+                type: 'annotation',
+                reader: new BioIndexReader({
+                    index: this.index,
+                    queryString: this.queryStringMaker,
+                    translator: this.associationsForIGV,
+                })
+            });
     },
     updated() {
         console.log('igv track updated')
     },
     destroyed() {
         console.log('igv track destroyed')
-        this.$parent.igvBrowser.removeTrackByName(`${this.index}_${this.salt}`);
+        IGVEvents.$emit(IGV_REMOVE_TRACK, `${this.index}_${this.salt}`)
     },
     methods: {
         queryStringMaker: function (chr, start, end) {

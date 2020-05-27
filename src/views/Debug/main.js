@@ -13,28 +13,23 @@ new Vue({
         IGV,
         IGVAssociationsTrack,
     },
-
     data() {
         return {
             nums: 3,
             newTrackPhenotype: '',
+            tracks: []
         }
     },
-
+    mounted() {
+        console.log(this.$children[0].$refs)
+    },
     methods: {
-        addIGVTrack: function () {
-            // https://css-tricks.com/creating-vue-js-component-instances-programmatically/
-            const IGVAssociationsTrackClass = Vue.extend(IGVAssociationsTrack);
-            const instance = new IGVAssociationsTrackClass({
-                propsData: {
-                    phenotype: this.newTrackPhenotype,
-                }
+        addAssociationsTrack: function () {
+            this.$children[0].$refs.igv.addAssociationsTrack({
+                phenotype: this.newTrackPhenotype,
             });
-            instance.$mount();
-            this.$children[0].$refs.igv.addIGVTrack(instance.$el);
         },
     },
-
     render(createElement, context) {
         return createElement(Template);
     },

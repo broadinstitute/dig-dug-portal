@@ -2,12 +2,11 @@
     <div>
         <h3> Add Associations Track </h3>
         <label for='phenotype'>Phenotype</label><br>
+
         <input id='phenotype' v-model="$parent.newTrackPhenotype"/><br>
-        <button v-on:click="$parent.addIGVTrack">Add Track</button>
+        <button v-on:click="$parent.addAssociationsTrack">Add Track</button>
 
-        <!-- <input type="number" v-model.number="$parent.nums"/> -->
-
-        <igv ref="igv"
+        <igv  ref="igv"
             :chr="8"
             :start="117912512"
             :end="118238953">
