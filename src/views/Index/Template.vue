@@ -42,16 +42,29 @@
                                                     href="javascript:;"
                                                     @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].gene); $store.dispatch('exploreRegionOrVariant')"
                                                 >
-                                                    <i>{{$parent.searchExamples[$parent.diseaseGroup.name].gene}}</i>
+                                                    <i>
+                                                        <!-- <documentation
+                                                            name="test.home.example.gene"
+                                                            :group="'cvd'"
+                                                        ></documentation>-->
+
+                                                        <documentation
+                                                            name="test.home.example.gene"
+                                                        ></documentation>
+                                                    </i>
                                                 </a>,
                                                 <a
                                                     href="javascript:;"
                                                     @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].variant); $store.dispatch('exploreRegionOrVariant')"
-                                                >{{$parent.searchExamples[$parent.diseaseGroup.name].variant}}</a>,
+                                                >
+                                                    <documentation name="test.home.example.variant"></documentation>
+                                                </a>,
                                                 <a
                                                     href="javascript:;"
                                                     @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].region); $store.dispatch('exploreRegionOrVariant')"
-                                                >{{$parent.searchExamples[$parent.diseaseGroup.name].region}}</a>
+                                                >
+                                                    <documentation name="test.home.example.region"></documentation>
+                                                </a>
                                             </div>
                                             <div
                                                 class="text-danger"
