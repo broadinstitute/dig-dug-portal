@@ -1,5 +1,7 @@
+import * as showdown from "showdown";
 
 function findTemplateTagsFromContent(content) {
+
     let regexp = /{{([A-Za-z]+)}}/g;
 
     // we use a slice here because some browsers (firefox) don't support named capture groups in regexp
@@ -8,24 +10,65 @@ function findTemplateTagsFromContent(content) {
 }
 
 function makeExtensions(contentFill, valid_tags) {
-    const replacements = Object.entries(contentFill || {})
-        .filter(fill => valid_tags.includes(fill[0]))
-        .map(filler => ({
-            type: "lang",
-            regex: `{{${filler[0]}}}`,
-            replace: filler[1]
-        }));
-    return replacements;
+    let replacements = Object.entries(contentFill || {})
+    if (!!valid_tags) {
+        replacements = replacements.filter(fill => valid_tags.includes(fill[0]))
+    }
+    return replacements.map(filler => ({
+        type: "lang",
+        regex: `{{${filler[0]}}}`,
+        replace: filler[1]
+    }));
 }
 
-function parseDocumentation(name, group) {
 
+function make_name_and_class_extensions(name) {
+    const classMap = {
+        h1: "doc large-header",
+        h2: "doc medium-header",
+        h3: "doc small-header",
+        h4: "doc x-small-header",
+        p: "doc content",
+        ul: "doc list",
+        li: "doc item",
+        em: "doc italic",
+        strong: "doc bold",
+        a: "doc link"
+    };
+
+    const name_and_class_extensions = Object.keys(
+        classMap
+    ).map(key => ({
+        type: "output",
+        regex: new RegExp(`<${key}(.*)>`, "g"),
+        replace: `<${key} id="${name}" class="${classMap[key]}" $1>`
+    }));
+
+    return name_and_class_extensions;
 }
-// parse a region as either a gene name, ENS ID, or chr:start-stop
 
+function makeConverter(content, contentFill, name) {
+    const valid_tags = findTemplateTagsFromContent(
+        content
+    );
+    const fill_extensions = makeExtensions(
+        contentFill,
+        valid_tags
+    );
 
+    const name_and_class_extensions = make_name_and_class_extensions(name);
+
+    let converter = new showdown.Converter({
+        extensions: [
+            ...fill_extensions,
+            ...name_and_class_extensions
+        ]
+    });
+    return converter
+}
 
 export default {
     makeExtensions,
-    findTemplateTagsFromContent
+    findTemplateTagsFromContent,
+    makeConverter
 }

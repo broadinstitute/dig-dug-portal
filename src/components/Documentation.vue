@@ -12,9 +12,6 @@ import * as showdown from "showdown";
 
 export default Vue.component("documentation", {
     props: ["name", "group", "contentFill"],
-    //fetch
-    //if group is not defined --> get it from the store
-    // name and group should be defined
 
     data: context => {
         return {
@@ -26,8 +23,7 @@ export default Vue.component("documentation", {
     mounted() {
         if (!!this.name) {
             // fetch the documentation data and resolve it in data
-
-            let docGroup = this.group || "md";
+            let docGroup = !!this.group ? this.group.name : "md";
             let qs = queryString.stringify({
                 q: this.name,
                 group: docGroup //get this from state
@@ -45,41 +41,11 @@ export default Vue.component("documentation", {
                 .then(resp => resp.json())
                 .then(json => {
                     if (json.data.length > 0) {
-                        const classMap = {
-                            h1: "doc large-header",
-                            h2: "doc medium-header",
-                            h3: "doc small-header",
-                            h4: "doc x-small-header",
-                            p: "doc content",
-                            ul: "doc list",
-                            li: "doc item",
-                            em: "doc italic",
-                            strong: "doc bold",
-                            a: "doc link"
-                        };
-
-                        const name_and_class_extensions = Object.keys(
-                            classMap
-                        ).map(key => ({
-                            type: "output",
-                            regex: new RegExp(`<${key}(.*)>`, "g"),
-                            replace: `<${key} id="${this.name}" class="${classMap[key]}" $1>`
-                        }));
-
-                        const valid_tags = documentationParser.findTemplateTagsFromContent(
-                            json.data[0].content
-                        );
-                        const fill_extensions = documentationParser.makeExtensions(
+                        this.converter = documentationParser.makeConverter(
+                            json.data[0].content,
                             this.contentFill,
-                            valid_tags
+                            this.name
                         );
-
-                        this.converter = new showdown.Converter({
-                            extensions: [
-                                ...fill_extensions,
-                                ...name_and_class_extensions
-                            ]
-                        });
 
                         this.content = json.data[0].content;
                     } else {
@@ -98,6 +64,16 @@ export default Vue.component("documentation", {
             if (!!this.content) {
                 return this.converter.makeHtml(this.content);
             }
+        }
+    },
+    watch: {
+        contentFill: function(newContentFill) {
+            //create a new convertor that overides the one we are storing in data
+            this.converter = documentationParser.makeConverter(
+                this.content,
+                newContentFill,
+                this.name
+            );
         }
     },
 

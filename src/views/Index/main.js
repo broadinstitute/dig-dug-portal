@@ -13,6 +13,7 @@ import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue"
 import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import Documentation from "@/components/Documentation.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -47,6 +48,7 @@ new Vue({
         DatasetsSection,
         DiseaseGroupSelect,
         TooltipDocumentation,
+        Documentation,
     },
 
     created() {

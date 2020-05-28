@@ -5,9 +5,7 @@
             <span id="tooltip-button-1" variant="primary" @click="show = !show">&#63;</span>
         </div>
         <b-tooltip :show.sync="show" target="tooltip-button-1" placement="top">
-            <div class="tooltip">
-                <documentation :name="name"></documentation>
-            </div>
+            <div v-html="tooltipDocumentationContent"></div>
         </b-tooltip>
     </div>
 </template>
@@ -20,9 +18,13 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import queryString from "query-string";
 import * as showdown from "showdown";
 import documentationParser from "@/utils/documentationUtils";
+import Documentation from "@/components/Documentation.vue";
 
 export default Vue.component("tooltip-documentation", {
     props: ["name", "group", "contentFill"],
+    components: {
+        Documentation
+    },
     data: context => {
         return {
             content: null,
@@ -51,41 +53,12 @@ export default Vue.component("tooltip-documentation", {
                 .then(resp => resp.json())
                 .then(json => {
                     if (json.data.length > 0) {
-                        const classMap = {
-                            h1: "doc large-header",
-                            h2: "doc medium-header",
-                            h3: "doc small-header",
-                            h4: "doc x-small-header",
-                            p: "doc content",
-                            ul: "doc list",
-                            li: "doc item",
-                            em: "doc italic",
-                            strong: "doc bold",
-                            a: "doc link"
-                        };
-
-                        const name_and_class_extensions = Object.keys(
-                            classMap
-                        ).map(key => ({
-                            type: "output",
-                            regex: new RegExp(`<${key}(.*)>`, "g"),
-                            replace: `<${key} id="${this.name}" class="${classMap[key]}" $1>`
-                        }));
-
-                        const valid_tags = documentationParser.findTemplateTagsFromContent(
-                            json.data[0].content
-                        );
-                        const fill_extensions = documentationParser.makeExtensions(
+                        this.converter = documentationParser.makeConverter(
+                            json.data[0].content,
                             this.contentFill,
-                            valid_tags
+                            this.name
                         );
 
-                        this.converter = new showdown.Converter({
-                            extensions: [
-                                ...fill_extensions,
-                                ...name_and_class_extensions
-                            ]
-                        });
                         this.content = json.data[0].content;
                     } else {
                         throw new Error(
@@ -103,6 +76,16 @@ export default Vue.component("tooltip-documentation", {
             if (!!this.content) {
                 return this.converter.makeHtml(this.content);
             }
+        }
+    },
+    watch: {
+        contentFill: function(newContentFill) {
+            //create a new convertor that overides the one we are storing in data
+            this.converter = documentationParser.makeConverter(
+                this.content,
+                newContentFill,
+                this.name
+            );
         }
     },
 
