@@ -22,13 +22,14 @@ export default Vue.component('igv-associations-track', {
     data() {
         return {
             index: 'associations',
-            salt: Math.floor((Math.random() * 10000)).toString()
+            salt: Math.floor((Math.random() * 10000)).toString(),
+            visualization: 'annotation',
         }
     },
     mounted() {
         IGVEvents.$emit(IGV_ADD_TRACK, {
                 name: `${this.index}_${this.salt}`,
-                type: 'annotation',
+                type: this.visualization,
                 reader: new BioIndexReader({
                     index: this.index,
                     queryString: this.queryStringMaker,
@@ -44,7 +45,7 @@ export default Vue.component('igv-associations-track', {
                         finishHandler: this.finishHandler ||
                             ((response) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response)),
                     }
-                    
+
                 })
             });
 

@@ -1,4 +1,9 @@
 import { query } from "@/utils/bioIndexUtils"
+import {
+    // postAlertNotice,
+    // closeAlert
+    postAlertError,
+} from "@/components/Alert";
 
 /**
  * A custom feature reader implementation
@@ -30,23 +35,17 @@ export class BioIndexReader {
                 limit: 10000,
                 resolveHandler: json => {
                     if (!!this.queryHandlers.finishHandler) {
-                        return this.queryHandlers.resolveHandler(response);
-                    } else {
-                        console.log('step', json);
+                        return this.queryHandlers.resolveHandler(json);
                     }
                 },
                 errHandler: json => {
                     if (!!this.queryHandlers.finishHandler) {
-                        return this.queryHandlers.errHandler(response);
-                    } else {
-                        console.log('error', json);
+                        return this.queryHandlers.errHandler(json);
                     }
                 },
                 finishHandler: response => {
                     if (!!this.queryHandlers.finishHandler) {
                         return this.queryHandlers.finishHandler(response);
-                    } else {
-                        console.log('finish', response);
                     }
                 },
             })
@@ -62,6 +61,5 @@ export class BioIndexReader {
 }
 
 export function igvError(error) {
-    closeAlert(alertID);
     postAlertError(error.detail);
 }

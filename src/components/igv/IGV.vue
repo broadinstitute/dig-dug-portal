@@ -17,7 +17,11 @@ import IGVEvents, {
     IGV_BIOINDEX_QUERY_ERROR,
     IGV_BIOINDEX_QUERY_FINISH,
 } from "@/components/igv/IGVEvents";
-import { igvError, igvResolve, igvFinish } from "@/utils/igvUtils";
+import {
+    igvError,
+    // igvResolve,
+    // igvFinish
+} from "@/utils/igvUtils";
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack";
 
 export default Vue.component('igv', {
