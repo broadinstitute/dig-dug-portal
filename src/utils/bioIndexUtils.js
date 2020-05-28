@@ -82,7 +82,7 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
                 }
             }
         }
-        finishHandler(resp);
+        finishHandler(json);
     }
 
     if (resp.status !== 200) {

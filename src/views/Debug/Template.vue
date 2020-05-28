@@ -15,7 +15,7 @@
 
             <igv-associations-track
                 :phenotype="'T2D'"
-                :finishHandler="() => $store.dispatch('associations/tap', 'hello')">
+                :finishHandler="response => $store.commit('associations/setResponse', response)">
             </igv-associations-track>
 
             <igv-associations-track
@@ -23,6 +23,8 @@
             </igv-associations-track>
 
         </igv>
+
+        {{ JSON.stringify($store.state.associations) }}
 
     </div>
 </template>
