@@ -37,38 +37,10 @@
                                                 />
                                             </div>
                                             <div class="region-search-examples">
-                                                examples:
-                                                <a
-                                                    href="javascript:;"
-                                                    @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].gene); $store.dispatch('exploreRegionOrVariant')"
-                                                >
-                                                    <i>
-                                                        <!-- <documentation
-                                                            name="test.home.example.gene"
-                                                            :group="'cvd'"
-                                                        ></documentation>-->
-
-                                                        <documentation
-                                                            name="test.home.example.gene"
-                                                        ></documentation>
-                                                    </i>
-                                                </a>,
-                                                <a
-                                                    href="javascript:;"
-                                                    @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].variant); $store.dispatch('exploreRegionOrVariant')"
-                                                >
-                                                    <documentation name="test.home.example.variant"></documentation>
-                                                </a>,
-                                                <a
-                                                    href="javascript:;"
-                                                    @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].region); $store.dispatch('exploreRegionOrVariant')"
-                                                >
-                                                    <documentation name="test.home.example.region"></documentation>
-                                                </a>
-                                                <tooltip-documentation
-                                                    name="region.variantassociation.subheader"
-                                                    :group="'md'"
-                                                ></tooltip-documentation>
+                                                <documentation
+                                                    name="home.example"
+                                                    :group="$parent.diseaseGroup"
+                                                ></documentation>
                                             </div>
 
                                             <div
