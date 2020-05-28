@@ -10,7 +10,7 @@
             :chr="$store.state.chr"
             :start="$store.state.start"
             :end="$store.state.end"
-            :finishHandler="() => $store.dispatch('associations/tap', 'goodbye')"
+            :finishHandler="response => $store.dispatch('associations/tap', 'hello')"
         >
 
             <igv-associations-track

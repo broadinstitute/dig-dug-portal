@@ -17,7 +17,8 @@ import IGVEvents, {
     IGV_BIOINDEX_QUERY_ERROR,
     IGV_BIOINDEX_QUERY_FINISH,
 } from "@/components/igv/IGVEvents";
-import IGVAssociationsTrack from "./tracks/IGVAssociationsTrack";
+import { igvError, igvResolve, igvFinish } from "@/utils/igvUtils";
+import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack";
 
 export default Vue.component('igv', {
   props: [
@@ -60,20 +61,26 @@ export default Vue.component('igv', {
         });
 
         // default handlers for tracks completing their data
-        // TODO: this is the wierdest part of the application right now
+        // TODO: this is the wierdest part of the application right now. It works out as long as we only have one instance of IGV per page.
         IGVEvents.$on(IGV_BIOINDEX_QUERY_RESOLVE, json => {
             if (!!this.resolveHandler) {
                 this.resolveHandler(response);
+            } else {
+                // igvResolve(json);
             }
         })
         IGVEvents.$on(IGV_BIOINDEX_QUERY_ERROR, json => {
             if (!!this.errHandler) {
                 this.errHandler(response);
+            } else {
+                igvError(json);
             }
         })
         IGVEvents.$on(IGV_BIOINDEX_QUERY_FINISH, response => {
             if (!!this.finishHandler) {
                 this.finishHandler(response);
+            } else {
+                // igvFinish(json);
             }
         })
 

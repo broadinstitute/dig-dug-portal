@@ -1,4 +1,4 @@
-import { query, buildBioIndexQueryString } from "@/utils/bioIndexUtils"
+import { query } from "@/utils/bioIndexUtils"
 
 /**
  * A custom feature reader implementation
@@ -59,4 +59,9 @@ export class BioIndexReader {
         return response;
 
     }
+}
+
+export function igvError(error) {
+    closeAlert(alertID);
+    postAlertError(error.detail);
 }
