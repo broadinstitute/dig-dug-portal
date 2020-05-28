@@ -9,23 +9,16 @@ import { query, buildBioIndexQueryString } from "@/utils/bioIndexUtils"
 export class BioIndexReader {
 
     constructor(config) {
-        const { index, translator, queryString } = config;
+        const { index, translator, queryString, queryHandlers } = config;
         // this.feature = feature;
         this.index = index;
         this.translator = translator;
         this.queryStringMaker = queryString;
+        this.queryHandlers = queryHandlers;
     }
 
     async readFeatures(chr, start, end) {
-        // let limit = Math.abs(end - start)
-        // let bioIndexQuery = buildBioIndexQueryString({
-        //     feature: this.feature,
-        //     coords: {
-        //         chr: chr.slice(-1),
-        //         start: start,
-        //         end: end,
-        //     }
-        // });
+        // let limit = Math.abs(end - start);
         const response = await query(
             this.index,
             this.queryStringMaker(
@@ -36,20 +29,32 @@ export class BioIndexReader {
             {
                 limit: 10000,
                 resolveHandler: json => {
-                    console.log('step', json);
+                    if (!!this.queryHandlers.finishHandler) {
+                        return this.queryHandlers.resolveHandler(response);
+                    } else {
+                        console.log('step', json);
+                    }
                 },
                 errHandler: json => {
-                    console.log('error', json);
+                    if (!!this.queryHandlers.finishHandler) {
+                        return this.queryHandlers.errHandler(response);
+                    } else {
+                        console.log('error', json);
+                    }
                 },
                 finishHandler: response => {
-                    // this.$emit('igvupdate', response);
+                    if (!!this.queryHandlers.finishHandler) {
+                        return this.queryHandlers.finishHandler(response);
+                    } else {
+                        console.log('finish', response);
+                    }
                 },
             })
-            .then(bioIndexData => {
-                // TODO: abstract
-                let igvData = this.translator(bioIndexData);
-                return igvData;
-            })
+        .then(bioIndexData => {
+            // TODO: abstract
+            let igvData = this.translator(bioIndexData);
+            return igvData;
+        })
 
         return response;
 

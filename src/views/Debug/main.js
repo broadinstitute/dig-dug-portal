@@ -15,17 +15,12 @@ new Vue({
     },
     data() {
         return {
-            nums: 3,
-            newTrackPhenotype: '',
-            tracks: []
+            trackPhenotype: '',
         }
-    },
-    mounted() {
-        console.log(this.$children[0].$refs)
     },
     methods: {
         addAssociationsTrack: function () {
-            this.$children[0].$refs.igv.addAssociationsTrack({
+            this.$children[0].$refs.igv.addIGVTrack(IGVAssociationsTrack, {
                 phenotype: this.newTrackPhenotype,
             });
         },

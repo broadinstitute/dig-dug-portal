@@ -9,74 +9,101 @@
 import Vue from "vue";
 
 import igv from "igv";
-import IGVEvents, { IGV_ADD_TRACK, IGV_REMOVE_TRACK } from "@/components/igv/IGVEvents";
+import IGVEvents, {
+    IGV_ADD_TRACK,
+    IGV_REMOVE_TRACK,
+    IGV_CHILD_DESTROY_TRACK,
+    IGV_BIOINDEX_QUERY_RESOLVE,
+    IGV_BIOINDEX_QUERY_ERROR,
+    IGV_BIOINDEX_QUERY_FINISH,
+} from "@/components/igv/IGVEvents";
 import IGVAssociationsTrack from "./tracks/IGVAssociationsTrack";
 
 export default Vue.component('igv', {
-  props: ['chr', 'start', 'end', "igvupdate"],
+  props: [
+        'chr', 'start', 'end',
+        'resolveHandler', 'finishHandler', 'errHandler'
+  ],
+
   data() {
       return {
           igvBrowser: null,
       }
   },
-  created() {
-      console.log('igv created')
-  },
+
   mounted() {
-      console.log('igv mounted')
 
       const options = {
           genome: "hg19",
           visibilityWindow: 10000,
           locus: `chr${this.chr}:${this.start}-${this.end}`,
       };
+
       const div = document.getElementById("igv-div");
-      igv.createBrowser(div, options).then(browser => {
+
+    igv.createBrowser(div, options).then(browser => {
         igv.browser = browser;
         this.igvBrowser = igv.browser;
         this.createEventHandlers(this.igvBrowser);
       })
 
   },
-  destroyed() {
-      console.log('igv destroyed')
-  },
   methods: {
       createEventHandlers(browser) {
 
         IGVEvents.$on(IGV_ADD_TRACK, trackConfiguration => {
-            console.log('adding track', trackConfiguration);
             browser.loadTrack(trackConfiguration);
         });
 
         IGVEvents.$on(IGV_REMOVE_TRACK, trackName => {
-            console.log('removing track', trackName);
             browser.removeTrackByName(trackName);
         });
 
-        browser.on('trackremoved', event => {
-            // TODO: check if the component corresponding to the track exists or not
-                // TODO: give each component a ref corresponding to the name of the track (with e.g. the salt)
-            // if it exists: then remove it (since the track itself was already removed)
-            // if it doesn't exist: then do nothing, it should only be possible for the component to otherwise remove the track
-            console.log('igv track removed', event)
+        // default handlers for tracks completing their data
+        // TODO: this is the wierdest part of the application right now
+        IGVEvents.$on(IGV_BIOINDEX_QUERY_RESOLVE, json => {
+            if (!!this.resolveHandler) {
+                this.resolveHandler(response);
+            }
+        })
+        IGVEvents.$on(IGV_BIOINDEX_QUERY_ERROR, json => {
+            if (!!this.errHandler) {
+                this.errHandler(response);
+            }
+        })
+        IGVEvents.$on(IGV_BIOINDEX_QUERY_FINISH, response => {
+            if (!!this.finishHandler) {
+                this.finishHandler(response);
+            }
+        })
+
+        // 'trackremoved' is an igv.js event
+        // Since it can execute independently of the track component being destroyed, we have to
+        // either emit or re-emit the destruction signal to ensure 1-1 correspondence between the Vue component and the igvBrowser track.
+        // In the worst case, where the track is removed but there is no corresponding Vue component,
+        // nothing catches the IGV_CHILD_DESTROY_TRACK event and so there is no side-effect.
+        // This is mediated by the track name and Vue component internal name being the same.
+        browser.on('trackremoved', track => {
+            IGVEvents.$emit(IGV_CHILD_DESTROY_TRACK, track['name'])
         });
 
       },
-      // TODO: addIGVTrack as dispatch? (Real Golang hours whatsup)
-      addAssociationsTrack: function(trackConfig) {
-          console.log('addAssociationsTrack');
+
+    addIGVTrack: function(IGVTrackComponentType, trackConfig) {
           if (this.igvBrowser != null) {
-              let IGVAssociationsTrackConstructor = Vue.extend(IGVAssociationsTrack);
+
+              let IGVTrackConstructor = Vue.extend(IGVTrackComponentType);
               let vueContainer = document.createElement('div');
+
               this.$el.appendChild(vueContainer)
-              const vm = new IGVAssociationsTrackConstructor({
-                  propsData: {
-                      phenotype: trackConfig.phenotype,
-                  }
+
+              const trackComponentInstance = new IGVTrackConstructor({
+                  propsData: trackConfig.data
               }).$mount(vueContainer);
+
           }
       },
+
   },
   watch: {
 

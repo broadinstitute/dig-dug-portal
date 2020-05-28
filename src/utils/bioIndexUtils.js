@@ -82,6 +82,7 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
                 }
             }
         }
+        finishHandler(resp);
     }
 
     if (resp.status !== 200) {
@@ -89,6 +90,5 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
             errHandler(json);
         }
     }
-    finishHandler(resp);
     return data;
 }

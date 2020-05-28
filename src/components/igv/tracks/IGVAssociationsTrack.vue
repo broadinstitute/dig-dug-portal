@@ -1,30 +1,31 @@
 <template>
-    <div>
-        <pre>Track Phenotype: {{ phenotype }}</pre>
-    </div>
+    <div :ref="`${index}_${salt}`"></div>
 </template>
 <script>
 import Vue from "vue";
 
 import igv from "igv";
-import IGVEvents, { IGV_ADD_TRACK, IGV_REMOVE_TRACK } from "@/components/igv/IGVEvents"
+import IGVEvents, {
+    IGV_ADD_TRACK,
+    IGV_REMOVE_TRACK,
+    IGV_CHILD_DESTROY_TRACK,
+    IGV_BIOINDEX_QUERY_RESOLVE,
+    IGV_BIOINDEX_QUERY_ERROR,
+    IGV_BIOINDEX_QUERY_FINISH,
+    } from "@/components/igv/IGVEvents"
 import { BioIndexReader } from "@/utils/igvUtils"
 
 import { cloneDeep } from "lodash";
 
 export default Vue.component('igv-associations-track', {
-    props: ['phenotype'],
+    props: ['phenotype', 'finishHandler', 'resHandler', 'errHandler'],
     data() {
         return {
             index: 'associations',
             salt: Math.floor((Math.random() * 10000)).toString()
         }
     },
-    created() {
-        console.log('igv track created')
-    },
     mounted() {
-        console.log('igv track mounted')
         IGVEvents.$emit(IGV_ADD_TRACK, {
                 name: `${this.index}_${this.salt}`,
                 type: 'annotation',
@@ -32,16 +33,35 @@ export default Vue.component('igv-associations-track', {
                     index: this.index,
                     queryString: this.queryStringMaker,
                     translator: this.associationsForIGV,
+
+                    // if the queryHandler is defined (i.e. passed as a prop), use it.
+                    // Else, use whatever default queryhandler the parent IGV instance has (given that one is defined there).
+                    queryHandlers: {
+                        resolveHandler: this.resolveHandler ||
+                            ((json) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json)),
+                        errHandler: this.errHandler ||
+                            ((json) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json)),
+                        finishHandler: this.finishHandler ||
+                            ((response) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response)),
+                    }
+                    
                 })
             });
+
+        IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
+            if (trackName === `${this.index}_${this.salt}`) {
+                this.$destroy();
+            };
+        });
+
     },
-    updated() {
-        console.log('igv track updated')
+
+    beforeDestroy () {
+        // clean up external data before destroying the component instance from memory
+        IGVEvents.$emit(IGV_REMOVE_TRACK, `${this.index}_${this.salt}`);
+        this.$el.parentNode.removeChild(this.$el);
     },
-    destroyed() {
-        console.log('igv track destroyed')
-        IGVEvents.$emit(IGV_REMOVE_TRACK, `${this.index}_${this.salt}`)
-    },
+
     methods: {
         queryStringMaker: function (chr, start, end) {
             return `${this.phenotype},${chr}:${start}-${end}`;

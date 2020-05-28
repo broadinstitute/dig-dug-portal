@@ -82,8 +82,8 @@ export default function (index, extend) {
 
         // dispatch methods
         actions: {
-            async tap(context) {
-                context.commit("setPause", !context.state.paused);
+            async tap(context, args) {
+                console.log(args);
             },
             async count(context, { q }) {
                 let qs = queryString.stringify({ q });
