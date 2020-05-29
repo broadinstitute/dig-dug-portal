@@ -119,7 +119,7 @@
                         class="card-title"
                     >Associations for {{$store.state.phenotype.description}}</h4>
                     <documentation :name="'region.lz.subheader'"></documentation>
-                    <locuszoom
+                    <!-- <locuszoom
                         v-if="$store.state.phenotype"
                         :panels="['association','genes']"
                         :assoc="$parent.lzAssociations"
@@ -128,7 +128,21 @@
                         :end="$store.state.end"
                         :phenotype="$store.state.phenotype.name"
                         @lzupdate="$store.dispatch('loadAssociations', $event)"
-                    ></locuszoom>
+                    ></locuszoom> -->
+
+                    <div v-if="$store.state.phenotype">
+                        <igv ref="igv"
+                            :chr="$store.state.chr"
+                            :start="$store.state.start"
+                            :end="$store.state.end">
+                            <igv-associations-track
+                                :phenotype="$store.state.phenotype.name"
+                                :finishHandler="response => $store.commit('associations/setResponse', response)"
+                                :visualization="'gwas'">
+                            </igv-associations-track>
+                        </igv>
+                    </div>
+
                 </div>
             </div>
             <div v-if="$store.state.phenotype" class="card mdkp-card">

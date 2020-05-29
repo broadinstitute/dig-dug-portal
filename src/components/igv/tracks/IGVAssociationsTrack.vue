@@ -18,12 +18,41 @@ import { BioIndexReader } from "@/utils/igvUtils"
 import { cloneDeep } from "lodash";
 
 export default Vue.component('igv-associations-track', {
-    props: ['phenotype', 'finishHandler', 'resHandler', 'errHandler'],
+    props: {
+
+        phenotype: {
+            type: String,
+            required: true
+        },
+
+        // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
+        visualization: {
+            type: String,
+            default: 'annotation',
+            validator: function (value) {
+                // The value must match one of these strings
+                return ['annotation', 'gwas'].indexOf(value) !== -1
+            }
+        },
+
+        finishHandler: {
+            type: Function,
+            required: false
+        },
+        resolveHandler: {
+            type: Function,
+            required: false
+        },
+        errHandler: {
+            type: Function,
+            required: false
+        }
+
+    },
     data() {
         return {
             index: 'associations',
             salt: Math.floor((Math.random() * 10000)).toString(),
-            visualization: 'annotation',
         }
     },
     mounted() {

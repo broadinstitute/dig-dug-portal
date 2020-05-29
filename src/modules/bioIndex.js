@@ -1,6 +1,6 @@
 import merge from "lodash.merge";
 import queryString from "query-string";
-import { BIO_INDEX_HOST, fullQuery } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, query } from "@/utils/bioIndexUtils";
 import {
     postAlertNotice,
     postAlertError,
@@ -98,34 +98,37 @@ export default function (index, extend) {
                 context.commit("setCount", json.count);
             },
 
-            async query(context, queryPayload) {
+            async query(context, { q, limit }) {
                 let profile = {
                     fetch: 0,
                     query: 0
                 };
 
-                if (queryPayload) {
-                    await context.commit("setPause", false); // unpausing
-                    const { q, limit } = queryPayload;
-                    let alertID = postAlertNotice(
-                        "Loading " + index + ". Please wait ... "
-                    );
-                    let data = await fullQuery(
-                        { q, index, limit: limit || context.state.limit },
-                        {
-                            condition: () => !context.getters.paused, // must be a function so it's re-read at the end of each query chain iteration
-                            resolveHandler: json => {
-                                profile.fetch += json.profile.fetch;
-                                profile.query += json.profile.query;
-                                context.commit("setProgress", json.progress);
-                            },
-                            errHandler: error => {
-                                closeAlert(alertID);
-                                postAlertError(error.detail);
-                            }
+                if (!!q) {
+                    let alertID = postAlertNotice(`Loading ${index}; please wait ...`);
+
+                    // fetch the data
+                    let data = await query(index, q, {
+                        limit: limit || context.state.limit,
+
+                        // updates progress
+                        resolveHandler: json => {
+                            profile.fetch += json.profile.fetch || 0;
+                            profile.query += json.profile.query || 0;
+
+                            // update progress bar
+                            context.commit("setProgress", json.progress);
+                        },
+
+                        // report errors
+                        errHandler: error => {
+                            closeAlert(alertID);
+                            postAlertError(error.detail);
                         }
-                    );
-                    context.commit("setResponse", { data: data, profile });
+                    });
+
+                    // data is loaded
+                    context.commit("setResponse", { data, profile });
                     closeAlert(alertID);
                 }
             }

@@ -10,21 +10,23 @@
             :chr="$store.state.chr"
             :start="$store.state.start"
             :end="$store.state.end"
-            :finishHandler="response => $store.dispatch('associations/tap', 'hello')"
-        >
+            :finishHandler="response => $store.dispatch('associations/tap', 'hello')">
 
             <igv-associations-track
                 :phenotype="'T2D'"
+                :visualization="'annotation'"
                 :finishHandler="response => $store.commit('associations/setResponse', response)">
             </igv-associations-track>
 
             <igv-associations-track
-                :phenotype="'BMI'">
+                :phenotype="'BMI'"
+                :visualization="'gwas'">
             </igv-associations-track>
 
         </igv>
 
-        {{ JSON.stringify($store.state.associations) }}
+        Reaction:
+        Data length of {{JSON.stringify($store.state.associations.data) }}
 
     </div>
 </template>

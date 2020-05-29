@@ -10,6 +10,9 @@ import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
 
+import IGV from "@/components/igv/IGV.vue"
+import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
+
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -26,11 +29,15 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
+        Documentation,
+
         PhenotypeSelectPicker,
         LocusZoom,
         AssociationsTable,
         PhenotypeSignalMixed,
-        Documentation,
+
+        IGV,
+        IGVAssociationsTrack,
     },
 
     created() {

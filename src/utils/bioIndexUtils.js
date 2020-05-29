@@ -62,7 +62,9 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
                 }
             }
         }
-        finishHandler(json);
+        if (!!finishHandler) {
+            finishHandler(json);
+        }
     }
 
     if (resp.status !== 200) {

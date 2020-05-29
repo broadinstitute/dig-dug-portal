@@ -21,7 +21,9 @@ new Vue({
     methods: {
         addAssociationsTrack: function () {
             this.$children[0].$refs.igv.addIGVTrack(IGVAssociationsTrack, {
-                phenotype: this.newTrackPhenotype,
+                data: {
+                    phenotype: this.trackPhenotype,
+                }
             });
         },
     },
