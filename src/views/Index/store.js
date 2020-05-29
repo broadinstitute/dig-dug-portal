@@ -5,10 +5,12 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
 import variantUtils from "@/utils/variantUtils";
+import { postAlertError } from "@/components/Alert.vue";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+
     modules: {
         bioPortal,
         kp4cd,
@@ -46,7 +48,7 @@ export default new Vuex.Store({
             else if (varID) {
                 window.location.href = `./variant.html?variant=${varID}`;
             } else {
-                console.log("Gene not found");
+                postAlertError("Invalid gene, variant, or region");
             }
 
         }
