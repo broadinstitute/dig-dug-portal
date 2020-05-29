@@ -46,7 +46,7 @@ export default new Vuex.Store({
             else if (varID) {
                 window.location.href = `./variant.html?variant=${varID}`;
             } else {
-                throw new Error("error");
+                console.log("Gene not found");
             }
 
         }
