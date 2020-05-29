@@ -34,22 +34,26 @@
     // https://stackoverflow.com/a/37724538
     window.addEventListener("error", errorEvent => {
         console.log('trigger window ERROR listener');
+        console.error(errorEvent.message);
         logError(errorEvent.message);
     }, true);  // see 'useCapture' under https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
 
     // https://stackoverflow.com/a/49560222
     window.addEventListener("unhandledrejection", rejectionEvent => {
         console.log('trigger window UNHANDLED_REJECTION listener');
+        console.error(rejectionEvent.message);
         logError(rejectionEvent.message);
     }, true);
 
     Vue.config.warnHandler = (warning, _, info) => {
         console.log('trigger vue WARN listener');
+        console.error(warning);
         logError(vueErrorDescription(warning, info));
     };
 
     Vue.config.errorHandler = (error, _, info) => {
         console.log('trigger vue ERROR listener');
+        console.error(error);
         logError(vueErrorDescription(error, info));
     };
 
