@@ -1,5 +1,10 @@
 import Vue from "vue";
 
+const IGV_BROWSER_FORCE_REFRESH = 'igv-browser-forcerefresh';
+export {
+    IGV_BROWSER_FORCE_REFRESH,
+}
+
 const IGV_REMOVE_TRACK = 'igv-removetrack';
 const IGV_ADD_TRACK = 'igv-addtrack';
 const IGV_CHILD_DESTROY_TRACK = 'igv-child-destroytrack';

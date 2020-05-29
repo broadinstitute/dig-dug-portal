@@ -26,7 +26,7 @@
         </igv>
 
         Reaction:
-        Data length of {{JSON.stringify($store.state.associations.data) }}
+        Data length of {{JSON.stringify($store.state.associations.data.length) }}
 
     </div>
 </template>

@@ -6,6 +6,7 @@ import Vue from "vue";
 
 import igv from "igv";
 import IGVEvents, {
+    IGV_BROWSER_FORCE_REFRESH,
     IGV_ADD_TRACK,
     IGV_REMOVE_TRACK,
     IGV_CHILD_DESTROY_TRACK,
@@ -89,7 +90,8 @@ export default Vue.component('igv-associations-track', {
     beforeDestroy () {
         // clean up external data before destroying the component instance from memory
         IGVEvents.$emit(IGV_REMOVE_TRACK, `${this.index}_${this.salt}`);
-        this.$el.parentNode.removeChild(this.$el);
+        // console.log(this.$el);
+        // this.$el.parentNode.removeChild(this.$el);
     },
 
     methods: {
@@ -110,6 +112,12 @@ export default Vue.component('igv-associations-track', {
                     value: association.pValue,
                 }
             });
+        }
+    },
+    watch: {
+        phenotype(newPhenotype, oldPhenotype) {
+            console.log('phenotype change', 'new:', newPhenotype, 'old:', oldPhenotype);
+            IGVEvents.$emit(IGV_BROWSER_FORCE_REFRESH);
         }
     }
 })

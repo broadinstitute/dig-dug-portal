@@ -10,6 +10,7 @@ import Vue from "vue";
 
 import igv from "igv";
 import IGVEvents, {
+    IGV_BROWSER_FORCE_REFRESH,
     IGV_ADD_TRACK,
     IGV_REMOVE_TRACK,
     IGV_CHILD_DESTROY_TRACK,
@@ -56,6 +57,13 @@ export default Vue.component('igv', {
   methods: {
       createEventHandlers(browser) {
 
+        IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
+            console.log('force update/refresh for igv')
+            // just go to the place we already are at
+            // browser.search(`chr${this.chr}:${this.start}-${this.end}`);
+            browser.updateViews();
+        })
+
         IGVEvents.$on(IGV_ADD_TRACK, trackConfiguration => {
             browser.loadTrack(trackConfiguration);
         });
@@ -86,7 +94,8 @@ export default Vue.component('igv', {
             } else {
                 // igvFinish(json);
             }
-        })
+        });
+
 
         // 'trackremoved' is an igv.js event
         // Since it can execute independently of the track component being destroyed, we have to
