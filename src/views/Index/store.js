@@ -36,11 +36,17 @@ export default new Vuex.Store({
             let varID = await variantUtils.parseVariant(context.state.geneOrRegionOrVariant);
 
             if (locus) {
-                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
-            } else if (varID) {
+                if (locus.gene) {
+                    window.location.href = `./gene.html?gene=${locus.gene}`;
+                }
+                else {
+                    window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+                }
+            }
+            else if (varID) {
                 window.location.href = `./variant.html?variant=${varID}`;
             } else {
-                context.commit('setInvalidGeneOrRegionOrVariant', true);
+                throw new Error("error");
             }
 
         }
