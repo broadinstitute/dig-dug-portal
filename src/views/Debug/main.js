@@ -18,6 +18,7 @@ new Vue({
     data() {
         return {
             trackPhenotype: '',
+            trackTissueDescription: '',
         }
     },
     methods: {
@@ -28,6 +29,15 @@ new Vue({
                 }
             });
         },
+
+        addIntervalsTrack: function () {
+            this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
+                data: {
+                    tissue: this.trackTissueDescription,
+                }
+            });
+        },
+
     },
     render(createElement, context) {
         return createElement(Template);

@@ -66,7 +66,6 @@ export function igvError(error) {
 
 
 export function colorIntervalAnnotation(intervalAnnotation) {
-    console.log(intervalAnnotation);
     // TODO: Is this list exhaustive?
     // TODO: replace with a round robin of coloring? i.e. Replace with color iterator?
     // https://krazydad.com/tutorials/makecolors.php
@@ -111,7 +110,7 @@ export function colorIntervalAnnotation(intervalAnnotation) {
         return '#49A7E9'
     }
 }
-
+// TODO
 export const colorRing = {
     labels: new Map(),
     colorMapper: function(label) {

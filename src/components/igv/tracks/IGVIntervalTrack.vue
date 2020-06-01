@@ -16,7 +16,7 @@ import IGVEvents, {
     } from "@/components/igv/IGVEvents"
 import { BioIndexReader, colorIntervalAnnotation } from "@/utils/igvUtils"
 
-import { cloneDeep } from "lodash";
+import * as _ from "lodash";
 
 export default Vue.component('igv-intervals-track', {
     props: {
@@ -104,19 +104,21 @@ export default Vue.component('igv-intervals-track', {
             return `${chr}:${start}-${end}`;
         },
         intervalsForIGV: function (intervals) {
-            const intervalAnnotations = new Set();
-            const intervalData = intervals.map(interval => {
-                intervalAnnotations.add(interval.annotation);
-                return {
+            // NOTE: Sometimes a track might not have defined data for a tissue on an interval, but was already created
+            // In such a case the bioindex is not going to return any data for a given tissue leaving the access of that data by the track undefined
+            // Since we don't want to destroy the track (what if there is more data just around the corner?) we return an empty array
+            const tissuesOnRange = _.groupBy(intervals.filter(interval => !!interval.tissue), 'tissue.description');
+            if (!!tissuesOnRange[this.tissue]) {
+                return tissuesOnRange[this.tissue].map(interval => ({
                     chr: interval.chromosome,
                     start: interval.start,
                     end: interval.end,
                     name: interval.annotation,
                     color: colorIntervalAnnotation(interval.annotation),
-                }
-            })
-            console.log(Array.from(intervalAnnotations));
-            return intervalData;
+                }))
+            } else {
+                return [];
+            }
         }
     },
 })

@@ -1,5 +1,7 @@
 <template>
-    <div :ref="`${index}_${salt}`"></div>
+    <div :ref="`${index}_${salt}`">
+        <pre></pre>
+    </div>
 </template>
 <script>
 import Vue from "vue";
@@ -53,6 +55,8 @@ export default Vue.component('igv-associations-track', {
     data() {
         return {
             index: 'associations',
+            myPhenotype: this.phenotype,
+            myVisualization: this.visualization,
             salt: Math.floor((Math.random() * 10000)).toString(),
         }
     },
