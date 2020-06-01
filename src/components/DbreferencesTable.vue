@@ -24,12 +24,12 @@
                 <td></td>
                 <td>
                     <b-form-select v-model="filters['source']" :options="filter_source">
-                        <b-form-select-option value>Select filter</b-form-select-option>
+                        <b-form-select-option value>Select a filter</b-form-select-option>
                     </b-form-select>
                 </td>
                 <td>
                     <b-form-select v-model="filters['moleculeType']" :options="filter_moleculeType">
-                        <b-form-select-option value>Select filter</b-form-select-option>
+                        <b-form-select-option value>Select a filter</b-form-select-option>
                     </b-form-select>
                 </td>
                 <td></td>
@@ -98,7 +98,8 @@ export default Vue.component("dbreferences-table", {
         filter_moleculeType() {
             return this.filtered
                 .map(v => v.moleculeType)
-                .filter((v, i, arr) => arr.indexOf(v) == i);
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != undefined);
         },
         filtered() {
             const filtered = this.dbreferences.filter(item => {
