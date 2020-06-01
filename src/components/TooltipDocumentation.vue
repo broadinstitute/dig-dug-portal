@@ -83,7 +83,8 @@ export default Vue.component("tooltip-documentation", {
         },
         contentID() {
             if (!!this.name) {
-                let contentID = this.name.replace(/./g, "_");
+                let contentID = this.name + "." + Math.random();
+                contentID.replace(/\./g, "_");
                 return contentID;
             }
         }
