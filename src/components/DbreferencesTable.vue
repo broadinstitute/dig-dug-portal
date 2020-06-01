@@ -20,19 +20,28 @@
             <template v-slot:cell(gene)="v">
                 <a :href="'/gene.html?gene=' + v.item.gene_id">{{v.item.gene_id}}</a>
             </template>
-            <template slot="top-row" slot-scope="{ fields }">
-                <td></td>
-                <td>
-                    <b-form-select v-model="filters['source']" :options="filter_source">
-                        <b-form-select-option value>Select a filter</b-form-select-option>
-                    </b-form-select>
-                </td>
-                <td>
-                    <b-form-select v-model="filters['moleculeType']" :options="filter_moleculeType">
-                        <b-form-select-option value>Select a filter</b-form-select-option>
-                    </b-form-select>
-                </td>
-                <td></td>
+            <template v-slot:thead-top="data">
+                <b-tr>
+                    <b-th>
+                        <span class="sr-only">ID</span>
+                    </b-th>
+                    <b-th>
+                        <b-form-select v-model="filters['source']" :options="filter_source">
+                            <b-form-select-option value>Select a filter</b-form-select-option>
+                        </b-form-select>
+                    </b-th>
+                    <b-th>
+                        <b-form-select
+                            v-model="filters['moleculeType']"
+                            :options="filter_moleculeType"
+                        >
+                            <b-form-select-option value>Select a filter</b-form-select-option>
+                        </b-form-select>
+                    </b-th>
+                    <b-th>
+                        <span class="sr-only">Protein Sequence ID</span>
+                    </b-th>
+                </b-tr>
             </template>
         </b-table>
         <b-pagination
@@ -90,13 +99,13 @@ export default Vue.component("dbreferences-table", {
             return this.filtered.length;
         },
         filter_source() {
-            return this.filtered
+            return this.dbreferences
                 .map(v => v.source)
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
 
         filter_moleculeType() {
-            return this.filtered
+            return this.dbreferences
                 .map(v => v.moleculeType)
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined);
