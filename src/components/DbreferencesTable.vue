@@ -17,9 +17,9 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
-            <template v-slot:cell(gene)="v">
+            <!-- <template v-slot:cell(gene)="v">
                 <a :href="'/gene.html?gene=' + v.item.gene_id">{{v.item.gene_id}}</a>
-            </template>
+            </template>-->
             <template v-slot:thead-top="data">
                 <b-tr>
                     <b-th>
@@ -130,10 +130,10 @@ export default Vue.component("dbreferences-table", {
     },
     methods: {
         // consequenceFormatter: Formatters.consequenceFormatter
-        filter(data, search) {
-            console.log("data", data);
-            console.log("search", search);
-        }
+        // filter(data, search) {
+        //     console.log("data", data);
+        //     console.log("search", search);
+        // }
     }
 });
 </script>
