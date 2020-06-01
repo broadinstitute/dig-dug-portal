@@ -14,14 +14,14 @@ import IGVEvents, {
     IGV_BIOINDEX_QUERY_ERROR,
     IGV_BIOINDEX_QUERY_FINISH,
     } from "@/components/igv/IGVEvents"
-import { BioIndexReader } from "@/utils/igvUtils"
+import { BioIndexReader, colorIntervalAnnotation } from "@/utils/igvUtils"
 
 import { cloneDeep } from "lodash";
 
-export default Vue.component('igv-associations-track', {
+export default Vue.component('igv-intervals-track', {
     props: {
 
-        phenotype: {
+        tissue: {
             type: String,
             required: true
         },
@@ -52,44 +52,23 @@ export default Vue.component('igv-associations-track', {
     },
     data() {
         return {
-            index: 'associations',
+            index: 'regions',
             salt: Math.floor((Math.random() * 10000)).toString(),
         }
     },
     computed: {
         trackName() {
-            return `${this.phenotype} ${this.visualization}`
-        },
-        queryStringMaker: function () {
-            return (chr, start, end) => `${this.phenotype},${chr}:${start}-${end}`;
-        },
+            return `${this.tissue} ${this.visualization}`
+        }
     },
     mounted() {
-        IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
-        IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
-            if (trackName === this.trackName) {
-                this.$destroy();
-            };
-        });
-
-    },
-
-    beforeDestroy () {
-        // clean up external data before destroying the component instance from memory
-        IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
-        // console.log(this.$el);
-        // TODO: this.$el.parentNode.removeChild(this.$el);
-    },
-
-    methods: {
-        buildTrack: function () {
-            return {
+        IGVEvents.$emit(IGV_ADD_TRACK, {
                 name: this.trackName,
                 type: this.visualization,
                 reader: new BioIndexReader({
                     index: this.index,
                     queryString: this.queryStringMaker,
-                    translator: this.associationsForIGV,
+                    translator: this.intervalsForIGV,
 
                     // if the queryHandler is defined (i.e. passed as a prop), use it.
                     // Else, use whatever default queryhandler the parent IGV instance has (given that one is defined there).
@@ -103,30 +82,43 @@ export default Vue.component('igv-associations-track', {
                     }
 
                 })
-            }
-        },
-        associationsForIGV: function (associations) {
-            return associations.map(association => {
-                const annotation = cloneDeep(association);
-                annotation['chromosome'] = undefined;
-                annotation['position'] = undefined;
-                return {
-                    chr: association.chromosome,
-                    start: association.position,
-                    end: association.position,
-                    ...annotation,
-                    // for GWAS:
-                    value: association.pValue,
-                }
             });
+
+        IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
+            if (trackName === this.trackName) {
+                this.$destroy();
+            };
+        });
+
+    },
+
+    beforeDestroy () {
+        // clean up external data before destroying the component instance from memory
+        IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
+        // console.log(this.$el);
+        // this.$el.parentNode.removeChild(this.$el);
+    },
+
+    methods: {
+        queryStringMaker: function (chr, start, end) {
+            return `${chr}:${start}-${end}`;
+        },
+        intervalsForIGV: function (intervals) {
+            const intervalAnnotations = new Set();
+            const intervalData = intervals.map(interval => {
+                intervalAnnotations.add(interval.annotation);
+                return {
+                    chr: interval.chromosome,
+                    start: interval.start,
+                    end: interval.end,
+                    name: interval.annotation,
+                    color: colorIntervalAnnotation(interval.annotation),
+                }
+            })
+            console.log(Array.from(intervalAnnotations));
+            return intervalData;
         }
     },
-    watch: {
-        phenotype(newPhenotype, oldPhenotype) {
-            IGVEvents.$emit(IGV_REMOVE_TRACK, `${oldPhenotype} ${this.visualization}`);
-            IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
-        }
-    }
 })
 
 </script>

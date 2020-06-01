@@ -23,6 +23,10 @@
                 :visualization="'gwas'">
             </igv-associations-track>
 
+            <igv-intervals-track
+                :tissue="'liver'">
+            </igv-intervals-track>
+
         </igv>
 
         Reaction:

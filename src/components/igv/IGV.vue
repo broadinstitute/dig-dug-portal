@@ -42,6 +42,7 @@ export default Vue.component('igv', {
       const options = {
           genome: "hg19",
           visibilityWindow: 10000,
+          showNavigation: false,
           locus: `chr${this.chr}:${this.start}-${this.end}`,
       };
 
@@ -104,7 +105,8 @@ export default Vue.component('igv', {
         // nothing catches the IGV_CHILD_DESTROY_TRACK event and so there is no side-effect.
         // This is mediated by the track name and Vue component internal name being the same.
         browser.on('trackremoved', track => {
-            IGVEvents.$emit(IGV_CHILD_DESTROY_TRACK, track['name'])
+            console.log('removed track', track);
+            IGVEvents.$emit(IGV_CHILD_DESTROY_TRACK, track)
         });
 
       },

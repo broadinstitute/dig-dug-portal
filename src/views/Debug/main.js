@@ -4,6 +4,7 @@ import Template from "./Template.vue";
 
 import IGV from "@/components/igv/IGV.vue"
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
+import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
 
 Vue.config.productionTip = false;
 
@@ -12,6 +13,7 @@ new Vue({
     components: {
         IGV,
         IGVAssociationsTrack,
+        IGVIntervalTrack,
     },
     data() {
         return {
