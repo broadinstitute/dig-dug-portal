@@ -15,19 +15,19 @@ import LZEvents, {
     LZ_BIOINDEX_QUERY_RESOLVE,
     LZ_BIOINDEX_QUERY_ERROR,
     LZ_BIOINDEX_QUERY_FINISH,
-    } from "@/components/lz/LocusZoomEvents"
+} from "@/components/lz/LocusZoomEvents"
 
 import { BioIndexReader } from "@/utils/igvUtils"
 
 import { cloneDeep } from "lodash";
 
 export default Vue.component('locuszoom-associations-panel', {
-    
+
     props: {
 
         phenotype: {
             type: String,
-            required: true
+            // required: true
         },
 
         // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
@@ -72,7 +72,7 @@ export default Vue.component('locuszoom-associations-panel', {
     },
 
     mounted() {
-        LZEvents.$emit(LZ_ADD_PANEL, this.buildTrack());
+        LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
         LZEvents.$on(LZ_CHILD_DESTROY_PANEL, panelName => {
             if (panelName === this.panelName) {
                 this.$destroy();
@@ -82,17 +82,19 @@ export default Vue.component('locuszoom-associations-panel', {
     },
 
     beforeDestroy () {
-        LZEvents.$emit(LZ_REMOVE_TRACK, this.panelName);
+        LZEvents.$emit(LZ_REMOVE_PANEL, this.panelName);
     },
 
     methods: {
+        buildPanel() {
 
+        }
     },
 
     watch: {
         phenotype(newPhenotype, oldPhenotype) {
-            LZEvents.$emit(LZ_REMOVE_TRACK, `${oldPhenotype} ${this.visualization}`);
-            LZEvents.$emit(LZ_ADD_TRACK, this.buildTrack());
+            LZEvents.$emit(LZ_REMOVE_PANEL, `${oldPhenotype} ${this.visualization}`);
+            LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
         }
     }
 

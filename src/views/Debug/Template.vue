@@ -3,9 +3,10 @@
         <locuszoom
             :chr="$store.state.chr"
             :start="$store.state.start"
-            :end="$store.state.end"
-        >
-
+            :end="$store.state.end">
+            <locuszoom-associations-panel
+                :phenotype="'T2D'">
+            </locuszoom-associations-panel>
         </locuszoom>
     </div>
 </template>

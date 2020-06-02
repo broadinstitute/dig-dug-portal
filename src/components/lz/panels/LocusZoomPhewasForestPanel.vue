@@ -410,7 +410,7 @@ export default Vue.component('locuszoom-associations-panel', {
 
         phenotype: {
             type: String,
-            required: true
+            // required: true
         },
 
         // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
