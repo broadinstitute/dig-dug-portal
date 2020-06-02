@@ -31,7 +31,6 @@ function logError(errorDescription) {
 window.addEventListener(
     "error",
     errorEvent => {
-        console.log("trigger window ERROR listener");
         console.error(errorEvent.message);
         logError(errorEvent.message);
     },
@@ -42,7 +41,6 @@ window.addEventListener(
 window.addEventListener(
     "unhandledrejection",
     rejectionEvent => {
-        console.log("trigger window UNHANDLED_REJECTION listener");
         console.error(rejectionEvent.message);
         logError(rejectionEvent.message);
     },
@@ -50,7 +48,6 @@ window.addEventListener(
 );
 
 Vue.config.warnHandler = (warning, _, info) => {
-    console.log("trigger vue WARN listener");
     console.error(warning);
     logError(vueErrorDescription(warning, info));
 };
