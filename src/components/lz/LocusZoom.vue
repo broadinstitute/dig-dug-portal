@@ -14,9 +14,9 @@ import {
     BASE_PANEL_OPTIONS,
     PANEL_OPTIONS
 } from "@/utils/lz/lzConstants";
+
 import LZDataSources from "@/utils/lz/lzDataSources";
 import LZVueSource from "@/utils/lz/lzVueSource";
-
 
 import LZEvents, {
     LZ_BROWSER_FORCE_REFRESH,
@@ -91,10 +91,14 @@ export default Vue.component("locuszoom", {
 
             LZEvents.$on(LZ_ADD_PANEL, panelConfiguration => {
                 console.log('add panel')
+                // TODO: add panel to plot
+                // TODO: add datasource to plot mapped to panel
             });
 
             LZEvents.$on(LZ_REMOVE_PANEL, panelName => {
                 console.log('remove panel')
+                // TODO: remove panel
+                // TODO: remove datasource?
             });
 
             // default handlers for tracks completing their data
@@ -103,7 +107,6 @@ export default Vue.component("locuszoom", {
                 if (!!this.resolveHandler) {
                     this.resolveHandler(response);
                 } else {
-                    // igvResolve(json);
                 }
             })
             LZEvents.$on(LZ_BIOINDEX_QUERY_ERROR, json => {

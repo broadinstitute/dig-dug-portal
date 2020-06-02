@@ -7,6 +7,14 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 
+import {
+    LZ_TYPE,
+    BASE_PANEL_OPTIONS,
+    PANEL_OPTIONS
+} from "@/utils/lz/lzConstants";
+import LZDataSources from "@/utils/lz/lzDataSources";
+import { calcLog } from "@/utils/lz/lzUtils";
+
 import LZEvents, {
     LZ_BROWSER_FORCE_REFRESH,
     LZ_ADD_PANEL,
@@ -17,10 +25,6 @@ import LZEvents, {
     LZ_BIOINDEX_QUERY_FINISH,
 } from "@/components/lz/LocusZoomEvents"
 
-import { BioIndexReader } from "@/utils/igvUtils"
-
-import { cloneDeep } from "lodash";
-
 export default Vue.component('locuszoom-associations-panel', {
 
     props: {
@@ -28,11 +32,6 @@ export default Vue.component('locuszoom-associations-panel', {
         phenotype: {
             type: String,
             // required: true
-        },
-
-        // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
-        panel: {
-            type: String,
         },
 
         finishHandler: {
@@ -52,7 +51,8 @@ export default Vue.component('locuszoom-associations-panel', {
 
     data() {
         return {
-            index: 'associations',
+            index: 'associations',  // bioindex
+            panel: 'association',   // locuszoom
             myPhenotype: this.phenotype,
             myPanel: this.panel,
             salt: Math.floor((Math.random() * 10000)).toString(),
@@ -72,7 +72,9 @@ export default Vue.component('locuszoom-associations-panel', {
     },
 
     mounted() {
+
         LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
+
         LZEvents.$on(LZ_CHILD_DESTROY_PANEL, panelName => {
             if (panelName === this.panelName) {
                 this.$destroy();
@@ -82,18 +84,47 @@ export default Vue.component('locuszoom-associations-panel', {
     },
 
     beforeDestroy () {
+
         LZEvents.$emit(LZ_REMOVE_PANEL, this.panelName);
+
     },
 
     methods: {
-        buildPanel() {
 
+        buildPanel() {
+            return {
+                panel: this.panel,
+                source: new LZBioIndexSource({
+                    index: this.index,
+                    queryStringMaker: this.queryStringMaker,
+                    translator: this.associationsToLZ,
+                })
+            }
+        },
+
+        associationsToLZ: associations => {
+            const translation = associations.map(association => ({
+                id: association.varId,
+                chr: association.chromosome,
+                start: association.position,
+                end: association.position,
+                position: association.position,
+                pvalue: association.pValue,
+                log_pvalue: calcLog(association.pValue).toPrecision(4),
+                variant: association.varId,
+                ref_allele: association.varId,
+                // trait_group: association.phenotype.group,
+                // trait_label: association.phenotype.description,
+            }));
+            return translation
         }
+
     },
 
     watch: {
         phenotype(newPhenotype, oldPhenotype) {
             LZEvents.$emit(LZ_REMOVE_PANEL, `${oldPhenotype} ${this.visualization}`);
+            this.myPhenotype = newPhenotype;
             LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
         }
     }
