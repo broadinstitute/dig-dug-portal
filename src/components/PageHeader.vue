@@ -21,18 +21,10 @@
                             class="amp-banner-left"
                             style="padding: 5px; text-align: center;height: 50px;"
                         >
-                            <div :class="diseaseGroup.name+'kp-logo-wrapper col-md-4'">
-                                <img
-                                    v-if="frontContents.field_banner_logo"
-                                    :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
-                                    :class="diseaseGroup.name+'kp-logo'"
-                                />
-                                <img
-                                    v-else
-                                    src="http://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
-                                    class="mdkp-logo"
-                                />
-                            </div>
+                            <img
+                                :src="'http://kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
+                                :class="'portals-2-mdkp-logo'"
+                            />
                         </div>
                     </a>
                 </div>
