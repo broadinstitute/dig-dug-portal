@@ -4,7 +4,7 @@
             hover
             small
             responsive="sm"
-            :items="dbreferences"
+            :items="references"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -32,8 +32,8 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
-export default Vue.component("dbreferences-table", {
-    props: ["dbreferences"],
+export default Vue.component("uniprot-references-table", {
+    props: ["references"],
     data() {
         return {
             fields: [
@@ -61,7 +61,7 @@ export default Vue.component("dbreferences-table", {
 
     computed: {
         rows() {
-            return this.dbreferences.length;
+            return this.references.length;
         }
     },
     methods: {

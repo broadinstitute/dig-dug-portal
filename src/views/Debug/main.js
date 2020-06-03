@@ -27,7 +27,6 @@ new Vue({
     },
 
     methods: {
-
     },
 
     computed: {
