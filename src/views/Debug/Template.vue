@@ -5,6 +5,11 @@
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
         <!-- body -->
         <div class="container-fluid mdkp-body">
+            <h4>
+                Help content example
+                <tooltip-documentation name="test.tooltip.index.regionexample" :group="'md'"></tooltip-documentation>
+            </h4>
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-1 gene-page-header-title">

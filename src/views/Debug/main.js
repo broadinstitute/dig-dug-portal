@@ -20,6 +20,7 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import uiUtils from "@/utils/uiUtils";
 
 
 import Documentation from "@/components/Documentation"
@@ -55,6 +56,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        ...uiUtils,
         pause: () => console.log('hello'),
         forceError: () => {
             null.hello()
