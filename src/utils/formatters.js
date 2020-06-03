@@ -87,14 +87,14 @@ function dbSNPFormatter(dbSNP) {
     return dbSNP;
 }
 
-function floatFormatter(pValue) {
-    if (!pValue) {
+function floatFormatter(value) {
+    if (!value) {
         return '-';
     }
 
-    let x = Number.parseFloat(pValue);
+    let x = Number.parseFloat(value);
 
-    if (x < 1e-5) {
+    if (Math.abs(x) < 1e-5) {
         return x.toExponential(2);
     } else {
         return x.toFixed(2);
