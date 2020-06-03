@@ -101,8 +101,8 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
-                        <h4 class="card-title">DB References</h4>
-                        <dbreferences-table v-bind:dbreferences="$parent.dbReference"></dbreferences-table>
+                        <h4 class="card-title">Uniprot References</h4>
+                        <uniprot-references-table v-bind:references="$parent.dbReference"></uniprot-references-table>
                     </div>
                 </div>
             </div>

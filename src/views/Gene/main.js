@@ -8,7 +8,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import DbreferencesTable from "@/components/DbreferencesTable.vue";
+import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 
@@ -30,7 +30,7 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
-        DbreferencesTable,
+        UniprotReferencesTable,
         Documentation,
     },
 
