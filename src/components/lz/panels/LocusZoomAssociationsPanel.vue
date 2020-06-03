@@ -13,19 +13,19 @@ import {
     PANEL_OPTIONS
 } from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
-import { calcLog } from "@/utils/lz/lzUtils";
 
 import LZEvents, {
     LZ_BROWSER_FORCE_REFRESH,
     LZ_ADD_PANEL,
     LZ_REMOVE_PANEL,
+    LZ_LOAD_PANEL,
     LZ_CHILD_DESTROY_PANEL,
     LZ_BIOINDEX_QUERY_RESOLVE,
     LZ_BIOINDEX_QUERY_ERROR,
     LZ_BIOINDEX_QUERY_FINISH,
 } from "@/components/lz/LocusZoomEvents"
 
-export default Vue.component('locuszoom-associations-panel', {
+export default Vue.component('lz-associations-panel', {
 
     props: {
 
@@ -51,10 +51,8 @@ export default Vue.component('locuszoom-associations-panel', {
 
     data() {
         return {
-            index: 'associations',  // bioindex
             panel: 'association',   // locuszoom
-            myPhenotype: this.phenotype,
-            myPanel: this.panel,
+            index: 'associations',  // bioindex
             salt: Math.floor((Math.random() * 10000)).toString(),
         }
     },
@@ -62,19 +60,20 @@ export default Vue.component('locuszoom-associations-panel', {
     computed: {
 
         panelName() {
-            return `${this.myPhenotype} ${this.myPanel}`
+            return `${this.phenotype} ${this.panel}`
         },
 
         queryStringMaker: function () {
-            return (chr, start, end) => `${this.myPhenotype},${chr}:${start}-${end}`;
+            return (chr, start, end) => `${this.phenotype},${chr}:${start}-${end}`;
         },
 
     },
-
+    created() {
+        console.log('child created')
+        LZEvents.$emit(LZ_LOAD_PANEL, this.buildPanel());
+    },
     mounted() {
-
         LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
-
         LZEvents.$on(LZ_CHILD_DESTROY_PANEL, panelName => {
             if (panelName === this.panelName) {
                 this.$destroy();
@@ -92,13 +91,18 @@ export default Vue.component('locuszoom-associations-panel', {
     methods: {
 
         buildPanel() {
+            console.log('hello')
             return {
                 panel: this.panel,
-                source: new LZBioIndexSource({
-                    index: this.index,
-                    queryStringMaker: this.queryStringMaker,
-                    translator: this.associationsToLZ,
-                })
+                source: {
+                    type: "assoc",
+                    reader: ["StaticJSON", []]
+                }
+                // new LZBioIndexSource({
+                //     index: this.index,
+                //     queryStringMaker: this.queryStringMaker,
+                //     translator: this.associationsToLZ,
+                // })
             }
         },
 
@@ -130,6 +134,10 @@ export default Vue.component('locuszoom-associations-panel', {
     }
 
 })
+
+const calcLog = function (values) {
+    return (-1) * Math.log10(values);
+};
 
 </script>
 

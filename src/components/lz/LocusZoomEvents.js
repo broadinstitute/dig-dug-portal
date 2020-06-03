@@ -1,5 +1,14 @@
 import Vue from "vue";
 
+
+const LZ_LOAD_PANEL = 'lz-load-panel';
+const LZ_LOAD_DATASOURCE = 'lz-load-datasource';
+
+export {
+    LZ_LOAD_PANEL,
+    LZ_LOAD_DATASOURCE,
+};
+
 const LZ_BROWSER_FORCE_REFRESH = 'lz-browser-forcerefresh';
 export {
     LZ_BROWSER_FORCE_REFRESH,

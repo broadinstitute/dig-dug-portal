@@ -1,7 +1,7 @@
 <template>
     <div>
         <div id="lz"></div>
-        <slot v-if="locuszoomInitialized"></slot>
+        <slot></slot>
     </div>
 </template>
 
@@ -19,6 +19,8 @@ import LZDataSources from "@/utils/lz/lzDataSources";
 import LZVueSource from "@/utils/lz/lzVueSource";
 
 import LZEvents, {
+    LZ_LOAD_PANEL,
+    LZ_LOAD_DATASOURCE,
     LZ_BROWSER_FORCE_REFRESH,
     LZ_ADD_PANEL,
     LZ_REMOVE_PANEL,
@@ -27,8 +29,6 @@ import LZEvents, {
     LZ_BIOINDEX_QUERY_ERROR,
     LZ_BIOINDEX_QUERY_FINISH,
 } from "@/components/lz/LocusZoomEvents"
-
-
 import * as _ from "lodash";
 
 export default Vue.component("locuszoom", {
@@ -44,12 +44,25 @@ export default Vue.component("locuszoom", {
 
     data() {
         return {
-            locuszoomInitialized: false,
+            locuszoomMounted: false,
         };
     },
+    beforeCreate() {
+        // can't be data
+        this.panelList = ['genes'];
+        this.dataSourceList = [];
+    },
+    created() {
+        console.log('parent created');
+        LZEvents.$on(LZ_LOAD_PANEL, config => {
+            console.log('capturing loaded panel', config)
+            this.panelList.push(config.panel);
+            this.dataSourceList.push(config.source);
+        })
+    },
     mounted() {
-
-        let defaultPanels = ['genes'].map(p => {
+        console.log('parent mounted', this.panelList)
+        this.panels = this.panelList.map(p => {
             return LocusZoom.Layouts.get("panel", p, {
                 ...BASE_PANEL_OPTIONS,
                 ...PANEL_OPTIONS[p]
@@ -57,10 +70,9 @@ export default Vue.component("locuszoom", {
             });
         });
 
-        // create the data source collection
-        this.dataSources = new LocusZoom.DataSources();
 
-        // register all the possible data sources
+        this.dataSources = new LocusZoom.DataSources();
+        // Add Default Data Sources:
         Object.values(LZ_TYPE).forEach(lzType => {
             let source = LZDataSources[lzType];
             if (!!source) {
@@ -68,20 +80,27 @@ export default Vue.component("locuszoom", {
             }
         });
 
-        // create the final plot with a layout and desired state
-        this.locuszoom = LocusZoom.populate("#lz", this.dataSources, {
-            panels: defaultPanels,
-            responsive_resize: "width_only",
-            state: Object.assign({}, {
-                chr: this.chr,
-                start: this.start,
-                end: this.end,
-            })
-        });
+        // Add Child Data Sources:
+        if (this.dataSourceList.length > 0) {
+            this.dataSourceList.map(dataSource => {
+                console.log(dataSource)
+                this.dataSources.add(dataSource.type, dataSource.reader);
+            });
+        }
+
+        this.locuszoom = this.plot(this.dataSources, this.panels);
         this.createEventHandlers(this.locuszoom);
-        this.locuszoomInitialized = true;
+        this.locuszoomMounted = true
     },
     methods: {
+        addPanels(plot, data_sources, panel_options, source_options) {
+            source_options.forEach(source => data_sources.add(...source));
+            panel_options.forEach((panel_layout) => {
+                panel_layout.y_index = -1; // Make sure genes track is always the last one
+                const panel = plot.addPanel(panel_layout);
+                panel.addBasicLoader();
+            })
+        },
         createEventHandlers(locuszoom) {
 
             LZEvents.$on(LZ_BROWSER_FORCE_REFRESH, () => {
@@ -90,9 +109,10 @@ export default Vue.component("locuszoom", {
             })
 
             LZEvents.$on(LZ_ADD_PANEL, panelConfiguration => {
-                console.log('add panel')
+                const { panel, source } = panelConfiguration;
                 // TODO: add panel to plot
                 // TODO: add datasource to plot mapped to panel
+                // this.addPanels()
             });
 
             LZEvents.$on(LZ_REMOVE_PANEL, panelName => {
@@ -137,6 +157,20 @@ export default Vue.component("locuszoom", {
                 }).$mount(vueContainer);
 
             }
+        },
+
+
+        plot(dataSources, panels) {
+            // create the final plot with a layout and desired state
+            return LocusZoom.populate("#lz", dataSources, {
+                panels: panels,
+                responsive_resize: "width_only",
+                state: Object.assign({}, {
+                    chr: this.chr,
+                    start: this.start,
+                    end: this.end,
+                })
+            });
         },
 
     },

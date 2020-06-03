@@ -404,7 +404,7 @@ const PHEWAS_PANEL = {
 }
 
 
-export default Vue.component('locuszoom-associations-panel', {
+export default Vue.component('locuszoom-phewas-panel', {
 
     props: {
 

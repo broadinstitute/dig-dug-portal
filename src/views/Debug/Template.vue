@@ -4,9 +4,15 @@
             :chr="$store.state.chr"
             :start="$store.state.start"
             :end="$store.state.end">
-            <locuszoom-associations-panel
+
+            <lz-child
+                test='association'
+            ></lz-child>
+
+            <lz-associations-panel
                 :phenotype="'T2D'">
-            </locuszoom-associations-panel>
+            </lz-associations-panel>
+
         </locuszoom>
     </div>
 </template>

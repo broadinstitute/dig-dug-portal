@@ -10,6 +10,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasForestPanel";
+import LocusZoomChild from "@/components/lz/panels/LocusZoomChild";
 
 Vue.config.productionTip = false;
 new Vue({
