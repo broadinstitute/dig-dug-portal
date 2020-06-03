@@ -67,6 +67,7 @@ export default new Vuex.Store({
     actions: {
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
+            context.commit('setGeneName', name);
 
             if (!!name) {
                 context.dispatch('gene/query', { q: name });
