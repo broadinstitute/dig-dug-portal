@@ -97,13 +97,15 @@ function floatFormatter(pValue) {
     if (x < 1e-5) {
         return x.toExponential(2);
     } else {
-        return x.toFixed(5);
+        return x.toFixed(2);
     }
 }
 
 function intFormatter(value) {
     return !!value ? Number.parseFloat(value).toFixed(0) : '-';
 }
+
+
 
 function locusFormatter(chromosome, position, end = undefined) {
     if (!!end) {
