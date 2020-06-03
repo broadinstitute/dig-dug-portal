@@ -55,5 +55,13 @@ module.exports = {
             chunks: ["chunk-vendors", "chunk-common", "gene"]
 
         },
+        datasets: {
+            entry: "src/views/Datasets/main.js",
+            template: "public/index.html",
+            filename: "datasets.html",
+            title: "Datasets",
+            chunks: ["chunk-vendors", "chunk-common", "datasets"]
+
+        },
     }
 };
