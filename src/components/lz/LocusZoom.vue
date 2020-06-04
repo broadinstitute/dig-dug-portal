@@ -66,7 +66,7 @@ export default Vue.component("locuszoom", {
             return LocusZoom.Layouts.get("panel", p.type, {
                 // TODO: override/extend defaults here...
                 namespace: { [p.for]: p.takes },
-                id: p.takes,
+                id: p.id,
                 ...BASE_PANEL_OPTIONS,
                 ...PANEL_OPTIONS[p.type],
             });
@@ -111,15 +111,20 @@ export default Vue.component("locuszoom", {
 
             LZEvents.$on(LZ_ADD_PANEL, panelConfiguration => {
                 const { panel, source } = panelConfiguration;
-                // TODO: add panel to plot
-                // TODO: add datasource to plot mapped to panel
-                // this.addPanels()
+                this.dataSources.add(source.gives, source.reader);
+                const newPanel = LocusZoom.Layouts.get("panel", panel.type, {
+                    // TODO: override/extend defaults here...
+                    namespace: { [panel.for]: panel.takes },
+                    id: panel.id,
+                    ...BASE_PANEL_OPTIONS,
+                    ...PANEL_OPTIONS[panel.type],
+                });
+                locuszoom.addPanel(newPanel);
             });
 
-            LZEvents.$on(LZ_REMOVE_PANEL, panelName => {
-                console.log('remove panel')
-                // TODO: remove panel
-                // TODO: remove datasource?
+            LZEvents.$on(LZ_REMOVE_PANEL, panelId => {
+                console.log('remove panel', panelId)
+                locuszoom.removePanel(panelId);
             });
 
             // default handlers for tracks completing their data

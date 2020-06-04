@@ -53,6 +53,7 @@ export default Vue.component('lz-associations-panel', {
     data() {
         return {
             panel: 'association',   // locuszoom
+            datasource: 'assoc',
             index: 'associations',  // bioindex
             salt: Math.floor((Math.random() * 10000)).toString(),
         }
@@ -60,8 +61,8 @@ export default Vue.component('lz-associations-panel', {
 
     computed: {
 
-        panelName() {
-            return `${this.phenotype} ${this.panel}`
+        panelId() {
+            return `${this.phenotype}_${this.salt}`
         },
 
         queryStringMaker: function () {
@@ -75,8 +76,8 @@ export default Vue.component('lz-associations-panel', {
     },
     mounted() {
         LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
-        LZEvents.$on(LZ_CHILD_DESTROY_PANEL, panelName => {
-            if (panelName === this.panelName) {
+        LZEvents.$on(LZ_CHILD_DESTROY_PANEL, panelId => {
+            if (panelId === this.panelId) {
                 this.$destroy();
             };
         });
@@ -85,8 +86,7 @@ export default Vue.component('lz-associations-panel', {
 
     beforeDestroy () {
         console.log('before destroy')
-
-        LZEvents.$emit(LZ_REMOVE_PANEL, this.panelName);
+        LZEvents.$emit(LZ_REMOVE_PANEL, this.panelId);
 
     },
     destroy () {
@@ -97,15 +97,15 @@ export default Vue.component('lz-associations-panel', {
 
         buildPanel() {
             // console.log('hello', new LZBioIndexSource())
-            let salt =  Math.floor((Math.random() * 10000)).toString();
             return {
                 panel: {
                     type: this.panel,
-                    takes: `assoc_${salt}`,
+                    id: this.panelId,
+                    takes: `assoc_${this.salt}`,
                     for: 'assoc',
                 },
                 source: {
-                    gives: `assoc_${salt}`,
+                    gives: `assoc_${this.salt}`,
                     as: 'assoc',
                     // reader: ["StaticJSON", []]
                     reader: new LZBioIndexSource({

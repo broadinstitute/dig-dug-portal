@@ -17,7 +17,8 @@ export const LZ_TYPE = Object.freeze({
 /*
  */
 export const BASE_PANEL_OPTIONS = {
-    proportional_height: 1,
+    // proportional_height: 1,
+    height: 240,
     dashboard: {
         components: [
             {
