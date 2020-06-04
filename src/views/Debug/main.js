@@ -22,12 +22,28 @@ new Vue({
         LocusZoomPhewasPanel,
     },
 
+    data() {
+        return {
+            phenotypes: ['T2D', 'BMI'],
+            addPhenotype: '',
+            removePhenotype: '',
+        }
+    },
+
     render(createElement, context) {
         return createElement(Template);
     },
 
     methods: {
-    },
+        addAPhenotype() {
+            console.log(this.addPhenotype);
+            this.phenotypes.push(this.addPhenotype);
+        },
+        removeAPhenotype() {
+            console.log(this.removePhenotype);
+            this.phenotypes = this.phenotypes.filter(p => p !== this.removePhenotype);
+        }
+     },
 
     computed: {
 

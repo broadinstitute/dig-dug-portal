@@ -13,6 +13,7 @@ import {
     PANEL_OPTIONS
 } from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
+import { LZBioIndexSource } from "@/utils/lz/lzBioIndexSource";
 
 import LZEvents, {
     LZ_BROWSER_FORCE_REFRESH,
@@ -83,30 +84,41 @@ export default Vue.component('lz-associations-panel', {
     },
 
     beforeDestroy () {
+        console.log('before destroy')
 
         LZEvents.$emit(LZ_REMOVE_PANEL, this.panelName);
 
+    },
+    destroy () {
+        console.log('destroy')
     },
 
     methods: {
 
         buildPanel() {
-            console.log('hello')
+            // console.log('hello', new LZBioIndexSource())
+            let salt =  Math.floor((Math.random() * 10000)).toString();
             return {
-                panel: this.panel,
+                panel: {
+                    type: this.panel,
+                    takes: `assoc_${salt}`,
+                    for: 'assoc',
+                },
                 source: {
-                    type: "assoc",
-                    reader: ["StaticJSON", []]
+                    gives: `assoc_${salt}`,
+                    as: 'assoc',
+                    // reader: ["StaticJSON", []]
+                    reader: new LZBioIndexSource({
+                        index: this.index,
+                        queryStringMaker: this.queryStringMaker,
+                        translator: this.associationsToLZ,
+                    })
                 }
-                // new LZBioIndexSource({
-                //     index: this.index,
-                //     queryStringMaker: this.queryStringMaker,
-                //     translator: this.associationsToLZ,
-                // })
             }
         },
 
         associationsToLZ: associations => {
+            console.log(associations)
             const translation = associations.map(association => ({
                 id: association.varId,
                 chr: association.chromosome,

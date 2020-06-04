@@ -49,7 +49,7 @@ export default Vue.component("locuszoom", {
     },
     beforeCreate() {
         // can't be data
-        this.panelList = ['genes'];
+        this.panelList = [{ type: 'genes', for: 'genes', takes: 'genes'}];
         this.dataSourceList = [];
     },
     created() {
@@ -63,10 +63,12 @@ export default Vue.component("locuszoom", {
     mounted() {
         console.log('parent mounted', this.panelList)
         this.panels = this.panelList.map(p => {
-            return LocusZoom.Layouts.get("panel", p, {
-                ...BASE_PANEL_OPTIONS,
-                ...PANEL_OPTIONS[p]
+            return LocusZoom.Layouts.get("panel", p.type, {
                 // TODO: override/extend defaults here...
+                namespace: { [p.for]: p.takes },
+                id: p.takes,
+                ...BASE_PANEL_OPTIONS,
+                ...PANEL_OPTIONS[p.type],
             });
         });
 
@@ -83,8 +85,7 @@ export default Vue.component("locuszoom", {
         // Add Child Data Sources:
         if (this.dataSourceList.length > 0) {
             this.dataSourceList.map(dataSource => {
-                console.log(dataSource)
-                this.dataSources.add(dataSource.type, dataSource.reader);
+                this.dataSources.add(dataSource.gives, dataSource.reader);
             });
         }
 
