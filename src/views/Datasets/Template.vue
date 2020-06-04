@@ -10,8 +10,11 @@
                     <div class="row">
                         <div class="col-md-12">
                             <portal-datasets-list-table
+                                :diseaseGroups="$store.state.bioPortal.diseaseGroups"
                                 :diseaseGroup="$parent.diseaseGroup"
                                 :datasetsList="$parent.datasetsList"
+                                :datasetsIDs="$store.state.datasets.data"
+                                :phenotypes="$store.state.bioPortal.phenotypes"
                             ></portal-datasets-list-table>
                         </div>
                     </div>

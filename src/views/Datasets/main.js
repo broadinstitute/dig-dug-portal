@@ -29,6 +29,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
     render(createElement, context) {
@@ -44,6 +45,11 @@ new Vue({
     },
 
     computed: {
+
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -53,10 +59,6 @@ new Vue({
             return contents[0];
         },
 
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-
         datasetsList() {
             let contents = this.$store.state.kp4cd.datasetsInfo;
 
@@ -64,14 +66,19 @@ new Vue({
                 return {};
             }
             return contents;
+        },
+        datasetIDs() {
+            return this.$store.state.bioIndex.datasets;
         }
+
     },
 
     watch: {
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
             this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
-        }
+            this.$store.dispatch("datasets/query", { q: "*" });
+        },
+
     }
 }).$mount("#app");
