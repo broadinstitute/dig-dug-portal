@@ -63,5 +63,12 @@ module.exports = {
             chunks: ["chunk-vendors", "chunk-common", "datasets"]
 
         },
+        dinspector: {
+            entry: "src/views/Dinspector/main.js",
+            template: "public/index.html",
+            filename: "dinspector.html",
+            title: "Dataset Inspector",
+            chunks: ["chunk-vendors", "chunk-common", "dinspector"]
+        },
     }
 };

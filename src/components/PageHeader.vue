@@ -48,7 +48,7 @@
                             <a href="/">Home</a>
                         </li>
                         <li class="am-menu">
-                            <a :href="'http://kp4cd.org/datasets/' + diseaseGroup.name">Data</a>
+                            <a :href="'/datasets.html'">Data</a>
                         </li>
                         <li class="am-menu">
                             <a href>Tools</a>

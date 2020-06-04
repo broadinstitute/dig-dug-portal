@@ -65,7 +65,7 @@
                         v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))">
                         <td class="column name">
                             <a
-                                :href="'/datasetinspector.html?dataset='+row.field_dataset_id"
+                                :href="'/dinspector.html?dataset='+row.field_dataset_id"
                             >{{ row.title }}</a>
                         </td>
                         <td class="column access">
@@ -109,7 +109,7 @@
                         v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))">
                         <td class="column name">
                             <a
-                                :href="'/datasetinspector.html?dataset='+row.field_dataset_id"
+                                :href="'/dinspector.html?dataset='+row.field_dataset_id"
                             >{{ row.title }}</a>
                         </td>
                         <td class="column access">
@@ -149,8 +149,7 @@ export default Vue.component("portal-datasets-list-table", {
         "diseaseGroups",
         "phenotypes",
         "diseaseGroup",
-        "datasetsList",
-        "datasetsIDs"
+        "datasetsList"
     ],
     modules: {
         ...uiUtils
@@ -162,7 +161,7 @@ export default Vue.component("portal-datasets-list-table", {
             selectedPhenotype: null,
             selectedDatatype: null,
             selectedDiseaseGroup: null,
-            sortKey: "title",
+            sortKey: 'field_samples',
             sortDirection: "desc"
         };
     },

@@ -73,6 +73,7 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
             this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
+            this.$store.dispatch("datasets/query", { q: "*" });
         },
 
     }

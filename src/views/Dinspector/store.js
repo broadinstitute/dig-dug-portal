@@ -9,7 +9,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     modules: {
         bioPortal,
-        kp4cd
+        kp4cd,
     },
     state: {
     },
