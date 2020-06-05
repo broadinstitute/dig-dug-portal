@@ -1,25 +1,26 @@
-export function filterDropdown(data, col, term) {
+export function filterDropdown(data, filters) {
     //let filtered = [];
-    // console.log("data ", data);
+    console.log("data ", data);
     // console.log("col ", col);
-    // console.log("term ", term);
+    console.log("filtersIN ", filters);
 
     // if (Array.isArray(term) && term.length > 0) {
     //     console.log("array");
-    //     filtered = data.filter(row => {
-    //         // console.log("term", term);
-    //         // console.log("row", row);
-    //         // return Object.keys(term).every(key => {
-    //         //     console.log("key", key);
-    //         //     console.log("rowcol", row[col]);
-    //         //     console.log("check", row[col] == term[key]);
-    //         //     return String(data[col]) == term[key];
-    //         // });
+    const filtered = data.filter(row => {
+        // console.log("term", term);
+        //console.log("row", row);
+        return Object.keys(filters).every(key => {
+            //console.log("key", key);
+            //console.log("fKEY", filters[key]);
+            //console.log("rKEY", row[key]);
+            console.log("compare", filters[key].includes(row[key]));
+            if (filters[key] != "") return filters[key].includes(row[key]);
+            else return true;
+        });
+    });
+    console.log("filters", filtered);
 
-    //         return term.includes(row[col]);
-    //     });
-    //     console.log("filters", filtered);
-    // } else {
+    // else {
     //     console.log("not array");
     //     if (!!term) {
     //         console.log("inside");
@@ -30,12 +31,12 @@ export function filterDropdown(data, col, term) {
     //     console.log("filters", filtered);
     // }
 
-    //works for array of inputs
-    const filtered = data.filter(row => {
-        return term.includes(row[col]);
-    });
+    // //works for array of inputs
+    // const filtered = data.filter(row => {
+    //     return term.includes(row[col]);
+    // });
 
-    //console.log("FF ", filtered);
+    console.log("FF ", filtered);
     return filtered.length > 0 ? filtered : data;
     //return data;
 }

@@ -183,12 +183,14 @@ export default Vue.component("regions-table", {
             //     "annotation",
             //     this.filters["annotation"]
             // );
+            //works on tissue
+            // return filterTissue(
+            //     this.sortedRegions,
+            //     "tissue",
+            //     this.filters["tissue"]
+            // );
 
-            return filterTissue(
-                this.sortedRegions,
-                "tissue",
-                this.filters["tissue"]
-            );
+            return filterDropdown(this.sortedRegions, this.filters);
         },
         tabledata() {}
     },
