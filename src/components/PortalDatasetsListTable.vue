@@ -33,7 +33,7 @@
         </div>
         <div class="datasets-filter-wrapper phenotype">
             <div
-                v-for="(row, i) in phenotypes"
+                v-for="(row, i) in rawPhenotypes"
                 v-on:click="setSeletedPhenotype(row.description)"
                 v-if="row.group == selectedPhenotypeGroup"
                 class="btn btn-sm btn-phenotype"
@@ -66,7 +66,7 @@
                 <tbody>
                     <tr
                         v-for="(row, i) in datasetsListNew"
-                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))"
+                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) &&  (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))"
                     >
                         <td class="column name">
                             <a
@@ -171,6 +171,38 @@ export default Vue.component("portal-datasets-list-table", {
         };
     },
     computed: {
+        rawPhenotypes: function() {
+            let allPhenotypesKpn = [];
+
+            this.rawDatasets.map(x => {
+                let datasetPhenotypes = x.field_phenotypes
+                    .split("\r\n")
+                    .map(p => allPhenotypesKpn.push(p));
+            });
+
+            let uniquePhenotypesKpn = [...new Set(allPhenotypesKpn)];
+
+            let content = [];
+
+            this.phenotypes.map(x => {
+                let phenotype = x.description;
+                if (uniquePhenotypesKpn.includes(phenotype)) content.push(x);
+            });
+
+            return content;
+        },
+
+        phenotypesInSelectedGroups: function() {
+            let content = [];
+
+            this.rawPhenotypes.map(x => {
+                if (x.group == selectedPhenotypeGroup)
+                    content.push(x.decription);
+            });
+
+            return content;
+        },
+
         diseaseGroupsFiltered: function() {
             let content = this.diseaseGroups;
 
@@ -230,7 +262,7 @@ export default Vue.component("portal-datasets-list-table", {
         },
 
         phenotypeGroups: function() {
-            let content = [...new Set(this.phenotypes.map(x => x.group))];
+            let content = [...new Set(this.rawPhenotypes.map(x => x.group))];
             content.push("Show all");
 
             return content;
