@@ -28,7 +28,8 @@ import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack";
 export default Vue.component('igv', {
   props: [
         'chr', 'start', 'end',
-        'resolveHandler', 'finishHandler', 'errHandler'
+        'resolveHandler', 'finishHandler', 'errHandler',
+        'popupHandler'
   ],
 
   data() {
@@ -107,6 +108,25 @@ export default Vue.component('igv', {
         browser.on('trackremoved', track => {
             console.log('removed track', track);
             IGVEvents.$emit(IGV_CHILD_DESTROY_TRACK, track)
+        });
+
+        browser.on('trackclick', (track, popupData) => {
+            console.log(popupData);
+            if (!!this.popupHandler) {
+                this.popupHandler(track, popupData);
+            } else {
+                popupData.foreach(nameValuePair => {
+                    if (!!nameValuePair.name) {
+                        if (!!nameValuePair.value) {
+                            // EITHER:
+                            // Build popup
+                            // OR
+                            // Run popup handler
+                        }
+                    }
+                });
+            }
+            return false;
         });
 
       },

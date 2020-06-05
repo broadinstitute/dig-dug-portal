@@ -18,14 +18,22 @@ new Vue({
     data() {
         return {
             trackPhenotype: '',
+            trackPhenotypeVisualization: 'gwas',
             trackTissueDescription: '',
+            variantSelections: [],
+            phenotypes: ['BMI', 'T2D'],
         }
     },
     methods: {
+        removeVariant: function (variant) {
+            this.variantSelections = this.variantSelections.filter(variantName => variant !== variantName)
+        },
+
         addAssociationsTrack: function () {
             this.$children[0].$refs.igv.addIGVTrack(IGVAssociationsTrack, {
                 data: {
                     phenotype: this.trackPhenotype,
+                    visualization: this.trackPhenotypeVisualization,
                 }
             });
         },

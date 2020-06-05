@@ -28,6 +28,9 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         gene: null,
+
+        variants: [],
+
     },
     mutations: {
          setLocus(state, region = {}) {

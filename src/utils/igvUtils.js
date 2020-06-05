@@ -52,6 +52,7 @@ export class BioIndexReader {
         .then(bioIndexData => {
             // TODO: abstract
             let igvData = this.translator(bioIndexData);
+            console.log(bioIndexData, igvData)
             return igvData;
         })
 
@@ -90,7 +91,7 @@ export function colorIntervalAnnotation(intervalAnnotation) {
         'PromoterFlankingUpstream': '',
         'Enhancer': '',
         'EnhancerGenic': '',
-        'EnhancerWeak': '#FFFF00',
+        'EnhancerWeak': '#7605ff',
         'EnhancerActive1': '#FFE4B0',
         'EnhancerActive2': '#FFC34D',
 

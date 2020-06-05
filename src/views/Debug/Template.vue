@@ -16,17 +16,21 @@
             :chr="$store.state.chr"
             :start="$store.state.start"
             :end="$store.state.end"
-            :finishHandler="response => $store.dispatch('associations/tap', 'global tap')">
+            :finishHandler="response => $store.dispatch('associations/tap', 'global tap')"
+            :popupHandler="(_, popupData) => {
+                const varIds = popupData
+                    .filter(popupDatum => popupDatum.name === 'name')
+                    .map(popupName => popupName.value)
+                    .filter(varId => !$parent.variantSelections.includes(varId));
+                $parent.variantSelections.push(...varIds)
+            }">
 
             <igv-associations-track
-                :phenotype="'T2D'"
-                :visualization="'annotation'"
+                v-for="phenotype in $parent.phenotypes"
+                :key="phenotype"
+                :phenotype="phenotype"
+                :visualization="'gwas'"
                 :finishHandler="response => $store.commit('associations/setResponse', response)">
-            </igv-associations-track>
-
-            <igv-associations-track
-                :phenotype="'BMI'"
-                :visualization="'gwas'">
             </igv-associations-track>
 
             <igv-intervals-track
@@ -35,8 +39,20 @@
 
         </igv>
 
-        Reaction:
+        Reactions:<br>
         Data length of {{JSON.stringify($store.state.associations.data.length) }}
+
+        <br><br>
+
+        Chosen Variants:<br>
+        <ul>
+            <li
+                v-for="selectedVariant in $parent.variantSelections"
+                :key="selectedVariant">
+                {{ selectedVariant }} <button @click="() => $parent.removeVariant(selectedVariant)">x</button>
+            </li>
+        </ul>
+
 
     </div>
 </template>
