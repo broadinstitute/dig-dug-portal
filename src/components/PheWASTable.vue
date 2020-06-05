@@ -24,21 +24,25 @@
             <template v-slot:thead-top="data">
                 <b-tr>
                     <b-th>
+                        <div v-if="selectedPhenotypes">
+                            <b-badge
+                                pill
+                                variant="info"
+                                v-for="(p,i) in selectedPhenotypes"
+                                :key="p"
+                                @click="removePhenotype(i)"
+                                class="btn"
+                            >{{p}}</b-badge>
+                        </div>
                         <vue-typeahead-bootstrap
                             v-if="phenotypeMap"
                             v-model="userText"
                             ref="phenotypeSelect"
                             placeholder="Select a phenotype ..."
-                            :data="phenotypeMap"
+                            :data="Object.values(phenotypeMap)"
                             :serializer="s => s.description"
-                            showOnFocus="true"
-                            showAllResults="true"
-                        >
-                            <template slot="suggestion" slot-scope="{ data, htmlText }">
-                                <span v-html="htmlText"></span>&nbsp;
-                                <small class="text-secondary">{{ data.group }}</small>
-                            </template>
-                        </vue-typeahead-bootstrap>
+                            @hit="addPhenotype($event)"
+                        ></vue-typeahead-bootstrap>
                     </b-th>
                     <b-th>
                         <b-form-input
@@ -139,7 +143,8 @@ export default Vue.component("phewas-table", {
                 }
             ],
             beta: "a",
-            userText: ""
+            userText: "",
+            selectedPhenotypes: []
         };
     },
 
@@ -170,7 +175,14 @@ export default Vue.component("phewas-table", {
 
     methods: {
         phenotypeFormatter: Formatters.phenotypeFormatter,
-        floatFormatter: Formatters.floatFormatter
+        floatFormatter: Formatters.floatFormatter,
+        addPhenotype(event) {
+            this.selectedPhenotypes.push(event.description);
+            this.userText = null;
+        },
+        removePhenotype(index) {
+            this.selectedPhenotypes.splice(index, 1);
+        }
     }
 });
 </script>
