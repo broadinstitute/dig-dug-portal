@@ -8,9 +8,10 @@
 import Vue from "vue";
 export default Vue.component("loading-bar", {
     props: ["moduleIndex"],
-    data: (context) => {
+    data: context => {
         return {
-        }
-    },
+            module: context.moduleIndex
+        };
+    }
 });
 </script>

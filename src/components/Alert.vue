@@ -66,7 +66,7 @@ const postAlert = function(type, message, params) {
  */
 const postAlertError = function(message, context) {
     const id = Counter.getUniqueId("alert");
-    context = context ? context: "danger";
+    context = context ? context : "danger";
     EventBus.$emit("ALERT", {
         type: context, //"danger",
         message: message,

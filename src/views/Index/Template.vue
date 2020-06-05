@@ -37,22 +37,12 @@
                                                 />
                                             </div>
                                             <div class="region-search-examples">
-                                                examples:
-                                                <a
-                                                    href="javascript:;"
-                                                    @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].gene); $store.dispatch('exploreRegionOrVariant')"
-                                                >
-                                                    <i>{{$parent.searchExamples[$parent.diseaseGroup.name].gene}}</i>
-                                                </a>,
-                                                <a
-                                                    href="javascript:;"
-                                                    @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].variant); $store.dispatch('exploreRegionOrVariant')"
-                                                >{{$parent.searchExamples[$parent.diseaseGroup.name].variant}}</a>,
-                                                <a
-                                                    href="javascript:;"
-                                                    @click="$store.commit('setExample', $parent.searchExamples[$parent.diseaseGroup.name].region); $store.dispatch('exploreRegionOrVariant')"
-                                                >{{$parent.searchExamples[$parent.diseaseGroup.name].region}}</a>
+                                                <documentation
+                                                    name="home.example"
+                                                    :group="$parent.diseaseGroup"
+                                                ></documentation>
                                             </div>
+
                                             <div
                                                 class="text-danger"
                                                 v-show="$store.state.invalidGeneOrRegion"

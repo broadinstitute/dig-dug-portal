@@ -88,6 +88,6 @@ export default {
             commit('setPhenotypes', json.data);
         },
 
-       
+
     }
 }

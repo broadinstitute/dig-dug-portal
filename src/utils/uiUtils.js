@@ -40,6 +40,24 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
     }
 };
 
+let showHideHelpContent = function (ELEMENT) {
+    let element = checkExist(ELEMENT);
+    if (!!element) {
+        if (element.classList.contains('hidden')) {
+
+            element.classList.remove('hidden');
+            let intViewportWidth = window.innerWidth;
+            let elementLeft = (intViewportWidth - element.offsetWidth) / 2 + 'px';
+
+            element.style.setProperty('left', elementLeft);
+
+        } else {
+            element.classList.add('hidden');
+            hideElement(ELEMENT);
+        }
+    }
+};
+
 let switchViews = function (VIEWS) {
     let x = VIEWS.length;
     var currentElement;
@@ -90,6 +108,7 @@ export default {
     hideElement,
     showElement,
     showHideElement,
+    showHideHelpContent,
     openPage,
     showHideByClass,
     switchViews,

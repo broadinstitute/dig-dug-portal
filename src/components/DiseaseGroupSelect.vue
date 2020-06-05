@@ -33,7 +33,9 @@ export default Vue.component("disease-group-select", {
 
     computed: {
         visibleDiseaseGroups() {
-            return this.diseaseGroups.filter(g => !g.default);
+            return this.diseaseGroups
+                .filter(g => !g.default)
+                .sort((a, b) => (a.description > b.description ? 1 : -1));
         }
     },
 

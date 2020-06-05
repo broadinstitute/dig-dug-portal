@@ -56,6 +56,7 @@ async function parseRegion(s, allowGeneLookup = true, geneRegionExpand = 0) {
                     chr: json.data[0].chromosome,
                     start: Math.max(json.data[0].start - geneRegionExpand, 0),
                     end: json.data[0].end + geneRegionExpand,
+                    gene: s,
                 }
             });
 
