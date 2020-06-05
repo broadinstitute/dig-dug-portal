@@ -52,7 +52,10 @@
                         <th class="column name" v-on:click="setSortKey('title')">Dataset</th>
                         <th class="column access" v-on:click="setSortKey('field_access')">Access</th>
                         <th class="column samples" v-on:click="setSortKey('field_samples')">Samples</th>
-                        <th class="column ancestry" v-on:click="setSortKey('field_ancestry2')">Ancestry</th>
+                        <th
+                            class="column ancestry"
+                            v-on:click="setSortKey('field_ancestry2')"
+                        >Ancestry</th>
                         <th class="column type" v-on:click="setSortKey('field_data_type')">Data type</th>
                         <th
                             class="column disease-group"
@@ -61,8 +64,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(row, i) in datasetsListNew"
-                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))">
+                    <tr
+                        v-for="(row, i) in datasetsListNew"
+                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))"
+                    >
                         <td class="column name">
                             <a
                                 :href="'/dinspector.html?dataset='+row.field_dataset_id"
@@ -96,7 +101,10 @@
                         <th class="column name" v-on:click="setSortKey('title')">Dataset</th>
                         <th class="column access" v-on:click="setSortKey('field_access')">Access</th>
                         <th class="column samples" v-on:click="setSortKey('field_samples')">Samples</th>
-                        <th class="column ancestry" v-on:click="setSortKey('field_ancestry2')">Ancestry</th>
+                        <th
+                            class="column ancestry"
+                            v-on:click="setSortKey('field_ancestry2')"
+                        >Ancestry</th>
                         <th class="column type" v-on:click="setSortKey('field_data_type')">Data type</th>
                         <th
                             class="column disease-group"
@@ -105,8 +113,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(row, i) in datasetsListNotNew"
-                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))">
+                    <tr
+                        v-for="(row, i) in datasetsListNotNew"
+                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))"
+                    >
                         <td class="column name">
                             <a
                                 :href="'/dinspector.html?dataset='+row.field_dataset_id"
@@ -136,7 +146,7 @@ import Vue from "vue";
 import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -145,14 +155,9 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("portal-datasets-list-table", {
-    props: [
-        "diseaseGroups",
-        "phenotypes",
-        "diseaseGroup",
-        "datasetsList"
-    ],
+    props: ["diseaseGroups", "phenotypes", "diseaseGroup", "datasetsList"],
     modules: {
-        ...uiUtils
+        ...sortUtils
     },
     data() {
         return {
@@ -161,13 +166,12 @@ export default Vue.component("portal-datasets-list-table", {
             selectedPhenotype: null,
             selectedDatatype: null,
             selectedDiseaseGroup: null,
-            sortKey: 'field_samples',
+            sortKey: "field_samples",
             sortDirection: "desc"
         };
     },
     computed: {
         diseaseGroupsFiltered: function() {
-
             let content = this.diseaseGroups;
 
             return content;
@@ -193,29 +197,27 @@ export default Vue.component("portal-datasets-list-table", {
                     return contents;
                 });
 
-            return filteredDatasets;
+            let way = this.sortDirection;
+            let key = this.sortKey;
+            let keyType = key == "field_samples" ? "number" : "";
+
+            return sortUtils.sort(filteredDatasets, key, keyType, way);
         },
 
         datasetsListNotNew: function() {
             let newDatasets = [].slice
                 .call(this.rawDatasets)
                 .filter(dataset => dataset["field_featured"] != "featured");
-            let way = this.sortDirection;
-            let key = this.sortKey;
-            let keyType = (key == "field_samples")?"number":"";
 
-            return uiUtils.sortJSON(newDatasets, key, keyType, way);
+            return newDatasets;
         },
 
         datasetsListNew: function() {
             let newDatasets = [].slice
                 .call(this.rawDatasets)
                 .filter(dataset => dataset["field_featured"] == "featured");
-            let way = this.sortDirection;
-            let key = this.sortKey;
-            let keyType = (key == "field_samples")?"number":"";
 
-            return uiUtils.sortJSON(newDatasets, key, keyType, way);
+            return newDatasets;
         },
 
         dataTypesList: function() {
@@ -236,13 +238,15 @@ export default Vue.component("portal-datasets-list-table", {
     },
     methods: {
         setSeletedDiseaseGroup(diseaseGroup) {
-            this.selectedDiseaseGroup = (diseaseGroup == "md")? null: diseaseGroup;
+            this.selectedDiseaseGroup =
+                diseaseGroup == "md" ? null : diseaseGroup;
         },
         setSeletedDatatype(datatype) {
-            this.selectedDatatype = (datatype == "Show all")? null: datatype;
+            this.selectedDatatype = datatype == "Show all" ? null : datatype;
         },
         setSeletedPhenotypeGroup(phenotypeGroup) {
-            this.selectedPhenotypeGroup = (phenotypeGroup == "Show all")? null: phenotypeGroup;
+            this.selectedPhenotypeGroup =
+                phenotypeGroup == "Show all" ? null : phenotypeGroup;
             if (phenotypeGroup == "Show all") this.selectedPhenotype = null;
         },
         setSeletedPhenotype(phenotype) {
@@ -250,7 +254,7 @@ export default Vue.component("portal-datasets-list-table", {
         },
         setSortKey(key) {
             this.sortKey = key;
-            this.sortDirection = this.sortDirection == "desc"? "asc":"desc";
+            this.sortDirection = this.sortDirection == "desc" ? "asc" : "desc";
         }
     }
 });
