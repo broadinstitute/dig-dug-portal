@@ -6,9 +6,12 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
+
+import keyParams from "@/utils/keyParams";
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
+import DatasetInfo from "@/components/DatasetInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -21,6 +24,7 @@ new Vue({
     store,
 
     components: {
+        DatasetInfo,
         PageHeader,
         PageFooter,
         PortalDatasetsListTable,
@@ -29,7 +33,6 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
     render(createElement, context) {
@@ -59,21 +62,24 @@ new Vue({
             return contents[0];
         },
 
-        datasetsList() {
-            let contents = this.$store.state.kp4cd.datasetsInfo;
+        datasetInfo() {
+            let contents = this.$store.state.kp4cd.datasetInfo;
 
             if (contents.length === 0) {
                 return {};
             }
             return contents;
-        }
+        },
+
+
+
+
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
-            this.$store.dispatch("datasets/query", { q: "*" });
+            this.$store.dispatch("kp4cd/getDatasetInfo", keyParams.dataset);
         },
 
     }

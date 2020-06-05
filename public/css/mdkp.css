@@ -848,3 +848,7 @@ polyline {
 .alternative-names span:last-child::after {
     content: "";
 }
+
+.dataset-page-header .card-body h2 {
+    margin: 0 !important;
+}

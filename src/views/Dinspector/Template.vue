@@ -5,11 +5,20 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+            <div class="card mdkp-card dataset-page-header">
+                <div class="row card-body">
+                    <div class="col-md-12">
+                        <h2>{{ $parent.datasetInfo[0].title[0].value }}</h2>
+                    </div>
+
+                </div>
+            </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-
+                            <dataset-info-section :datasetInfo="$parent.datasetInfo"></dataset-info-section>
                         </div>
                     </div>
                 </div>
