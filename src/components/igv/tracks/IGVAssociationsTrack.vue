@@ -62,12 +62,13 @@ export default Vue.component('igv-associations-track', {
     },
     computed: {
         trackName() {
-            return `${this.phenotype} ${this.visualization}`
+            return `${this.phenotype}`
         },
         queryStringMaker: function () {
             return (chr, start, end) => `${this.phenotype},${chr}:${start}-${end}`;
         },
     },
+
     mounted() {
         IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
         IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
@@ -77,7 +78,6 @@ export default Vue.component('igv-associations-track', {
         });
 
     },
-
     beforeDestroy () {
         // clean up external data before destroying the component instance from memory
         IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);

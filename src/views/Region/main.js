@@ -12,6 +12,7 @@ import Documentation from "@/components/Documentation";
 
 import IGV from "@/components/igv/IGV.vue"
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
+import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -38,6 +39,7 @@ new Vue({
 
         IGV,
         IGVAssociationsTrack,
+        IGVIntervalTrack,
     },
 
     created() {

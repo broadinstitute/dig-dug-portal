@@ -18,12 +18,15 @@ import IGVEvents, {
     IGV_BIOINDEX_QUERY_ERROR,
     IGV_BIOINDEX_QUERY_FINISH,
 } from "@/components/igv/IGVEvents";
+
 import {
     igvError,
     // igvResolve,
     // igvFinish
 } from "@/utils/igvUtils";
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack";
+
+import * as $ from "jquery";
 
 export default Vue.component('igv', {
   props: [
@@ -58,13 +61,6 @@ export default Vue.component('igv', {
   methods: {
       createEventHandlers(browser) {
 
-        IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
-            console.log('force update/refresh for igv')
-            // just go to the place we already are at
-            // browser.search(`chr${this.chr}:${this.start}-${this.end}`);
-            browser.updateViews();
-        })
-
         IGVEvents.$on(IGV_ADD_TRACK, trackConfiguration => {
             browser.loadTrack(trackConfiguration);
         });
@@ -72,6 +68,16 @@ export default Vue.component('igv', {
         IGVEvents.$on(IGV_REMOVE_TRACK, trackName => {
             browser.removeTrackByName(trackName);
         });
+
+        IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
+            console.log('force update/refresh for igv')
+            // just go to the place we already are at
+            // browser.search(`chr${this.chr}:${this.start}-${this.end}`);
+            browser.updateViews();
+        })
+
+
+
 
         // default handlers for tracks completing their data
         // TODO: this is the wierdest part of the application right now. It works out as long as we only have one instance of IGV per page.
@@ -98,6 +104,8 @@ export default Vue.component('igv', {
         });
 
 
+
+
         // 'trackremoved' is an igv.js event
         // Since it can execute independently of the track component being destroyed, we have to
         // either emit or re-emit the destruction signal to ensure 1-1 correspondence between the Vue component and the igvBrowser track.
@@ -105,9 +113,33 @@ export default Vue.component('igv', {
         // nothing catches the IGV_CHILD_DESTROY_TRACK event and so there is no side-effect.
         // This is mediated by the track name and Vue component internal name being the same.
         browser.on('trackremoved', track => {
-            console.log('removed track', track);
             IGVEvents.$emit(IGV_CHILD_DESTROY_TRACK, track)
         });
+
+
+        // POPUP EVENT
+        // TODO: TERRIBLE HACKS
+        browser.on('trackclick', (track, popoverData) => {
+            var symbol = null;
+            popoverData.forEach(function (nameValue) {
+                if (nameValue.name && nameValue.name.toLowerCase() === 'name') {
+                    symbol = nameValue.value;
+                }
+            });
+
+            if (symbol && !genesInList[symbol]) {
+                genesInList[symbol] = true;
+                $("#geneList").append('<li><a href="https://uswest.ensembl.org/Multi/Search/Results?q=' + symbol + '">' + symbol + '</a></li>');
+            }
+            return false;
+        })
+
+        browser.on('trackonend', locusChange => {
+            console.log('igv locus change', locusChange);
+        })
+
+
+
 
       },
 

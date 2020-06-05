@@ -15,13 +15,11 @@
         <igv ref="igv"
             :chr="$store.state.chr"
             :start="$store.state.start"
-            :end="$store.state.end"
-            :finishHandler="response => $store.dispatch('associations/tap', 'global tap')">
+            :end="$store.state.end">
 
             <igv-associations-track
                 :phenotype="'T2D'"
-                :visualization="'annotation'"
-                :finishHandler="response => $store.commit('associations/setResponse', response)">
+                :visualization="'gwas'">
             </igv-associations-track>
 
             <igv-associations-track
