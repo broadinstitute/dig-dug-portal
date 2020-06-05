@@ -64,7 +64,7 @@ module.exports = {
 
         },
         dinspector: {
-            entry: "src/views/Dinspector/main.js",
+            entry: "src/views/DatasetInspector/main.js",
             template: "public/index.html",
             filename: "dinspector.html",
             title: "Dataset Inspector",
