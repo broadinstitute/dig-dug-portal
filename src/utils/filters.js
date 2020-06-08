@@ -53,12 +53,14 @@ export function filterTissue(data, col, term) {
 }
 
 export function filterBeta(data, value, key) {
-    if (value === "n")
+    console.log("data", data);
+    console.log("value", value);
+    if (value == "n")
         //negative
         return data.filter(row => {
             return Number(row[key]) < 0;
         });
-    else if (value === "p") {
+    else if (value == "p") {
         //positive
         return data.filter(row => {
             return Number(row[key]) > 0;
@@ -72,7 +74,16 @@ export function filterBeta(data, value, key) {
 export function filterPValue(data, value) {
     if (!!value)
         return data.filter(row => {
-            return row[key] <= value;
+            return row["pValue"] <= value;
         });
     else return data;
+}
+
+export function filterPhenotype(data, value) {
+    //console.log("data ", data);
+    const filtered = data.filter(row => {
+        return value.includes(row["phenotype"].description);
+    });
+    //console.log("FF ", filtered);
+    return filtered.length > 0 ? filtered : data;
 }

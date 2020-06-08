@@ -109,7 +109,8 @@ export default Vue.component("regions-table", {
             filters: {
                 annotation: [],
                 method: "",
-                tissue: ""
+                tissue: "",
+                pValue: ""
             }
         };
     },

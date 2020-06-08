@@ -4,7 +4,7 @@
             hover
             small
             responsive="sm"
-            :items="filterBeta"
+            :items="tableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -48,25 +48,18 @@
                         <b-form-input
                             id="filter-pValue"
                             type="number"
-                            v-model="filter"
+                            v-model="pValue"
                             placeholder="Filter pValue <="
+                            @change="filterPValue()"
                         ></b-form-input>
                     </b-th>
                     <b-th>
                         <b-form-group>
-                            <b-form-radio v-model="beta" name="all" value="a" size="sm">All</b-form-radio>
-                            <b-form-radio
-                                v-model="beta"
-                                name="positive"
-                                value="p"
-                                size="sm"
-                            >Positive</b-form-radio>
-                            <b-form-radio
-                                v-model="beta"
-                                name="negative"
-                                value="n"
-                                size="sm"
-                            >Negative</b-form-radio>
+                            <b-form-radio-group v-model="beta" @input="filterBeta()">
+                                <b-form-radio name="all" value="a" size="sm">All</b-form-radio>
+                                <b-form-radio name="positive" value="p" size="sm">Positive</b-form-radio>
+                                <b-form-radio name="negative" value="n" size="sm">Negative</b-form-radio>
+                            </b-form-radio-group>
                         </b-form-group>
                     </b-th>
                     <b-th></b-th>
@@ -91,7 +84,7 @@ import $ from "jquery";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import { filterBeta } from "@/utils/filters";
+import { filterPhenotype, filterBeta, filterPValue } from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -144,13 +137,18 @@ export default Vue.component("phewas-table", {
             ],
             beta: "a",
             userText: "",
-            selectedPhenotypes: []
+            selectedPhenotypes: [],
+            pValue: "",
+            tableData: ""
         };
+    },
+    mounted() {
+        this.tableData = this.pheWASAssociations;
     },
 
     computed: {
         rows() {
-            return this.pheWASAssociations.length;
+            return this.tableData.length;
         },
 
         pheWASAssociations() {
@@ -167,9 +165,6 @@ export default Vue.component("phewas-table", {
             return assocs
                 .filter(a => !!a.phenotype)
                 .sort((a, b) => a.pValue - b.pValue);
-        },
-        filterBeta() {
-            return filterBeta(this.pheWASAssociations, this.beta, "beta");
         }
     },
 
@@ -179,9 +174,28 @@ export default Vue.component("phewas-table", {
         addPhenotype(event) {
             this.selectedPhenotypes.push(event.description);
             this.userText = null;
+            this.filterPhenotype();
         },
         removePhenotype(index) {
             this.selectedPhenotypes.splice(index, 1);
+            this.filterPhenotype();
+        },
+
+        filterBeta() {
+            this.tableData = filterBeta(
+                this.pheWASAssociations,
+                this.beta,
+                "beta"
+            );
+        },
+        filterPValue() {
+            this.tableData = filterPValue(this.pheWASAssociations, this.pValue);
+        },
+        filterPhenotype() {
+            this.tableData = filterPhenotype(
+                this.pheWASAssociations,
+                this.selectedPhenotypes
+            );
         }
     }
 });
