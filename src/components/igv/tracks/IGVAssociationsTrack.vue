@@ -115,6 +115,7 @@ export default Vue.component('igv-associations-track', {
                 annotation['chromosome'] = undefined;
                 annotation['position'] = undefined;
                 return {
+                    name: association.varId,
                     chr: association.chromosome,
                     start: association.position,
                     end: association.position,

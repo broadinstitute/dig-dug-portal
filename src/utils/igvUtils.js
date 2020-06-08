@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import { query } from "@/utils/bioIndexUtils"
-import {
-    // postAlertNotice,
-    // closeAlert
-    postAlertError,
-} from "@/components/Alert";
-=======
 // gene
 // genes
 // global-enrichment
@@ -26,7 +18,7 @@ import {
 // interaction
 
 // Variants -> Annotation
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST, query } from "@/utils/bioIndexUtils";
 
 function variantsToIgvAnnotations(variants) {
     return variants.map(variant => (
@@ -88,7 +80,6 @@ export function makeBioIndexIGVTrackWithReader({ store, module, track, translato
         reader: bioIndexIGVSource,
     };
 }
->>>>>>> master
 
 /**
  * A custom feature reader implementation
@@ -167,7 +158,6 @@ export function colorIntervalAnnotation(intervalAnnotation) {
         'PromoterBivalentFlanking': '#FFFF19',
         'PromoterBivalent': '',
 
-<<<<<<< HEAD
         'TranscriptionFlanking': '#FF8D1D',
         'PromoterWeak': '',
         'RepressedPolycombWeak': '#C0C0C0',
@@ -176,21 +166,9 @@ export function colorIntervalAnnotation(intervalAnnotation) {
         'PromoterFlankingUpstream': '',
         'Enhancer': '',
         'EnhancerGenic': '',
-        'EnhancerWeak': '#FFFF00',
+        'EnhancerWeak': '#7605ff',
         'EnhancerActive1': '#FFE4B0',
         'EnhancerActive2': '#FFC34D',
-=======
-        data = await this.config.store.dispatch('onIGVCoords', { module: this.config.module, newChr: chrNum, newStart: start, newEnd: end })
-            .then(() => {
-                let value = this.config.store.getters[`${camelKebab(this.config.module)}/data`];
-                console.log('value', value);
-                if (value) {
-                    return value;
-                }
-                const emptyObject = [];
-                return emptyObject;
-            });
->>>>>>> master
 
         'PromoterFlanking': '',
         'PromoterActive': '',

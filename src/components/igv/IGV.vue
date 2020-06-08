@@ -31,7 +31,8 @@ import * as $ from "jquery";
 export default Vue.component('igv', {
   props: [
         'chr', 'start', 'end',
-        'resolveHandler', 'finishHandler', 'errHandler'
+        'resolveHandler', 'finishHandler', 'errHandler',
+        'popupHandler'
   ],
 
   data() {
@@ -116,30 +117,24 @@ export default Vue.component('igv', {
             IGVEvents.$emit(IGV_CHILD_DESTROY_TRACK, track)
         });
 
-
-        // POPUP EVENT
-        // TODO: TERRIBLE HACKS
-        browser.on('trackclick', (track, popoverData) => {
-            var symbol = null;
-            popoverData.forEach(function (nameValue) {
-                if (nameValue.name && nameValue.name.toLowerCase() === 'name') {
-                    symbol = nameValue.value;
-                }
-            });
-
-            if (symbol && !genesInList[symbol]) {
-                genesInList[symbol] = true;
-                $("#geneList").append('<li><a href="https://uswest.ensembl.org/Multi/Search/Results?q=' + symbol + '">' + symbol + '</a></li>');
+        browser.on('trackclick', (track, popupData) => {
+            console.log(popupData);
+            if (!!this.popupHandler) {
+                this.popupHandler(track, popupData);
+            } else {
+                popupData.foreach(nameValuePair => {
+                    if (!!nameValuePair.name) {
+                        if (!!nameValuePair.value) {
+                            // EITHER:
+                            // Build popup
+                            // OR
+                            // Run popup handler
+                        }
+                    }
+                });
             }
             return false;
-        })
-
-        browser.on('trackonend', locusChange => {
-            console.log('igv locus change', locusChange);
-        })
-
-
-
+        });
 
       },
 
