@@ -5,6 +5,7 @@ import Template from "./Template.vue";
 import IGV from "@/components/igv/IGV.vue"
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
 import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
+import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue"
 
 Vue.config.productionTip = false;
 
@@ -14,6 +15,7 @@ new Vue({
         IGV,
         IGVAssociationsTrack,
         IGVIntervalTrack,
+        IGVCredibleVariantsTrack,
     },
     data() {
         return {
@@ -22,6 +24,7 @@ new Vue({
             trackTissueDescription: '',
             variantSelections: [],
             phenotypes: ['BMI', 'T2D'],
+            datasets: [],
         }
     },
     methods: {

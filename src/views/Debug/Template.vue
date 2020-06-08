@@ -12,6 +12,8 @@
         <input id='tissue' v-model="$parent.trackTissueDescription"/><br>
         <button v-on:click="$parent.addIntervalsTrack">Add Interval Track</button><br>
 
+        
+
         <igv ref="igv"
             :chr="$store.state.chr"
             :start="$store.state.start"
@@ -25,13 +27,23 @@
                 $parent.variantSelections.push(...varIds)
             }">
 
-            <igv-associations-track
-                v-for="phenotype in $parent.phenotypes"
-                :key="phenotype"
-                :phenotype="phenotype"
-                :visualization="'gwas'"
-                :finishHandler="response => $store.commit('associations/setResponse', response)">
-            </igv-associations-track>
+            <igv-credible-variants-track
+                :phenotype="'T2D'"
+                :credibleSetId="'chr8:116684783-119684783'"
+                :visualization="'gwas'">
+            </igv-credible-variants-track>
+
+            <igv-credible-variants-track
+                :phenotype="'T2D'"
+                :credibleSetId="'20303'"
+                :visualization="'gwas'">
+            </igv-credible-variants-track>
+
+            <igv-credible-variants-track
+                :phenotype="'T2D'"
+                :credibleSetId="'20302'"
+                :visualization="'gwas'">
+            </igv-credible-variants-track>
 
             <igv-intervals-track
                 :tissue="'liver'">

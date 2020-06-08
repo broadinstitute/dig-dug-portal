@@ -15,6 +15,7 @@ export default new Vuex.Store({
         associations: bioIndex("associations"),
         topAssociations: bioIndex("top-associations"),
         variants: bioIndex("variants"),
+        datasets
     },
     state: {
         // user-entered locus
@@ -50,4 +51,9 @@ export default new Vuex.Store({
             });
         },
     },
+    actions: {
+        onDatasetChange() {
+
+        }
+    }
 });
