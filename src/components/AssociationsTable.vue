@@ -1,12 +1,70 @@
 <template>
     <div>
-        <div>
-            <b-form-input
-                id="filter-pValue"
-                type="number"
-                v-model="pValue"
-                placeholder="Filter pValue <="
-            ></b-form-input>
+        <div v-if="rows > 0">
+            <b-container fluid>
+                <b-row>
+                    <b-col>
+                        <b-form-input
+                            id="filter-dbSNP"
+                            type="text"
+                            v-model="select_dbsnp_text"
+                            placeholder="Filter by dbSNP"
+                            @change="addSNP($event)"
+                        ></b-form-input>
+                        <div v-if="select_dbsnp">
+                            <b-badge
+                                pill
+                                variant="info"
+                                v-for="(v,i) in select_dbsnp"
+                                :key="v"
+                                @click="removeSNP(i)"
+                                class="btn"
+                            >{{v}}</b-badge>
+                        </div>
+                    </b-col>
+                    <b-col>
+                        <b-form-select v-model="select_consequence" :options="filter_consequence">
+                            <b-form-select-option value>Filter by consequence</b-form-select-option>
+                        </b-form-select>
+                    </b-col>
+                    <b-col>
+                        <b-form-input
+                            id="filter-gene"
+                            type="text"
+                            v-model="select_gene_text"
+                            placeholder="Filter by Gene"
+                            @change="addGene($event)"
+                        ></b-form-input>
+                        <div v-if="select_gene">
+                            <b-badge
+                                pill
+                                variant="info"
+                                v-for="(g,i) in select_gene"
+                                :key="g"
+                                @click="removeGene(i)"
+                                class="btn"
+                            >{{g}}</b-badge>
+                        </div>
+                    </b-col>
+                    <b-col>
+                        <b-form-input
+                            id="filter-pValue"
+                            type="number"
+                            v-model="select_pValue"
+                            placeholder="Filter pValue <="
+                        ></b-form-input>
+                    </b-col>
+                    <b-col>
+                        <b-form-group label="Odds Ratio">
+                            <b-form-radio-group v-model="select_odds_ratio">
+                                <b-form-radio name="all" value size="sm">All</b-form-radio>
+                                <b-form-radio name="above" value="a" size="sm">Above 1</b-form-radio>
+                                <b-form-radio name="below" value="b" size="sm">Below 1</b-form-radio>
+                            </b-form-radio-group>
+                        </b-form-group>
+                    </b-col>
+                </b-row>
+            </b-container>
         </div>
         <div v-if="rows > 0">
             <b-table
@@ -104,7 +162,13 @@ export default Vue.component("associations-table", {
                 }
             ],
 
-            pValue: ""
+            select_pValue: "",
+            select_dbsnp: [],
+            select_dbsnp_text: "",
+            select_consequence: "",
+            select_gene: [],
+            select_gene_text: "",
+            select_odds_ratio: ""
         };
     },
     mounted() {},
@@ -204,6 +268,13 @@ export default Vue.component("associations-table", {
 
             return data;
         },
+        filter_consequence() {
+            return this.groupedAssociations
+                .map(v => Formatters.consequenceFormatter(v.consequence))
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != undefined);
+        },
+
         tableData: {
             get: function() {
                 if (!!this.pValue) {
@@ -226,6 +297,20 @@ export default Vue.component("associations-table", {
         },
         filterPValue() {
             tableData = filterPValue(this.groupedAssociations, this.pValue);
+        },
+        addSNP(event) {
+            this.select_dbsnp.push(event);
+            this.select_dbsnp_text = "";
+        },
+        removeSNP(index) {
+            this.select_dbsnp.splice(index, 1);
+        },
+        addGene(event) {
+            this.select_gene.push(event);
+            this.select_gene_text = "";
+        },
+        removeGene(index) {
+            this.select_gene.splice(index, 1);
         }
     }
 });
