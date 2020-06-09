@@ -1,20 +1,50 @@
 <template>
     <div>
         <div v-if="rows > 0">
-            <b-form-select v-model="annotations" :options="filter_annotation" multiple>
-                <b-form-select-option value>Select a filter</b-form-select-option>
-            </b-form-select>
-
-            <b-form-select v-model="methods" :options="filter_method" multiple>
-                <b-form-select-option value>Select a filter</b-form-select-option>
-            </b-form-select>
-
-            <b-form-select v-model="tissues" :options="filter_tissue" multiple>
-                <b-form-select-option value>Select a filter</b-form-select-option>
-            </b-form-select>
-            <b-form-select v-model="ancestry" :options="filter_ancestry">
-                <b-form-select-option value>Select a filter</b-form-select-option>
-            </b-form-select>
+            <b-container class="filter_rows" fluid>
+                <b-row>
+                    <b-col>
+                        <b-form-select
+                            v-model="select_annotations"
+                            :options="filter_annotation"
+                            multiple
+                        >
+                            <b-form-select-option value>Select a filter</b-form-select-option>
+                        </b-form-select>
+                    </b-col>
+                    <b-col>
+                        <b-form-select v-model="select_methods" :options="filter_method" multiple>
+                            <b-form-select-option value>Select a filter</b-form-select-option>
+                        </b-form-select>
+                    </b-col>
+                    <b-col>
+                        <b-form-select v-model="select_tissues" :options="filter_tissue" multiple>
+                            <b-form-select-option value>Select a filter</b-form-select-option>
+                        </b-form-select>
+                    </b-col>
+                    <b-col>
+                        <b-form-select v-model="select_ancestry" :options="filter_ancestry">
+                            <b-form-select-option value>Select a filter</b-form-select-option>
+                        </b-form-select>
+                    </b-col>
+                    <b-col>
+                        <b-form-input
+                            id="filter-pValue"
+                            type="number"
+                            v-model="select_pValue"
+                            placeholder="Filter pValue <="
+                        ></b-form-input>
+                    </b-col>
+                    <b-col>
+                        <b-form-input
+                            id="filter-beta"
+                            type="number"
+                            v-model="select_beta"
+                            placeholder="Filter Beta"
+                        ></b-form-input>
+                    </b-col>
+                </b-row>
+            </b-container>
         </div>
         <div v-if="rows > 0">
             <b-table
@@ -96,12 +126,12 @@ export default Vue.component("enrichment-table", {
                     formatter: Formatters.ancestryFormatter
                 }
             ],
-            annotations: [],
-            methods: [],
-            tissues: [],
-            ancestry: "",
-            pValue: "",
-            beta: ""
+            select_annotations: [],
+            select_methods: [],
+            select_tissues: [],
+            select_ancestry: "",
+            select_pValue: "",
+            select_beta: ""
         };
     },
 
@@ -212,10 +242,9 @@ export default Vue.component("enrichment-table", {
                 .filter((v, i, arr) => v != undefined);
         },
         filter_ancestry() {
-            return this.groupedAnnotations.map(v => {
-                v.ancestry;
-            });
-            //.filter((v, i, arr) => arr.indexOf(v) == i);
+            return this.groupedAnnotations
+                .map(v => Formatters.ancestryFormatter(v.ancestry))
+                .filter((v, i, arr) => arr.indexOf(v) == i);
         }
     }
 });
