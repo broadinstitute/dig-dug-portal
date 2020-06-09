@@ -6,6 +6,9 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
+                <documentation name="variant.pageheader"></documentation>
+            </div>
+            <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">
                         Variant
@@ -14,6 +17,7 @@
                             v-on:click="$parent.showHideElement('variantSearchHolder','variant_search_input')"
                         >Set variant</a>
                     </div>
+
                     <div class="col-md-12 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-5">
@@ -53,12 +57,19 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">Most Severe Consequence</h4>
+                        <!-- <tooltip-documentation name="variant.consequence.tooltip" :group="'md'"></tooltip-documentation> -->
+
                         <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
                     </div>
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">PheWAS Associations</h4>
+                        <documentation
+                            name="variant.phewas.subheader"
+                            :content-fill="$store.getters['documentationMap']"
+                        ></documentation>
+
                         <locuszoom :panels="['phewas']" :phewas="$parent.lzAssociations"></locuszoom>
                         <phewas-table
                             :associations="$parent.variantData.associations"
@@ -84,6 +95,10 @@
                         <h4
                             class="card-title"
                         >Transcription factor binding motifs altered by {{$parent.variantName}}</h4>
+                        <documentation
+                            name="variant.tfbinding.subheader"
+                            :content-fill="$store.getters['documentationMap']"
+                        ></documentation>
                         <div v-if="$parent.variantData.transcriptionFactors">
                             <transcription-factors-table
                                 v-bind:transcriptionFactors="$parent.variantData.transcriptionFactors"
@@ -97,6 +112,10 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">Annotated regions overlapping {{$parent.variantName}}</h4>
+                        <documentation
+                            name="variant.annotated.subheader"
+                            :content-fill="$store.getters['documentationMap']"
+                        ></documentation>
                         <regions-table :regions="$parent.regions"></regions-table>
                     </div>
                 </div>

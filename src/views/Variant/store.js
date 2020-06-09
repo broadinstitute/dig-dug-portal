@@ -29,6 +29,13 @@ export default new Vuex.Store({
             keyParams.set({ variant: state.newVariantID });
         },
     },
+    getters: {
+        documentationMap(state) {
+            return {
+                variant: state.variantID
+            }
+        }
+    },
 
     actions: {
         async queryVariant(context, newVarId) {

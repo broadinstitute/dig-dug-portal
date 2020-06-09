@@ -6,6 +6,9 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
+                <documentation name="pheno.pageheader"></documentation>
+            </div>
+            <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">
                         Phenotype
@@ -75,6 +78,11 @@
                         <h4
                             class="card-title"
                         >Datasets Associated with {{$store.state.phenotype.description}}</h4>
+
+                        <documentation
+                            name=" pheno.assocdatasets.subheader"
+                            :content-fill="$store.getters['documentationMap']"
+                        ></documentation>
                         <datasets-table :datasets="$store.state.datasets.data"></datasets-table>
                     </div>
                 </div>
@@ -84,6 +92,11 @@
                         <h4
                             class="card-title"
                         >Globally Enriched Annotations for {{$store.state.phenotype.description}}</h4>
+                        <documentation
+                            name="pheno.globalenrich.subheader"
+                            :content-fill="$store.getters['documentationMap']"
+                        ></documentation>
+
                         <enrichment-table
                             :phenotypes="[$store.state.phenotype]"
                             :annotations="$store.state.annotations.data"

@@ -6,6 +6,9 @@
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
+                <documentation name="gene.pageheader"></documentation>
+            </div>
+            <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-7 gene-page-header-title">
                         Gene

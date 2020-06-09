@@ -13,9 +13,12 @@ import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
 import RegionsTable from "@/components/RegionsTable.vue";
+import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation"
 import LocusZoom from "@/components/LocusZoom";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -35,7 +38,9 @@ new Vue({
         TranscriptionFactorsTable,
         PheWASTable,
         RegionsTable,
-        LocusZoom
+        LocusZoom,
+        Documentation,
+        TooltipDocumentation,
     },
 
     created() {

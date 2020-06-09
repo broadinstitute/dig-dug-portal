@@ -6,6 +6,9 @@
         <!-- body -->
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
+                <documentation name="region.pageheader"></documentation>
+            </div>
+            <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">
                         Chromosome: Start position - End position
@@ -90,6 +93,7 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">Genes overlapping region</h4>
+
                     <div v-for="row in $parent.genes" :class="'gene-with-signal '+row.type">
                         <a :href="`/gene.html?gene=${row.name}`">{{row.name}}</a>
                     </div>
@@ -101,6 +105,7 @@
                     <h4
                         class="card-title"
                     >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
+                    <documentation name="region.phenos_w_signal.subheader"></documentation>
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div
                             href="javascript:;"
