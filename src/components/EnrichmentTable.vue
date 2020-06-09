@@ -1,6 +1,22 @@
 <template>
     <div>
         <div v-if="rows > 0">
+            <b-form-select v-model="annotations" :options="filter_annotation" multiple>
+                <b-form-select-option value>Select a filter</b-form-select-option>
+            </b-form-select>
+
+            <b-form-select v-model="methods" :options="filter_method" multiple>
+                <b-form-select-option value>Select a filter</b-form-select-option>
+            </b-form-select>
+
+            <b-form-select v-model="tissues" :options="filter_tissue" multiple>
+                <b-form-select-option value>Select a filter</b-form-select-option>
+            </b-form-select>
+            <b-form-select v-model="ancestry" :options="filter_ancestry">
+                <b-form-select-option value>Select a filter</b-form-select-option>
+            </b-form-select>
+        </div>
+        <div v-if="rows > 0">
             <b-table
                 hover
                 small
@@ -66,7 +82,8 @@ export default Vue.component("enrichment-table", {
                 },
                 {
                     key: "method",
-                    label: "Method"
+                    label: "Method",
+                    formatter: Formatters.capitalizedFormatter
                 },
                 {
                     key: "tissue",
@@ -176,6 +193,29 @@ export default Vue.component("enrichment-table", {
             data.sort((a, b) => a.minP - b.minP);
 
             return data;
+        },
+        filter_annotation() {
+            return this.groupedAnnotations
+                .map(v => Formatters.annotationFormatter(v.annotation))
+                .filter((v, i, arr) => arr.indexOf(v) == i);
+        },
+        filter_method() {
+            return this.groupedAnnotations
+                .map(v => Formatters.capitalizedFormatter(v.method))
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != undefined);
+        },
+        filter_tissue() {
+            return this.groupedAnnotations
+                .map(v => Formatters.tissueFormatter(v.tissue))
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != undefined);
+        },
+        filter_ancestry() {
+            return this.groupedAnnotations.map(v => {
+                v.ancestry;
+            });
+            //.filter((v, i, arr) => arr.indexOf(v) == i);
         }
     }
 });
