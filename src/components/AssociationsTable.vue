@@ -1,11 +1,19 @@
 <template>
     <div>
+        <div>
+            <b-form-input
+                id="filter-pValue"
+                type="number"
+                v-model="pValue"
+                placeholder="Filter pValue <="
+            ></b-form-input>
+        </div>
         <div v-if="rows > 0">
             <b-table
                 hover
                 small
                 responsive="sm"
-                :items="groupedAssociations"
+                :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -58,6 +66,7 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
+import { filterPValue } from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -93,10 +102,12 @@ export default Vue.component("associations-table", {
                     key: "symbol",
                     label: "Gene"
                 }
-            ]
+            ],
+
+            pValue: ""
         };
     },
-
+    mounted() {},
     computed: {
         fields() {
             let fields = this.baseFields;
@@ -133,7 +144,7 @@ export default Vue.component("associations-table", {
         },
 
         rows() {
-            return this.groupedAssociations.length;
+            return this.tableData.length;
         },
 
         groupedAssociations() {
@@ -192,6 +203,14 @@ export default Vue.component("associations-table", {
             data.sort((a, b) => a.minP - b.minP);
 
             return data;
+        },
+        tableData: {
+            get: function() {
+                if (!!this.pValue) {
+                    return filterPValue();
+                } else return this.groupedAssociations;
+            },
+            set: function(newValue) {}
         }
     },
 
@@ -204,6 +223,9 @@ export default Vue.component("associations-table", {
         },
         dbSNPFormatter({ dbSNP }) {
             return Formatters.dbSNPFormatter(dbSNP);
+        },
+        filterPValue() {
+            tableData = filterPValue(this.groupedAssociations, this.pValue);
         }
     }
 });

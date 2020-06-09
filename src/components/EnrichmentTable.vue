@@ -78,7 +78,13 @@ export default Vue.component("enrichment-table", {
                     label: "Ancestry",
                     formatter: Formatters.ancestryFormatter
                 }
-            ]
+            ],
+            annotations: [],
+            methods: [],
+            tissues: [],
+            ancestry: "",
+            pValue: "",
+            beta: ""
         };
     },
 
@@ -103,7 +109,8 @@ export default Vue.component("enrichment-table", {
                     {
                         key: `${p.name}_SNPs`,
                         label: `SNPs`,
-                        formatter: Formatters.intFormatter
+                        formatter: Formatters.intFormatter,
+                        sortable: true
                     }
                 ]);
             }

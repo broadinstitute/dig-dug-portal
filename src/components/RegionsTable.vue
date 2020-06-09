@@ -112,7 +112,6 @@ export default Vue.component("regions-table", {
         rows() {
             return this.tableData.length;
         },
-
         sortedRegions() {
             return this.regions.sort((a, b) => a.start - b.start);
         },

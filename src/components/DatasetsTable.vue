@@ -8,7 +8,26 @@
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
-        ></b-table>
+        >
+            <template v-slot:thead-top="data">
+                <b-tr>
+                    <b-th></b-th>
+                    <b-th>
+                        <b-form-select v-model="tech" :options="filter_tech">
+                            <b-form-select-option value>Select a filter</b-form-select-option>
+                        </b-form-select>
+                    </b-th>
+                    <b-th>
+                        <b-form-select v-model="ancestry" :options="filter_ancestry">
+                            <b-form-select-option value>Select a filter</b-form-select-option>
+                        </b-form-select>
+                    </b-th>
+                    <b-th></b-th>
+                    <b-th></b-th>
+                    <b-th></b-th>
+                </b-tr>
+            </template>
+        </b-table>
         <b-pagination
             class="pagination-sm justify-content-center"
             v-model="currentPage"
@@ -66,7 +85,9 @@ export default Vue.component("datasets-table", {
             perPage: 5,
             currentPage: 1,
             sortName: "subjects",
-            sortOrder: "desc"
+            sortOrder: "desc",
+            tech: "",
+            ancestry: ""
         };
     },
     computed: {
@@ -75,6 +96,16 @@ export default Vue.component("datasets-table", {
         },
         sortedDatasets() {
             return this.datasets.sort((a, b) => b.subjects - a.subjects);
+        },
+        filter_tech() {
+            return this.sortedDatasets
+                .map(v => v.tech)
+                .filter((v, i, arr) => arr.indexOf(v) == i);
+        },
+        filter_ancestry() {
+            return this.sortedDatasets
+                .map(v => Formatters.ancestryFormatter(v.ancestry))
+                .filter((v, i, arr) => arr.indexOf(v) == i);
         }
     }
 });
