@@ -56,7 +56,7 @@
                     <b-th>
                         <b-form-group>
                             <b-form-radio-group v-model="beta" @input="filterBeta()">
-                                <b-form-radio name="all" value="a" size="sm">All</b-form-radio>
+                                <b-form-radio name="all" value size="sm">All</b-form-radio>
                                 <b-form-radio name="positive" value="p" size="sm">Positive</b-form-radio>
                                 <b-form-radio name="negative" value="n" size="sm">Negative</b-form-radio>
                             </b-form-radio-group>
@@ -135,7 +135,7 @@ export default Vue.component("phewas-table", {
                     sortable: true
                 }
             ],
-            beta: "a",
+            beta: "",
             userText: "",
             selectedPhenotypes: [],
             pValue: "",
@@ -187,6 +187,7 @@ export default Vue.component("phewas-table", {
                 this.beta,
                 "beta"
             );
+            this.resetOtherFilters();
         },
         filterPValue() {
             this.tableData = filterPValue(this.pheWASAssociations, this.pValue);
@@ -196,6 +197,9 @@ export default Vue.component("phewas-table", {
                 this.pheWASAssociations,
                 this.selectedPhenotypes
             );
+        },
+        resetOtherFilters(option) {
+            console.log("data", this.$options.data);
         }
     }
 });

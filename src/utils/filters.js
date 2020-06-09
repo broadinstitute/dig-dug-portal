@@ -53,8 +53,8 @@ export function filterTissue(data, col, term) {
 }
 
 export function filterBeta(data, value, key) {
-    console.log("data", data);
-    console.log("value", value);
+    // console.log("data", data);
+    // console.log("value", value);
     if (value == "n")
         //negative
         return data.filter(row => {
@@ -85,5 +85,34 @@ export function filterPhenotype(data, value) {
         return value.includes(row["phenotype"].description);
     });
     //console.log("FF ", filtered);
+    return filtered.length > 0 ? filtered : data;
+}
+
+export function filterTable(data, value, key) {
+    console.log("data ", data);
+    const filtered = data.filter(row => {
+        return value.includes(row[key]);
+    });
+    console.log("FF ", filtered);
+    return filtered.length > 0 ? filtered : data;
+}
+
+export function filterRegion(data, value, key) {
+    console.log("data", data);
+    console.log("value", value);
+    console.log("key", key);
+
+    let filtered = "";
+    if (key == "annotation" || key == "method") {
+        filtered = data.filter(row => {
+            return value.includes(Formatters.capitalizedFormatter(row[key]));
+        });
+    } else if (key == "tissue") {
+        filtered = data.filter(row => {
+            return value.includes(Formatters.tissueFormatter(row[key]));
+        });
+    }
+
+    console.log("FF ", filtered);
     return filtered.length > 0 ? filtered : data;
 }

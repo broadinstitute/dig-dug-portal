@@ -6,7 +6,7 @@
                 small
                 bordered
                 responsive="sm"
-                :items="filtered"
+                :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -23,7 +23,7 @@
                         </b-th>
                         <b-th>
                             <b-form-select
-                                v-model="filters['annotation']"
+                                v-model="annotations"
                                 :options="filter_annotation"
                                 multiple
                             >
@@ -31,20 +31,12 @@
                             </b-form-select>
                         </b-th>
                         <b-th>
-                            <b-form-select
-                                v-model="filters['method']"
-                                :options="filter_method"
-                                multiple
-                            >
+                            <b-form-select v-model="methods" :options="filter_method" multiple>
                                 <b-form-select-option value>Select a filter</b-form-select-option>
                             </b-form-select>
                         </b-th>
                         <b-th>
-                            <b-form-select
-                                v-model="filters['tissue']"
-                                :options="filter_tissue"
-                                multiple
-                            >
+                            <b-form-select v-model="tissues" :options="filter_tissue" multiple>
                                 <b-form-select-option value>Select a filter</b-form-select-option>
                             </b-form-select>
                         </b-th>
@@ -70,7 +62,7 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import { filterDropdown, filterTissue } from "@/utils/filters";
+import { filterDropdown, filterTissue, filterRegion } from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -102,22 +94,23 @@ export default Vue.component("regions-table", {
                 {
                     key: "tissue",
                     label: "Tissue",
-                    formatter: Formatters.tissueFormatter,
-                    filterByFormatted: true
+                    formatter: Formatters.tissueFormatter
                 }
             ],
-            filters: {
-                annotation: [],
-                method: "",
-                tissue: "",
-                pValue: ""
-            }
+
+            annotations: [],
+            methods: [],
+            tissues: []
+            //tableData: ""
         };
+    },
+    mounted() {
+        //this.tableData = this.sortedRegions;
     },
 
     computed: {
         rows() {
-            return this.filtered.length;
+            return this.tableData.length;
         },
 
         sortedRegions() {
@@ -125,12 +118,12 @@ export default Vue.component("regions-table", {
         },
         filter_annotation() {
             return this.sortedRegions
-                .map(v => v.annotation)
+                .map(v => Formatters.capitalizedFormatter(v.annotation))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         filter_method() {
             return this.sortedRegions
-                .map(v => v.method)
+                .map(v => Formatters.capitalizedFormatter(v.method))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined);
         },
@@ -140,64 +133,85 @@ export default Vue.component("regions-table", {
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined);
         },
-        filtered() {
-            // const filtered = this.sortedRegions.filter(item => {
-            //     return Object.keys(this.filters).every(key => {
-            //         //console.log("check", key);
-            //         if (
-            //             Array.isArray(this.filters[key]) &&
-            //             this.filters[key].length > 0
-            //         ) {
-            //             // console.log("here", key);
-            //             console.log("keys", Object.keys(this.filters[key]));
-            //             return Object.keys(this.filters[key]).every(i => {
-            //                 // console.log("index", k);
-            //                 // console.log("index2", this.filters[key][k]);
-            //                 return String(item[key]) == this.filters[key][i];
-            //             });
-            //         } else {
-            //             console.log("there");
-            //             if (this.filters[key] != "")
-            //                 return String(item[key]) == this.filters[key];
-            //             // else return true;
-            //         }
-            //         return true;
-            //     });
-            // });
-            // console.log("FF ", filtered);
-            // return filtered.length > 0
-            //     ? filtered
-            //     : [
-            //           {
-            //               annotation: [],
-            //               method: "",
-            //               tissue: ""
-            //           }
-            //       ];
-            //
-            //);
-            //return this.sortedRegions;
+        // filtered() {
+        // const filtered = this.sortedRegions.filter(item => {
+        //     return Object.keys(this.filters).every(key => {
+        //         //console.log("check", key);
+        //         if (
+        //             Array.isArray(this.filters[key]) &&
+        //             this.filters[key].length > 0
+        //         ) {
+        //             // console.log("here", key);
+        //             console.log("keys", Object.keys(this.filters[key]));
+        //             return Object.keys(this.filters[key]).every(i => {
+        //                 // console.log("index", k);
+        //                 // console.log("index2", this.filters[key][k]);
+        //                 return String(item[key]) == this.filters[key][i];
+        //             });
+        //         } else {
+        //             console.log("there");
+        //             if (this.filters[key] != "")
+        //                 return String(item[key]) == this.filters[key];
+        //             // else return true;
+        //         }
+        //         return true;
+        //     });
+        // });
+        // console.log("FF ", filtered);
+        // return filtered.length > 0
+        //     ? filtered
+        //     : [
+        //           {
+        //               annotation: [],
+        //               method: "",
+        //               tissue: ""
+        //           }
+        //       ];
+        //
+        //);
+        //return this.sortedRegions;
 
-            //works
-            // return filterDropdown(
-            //     this.sortedRegions,
-            //     "annotation",
-            //     this.filters["annotation"]
-            // );
-            //works on tissue
-            // return filterTissue(
-            //     this.sortedRegions,
-            //     "tissue",
-            //     this.filters["tissue"]
-            // );
+        //works
+        // return filterDropdown(
+        //     this.sortedRegions,
+        //     "annotation",
+        //     this.filters["annotation"]
+        // );
+        //works on tissue
+        // return filterTissue(
+        //     this.sortedRegions,
+        //     "tissue",
+        //     this.filters["tissue"]
+        // );
 
-            return filterDropdown(this.sortedRegions, this.filters);
-        },
-        tabledata() {}
+        //    return filterDropdown(this.sortedRegions, this.filters);
+        //},
+        tableData() {
+            if (!!this.annotations) {
+                return filterRegion(
+                    this.sortedRegions,
+                    this.annotations,
+                    "annotation"
+                );
+            }
+            if (!!this.methods) {
+                return filterRegion(this.sortedRegions, this.methods, "method");
+            }
+            if (!!this.tissues) {
+                return filterRegion(this.sortedRegions, this.tissues, "tissue");
+            }
+            return this.sortedRegions;
+        }
     },
 
     methods: {
-        checkFilter(n, h) {}
+        filterRegion(event) {
+            // console.log("data", data);
+            // console.log("value", value);
+            // console.log("key", key);
+            console.log("event", event);
+            //this.tableData = filterRegion(data, value, key);
+        }
     }
 });
 </script>
