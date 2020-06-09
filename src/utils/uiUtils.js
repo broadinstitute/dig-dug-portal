@@ -42,21 +42,41 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
 
 let showHideHelpContent = function (ELEMENT) {
     let element = checkExist(ELEMENT);
-    if (!!element) {
-        if (element.classList.contains('hidden')) {
 
-            element.classList.remove('hidden');
-            let intViewportWidth = window.innerWidth;
-            let elementLeft = (intViewportWidth - element.offsetWidth) / 2 + 'px';
+    console.log("called")
 
-            element.style.setProperty('left', elementLeft);
+    if (element.classList.contains('hidden')) {
 
-        } else {
-            element.classList.add('hidden');
-            hideElement(ELEMENT);
-        }
+        element.classList.remove('hidden');
+        let intViewportWidth = window.innerWidth;
+        let elementWidth = element.offsetWidth;
+
+        let location = getOffset(document.getElementsByClassName(ELEMENT)[0]);
+
+        let elementLeft = (location.left > (intViewportWidth - elementWidth)) ? -(elementWidth + 10) : 30;
+
+        element.style.setProperty('left', elementLeft + 'px');
+
+    } else {
+        element.classList.add('hidden');
     }
 };
+
+
+let getOffset = function (ELEMENT) {
+    let _x = 0;
+    let _y = 0;
+    while (
+        ELEMENT &&
+        !isNaN(ELEMENT.offsetLeft) &&
+        !isNaN(ELEMENT.offsetTop)
+    ) {
+        _x += ELEMENT.offsetLeft - ELEMENT.scrollLeft;
+        _y += ELEMENT.offsetTop - ELEMENT.scrollTop;
+        ELEMENT = ELEMENT.offsetParent;
+    }
+    return { top: _y, left: _x };
+}
 
 let switchViews = function (VIEWS) {
     let x = VIEWS.length;
@@ -101,6 +121,7 @@ let showHideByClass = function (CLASS) {
         element[i].classList.toggle("hidden");
     }
 };
+
 
 
 export default {
