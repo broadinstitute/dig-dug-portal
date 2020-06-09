@@ -193,14 +193,13 @@ export default Vue.component("regions-table", {
                     this.annotations,
                     "annotation"
                 );
-            }
-            if (!!this.methods) {
+            } else if (!!this.methods) {
                 return filterRegion(this.sortedRegions, this.methods, "method");
-            }
-            if (!!this.tissues) {
+            } else if (!!this.tissues) {
                 return filterRegion(this.sortedRegions, this.tissues, "tissue");
+            } else {
+                return this.sortedRegions;
             }
-            return this.sortedRegions;
         }
     },
 
