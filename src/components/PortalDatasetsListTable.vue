@@ -215,7 +215,7 @@ export default Vue.component("portal-datasets-list-table", {
         },
 
         rawDatasets: function() {
-            var filteredDatasets = [].slice
+            let filteredDatasets = [].slice
                 .call(this.datasetsList)
                 .filter(dataset => {
                     let contents =
