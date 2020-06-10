@@ -109,6 +109,10 @@ function betaOddsFormatter(value) {
     return floatFormatter(value, { expThreshold: undefined, fixedPrecision: 4 });
 }
 
+function zscoreFormatter(value) {
+    return floatFormatter(value, {});
+}
+
 function intFormatter(value) {
     return !!value ? Number.parseInt(value).toLocaleString() : '-';
 }
