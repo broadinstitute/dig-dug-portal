@@ -109,7 +109,6 @@ function pvalueFormatter(value) {
     } else {
         return x.toFixed(5);
     }
-
 }
 
 function betaOddsFormatter(value) {

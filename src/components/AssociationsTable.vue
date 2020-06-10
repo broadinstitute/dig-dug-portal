@@ -108,7 +108,7 @@ export default Vue.component("associations-table", {
                     {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
-                        formatter: Formatters.floatFormatter,
+                        formatter: Formatters.pvalueFormatter,
                         tdClass(x) {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
@@ -123,7 +123,7 @@ export default Vue.component("associations-table", {
                                 x = Math.exp(x);
                             }
 
-                            return Formatters.floatFormatter(x);
+                            return Formatters.betaOddsFormatter(x);
                         }
                     }
                 ]);
