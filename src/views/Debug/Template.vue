@@ -1,18 +1,18 @@
 <template>
     <div>
-        <h3> Add Track </h3>
+        <h3> Add Tracks </h3>
 
-        <label for='phenotype'>Phenotype</label><br>
-        <input id='phenotype' v-model="$parent.trackPhenotype"/><br>
-        <button v-on:click="$parent.addAssociationsTrack">Add Association Track</button><br>
+        <tissue-selectpicker
+            :tissues="$parent.tissues"
+        ></tissue-selectpicker>
+        <button v-on:click="$parent.addIntervalsTrack">Add Interval Track</button><br>
 
         <br>
 
-        <label for='tissue'>Tissue</label><br>
-        <input id='tissue' v-model="$parent.trackTissueDescription"/><br>
-        <button v-on:click="$parent.addIntervalsTrack">Add Interval Track</button><br>
-
-        
+        <credible-sets-selectpicker
+            :credibleSets="$parent.credibleSets"
+        ></credible-sets-selectpicker>
+        <button v-on:click="$parent.addCredibleSetsTrack">Add Credible Sets Track</button><br>
 
         <igv ref="igv"
             :chr="$store.state.chr"

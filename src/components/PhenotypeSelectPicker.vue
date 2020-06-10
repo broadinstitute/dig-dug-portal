@@ -5,8 +5,7 @@
         placeholder="Type in a phenotype ..."
         :data="phenotypeOptions"
         :serializer="s => s.description"
-        @hit="onPhenotypeSelected($event)"
-    >
+        @hit="onPhenotypeSelected($event)">
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small class="text-secondary">{{ data.group }}</small>
@@ -18,7 +17,6 @@
 import Vue from "vue";
 import _ from "lodash";
 
-import keyParams from "@/utils/keyParams";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";

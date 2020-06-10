@@ -137,7 +137,7 @@ export class BioIndexReader {
 }
 
 export function igvError(error) {
-    postAlertError(error.detail);
+    // postAlertError(error.detail);
 }
 
 

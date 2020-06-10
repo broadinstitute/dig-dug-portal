@@ -20,6 +20,7 @@ export default new Vuex.Store({
     state: {
         variantID: keyParams.variant,
         newVariantID: null,
+        currentTissue: '',
     },
 
     mutations: {

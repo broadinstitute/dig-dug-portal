@@ -11,14 +11,14 @@
                         Chromosome: Start position - End position
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('regionSearchHolder','region_gene_search')"
+                            v-on:click="() => $parent.showHideElement('regionSearchHolder','region_gene_search')"
                         >Edit position / Search gene</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title">
                         Phenotype
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('phenotypeSearchHolder')"
+                            v-on:click="() => $parent.showHideElement('phenotypeSearchHolder')"
                         >Select phenotype</a>
                     </div>
                     <div class="col-md-8 gene-page-header-body regionInfo">
@@ -135,37 +135,6 @@
                 </div>
             </div>
 
-
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        v-if="$store.state.phenotype"
-                        class="card-title"
-                    >Credible Sets for {{$store.state.phenotype.description}} and Tissue Annotations</h4>
-
-
-
-                    <div v-if="$store.state.phenotype">
-                        <igv ref="igv"
-                            :chr="$store.state.chr"
-                            :start="$store.state.start"
-                            :end="$store.state.end">
-
-                            <igv-associations-track
-                                :phenotype="$store.state.phenotype.name"
-                                :visualization="'gwas'">
-                            </igv-associations-track>
-
-                            <igv-intervals-track
-                                :tissue="'liver'">
-                            </igv-intervals-track>
-
-                        </igv>
-                    </div>
-
-                </div>
-            </div>
-
             <div v-if="$store.state.phenotype" class="card mdkp-card">
                 <div class="card-body">
                     <h4
@@ -178,6 +147,36 @@
                     ></associations-table>
                 </div>
             </div>
+
+            <div v-if="!!$store.state.phenotype" class="card mdkp-card">
+
+                <div class="card-body">
+                    <h4 class="card-title"
+                    >Credible Sets and Tissue Annotations for {{$store.state.phenotype.description}} in the region: {{$parent.regionString}}</h4>
+
+                    <tissue-selectpicker
+                        :tissues="$parent.tissues"
+                    ></tissue-selectpicker>
+                    pValue <input v-model.number="$parent.pValue"/>
+                    beta <input v-model.number="$parent.beta"/><br>
+                    <button v-on:click="$parent.addIntervalsTrack">Add Interval Track</button><br>
+
+                    <credible-sets-selectpicker
+                        :credibleSets="$parent.credibleSets"
+                    ></credible-sets-selectpicker>
+                    <button v-on:click="$parent.addCredibleSetsTrack">Add Credible Sets Track</button><br>
+
+                    <!-- <div v-if="$parent.credibleSets.length > 0 || $parent.tissues.length > 0 "> -->
+                    <igv ref="igv"
+                        :chr="$store.state.chr"
+                        :start="$store.state.start"
+                        :end="$store.state.end">
+                    </igv>
+                    <!-- </div> -->
+
+                </div>
+            </div>
+
         </div>
 
         <!-- Footer-->

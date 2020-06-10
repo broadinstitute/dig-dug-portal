@@ -15,7 +15,9 @@ export default new Vuex.Store({
         associations: bioIndex("associations"),
         topAssociations: bioIndex("top-associations"),
         variants: bioIndex("variants"),
-        datasets
+        credibleSets: bioIndex("credible-sets"),
+        credibleVariants: bioIndex("credible-variants"),
+        regions: bioIndex("regions"),
     },
     state: {
         // user-entered locus
@@ -30,7 +32,8 @@ export default new Vuex.Store({
         newEnd: keyParams.end,
         gene: null,
 
-        variants: [],
+        currentTissue: '',
+        currentCredibleSet: '',
 
     },
     mutations: {
@@ -50,10 +53,19 @@ export default new Vuex.Store({
                 end: state.end,
             });
         },
+        setCurrentTissue(state, tissue) {
+            state.currentTissue = tissue;
+        },
+        setCredibleSet(state, credibleSet) {
+            state.currentCredibleSet = credibleSet;
+        },
     },
     actions: {
-        onDatasetChange() {
-
-        }
+        onCredibleSetChange(context, eventData) {
+            context.commit('setCredibleSet', eventData.credibleSetId)
+        },
+        onTissueChange(context, eventData) {
+            context.commit('setCurrentTissue', eventData.description)
+        },
     }
 });

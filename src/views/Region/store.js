@@ -18,6 +18,9 @@ export default new Vuex.Store({
         topAssociations: bioIndex("top-associations"),
         variants: bioIndex("variants"),
         documentation: bioIndex("documentation"),
+        regions: bioIndex("regions"),
+        credibleSets: bioIndex("credible-sets"),
+        globalEnrichment: bioIndex("global-enrichment"),
     },
     state: {
         // only used at the start
@@ -36,6 +39,12 @@ export default new Vuex.Store({
         searchGene: null,
     },
     mutations: {
+        setCurrentTissue(state, tissue) {
+            state.currentTissue = tissue;
+        },
+        setCredibleSet(state, credibleSet) {
+            state.currentCredibleSet = credibleSet;
+        },
         setSelectedPhenotype(state, phenotype) {
             state.phenotypeParam = null;
             state.phenotype = phenotype;
@@ -84,6 +93,14 @@ export default new Vuex.Store({
             context.commit('setSelectedPhenotype', phenotype);
         },
 
+        async onTissueChange(context, eventData) {
+            context.commit('setCurrentTissue', eventData.tissue.description)
+        },
+
+        async onCredibleSetChange(context, eventData) {
+            context.commit('setCredibleSet', eventData.credibleSetId)
+        },
+
         async findGene(context) {
             if (context.state.searchGene) {
                 let locus = await regionUtils.parseRegion(context.state.searchGene, true, 50000);
@@ -118,6 +135,15 @@ export default new Vuex.Store({
                 // find all the top associations and genes in the region
                 context.dispatch('topAssociations/query', { q: context.getters.region });
                 context.dispatch('genes/query', { q: context.getters.region });
+
+                // for variant prioritizer
+
+                // together these constitute a filtered set of region annotations
+                context.dispatch('globalEnrichment/query', { q: keyParams.phenotype });
+                context.dispatch('regions/query', { q: context.getters.region });
+
+                context.dispatch('credibleSets/query', { q: `${keyParams.phenotype},${context.getters.region}` });
+
             }
         },
 
@@ -138,5 +164,7 @@ export default new Vuex.Store({
         //     let name = "template string" //get it as props
         //     context.dispatch('portal/documentation', query);
         // }
+
+
     }
 });

@@ -1,6 +1,5 @@
 import merge from "lodash.merge";
-import queryString from "query-string";
-import { BIO_INDEX_HOST, query } from "@/utils/bioIndexUtils";
+import { query } from "@/utils/bioIndexUtils";
 import {
     postAlertNotice,
     postAlertError,
@@ -22,7 +21,6 @@ export default function (index, extend) {
 
                 // accumulated information from query responses
                 data: [],
-                count: null,
                 profile: {},
                 progress: null,
 
@@ -67,10 +65,6 @@ export default function (index, extend) {
                 state.profile = json.profile;
             },
 
-            setCount(state, n) {
-                state.count = n;
-            },
-
             setProgress(state, progress) {
                 state.progress = progress;
             },
@@ -85,20 +79,8 @@ export default function (index, extend) {
             async tap(context, args) {
                 console.log(args);
             },
-            async count(context, { q }) {
-                let qs = queryString.stringify({ q });
-                let json = await fetch(
-                    `${BIO_INDEX_HOST}/api/bio/count/${index}?${qs}`
-                )
-                    .then(resp => resp.json())
-                    .catch(error => {
-                        count: null;
-                    });
-
-                context.commit("setCount", json.count);
-            },
-
             async query(context, { q, limit }) {
+                console.log('querying', index)
                 let profile = {
                     fetch: 0,
                     query: 0

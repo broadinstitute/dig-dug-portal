@@ -26,7 +26,7 @@ import {
 } from "@/utils/igvUtils";
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack";
 
-import * as $ from "jquery";
+import * as _ from "lodash";
 
 export default Vue.component('igv', {
   props: [
@@ -118,11 +118,10 @@ export default Vue.component('igv', {
         });
 
         browser.on('trackclick', (track, popupData) => {
-            console.log(popupData);
             if (!!this.popupHandler) {
                 this.popupHandler(track, popupData);
             } else {
-                popupData.foreach(nameValuePair => {
+                popupData.forEach(nameValuePair => {
                     if (!!nameValuePair.name) {
                         if (!!nameValuePair.value) {
                             // EITHER:
@@ -135,6 +134,10 @@ export default Vue.component('igv', {
             }
             return false;
         });
+
+        browser.on('locuschange', _.debounce(locus => {
+            console.log(locus);
+        }, 300));
 
       },
 

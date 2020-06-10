@@ -43,6 +43,14 @@ export default Vue.component('igv-credible-variants-track', {
             }
         },
 
+        pValue: {
+
+        },
+
+        beta: {
+
+        },
+
         finishHandler: {
             type: Function,
             required: false
@@ -68,7 +76,7 @@ export default Vue.component('igv-credible-variants-track', {
             return `${this.phenotype} ${this.credibleSetId}`
         },
         queryStringMaker: function () {
-            return (chr, start, end) => `${this.phenotype},${this.credibleSetId},${chr}:${start}-${end}`;
+            return (chr, start, end) => `${this.phenotype},${this.credibleSetId}`;
         },
     },
 
