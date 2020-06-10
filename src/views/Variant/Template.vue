@@ -5,8 +5,10 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <div class="gene-page-header card mdkp-card">
-                <documentation name="variant.pageheader"></documentation>
+            <div class="card mdkp-card">
+                <div class="card-body row">
+                    <documentation name="variant.pageheader"></documentation>
+                </div>
             </div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
