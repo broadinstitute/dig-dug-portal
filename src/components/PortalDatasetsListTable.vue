@@ -66,7 +66,7 @@
                 <tbody>
                     <tr
                         v-for="(row, i) in datasetsListNew"
-                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) &&  (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))"
+                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) &&  (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedPhenotypeGroup == null || row.phenotype_group.includes(selectedPhenotypeGroup)) &&(selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))"
                     >
                         <td class="column name">
                             <a
@@ -115,7 +115,7 @@
                 <tbody>
                     <tr
                         v-for="(row, i) in datasetsListNotNew"
-                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))"
+                        v-if="(selectedDatatype == null || selectedDatatype == row.field_data_type) && (selectedPhenotype == null || row.field_phenotypes.includes(selectedPhenotype) ) && (selectedPhenotypeGroup == null || row.phenotype_group.includes(selectedPhenotypeGroup)) &&(selectedDiseaseGroup == null || row.field_portals.includes(selectedDiseaseGroup))"
                     >
                         <td class="column name">
                             <a
@@ -192,6 +192,31 @@ export default Vue.component("portal-datasets-list-table", {
             return content;
         },
 
+        phenotypeGroups: function() {
+            let content = [...new Set(this.rawPhenotypes.map(x => x.group))];
+            content.push("Show all");
+
+            return content;
+        },
+
+        phenotypesByGroups: function() {
+            let content = {};
+
+            this.phenotypeGroups.map(x => {
+                let tempArray = [];
+
+                this.phenotypes.map(p => {
+                    if (p.group == x) {
+                        tempArray.push(p.description.toLowerCase().trim());
+                    }
+                });
+
+                content[x] = tempArray;
+            });
+
+            return content;
+        },
+
         phenotypesInSelectedGroups: function() {
             let content = [];
 
@@ -237,6 +262,28 @@ export default Vue.component("portal-datasets-list-table", {
                 .call(this.rawDatasets)
                 .filter(dataset => dataset["field_featured"] != "featured");
 
+            let phenotypesByGroups = this.phenotypesByGroups;
+
+            newDatasets.map(x => {
+                let datasetPhenotypes = x.field_phenotypes.split("\r\n");
+
+                let groupKeys = Object.keys(phenotypesByGroups);
+                let datasetPGroup = [];
+
+                for (let group of groupKeys) {
+                    let tempGroupPhenotypes = phenotypesByGroups[group];
+
+                    let intersectings = datasetPhenotypes.filter(p =>
+                        tempGroupPhenotypes.includes(p.toLowerCase().trim())
+                    );
+
+                    if (intersectings.length > 0) {
+                        datasetPGroup.push(group);
+                    }
+                }
+                x["phenotype_group"] = datasetPGroup;
+            });
+
             let ascending = this.ascending;
             let key = this.sortKey;
             let isNumeric = key == "field_samples" ? true : false;
@@ -249,6 +296,28 @@ export default Vue.component("portal-datasets-list-table", {
                 .call(this.rawDatasets)
                 .filter(dataset => dataset["field_featured"] == "featured");
 
+            let phenotypesByGroups = this.phenotypesByGroups;
+
+            newDatasets.map(x => {
+                let datasetPhenotypes = x.field_phenotypes.split("\r\n");
+
+                let groupKeys = Object.keys(phenotypesByGroups);
+                let datasetPGroup = [];
+
+                for (let group of groupKeys) {
+                    let tempGroupPhenotypes = phenotypesByGroups[group];
+
+                    let intersectings = datasetPhenotypes.filter(p =>
+                        tempGroupPhenotypes.includes(p.toLowerCase().trim())
+                    );
+
+                    if (intersectings.length > 0) {
+                        datasetPGroup.push(group);
+                    }
+                }
+                x["phenotype_group"] = datasetPGroup;
+            });
+
             let ascending = this.ascending;
             let key = this.sortKey;
             let isNumeric = key == "field_samples" ? true : false;
@@ -260,13 +329,6 @@ export default Vue.component("portal-datasets-list-table", {
             let content = [
                 ...new Set(this.rawDatasets.map(x => x.field_data_type))
             ];
-            content.push("Show all");
-
-            return content;
-        },
-
-        phenotypeGroups: function() {
-            let content = [...new Set(this.rawPhenotypes.map(x => x.group))];
             content.push("Show all");
 
             return content;
@@ -283,7 +345,8 @@ export default Vue.component("portal-datasets-list-table", {
         setSeletedPhenotypeGroup(phenotypeGroup) {
             this.selectedPhenotypeGroup =
                 phenotypeGroup == "Show all" ? null : phenotypeGroup;
-            if (phenotypeGroup == "Show all") this.selectedPhenotype = null;
+
+            this.selectedPhenotype = null;
         },
         setSeletedPhenotype(phenotype) {
             this.selectedPhenotype = phenotype;
