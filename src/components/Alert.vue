@@ -25,7 +25,7 @@ export default Vue.component("alert", {
                 warning: "Warning",
                 danger: "Error!",
                 primary: "Notice",
-                secondary: "System Notice"
+                secondary: "Status"
             };
             this.$bvToast.toast(alert.message, {
                 id: alert.params ? alert.params.id : null,
