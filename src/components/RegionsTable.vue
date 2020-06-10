@@ -22,26 +22,55 @@
                             <span class="sr-only">Region</span>
                         </b-th>
                         <b-th>
+                            <div>Filter by annotations:</div>
+                            <div v-if="annotations">
+                                <b-badge
+                                    pill
+                                    variant="info"
+                                    v-for="(v,i) in annotations"
+                                    :key="v"
+                                    @click="removeFilter(i, 'annotations')"
+                                    class="btn"
+                                >{{v}}</b-badge>
+                            </div>
                             <b-form-select
-                                v-model="annotations"
+                                @input="addFilter($event, 'annotations')"
                                 :options="filter_annotation"
-                                multiple
-                            >
-                                <b-form-select-option value>Select a filter</b-form-select-option>
-                            </b-form-select>
+                            ></b-form-select>
                         </b-th>
                         <b-th>
+                            <div>Filter by methods:</div>
+                            <div v-if="methods">
+                                <b-badge
+                                    pill
+                                    variant="info"
+                                    v-for="(v,i) in methods"
+                                    :key="v"
+                                    @click="removeFilter(i, 'methods')"
+                                    class="btn"
+                                >{{v}}</b-badge>
+                            </div>
                             <b-form-select
-                                @input="addFilter($event, 'meth')"
+                                @input="addFilter($event, 'methods')"
                                 :options="filter_method"
-                            >
-                                <b-form-select-option value>Select a filter</b-form-select-option>
-                            </b-form-select>
+                            ></b-form-select>
                         </b-th>
                         <b-th>
-                            <b-form-select v-model="tissues" :options="filter_tissue" multiple>
-                                <b-form-select-option value>Select a filter</b-form-select-option>
-                            </b-form-select>
+                            <div>Filter by tissues:</div>
+                            <div v-if="tissues">
+                                <b-badge
+                                    pill
+                                    variant="info"
+                                    v-for="(v,i) in tissues"
+                                    :key="v"
+                                    @click="removeFilter(i, 'tissues')"
+                                    class="btn"
+                                >{{v}}</b-badge>
+                            </div>
+                            <b-form-select
+                                @input="addFilter($event, 'tissues')"
+                                :options="filter_tissue"
+                            ></b-form-select>
                         </b-th>
                     </b-tr>
                 </template>
@@ -102,9 +131,8 @@ export default Vue.component("regions-table", {
             ],
 
             annotations: [],
-            meth: [],
+            methods: [],
             tissues: []
-            //tableData: ""
         };
     },
     mounted() {
@@ -137,59 +165,6 @@ export default Vue.component("regions-table", {
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined);
         },
-        // filtered() {
-        // const filtered = this.sortedRegions.filter(item => {
-        //     return Object.keys(this.filters).every(key => {
-        //         //console.log("check", key);
-        //         if (
-        //             Array.isArray(this.filters[key]) &&
-        //             this.filters[key].length > 0
-        //         ) {
-        //             // console.log("here", key);
-        //             console.log("keys", Object.keys(this.filters[key]));
-        //             return Object.keys(this.filters[key]).every(i => {
-        //                 // console.log("index", k);
-        //                 // console.log("index2", this.filters[key][k]);
-        //                 return String(item[key]) == this.filters[key][i];
-        //             });
-        //         } else {
-        //             console.log("there");
-        //             if (this.filters[key] != "")
-        //                 return String(item[key]) == this.filters[key];
-        //             // else return true;
-        //         }
-        //         return true;
-        //     });
-        // });
-        // console.log("FF ", filtered);
-        // return filtered.length > 0
-        //     ? filtered
-        //     : [
-        //           {
-        //               annotation: [],
-        //               method: "",
-        //               tissue: ""
-        //           }
-        //       ];
-        //
-        //);
-        //return this.sortedRegions;
-
-        //works
-        // return filterDropdown(
-        //     this.sortedRegions,
-        //     "annotation",
-        //     this.filters["annotation"]
-        // );
-        //works on tissue
-        // return filterTissue(
-        //     this.sortedRegions,
-        //     "tissue",
-        //     this.filters["tissue"]
-        // );
-
-        //    return filterDropdown(this.sortedRegions, this.filters);
-        //},
         tableData() {
             if (!!this.annotations) {
                 return filterRegion(
@@ -209,16 +184,11 @@ export default Vue.component("regions-table", {
     },
 
     methods: {
-        filterRegion(event) {
-            // console.log("data", data);
-            // console.log("value", value);
-            // console.log("key", key);
-            console.log("event", event);
-            //this.tableData = filterRegion(data, value, key);
-        },
         addFilter(event, obj) {
-            console.log(event);
             this[obj].push(event);
+        },
+        removeFilter(index, obj) {
+            this[obj].splice(index, 1);
         }
     }
 });
