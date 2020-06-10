@@ -117,6 +117,10 @@ function effectFormatter(value) {
     return Number.parseFloat(value).toFixed(4);
 }
 
+function zscoreFormatter(value) {
+    return floatFormatter(value, {});
+}
+
 function intFormatter(value) {
     return !!value ? Number.parseInt(value).toLocaleString() : '-';
 }

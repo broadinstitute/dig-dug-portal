@@ -76,7 +76,7 @@ export default Vue.component("phewas-table", {
                 {
                     key: "zScore",
                     label: "Z-Score",
-                    formatter: Formatters.floatFormatter
+                    formatter: Formatters.zscoreFormatter
                 },
                 {
                     key: "n",
