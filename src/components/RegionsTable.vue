@@ -31,7 +31,10 @@
                             </b-form-select>
                         </b-th>
                         <b-th>
-                            <b-form-select v-model="methods" :options="filter_method" multiple>
+                            <b-form-select
+                                @input="addFilter($event, 'meth')"
+                                :options="filter_method"
+                            >
                                 <b-form-select-option value>Select a filter</b-form-select-option>
                             </b-form-select>
                         </b-th>
@@ -99,7 +102,7 @@ export default Vue.component("regions-table", {
             ],
 
             annotations: [],
-            methods: [],
+            meth: [],
             tissues: []
             //tableData: ""
         };
@@ -109,6 +112,8 @@ export default Vue.component("regions-table", {
     },
 
     computed: {
+        console: () => console,
+        window: () => window,
         rows() {
             return this.tableData.length;
         },
@@ -192,7 +197,8 @@ export default Vue.component("regions-table", {
                     this.annotations,
                     "annotation"
                 );
-            } else if (!!this.methods) {
+            } else if (!!this.meth) {
+                console.log("here this");
                 return filterRegion(this.sortedRegions, this.methods, "method");
             } else if (!!this.tissues) {
                 return filterRegion(this.sortedRegions, this.tissues, "tissue");
@@ -209,6 +215,10 @@ export default Vue.component("regions-table", {
             // console.log("key", key);
             console.log("event", event);
             //this.tableData = filterRegion(data, value, key);
+        },
+        addFilter(event, obj) {
+            console.log(event);
+            this[obj].push(event);
         }
     }
 });

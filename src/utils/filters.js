@@ -71,10 +71,10 @@ export function filterBeta(data, value, key) {
     }
 }
 
-export function filterPValue(data, value) {
+export function filterPValue(data, value, key = "pValue") {
     if (!!value)
         return data.filter(row => {
-            return row["pValue"] <= value;
+            return row[key] <= value;
         });
     else return data;
 }
