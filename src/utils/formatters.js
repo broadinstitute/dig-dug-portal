@@ -87,40 +87,31 @@ function dbSNPFormatter(dbSNP) {
     return dbSNP;
 }
 
-function floatFormatter(value, precision) {
+function floatFormatter(value, { expThreshold = 1e-5, expPrecision = 2, fixedPrecision = 7 }) {
     if (!value) {
         return '-';
     }
 
     let x = Number.parseFloat(value);
 
-
-    if (Math.abs(x) < 1e-5) {
-        return x.toExponential(precision);
+    if (Math.abs(x) < expThreshold) {
+        return x.toExponential(expPrecision);
     } else {
-        return x.toFixed(precision);
+        return x.toFixed(fixedPrecision);
     }
 }
 
 function pvalueFormatter(value) {
-    let x = Number.parseFloat(value);
-    if (Math.abs(x) < 1e-5) {
-        return floatFormatter(value, 2);
-    } else {
-        return x.toFixed(5);
-    }
-
+    return floatFormatter(value, {});
 }
 
 function betaOddsFormatter(value) {
-    return floatFormatter(value, 4);
+    return floatFormatter(value, { expThreshold: undefined, fixedPrecision: 4 });
 }
 
 function intFormatter(value) {
-    return !!value ? Number.parseFloat(value).toFixed(0).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,") : '-';
+    return !!value ? Number.parseInt(value).toLocaleString() : '-';
 }
-
-
 
 function locusFormatter(chromosome, position, end = undefined) {
     if (!!end) {
