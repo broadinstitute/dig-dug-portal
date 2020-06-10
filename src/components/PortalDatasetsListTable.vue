@@ -167,7 +167,7 @@ export default Vue.component("portal-datasets-list-table", {
             selectedDatatype: null,
             selectedDiseaseGroup: null,
             sortKey: "field_samples",
-            ascending: true
+            ascending: false
         };
     },
     computed: {

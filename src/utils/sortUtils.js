@@ -1,13 +1,11 @@
 let sort = function (data, key, isNumeric, isAscending) {
     return data.sort(function (a, b) {
+        var x = a[key].toLowerCase();
+        var y = b[key].toLowerCase();
+
         if (isNumeric) {
-            var x = a[key].replace(/\,/g, "");
-            x = Number(x);
-            var y = b[key].replace(/\,/g, "");
-            y = Number(y);
-        } else {
-            var x = a[key].toLowerCase();
-            var y = b[key].toLowerCase();
+            x = Number(x.replace(/\,/g, ""));
+            y = Number(y.replace(/\,/g, ""));
         }
 
         if (isAscending) {
