@@ -87,26 +87,34 @@ function dbSNPFormatter(dbSNP) {
     return dbSNP;
 }
 
-function floatFormatter(value, { expThreshold = 1e-5, expPrecision = 2, fixedPrecision = 7 }) {
+function floatFormatter(value) {
+    if (!value) {
+        return '-';
+    }
+    return Number.parseFloat(value).toFixed(2);
+}
+
+
+
+function pValueFormatter(value) {
     if (!value) {
         return '-';
     }
 
     let x = Number.parseFloat(value);
 
-    if (Math.abs(x) < expThreshold) {
-        return x.toExponential(expPrecision);
+    if (x < 1e-5) {
+        return x.toExponential(2);
     } else {
-        return x.toFixed(fixedPrecision);
+        return x.toFixed(7);
     }
 }
 
-function pvalueFormatter(value) {
-    return floatFormatter(value, {});
-}
-
-function betaOddsFormatter(value) {
-    return floatFormatter(value, { expThreshold: undefined, fixedPrecision: 4 });
+function effectFormatter(value) {
+    if (!value) {
+        return '-';
+    }
+    return Number.parseFloat(value).toFixed(4);
 }
 
 function intFormatter(value) {
@@ -146,6 +154,6 @@ export default {
     locusFormatter,
     phenotypeFormatter,
     tissueFormatter,
-    pvalueFormatter,
-    betaOddsFormatter,
+    pValueFormatter,
+    effectFormatter
 }
