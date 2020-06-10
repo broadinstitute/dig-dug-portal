@@ -99,7 +99,11 @@
     position: relative;
 }
 
-.help-content-caller, .help-short-content-caller {
+.help-content:hover .help-hover-content-modal {
+    display: block !important;
+}
+
+.help-content-caller {
     display: block;
     color: #fff;
     background-color: #777;
@@ -109,8 +113,21 @@
     position: relative;
 }
 
-.help-content-caller:hover, .help-short-content-caller:hover {
+.help-content-caller:hover {
     background-color: #000;
+    cursor: pointer;
+}
+
+.help-content-caller.hover {
+    display: block;
+    color: #0099FF;
+    margin-left: -0.45em;
+    background: none;
+    font-size: 1.15em;
+    position: relative;
+}
+
+.help-content-caller.hover:hover {
     cursor: pointer;
 }
 
@@ -133,7 +150,7 @@
     top: 0;
 }
 
-.help-short-content-modal {
+.help-hover-content-modal {
     width: 300px;
     height: auto;
     background-color: #fff;
@@ -172,7 +189,7 @@
     margin: 0px 0 15px 20px;
 }
 
-.help-short-content-modal .help-content-wrapper {
+.help-hover-content-modal .help-content-wrapper {
     max-height: 540px;
     overflow-y: unset;
     padding: 0;

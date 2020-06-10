@@ -2,24 +2,24 @@
 <template>
     <div class="help-content">
         <span
-            v-if="longContent == true"
+            v-if="this.isHover == false"
             class="help-content-caller"
             :class="contentID"
             v-on:click="showHideHelpContent(contentID)"
         >&#63;</span>
         <span
-            v-if="longContent == false"
-            class="help-content-caller"
+            v-if="this.isHover == true"
+            class="help-content-caller hover"
             :class="contentID"
             @mouseover="showHideHelpContent(contentID)"
             @mouseleave="showHideHelpContent(contentID)"
-        >&#63;</span>
-        <div v-if="longContent == true" class="help-content-modal hidden" :id="contentID">
+        >*</span>
+        <div v-if="this.isHover == false" class="help-content-modal hidden" :id="contentID">
             <span class="help-content-close" v-on:click="showHideHelpContent(contentID)">&#43;</span>
             <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
         </div>
 
-        <div v-if="longContent == false" class="help-short-content-modal hidden" :id="contentID">
+        <div v-if="this.isHover == true" class="help-hover-content-modal hidden" :id="contentID">
             <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
         </div>
     </div>
@@ -40,7 +40,7 @@ import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("tooltip-documentation", {
-    props: ["name", "group", "contentFill"],
+    props: ["name", "group", "contentFill", "isHover"],
     components: {
         Documentation
     },
@@ -101,14 +101,6 @@ export default Vue.component("tooltip-documentation", {
                 let contentID = this.name + "." + Math.random();
                 contentID.replace(/\./g, "_");
                 return contentID;
-            }
-        },
-        longContent() {
-            if (!!this.content) {
-                let contentLength = this.content.length > 250 ? true : false;
-
-                //contentLength = true;
-                return contentLength;
             }
         }
     },

@@ -102,13 +102,39 @@
                 </div>
 
                 <h4>
-                    Help content example
-                    <tooltip-documentation name="test.tooltip.index.regionexample" :group="'md'"></tooltip-documentation>
+                    Popup help content example
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="'md'"
+                        :isHover="false"
+                    ></tooltip-documentation>
                 </h4>
 
                 <h4 style="text-align: right">
-                    Help content example located on the right
-                    <tooltip-documentation name="test.tooltip.index.regionexample" :group="'md'"></tooltip-documentation>
+                    Popup help content example located on the right
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="'md'"
+                        :isHover="false"
+                    ></tooltip-documentation>
+                </h4>
+
+                <h4>
+                    Hover help content example
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="'md'"
+                        :isHover="true"
+                    ></tooltip-documentation>
+                </h4>
+
+                <h4 style="text-align: right">
+                    Hover content example located on the right
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="'md'"
+                        :isHover="true"
+                    ></tooltip-documentation>
                 </h4>
 
                 <loading-bar v-bind:moduleIndex="'top-associations'"></loading-bar>

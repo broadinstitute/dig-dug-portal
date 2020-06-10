@@ -43,8 +43,6 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
 let showHideHelpContent = function (ELEMENT) {
     let element = checkExist(ELEMENT);
 
-    console.log("called")
-
     if (element.classList.contains('hidden')) {
 
         element.classList.remove('hidden');
@@ -53,7 +51,7 @@ let showHideHelpContent = function (ELEMENT) {
 
         let location = getOffset(document.getElementsByClassName(ELEMENT)[0]);
 
-        let elementLeft = (location.left > (intViewportWidth - elementWidth)) ? -(elementWidth + 10) : 30;
+        let elementLeft = (location.left > (intViewportWidth - elementWidth)) ? -elementWidth : 10;
 
         element.style.setProperty('left', elementLeft + 'px');
 
