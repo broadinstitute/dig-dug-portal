@@ -69,6 +69,7 @@ export default Vue.component('igv-intervals-track', {
         return {
             index: 'regions',
             salt: Math.floor((Math.random() * 10000)).toString(),
+            padding: 0,
         }
     },
     computed: {
@@ -116,7 +117,7 @@ export default Vue.component('igv-intervals-track', {
 
     methods: {
         queryStringMaker: function (chr, start, end) {
-            return `${chr}:${start}-${end}`;
+            return `${chr}:${start-this.visibility}-${end+this.visibility}`;
         },
         intervalsForIGV: function (intervals) {
             // NOTE: Sometimes a track might not have defined data for a tissue on an interval, but was already created

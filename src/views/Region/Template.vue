@@ -154,7 +154,7 @@
                     <h4 class="card-title"
                     >Credible Sets and Tissue Annotations for {{$store.state.phenotype.description}} in the region: {{$parent.regionString}}</h4>
 
-                    <tissue-selectpicker
+                    <!-- <tissue-selectpicker
                         :tissues="$parent.tissues"
                     ></tissue-selectpicker>
                     pValue &lt; <input v-model.number="$parent.pValue"/>
@@ -164,15 +164,36 @@
                     <credible-sets-selectpicker
                         :credibleSets="$parent.credibleSets"
                     ></credible-sets-selectpicker>
-                    <button v-on:click="$parent.addCredibleSetsTrack">Add Credible Sets Track</button><br>
-
-                    <!-- <div v-if="$parent.credibleSets.length > 0 || $parent.tissues.length > 0 "> -->
+                    <button v-on:click="$parent.addCredibleSetsTrack">Add Credible Sets Track</button><br> -->
+                    <div class="row card-body">
+                        <div class="col-md-8">
+                            Tissue Annotation Track
+                        </div>
+                        <div class="col-md-4">
+                            Credible Sets Track
+                        </div>
+                        <div class="col-md-8">
+                            <tissue-selectpicker
+                                :tissues="$parent.tissues"
+                            ></tissue-selectpicker>
+                            pValue &lt; <input v-model.number="$parent.pValue"/>
+                            beta &gt; <input v-model.number="$parent.beta"/>
+                            <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotaion Track</button><br>
+                        </div>
+                        <div class="col-md-4">
+                            <credible-sets-selectpicker
+                                :credibleSets="$parent.credibleSets"
+                            ></credible-sets-selectpicker>
+                            <button v-on:click="$parent.addCredibleSetsTrack">Add Credible Sets Track</button><br>
+                        </div>
+                    </div>
+                    <div v-if="$parent.credibleSets.length > 0 || $parent.tissues.length > 0 ">
                     <igv ref="igv"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
                         :end="$store.state.end">
                     </igv>
-                    <!-- </div> -->
+                    </div>
 
                 </div>
             </div>
