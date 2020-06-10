@@ -16,10 +16,10 @@
             </template>
             <template
                 v-slot:cell(continuousEffect)="r"
-            >{{!!r.item.phenotype.dichotomous ? null : floatFormatter(r.item.beta)}}</template>
+            >{{!!r.item.phenotype.dichotomous ? null : betaOddsFormatter(r.item.beta)}}</template>
             <template
                 v-slot:cell(dichotomousEffect)="r"
-            >{{!!r.item.phenotype.dichotomous ? floatFormatter(Math.exp(r.item.beta)) : null}}</template>
+            >{{!!r.item.phenotype.dichotomous ? betaOddsFormatter(Math.exp(r.item.beta)) : null}}</template>
         </b-table>
         <b-pagination
             class="pagination-sm justify-content-center"
@@ -58,7 +58,7 @@ export default Vue.component("phewas-table", {
                 {
                     key: "pValue",
                     label: "P-Value",
-                    formatter: Formatters.floatFormatter,
+                    formatter: Formatters.pvalueFormatter,
                     tdClass(x) {
                         return !!x && x < 1e-5 ? "variant-table-cell high" : "";
                     }
@@ -66,12 +66,12 @@ export default Vue.component("phewas-table", {
                 {
                     key: "continuousEffect",
                     label: "Beta",
-                    formatter: Formatters.floatFormatter
+                    formatter: Formatters.betaOddsFormatter
                 },
                 {
                     key: "dichotomousEffect",
                     label: "Odds Ratio",
-                    formatter: Formatters.floatFormatter
+                    formatter: Formatters.betaOddsFormatter
                 },
                 {
                     key: "zScore",
@@ -111,7 +111,8 @@ export default Vue.component("phewas-table", {
 
     methods: {
         phenotypeFormatter: Formatters.phenotypeFormatter,
-        floatFormatter: Formatters.floatFormatter
+        floatFormatter: Formatters.floatFormatter,
+        betaOddsFormatter: Formatters.betaOddsFormatter
     }
 });
 </script>
