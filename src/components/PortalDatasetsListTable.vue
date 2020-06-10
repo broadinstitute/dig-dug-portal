@@ -167,7 +167,7 @@ export default Vue.component("portal-datasets-list-table", {
             selectedDatatype: null,
             selectedDiseaseGroup: null,
             sortKey: "field_samples",
-            sortDirection: "desc"
+            ascending: true
         };
     },
     computed: {
@@ -229,11 +229,7 @@ export default Vue.component("portal-datasets-list-table", {
                     return contents;
                 });
 
-            let way = this.sortDirection;
-            let key = this.sortKey;
-            let keyType = key == "field_samples" ? "number" : "";
-
-            return sortUtils.sort(filteredDatasets, key, keyType, way);
+            return filteredDatasets;
         },
 
         datasetsListNotNew: function() {
@@ -241,7 +237,11 @@ export default Vue.component("portal-datasets-list-table", {
                 .call(this.rawDatasets)
                 .filter(dataset => dataset["field_featured"] != "featured");
 
-            return newDatasets;
+            let ascending = this.ascending;
+            let key = this.sortKey;
+            let isNumeric = key == "field_samples" ? true : false;
+
+            return sortUtils.sort(newDatasets, key, isNumeric, ascending);
         },
 
         datasetsListNew: function() {
@@ -249,7 +249,11 @@ export default Vue.component("portal-datasets-list-table", {
                 .call(this.rawDatasets)
                 .filter(dataset => dataset["field_featured"] == "featured");
 
-            return newDatasets;
+            let ascending = this.ascending;
+            let key = this.sortKey;
+            let isNumeric = key == "field_samples" ? true : false;
+
+            return sortUtils.sort(newDatasets, key, isNumeric, ascending);
         },
 
         dataTypesList: function() {
@@ -286,7 +290,7 @@ export default Vue.component("portal-datasets-list-table", {
         },
         setSortKey(key) {
             this.sortKey = key;
-            this.sortDirection = this.sortDirection == "desc" ? "asc" : "desc";
+            this.ascending = this.ascending == true ? false : true;
         }
     }
 });

@@ -1,6 +1,6 @@
-let sort = function (data, key, keyType, way) {
+let sort = function (data, key, isNumeric, isAscending) {
     return data.sort(function (a, b) {
-        if (keyType == "number") {
+        if (isNumeric) {
             var x = a[key].replace(/\,/g, "");
             x = Number(x);
             var y = b[key].replace(/\,/g, "");
@@ -10,10 +10,9 @@ let sort = function (data, key, keyType, way) {
             var y = b[key].toLowerCase();
         }
 
-        if (way === "asc") {
+        if (isAscending) {
             return x < y ? -1 : x > y ? 1 : 0;
-        }
-        if (way === "desc") {
+        } else {
             return x > y ? -1 : x < y ? 1 : 0;
         }
     });
