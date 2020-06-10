@@ -117,7 +117,7 @@ function betaOddsFormatter(value) {
 }
 
 function intFormatter(value) {
-    return !!value ? Number.parseFloat(value).toFixed(0) : '-';
+    return !!value ? Number.parseFloat(value).toFixed(0).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,") : '-';
 }
 
 
