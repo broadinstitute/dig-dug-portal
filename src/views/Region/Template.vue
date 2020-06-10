@@ -157,8 +157,8 @@
                     <tissue-selectpicker
                         :tissues="$parent.tissues"
                     ></tissue-selectpicker>
-                    pValue <input v-model.number="$parent.pValue"/>
-                    beta <input v-model.number="$parent.beta"/><br>
+                    pValue &lt; <input v-model.number="$parent.pValue"/>
+                    beta &gt; <input v-model.number="$parent.beta"/><br>
                     <button v-on:click="$parent.addIntervalsTrack">Add Interval Track</button><br>
 
                     <credible-sets-selectpicker

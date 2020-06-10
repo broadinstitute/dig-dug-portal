@@ -89,7 +89,6 @@ new Vue({
         },
 
         addIntervalsTrack: function () {
-            console.log('aded intervals tracks', this.annotationScoring);
             if (!!this.$store.state.currentTissue) {
                 this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
                     data: {
