@@ -94,7 +94,7 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import { filterDropdown, filterTissue, filterRegion } from "@/utils/filters";
+import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -116,7 +116,7 @@ export default Vue.component("regions-table", {
                 {
                     key: "annotation",
                     label: "Annotation",
-                    formatter: Formatters.capitalizedFormatter
+                    formatter: Formatters.annotationFormatter
                 },
                 {
                     key: "method",
@@ -150,7 +150,7 @@ export default Vue.component("regions-table", {
         },
         filter_annotation() {
             return this.sortedRegions
-                .map(v => Formatters.capitalizedFormatter(v.annotation))
+                .map(v => Formatters.annotationFormatter(v.annotation))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         filter_method() {
@@ -167,16 +167,23 @@ export default Vue.component("regions-table", {
         },
         tableData() {
             if (!!this.annotations) {
-                return filterRegion(
+                return Filters.filterRegion(
                     this.sortedRegions,
                     this.annotations,
                     "annotation"
                 );
             } else if (!!this.meth) {
-                console.log("here this");
-                return filterRegion(this.sortedRegions, this.methods, "method");
+                return Filters.filterRegion(
+                    this.sortedRegions,
+                    this.methods,
+                    "method"
+                );
             } else if (!!this.tissues) {
-                return filterRegion(this.sortedRegions, this.tissues, "tissue");
+                return Filters.filterRegion(
+                    this.sortedRegions,
+                    this.tissues,
+                    "tissue"
+                );
             } else {
                 return this.sortedRegions;
             }

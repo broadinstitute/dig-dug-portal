@@ -50,12 +50,12 @@
                             type="number"
                             v-model="pValue"
                             placeholder="Filter pValue <="
-                            @change="filterPValue()"
+                            @change="Filter.filterPValue()"
                         ></b-form-input>
                     </b-th>
                     <b-th>
                         <b-form-group>
-                            <b-form-radio-group v-model="beta" @input="filterBeta()">
+                            <b-form-radio-group v-model="beta" @input="Filter.filterBeta()">
                                 <b-form-radio name="all" value size="sm">All</b-form-radio>
                                 <b-form-radio name="positive" value="p" size="sm">Positive</b-form-radio>
                                 <b-form-radio name="negative" value="n" size="sm">Negative</b-form-radio>
@@ -84,7 +84,7 @@ import $ from "jquery";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import { filterPhenotype, filterBeta, filterPValue } from "@/utils/filters";
+import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -174,26 +174,29 @@ export default Vue.component("phewas-table", {
         addPhenotype(event) {
             this.selectedPhenotypes.push(event.description);
             this.userText = null;
-            this.filterPhenotype();
+            this.Filers.filterPhenotype();
         },
         removePhenotype(index) {
             this.selectedPhenotypes.splice(index, 1);
-            this.filterPhenotype();
+            this.Filters.filterPhenotype();
         },
 
         filterBeta() {
-            this.tableData = filterBeta(
+            this.tableData = Filters.filterBeta(
                 this.pheWASAssociations,
                 this.beta,
                 "beta"
             );
-            this.resetOtherFilters();
+            this.Filters.resetOtherFilters();
         },
         filterPValue() {
-            this.tableData = filterPValue(this.pheWASAssociations, this.pValue);
+            this.tableData = Filters.filterPValue(
+                this.pheWASAssociations,
+                this.pValue
+            );
         },
         filterPhenotype() {
-            this.tableData = filterPhenotype(
+            this.tableData = Filters.filterPhenotype(
                 this.pheWASAssociations,
                 this.selectedPhenotypes
             );

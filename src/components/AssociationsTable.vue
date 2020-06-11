@@ -144,7 +144,7 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import { filterPValue } from "@/utils/filters";
+import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -298,7 +298,7 @@ export default Vue.component("associations-table", {
         tableData: {
             get: function() {
                 if (!!this.pValue) {
-                    return filterPValue();
+                    return Filters.filterPValue();
                 } else return this.groupedAssociations;
             },
             set: function(newValue) {}
@@ -316,7 +316,10 @@ export default Vue.component("associations-table", {
             return Formatters.dbSNPFormatter(dbSNP);
         },
         filterPValue() {
-            tableData = filterPValue(this.groupedAssociations, this.pValue);
+            tableData = Filters.filterPValue(
+                this.groupedAssociations,
+                this.pValue
+            );
         },
         addFilter(event, obj) {
             this[obj].push(event);
