@@ -9,20 +9,7 @@ import Vue from "vue";
 
 export default Vue.component("dataset-info-section", {
     props: ["datasetInfo"],
-    mounted: function() {
-        let imageElements = document.getElementsByTagName("img");
-
-        for (var i = 0; i < imageElements.length; i++) {
-            let iESrc = imageElements[i].getAttribute("src");
-            if (!iESrc.includes("http://")) {
-                let newSrc = iESrc.replace(
-                    "/sites/",
-                    "http://kp4cd.org/sites/"
-                );
-                imageElements[i].setAttribute("src", newSrc);
-            }
-        }
-    }
+    mounted: function() {}
 });
 </script>
 

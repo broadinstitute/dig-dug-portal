@@ -243,13 +243,9 @@ export default Vue.component("portal-datasets-list-table", {
             let filteredDatasets = [].slice
                 .call(this.datasetsList)
                 .filter(dataset => {
-                    let contents =
-                        this.diseaseGroup.name == "md"
-                            ? dataset["field_portals"].includes("t2d") ||
-                              dataset["field_portals"].includes("sleep") ||
-                              dataset["field_portals"].includes("cvd") ||
-                              dataset["field_portals"].includes("cd")
-                            : this.datasetsList;
+                    let contents = dataset["field_portals"].includes(
+                        this.diseaseGroup.name
+                    );
 
                     return contents;
                 });
