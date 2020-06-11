@@ -8,7 +8,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import LocusZoom from "@/components/LocusZoom";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
-import Documentation from "@/components/Documentation";
+import OneTimeMessage from "@/components/OneTimeMessage";
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -30,7 +30,7 @@ new Vue({
         LocusZoom,
         AssociationsTable,
         PhenotypeSignalMixed,
-        Documentation,
+        OneTimeMessage,
     },
 
     created() {

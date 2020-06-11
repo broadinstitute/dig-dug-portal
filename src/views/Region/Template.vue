@@ -5,11 +5,7 @@
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
-            <div class="card mdkp-card">
-                <div class="card-body row">
-                    <documentation name="region.pageheader"></documentation>
-                </div>
-            </div>
+            <one-time-message messageName="region.pageheader"></one-time-message>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">

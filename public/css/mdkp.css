@@ -849,3 +849,29 @@ polyline {
     content: "";
 }
 
+.one-time-message {
+    background-color: #aaddff;
+    border: solid 1px #30b7f6;
+    border-radius: 3px;
+    font-size: 16px;
+    padding: 10px;
+    color: #0066aa;
+    position: relative;
+}
+
+.one-time-message p {
+    margin: 0 !important;
+}
+
+.one-time-message .message-close {
+    font-family: Arial, Helvetica, sans-serif;
+    position: absolute;
+    display: block;
+    right: 5px;
+    top: -5px;
+    font-size: 1.5em;
+    font-weight: 900;
+    color: #1097d6;
+    transform: rotate(-45deg);
+    cursor: pointer;
+}
