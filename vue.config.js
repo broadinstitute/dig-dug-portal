@@ -81,8 +81,15 @@ module.exports = {
             entry: "src/views/Policies/main.js",
             template: "public/index.html",
             filename: "policies.html",
-            title: "Downloads",
+            title: "Policies",
             chunks: ["chunk-vendors", "chunk-common", "policies"]
+        },
+        about: {
+            entry: "src/views/About/main.js",
+            template: "public/index.html",
+            filename: "about.html",
+            title: "About",
+            chunks: ["chunk-vendors", "chunk-common", "about"]
         },
     }
 };

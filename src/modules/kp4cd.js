@@ -75,10 +75,7 @@ export default {
 
         async getPageInfo(context, query) {
 
-            //let json = await fetch(`http://kp4cd.org/rest/views/staticpage/?page=` + page + `&portal=` + portal)
-            //.then(resp => resp.json());
-
-            let json = await fetch('http://kp4cd.org/rest/views/staticpage/?page=' + query.page + '&portal=' + query.portal)
+            let json = await fetch('http://kp4cd.org/rest/views/' + query.page + '/?portal=' + query.portal)
                 .then(resp => resp.json());
             // set the data
             context.commit('setPageInfo', json)
