@@ -12,6 +12,7 @@ import Documentation from "@/components/Documentation";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("one-time-message", {
+    props: ["messageName", "hideTime"],
     components: {
         Documentation
     },
@@ -21,7 +22,13 @@ export default Vue.component("one-time-message", {
             uiUtils.showHideHelpContent(ELEMENT);
         }
     },
-    props: ["messageName"]
+    mounted() {
+        if (this.hideTime != null) {
+            setTimeout(function() {
+                uiUtils.showHideHelpContent("one-time-message");
+            }, this.hideTime);
+        }
+    }
 });
 </script>
 <style>

@@ -5,7 +5,7 @@
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
-            <one-time-message messageName="region.pageheader"></one-time-message>
+            <one-time-message messageName="region.pageheader" :hideTime="5000"></one-time-message>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">
