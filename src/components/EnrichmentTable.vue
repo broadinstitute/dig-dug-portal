@@ -4,44 +4,100 @@
             <b-container class="filter_rows" fluid>
                 <b-row>
                     <b-col>
+                        <div>Filter by annotation:</div>
                         <b-form-select
-                            v-model="select_annotations"
+                            @input="addFilter($event, 'select_annotations')"
                             :options="filter_annotation"
-                            multiple
-                        >
-                            <b-form-select-option value>Select a filter</b-form-select-option>
-                        </b-form-select>
+                            v-model="select_annotations_text"
+                        ></b-form-select>
+                        <div v-if="select_annotations">
+                            <b-badge
+                                pill
+                                variant="info"
+                                v-for="(v,i) in select_annotations"
+                                :key="v"
+                                @click="removeFilter(i, 'select_annotations')"
+                                class="btn"
+                            >{{v}}</b-badge>
+                        </div>
                     </b-col>
                     <b-col>
-                        <b-form-select v-model="select_methods" :options="filter_method" multiple>
-                            <b-form-select-option value>Select a filter</b-form-select-option>
-                        </b-form-select>
+                        <div>Filter by method:</div>
+                        <b-form-select
+                            @input="addFilter($event, 'select_methods')"
+                            :options="filter_method"
+                            v-model="select_methods_text"
+                        ></b-form-select>
+                        <div v-if="select_methods">
+                            <b-badge
+                                pill
+                                variant="info"
+                                v-for="(v,i) in select_methods"
+                                :key="v"
+                                @click="removeFilter(i, 'select_methods')"
+                                class="btn"
+                            >{{v}}</b-badge>
+                        </div>
                     </b-col>
                     <b-col>
-                        <b-form-select v-model="select_tissues" :options="filter_tissue" multiple>
-                            <b-form-select-option value>Select a filter</b-form-select-option>
-                        </b-form-select>
+                        <div>Filter by tissue:</div>
+                        <b-form-select
+                            @input="addFilter($event, 'select_tissues')"
+                            :options="filter_tissue"
+                            v-model="select_tissues_text"
+                        ></b-form-select>
+                        <div v-if="select_tissues">
+                            <b-badge
+                                pill
+                                variant="info"
+                                v-for="(v,i) in select_tissues"
+                                :key="v"
+                                @click="removeFilter(i, 'select_tissues')"
+                                class="btn"
+                            >{{v}}</b-badge>
+                        </div>
                     </b-col>
                     <b-col>
-                        <b-form-select v-model="select_ancestry" :options="filter_ancestry">
-                            <b-form-select-option value>Select a filter</b-form-select-option>
-                        </b-form-select>
+                        <div>Filter by ancestry:</div>
+                        <b-form-select
+                            @input="setFilter($event, 'select_ancestry')"
+                            :options="filter_ancestry"
+                            ref="select_ancestry"
+                        ></b-form-select>
+                        <div v-if="select_ancestry">
+                            <b-badge
+                                pill
+                                variant="info"
+                                @click="unsetFilter('select_ancestry')"
+                                class="btn"
+                            >{{select_ancestry}}</b-badge>
+                        </div>
                     </b-col>
                     <b-col>
+                        <div>Filter by pValue &le;:</div>
                         <b-form-input
                             id="filter-pValue"
                             type="number"
-                            v-model="select_pValue"
-                            placeholder="Filter pValue <="
+                            @change="setFilter($event, 'select_pValue')"
+                            ref="select_pValue"
                         ></b-form-input>
+                        <div v-if="select_pValue">
+                            <b-badge
+                                pill
+                                variant="info"
+                                @click="unsetFilter('select_pValue')"
+                                class="btn"
+                            >{{select_pValue}}</b-badge>
+                        </div>
                     </b-col>
                     <b-col>
-                        <b-form-input
-                            id="filter-beta"
-                            type="number"
-                            v-model="select_beta"
-                            placeholder="Filter Beta"
-                        ></b-form-input>
+                        <b-form-group label="Filter by Effects:">
+                            <b-form-radio-group v-model="select_odds_ratio">
+                                <b-form-radio name="all" value size="sm">All</b-form-radio>
+                                <b-form-radio name="positive" value="p" size="sm">Positive</b-form-radio>
+                                <b-form-radio name="negative" value="n" size="sm">Negative</b-form-radio>
+                            </b-form-radio-group>
+                        </b-form-group>
                     </b-col>
                 </b-row>
             </b-container>
@@ -127,11 +183,14 @@ export default Vue.component("enrichment-table", {
                 }
             ],
             select_annotations: [],
+            select_annotations_text: "",
             select_methods: [],
+            select_methods_text: "",
             select_tissues: [],
+            select_tissues_text: "",
             select_ancestry: "",
             select_pValue: "",
-            select_beta: ""
+            select_odds_ratio: ""
         };
     },
 
@@ -245,6 +304,22 @@ export default Vue.component("enrichment-table", {
             return this.groupedAnnotations
                 .map(v => Formatters.ancestryFormatter(v.ancestry))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
+        }
+    },
+    methods: {
+        addFilter(event, obj) {
+            this[obj].push(event);
+            this[obj + "_text"] = "";
+        },
+        removeFilter(index, obj) {
+            this[obj].splice(index, 1);
+        },
+        setFilter(event, obj) {
+            this[obj] = event;
+            this.$refs[obj].$el.value = "";
+        },
+        unsetFilter(obj) {
+            this[obj] = "";
         }
     }
 });
