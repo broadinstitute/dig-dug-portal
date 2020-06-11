@@ -93,7 +93,7 @@ export default Vue.component("enrichment-table", {
                     {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
-                        formatter: Formatters.floatFormatter,
+                        formatter: Formatters.pValueFormatter,
                         tdClass(x) {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"

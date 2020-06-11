@@ -87,22 +87,38 @@ function dbSNPFormatter(dbSNP) {
     return dbSNP;
 }
 
-function floatFormatter(pValue) {
-    if (!pValue) {
+function floatFormatter(value) {
+    if (!value) {
+        return '-';
+    }
+    return Number.parseFloat(value).toFixed(2);
+}
+
+
+
+function pValueFormatter(value) {
+    if (!value) {
         return '-';
     }
 
-    let x = Number.parseFloat(pValue);
+    let x = Number.parseFloat(value);
 
     if (x < 1e-5) {
         return x.toExponential(2);
     } else {
-        return x.toFixed(5);
+        return x.toFixed(7);
     }
 }
 
+function effectFormatter(value) {
+    if (!value) {
+        return '-';
+    }
+    return Number.parseFloat(value).toFixed(4);
+}
+
 function intFormatter(value) {
-    return !!value ? Number.parseFloat(value).toFixed(0) : '-';
+    return !!value ? Number.parseInt(value).toLocaleString() : '-';
 }
 
 function locusFormatter(chromosome, position, end = undefined) {
@@ -138,4 +154,6 @@ export default {
     locusFormatter,
     phenotypeFormatter,
     tissueFormatter,
+    pValueFormatter,
+    effectFormatter
 }

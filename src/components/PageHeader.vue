@@ -22,8 +22,14 @@
                             style="padding: 5px; text-align: center;height: 50px;"
                         >
                             <img
-                                :src="'http://kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
-                                :class="'portals-2-mdkp-logo'"
+                                v-if="frontContents.field_banner_logo"
+                                :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
+                                :class="diseaseGroup.name+'kp-logo'"
+                            />
+                            <img
+                                v-else
+                                src="http://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
+                                class="mdkp-logo"
                             />
                         </div>
                     </a>
@@ -48,7 +54,7 @@
                             <a href="/">Home</a>
                         </li>
                         <li class="am-menu">
-                            <a :href="'http://kp4cd.org/datasets/' + diseaseGroup.name">Data</a>
+                            <a :href="'/datasets.html'">Data</a>
                         </li>
                         <li class="am-menu">
                             <a href>Tools</a>
