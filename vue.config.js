@@ -70,5 +70,19 @@ module.exports = {
             title: "Dataset Inspector",
             chunks: ["chunk-vendors", "chunk-common", "dinspector"]
         },
+        downloads: {
+            entry: "src/views/Downloads/main.js",
+            template: "public/index.html",
+            filename: "downloads.html",
+            title: "Downloads",
+            chunks: ["chunk-vendors", "chunk-common", "downloads"]
+        },
+        policies: {
+            entry: "src/views/Policies/main.js",
+            template: "public/index.html",
+            filename: "policies.html",
+            title: "Downloads",
+            chunks: ["chunk-vendors", "chunk-common", "policies"]
+        },
     }
 };
