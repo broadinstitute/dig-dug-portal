@@ -29,28 +29,6 @@
                     </a>
                 </div>
             </div>
-            <!-- remove the commeted after review -->
-            <!--<div class="row amp-header" v-if="!diseaseGroup.default" style="height: 50px;">
-                <div class="amp-banner-right" style="height: 50px;">
-                    <a :href="url2Md">
-                        <div
-                            class="amp-banner-left"
-                            style="padding: 5px; text-align: center;height: 50px;"
-                        >
-                            <img
-                                v-if="frontContents.field_banner_logo"
-                                :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
-                                :class="diseaseGroup.name+'kp-logo'"
-                            />
-                            <img
-                                v-else
-                                src="http://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
-                                class="mdkp-logo"
-                            />
-                        </div>
-                    </a>
-                </div>
-            </div>-->
             <div :class="'row '+diseaseGroup.name+'kp-header'">
                 <div :class="diseaseGroup.name+'kp-logo-wrapper col-md-4'">
                     <img
