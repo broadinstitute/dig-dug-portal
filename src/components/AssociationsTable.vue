@@ -4,12 +4,12 @@
             <b-container fluid>
                 <b-row>
                     <b-col>
+                        <div>Filter by dbSNP:</div>
                         <b-form-input
                             id="filter-dbSNP"
                             type="text"
                             v-model="select_dbsnp_text"
-                            placeholder="Filter by dbSNP"
-                            @change="addSNP($event)"
+                            @change="addFilter($event, 'select_dbsnp')"
                         ></b-form-input>
                         <div v-if="select_dbsnp">
                             <b-badge
@@ -17,23 +17,34 @@
                                 variant="info"
                                 v-for="(v,i) in select_dbsnp"
                                 :key="v"
-                                @click="removeSNP(i)"
+                                @click="removeFilter(i, 'select_dbsnp')"
                                 class="btn"
                             >{{v}}</b-badge>
                         </div>
                     </b-col>
                     <b-col>
-                        <b-form-select v-model="select_consequence" :options="filter_consequence">
-                            <b-form-select-option value>Filter by consequence</b-form-select-option>
-                        </b-form-select>
+                        <div>Filter by Consequence:</div>
+                        <b-form-select
+                            @change="setFilter($event, 'select_consequence')"
+                            :options="filter_consequence"
+                            ref="select_consequence"
+                        ></b-form-select>
+                        <div v-if="select_consequence">
+                            <b-badge
+                                pill
+                                variant="info"
+                                @click="unsetFilter('select_consequence')"
+                                class="btn"
+                            >{{select_consequence}}</b-badge>
+                        </div>
                     </b-col>
                     <b-col>
+                        <div>Filter by Gene:</div>
                         <b-form-input
                             id="filter-gene"
                             type="text"
                             v-model="select_gene_text"
-                            placeholder="Filter by Gene"
-                            @change="addGene($event)"
+                            @change="addFilter($event, 'select_gene')"
                         ></b-form-input>
                         <div v-if="select_gene">
                             <b-badge
@@ -41,25 +52,34 @@
                                 variant="info"
                                 v-for="(g,i) in select_gene"
                                 :key="g"
-                                @click="removeGene(i)"
+                                @click="removeFilter(i, 'select_gene')"
                                 class="btn"
                             >{{g}}</b-badge>
                         </div>
                     </b-col>
                     <b-col>
+                        <div>Filter by pValue &le;:</div>
                         <b-form-input
                             id="filter-pValue"
                             type="number"
-                            v-model="select_pValue"
-                            placeholder="Filter pValue <="
+                            @change="setFilter($event, 'select_pValue')"
+                            ref="select_pValue"
                         ></b-form-input>
+                        <div v-if="select_pValue">
+                            <b-badge
+                                pill
+                                variant="info"
+                                @click="unsetFilter('select_pValue')"
+                                class="btn"
+                            >{{select_pValue}}</b-badge>
+                        </div>
                     </b-col>
                     <b-col>
-                        <b-form-group label="Odds Ratio">
+                        <b-form-group label="Filter by Effects:">
                             <b-form-radio-group v-model="select_odds_ratio">
                                 <b-form-radio name="all" value size="sm">All</b-form-radio>
-                                <b-form-radio name="above" value="a" size="sm">Above 1</b-form-radio>
-                                <b-form-radio name="below" value="b" size="sm">Below 1</b-form-radio>
+                                <b-form-radio name="above" value="p" size="sm">Positive</b-form-radio>
+                                <b-form-radio name="below" value="n" size="sm">Negative</b-form-radio>
                             </b-form-radio-group>
                         </b-form-group>
                     </b-col>
@@ -298,19 +318,19 @@ export default Vue.component("associations-table", {
         filterPValue() {
             tableData = filterPValue(this.groupedAssociations, this.pValue);
         },
-        addSNP(event) {
-            this.select_dbsnp.push(event);
-            this.select_dbsnp_text = "";
+        addFilter(event, obj) {
+            this[obj].push(event);
+            this[obj + "_text"] = "";
         },
-        removeSNP(index) {
-            this.select_dbsnp.splice(index, 1);
+        removeFilter(index, obj) {
+            this[obj].splice(index, 1);
         },
-        addGene(event) {
-            this.select_gene.push(event);
-            this.select_gene_text = "";
+        setFilter(event, obj) {
+            this[obj] = event;
+            this.$refs[obj].$el.value = "";
         },
-        removeGene(index) {
-            this.select_gene.splice(index, 1);
+        unsetFilter(obj) {
+            this[obj] = "";
         }
     }
 });
