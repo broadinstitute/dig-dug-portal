@@ -193,9 +193,16 @@ export default Vue.component("regions-table", {
     methods: {
         addFilter(event, obj) {
             this[obj].push(event);
+            this.resetOtherFilters(obj);
         },
         removeFilter(index, obj) {
             this[obj].splice(index, 1);
+        },
+        resetOtherFilters(option) {
+            this.annotations =
+                this.annotations == this[option] ? this[option] : [];
+            this.methods = this.methods == this[option] ? this[option] : [];
+            this.tissues = this.tissues == this[option] ? this[option] : [];
         }
     }
 });
