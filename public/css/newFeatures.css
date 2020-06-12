@@ -1,0 +1,12 @@
+.news-content-wrapper {
+    background-color: #eee;
+    padding: 15px;
+    border: solid 1px #ccc;
+    border-radius: 0.25em;
+}
+
+.new-feature-item-wrapper {
+    margin: 15px 0;
+    padding-bottom: 10px;
+    border-bottom: solid 1px #ddd;
+}

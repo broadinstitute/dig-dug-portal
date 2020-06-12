@@ -14,6 +14,7 @@ export default {
             datasetsInfo: [],
             datasetInfo: [],
             pageInfo: [],
+            newFeatures: [],
         };
     },
 
@@ -33,7 +34,10 @@ export default {
         },
         setPageInfo(state, pageInfo) {
             state.pageInfo = pageInfo;
-        }
+        },
+        setNewFeatures(state, newFeatures) {
+            state.newFeatures = newFeatures;
+        },
     },
 
     // dispatch methods
@@ -75,10 +79,20 @@ export default {
 
         async getPageInfo(context, query) {
 
-            let json = await fetch('http://kp4cd.org/rest/views/' + query.page + '/?portal=' + query.portal)
+            let json = await fetch('http://kp4cd.org/rest/views/' + query.page + '?portal=' + query.portal)
                 .then(resp => resp.json());
             // set the data
             context.commit('setPageInfo', json)
+        },
+
+        async getNewFeatures(context, selectedDiseaseGroup) {
+
+            let portal = selectedDiseaseGroup || 'md';
+
+            let json = await fetch('http://kp4cd.org/rest/views/newfeatures?portal=' + selectedDiseaseGroup)
+                .then(resp => resp.json());
+            // set the data
+            context.commit('setNewFeatures', json)
         },
     },
 }

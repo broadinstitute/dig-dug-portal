@@ -5,6 +5,13 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+            <div class="card mdkp-card dataset-page-header">
+                <div class="row card-body">
+                    <div class="col-md-12">
+                        <h2>{{$parent.diseaseGroup.description}} KP Datasets</h2>
+                    </div>
+                </div>
+            </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div class="row">

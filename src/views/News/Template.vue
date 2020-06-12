@@ -8,7 +8,7 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h2>{{ $parent.pageInfo[0].title[0].value }}</h2>
+                        <h2>New and Notable in the {{ $parent.diseaseGroup.description}} Knowledge Portal</h2>
                     </div>
                 </div>
             </div>
@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <page-info-section :pageInfo="$parent.pageInfo"></page-info-section>
+                            <new-features-section :newFeatures="$parent.newFeatures"></new-features-section>
                         </div>
                     </div>
                 </div>
