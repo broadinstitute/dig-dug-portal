@@ -119,7 +119,7 @@
                     <b-th
                         :key="phenotype.name"
                         v-for="(phenotype, i) in phenotypes"
-                        colspan="2"
+                        colspan="3"
                         class="reference"
                         :class="'color-' + (i+1)"
                     >
@@ -321,25 +321,25 @@ export default Vue.component("enrichment-table", {
         },
         tableData() {
             if (this.select_annotations.length > 0) {
-                return Filters.filterRegion(
+                return Filters.filterFormatted(
                     this.groupedAnnotations,
                     this.select_annotations,
                     "annotation"
                 );
             } else if (this.select_methods.length > 0) {
-                return Filters.filterRegion(
+                return Filters.filterFormatted(
                     this.groupedAnnotations,
                     this.select_methods,
                     "method"
                 );
             } else if (this.select_tissues.length > 0) {
-                return Filters.filterRegion(
+                return Filters.filterFormatted(
                     this.groupedAnnotations,
                     this.select_tissues,
                     "tissue"
                 );
             } else if (this.select_ancestry != "") {
-                return Filters.filterDataset(
+                return Filters.filterFormatted(
                     this.groupedAnnotations,
                     this.select_ancestry,
                     "ancestry"

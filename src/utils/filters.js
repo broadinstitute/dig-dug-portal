@@ -10,9 +10,26 @@ function filterDropdown(data, filters) {
     return filtered.length > 0 ? filtered : data;
 }
 
-function filterTissue(data, col, term) {
-    const filtered = data.filter(row => {
-        return term.includes(Formatters.tissueFormatter(row[col]));
+function filterFormatted(data, value, key) {
+    if (!value || !key) return data;
+
+    let filtered = data.filter(row => {
+        switch (key) {
+            case "annotation":
+                return value.includes(Formatters.annotationFormatter(row[key]));
+            case "tissue":
+                return value.includes(Formatters.tissueFormatter(row[key]));
+            case "consequence":
+                return value.includes(
+                    Formatters.consequenceFormatter(row[key])
+                );
+            case "ancestry":
+                return value.includes(Formatters.ancestryFormatter(row[key]));
+            default:
+                return value.includes(
+                    Formatters.capitalizedFormatter(row[key])
+                );
+        }
     });
 
     return filtered.length > 0 ? filtered : data;
@@ -36,7 +53,6 @@ function filterBeta(data, value, key) {
 }
 
 function filterPValue(data, value, key = "pValue") {
-    console.log("key", key);
     if (!!value)
         return data.filter(row => {
             return row[key] <= value;
@@ -44,71 +60,18 @@ function filterPValue(data, value, key = "pValue") {
     else return data;
 }
 
-function filterPhenotype(data, value, key = "phenotype") {
-    const filtered = data.filter(row => {
-        return value.includes(row[key].description);
-    });
-    return filtered.length > 0 ? filtered : data;
-}
-
 function filterTable(data, value, key) {
-    // console.log("data", data);
-    // console.log("value", value);
-    // console.log("key", key);
     if (!value || !key) return data;
     const filtered = data.filter(row => {
         return value.includes(row[key]);
     });
-    // console.log("FF", filtered);
-    //return filtered.length > 0 ? filtered : data;
     return filtered;
-}
-
-function filterRegion(data, value, key) {
-    let filtered = "";
-    if (key == "annotation") {
-        filtered = data.filter(row => {
-            return value.includes(Formatters.annotationFormatter(row[key]));
-        });
-    } else if (key == "tissue") {
-        filtered = data.filter(row => {
-            return value.includes(Formatters.tissueFormatter(row[key]));
-        });
-    } else if (key == "consequence") {
-        filtered = data.filter(row => {
-            return value.includes(Formatters.consequenceFormatter(row[key]));
-        });
-    } else {
-        //methods
-        filtered = data.filter(row => {
-            return value.includes(Formatters.capitalizedFormatter(row[key]));
-        });
-    }
-    return filtered.length > 0 ? filtered : data;
-}
-
-function filterDataset(data, value, key) {
-    let filtered = "";
-    if (key == "ancestry") {
-        filtered = data.filter(row => {
-            return value.includes(Formatters.ancestryFormatter(row[key]));
-        });
-    } else {
-        //techs
-        filtered = data.filter(row => {
-            return value.includes(row[key]);
-        });
-    }
-    return filtered.length > 0 ? filtered : data;
 }
 
 export default {
     filterDropdown,
-    filterTissue,
+    filterFormatted,
     filterBeta,
     filterPValue,
-    filterPhenotype,
-    filterTable,
-    filterRegion,
-    filterDataset
+    filterTable
 };

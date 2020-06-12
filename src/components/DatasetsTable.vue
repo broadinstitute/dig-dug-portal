@@ -119,13 +119,13 @@ export default Vue.component("datasets-table", {
         },
         tableData() {
             if (this.tech != "") {
-                return Filters.filterDataset(
+                return Filters.filterTable(
                     this.sortedDatasets,
                     this.tech,
                     "tech"
                 );
             } else if (this.ancestry != "") {
-                return Filters.filterDataset(
+                return Filters.filterFormatted(
                     this.sortedDatasets,
                     this.ancestry,
                     "ancestry"

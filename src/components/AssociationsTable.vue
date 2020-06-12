@@ -297,14 +297,13 @@ export default Vue.component("associations-table", {
 
         tableData() {
             if (this.select_dbsnp.length > 0) {
-                console.log("here");
                 return Filters.filterTable(
                     this.groupedAssociations,
                     this.select_dbsnp,
                     "dbSNP"
                 );
             } else if (this.select_consequence != "") {
-                return Filters.filterRegion(
+                return Filters.filterFormatted(
                     this.groupedAssociations,
                     this.select_consequence,
                     "consequence"
