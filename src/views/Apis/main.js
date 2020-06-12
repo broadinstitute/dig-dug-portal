@@ -70,9 +70,6 @@ new Vue({
             return contents;
         },
 
-
-
-
     },
 
     watch: {

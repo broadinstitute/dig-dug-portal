@@ -63,37 +63,25 @@
                             <a href>Information</a>
                             <ul class="am-submenu">
                                 <li page="information">
-                                    <a :href="'http://kp4cd.org/about/' + diseaseGroup.name">About</a>
+                                    <a href="/about.html">About</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/collaborate/' + diseaseGroup.name"
-                                    >Collaborate</a>
+                                    <a href="/collaborate.html">Collaborate</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/policies/' + diseaseGroup.name"
-                                    >Policies</a>
+                                    <a href="/policies.html">Policies</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/resources/' + diseaseGroup.name"
-                                    >Resources</a>
+                                    <a href="/resources.html">Resources</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/publications/' + diseaseGroup.name"
-                                    >Publications</a>
+                                    <a href="/publications.html">Publications</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/new_features/' + diseaseGroup.name"
-                                    >News</a>
+                                    <a href="/news.html">News</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/contacts/' + diseaseGroup.name"
-                                    >Contacts</a>
+                                    <a href="/contacts.html">Contacts</a>
                                 </li>
                             </ul>
                         </li>
