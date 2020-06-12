@@ -24,6 +24,7 @@
             <template v-slot:thead-top="data">
                 <b-tr>
                     <b-th>
+                        <di>Filter by phenotype:</di>
                         <div v-if="selectedPhenotypes">
                             <b-badge
                                 pill
@@ -38,24 +39,30 @@
                             v-if="phenotypeMap"
                             v-model="userText"
                             ref="phenotypeSelect"
-                            placeholder="Select a phenotype ..."
                             :data="Object.values(phenotypeMap)"
                             :serializer="s => s.description"
                             @hit="addPhenotype($event)"
                         ></vue-typeahead-bootstrap>
                     </b-th>
                     <b-th>
+                        <div>Filter by pValue &le;:</div>
+                        <div v-if="pValue">
+                            <b-badge
+                                pill
+                                variant="info"
+                                @click="unsetFilter('pValue')"
+                                class="btn"
+                            >{{pValue}}</b-badge>
+                        </div>
                         <b-form-input
                             id="filter-pValue"
                             type="number"
-                            v-model="pValue"
-                            placeholder="Filter pValue <="
-                            @change="Filter.filterPValue()"
+                            @change="filterPValue($event)"
                         ></b-form-input>
                     </b-th>
                     <b-th>
-                        <b-form-group>
-                            <b-form-radio-group v-model="beta" @input="Filter.filterBeta()">
+                        <b-form-group label="Filter by Effects">
+                            <b-form-radio-group v-model="beta" @input="filterBeta()">
                                 <b-form-radio name="all" value size="sm">All</b-form-radio>
                                 <b-form-radio name="positive" value="p" size="sm">Positive</b-form-radio>
                                 <b-form-radio name="negative" value="n" size="sm">Negative</b-form-radio>
@@ -174,11 +181,11 @@ export default Vue.component("phewas-table", {
         addPhenotype(event) {
             this.selectedPhenotypes.push(event.description);
             this.userText = null;
-            this.Filers.filterPhenotype();
+            this.filterPhenotype();
         },
         removePhenotype(index) {
             this.selectedPhenotypes.splice(index, 1);
-            this.Filters.filterPhenotype();
+            this.filterPhenotype();
         },
 
         filterBeta() {
@@ -187,22 +194,31 @@ export default Vue.component("phewas-table", {
                 this.beta,
                 "beta"
             );
-            this.Filters.resetOtherFilters();
+            this.resetOtherFilters();
         },
-        filterPValue() {
+        filterPValue(event) {
+            this.pValue = event;
             this.tableData = Filters.filterPValue(
                 this.pheWASAssociations,
-                this.pValue
+                event
             );
+            this.resetOtherFilters();
         },
         filterPhenotype() {
             this.tableData = Filters.filterPhenotype(
                 this.pheWASAssociations,
                 this.selectedPhenotypes
             );
+            this.resetOtherFilters();
         },
         resetOtherFilters(option) {
-            console.log("data", this.$options.data);
+            this.selectedPhenotypes =
+                this.selectedPhenotypes == this[option] ? this[option] : [];
+            this.pValue = this.pValue == this[option] ? this[option] : "";
+            this.beta = this.beta == this[option] ? this[option] : "";
+        },
+        unsetFilter(obj) {
+            this[obj] = "";
         }
     }
 });

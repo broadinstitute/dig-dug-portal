@@ -61,7 +61,7 @@ function filterRegion(data, value, key) {
     let filtered = "";
     if (key == "annotation") {
         filtered = data.filter(row => {
-            return value.includes(Formatters.capitalizedFormatter(row[key]));
+            return value.includes(Formatters.annotationFormatter(row[key]));
         });
     } else if (key == "tissue") {
         filtered = data.filter(row => {

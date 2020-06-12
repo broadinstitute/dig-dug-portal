@@ -166,19 +166,19 @@ export default Vue.component("regions-table", {
                 .filter((v, i, arr) => v != undefined);
         },
         tableData() {
-            if (!!this.annotations) {
+            if (this.annotations.length > 0) {
                 return Filters.filterRegion(
                     this.sortedRegions,
                     this.annotations,
                     "annotation"
                 );
-            } else if (!!this.meth) {
+            } else if (this.methods.length > 0) {
                 return Filters.filterRegion(
                     this.sortedRegions,
                     this.methods,
                     "method"
                 );
-            } else if (!!this.tissues) {
+            } else if (this.tissues.length > 0) {
                 return Filters.filterRegion(
                     this.sortedRegions,
                     this.tissues,
