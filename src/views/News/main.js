@@ -12,6 +12,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import NewFeatures from "@/components/NewFeatures.vue";
 import uiUtils from "@/utils/uiUtils";
+import keyParams from "@/utils/keyParams";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -69,6 +70,12 @@ new Vue({
             }
             return contents;
         },
+
+        nid() {
+
+            let content = keyParams.nid;
+            return content;
+        }
 
     },
 

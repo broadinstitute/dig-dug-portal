@@ -16,7 +16,10 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <new-features-section :newFeatures="$parent.newFeatures"></new-features-section>
+                            <new-features-section
+                                :newFeatures="$parent.newFeatures"
+                                :nid="$parent.nid"
+                            ></new-features-section>
                         </div>
                     </div>
                 </div>

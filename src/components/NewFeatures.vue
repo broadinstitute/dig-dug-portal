@@ -15,7 +15,8 @@
                 <div
                     v-html="row.body_1"
                     :id="'news_content'+row.nid"
-                    class="news-content-wrapper hidden"
+                    class="news-content-wrapper"
+                    :class="row.nid == thisNid? '':'hidden' "
                 ></div>
             </div>
         </div>
@@ -35,10 +36,14 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("new-features-section", {
-    props: ["newFeatures"],
+    props: ["newFeatures", "nid"],
     computed: {
         newFeaturesList: function() {
             let content = this.newFeatures;
+            return content;
+        },
+        thisNid: function() {
+            let content = this.nid;
             return content;
         }
     },
