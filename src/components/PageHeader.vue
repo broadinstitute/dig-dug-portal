@@ -54,7 +54,21 @@
                             <a href="/">Home</a>
                         </li>
                         <li class="am-menu">
-                            <a :href="'/datasets.html'">Data</a>
+                            <a href>Data</a>
+                            <ul class="am-submenu">
+                                <li page="data">
+                                    <a :href="'/datasets.html'">Datasets</a>
+                                </li>
+                                <li page="data">
+                                    <a :href="'/downloads.html'">Downloads</a>
+                                </li>
+                                <li
+                                    page="data"
+                                    v-if="diseaseGroup.name && diseaseGroup.name == 't2d'"
+                                >
+                                    <a :href="'/apis.html'">APIs</a>
+                                </li>
+                            </ul>
                         </li>
                         <li class="am-menu">
                             <a href>Tools</a>
