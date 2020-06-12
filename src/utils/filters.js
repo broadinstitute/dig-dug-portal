@@ -36,6 +36,7 @@ function filterBeta(data, value, key) {
 }
 
 function filterPValue(data, value, key = "pValue") {
+    console.log("key", key);
     if (!!value)
         return data.filter(row => {
             return row[key] <= value;
@@ -51,10 +52,16 @@ function filterPhenotype(data, value, key = "phenotype") {
 }
 
 function filterTable(data, value, key) {
+    console.log("data", data);
+    console.log("value", value);
+    console.log("key", key);
+    if (!value || !key) return data;
     const filtered = data.filter(row => {
         return value.includes(row[key]);
     });
-    return filtered.length > 0 ? filtered : data;
+    console.log("FF", filtered);
+    //return filtered.length > 0 ? filtered : data;
+    return filtered;
 }
 
 function filterRegion(data, value, key) {
@@ -66,6 +73,10 @@ function filterRegion(data, value, key) {
     } else if (key == "tissue") {
         filtered = data.filter(row => {
             return value.includes(Formatters.tissueFormatter(row[key]));
+        });
+    } else if (key == "consequence") {
+        filtered = data.filter(row => {
+            return value.includes(Formatters.consequenceFormatter(row[key]));
         });
     } else {
         //methods

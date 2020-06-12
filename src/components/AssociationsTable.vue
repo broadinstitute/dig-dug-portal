@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="rows > 0">
+        <div>
             <b-container fluid>
                 <b-row>
                     <b-col>
@@ -76,7 +76,7 @@
                     </b-col>
                     <b-col>
                         <b-form-group label="Filter by Effects:">
-                            <b-form-radio-group v-model="select_odds_ratio">
+                            <b-form-radio-group v-model="select_beta">
                                 <b-form-radio name="all" value size="sm">All</b-form-radio>
                                 <b-form-radio name="above" value="p" size="sm">Positive</b-form-radio>
                                 <b-form-radio name="below" value="n" size="sm">Negative</b-form-radio>
@@ -188,7 +188,7 @@ export default Vue.component("associations-table", {
             select_consequence: "",
             select_gene: [],
             select_gene_text: "",
-            select_odds_ratio: ""
+            select_beta: ""
         };
     },
     mounted() {},
@@ -295,13 +295,39 @@ export default Vue.component("associations-table", {
                 .filter((v, i, arr) => v != undefined);
         },
 
-        tableData: {
-            get: function() {
-                if (!!this.pValue) {
-                    return Filters.filterPValue();
-                } else return this.groupedAssociations;
-            },
-            set: function(newValue) {}
+        tableData() {
+            if (this.select_dbsnp.length > 0) {
+                console.log("here");
+                return Filters.filterTable(
+                    this.groupedAssociations,
+                    this.select_dbsnp,
+                    "dbSNP"
+                );
+            } else if (this.select_consequence != "") {
+                return Filters.filterRegion(
+                    this.groupedAssociations,
+                    this.select_consequence,
+                    "consequence"
+                );
+            } else if (this.select_gene.length > 0) {
+                return Filters.filterTable(
+                    this.groupedAssociations,
+                    this.select_gene,
+                    "gene"
+                );
+            } else if (this.select_pValue != "") {
+                return Filters.filterPValue(
+                    this.groupedAssociations,
+                    this.select_pValue,
+                    `${this.phenotypes[0].name}_pValue`
+                );
+            } else if (this.select_beta != "") {
+                return Filters.filterBeta(
+                    this.groupedAssociations,
+                    this.select_beta,
+                    `${this.phenotypes[0].name}_beta`
+                );
+            } else return this.groupedAssociations;
         }
     },
 
@@ -315,15 +341,10 @@ export default Vue.component("associations-table", {
         dbSNPFormatter({ dbSNP }) {
             return Formatters.dbSNPFormatter(dbSNP);
         },
-        filterPValue() {
-            tableData = Filters.filterPValue(
-                this.groupedAssociations,
-                this.pValue
-            );
-        },
         addFilter(event, obj) {
-            this[obj].push(event);
+            this[obj].push(event.trim());
             this[obj + "_text"] = "";
+            this.resetOtherFilters(obj);
         },
         removeFilter(index, obj) {
             this[obj].splice(index, 1);
@@ -334,6 +355,18 @@ export default Vue.component("associations-table", {
         },
         unsetFilter(obj) {
             this[obj] = "";
+        },
+        resetOtherFilters(option) {
+            this.select_pValue =
+                this.select_pValue == this[option] ? this[option] : "";
+            this.select_dbsnp =
+                this.select_dbsnp == this[option] ? this[option] : [];
+            this.select_consequence =
+                this.select_consequence == this[option] ? this[option] : "";
+            this.select_gene =
+                this.select_gene == this[option] ? this[option] : [];
+            this.select_beta =
+                this.select_beta == this[option] ? this[option] : "";
         }
     }
 });
