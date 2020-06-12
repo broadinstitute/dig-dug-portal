@@ -14,15 +14,19 @@
                     <b-th></b-th>
                     <b-th>
                         <div>Filter by Tech:</div>
-                        <b-form-select v-model="tech" :options="filter_tech">
-                            <b-form-select-option value>Select a filter</b-form-select-option>
-                        </b-form-select>
+                        <b-form-select
+                            v-model="tech"
+                            :options="filter_tech"
+                            @change="clearOther('ancestry')"
+                        ></b-form-select>
                     </b-th>
                     <b-th>
                         <div>Filter by Ancestry</div>
-                        <b-form-select v-model="ancestry" :options="filter_ancestry">
-                            <b-form-select-option value>Select a filter</b-form-select-option>
-                        </b-form-select>
+                        <b-form-select
+                            v-model="ancestry"
+                            :options="filter_ancestry"
+                            @change="clearOther('tech')"
+                        ></b-form-select>
                     </b-th>
                     <b-th></b-th>
                     <b-th></b-th>
@@ -114,13 +118,13 @@ export default Vue.component("datasets-table", {
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         tableData() {
-            if (!!this.tech) {
+            if (this.tech != "") {
                 return Filters.filterDataset(
                     this.sortedDatasets,
                     this.tech,
                     "tech"
                 );
-            } else if (!!this.ancestry) {
+            } else if (this.ancestry != "") {
                 return Filters.filterDataset(
                     this.sortedDatasets,
                     this.ancestry,
@@ -129,6 +133,11 @@ export default Vue.component("datasets-table", {
             } else {
                 return this.sortedDatasets;
             }
+        }
+    },
+    methods: {
+        clearOther(obj) {
+            this[obj] = "";
         }
     }
 });
