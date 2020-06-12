@@ -107,7 +107,7 @@
                 hover
                 small
                 responsive="sm"
-                :items="groupedAnnotations"
+                :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -146,6 +146,7 @@ import c3 from "c3";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
+import Filters from "@/utils/filters";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -213,6 +214,17 @@ export default Vue.component("enrichment-table", {
                         }
                     },
                     {
+                        key: `${p.name}_beta`,
+                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
+                        formatter: x => {
+                            if (p.dichotomous) {
+                                x = Math.exp(x);
+                            }
+
+                            return Formatters.floatFormatter(x);
+                        }
+                    },
+                    {
                         key: `${p.name}_SNPs`,
                         label: `SNPs`,
                         formatter: Formatters.intFormatter,
@@ -225,7 +237,7 @@ export default Vue.component("enrichment-table", {
         },
 
         rows() {
-            return this.groupedAnnotations.length;
+            return this.tableData.length;
         },
 
         groupedAnnotations() {
@@ -257,6 +269,7 @@ export default Vue.component("enrichment-table", {
                 data[dataIndex][`${r.phenotype}_expectedSNPs`] = r.expectedSNPs;
                 data[dataIndex][`${r.phenotype}_SNPs`] = r.SNPs;
                 data[dataIndex][`${r.phenotype}_pValue`] = r.pValue;
+                data[dataIndex][`${r.phenotype}_beta`] = r.beta;
 
                 // lowest p-value across all phenotypes
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
@@ -298,12 +311,52 @@ export default Vue.component("enrichment-table", {
             return this.groupedAnnotations
                 .map(v => Formatters.tissueFormatter(v.tissue))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
-                .filter((v, i, arr) => v != undefined);
+                .filter((v, i, arr) => v != undefined)
+                .filter((v, i, arr) => v != "-");
         },
         filter_ancestry() {
             return this.groupedAnnotations
                 .map(v => Formatters.ancestryFormatter(v.ancestry))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
+        },
+        tableData() {
+            if (this.select_annotations.length > 0) {
+                return Filters.filterRegion(
+                    this.groupedAnnotations,
+                    this.select_annotations,
+                    "annotation"
+                );
+            } else if (this.select_methods.length > 0) {
+                return Filters.filterRegion(
+                    this.groupedAnnotations,
+                    this.select_methods,
+                    "method"
+                );
+            } else if (this.select_tissues.length > 0) {
+                return Filters.filterRegion(
+                    this.groupedAnnotations,
+                    this.select_tissues,
+                    "tissue"
+                );
+            } else if (this.select_ancestry != "") {
+                return Filters.filterDataset(
+                    this.groupedAnnotations,
+                    this.select_ancestry,
+                    "ancestry"
+                );
+            } else if (this.select_pValue != "") {
+                return Filters.filterPValue(
+                    this.groupedAnnotations,
+                    this.select_pValue,
+                    `${this.phenotypes[0].name}_pValue`
+                );
+            } else if (this.select_beta != "") {
+                return Filters.filterBeta(
+                    this.groupedAnnotations,
+                    this.select_beta,
+                    `${this.phenotypes[0].name}_beta`
+                );
+            } else return this.groupedAnnotations;
         }
     },
     methods: {
