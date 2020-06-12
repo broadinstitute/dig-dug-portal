@@ -1,5 +1,46 @@
 <template>
     <div>
+        <b-container fluid>
+            <b-row>
+                <b-col>
+                    <div>Filter by Tech:</div>
+                    <b-form-select
+                        v-model="tech"
+                        :options="filter_tech"
+                        @change="clearFilter('ancestry')"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by Ancestry</div>
+                    <b-form-select
+                        v-model="ancestry"
+                        :options="filter_ancestry"
+                        @change="clearFilter('tech')"
+                    ></b-form-select>
+                </b-col>
+            </b-row>
+            <b-row>
+                <b-col>
+                    <strong>Selected Filters:</strong>
+                    <template v-if="tech">
+                        <b-badge
+                            pill
+                            variant="info"
+                            @click="clearFilter('tech')"
+                            class="btn"
+                        >{{tech}}</b-badge>
+                    </template>
+                    <template v-if="ancestry">
+                        <b-badge
+                            pill
+                            variant="success"
+                            @click="clearFilter('ancestry')"
+                            class="btn"
+                        >{{ancestry}}</b-badge>
+                    </template>
+                </b-col>
+            </b-row>
+        </b-container>
         <b-table
             hover
             small
@@ -8,32 +49,7 @@
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
-        >
-            <template v-slot:thead-top="data">
-                <b-tr>
-                    <b-th></b-th>
-                    <b-th>
-                        <div>Filter by Tech:</div>
-                        <b-form-select
-                            v-model="tech"
-                            :options="filter_tech"
-                            @change="clearOther('ancestry')"
-                        ></b-form-select>
-                    </b-th>
-                    <b-th>
-                        <div>Filter by Ancestry</div>
-                        <b-form-select
-                            v-model="ancestry"
-                            :options="filter_ancestry"
-                            @change="clearOther('tech')"
-                        ></b-form-select>
-                    </b-th>
-                    <b-th></b-th>
-                    <b-th></b-th>
-                    <b-th></b-th>
-                </b-tr>
-            </template>
-        </b-table>
+        ></b-table>
         <b-pagination
             class="pagination-sm justify-content-center"
             v-model="currentPage"
@@ -136,7 +152,7 @@ export default Vue.component("datasets-table", {
         }
     },
     methods: {
-        clearOther(obj) {
+        clearFilter(obj) {
             this[obj] = "";
         }
     }
