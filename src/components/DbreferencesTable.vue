@@ -12,31 +12,31 @@
             hover
             small
             responsive="sm"
-            :items="filtered"
+            :items="tableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
         >
-            <!-- <template v-slot:cell(gene)="v">
-                <a :href="'/gene.html?gene=' + v.item.gene_id">{{v.item.gene_id}}</a>
-            </template>-->
             <template v-slot:thead-top="data">
                 <b-tr>
                     <b-th>
                         <span class="sr-only">ID</span>
                     </b-th>
                     <b-th>
-                        <b-form-select v-model="filters['source']" :options="filter_source">
-                            <b-form-select-option value>Select a filter</b-form-select-option>
-                        </b-form-select>
+                        <div>Filter by source:</div>
+                        <b-form-select
+                            v-model="source"
+                            :options="filter_source"
+                            @change="clearOther('moleculeType')"
+                        ></b-form-select>
                     </b-th>
                     <b-th>
+                        <div>Filter by Molecule Type:</div>
                         <b-form-select
-                            v-model="filters['moleculeType']"
+                            v-model="moleculeType"
                             :options="filter_moleculeType"
-                        >
-                            <b-form-select-option value>Select a filter</b-form-select-option>
-                        </b-form-select>
+                            @change="clearOther('source')"
+                        ></b-form-select>
                     </b-th>
                     <b-th>
                         <span class="sr-only">Protein Sequence ID</span>
@@ -62,6 +62,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
+import Filters from "@/utils/filters";
 
 export default Vue.component("dbreferences-table", {
     props: ["dbreferences"],
@@ -87,16 +88,14 @@ export default Vue.component("dbreferences-table", {
             ],
             perPage: 5,
             currentPage: 1,
-            filters: {
-                source: "",
-                moleculeType: ""
-            }
+            source: "",
+            moleculeType: ""
         };
     },
 
     computed: {
         rows() {
-            return this.filtered.length;
+            return this.tableData.length;
         },
         filter_source() {
             return this.dbreferences
@@ -110,30 +109,28 @@ export default Vue.component("dbreferences-table", {
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined);
         },
-        filtered() {
-            const filtered = this.dbreferences.filter(item => {
-                return Object.keys(this.filters).every(key => {
-                    if (this.filters[key] != "")
-                        return String(item[key]) == this.filters[key];
-                    else return true;
-                });
-            });
-            return filtered.length > 0
-                ? filtered
-                : [
-                      {
-                          source: "",
-                          moleculeType: ""
-                      }
-                  ];
+        tableData() {
+            if (this.source != "") {
+                return Filters.filterTable(
+                    this.dbreferences,
+                    this.source,
+                    "source"
+                );
+            } else if (this.moleculeType != "") {
+                return Filters.filterTable(
+                    this.dbreferences,
+                    this.moleculeType,
+                    "moleculeType"
+                );
+            } else {
+                return this.dbreferences;
+            }
         }
     },
     methods: {
-        // consequenceFormatter: Formatters.consequenceFormatter
-        // filter(data, search) {
-        //     console.log("data", data);
-        //     console.log("search", search);
-        // }
+        clearOther(obj) {
+            this[obj] = "";
+        }
     }
 });
 </script>
