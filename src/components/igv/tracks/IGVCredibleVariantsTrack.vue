@@ -33,6 +33,12 @@ export default Vue.component('igv-credible-variants-track', {
             required: true
         },
 
+        posteriorProbability: {
+            type: Boolean,
+            require: false,
+            default: false,
+        },
+
         // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
         visualization: {
             type: String,
@@ -93,7 +99,7 @@ export default Vue.component('igv-credible-variants-track', {
         // clean up external data before destroying the component instance from memory
         IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
         // console.log(this.$el);
-        // TODO: this.$el.parentNode.removeChild(this.$el);
+        this.$el.parentNode.removeChild(this.$el);
     },
 
     methods: {
@@ -101,6 +107,7 @@ export default Vue.component('igv-credible-variants-track', {
             return {
                 name: this.trackName,
                 type: this.visualization,
+                posteriorProbability: this.posteriorProbability,
                 reader: new BioIndexReader({
                     index: this.index,
                     queryString: this.queryStringMaker,
@@ -131,8 +138,7 @@ export default Vue.component('igv-credible-variants-track', {
                     start: association.position,
                     end: association.position,
                     ...annotation,
-                    // for GWAS:
-                    value: association.pValue,
+                    value: this.posteriorProbability ? association.posteriorProbability : association.pValue,
                 }
             });
         }

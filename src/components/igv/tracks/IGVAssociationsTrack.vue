@@ -82,7 +82,7 @@ export default Vue.component('igv-associations-track', {
         // clean up external data before destroying the component instance from memory
         IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
         // console.log(this.$el);
-        // TODO: this.$el.parentNode.removeChild(this.$el);
+        this.$el.parentNode.removeChild(this.$el);
     },
 
     methods: {
@@ -128,7 +128,7 @@ export default Vue.component('igv-associations-track', {
     },
     watch: {
         phenotype(newPhenotype, oldPhenotype) {
-            IGVEvents.$emit(IGV_REMOVE_TRACK, `${oldPhenotype} ${this.visualization}`);
+            IGVEvents.$emit(IGV_REMOVE_TRACK, `${oldPhenotype}`);
             IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
         }
     }

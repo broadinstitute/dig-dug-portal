@@ -111,13 +111,13 @@ export default Vue.component('igv-intervals-track', {
     beforeDestroy () {
         // clean up external data before destroying the component instance from memory
         IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
+        this.$el.parentNode.removeChild(this.$el);
         // console.log(this.$el);
-        // this.$el.parentNode.removeChild(this.$el);
     },
 
     methods: {
         queryStringMaker: function (chr, start, end) {
-            return `${chr}:${start-this.visibility}-${end+this.visibility}`;
+            return `${chr}:${start}-${end}`;
         },
         intervalsForIGV: function (intervals) {
             // NOTE: Sometimes a track might not have defined data for a tissue on an interval, but was already created

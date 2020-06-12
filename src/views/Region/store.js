@@ -19,12 +19,20 @@ export default new Vuex.Store({
         variants: bioIndex("variants"),
         documentation: bioIndex("documentation"),
         regions: bioIndex("regions"),
-        credibleSets: bioIndex("credible-sets"),
+        // calling this "activeCredibleSets" because we expect this to be re-queried on change of locus
+        activeCredibleSets: bioIndex("credible-sets"),
         globalEnrichment: bioIndex("global-enrichment"),
     },
     state: {
         // only used at the start
         phenotypeParam: keyParams.phenotype,
+
+        initial: {
+            phenotype: keyParams.phenotype,
+            chr: keyParams.chr,
+            start: keyParams.start,
+            end: keyParams.end,
+        },
 
         // user-entered locus
         chr: keyParams.chr,
@@ -44,6 +52,9 @@ export default new Vuex.Store({
         },
         setCredibleSet(state, credibleSet) {
             state.currentCredibleSet = credibleSet;
+        },
+        setAnnotationChange(state, annotation) {
+            state.currentAnnotation = annotation;
         },
         setSelectedPhenotype(state, phenotype) {
             state.phenotypeParam = null;
@@ -101,6 +112,11 @@ export default new Vuex.Store({
             context.commit('setCredibleSet', eventData.credibleSetId)
         },
 
+        async onAnnotationChange(context, eventData) {
+            console.log(eventData)
+            context.commit('setAnnotationChange', eventData.annotation)
+        },
+
         async findGene(context) {
             if (context.state.searchGene) {
                 let locus = await regionUtils.parseRegion(context.state.searchGene, true, 50000);
@@ -117,7 +133,8 @@ export default new Vuex.Store({
             }
         },
 
-        async queryRegion(context) {
+        async queryRegion(context, region) {
+            const newRegion = region || context.getters.region;
             if (context.state.searchGene) {
                 context.dispatch('findGene');
             } else {
@@ -133,16 +150,16 @@ export default new Vuex.Store({
                 }
 
                 // find all the top associations and genes in the region
-                context.dispatch('topAssociations/query', { q: context.getters.region });
-                context.dispatch('genes/query', { q: context.getters.region });
+                context.dispatch('topAssociations/query', { q: newRegion });
+                context.dispatch('genes/query', { q: newRegion });
 
                 // for variant prioritizer
 
                 // together these constitute a filtered set of region annotations
                 context.dispatch('globalEnrichment/query', { q: keyParams.phenotype });
-                context.dispatch('regions/query', { q: context.getters.region });
+                context.dispatch('regions/query', { q: newRegion });
 
-                context.dispatch('credibleSets/query', { q: `${keyParams.phenotype},${context.getters.region}` });
+                context.dispatch('activeCredibleSets/query', { q: `${keyParams.phenotype},${ newRegion }` });
 
             }
         },
@@ -165,6 +182,13 @@ export default new Vuex.Store({
         //     context.dispatch('portal/documentation', query);
         // }
 
+        async resetToDefaultRegion(context) {
+            context.commit('setLocus', {
+                chr: context.state.initial.chr,
+                start: context.state.initial.start,
+                end: context.state.initial.end,
+            });
+        }
 
-    }
+    },
 });

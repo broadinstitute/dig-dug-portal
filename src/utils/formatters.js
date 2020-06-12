@@ -105,7 +105,12 @@ function intFormatter(value) {
     return !!value ? Number.parseFloat(value).toFixed(0) : '-';
 }
 
-
+function igvLocusFormatter(igvLocus) {
+    const chromosome = igvLocus.chr.charAt(3);
+    const start = igvLocus.start.replace(',', '');
+    const end = igvLocus.end.replace(',', '');
+    return locusFormatter(chromosome, position, end);
+}
 
 function locusFormatter(chromosome, position, end = undefined) {
     if (!!end) {
@@ -138,6 +143,7 @@ export default {
     floatFormatter,
     intFormatter,
     locusFormatter,
+    igvLocusFormatter,
     phenotypeFormatter,
     tissueFormatter,
 }

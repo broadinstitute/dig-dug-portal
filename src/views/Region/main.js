@@ -18,6 +18,7 @@ import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariant
 
 import TissueSelectPicker from "@/components/TissueSelectPicker"
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
+import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -26,6 +27,8 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+
+import { igvLocusFormatter } from "@/utils/formatters"
 
 Vue.config.productionTip = false;
 
@@ -49,6 +52,7 @@ new Vue({
 
         TissueSelectPicker,
         CredibleSetSelectPicker,
+        AnnotationMethodSelectPicker,
     },
 
     created() {
@@ -76,18 +80,29 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        addCredibleSetsTrack: function () {
+        formatIGV: function (locus) {
+            return igvLocusFormatter(locus)
+        },
+        addCredibleSetsTracks: function () {
             if(!!this.$store.state.currentCredibleSet && !!this.$store.state.phenotype){
                 this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
                     data: {
                         phenotype: this.$store.state.phenotype.name,
                         credibleSetId: this.$store.state.currentCredibleSet,
+                        posteriorProbability: true,
+                        visualization: 'gwas',
+                    }
+                });
+                this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
+                    data: {
+                        phenotype: this.$store.state.phenotype.name,
+                        credibleSetId: this.$store.state.currentCredibleSet,
+                        posteriorProbability: false,  // logarithm
                         visualization: 'gwas',
                     }
                 });
             }
         },
-
         addIntervalsTrack: function () {
             if (!!this.$store.state.currentTissue) {
                 this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
@@ -97,6 +112,21 @@ new Vue({
                         beta: this.beta,
                         annotationScoring: this.annotationScoring,
                     }
+                });
+            }
+        },
+        addIntervalsTracksForAnnotation: function () {
+            console.log('add intervals tracks')
+            if (!!this.$store.state.currentAnnotation) {
+                _.groupBy(this.$store.state.globalEnrichment.data, 'annotation')[currentAnnotation].forEach(annotation => {
+                    this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
+                        data: {
+                            tissue: annotation.tissue.description,
+                            pValue: this.pValue,
+                            beta: this.beta,
+                            annotationScoring: this.annotationScoring,
+                        }
+                    });
                 });
             }
         },
@@ -127,12 +157,9 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
-        tissues() {
-            return _.uniqBy(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue), 'id');
-        },
 
-        credibleSets() {
-            return this.$store.state.credibleSets.data;
+        activeCredibleSets() {
+            return this.$store.state.activeCredibleSets.data;
         },
 
         regionString() {
@@ -143,6 +170,13 @@ new Vue({
             return `${chr}:${start}-${end}`;
         },
 
+        globalEnrichment() {
+            return _.uniqBy(this.$store.state.globalEnrichment.data, 'annotation');
+        },
+
+        tissues() {
+            return _.uniqBy(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue), 'id');
+        },
 
         annotationScoring() {
             let annotationScoring = this.$store.state.globalEnrichment.data.reduce((net, enrichment) => {
@@ -243,6 +277,13 @@ new Vue({
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+
+        "$store.state.start": function (start) {
+            console.log(start)
+        },
+        "$store.state.end": function (end) {
+            console.log(end)
         }
     }
 }).$mount("#app");

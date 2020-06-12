@@ -112,6 +112,39 @@
                     <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                 </div>
             </div>
+
+            <div v-if="$store.state.phenotype" class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        Top Associations for {{$store.state.phenotype.description}}
+                    </h4>
+                    <documentation name="region.variantassociation.subheader"></documentation>
+                    <associations-table
+                        :phenotypes="$parent.phenotypes"
+                        :associations="$store.state.associations.data"
+                    ></associations-table>
+                </div>
+            </div>
+
+            <div v-if="!!$store.state.phenotype">
+                <igv ref="igv"
+                    :chr="$store.state.chr"
+                    :start="$store.state.start"
+                    :end="$store.state.end"
+                    :regionHandler="locus => {
+                        const region = {
+                            chr: locus.chr.charAt(3),
+                            start: locus.start.replace(/,/g, ''),
+                            end: locus.end.replace(/,/g, ''),
+                        };
+                        $store.dispatch('activeCredibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
+                    }">
+                    <igv-associations-track
+                        :phenotype="$store.state.phenotype.name"
+                        visualization="gwas"
+                    ></igv-associations-track>
+                </igv>
+            </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
@@ -129,71 +162,46 @@
                         :phenotype="$store.state.phenotype.name"
                         @lzupdate="$store.dispatch('loadAssociations', $event)"
                     ></locuszoom>
-
-
-
-                </div>
-            </div>
-
-            <div v-if="$store.state.phenotype" class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Top Associations for {{$store.state.phenotype.description}}</h4>
-                    <documentation name="region.variantassociation.subheader"></documentation>
-                    <associations-table
-                        :phenotypes="$parent.phenotypes"
-                        :associations="$store.state.associations.data"
-                    ></associations-table>
                 </div>
             </div>
 
             <div v-if="!!$store.state.phenotype" class="card mdkp-card">
-
                 <div class="card-body">
-                    <h4 class="card-title"
-                    >Credible Sets and Tissue Annotations for {{$store.state.phenotype.description}} in the region: {{$parent.regionString}}</h4>
+                    <h4 class="card-title">
+                        Credible Sets and Tissue Annotations for {{$store.state.phenotype.description}} in the region: {{$parent.regionString}}
+                    </h4>
 
-                    <!-- <tissue-selectpicker
-                        :tissues="$parent.tissues"
-                    ></tissue-selectpicker>
-                    pValue &lt; <input v-model.number="$parent.pValue"/>
-                    beta &gt; <input v-model.number="$parent.beta"/><br>
-                    <button v-on:click="$parent.addIntervalsTrack">Add Interval Track</button><br>
-
-                    <credible-sets-selectpicker
-                        :credibleSets="$parent.credibleSets"
-                    ></credible-sets-selectpicker>
-                    <button v-on:click="$parent.addCredibleSetsTrack">Add Credible Sets Track</button><br> -->
-                    <div class="row card-body">
+                     <div class="row card-body">
                         <div class="col-md-8">
-                            Tissue Annotation Track
+                            Annotation Method Track
                         </div>
                         <div class="col-md-4">
                             Credible Sets Track
                         </div>
                         <div class="col-md-8">
-                            <tissue-selectpicker
+                            <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues"
                             ></tissue-selectpicker>
-                            pValue &lt; <input v-model.number="$parent.pValue"/>
-                            beta &gt; <input v-model.number="$parent.beta"/>
-                            <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotaion Track</button><br>
+                            pValue &lt; <input v-model.number="$parent.pValue" disabled/>
+                            beta &gt; <input v-model.number="$parent.beta" disabled/>
+                            <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button><br> -->
+                            <annotation-method-selectpicker
+                                :annotations="$parent.globalEnrichment">
+                            </annotation-method-selectpicker>
+                            <button v-on:click="$parent.addIntervalsTracksForAnnotation">Add Annotation Method Tracks</button><br>
                         </div>
+
                         <div class="col-md-4">
+                            <!-- TODO: Active on length of credibleSets > 0 -->
+                            <!-- TODO: Replace $parent.credibleSets with $parent.activeCredibleSets (range sensitive) -->
                             <credible-sets-selectpicker
-                                :credibleSets="$parent.credibleSets"
+                                :credibleSets="$parent.activeCredibleSets"
                             ></credible-sets-selectpicker>
-                            <button v-on:click="$parent.addCredibleSetsTrack">Add Credible Sets Track</button><br>
+                            <button v-on:click="$parent.addCredibleSetsTracks">Add Credible Variant Tracks</button><br>
                         </div>
+
                     </div>
-                    <div v-if="$parent.credibleSets.length > 0 || $parent.tissues.length > 0 ">
-                    <igv ref="igv"
-                        :chr="$store.state.chr"
-                        :start="$store.state.start"
-                        :end="$store.state.end">
-                    </igv>
-                    </div>
+
 
                 </div>
             </div>

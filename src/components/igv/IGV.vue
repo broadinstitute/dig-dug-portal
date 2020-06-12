@@ -30,9 +30,12 @@ import * as _ from "lodash";
 
 export default Vue.component('igv', {
   props: [
+        // configuring initial coordinates and coordinate changes
         'chr', 'start', 'end',
+        // handlers for network requests
         'resolveHandler', 'finishHandler', 'errHandler',
-        'popupHandler'
+        // handlers on global IGV behavior
+        'popupHandler', 'regionHandler',
   ],
 
   data() {
@@ -45,7 +48,7 @@ export default Vue.component('igv', {
 
       const options = {
           genome: "hg19",
-          visibilityWindow: 10000,
+          visibilityWindow: 1000,
           showNavigation: false,
           locus: `chr${this.chr}:${this.start}-${this.end}`,
       };
@@ -76,9 +79,6 @@ export default Vue.component('igv', {
             // browser.search(`chr${this.chr}:${this.start}-${this.end}`);
             browser.updateViews();
         })
-
-
-
 
         // default handlers for tracks completing their data
         // TODO: this is the wierdest part of the application right now. It works out as long as we only have one instance of IGV per page.
@@ -136,7 +136,11 @@ export default Vue.component('igv', {
         });
 
         browser.on('locuschange', _.debounce(locus => {
-            console.log(locus);
+            if (!!this.regionHandler) {
+                this.regionHandler(locus);
+            } else {
+                console.log(locus);
+            }
         }, 300));
 
       },
