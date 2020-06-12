@@ -130,6 +130,12 @@ new Vue({
                 });
             }
         },
+        routeResponseToModule(response) {
+            // NOTE! assumes BOTHthat this is a bioIndex call with a registered bioIndex module, with the same symbolic name of the index.
+            // TODO: move to store?
+            // TODO: how about camel-kebabing?
+            return this.$store.commit(`${response.index}/setResponse`, response);
+        }
     },
 
     computed: {
@@ -158,8 +164,8 @@ new Vue({
         },
 
 
-        activeCredibleSets() {
-            return this.$store.state.activeCredibleSets.data;
+        credibleSets() {
+            return this.$store.state.credibleSets.data;
         },
 
         regionString() {

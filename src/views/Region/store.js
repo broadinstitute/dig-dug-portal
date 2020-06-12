@@ -19,8 +19,7 @@ export default new Vuex.Store({
         variants: bioIndex("variants"),
         documentation: bioIndex("documentation"),
         regions: bioIndex("regions"),
-        // calling this "activeCredibleSets" because we expect this to be re-queried on change of locus
-        activeCredibleSets: bioIndex("credible-sets"),
+        credibleSets: bioIndex("credible-sets"),
         globalEnrichment: bioIndex("global-enrichment"),
     },
     state: {
@@ -159,7 +158,7 @@ export default new Vuex.Store({
                 context.dispatch('globalEnrichment/query', { q: keyParams.phenotype });
                 context.dispatch('regions/query', { q: newRegion });
 
-                context.dispatch('activeCredibleSets/query', { q: `${keyParams.phenotype},${ newRegion }` });
+                context.dispatch('credibleSets/query', { q: `${keyParams.phenotype},${ newRegion }` });
 
             }
         },
@@ -175,12 +174,6 @@ export default new Vuex.Store({
             // load the association
             context.dispatch('associations/query', query);
         },
-
-        // loadDocumentationContent(context) {
-        //     let group = "md"
-        //     let name = "template string" //get it as props
-        //     context.dispatch('portal/documentation', query);
-        // }
 
         async resetToDefaultRegion(context) {
             context.commit('setLocus', {

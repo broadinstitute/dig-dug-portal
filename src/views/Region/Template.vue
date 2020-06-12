@@ -137,8 +137,9 @@
                             start: locus.start.replace(/,/g, ''),
                             end: locus.end.replace(/,/g, ''),
                         };
-                        $store.dispatch('activeCredibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
-                    }">
+                        $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
+                    }"
+                    :finishHandler="response => $parent.routeResponseToModule(response)">
                     <igv-associations-track
                         :phenotype="$store.state.phenotype.name"
                         visualization="gwas"
@@ -193,9 +194,8 @@
 
                         <div class="col-md-4">
                             <!-- TODO: Active on length of credibleSets > 0 -->
-                            <!-- TODO: Replace $parent.credibleSets with $parent.activeCredibleSets (range sensitive) -->
                             <credible-sets-selectpicker
-                                :credibleSets="$parent.activeCredibleSets"
+                                :credibleSets="$parent.credibleSets"
                             ></credible-sets-selectpicker>
                             <button v-on:click="$parent.addCredibleSetsTracks">Add Credible Variant Tracks</button><br>
                         </div>
