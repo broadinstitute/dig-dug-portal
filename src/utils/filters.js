@@ -52,14 +52,14 @@ function filterPhenotype(data, value, key = "phenotype") {
 }
 
 function filterTable(data, value, key) {
-    console.log("data", data);
-    console.log("value", value);
-    console.log("key", key);
+    // console.log("data", data);
+    // console.log("value", value);
+    // console.log("key", key);
     if (!value || !key) return data;
     const filtered = data.filter(row => {
         return value.includes(row[key]);
     });
-    console.log("FF", filtered);
+    // console.log("FF", filtered);
     //return filtered.length > 0 ? filtered : data;
     return filtered;
 }
