@@ -1,5 +1,62 @@
 <template>
     <div>
+        <b-container class="filter_rows" fluid>
+            <b-row>
+                <b-col>
+                    <div>Filter by annotations:</div>
+                    <b-form-select
+                        @input="addFilter($event, 'annotations')"
+                        :options="filter_annotation"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by methods:</div>
+                    <b-form-select @input="addFilter($event, 'methods')" :options="filter_method"></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by tissues:</div>
+                    <b-form-select @input="addFilter($event, 'tissues')" :options="filter_tissue"></b-form-select>
+                </b-col>
+            </b-row>
+            <b-row>
+                <b-col>
+                    <strong>Selected Filters:</strong>
+                    <template v-if="annotations">
+                        <b-badge
+                            pill
+                            variant="info"
+                            v-for="(v,i) in annotations"
+                            :key="v"
+                            @click="removeFilter(i, 'annotations')"
+                            class="btn"
+                        >{{v}}</b-badge>
+                    </template>
+
+                    <template v-if="methods">
+                        <b-badge
+                            pill
+                            variant="info"
+                            v-for="(v,i) in methods"
+                            :key="v"
+                            @click="removeFilter(i, 'methods')"
+                            class="btn"
+                        >{{v}}</b-badge>
+                    </template>
+
+                    <template v-if="tissues">
+                        <b-badge
+                            pill
+                            variant="info"
+                            v-for="(v,i) in tissues"
+                            :key="v"
+                            @click="removeFilter(i, 'tissues')"
+                            class="btn"
+                        >{{v}}</b-badge>
+                    </template>
+                </b-col>
+            </b-row>
+        </b-container>
+
         <div v-if="rows > 0">
             <b-table
                 hover
@@ -21,57 +78,9 @@
                         <b-th>
                             <span class="sr-only">Region</span>
                         </b-th>
-                        <b-th>
-                            <div>Filter by annotations:</div>
-                            <div v-if="annotations">
-                                <b-badge
-                                    pill
-                                    variant="info"
-                                    v-for="(v,i) in annotations"
-                                    :key="v"
-                                    @click="removeFilter(i, 'annotations')"
-                                    class="btn"
-                                >{{v}}</b-badge>
-                            </div>
-                            <b-form-select
-                                @input="addFilter($event, 'annotations')"
-                                :options="filter_annotation"
-                            ></b-form-select>
-                        </b-th>
-                        <b-th>
-                            <div>Filter by methods:</div>
-                            <div v-if="methods">
-                                <b-badge
-                                    pill
-                                    variant="info"
-                                    v-for="(v,i) in methods"
-                                    :key="v"
-                                    @click="removeFilter(i, 'methods')"
-                                    class="btn"
-                                >{{v}}</b-badge>
-                            </div>
-                            <b-form-select
-                                @input="addFilter($event, 'methods')"
-                                :options="filter_method"
-                            ></b-form-select>
-                        </b-th>
-                        <b-th>
-                            <div>Filter by tissues:</div>
-                            <div v-if="tissues">
-                                <b-badge
-                                    pill
-                                    variant="info"
-                                    v-for="(v,i) in tissues"
-                                    :key="v"
-                                    @click="removeFilter(i, 'tissues')"
-                                    class="btn"
-                                >{{v}}</b-badge>
-                            </div>
-                            <b-form-select
-                                @input="addFilter($event, 'tissues')"
-                                :options="filter_tissue"
-                            ></b-form-select>
-                        </b-th>
+                        <b-th></b-th>
+                        <b-th></b-th>
+                        <b-th></b-th>
                     </b-tr>
                 </template>
             </b-table>
@@ -163,23 +172,23 @@ export default Vue.component("regions-table", {
             return this.sortedRegions
                 .map(v => Formatters.tissueFormatter(v.tissue))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
-                .filter((v, i, arr) => v != undefined);
+                .filter((v, i, arr) => v != undefined && v != "-");
         },
         tableData() {
             if (this.annotations.length > 0) {
-                return Filters.filterRegion(
+                return Filters.filterFormatted(
                     this.sortedRegions,
                     this.annotations,
                     "annotation"
                 );
             } else if (this.methods.length > 0) {
-                return Filters.filterRegion(
+                return Filters.filterFormatted(
                     this.sortedRegions,
                     this.methods,
                     "method"
                 );
             } else if (this.tissues.length > 0) {
-                return Filters.filterRegion(
+                return Filters.filterFormatted(
                     this.sortedRegions,
                     this.tissues,
                     "tissue"
@@ -200,9 +209,9 @@ export default Vue.component("regions-table", {
         },
         resetOtherFilters(option) {
             this.annotations =
-                this.annotations == this[option] ? this[option] : [];
-            this.methods = this.methods == this[option] ? this[option] : [];
-            this.tissues = this.tissues == this[option] ? this[option] : [];
+                this.annotations === this[option] ? this[option] : [];
+            this.methods = this.methods === this[option] ? this[option] : [];
+            this.tissues = this.tissues === this[option] ? this[option] : [];
         }
     }
 });
