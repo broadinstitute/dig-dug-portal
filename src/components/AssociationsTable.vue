@@ -1,91 +1,95 @@
 <template>
     <div>
-        <div>
-            <b-container fluid>
-                <b-row>
-                    <b-col>
-                        <div>Filter by dbSNP:</div>
-                        <b-form-input
-                            id="filter-dbSNP"
-                            type="text"
-                            v-model="select_dbsnp_text"
-                            @change="addFilter($event, 'select_dbsnp')"
-                        ></b-form-input>
-                        <div v-if="select_dbsnp">
-                            <b-badge
-                                pill
-                                variant="info"
-                                v-for="(v,i) in select_dbsnp"
-                                :key="v"
-                                @click="removeFilter(i, 'select_dbsnp')"
-                                class="btn"
-                            >{{v}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <div>Filter by Consequence:</div>
-                        <b-form-select
-                            @change="setFilter($event, 'select_consequence')"
-                            :options="filter_consequence"
-                            ref="select_consequence"
-                        ></b-form-select>
-                        <div v-if="select_consequence">
-                            <b-badge
-                                pill
-                                variant="info"
-                                @click="unsetFilter('select_consequence')"
-                                class="btn"
-                            >{{select_consequence}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <div>Filter by Gene:</div>
-                        <b-form-input
-                            id="filter-gene"
-                            type="text"
-                            v-model="select_gene_text"
-                            @change="addFilter($event, 'select_gene')"
-                        ></b-form-input>
-                        <div v-if="select_gene">
-                            <b-badge
-                                pill
-                                variant="info"
-                                v-for="(g,i) in select_gene"
-                                :key="g"
-                                @click="removeFilter(i, 'select_gene')"
-                                class="btn"
-                            >{{g}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <div>Filter by pValue &le;:</div>
-                        <b-form-input
-                            id="filter-pValue"
-                            type="number"
-                            @change="setFilter($event, 'select_pValue')"
-                            ref="select_pValue"
-                        ></b-form-input>
-                        <div v-if="select_pValue">
-                            <b-badge
-                                pill
-                                variant="info"
-                                @click="unsetFilter('select_pValue')"
-                                class="btn"
-                            >{{select_pValue}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <b-form-group label="Filter by Effects:">
-                            <b-form-radio-group v-model="select_beta">
-                                <b-form-radio name="all" value size="sm">All</b-form-radio>
-                                <b-form-radio name="above" value="p" size="sm">Positive</b-form-radio>
-                                <b-form-radio name="below" value="n" size="sm">Negative</b-form-radio>
-                            </b-form-radio-group>
-                        </b-form-group>
-                    </b-col>
-                </b-row>
-            </b-container>
-        </div>
+        <b-container fluid>
+            <b-row>
+                <b-col>
+                    <div>Filter by dbSNP:</div>
+                    <b-form-input
+                        id="filter-dbSNP"
+                        type="text"
+                        v-model="select_dbsnp_text"
+                        @change="addFilter($event, 'select_dbsnp')"
+                    ></b-form-input>
+                </b-col>
+                <b-col>
+                    <div>Filter by Consequence:</div>
+                    <b-form-select
+                        @change="setFilter($event, 'select_consequence')"
+                        :options="filter_consequence"
+                        ref="select_consequence"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by Gene:</div>
+                    <b-form-input
+                        id="filter-gene"
+                        type="text"
+                        v-model="select_gene_text"
+                        @change="addFilter($event, 'select_gene')"
+                    ></b-form-input>
+                </b-col>
+                <b-col>
+                    <div>Filter by pValue &le;:</div>
+                    <b-form-input
+                        id="filter-pValue"
+                        type="number"
+                        @change="setFilter($event, 'select_pValue')"
+                        ref="select_pValue"
+                    ></b-form-input>
+                </b-col>
+                <b-col>
+                    <div>Filter by Effect:</div>
+                    <b-form-select
+                        @input="setFilter($event, 'select_beta')"
+                        :options="select_beta_options"
+                        ref="select_beta"
+                        v-model="select_beta"
+                    ></b-form-select>
+                </b-col>
+            </b-row>
+            <b-row>
+                <b-col>
+                    <strong>Selected Filters:</strong>
+                    <template v-if="select_dbsnp">
+                        <b-badge
+                            pill
+                            variant="info"
+                            v-for="(v,i) in select_dbsnp"
+                            :key="v"
+                            @click="removeFilter(i, 'select_dbsnp')"
+                            class="btn"
+                        >{{v}}</b-badge>
+                    </template>
+                    <template v-if="select_consequence">
+                        <b-badge
+                            pill
+                            variant="success"
+                            @click="unsetFilter('select_consequence')"
+                            class="btn"
+                        >{{select_consequence}}</b-badge>
+                    </template>
+                    <template v-if="select_gene">
+                        <b-badge
+                            pill
+                            variant="warning"
+                            v-for="(g,i) in select_gene"
+                            :key="g"
+                            @click="removeFilter(i, 'select_gene')"
+                            class="btn"
+                        >{{g}}</b-badge>
+                    </template>
+                    <template v-if="select_pValue">
+                        <b-badge
+                            pill
+                            variant="danger"
+                            @click="unsetFilter('select_pValue')"
+                            class="btn"
+                        >{{select_pValue}}</b-badge>
+                    </template>
+                </b-col>
+            </b-row>
+        </b-container>
+
         <div v-if="rows > 0">
             <b-table
                 hover
@@ -188,7 +192,12 @@ export default Vue.component("associations-table", {
             select_consequence: "",
             select_gene: [],
             select_gene_text: "",
-            select_beta: ""
+            select_beta: null,
+            select_beta_options: [
+                { value: null, text: "All" },
+                { value: "p", text: "Positive" },
+                { value: "n", text: "Negative" }
+            ]
         };
     },
     mounted() {},
@@ -297,6 +306,7 @@ export default Vue.component("associations-table", {
 
         tableData() {
             if (this.select_dbsnp.length > 0) {
+                +9 + 8;
                 return Filters.filterTable(
                     this.groupedAssociations,
                     this.select_dbsnp,
