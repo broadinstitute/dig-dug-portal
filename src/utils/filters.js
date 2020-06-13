@@ -60,6 +60,14 @@ function filterPValue(data, value, key = "pValue") {
     else return data;
 }
 
+function filterPhenotype(data, value, key = "phenotype") {
+    if (!value || !key) return data;
+    const filtered = data.filter(row => {
+        return value.includes(row[key].description);
+    });
+    return filtered;
+}
+
 function filterTable(data, value, key) {
     if (!value || !key) return data;
     const filtered = data.filter(row => {
@@ -73,5 +81,6 @@ export default {
     filterFormatted,
     filterBeta,
     filterPValue,
+    filterPhenotype,
     filterTable
 };
