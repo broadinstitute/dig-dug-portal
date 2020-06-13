@@ -1,107 +1,111 @@
 <template>
     <div>
-        <div v-if="rows > 0">
-            <b-container class="filter_rows" fluid>
-                <b-row>
-                    <b-col>
-                        <div>Filter by annotation:</div>
-                        <b-form-select
-                            @input="addFilter($event, 'select_annotations')"
-                            :options="filter_annotation"
-                            v-model="select_annotations_text"
-                        ></b-form-select>
-                        <div v-if="select_annotations">
-                            <b-badge
-                                pill
-                                variant="info"
-                                v-for="(v,i) in select_annotations"
-                                :key="v"
-                                @click="removeFilter(i, 'select_annotations')"
-                                class="btn"
-                            >{{v}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <div>Filter by method:</div>
-                        <b-form-select
-                            @input="addFilter($event, 'select_methods')"
-                            :options="filter_method"
-                            v-model="select_methods_text"
-                        ></b-form-select>
-                        <div v-if="select_methods">
-                            <b-badge
-                                pill
-                                variant="info"
-                                v-for="(v,i) in select_methods"
-                                :key="v"
-                                @click="removeFilter(i, 'select_methods')"
-                                class="btn"
-                            >{{v}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <div>Filter by tissue:</div>
-                        <b-form-select
-                            @input="addFilter($event, 'select_tissues')"
-                            :options="filter_tissue"
-                            v-model="select_tissues_text"
-                        ></b-form-select>
-                        <div v-if="select_tissues">
-                            <b-badge
-                                pill
-                                variant="info"
-                                v-for="(v,i) in select_tissues"
-                                :key="v"
-                                @click="removeFilter(i, 'select_tissues')"
-                                class="btn"
-                            >{{v}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <div>Filter by ancestry:</div>
-                        <b-form-select
-                            @input="setFilter($event, 'select_ancestry')"
-                            :options="filter_ancestry"
-                            ref="select_ancestry"
-                        ></b-form-select>
-                        <div v-if="select_ancestry">
-                            <b-badge
-                                pill
-                                variant="info"
-                                @click="unsetFilter('select_ancestry')"
-                                class="btn"
-                            >{{select_ancestry}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <div>Filter by pValue &le;:</div>
-                        <b-form-input
-                            id="filter-pValue"
-                            type="number"
-                            @change="setFilter($event, 'select_pValue')"
-                            ref="select_pValue"
-                        ></b-form-input>
-                        <div v-if="select_pValue">
-                            <b-badge
-                                pill
-                                variant="info"
-                                @click="unsetFilter('select_pValue')"
-                                class="btn"
-                            >{{select_pValue}}</b-badge>
-                        </div>
-                    </b-col>
-                    <b-col>
-                        <b-form-group label="Filter by Effects:">
-                            <b-form-radio-group v-model="select_odds_ratio">
-                                <b-form-radio name="all" value size="sm">All</b-form-radio>
-                                <b-form-radio name="positive" value="p" size="sm">Positive</b-form-radio>
-                                <b-form-radio name="negative" value="n" size="sm">Negative</b-form-radio>
-                            </b-form-radio-group>
-                        </b-form-group>
-                    </b-col>
-                </b-row>
-            </b-container>
-        </div>
+        <b-container class="filter_rows" fluid>
+            <b-row>
+                <b-col>
+                    <div>Filter by annotation:</div>
+                    <b-form-select
+                        @input="addFilter($event, 'select_annotations')"
+                        :options="filter_annotation"
+                        v-model="select_annotations_text"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by method:</div>
+                    <b-form-select
+                        @input="addFilter($event, 'select_methods')"
+                        :options="filter_method"
+                        v-model="select_methods_text"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by tissue:</div>
+                    <b-form-select
+                        @input="addFilter($event, 'select_tissues')"
+                        :options="filter_tissue"
+                        v-model="select_tissues_text"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by ancestry:</div>
+                    <b-form-select
+                        @input="setFilter($event, 'select_ancestry')"
+                        :options="filter_ancestry"
+                        ref="select_ancestry"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by pValue &le;:</div>
+                    <b-form-input
+                        id="filter-pValue"
+                        type="number"
+                        @change="setFilter($event, 'select_pValue')"
+                        ref="select_pValue"
+                    ></b-form-input>
+                </b-col>
+                <b-col>
+                    <div>Filter by Effect:</div>
+                    <b-form-select
+                        @input="setFilter($event, 'select_odds_ratio')"
+                        :options="select_odds_ratio_options"
+                        ref="select_odds_ratio"
+                        v-model="select_odds_ratio"
+                    ></b-form-select>
+                </b-col>
+            </b-row>
+            <b-row>
+                <b-col>
+                    <strong>Selected Filters:</strong>
+                    <template v-if="select_annotations">
+                        <b-badge
+                            pill
+                            variant="info"
+                            v-for="(v,i) in select_annotations"
+                            :key="v"
+                            @click="removeFilter(i, 'select_annotations')"
+                            class="btn"
+                        >{{v}}</b-badge>
+                    </template>
+                    <template v-if="select_methods">
+                        <b-badge
+                            pill
+                            variant="primary"
+                            v-for="(v,i) in select_methods"
+                            :key="v"
+                            @click="removeFilter(i, 'select_methods')"
+                            class="btn"
+                        >{{v}}</b-badge>
+                    </template>
+                    <template v-if="select_tissues">
+                        <b-badge
+                            pill
+                            variant="warning"
+                            v-for="(v,i) in select_tissues"
+                            :key="v"
+                            @click="removeFilter(i, 'select_tissues')"
+                            class="btn"
+                        >{{v}}</b-badge>
+                    </template>
+                    <template v-if="select_ancestry">
+                        <b-badge
+                            pill
+                            variant="success"
+                            @click="unsetFilter('select_ancestry')"
+                            class="btn"
+                        >{{select_ancestry}}</b-badge>
+                    </template>
+                    <template v-if="select_pValue">
+                        <b-badge
+                            pill
+                            variant="danger"
+                            @click="unsetFilter('select_pValue')"
+                            class="btn"
+                        >{{select_pValue}}</b-badge>
+                    </template>
+                </b-col>
+            </b-row>
+        </b-container>
+
         <div v-if="rows > 0">
             <b-table
                 hover
@@ -191,7 +195,12 @@ export default Vue.component("enrichment-table", {
             select_tissues_text: "",
             select_ancestry: "",
             select_pValue: "",
-            select_odds_ratio: ""
+            select_odds_ratio: null,
+            select_odds_ratio_options: [
+                { value: null, text: "All" },
+                { value: "p", text: "Positive" },
+                { value: "n", text: "Negative" }
+            ]
         };
     },
 
