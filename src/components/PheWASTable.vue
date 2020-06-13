@@ -1,5 +1,57 @@
 <template>
     <div>
+        <b-container class="filter_rows" fluid>
+            <b-row>
+                <b-col>
+                    <div>Filter by phenotype:</div>
+
+                    <vue-typeahead-bootstrap
+                        v-if="phenotypeMap"
+                        v-model="userText"
+                        ref="phenotypeSelect"
+                        :data="Object.values(phenotypeMap)"
+                        :serializer="s => s.description"
+                        @hit="addPhenotype($event)"
+                    ></vue-typeahead-bootstrap>
+                </b-col>
+                <b-col>
+                    <div>Filter by pValue &le;:</div>
+                    <b-form-input id="filter-pValue" type="number" @change="filterPValue($event)"></b-form-input>
+                </b-col>
+                <b-col>
+                    <div>Filter by Effect:</div>
+                    <b-form-select
+                        @input="filterBeta()"
+                        :options="beta_options"
+                        ref="beta"
+                        v-model="beta"
+                    ></b-form-select>
+                </b-col>
+            </b-row>
+            <b-row>
+                <b-col>
+                    <strong>Selected Filters:</strong>
+                    <template v-if="selectedPhenotypes">
+                        <b-badge
+                            pill
+                            variant="info"
+                            v-for="(p,i) in selectedPhenotypes"
+                            :key="p"
+                            @click="removePhenotype(i)"
+                            class="btn"
+                        >{{p}}</b-badge>
+                    </template>
+                    <template v-if="pValue">
+                        <b-badge
+                            pill
+                            variant="success"
+                            @click="unsetFilter('pValue')"
+                            class="btn"
+                        >{{pValue}}</b-badge>
+                    </template>
+                </b-col>
+            </b-row>
+        </b-container>
         <b-table
             hover
             small
@@ -21,59 +73,6 @@
             <template
                 v-slot:cell(dichotomousEffect)="r"
             >{{!!r.item.phenotype.dichotomous ? floatFormatter(Math.exp(r.item.beta)) : null}}</template>
-            <template v-slot:thead-top="data">
-                <b-tr>
-                    <b-th>
-                        <di>Filter by phenotype:</di>
-                        <div v-if="selectedPhenotypes">
-                            <b-badge
-                                pill
-                                variant="info"
-                                v-for="(p,i) in selectedPhenotypes"
-                                :key="p"
-                                @click="removePhenotype(i)"
-                                class="btn"
-                            >{{p}}</b-badge>
-                        </div>
-                        <vue-typeahead-bootstrap
-                            v-if="phenotypeMap"
-                            v-model="userText"
-                            ref="phenotypeSelect"
-                            :data="Object.values(phenotypeMap)"
-                            :serializer="s => s.description"
-                            @hit="addPhenotype($event)"
-                        ></vue-typeahead-bootstrap>
-                    </b-th>
-                    <b-th>
-                        <div>Filter by pValue &le;:</div>
-                        <div v-if="pValue">
-                            <b-badge
-                                pill
-                                variant="info"
-                                @click="unsetFilter('pValue')"
-                                class="btn"
-                            >{{pValue}}</b-badge>
-                        </div>
-                        <b-form-input
-                            id="filter-pValue"
-                            type="number"
-                            @change="filterPValue($event)"
-                        ></b-form-input>
-                    </b-th>
-                    <b-th>
-                        <b-form-group label="Filter by Effects">
-                            <b-form-radio-group v-model="beta" @input="filterBeta()">
-                                <b-form-radio name="all" value size="sm">All</b-form-radio>
-                                <b-form-radio name="positive" value="p" size="sm">Positive</b-form-radio>
-                                <b-form-radio name="negative" value="n" size="sm">Negative</b-form-radio>
-                            </b-form-radio-group>
-                        </b-form-group>
-                    </b-th>
-                    <b-th></b-th>
-                    <b-th></b-th>
-                    <b-th></b-th>
-                </b-tr>
-            </template>
         </b-table>
         <b-pagination
             class="pagination-sm justify-content-center"
@@ -142,11 +141,17 @@ export default Vue.component("phewas-table", {
                     sortable: true
                 }
             ],
-            beta: "",
+
             userText: "",
             selectedPhenotypes: [],
             pValue: "",
-            tableData: ""
+            tableData: "",
+            beta: "",
+            beta_options: [
+                { value: null, text: "All" },
+                { value: "p", text: "Positive" },
+                { value: "n", text: "Negative" }
+            ]
         };
     },
     mounted() {
@@ -194,7 +199,7 @@ export default Vue.component("phewas-table", {
                 this.beta,
                 "beta"
             );
-            this.resetOtherFilters();
+            this.resetOtherFilters("beta");
         },
         filterPValue(event) {
             this.pValue = event;
@@ -202,14 +207,14 @@ export default Vue.component("phewas-table", {
                 this.pheWASAssociations,
                 event
             );
-            this.resetOtherFilters();
+            this.resetOtherFilters("pValue");
         },
         filterPhenotype() {
             this.tableData = Filters.filterPhenotype(
                 this.pheWASAssociations,
                 this.selectedPhenotypes
             );
-            this.resetOtherFilters();
+            this.resetOtherFilters("selectedPhenotypes");
         },
         resetOtherFilters(option) {
             this.selectedPhenotypes =
