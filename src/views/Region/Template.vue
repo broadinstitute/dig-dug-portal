@@ -126,45 +126,7 @@
                 </div>
             </div>
 
-            <div v-if="!!$store.state.phenotype">
-                <igv ref="igv"
-                    :chr="$store.state.chr"
-                    :start="$store.state.start"
-                    :end="$store.state.end"
-                    :regionHandler="locus => {
-                        const region = {
-                            chr: locus.chr.charAt(3),
-                            start: locus.start.replace(/,/g, ''),
-                            end: locus.end.replace(/,/g, ''),
-                        };
-                        $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
-                    }"
-                    :finishHandler="response => $parent.routeResponseToModule(response)">
-                    <igv-associations-track
-                        :phenotype="$store.state.phenotype.name"
-                        visualization="gwas"
-                    ></igv-associations-track>
-                </igv>
-            </div>
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        v-if="$store.state.phenotype"
-                        class="card-title"
-                    >Associations for {{$store.state.phenotype.description}}</h4>
-                    <documentation :name="'region.lz.subheader'"></documentation>
-                    <locuszoom
-                        v-if="$store.state.phenotype"
-                        :panels="['association','genes']"
-                        :assoc="$parent.lzAssociations"
-                        :chr="$store.state.chr"
-                        :start="$store.state.start"
-                        :end="$store.state.end"
-                        :phenotype="$store.state.phenotype.name"
-                        @lzupdate="$store.dispatch('loadAssociations', $event)"
-                    ></locuszoom>
-                </div>
-            </div>
+
 
             <div v-if="!!$store.state.phenotype" class="card mdkp-card">
                 <div class="card-body">
@@ -183,12 +145,12 @@
                             <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues"
                             ></tissue-selectpicker>
-                            pValue &lt; <input v-model.number="$parent.pValue" disabled/>
-                            beta &gt; <input v-model.number="$parent.beta" disabled/>
                             <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button><br> -->
                             <annotation-method-selectpicker
-                                :annotations="$parent.globalEnrichment">
+                                :annotations="$parent.globalEnrichmentAnnotations">
                             </annotation-method-selectpicker>
+                            pValue &lt; <input v-model.number="$parent.pValue" disabled/>
+                            beta &gt; <input v-model.number="$parent.beta" disabled/>
                             <button v-on:click="$parent.addIntervalsTracksForAnnotation">Add Annotation Method Tracks</button><br>
                         </div>
 
@@ -202,11 +164,51 @@
 
                     </div>
 
+                    <div v-if="!!$store.state.phenotype">
+                        <igv ref="igv"
+                            :chr="$store.state.chr"
+                            :start="$store.state.start"
+                            :end="$store.state.end"
+                            :regionHandler="locus => {
+                                const region = {
+                                    chr: locus.chr.charAt(3),
+                                    start: locus.start.replace(/,/g, ''),
+                                    end: locus.end.replace(/,/g, ''),
+                                };
+                                $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
+                            }">
+                            <igv-associations-track
+                                :phenotype="$store.state.phenotype.name"
+                                visualization="gwas"
+                                :finishHandler="response => $parent.routeResponseToModule(response)"
+                            ></igv-associations-track>
+                        </igv>
+                    </div>
 
                 </div>
             </div>
 
         </div>
+
+        <!-- <div class="card mdkp-card">
+            <div class="card-body">
+                <h4
+                    v-if="$store.state.phenotype"
+                    class="card-title"
+                >Associations for {{$store.state.phenotype.description}}</h4>
+                <documentation :name="'region.lz.subheader'"></documentation>
+                <locuszoom
+                    v-if="$store.state.phenotype"
+                    :panels="['association','genes']"
+                    :assoc="$parent.lzAssociations"
+                    :chr="$store.state.chr"
+                    :start="$store.state.start"
+                    :end="$store.state.end"
+                    :phenotype="$store.state.phenotype.name"
+                    @lzupdate="$store.dispatch('loadAssociations', $event)"
+                ></locuszoom>
+            </div>
+        </div> -->
 
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>

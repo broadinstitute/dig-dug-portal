@@ -25,20 +25,29 @@ export default Vue.component('igv-intervals-track', {
             type: String,
             required: true
         },
+        ancestry: {
+            type: String,
+            required: false,
+        },
 
-        annotationScoring: {
-            type: Object,
-            required: false
-        },
-        pValue: {
-            type: Number,
+        // annotationScoring: {
+        //     type: Object,
+        //     required: false
+        // },
+        // pValue: {
+        //     type: Number,
+        //     required: false,
+        //     default: 1.0,
+        // },
+        // beta: {
+        //     type: Number,
+        //     required: false,
+        //     default: 1.0,
+        // },
+
+        annotations: {
+            type: Array,
             required: false,
-            default: 1.0,
-        },
-        beta: {
-            type: Number,
-            required: false,
-            default: 1.0,
         },
 
         // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
@@ -74,7 +83,7 @@ export default Vue.component('igv-intervals-track', {
     },
     computed: {
         trackName() {
-            return `${this.tissue} ${this.visualization}: pValue < ${this.pValue}, beta > ${this.beta}`
+            return `${this.tissue} ${this.ancestry}: pValue < ${this.pValue}, beta > ${this.beta}`
         }
     },
     mounted() {
@@ -127,7 +136,13 @@ export default Vue.component('igv-intervals-track', {
             const tissuesOnRange = _.groupBy(intervals, 'tissue.description');
             if (!!tissuesOnRange[this.tissue]) {
                 return tissuesOnRange[this.tissue]
-                .filter(interval => !!interval.tissue && this.annotationScoring[this.tissue][interval.annotation].pValue < this.pValue && this.annotationScoring[this.tissue][interval.annotation].beta > this.beta)
+                .filter(interval =>
+                    !!interval.tissue &&
+                    // either we have no annotations which is OK, or we do have annotations and can filter with them
+                    (!!!this.annotations || this.annotations.includes(interval.annotation))
+                    // this.annotationScoring[this.tissue][interval.annotation].pValue < this.pValue &&
+                    // this.annotationScoring[this.tissue][interval.annotation].beta > this.beta)
+                )
                 .map(interval => {
                     return {
                         chr: interval.chromosome,

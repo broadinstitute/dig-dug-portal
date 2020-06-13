@@ -84,7 +84,10 @@ new Vue({
             return igvLocusFormatter(locus)
         },
         addCredibleSetsTracks: function () {
+
             if(!!this.$store.state.currentCredibleSet && !!this.$store.state.phenotype){
+
+                // Add Tracks
                 this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
                     data: {
                         phenotype: this.$store.state.phenotype.name,
@@ -101,7 +104,12 @@ new Vue({
                         visualization: 'gwas',
                     }
                 });
+
+                // Add to Table
+
             }
+
+
         },
         addIntervalsTrack: function () {
             if (!!this.$store.state.currentTissue) {
@@ -116,18 +124,24 @@ new Vue({
             }
         },
         addIntervalsTracksForAnnotation: function () {
-            console.log('add intervals tracks')
+            console.log('add intervals tracks', this.globalEnrichmentByAnnotation)
             if (!!this.$store.state.currentAnnotation) {
-                _.groupBy(this.$store.state.globalEnrichment.data, 'annotation')[currentAnnotation].forEach(annotation => {
-                    this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
-                        data: {
-                            tissue: annotation.tissue.description,
-                            pValue: this.pValue,
-                            beta: this.beta,
-                            annotationScoring: this.annotationScoring,
-                        }
+                // TODO: refactor to JSON selectors, or to lodash chaining?
+                const annotationGroups = _.groupBy(this.globalEnrichmentByAnnotation[this.$store.state.currentAnnotation], 'tissue.description');
+                Object.keys(annotationGroups)
+                    .forEach(annotationKey => {
+                        annotationGroups[annotationKey].forEach(annotation => {
+                            if (annotation.pValue > this.pValue && annotation.SNPs / annotation.expectedSNPs > this.beta) {
+                                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
+                                    data: {
+                                        tissue: annotation.tissue.description,
+                                        ancestry: annotation.ancestry,
+                                        annotations: [this.$store.state.currentAnnotation],
+                                    }
+                                });
+                            }
+                        })
                     });
-                });
             }
         },
         routeResponseToModule(response) {
@@ -135,7 +149,7 @@ new Vue({
             // TODO: move to store?
             // TODO: how about camel-kebabing?
             return this.$store.commit(`${response.index}/setResponse`, response);
-        }
+        },
     },
 
     computed: {
@@ -176,8 +190,12 @@ new Vue({
             return `${chr}:${start}-${end}`;
         },
 
-        globalEnrichment() {
+        globalEnrichmentAnnotations() {
             return _.uniqBy(this.$store.state.globalEnrichment.data, 'annotation');
+        },
+
+        globalEnrichmentByAnnotation() {
+            return _.groupBy(this.$store.state.globalEnrichment.data, 'annotation')
         },
 
         tissues() {
