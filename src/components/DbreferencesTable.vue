@@ -1,13 +1,46 @@
 <template>
     <div>
-        <!-- <b-row>
-            <b-col sm="3" offset-sm="6">
-                <b-form-select v-model="source" :options="filter_source"></b-form-select>
-            </b-col>
-            <b-col sm="3">
-                <b-form-select v-model="moleculeType" :options="filter_moleculeType"></b-form-select>
-            </b-col>
-        </b-row>-->
+        <b-container fluid>
+            <b-row>
+                <b-col>
+                    <div>Filter by source:</div>
+                    <b-form-select
+                        v-model="source"
+                        :options="filter_source"
+                        @change="clearFilter('moleculeType')"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div>Filter by Molecule Type:</div>
+                    <b-form-select
+                        v-model="moleculeType"
+                        :options="filter_moleculeType"
+                        @change="clearFilter('source')"
+                    ></b-form-select>
+                </b-col>
+            </b-row>
+            <b-row>
+                <b-col>
+                    <strong>Selected Filters:</strong>
+                    <template v-if="source">
+                        <b-badge
+                            pill
+                            variant="info"
+                            @click="clearFilter('source')"
+                            class="btn"
+                        >{{source}}</b-badge>
+                    </template>
+                    <template v-if="moleculeType">
+                        <b-badge
+                            pill
+                            variant="success"
+                            @click="clearFilter('moleculeType')"
+                            class="btn"
+                        >{{moleculeType}}</b-badge>
+                    </template>
+                </b-col>
+            </b-row>
+        </b-container>
         <b-table
             hover
             small
@@ -16,34 +49,7 @@
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
-        >
-            <template v-slot:thead-top="data">
-                <b-tr>
-                    <b-th>
-                        <span class="sr-only">ID</span>
-                    </b-th>
-                    <b-th>
-                        <div>Filter by source:</div>
-                        <b-form-select
-                            v-model="source"
-                            :options="filter_source"
-                            @change="clearOther('moleculeType')"
-                        ></b-form-select>
-                    </b-th>
-                    <b-th>
-                        <div>Filter by Molecule Type:</div>
-                        <b-form-select
-                            v-model="moleculeType"
-                            :options="filter_moleculeType"
-                            @change="clearOther('source')"
-                        ></b-form-select>
-                    </b-th>
-                    <b-th>
-                        <span class="sr-only">Protein Sequence ID</span>
-                    </b-th>
-                </b-tr>
-            </template>
-        </b-table>
+        ></b-table>
         <b-pagination
             class="pagination-sm justify-content-center"
             v-model="currentPage"
@@ -128,7 +134,7 @@ export default Vue.component("dbreferences-table", {
         }
     },
     methods: {
-        clearOther(obj) {
+        clearFilter(obj) {
             this[obj] = "";
         }
     }
