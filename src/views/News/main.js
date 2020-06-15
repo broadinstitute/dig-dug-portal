@@ -11,7 +11,6 @@ import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import NewFeatures from "@/components/NewFeatures.vue";
-import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
 import Alert, {
     postAlert,

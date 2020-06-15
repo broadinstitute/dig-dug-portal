@@ -15,6 +15,7 @@ export default {
             datasetInfo: [],
             pageInfo: [],
             newFeatures: [],
+            resources: [],
         };
     },
 
@@ -37,6 +38,9 @@ export default {
         },
         setNewFeatures(state, newFeatures) {
             state.newFeatures = newFeatures;
+        },
+        setResources(state, resources) {
+            state.resources = resources;
         },
     },
 
@@ -93,6 +97,15 @@ export default {
                 .then(resp => resp.json());
             // set the data
             context.commit('setNewFeatures', json)
+        },
+        async getResources(context, selectedDiseaseGroup) {
+
+            let portal = selectedDiseaseGroup || 'md';
+
+            let json = await fetch('http://kp4cd.org/rest/views/newresources?portal=' + selectedDiseaseGroup)
+                .then(resp => resp.json());
+            // set the data
+            context.commit('setResources', json)
         },
     },
 }

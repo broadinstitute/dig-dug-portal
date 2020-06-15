@@ -11,12 +11,4 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
     },
-    state: {
-    },
-    mutations: {
-    },
-    getters: {
-    },
-    actions: {
-    }
 });

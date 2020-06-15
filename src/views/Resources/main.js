@@ -6,12 +6,10 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-
-import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import StaticPage from "@/components/StaticPage.vue";
-import uiUtils from "@/utils/uiUtils";
+import Resources from "@/components/Resources.vue";
+import keyParams from "@/utils/keyParams";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -23,10 +21,9 @@ new Vue({
     store,
 
     components: {
-        StaticPage,
+        Resources,
         PageHeader,
         PageFooter,
-        PortalDatasetsListTable,
         Alert,
     },
 
@@ -39,7 +36,6 @@ new Vue({
     },
 
     methods: {
-        ...uiUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -61,8 +57,8 @@ new Vue({
             return contents[0];
         },
 
-        pageInfo() {
-            let contents = this.$store.state.kp4cd.pageInfo;
+        resources() {
+            let contents = this.$store.state.kp4cd.resources;
 
             if (contents.length === 0) {
                 return {};
@@ -70,15 +66,16 @@ new Vue({
             return contents;
         },
 
-
-
-
+        nid() {
+            let content = keyParams.resource;
+            return content;
+        }
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getPageInfo", { "page": "about", "portal": group.name });
+            this.$store.dispatch("kp4cd/getResources", group.name);
         },
 
     }
