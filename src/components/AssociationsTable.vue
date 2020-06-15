@@ -1,9 +1,9 @@
 <template>
     <div>
-        <b-container fluid>
-            <b-row>
+        <b-container fluid class="filtering-ui-wrapper">
+            <b-row class="filtering-ui-content">
                 <b-col>
-                    <div>Filter by dbSNP:</div>
+                    <div class="label">dbSNP</div>
                     <b-form-input
                         id="filter-dbSNP"
                         type="text"
@@ -12,7 +12,7 @@
                     ></b-form-input>
                 </b-col>
                 <b-col>
-                    <div>Filter by Consequence:</div>
+                    <div class="label">Consequence</div>
                     <b-form-select
                         @change="setFilter($event, 'select_consequence')"
                         :options="filter_consequence"
@@ -20,7 +20,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by Gene:</div>
+                    <div class="label">Gene</div>
                     <b-form-input
                         id="filter-gene"
                         type="text"
@@ -29,7 +29,7 @@
                     ></b-form-input>
                 </b-col>
                 <b-col>
-                    <div>Filter by pValue &le;:</div>
+                    <div class="label">pValue &le;</div>
                     <b-form-input
                         id="filter-pValue"
                         type="number"
@@ -38,7 +38,7 @@
                     ></b-form-input>
                 </b-col>
                 <b-col>
-                    <div>Filter by Effect:</div>
+                    <div class="label">Effect</div>
                     <b-form-select
                         @input="setFilter($event, 'select_beta')"
                         :options="select_beta_options"
@@ -47,9 +47,14 @@
                     ></b-form-select>
                 </b-col>
             </b-row>
+        </b-container>
+        <b-container
+            fluid
+            v-if="select_dbsnp.length > 0 || select_consequence != '' || select_gene.length > 0 || select_pValue != ''"
+        >
             <b-row>
                 <b-col>
-                    <strong>Selected Filters:</strong>
+                    <strong>Selected Filters:&nbsp;&nbsp;</strong>
                     <template v-if="select_dbsnp">
                         <b-badge
                             pill
@@ -58,7 +63,7 @@
                             :key="v"
                             @click="removeFilter(i, 'select_dbsnp')"
                             class="btn"
-                        >{{v}}</b-badge>
+                        >{{v}} x</b-badge>
                     </template>
                     <template v-if="select_consequence">
                         <b-badge
@@ -66,7 +71,7 @@
                             variant="success"
                             @click="unsetFilter('select_consequence')"
                             class="btn"
-                        >{{select_consequence}}</b-badge>
+                        >{{select_consequence}} x</b-badge>
                     </template>
                     <template v-if="select_gene">
                         <b-badge
@@ -76,7 +81,7 @@
                             :key="g"
                             @click="removeFilter(i, 'select_gene')"
                             class="btn"
-                        >{{g}}</b-badge>
+                        >{{g}} x</b-badge>
                     </template>
                     <template v-if="select_pValue">
                         <b-badge
@@ -84,7 +89,7 @@
                             variant="danger"
                             @click="unsetFilter('select_pValue')"
                             class="btn"
-                        >{{select_pValue}}</b-badge>
+                        >{{select_pValue}} x</b-badge>
                     </template>
                 </b-col>
             </b-row>
