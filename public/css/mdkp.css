@@ -856,18 +856,36 @@ div.filtering-ui-wrapper {
     border-radius: 5px;
     background-color: #efefef;
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     padding: 3px 0;
 }
 
 div.selected-filters-ui-wrapper {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     text-align: center;
+    font-size: 14px;
+    font-weight: 400;
+    min-height: 1px;
+}
+
+div.selected-filters-ui-wrapper .badge-pill {
+    font-size: 12px;
+    font-weight: 400;
 }
 
 div.filtering-ui-content {
     width: auto !important;
     display: block;
+}
+
+div.filtering-ui-content .divider {
+    width: 1px !important;
+    height: 61px;
+    padding: 0 1px 0 0;
+    background-color: #ddd;
+    margin-bottom: -17px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 div.filtering-ui-content div.col {

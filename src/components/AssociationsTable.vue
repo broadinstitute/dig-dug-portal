@@ -29,7 +29,7 @@
                     ></b-form-input>
                 </b-col>
                 <b-col>
-                    <div class="label">pValue &le;</div>
+                    <div class="label">pValue (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
                         type="text"
@@ -38,6 +38,7 @@
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
+                <b-col class="devider">&nbsp;</b-col>
                 <b-col>
                     <div class="label">Effect</div>
                     <b-form-select
@@ -54,7 +55,7 @@
                 v-if="select_dbsnp.length > 0 || select_consequence != '' || select_gene.length > 0 || select_pValue != ''"
             >
                 <b-col>
-                    <strong>Selected Filters:&nbsp;&nbsp;</strong>
+                    <span>Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="select_dbsnp">
                         <b-badge
                             pill
@@ -63,7 +64,10 @@
                             :key="v"
                             @click="removeFilter(i, 'select_dbsnp')"
                             class="btn"
-                        >{{v}} x</b-badge>
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="select_consequence">
                         <b-badge
@@ -71,7 +75,10 @@
                             variant="success"
                             @click="unsetFilter('select_consequence')"
                             class="btn"
-                        >{{select_consequence}} x</b-badge>
+                        >
+                            {{select_consequence}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="select_gene">
                         <b-badge
@@ -81,7 +88,10 @@
                             :key="g"
                             @click="removeFilter(i, 'select_gene')"
                             class="btn"
-                        >{{g}} x</b-badge>
+                        >
+                            {{g}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="select_pValue">
                         <b-badge
@@ -89,7 +99,10 @@
                             variant="danger"
                             @click="unsetFilter('select_pValue')"
                             class="btn"
-                        >{{select_pValue}} x</b-badge>
+                        >
+                            {{select_pValue}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                 </b-col>
             </b-row>
