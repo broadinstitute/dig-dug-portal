@@ -38,7 +38,7 @@
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
-                <b-col class="devider">&nbsp;</b-col>
+                <b-col class="divider">&nbsp;</b-col>
                 <b-col>
                     <div class="label">Effect</div>
                     <b-form-select
