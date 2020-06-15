@@ -2,21 +2,20 @@
     <div>
         <div class="page-info-wrapper">
             <div v-for="(row, i) in newFeaturesList" class="new-feature-item-wrapper">
-                <h3>{{row.title}}</h3>
+                <h3 :id="'news_content_title'+row.nid">
+                    <a href="javascript:;" v-on:click="setSeletedNews(row.nid)">{{row.title}}</a>
+                </h3>
                 <div>
                     <span v-html="row.body"></span>
                     <span>
-                        <a
-                            href="javascript:;"
-                            v-on:click="showHideElement('news_content'+row.nid)"
-                        >Read more...</a>
+                        <a href="javascript:;" v-on:click="setSeletedNews(row.nid)">Read more...</a>
                     </span>
                 </div>
                 <div
                     v-html="row.body_1"
                     :id="'news_content'+row.nid"
                     class="news-content-wrapper"
-                    :class="row.nid == thisNid? '':'hidden' "
+                    :class="selectedNews != null && row.nid == selectedNews? '':'hidden' "
                 ></div>
             </div>
         </div>
@@ -37,27 +36,40 @@ import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("new-features-section", {
     props: ["newFeatures", "nid"],
+    data() {
+        return {
+            selectedNews: this.nid
+        };
+    },
     computed: {
         newFeaturesList: function() {
             let content = this.newFeatures;
             return content;
-        },
-        thisNid: function() {
-            let content = this.nid;
-            return content;
         }
     },
-    mounted: function() {},
+    updated: function() {
+        if (this.selectedNews != null) {
+            let element = document.getElementById(
+                "news_content_title" + this.selectedNews
+            );
+            if (!!element) {
+                element.scrollIntoView(true);
+                element.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                    inline: "nearest"
+                });
+            }
+        }
+    },
     methods: {
         ...uiUtils,
-        showHideElement(ELEMENT) {
-            uiUtils.showHideElement(ELEMENT);
+        setSeletedNews(nid) {
+            this.selectedNews == nid
+                ? (this.selectedNews = null)
+                : (this.selectedNews = nid);
         }
     }
 });
 </script>
-
-<style>
-@import url("/css/newFeatures.css");
-</style>
 

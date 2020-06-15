@@ -855,6 +855,23 @@ polyline {
 
 /* Styling for static info pages */
 
+.news-content-wrapper {
+    background-color: #eee;
+    padding: 15px;
+    border: solid 1px #ccc;
+    border-radius: 0.25em;
+}
+
+.new-feature-item-wrapper {
+    margin: 15px 0;
+    padding-bottom: 10px;
+    border-bottom: solid 1px #ddd;
+}
+
+.new-feature-item-wrapper h3 {
+    font-size: 22px;
+}
+
 .page-info-wrapper {
 
 }
@@ -1041,3 +1058,5 @@ polyline {
 	line-height:26px;
 	font-weight: 400;
 }
+
+
