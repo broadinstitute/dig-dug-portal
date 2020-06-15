@@ -32,7 +32,8 @@
                     <div class="label">pValue &le;</div>
                     <b-form-input
                         id="filter-pValue"
-                        type="number"
+                        type="text"
+                        v-model="select_pValue_text"
                         @change="setFilter($event, 'select_pValue')"
                         ref="select_pValue"
                     ></b-form-input>
@@ -48,11 +49,10 @@
                 </b-col>
             </b-row>
         </b-container>
-        <b-container
-            fluid
-            v-if="select_dbsnp.length > 0 || select_consequence != '' || select_gene.length > 0 || select_pValue != ''"
-        >
-            <b-row>
+        <b-container fluid class="selected-filters-ui-wrapper">
+            <b-row
+                v-if="select_dbsnp.length > 0 || select_consequence != '' || select_gene.length > 0 || select_pValue != ''"
+            >
                 <b-col>
                     <strong>Selected Filters:&nbsp;&nbsp;</strong>
                     <template v-if="select_dbsnp">
@@ -192,6 +192,7 @@ export default Vue.component("associations-table", {
             ],
 
             select_pValue: "",
+            select_pValue_text: "",
             select_dbsnp: [],
             select_dbsnp_text: "",
             select_consequence: "",
@@ -366,6 +367,7 @@ export default Vue.component("associations-table", {
         setFilter(event, obj) {
             this[obj] = event;
             this.$refs[obj].$el.value = "";
+            this[obj + "_text"] = "";
         },
         unsetFilter(obj) {
             this[obj] = "";
