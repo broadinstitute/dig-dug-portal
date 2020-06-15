@@ -3,8 +3,8 @@ module.exports = {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
     configureWebpack: config => {
-        if (process.env.NODE_ENV !== 'production') {
-            config.devtool = 'inline-source-map';
+        if (process.env.NODE_ENV !== "production") {
+            config.devtool = "inline-source-map";
         }
     },
     productionSourceMap: false,
@@ -29,7 +29,6 @@ module.exports = {
             filename: "region.html",
             title: "Region Info",
             chunks: ["chunk-vendors", "chunk-common", "region"]
-
         },
         debug: {
             entry: "src/views/Debug/main.js",
@@ -37,7 +36,6 @@ module.exports = {
             filename: "debug.html",
             title: "Debug Page",
             chunks: ["chunk-vendors", "chunk-common", "debug"]
-
         },
         variant: {
             entry: "src/views/Variant/main.js",
@@ -45,7 +43,13 @@ module.exports = {
             filename: "variant.html",
             title: "Variant Info",
             chunks: ["chunk-vendors", "chunk-common", "variant"]
-
+        },
+        variantfinder: {
+            entry: "src/views/VariantFinder/main.js",
+            template: "public/index.html",
+            filename: "variantfinder.html",
+            title: "Variant Finder",
+            chunks: ["chunk-vendors", "chunk-common", "variantfinder"]
         },
         gene: {
             entry: "src/views/Gene/main.js",
@@ -53,7 +57,6 @@ module.exports = {
             filename: "gene.html",
             title: "Gene Info",
             chunks: ["chunk-vendors", "chunk-common", "gene"]
-
         },
         datasets: {
             entry: "src/views/Datasets/main.js",
@@ -61,7 +64,6 @@ module.exports = {
             filename: "datasets.html",
             title: "Datasets",
             chunks: ["chunk-vendors", "chunk-common", "datasets"]
-
         },
         dinspector: {
             entry: "src/views/DatasetInspector/main.js",
@@ -69,6 +71,6 @@ module.exports = {
             filename: "dinspector.html",
             title: "Dataset Inspector",
             chunks: ["chunk-vendors", "chunk-common", "dinspector"]
-        },
+        }
     }
 };
