@@ -32,7 +32,7 @@ export default Vue.component("phenotype-selectpicker", {
 
     data() {
         return {
-            userText: this.defaultPhenotype || null
+            userText: this.defaultPhenotype || ""
         };
     },
     computed: {
@@ -57,7 +57,7 @@ export default Vue.component("phenotype-selectpicker", {
             this.$store.dispatch("onPhenotypeChange", event);
 
             if (this.clearOnSelected) {
-                this.userText = null;
+                this.userText = "";
             }
         },
 
