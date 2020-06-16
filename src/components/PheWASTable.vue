@@ -36,7 +36,9 @@
             </b-row>
         </b-container>
         <b-container fluid class="selected-filters-ui-wrapper">
-            <b-row v-if="selectedPhenotypes.length > 0 || pValue != '' || beta != ''">
+            <b-row
+                v-if="selectedPhenotypes.length > 0 || pValue != '' || (beta != '' && beta != null)"
+            >
                 <b-col>
                     <span>Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="selectedPhenotypes">
@@ -53,8 +55,14 @@
                         </b-badge>
                     </template>
                     <template v-if="pValue">
-                        <b-badge pill variant="success" @click="unsetFilter('pValue')" class="btn">
-                            {{pValue}} try
+                        <b-badge pill variant="success" @click="unsetPvalue()" class="btn">
+                            {{pValue}}
+                            <span class="remove">X</span>
+                        </b-badge>
+                    </template>
+                    <template v-if="beta != '' && beta != null">
+                        <b-badge pill variant="info" @click="unsetBeta()" class="btn">
+                            {{betaText}}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -65,7 +73,7 @@
             hover
             small
             responsive="sm"
-            :items="pheWASAssociations"
+            :items="filteredAssocs"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -154,8 +162,9 @@ export default Vue.component("phewas-table", {
             selectedPhenotypes: [],
             pValue: "",
             pValueText: "",
-            tableData: "",
+            filteredAssocs: null,
             beta: "",
+            betaText: "",
             beta_options: [
                 { value: null, text: "All" },
                 { value: "p", text: "Positive" },
@@ -164,12 +173,12 @@ export default Vue.component("phewas-table", {
         };
     },
     mounted() {
-        //this.tableData = this.pheWASAssociations;
+        this.filteredAssocs = this.pheWASAssociations;
     },
 
     computed: {
         rows() {
-            return this.tableData.length;
+            return this.filteredAssocs.length;
         },
 
         pheWASAssociations() {
@@ -182,47 +191,13 @@ export default Vue.component("phewas-table", {
                 return { ...a, phenotype: phenotypes[a.phenotype] };
             });
 
-            let phenotypeFiltered =
-                this.selectedPhenotypes.length == 0
-                    ? assocs
-                    : assocs.map(v => {});
-
-            //console.log(assocs);
-            /*
-            console.log(assocs);
-            console.log(this.selectedPhenotypes);
-
-            let pheotypeFiltered =
-                this.selectedPhenotypes.length > 0
-                    ? assocs.filter(v => {
-                          if (!!v.phenotype) {
-                              this.selectedPhenotypes.map(sp => {
-                                  if (v.phenotype.description == sp) {
-                                      return v;
-                                  }
-                              });
-                          }
-                      })
-                    : assocs;
-
-            console.log("pValue: " + this.pValue + ", beta: " + this.beta);
-
-            let pValueFiltered =
-                this.pValue == ""
-                    ? pheotypeFiltered
-                    : pheotypeFiltered.filter(v => v.pValue <= this.pValue);
-
-            let betaFiltered =
-                this.beta == ""
-                    ? pValueFiltered
-                    : this.beta == "p"
-                    ? pValueFiltered
-                    : pValueFiltered;*/
-
-            // filter associations w/ no phenotype data (not in portal!)
             return assocs
                 .filter(a => !!a.phenotype)
                 .sort((a, b) => a.pValue - b.pValue);
+        },
+
+        filteredAssocs() {
+            return this.pheWASAssociations;
         }
     },
 
@@ -232,37 +207,49 @@ export default Vue.component("phewas-table", {
         addPhenotype(event) {
             this.selectedPhenotypes.push(event.description);
             this.userText = "";
-            //this.filterPhenotype();
+            this.filterPhenotype();
+            this.resetOtherFilters("selectedPhenotypes");
         },
         removePhenotype(index) {
             this.selectedPhenotypes.splice(index, 1);
-            //this.filterPhenotype();
+            this.filterPhenotype();
         },
         filterPhenotype() {
-            this.tableData = Filters.filterPhenotype(
-                this.pheWASAssociations,
-                this.selectedPhenotypes
-            );
-            //this.resetOtherFilters("selectedPhenotypes");
-        },
-        filterBeta() {
-            this.tableData = Filters.filterBeta(
-                this.pheWASAssociations,
-                this.beta,
-                "beta"
-            );
-            //this.resetOtherFilters("beta");
+            this.filteredAssocs =
+                this.selectedPhenotypes.length > 0
+                    ? Filters.filterPhenotype(
+                          this.pheWASAssociations,
+                          this.selectedPhenotypes
+                      )
+                    : this.pheWASAssociations;
         },
         filterPValue(event) {
             this.pValue = event.trim();
-            this.tableData = Filters.filterPValue(
+            this.filteredAssocs = Filters.filterPValue(
                 this.pheWASAssociations,
                 event
             );
             this.resetOtherFilters("pValue");
             this.pValueText = "";
         },
+        filterBeta() {
+            let sourceData =
+                this.pValue == ""
+                    ? this.pheWASAssociations
+                    : Filters.filterPValue(
+                          this.pheWASAssociations,
+                          this.pValue
+                      );
 
+            this.filteredAssocs = Filters.filterBeta(
+                sourceData,
+                this.beta,
+                "beta"
+            );
+
+            this.betaText = this.beta == "p" ? "positive" : "negative";
+            this.resetOtherFilters("beta");
+        },
         resetOtherFilters(option) {
             if (option == "selectedPhenotypes") {
                 this.pValue = "";
@@ -270,16 +257,24 @@ export default Vue.component("phewas-table", {
             } else {
                 this.selectedPhenotypes = [];
             }
-            /*
-            this.selectedPhenotypes =
-                this.selectedPhenotypes == this[option] ? this[option] : [];
-            this.pValue = this.pValue == this[option] ? this[option] : "";
-            this.beta =
-                this.beta == this[option]
-                    ? this[option] != null
-                        ? this[option]
-                        : ""
-                    : "";*/
+        },
+        unsetPvalue() {
+            this.pValue = "";
+            this.filteredAssocs =
+                this.beta != "" || this.beta != null
+                    ? (this.filteredAssocs = Filters.filterBeta(
+                          this.pheWASAssociations,
+                          this.beta,
+                          "beta"
+                      ))
+                    : this.pheWASAssociations;
+        },
+        unsetBeta() {
+            this.beta = "";
+            this.filteredAssocs =
+                this.pValue != ""
+                    ? Filters.filterPValue(this.pheWASAssociations, this.pValue)
+                    : this.pheWASAssociations;
         },
         unsetFilter(obj) {
             this[obj] = "";
