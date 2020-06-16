@@ -60,7 +60,7 @@
                 <b-col>
                     <span
                         v-if="select_annotations.length > 0 || select_methods.length > 0 || select_tissues.length > 0 || select_ancestry || select_pValue || select_odds_ratio"
-                    >333 Selected Filters:&nbsp;&nbsp;</span>
+                    >Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="select_annotations">
                         <b-badge
                             pill
