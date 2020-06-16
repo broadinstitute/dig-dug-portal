@@ -12,6 +12,7 @@
                         @change="addFilter($event, 'select_dbsnp')"
                     ></b-form-input>
                 </b-col>
+                <b-col class="divider">&nbsp;</b-col>
                 <b-col>
                     <div class="label">Consequence</div>
                     <b-form-select
@@ -370,18 +371,21 @@ export default Vue.component("associations-table", {
             return Formatters.dbSNPFormatter(dbSNP);
         },
         addFilter(event, obj) {
+            console.log("add" + event);
             this[obj].push(event.trim());
             this[obj + "_text"] = "";
             this.resetOtherFilters(obj);
         },
-        removeFilter(index, obj) {
-            this[obj].splice(index, 1);
-        },
         setFilter(event, obj) {
+            console.log("set" + event);
             this[obj] = event;
             this.$refs[obj].$el.value = "";
             this[obj + "_text"] = "";
         },
+        removeFilter(index, obj) {
+            this[obj].splice(index, 1);
+        },
+
         unsetFilter(obj) {
             this[obj] = "";
         },
