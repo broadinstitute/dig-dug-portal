@@ -5,19 +5,11 @@
                 <span class="filter-by-label">Filter table by:</span>
                 <b-col>
                     <div class="label">Tech:</div>
-                    <b-form-select
-                        v-model="tech"
-                        :options="filter_tech"
-                        @change="clearFilter('ancestry')"
-                    ></b-form-select>
+                    <b-form-select v-model="tech" :options="filter_tech"></b-form-select>
                 </b-col>
                 <b-col>
                     <div class="label">Ancestry</div>
-                    <b-form-select
-                        v-model="ancestry"
-                        :options="filter_ancestry"
-                        @change="clearFilter('tech')"
-                    ></b-form-select>
+                    <b-form-select v-model="ancestry" :options="filter_ancestry"></b-form-select>
                 </b-col>
             </b-row>
         </b-container>
@@ -125,7 +117,10 @@ export default Vue.component("datasets-table", {
             return this.tableData.length;
         },
         sortedDatasets() {
-            return this.datasets.sort((a, b) => b.subjects - a.subjects);
+            let rawDatasets = this.datasets;
+            let content = rawDatasets.sort((a, b) => b.subjects - a.subjects);
+
+            return content;
         },
         filter_tech() {
             return this.sortedDatasets
@@ -138,18 +133,27 @@ export default Vue.component("datasets-table", {
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         tableData() {
-            if (this.tech != "") {
-                return Filters.filterTable(
-                    this.sortedDatasets,
-                    this.tech,
-                    "tech"
-                );
-            } else if (this.ancestry != "") {
-                return Filters.filterFormatted(
-                    this.sortedDatasets,
-                    this.ancestry,
-                    "ancestry"
-                );
+            if (this.tech != "" || this.ancestry != "") {
+                let techFiltered =
+                    this.tech != ""
+                        ? Filters.filterTable(
+                              this.sortedDatasets,
+                              this.tech,
+                              "tech"
+                          )
+                        : this.sortedDatasets;
+
+                let ancestryFiltered =
+                    this.ancestry != ""
+                        ? Filters.filterFormatted(
+                              techFiltered,
+                              this.ancestry,
+                              "ancestry"
+                          )
+                        : techFiltered;
+
+                return ancestryFiltered;
+                //}
             } else {
                 return this.sortedDatasets;
             }
