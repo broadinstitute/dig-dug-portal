@@ -1,9 +1,10 @@
 <template>
     <div>
-        <b-container fluid>
-            <b-row>
+        <b-container fluid class="filtering-ui-wrapper">
+            <b-row class="filtering-ui-content">
+                <span class="filter-by-label">Filter table by:</span>
                 <b-col>
-                    <div>Filter by Tech:</div>
+                    <div class="label">Tech:</div>
                     <b-form-select
                         v-model="tech"
                         :options="filter_tech"
@@ -11,7 +12,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by Ancestry</div>
+                    <div class="label">Ancestry</div>
                     <b-form-select
                         v-model="ancestry"
                         :options="filter_ancestry"
@@ -19,16 +20,16 @@
                     ></b-form-select>
                 </b-col>
             </b-row>
-            <b-row>
+        </b-container>
+        <b-container fluid class="selected-filters-ui-wrapper">
+            <b-row v-if=" tech != '' || ancestry != ''">
                 <b-col>
-                    <strong>Selected Filters:</strong>
+                    <span>Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="tech">
-                        <b-badge
-                            pill
-                            variant="info"
-                            @click="clearFilter('tech')"
-                            class="btn"
-                        >{{tech}}</b-badge>
+                        <b-badge pill variant="info" @click="clearFilter('tech')" class="btn">
+                            {{tech}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="ancestry">
                         <b-badge
@@ -36,7 +37,10 @@
                             variant="success"
                             @click="clearFilter('ancestry')"
                             class="btn"
-                        >{{ancestry}}</b-badge>
+                        >
+                            {{ancestry}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                 </b-col>
             </b-row>

@@ -1,9 +1,10 @@
 <template>
     <div>
-        <b-container class="filter_rows" fluid>
-            <b-row>
+        <b-container fluid class="filtering-ui-wrapper">
+            <b-row class="filtering-ui-content">
+                <span class="filter-by-label">Filter table by:</span>
                 <b-col>
-                    <div>Filter by phenotype:</div>
+                    <div class="label">Phenotype</div>
 
                     <vue-typeahead-bootstrap
                         v-if="phenotypeMap"
@@ -15,11 +16,11 @@
                     ></vue-typeahead-bootstrap>
                 </b-col>
                 <b-col>
-                    <div>Filter by pValue &le;:</div>
-                    <b-form-input id="filter-pValue" type="number" @change="filterPValue($event)"></b-form-input>
+                    <div class="label">pValue (&le;)</div>
+                    <b-form-input id="filter-pValue" type="text" @change="filterPValue($event)"></b-form-input>
                 </b-col>
                 <b-col>
-                    <div>Filter by Effect:</div>
+                    <div class="label">Effect</div>
                     <b-form-select
                         @input="filterBeta()"
                         :options="beta_options"
@@ -28,9 +29,11 @@
                     ></b-form-select>
                 </b-col>
             </b-row>
-            <b-row>
+        </b-container>
+        <b-container fluid class="selected-filters-ui-wrapper">
+            <b-row v-if="selectedPhenotypes.length > 0 || pValue != '' || beta != ''">
                 <b-col>
-                    <strong>Selected Filters:</strong>
+                    <span>Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="selectedPhenotypes">
                         <b-badge
                             pill
@@ -39,15 +42,16 @@
                             :key="p"
                             @click="removePhenotype(i)"
                             class="btn"
-                        >{{p}}</b-badge>
+                        >
+                            {{p}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="pValue">
-                        <b-badge
-                            pill
-                            variant="success"
-                            @click="unsetFilter('pValue')"
-                            class="btn"
-                        >{{pValue}}</b-badge>
+                        <b-badge pill variant="success" @click="unsetFilter('pValue')" class="btn">
+                            {{pValue}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                 </b-col>
             </b-row>

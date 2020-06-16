@@ -860,6 +860,11 @@ div.filtering-ui-wrapper {
     padding: 3px 0;
 }
 
+div.filtering-ui-wrapper .filter-by-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
 div.selected-filters-ui-wrapper {
     margin-bottom: 30px;
     text-align: center;
@@ -871,6 +876,7 @@ div.selected-filters-ui-wrapper {
 div.selected-filters-ui-wrapper .badge-pill {
     font-size: 12px;
     font-weight: 400;
+    margin: 0 3px;
 }
 
 div.filtering-ui-content {

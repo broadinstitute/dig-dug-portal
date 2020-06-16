@@ -1,24 +1,27 @@
 <template>
     <div>
-        <b-container class="filter_rows" fluid>
-            <b-row>
+        <b-container fluid class="filtering-ui-wrapper filter-rows">
+            <b-row class="filtering-ui-content">
+                <span class="filter-by-label">Filter table by:</span>
                 <b-col>
-                    <div>Filter by annotations:</div>
+                    <div class="label">Annotations:</div>
                     <b-form-select
                         @input="addFilter($event, 'annotations')"
                         :options="filter_annotation"
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by methods:</div>
+                    <div class="label">Methods:</div>
                     <b-form-select @input="addFilter($event, 'methods')" :options="filter_method"></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by tissues:</div>
+                    <div class="label">Tissues:</div>
                     <b-form-select @input="addFilter($event, 'tissues')" :options="filter_tissue"></b-form-select>
                 </b-col>
             </b-row>
-            <b-row>
+        </b-container>
+        <b-container fluid class="selected-filters-ui-wrapper">
+            <b-row v-if="annotations.length > 0 || methods.length > 0 || tissues.length > 0">
                 <b-col>
                     <strong>Selected Filters:</strong>
                     <template v-if="annotations">
@@ -29,7 +32,10 @@
                             :key="v"
                             @click="removeFilter(i, 'annotations')"
                             class="btn"
-                        >{{v}}</b-badge>
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
 
                     <template v-if="methods">
@@ -40,7 +46,10 @@
                             :key="v"
                             @click="removeFilter(i, 'methods')"
                             class="btn"
-                        >{{v}}</b-badge>
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
 
                     <template v-if="tissues">
@@ -51,7 +60,10 @@
                             :key="v"
                             @click="removeFilter(i, 'tissues')"
                             class="btn"
-                        >{{v}}</b-badge>
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                 </b-col>
             </b-row>

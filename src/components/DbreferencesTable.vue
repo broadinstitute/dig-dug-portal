@@ -1,9 +1,10 @@
 <template>
     <div>
-        <b-container fluid>
-            <b-row>
+        <b-container fluid class="filtering-ui-wrapper">
+            <b-row class="filtering-ui-content">
+                <span class="filter-by-label">Filter table by:</span>
                 <b-col>
-                    <div>Filter by source:</div>
+                    <div class="label">Source</div>
                     <b-form-select
                         v-model="source"
                         :options="filter_source"
@@ -11,7 +12,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by Molecule Type:</div>
+                    <div class="label">Molecule Type</div>
                     <b-form-select
                         v-model="moleculeType"
                         :options="filter_moleculeType"
@@ -19,16 +20,16 @@
                     ></b-form-select>
                 </b-col>
             </b-row>
-            <b-row>
+        </b-container>
+        <b-container fluid class="selected-filters-ui-wrapper">
+            <b-row v-if="source != '' || moleculeType != ''">
                 <b-col>
-                    <strong>Selected Filters:</strong>
+                    <span>Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="source">
-                        <b-badge
-                            pill
-                            variant="info"
-                            @click="clearFilter('source')"
-                            class="btn"
-                        >{{source}}</b-badge>
+                        <b-badge pill variant="info" @click="clearFilter('source')" class="btn">
+                            {{source}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="moleculeType">
                         <b-badge
@@ -36,7 +37,10 @@
                             variant="success"
                             @click="clearFilter('moleculeType')"
                             class="btn"
-                        >{{moleculeType}}</b-badge>
+                        >
+                            {{moleculeType}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                 </b-col>
             </b-row>

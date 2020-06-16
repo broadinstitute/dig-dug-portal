@@ -2,6 +2,7 @@
     <div>
         <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
+                <span class="filter-by-label">Filter table by:</span>
                 <b-col>
                     <div class="label">dbSNP</div>
                     <b-form-input
@@ -38,7 +39,6 @@
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
-                <b-col class="divider">&nbsp;</b-col>
                 <b-col>
                     <div class="label">Effect</div>
                     <b-form-select

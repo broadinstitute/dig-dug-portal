@@ -1,9 +1,10 @@
 <template>
     <div>
-        <b-container class="filter_rows" fluid>
-            <b-row>
+        <b-container fluid class="filtering-ui-wrapper">
+            <b-row class="filtering-ui-content">
+                <span class="filter-by-label">Filter table by:</span>
                 <b-col>
-                    <div>Filter by annotation:</div>
+                    <div class="label">Annotation</div>
                     <b-form-select
                         @input="addFilter($event, 'select_annotations')"
                         :options="filter_annotation"
@@ -11,7 +12,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by method:</div>
+                    <div class="label">Method</div>
                     <b-form-select
                         @input="addFilter($event, 'select_methods')"
                         :options="filter_method"
@@ -19,7 +20,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by tissue:</div>
+                    <div class="label">Tissue</div>
                     <b-form-select
                         @input="addFilter($event, 'select_tissues')"
                         :options="filter_tissue"
@@ -27,7 +28,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by ancestry:</div>
+                    <div class="label">Ancestry:</div>
                     <b-form-select
                         @input="setFilter($event, 'select_ancestry')"
                         :options="filter_ancestry"
@@ -35,16 +36,16 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div>Filter by pValue &le;:</div>
+                    <div class="label">p-Value (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
-                        type="number"
+                        type="text"
                         @change="setFilter($event, 'select_pValue')"
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
                 <b-col>
-                    <div>Filter by Effect:</div>
+                    <div class="label">Effect</div>
                     <b-form-select
                         @input="setFilter($event, 'select_odds_ratio')"
                         :options="select_odds_ratio_options"
@@ -53,9 +54,11 @@
                     ></b-form-select>
                 </b-col>
             </b-row>
+        </b-container>
+        <b-container fluid class="selected-filters-ui-wrapper">
             <b-row>
                 <b-col>
-                    <strong>Selected Filters:</strong>
+                    <span>Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="select_annotations">
                         <b-badge
                             pill
@@ -64,7 +67,10 @@
                             :key="v"
                             @click="removeFilter(i, 'select_annotations')"
                             class="btn"
-                        >{{v}}</b-badge>
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="select_methods">
                         <b-badge
@@ -74,7 +80,10 @@
                             :key="v"
                             @click="removeFilter(i, 'select_methods')"
                             class="btn"
-                        >{{v}}</b-badge>
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="select_tissues">
                         <b-badge
@@ -84,7 +93,10 @@
                             :key="v"
                             @click="removeFilter(i, 'select_tissues')"
                             class="btn"
-                        >{{v}}</b-badge>
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="select_ancestry">
                         <b-badge
@@ -92,7 +104,10 @@
                             variant="success"
                             @click="unsetFilter('select_ancestry')"
                             class="btn"
-                        >{{select_ancestry}}</b-badge>
+                        >
+                            {{select_ancestry}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                     <template v-if="select_pValue">
                         <b-badge
@@ -100,7 +115,10 @@
                             variant="danger"
                             @click="unsetFilter('select_pValue')"
                             class="btn"
-                        >{{select_pValue}}</b-badge>
+                        >
+                            {{select_pValue}}
+                            <span class="remove">X</span>
+                        </b-badge>
                     </template>
                 </b-col>
             </b-row>
