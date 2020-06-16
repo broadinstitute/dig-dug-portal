@@ -30,20 +30,20 @@ export default Vue.component('igv-intervals-track', {
             required: false,
         },
 
-        // annotationScoring: {
-        //     type: Object,
-        //     required: false
-        // },
-        // pValue: {
-        //     type: Number,
-        //     required: false,
-        //     default: 1.0,
-        // },
-        // beta: {
-        //     type: Number,
-        //     required: false,
-        //     default: 1.0,
-        // },
+        annotationScoring: {
+            type: Object,
+            required: false
+        },
+        pValue: {
+            type: Number,
+            required: false,
+            default: 1.0,
+        },
+        beta: {
+            type: Number,
+            required: false,
+            default: 1.0,
+        },
 
         annotations: {
             type: Array,
@@ -133,6 +133,7 @@ export default Vue.component('igv-intervals-track', {
             // In such a case the bioindex is not going to return any data for a given tissue leaving the access of that data by the track undefined
             // Since we don't want to destroy the track (what if there is more data just around the corner?) we return an empty array
                 // this.annotationScoring[this.tissue][interval.annotation]['pValue'] < 0.01 && this.annotationScoring[this.tissue][interval.annotation]['beta'] > 1.0
+            console.log(this.annotationScoring, intervals);
             const tissuesOnRange = _.groupBy(intervals, 'tissue.description');
             if (!!tissuesOnRange[this.tissue]) {
                 return tissuesOnRange[this.tissue]

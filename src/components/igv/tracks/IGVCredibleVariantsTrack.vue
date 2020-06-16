@@ -79,7 +79,7 @@ export default Vue.component('igv-credible-variants-track', {
     },
     computed: {
         trackName() {
-            return `${this.phenotype} ${this.credibleSetId}`
+            return `${this.phenotype} ${this.credibleSetId} Credible Set`
         },
         queryStringMaker: function () {
             return (chr, start, end) => `${this.phenotype},${this.credibleSetId}`;

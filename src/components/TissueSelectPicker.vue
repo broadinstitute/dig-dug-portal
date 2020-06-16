@@ -3,11 +3,12 @@
         <vue-typeahead-bootstrap
             v-model="userText"
             ref="tissueSelect"
-            placeholder="Type in a tissue ..."
+            placeholder="Search for a tissue ..."
             :data="tissueOptions"
             :serializer="s => s.description"
-            :showOnFocus="false"
+            :showOnFocus="true"
             :minMatchingChars="0"
+            :maxMatches="30"
             @hit="onTissueSelected($event)">
         </vue-typeahead-bootstrap>
     </div>
@@ -59,7 +60,9 @@ export default Vue.component("tissue-selectpicker", {
                 if (b.description < a.description) return 1;
 
                 return 0;
-            });
+            }).concat([
+
+            ]);
         }
     },
     methods: {

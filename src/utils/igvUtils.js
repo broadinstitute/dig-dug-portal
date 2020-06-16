@@ -103,12 +103,12 @@ export class BioIndexReader {
         const response = await query(
             this.index,
             this.queryStringMaker(
-                chr.slice(-1),
+                chr.slice(3),  // filter out the first three characters (take the characters from 3 onwards)
                 start,
                 end
             ),
             {
-                limit: 10000,
+                limit: null,  // UNLIMITED POWER
                 resolveHandler: json => {
                     if (!!this.queryHandlers.finishHandler) {
                         return this.queryHandlers.resolveHandler(json);

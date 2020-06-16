@@ -7,6 +7,7 @@
         :serializer="s => s.credibleSetId"
         :showOnFocus="true"
         :minMatchingChars="0"
+        :maxMatches="30"
         @hit="onCredibleSetSelected($event)"
     >
     </vue-typeahead-bootstrap>

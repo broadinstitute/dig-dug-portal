@@ -96,14 +96,14 @@ new Vue({
                         visualization: 'gwas',
                     }
                 });
-                this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
-                    data: {
-                        phenotype: this.$store.state.phenotype.name,
-                        credibleSetId: this.$store.state.currentCredibleSet,
-                        posteriorProbability: false,  // logarithm
-                        visualization: 'gwas',
-                    }
-                });
+                // this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
+                //     data: {
+                //         phenotype: this.$store.state.phenotype.name,
+                //         credibleSetId: this.$store.state.currentCredibleSet,
+                //         posteriorProbability: false,  // logarithm
+                //         visualization: 'gwas',
+                //     }
+                // });
 
                 // Add to Table
 
@@ -116,9 +116,9 @@ new Vue({
                 this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
                     data: {
                         tissue: this.$store.state.currentTissue,
+                        annotationScoring: this.annotationScoring,
                         pValue: this.pValue,
                         beta: this.beta,
-                        annotationScoring: this.annotationScoring,
                     }
                 });
             }
@@ -137,6 +137,9 @@ new Vue({
                                         tissue: annotation.tissue.description,
                                         ancestry: annotation.ancestry,
                                         annotations: [this.$store.state.currentAnnotation],
+                                        pValue: this.pValue,
+                                        beta: this.beta,
+                                        annotationScoring: this.annotationScoring,
                                     }
                                 });
                             }

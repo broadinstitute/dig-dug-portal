@@ -5,6 +5,7 @@
         placeholder="Type in a phenotype ..."
         :data="phenotypeOptions"
         :serializer="s => s.description"
+        :maxMatches="30"
         @hit="onPhenotypeSelected($event)">
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
