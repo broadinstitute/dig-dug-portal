@@ -58,5 +58,25 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         }
+    },
+    watch: {
+        // "$store.state.bioPortal.phenotypeMap": function(phenotypeMap) {
+        //     let name = keyParams.phenotype;
+        //     let phenotype = phenotypeMap[name];
+
+        //     if (!!phenotype) {
+        //         this.$store.commit("setPhenotype", phenotype);
+        //         keyParams.set({ phenotype: phenotype.name });
+        //     }
+        // },
+
+        "$store.state.newPhenotype": function(phenotype) {
+            this.$store.dispatch("queryPhenotype");
+            uiUtils.hideElement("phenotypeSearchHolder");
+        },
+
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        }
     }
 }).$mount("#app");

@@ -23,8 +23,8 @@
                             ></phenotype-selectpicker>
                         </div>
                     </div>
-                    <h5 v-if="$store.state.phenotypes">
-                        <template v-for="(p, i) in $store.state.phenotypes">
+                    <h5 v-if="$store.state.selectedPhenotypes">
+                        <template v-for="(p, i) in $store.state.selectedPhenotypes">
                             <b-badge
                                 pill
                                 class="btn"
@@ -45,7 +45,10 @@
                     <div class="row">
                         <div class="col-md-12">
                             <h4 class="card-title">Variant Finder</h4>
-                            <variant-finder :phenotypes="$store.state.phenotypes"></variant-finder>
+                            <variant-finder
+                                :phenotypes="$store.state.selectedPhenotypes"
+                                :associations="$store.state.associations.data"
+                            ></variant-finder>
                         </div>
                     </div>
                 </div>

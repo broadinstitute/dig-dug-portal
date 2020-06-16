@@ -1,6 +1,12 @@
 <template>
     <div>
         <div class="filtering-tools">
+            <b-button
+                type="button"
+                class="btn btn-sm btn-light"
+                variant="outline-primary"
+                @click="applyAll = !applyAll"
+            >Filters</b-button>
             <table class="mb-4" width="100%">
                 <thead>
                     <th>Phenotype</th>
@@ -56,7 +62,7 @@
                             </div>
                         </td>
                     </tr>
-                    <tr v-else v-for="(phenotype, i) in phenotypes">
+                    <tr v-else v-for="(phenotype, i) in phenotypes" :key="i">
                         <td>
                             <span
                                 class="reference p-1 rounded"

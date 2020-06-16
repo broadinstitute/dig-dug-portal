@@ -11,19 +11,21 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     modules: {
         bioPortal,
-        kp4cd
+        kp4cd,
+        associations: bioIndex("phenotype-associations")
     },
 
     state: {
-        phenotypes: []
+        newPhenotype: "",
+        selectedPhenotypes: []
     },
 
     mutations: {
         setPhenotype(state, phenotype) {
-            state.phenotypes.push(phenotype);
+            state.selectedPhenotypes.push(phenotype);
         },
         removePhenotype(state, index) {
-            state.phenotypes.splice(index, 1);
+            state.selectedPhenotypes.splice(index, 1);
         }
     },
 
@@ -35,6 +37,14 @@ export default new Vuex.Store({
         onPhenotypeRemove(context, index) {
             context.commit("removePhenotype", index);
             //set params
+        },
+        queryPhenotype(context) {
+            let query = { q: context.state.newPhenotype.name };
+            let assocQuery = { ...query, limit: 1000 };
+
+            context.dispatch("associations/query", assocQuery);
+            //context.dispatch("annotations/query", query);
+            //context.dispatch("datasets/query", query);
         }
     }
 });
