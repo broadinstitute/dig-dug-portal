@@ -32,7 +32,7 @@ function filterFormatted(data, value, key) {
         }
     });
 
-    return filtered.length > 0 ? filtered : data;
+    return filtered;
 }
 
 function filterBeta(data, value, key) {
