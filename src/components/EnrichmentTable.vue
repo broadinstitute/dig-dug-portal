@@ -58,7 +58,9 @@
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row>
                 <b-col>
-                    <span>Selected Filters:&nbsp;&nbsp;</span>
+                    <span
+                        v-if="select_annotations.length > 0 || select_methods.length > 0 || select_tissues.length > 0 || select_ancestry || select_pValue || select_odds_ratio"
+                    >Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="select_annotations">
                         <b-badge
                             pill
@@ -118,6 +120,19 @@
                         >
                             {{select_pValue}}
                             <span class="remove">X</span>
+                        </b-badge>
+                    </template>
+                    <template v-if="select_odds_ratio">
+                        <b-badge
+                            pill
+                            variant="danger"
+                            @click="unsetFilter('select_odds_ratio')"
+                            class="btn"
+                        >
+                            {{select_odds_ratio_options.find(e => e.value == select_odds_ratio).text}}
+                            <span
+                                class="remove"
+                            >X</span>
                         </b-badge>
                     </template>
                 </b-col>
@@ -213,9 +228,9 @@ export default Vue.component("enrichment-table", {
             select_tissues_text: "",
             select_ancestry: "",
             select_pValue: "",
-            select_odds_ratio: null,
+            select_odds_ratio: "",
             select_odds_ratio_options: [
-                { value: null, text: "All" },
+                { value: "", text: "All" },
                 { value: "p", text: "Positive" },
                 { value: "n", text: "Negative" }
             ]
@@ -347,43 +362,50 @@ export default Vue.component("enrichment-table", {
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         tableData() {
+            let dataRows = this.groupedAnnotations;
             if (this.select_annotations.length > 0) {
-                return Filters.filterFormatted(
-                    this.groupedAnnotations,
+                dataRows = Filters.filterFormatted(
+                    dataRows,
                     this.select_annotations,
                     "annotation"
                 );
-            } else if (this.select_methods.length > 0) {
-                return Filters.filterFormatted(
-                    this.groupedAnnotations,
+            }
+            if (this.select_methods.length > 0) {
+                dataRows = Filters.filterFormatted(
+                    dataRows,
                     this.select_methods,
                     "method"
                 );
-            } else if (this.select_tissues.length > 0) {
-                return Filters.filterFormatted(
-                    this.groupedAnnotations,
+            }
+            if (this.select_tissues.length > 0) {
+                dataRows = Filters.filterFormatted(
+                    dataRows,
                     this.select_tissues,
                     "tissue"
                 );
-            } else if (this.select_ancestry != "") {
-                return Filters.filterFormatted(
-                    this.groupedAnnotations,
+            }
+            if (this.select_ancestry != "") {
+                dataRows = Filters.filterFormatted(
+                    dataRows,
                     this.select_ancestry,
                     "ancestry"
                 );
-            } else if (this.select_pValue != "") {
-                return Filters.filterPValue(
-                    this.groupedAnnotations,
+            }
+            if (this.select_pValue != "") {
+                dataRows = Filters.filterPValue(
+                    dataRows,
                     this.select_pValue,
                     `${this.phenotypes[0].name}_pValue`
                 );
-            } else if (this.select_beta != "") {
-                return Filters.filterBeta(
-                    this.groupedAnnotations,
-                    this.select_beta,
+            }
+            if (this.select_odds_ratio != "") {
+                dataRows = Filters.filterBeta(
+                    dataRows,
+                    this.select_odds_ratio,
                     `${this.phenotypes[0].name}_beta`
                 );
-            } else return this.groupedAnnotations;
+            }
+            return dataRows;
         }
     },
     methods: {
