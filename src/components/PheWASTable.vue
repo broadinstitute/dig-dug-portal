@@ -5,7 +5,6 @@
                 <span class="filter-by-label">Filter table by:</span>
                 <b-col>
                     <div class="label">Phenotype</div>
-
                     <vue-typeahead-bootstrap
                         v-if="phenotypeMap"
                         v-model="userText"
@@ -15,9 +14,15 @@
                         @hit="addPhenotype($event)"
                     ></vue-typeahead-bootstrap>
                 </b-col>
+                <b-col class="divider">&nbsp;</b-col>
                 <b-col>
                     <div class="label">pValue (&le;)</div>
-                    <b-form-input id="filter-pValue" type="text" @change="filterPValue($event)"></b-form-input>
+                    <b-form-input
+                        id="filter-pValue"
+                        type="text"
+                        @change="filterPValue($event)"
+                        v-model="pValueText"
+                    ></b-form-input>
                 </b-col>
                 <b-col>
                     <div class="label">Effect</div>
@@ -49,7 +54,7 @@
                     </template>
                     <template v-if="pValue">
                         <b-badge pill variant="success" @click="unsetFilter('pValue')" class="btn">
-                            {{pValue}}
+                            {{pValue}} try
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -60,11 +65,10 @@
             hover
             small
             responsive="sm"
-            :items="tableData"
+            :items="pheWASAssociations"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
-            filter-included-fields="pValue"
         >
             <template v-slot:cell(phenotype)="r">
                 <a
@@ -149,6 +153,7 @@ export default Vue.component("phewas-table", {
             userText: "",
             selectedPhenotypes: [],
             pValue: "",
+            pValueText: "",
             tableData: "",
             beta: "",
             beta_options: [
@@ -159,7 +164,7 @@ export default Vue.component("phewas-table", {
         };
     },
     mounted() {
-        this.tableData = this.pheWASAssociations;
+        //this.tableData = this.pheWASAssociations;
     },
 
     computed: {
@@ -177,6 +182,43 @@ export default Vue.component("phewas-table", {
                 return { ...a, phenotype: phenotypes[a.phenotype] };
             });
 
+            let phenotypeFiltered =
+                this.selectedPhenotypes.length == 0
+                    ? assocs
+                    : assocs.map(v => {});
+
+            //console.log(assocs);
+            /*
+            console.log(assocs);
+            console.log(this.selectedPhenotypes);
+
+            let pheotypeFiltered =
+                this.selectedPhenotypes.length > 0
+                    ? assocs.filter(v => {
+                          if (!!v.phenotype) {
+                              this.selectedPhenotypes.map(sp => {
+                                  if (v.phenotype.description == sp) {
+                                      return v;
+                                  }
+                              });
+                          }
+                      })
+                    : assocs;
+
+            console.log("pValue: " + this.pValue + ", beta: " + this.beta);
+
+            let pValueFiltered =
+                this.pValue == ""
+                    ? pheotypeFiltered
+                    : pheotypeFiltered.filter(v => v.pValue <= this.pValue);
+
+            let betaFiltered =
+                this.beta == ""
+                    ? pValueFiltered
+                    : this.beta == "p"
+                    ? pValueFiltered
+                    : pValueFiltered;*/
+
             // filter associations w/ no phenotype data (not in portal!)
             return assocs
                 .filter(a => !!a.phenotype)
@@ -189,42 +231,55 @@ export default Vue.component("phewas-table", {
         floatFormatter: Formatters.floatFormatter,
         addPhenotype(event) {
             this.selectedPhenotypes.push(event.description);
-            this.userText = null;
-            this.filterPhenotype();
+            this.userText = "";
+            //this.filterPhenotype();
         },
         removePhenotype(index) {
             this.selectedPhenotypes.splice(index, 1);
-            this.filterPhenotype();
-        },
-
-        filterBeta() {
-            this.tableData = Filters.filterBeta(
-                this.pheWASAssociations,
-                this.beta,
-                "beta"
-            );
-            this.resetOtherFilters("beta");
-        },
-        filterPValue(event) {
-            this.pValue = event;
-            this.tableData = Filters.filterPValue(
-                this.pheWASAssociations,
-                event
-            );
-            this.resetOtherFilters("pValue");
+            //this.filterPhenotype();
         },
         filterPhenotype() {
             this.tableData = Filters.filterPhenotype(
                 this.pheWASAssociations,
                 this.selectedPhenotypes
             );
-            this.resetOtherFilters("selectedPhenotypes");
+            //this.resetOtherFilters("selectedPhenotypes");
         },
+        filterBeta() {
+            this.tableData = Filters.filterBeta(
+                this.pheWASAssociations,
+                this.beta,
+                "beta"
+            );
+            //this.resetOtherFilters("beta");
+        },
+        filterPValue(event) {
+            this.pValue = event.trim();
+            this.tableData = Filters.filterPValue(
+                this.pheWASAssociations,
+                event
+            );
+            this.resetOtherFilters("pValue");
+            this.pValueText = "";
+        },
+
         resetOtherFilters(option) {
+            if (option == "selectedPhenotypes") {
+                this.pValue = "";
+                this.beta = "";
+            } else {
+                this.selectedPhenotypes = [];
+            }
+            /*
             this.selectedPhenotypes =
                 this.selectedPhenotypes == this[option] ? this[option] : [];
             this.pValue = this.pValue == this[option] ? this[option] : "";
-            this.beta = this.beta == this[option] ? this[option] : "";
+            this.beta =
+                this.beta == this[option]
+                    ? this[option] != null
+                        ? this[option]
+                        : ""
+                    : "";*/
         },
         unsetFilter(obj) {
             this[obj] = "";
