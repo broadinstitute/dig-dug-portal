@@ -369,7 +369,6 @@ export default Vue.component("enrichment-table", {
                     this.select_annotations,
                     "annotation"
                 );
-                console.log("1", dataRows);
             }
             if (this.select_methods.length > 0) {
                 dataRows = Filters.filterFormatted(
@@ -377,7 +376,6 @@ export default Vue.component("enrichment-table", {
                     this.select_methods,
                     "method"
                 );
-                console.log("2", dataRows);
             }
             if (this.select_tissues.length > 0) {
                 dataRows = Filters.filterFormatted(
@@ -385,7 +383,6 @@ export default Vue.component("enrichment-table", {
                     this.select_tissues,
                     "tissue"
                 );
-                console.log("3", dataRows);
             }
             if (this.select_ancestry != "") {
                 dataRows = Filters.filterFormatted(
@@ -393,7 +390,6 @@ export default Vue.component("enrichment-table", {
                     this.select_ancestry,
                     "ancestry"
                 );
-                console.log("4", dataRows);
             }
             if (this.select_pValue != "") {
                 dataRows = Filters.filterPValue(
@@ -401,7 +397,6 @@ export default Vue.component("enrichment-table", {
                     this.select_pValue,
                     `${this.phenotypes[0].name}_pValue`
                 );
-                console.log("5", dataRows);
             }
             if (this.select_odds_ratio != "") {
                 dataRows = Filters.filterBeta(
@@ -409,7 +404,6 @@ export default Vue.component("enrichment-table", {
                     this.select_odds_ratio,
                     `${this.phenotypes[0].name}_beta`
                 );
-                console.log("6", dataRows);
             }
             return dataRows;
         }
