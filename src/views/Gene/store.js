@@ -31,6 +31,7 @@ export default new Vuex.Store({
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
+        
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
