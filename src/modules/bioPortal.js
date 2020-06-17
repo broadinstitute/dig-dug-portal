@@ -22,7 +22,8 @@ export default {
             diseaseGroups: [],
             phenotypes: [],
             phenotypeMap: {},
-            documentation: {}
+            documentation: {},
+            matchedGenes: {},
         }
     },
 
@@ -39,6 +40,11 @@ export default {
             for (let i in state.phenotypes) {
                 state.phenotypeMap[state.phenotypes[i].name] = state.phenotypes[i];
             }
+        },
+        setMatchedGenes(state, data) {
+            state.matchedGenes = data;
+            console.log("matched genes")
+
         },
 
         setDocumentation(state, data) {
@@ -86,6 +92,18 @@ export default {
 
             // set the list of phenotypes
             commit('setPhenotypes', json.data);
+        },
+
+        //autocomplete genes (or variants in future)
+        async getMatchedGenes({ state, commit }) {
+            //the input q would be whatever yhe user types in
+            let qs = queryString.stringify({ q: "slc", limit: 5 }, { skipNull: true });
+
+            let json = await fetch(`${BIO_INDEX_HOST}/api/bio/match/gene?${qs}`)
+                .then(resp => resp.json());
+
+            // set the list of phenotypes
+            commit('setMatchedGenes', json.data);
         },
 
 

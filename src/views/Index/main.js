@@ -14,6 +14,7 @@ import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import Documentation from "@/components/Documentation.vue";
+import Autocomplete from "@/components/Autocomplete.vue";
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -33,7 +34,6 @@ new Vue({
             "cvd": { "gene": "LPA", "variant": "rs10965215", "region": "9:20,940,000-21,800,000" },
             "cd": { "gene": "HDAC9", "variant": "rs2984613", "region": "7:18,100,000-18,300,000" },
             "sleep": { "gene": "PAX8", "variant": "rs62158211", "region": "2:113,873,524-114,136,577" }
-
         }
     },
 
@@ -49,11 +49,13 @@ new Vue({
         DiseaseGroupSelect,
         TooltipDocumentation,
         Documentation,
+        Autocomplete,
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getMatchedGenes");
     },
 
     render(createElement, context) {
@@ -75,13 +77,16 @@ new Vue({
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
+        //this is for autocomplete
+        matchedGenes() {
+            return this.$store.state.bioPortal.matchedGenes;
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
             if (contents.length === 0) {
                 return {};
             }
-
             return contents[0];
         },
         geneOrRegionOrVariant() {

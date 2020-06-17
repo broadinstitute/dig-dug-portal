@@ -51,6 +51,11 @@ export default new Vuex.Store({
                 postAlertError("Invalid gene, variant, or region");
             }
 
-        }
+        },
+
+        //select gene on autocomplete.
+        async onGeneChange(context, gene) {
+            window.location.href = "./gene.html?gene=" + gene;
+        },
     }
 });

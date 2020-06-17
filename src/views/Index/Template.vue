@@ -26,7 +26,7 @@
                                     <b-tab title="Explore by region or variant" active>
                                         <div class="front-gene-search-wrapper">
                                             <div class="col-md-12 input-wrapper">
-                                                <input
+                                                <!-- <input
                                                     v-model="$store.state.geneOrRegionOrVariant"
                                                     type="text"
                                                     class="form-control input-default"
@@ -34,7 +34,10 @@
                                                     style="display:inline-block"
                                                     autocomplete="off"
                                                     @change="$store.dispatch('exploreRegionOrVariant')"
-                                                />
+                                                />-->
+                                                <autocomplete
+                                                    v-bind:matchedGenes="$parent.matchedGenes"
+                                                ></autocomplete>
                                             </div>
                                             <div class="region-search-examples">
                                                 <documentation
