@@ -914,3 +914,217 @@ polyline {
 .dataset-page-header .card-body h2 {
     margin: 0 !important;
 }
+
+/* Styling for static info pages */
+
+.news-content-wrapper, .resource-content-wrapper {
+    background-color: #eee;
+    padding: 15px;
+    border: solid 1px #ccc;
+    border-radius: 0.25em;
+}
+
+.new-feature-item-wrapper, .resource-item-wrapper {
+    margin: 15px 0;
+    padding-bottom: 10px;
+    border-bottom: solid 1px #ddd;
+}
+
+.new-feature-item-wrapper h3, .resource-item-wrapper h3 {
+    font-size: 18px;
+}
+
+.resources-iframe-wrapper {
+    width: 560px;
+    height: 315px;
+    margin: 0 auto;
+}
+
+.page-info-wrapper {
+
+}
+
+.page-info-wrapper table {
+    font-size: 14px;
+}
+
+.page-info-wrapper table td, .page-info-wrapper table th {
+    padding: 8px;
+}
+
+.page-info-wrapper h2 {
+    font-size: 30px;
+}
+
+.page-info-wrapper h3 {
+    font-size: 26px;
+}
+
+.page-info-wrapper h4 {
+    font-size: 20px;
+}
+
+.dk-under-header {
+	font-size: 18px; line-height: 1.4em; font-weight: 400;
+}
+
+.page-info-wrapper [class*='col-md-'] {
+    display: inline-block;
+    float: left;
+}
+
+.dk-notice {
+	padding: 0px 0px 0px 0px;
+	margin: 10px 0 10px 0;
+	background-color: #62b4c5;
+	color: #fff;
+	background-repeat:no-repeat;
+	background-size:100% 100%;
+	border-radius: 5px;
+}
+
+.dk-notice a {
+	/*color:#def;*/
+	color: #2275a6;
+	font-weight: 200;
+	font-size: 16px;
+}
+
+.dk-notice p {
+	margin-bottom: 0;
+	padding-left: 15px; padding-right: 15px; padding-bottom: 10px; padding-top: 5px;
+	background-color: rgba(255,255,255,.5);
+	color: #333;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.dk-notice p.dk-notice-header {
+	font-size: 22px;
+	font-weight: 300;
+	background-color: #62b4c5;
+	background-color: rgba(255,255,255,0);
+	padding-bottom: 0;
+	color: #fff;
+}
+
+
+.dk-team-list {
+	width: 100%;
+	font-size: 14px;
+	line-height: 22px;
+}
+
+.dk-team-list td:last-child {
+	width: 50%;
+}
+
+.dk-team-list td {
+	padding-right: 25px;
+	padding-bottom: 15px;
+	vertical-align:top;
+}
+
+.dk-team-list strong {
+	/*float: right;*/
+}
+
+.dk-team-list td > p {
+	padding-left: 15px;
+}
+
+/* variant page */
+
+.dk-tutorial-button {
+	background-image: url(../images/icons/tutorial_icon2.svg);
+}
+
+
+.dk-reference-button {
+	background-image: url(../images/icons/reference_icon.svg);
+}
+
+.dk-copy-button {
+	background-image: url(../images/icons/clipboard_icon.svg);
+}
+
+.dk-edit-button {
+	background-image: url(../images/icons/edit_icon.svg);
+}
+
+.dk-search-button {
+	background-image: url(../images/icons/search_icon.svg);
+}
+
+.dk-email-button {
+	background-image: url(../images/icons/email_icon.svg);
+}
+
+.dk-contact-button {
+	background-image: url(../images/icons/contact_icon.svg);
+}
+
+.dk-forum-button {
+	background-image: url(../images/icons/forum_icon.svg);
+}
+
+.dk-go-button {
+	background-image: url(../images/icons/go_icon.svg);
+}
+
+.dk-video-button {
+	background-image: url(../images/icons/video_icon.svg);
+}
+
+.dk-right-column-buttons, .dk-right-column-buttons-compact {
+	border-radius: 5px;
+	padding: 0;
+	padding-left:40px;
+	margin-bottom: 5px;
+	background-repeat: no-repeat;
+	background-size: 40px 40px;
+	background-position: center left;
+	border:none;
+}
+
+.dk-right-column-buttons > a, .dk-right-column-buttons-compact > a {
+	display: block;
+	color:#333;
+	padding: 10px 15px 10px 10px;
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	text-decoration: none;
+	background-color: rgba(255,255,255,0.6);
+}
+
+.dk-right-column-buttons-compact {
+	padding-left:30px;
+	background-size: 30px 30px;
+}
+
+.dk-right-column-buttons-compact > a {
+	padding: 5px 10px 5px 10px;
+}
+
+.dk-right-column-buttons > a:hover, .dk-right-column-buttons-compact > a:hover {
+	color:#000;
+	text-decoration: none;
+	background-color: rgba(255,255,255,0.4);
+}
+
+.dk-t2d-yellow {  background-color: #D2BC2C;  }
+.dk-t2d-orange {  background-color: #F68920;  }
+.dk-t2d-green {  background-color: #7fc343;  }
+.dk-t2d-blue {  background-color: #62B4C5;  }
+.dk-blue-bordered {
+	display:block;
+	border-top: solid 1px #57A7BA;
+	border-bottom: solid 1px #57A7BA;
+	color: #57A7BA;
+	padding: 5px 0;
+	text-align:left;
+	line-height:26px;
+	font-weight: 400;
+}
+
+

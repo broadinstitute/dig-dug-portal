@@ -7,10 +7,7 @@
                 <span v-html="item.body">{{ item.body }}</span>
                 <span>
                     ...
-                    <a
-                        :href="'http://kp4cd.org/new_features/'+diseaseGroup.name+'?nid='+item.nid"
-                        target="_blank"
-                    >Read more</a>
+                    <a :href="'news.html?nid='+item.nid" target="_blank">Read more</a>
                 </span>
             </li>
         </ul>
@@ -23,7 +20,7 @@
             >{{ item }}</a>
         </div>
         <a
-            :href="'http://www.kp4cd.org/new_features/'+diseaseGroup.name"
+            href="/news.html"
             target="_blank"
             style="display: block; position: absolute; bottom: -5px; font-weight: 600;"
         >View news archive ></a>

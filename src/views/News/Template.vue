@@ -8,7 +8,7 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h2>{{$parent.diseaseGroup.description}} KP Datasets</h2>
+                        <h2>New and Notable in the {{ $parent.diseaseGroup.description}} Knowledge Portal</h2>
                     </div>
                 </div>
             </div>
@@ -16,12 +16,10 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <portal-datasets-list-table
-                                :diseaseGroups="$store.state.bioPortal.diseaseGroups"
-                                :diseaseGroup="$parent.diseaseGroup"
-                                :datasetsList="$parent.datasetsList"
-                                :phenotypes="$store.state.bioPortal.phenotypes"
-                            ></portal-datasets-list-table>
+                            <new-features-section
+                                :newFeatures="$parent.newFeatures"
+                                :nid="$parent.nid"
+                            ></new-features-section>
                         </div>
                     </div>
                 </div>
