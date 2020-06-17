@@ -38,20 +38,10 @@
                 <b-col>
                     <div class="label">p-Value (&le;)</div>
                     <b-form-input
-                        id="filter-pValue"
                         type="text"
                         @change="setFilter($event, 'select_pValue')"
                         ref="select_pValue"
                     ></b-form-input>
-                </b-col>
-                <b-col>
-                    <div class="label">Effect</div>
-                    <b-form-select
-                        @input="setFilter($event, 'select_odds_ratio')"
-                        :options="select_odds_ratio_options"
-                        ref="select_odds_ratio"
-                        v-model="select_odds_ratio"
-                    ></b-form-select>
                 </b-col>
             </b-row>
         </b-container>
@@ -59,7 +49,7 @@
             <b-row>
                 <b-col>
                     <span
-                        v-if="select_annotations.length > 0 || select_methods.length > 0 || select_tissues.length > 0 || select_ancestry || select_pValue || select_odds_ratio"
+                        v-if="select_annotations.length > 0 || select_methods.length > 0 || select_tissues.length > 0 || select_ancestry || select_pValue"
                     >Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="select_annotations">
                         <b-badge
@@ -120,19 +110,6 @@
                         >
                             {{select_pValue}}
                             <span class="remove">X</span>
-                        </b-badge>
-                    </template>
-                    <template v-if="select_odds_ratio">
-                        <b-badge
-                            pill
-                            variant="danger"
-                            @click="unsetFilter('select_odds_ratio')"
-                            class="btn"
-                        >
-                            {{select_odds_ratio_options.find(e => e.value == select_odds_ratio).text}}
-                            <span
-                                class="remove"
-                            >X</span>
                         </b-badge>
                     </template>
                 </b-col>
@@ -227,13 +204,7 @@ export default Vue.component("enrichment-table", {
             select_tissues: [],
             select_tissues_text: "",
             select_ancestry: "",
-            select_pValue: "",
-            select_odds_ratio: "",
-            select_odds_ratio_options: [
-                { value: "", text: "All" },
-                { value: "p", text: "Positive" },
-                { value: "n", text: "Negative" }
-            ]
+            select_pValue: ""
         };
     },
 
@@ -253,18 +224,8 @@ export default Vue.component("enrichment-table", {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
                                 : "";
-                        }
-                    },
-                    {
-                        key: `${p.name}_beta`,
-                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
-                        formatter: x => {
-                            if (p.dichotomous) {
-                                x = Math.exp(x);
-                            }
-
-                            return Formatters.floatFormatter(x);
-                        }
+                        },
+                        sortable: true
                     },
                     {
                         key: `${p.name}_SNPs`,
@@ -396,13 +357,6 @@ export default Vue.component("enrichment-table", {
                     dataRows,
                     this.select_pValue,
                     `${this.phenotypes[0].name}_pValue`
-                );
-            }
-            if (this.select_odds_ratio != "") {
-                dataRows = Filters.filterBeta(
-                    dataRows,
-                    this.select_odds_ratio,
-                    `${this.phenotypes[0].name}_beta`
                 );
             }
             return dataRows;
