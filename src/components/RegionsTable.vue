@@ -2,7 +2,6 @@
     <div>
         <b-container fluid class="filtering-ui-wrapper filter-rows">
             <b-row class="filtering-ui-content">
-                <span class="filter-by-label">Filter table by:</span>
                 <b-col>
                     <div class="label">Annotations:</div>
                     <b-form-select

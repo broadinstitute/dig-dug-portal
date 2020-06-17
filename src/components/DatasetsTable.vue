@@ -2,7 +2,6 @@
     <div>
         <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
-                <span class="filter-by-label">Filter table by:</span>
                 <b-col>
                     <div class="label">Tech:</div>
                     <b-form-select v-model="tech" :options="filter_tech"></b-form-select>
