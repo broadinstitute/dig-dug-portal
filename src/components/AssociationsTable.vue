@@ -9,14 +9,14 @@
                         id="filter-dbSNP"
                         type="text"
                         v-model="select_dbsnp_text"
-                        @change="addFilter($event, 'select_dbsnp')"
+                        @change="addSingle($event, 'select_dbsnp')"
                     ></b-form-input>
                 </b-col>
                 <b-col class="divider">&nbsp;</b-col>
                 <b-col>
                     <div class="label">Consequence</div>
                     <b-form-select
-                        @change="setFilter($event, 'select_consequence')"
+                        @change="addCompound($event, 'select_consequence')"
                         :options="filter_consequence"
                         ref="select_consequence"
                     ></b-form-select>
@@ -27,7 +27,7 @@
                         id="filter-gene"
                         type="text"
                         v-model="select_gene_text"
-                        @change="addFilter($event, 'select_gene')"
+                        @change="addCompound($event, 'select_gene')"
                     ></b-form-input>
                 </b-col>
                 <b-col>
@@ -36,28 +36,28 @@
                         id="filter-pValue"
                         type="text"
                         v-model="select_pValue_text"
-                        @change="setFilter($event, 'select_pValue')"
+                        @change="addCompound($event, 'select_pValue', false)"
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
                 <b-col>
                     <div class="label">Effect</div>
                     <b-form-select
-                        @input="setFilter($event, 'select_beta')"
+                        @input="addCompound($event, 'select_beta', false)"
                         :options="select_beta_options"
                         ref="select_beta"
-                        v-model="select_beta"
+                        v-model="select_beta_text"
                     ></b-form-select>
                 </b-col>
             </b-row>
         </b-container>
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
-                v-if="select_dbsnp.length > 0 || select_consequence != '' || select_gene.length > 0 || select_pValue != ''"
+                v-if="select_dbsnp.length > 0 || select_consequence.length > 0 || select_gene.length > 0 || select_pValue.length > 0"
             >
                 <b-col>
                     <span>Selected Filters:&nbsp;&nbsp;</span>
-                    <template v-if="select_dbsnp">
+                    <template v-if="select_dbsnp.length > 0">
                         <b-badge
                             pill
                             variant="info"
@@ -70,18 +70,20 @@
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
-                    <template v-if="select_consequence">
+                    <template v-if="select_consequence.length > 0">
                         <b-badge
                             pill
                             variant="success"
-                            @click="unsetFilter('select_consequence')"
+                            v-for="(v,i) in select_consequence"
+                            :key="v"
+                            @click="removeFilter(i, 'select_consequence')"
                             class="btn"
                         >
-                            {{select_consequence}}
+                            {{v}}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
-                    <template v-if="select_gene">
+                    <template v-if="select_gene.length > 0">
                         <b-badge
                             pill
                             variant="warning"
@@ -94,11 +96,11 @@
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
-                    <template v-if="select_pValue">
+                    <template v-if="select_pValue.length > 0">
                         <b-badge
                             pill
                             variant="danger"
-                            @click="unsetFilter('select_pValue')"
+                            @click="setFilter('select_pValue')"
                             class="btn"
                         >
                             {{select_pValue}}
@@ -209,12 +211,13 @@ export default Vue.component("associations-table", {
             select_pValue_text: "",
             select_dbsnp: [],
             select_dbsnp_text: "",
-            select_consequence: "",
+            select_consequence: [],
             select_gene: [],
             select_gene_text: "",
-            select_beta: null,
+            select_beta: "",
+            select_beta_text: "",
             select_beta_options: [
-                { value: null, text: "All" },
+                { value: "", text: "All" },
                 { value: "p", text: "Positive" },
                 { value: "n", text: "Negative" }
             ]
@@ -325,38 +328,46 @@ export default Vue.component("associations-table", {
         },
 
         tableData() {
+            let dataRows = this.groupedAssociations;
+
             if (this.select_dbsnp.length > 0) {
-                +9 + 8;
-                return Filters.filterTable(
-                    this.groupedAssociations,
+                dataRows = Filters.filterTable(
+                    dataRows,
                     this.select_dbsnp,
                     "dbSNP"
                 );
-            } else if (this.select_consequence != "") {
-                return Filters.filterFormatted(
-                    this.groupedAssociations,
-                    this.select_consequence,
-                    "consequence"
-                );
-            } else if (this.select_gene.length > 0) {
-                return Filters.filterTable(
-                    this.groupedAssociations,
-                    this.select_gene,
-                    "gene"
-                );
-            } else if (this.select_pValue != "") {
-                return Filters.filterPValue(
-                    this.groupedAssociations,
-                    this.select_pValue,
-                    `${this.phenotypes[0].name}_pValue`
-                );
-            } else if (this.select_beta != "") {
-                return Filters.filterBeta(
-                    this.groupedAssociations,
-                    this.select_beta,
-                    `${this.phenotypes[0].name}_beta`
-                );
-            } else return this.groupedAssociations;
+            } else {
+                if (this.select_consequence.length > 0) {
+                    dataRows = Filters.filterFormatted(
+                        dataRows,
+                        this.select_consequence,
+                        "consequence"
+                    );
+                }
+                if (this.select_gene.length > 0) {
+                    dataRows = Filters.filterTable(
+                        dataRows,
+                        this.select_gene,
+                        "gene"
+                    );
+                }
+                if (this.select_pValue != "") {
+                    dataRows = Filters.filterPValue(
+                        dataRows,
+                        this.select_pValue,
+                        `${this.phenotypes[0].name}_pValue`
+                    );
+                }
+                if (this.select_beta.length > 0) {
+                    dataRows = Filters.filterBeta(
+                        dataRows,
+                        this.select_beta,
+                        `${this.phenotypes[0].name}_beta`
+                    );
+                }
+            }
+
+            return dataRows;
         }
     },
 
@@ -371,35 +382,52 @@ export default Vue.component("associations-table", {
             return Formatters.dbSNPFormatter(dbSNP);
         },
         addFilter(event, obj) {
-            console.log("add" + event);
+            //console.log("add" + event);
             this[obj].push(event.trim());
             this[obj + "_text"] = "";
-            this.resetOtherFilters(obj);
+            //this.resetOtherFilters(obj);
         },
         setFilter(event, obj) {
-            console.log("set" + event);
+            //console.log("set" + event);
             this[obj] = event;
-            this.$refs[obj].$el.value = "";
+            //this.$refs[obj].$el.value = "";
             this[obj + "_text"] = "";
         },
         removeFilter(index, obj) {
             this[obj].splice(index, 1);
         },
-
         unsetFilter(obj) {
             this[obj] = "";
         },
-        resetOtherFilters(option) {
-            this.select_pValue =
-                this.select_pValue == this[option] ? this[option] : "";
-            this.select_dbsnp =
-                this.select_dbsnp == this[option] ? this[option] : [];
-            this.select_consequence =
-                this.select_consequence == this[option] ? this[option] : "";
-            this.select_gene =
-                this.select_gene == this[option] ? this[option] : [];
-            this.select_beta =
-                this.select_beta == this[option] ? this[option] : "";
+        // resetOtherFilters(option) {
+        //     this.select_pValue =
+        //         this.select_pValue == this[option] ? this[option] : "";
+        //     this.select_dbsnp =
+        //         this.select_dbsnp == this[option] ? this[option] : [];
+        //     this.select_consequence =
+        //         this.select_consequence == this[option] ? this[option] : "";
+        //     this.select_gene =
+        //         this.select_gene == this[option] ? this[option] : [];
+        //     this.select_beta =
+        //         this.select_beta == this[option] ? this[option] : "";
+        // },
+        addSingle(event, obj) {
+            this.addFilter(event, obj);
+            this.clearCompound();
+        },
+        addCompound(event, obj, multiple = true) {
+            if (multiple) this.addFilter(event, obj);
+            else this.setFilter(event, obj);
+            this.clearSingle();
+        },
+        clearSingle() {
+            this.select_dbsnp = [];
+        },
+        clearCompound() {
+            this.select_consequence = [];
+            this.select_gene = [];
+            this.select_pValue = "";
+            this.select_beta = "";
         }
     }
 });
