@@ -112,7 +112,6 @@
                 </div>
             </div>
         </div>
-        {{ diseaseGroup }}
     </div>
 </template>
 
