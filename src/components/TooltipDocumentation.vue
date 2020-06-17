@@ -6,14 +6,14 @@
             class="help-content-caller"
             :class="contentID"
             v-on:click="showHideHelpContent(contentID)"
-        >&#63;</span>
+        >&#43;</span>
         <span
             v-if="this.isHover == true"
             class="help-content-caller hover"
             :class="contentID"
             @mouseover="showHideHelpContent(contentID)"
             @mouseleave="showHideHelpContent(contentID)"
-        >*</span>
+        >i</span>
         <div v-if="this.isHover == false" class="help-content-modal hidden" :id="contentID">
             <span class="help-content-close" v-on:click="showHideHelpContent(contentID)">&#43;</span>
             <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
