@@ -149,13 +149,14 @@
                             <annotation-method-selectpicker
                                 :annotations="$parent.globalEnrichmentAnnotations">
                             </annotation-method-selectpicker>
+                            <button v-on:click="$parent.addIntervalsTracksForAnnotation">Add Annotation Method Tracks</button><br>
+
                             <tissue-selectpicker
                                 :tissues="$parent.tissues">
                             </tissue-selectpicker>
-                            <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>
                             pValue &lt; <input v-model.number="$parent.pValue"/>
                             beta &gt; <input v-model.number="$parent.beta"/>
-                            <button v-on:click="$parent.addIntervalsTracksForAnnotation">Add Annotation Method Tracks</button><br>
+                            <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>
                         </div>
 
                         <div class="col-md-4">
