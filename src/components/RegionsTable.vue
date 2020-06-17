@@ -8,15 +8,24 @@
                     <b-form-select
                         @input="addFilter($event, 'annotations')"
                         :options="filter_annotation"
+                        v-model="annotation"
                     ></b-form-select>
                 </b-col>
                 <b-col>
                     <div class="label">Methods:</div>
-                    <b-form-select @input="addFilter($event, 'methods')" :options="filter_method"></b-form-select>
+                    <b-form-select
+                        @input="addFilter($event, 'methods')"
+                        :options="filter_method"
+                        v-model="method"
+                    ></b-form-select>
                 </b-col>
                 <b-col>
                     <div class="label">Tissues:</div>
-                    <b-form-select @input="addFilter($event, 'tissues')" :options="filter_tissue"></b-form-select>
+                    <b-form-select
+                        @input="addFilter($event, 'tissues')"
+                        :options="filter_tissue"
+                        v-model="tissue"
+                    ></b-form-select>
                 </b-col>
             </b-row>
         </b-container>
@@ -41,7 +50,7 @@
                     <template v-if="methods">
                         <b-badge
                             pill
-                            variant="info"
+                            variant="success"
                             v-for="(v,i) in methods"
                             :key="v"
                             @click="removeFilter(i, 'methods')"
@@ -55,7 +64,7 @@
                     <template v-if="tissues">
                         <b-badge
                             pill
-                            variant="info"
+                            variant="warning"
                             v-for="(v,i) in tissues"
                             :key="v"
                             @click="removeFilter(i, 'tissues')"
@@ -187,34 +196,40 @@ export default Vue.component("regions-table", {
                 .filter((v, i, arr) => v != undefined && v != "-");
         },
         tableData() {
-            if (this.annotations.length > 0) {
-                return Filters.filterFormatted(
-                    this.sortedRegions,
-                    this.annotations,
-                    "annotation"
-                );
-            } else if (this.methods.length > 0) {
-                return Filters.filterFormatted(
-                    this.sortedRegions,
-                    this.methods,
-                    "method"
-                );
-            } else if (this.tissues.length > 0) {
-                return Filters.filterFormatted(
-                    this.sortedRegions,
-                    this.tissues,
-                    "tissue"
-                );
-            } else {
-                return this.sortedRegions;
-            }
+            let annotationFiltered =
+                this.annotations.length > 0
+                    ? Filters.filterFormatted(
+                          this.sortedRegions,
+                          this.annotations,
+                          "annotation"
+                      )
+                    : this.sortedRegions;
+
+            let methodsFiltered =
+                this.methods.length > 0
+                    ? Filters.filterFormatted(
+                          annotationFiltered,
+                          this.methods,
+                          "method"
+                      )
+                    : annotationFiltered;
+
+            let tissuesFiltered =
+                this.tissues.length > 0
+                    ? Filters.filterFormatted(
+                          methodsFiltered,
+                          this.tissues,
+                          "tissue"
+                      )
+                    : methodsFiltered;
+
+            return tissuesFiltered;
         }
     },
 
     methods: {
         addFilter(event, obj) {
             this[obj].push(event);
-            this.resetOtherFilters(obj);
         },
         removeFilter(index, obj) {
             this[obj].splice(index, 1);
