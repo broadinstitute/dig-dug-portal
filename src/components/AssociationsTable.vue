@@ -100,7 +100,7 @@
                         <b-badge
                             pill
                             variant="danger"
-                            @click="setFilter('select_pValue')"
+                            @click="unsetFilter('select_pValue')"
                             class="btn"
                         >
                             {{select_pValue}}
@@ -385,12 +385,9 @@ export default Vue.component("associations-table", {
             //console.log("add" + event);
             this[obj].push(event.trim());
             this[obj + "_text"] = "";
-            //this.resetOtherFilters(obj);
         },
         setFilter(event, obj) {
-            //console.log("set" + event);
             this[obj] = event;
-            //this.$refs[obj].$el.value = "";
             this[obj + "_text"] = "";
         },
         removeFilter(index, obj) {
@@ -399,18 +396,6 @@ export default Vue.component("associations-table", {
         unsetFilter(obj) {
             this[obj] = "";
         },
-        // resetOtherFilters(option) {
-        //     this.select_pValue =
-        //         this.select_pValue == this[option] ? this[option] : "";
-        //     this.select_dbsnp =
-        //         this.select_dbsnp == this[option] ? this[option] : [];
-        //     this.select_consequence =
-        //         this.select_consequence == this[option] ? this[option] : "";
-        //     this.select_gene =
-        //         this.select_gene == this[option] ? this[option] : [];
-        //     this.select_beta =
-        //         this.select_beta == this[option] ? this[option] : "";
-        // },
         addSingle(event, obj) {
             this.addFilter(event, obj);
             this.clearCompound();
