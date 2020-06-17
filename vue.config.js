@@ -2,6 +2,12 @@ module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
+    configureWebpack: config => {
+        if (process.env.NODE_ENV !== 'production') {
+            config.devtool = 'inline-source-map';
+        }
+    },
+    productionSourceMap: false,
     pages: {
         index: {
             entry: "src/views/Index/main.js",
@@ -17,12 +23,12 @@ module.exports = {
             title: "Phenotype Page",
             chunks: ["chunk-vendors", "chunk-common", "phenotype"]
         },
-        gene: {
-            entry: "src/views/Gene/main.js",
+        region: {
+            entry: "src/views/Region/main.js",
             template: "public/index.html",
-            filename: "gene.html",
-            title: "Gene Info",
-            chunks: ["chunk-vendors", "chunk-common", "gene"]
+            filename: "region.html",
+            title: "Region Info",
+            chunks: ["chunk-vendors", "chunk-common", "region"]
 
         },
         debug: {
@@ -40,6 +46,29 @@ module.exports = {
             title: "Variant Info",
             chunks: ["chunk-vendors", "chunk-common", "variant"]
 
+        },
+        gene: {
+            entry: "src/views/Gene/main.js",
+            template: "public/index.html",
+            filename: "gene.html",
+            title: "Gene Info",
+            chunks: ["chunk-vendors", "chunk-common", "gene"]
+
+        },
+        datasets: {
+            entry: "src/views/Datasets/main.js",
+            template: "public/index.html",
+            filename: "datasets.html",
+            title: "Datasets",
+            chunks: ["chunk-vendors", "chunk-common", "datasets"]
+
+        },
+        dinspector: {
+            entry: "src/views/DatasetInspector/main.js",
+            template: "public/index.html",
+            filename: "dinspector.html",
+            title: "Dataset Inspector",
+            chunks: ["chunk-vendors", "chunk-common", "dinspector"]
         },
     }
 };

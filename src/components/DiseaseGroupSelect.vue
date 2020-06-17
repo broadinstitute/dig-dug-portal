@@ -1,11 +1,12 @@
 <template>
     <div class="disease-group-select">
-        <select v-model="diseaseGroup" @change="changeDiseaseGroup(diseaseGroup);">
+        <b-form-select v-model="diseaseGroup" @change="changeDiseaseGroup(diseaseGroup);">
             <option
                 v-for="group in visibleDiseaseGroups"
-                v-bind:value="group.name"
+                :value="group.name"
+                :key="group.name"
             >{{ group.description }}</option>
-        </select>
+        </b-form-select>
     </div>
 </template>
 
@@ -32,7 +33,9 @@ export default Vue.component("disease-group-select", {
 
     computed: {
         visibleDiseaseGroups() {
-            return this.diseaseGroups.filter(g => !g.default);
+            return this.diseaseGroups
+                .filter(g => !g.default)
+                .sort((a, b) => (a.description > b.description ? 1 : -1));
         }
     },
 

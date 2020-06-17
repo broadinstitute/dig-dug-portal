@@ -1,12 +1,16 @@
+
+
 import Vue from "vue";
 import Vuex from "vuex";
 
-import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
-import regionUtils from "@/utils/regionUtils";
-import { moduleQueryTemplate } from "../../utils/bioIndexUtils";
+import keyParams from "@/utils/keyParams";
+import uniprot from "@/modules/uniprot";
+
+
+
 
 Vue.use(Vuex);
 
@@ -14,125 +18,74 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
+        gene: bioIndex("gene"),
         genes: bioIndex("genes"),
-        associations: bioIndex("associations"),
-        topAssociations: bioIndex("top-associations"),
-        variants: bioIndex("variants"),
+        uniprot,
+
     },
     state: {
-        // only used at the start
-        phenotypeParam: keyParams.phenotype,
-
-        // user-entered locus
-        chr: keyParams.chr,
-        start: keyParams.start,
-        end: keyParams.end,
-        phenotype: null,
-
-        // user-entered search fields
-        newChr: keyParams.chr,
-        newStart: keyParams.start,
-        newEnd: keyParams.end,
-        gene: null,
+        geneName: keyParams.gene,
     },
+
     mutations: {
-        setSelectedPhenotype(state, phenotype) {
-            state.phenotypeParam = null;
-            state.phenotype = phenotype;
+        setGeneName(state, geneName) {
+            state.geneName = geneName || state.geneName;
+            keyParams.set({ gene: state.geneName });
         },
-        setPhenotypeByName(state, name) {
-            state.phenotypeParam = null;
-            state.phenotype = state.bioPortal.phenotypeMap[name];
-        },
-        setLocus(state, region = {}) {
-            state.chr = region.chr || state.newChr || state.chr;
-            state.start = region.start || state.newStart || state.start;
-            state.end = region.end || state.newEnd || state.end;
-            state.newChr = state.chr;
-            state.newStart = state.start;
-            state.newEnd = state.end;
-            state.gene = null;
-
-            keyParams.set({
-                chr: state.chr,
-                start: state.start,
-                end: state.end,
-            });
-        },
+        setGene(state, { name, chromosome, start, end }) {
+            state.geneName = name;
+            state.geneRegion = `${chromosome}:${start}-${end}`;
+        }
     },
+
     getters: {
-        // The phenotype is a getter because it depends on the bioPortal
-        // having loaded all the phenotype objects from the database.
-        phenotype(state) {
-            for (let i in state.bioPortal.phenotypes) {
-                let phenotype = state.bioPortal.phenotypes[i];
-
-                if (phenotype.name === keyParams.phenotype) {
-                    return phenotype;
-                }
-            }
-
-            // not set or not found
-            return null;
-        },
         region(state) {
-            return `${state.chr}:${state.start}-${state.end}`;
-        },
-    },
-    actions: {
-        async onLocusZoomCoords(context, { newChr, newStart, newEnd }) {
-            const { chr, start, end } = context.state;
-            if (newChr !== chr || newStart !== start || newEnd !== end) {
-                context.commit('setLocus', { chr: newChr, start: newStart, end: newEnd })
-                await context.dispatch('getAssociations');
-            }
-        },
+            let data = state.gene.data;
 
-        async onPhenotypeChange(context, phenotype) {
-            context.commit('setSelectedPhenotype', phenotype);
-        },
+            if (data.length > 0) {
+                let gene = data[0];
 
-        async searchGene(context) {
-            if (context.state.gene) {
-                let locus = await regionUtils.parseRegion(context.state.gene, true, 50000);
-
-                if (locus) {
-                    context.state.newChr = locus.chr;
-                    context.state.newStart = locus.start;
-                    context.state.newEnd = locus.end;
-
-                    // update the locus
-                    context.commit('setLocus');
-                    context.dispatch('queryRegion');
+                return {
+                    chromosome: gene.chromosome,
+                    start: gene.start,
+                    end: gene.end,
                 }
             }
         },
 
-        async queryRegion(context) {
-            if (context.state.gene) {
-                context.dispatch('searchGene');
-            } else {
-                context.commit('setSelectedPhenotype', null);
-                context.commit('genes/clearData');
-                context.commit('associations/clearData');
-                context.commit('topAssociations/clearData');
+        canonicalSymbol(state) {
+            let data = state.genes.data;
 
-                // find all the top associations and genes in the region
-                context.dispatch('topAssociations/query', { q: context.getters.region });
-                context.dispatch('genes/query', { q: context.getters.region });
+            for (let i in data) {
+                if (data[i].source === 'symbol') {
+                    return data[i].name;
+                }
+            }
+        }
+    },
+
+    actions: {
+        async queryGeneName(context, symbol) {
+            let name = symbol || context.state.geneName;
+
+            if (!!name) {
+                context.dispatch('gene/query', { q: name });
             }
         },
 
-        // fetches all the associations for the selected phenotype
-        async getAssociations(context, phenotype) {
-            if (phenotype) {
-                // update the url with the new phenotype
-                keyParams.set({ phenotype: phenotype.name });
-                //mdkp.utility.showHideElement("phenotypeSearchHolder");
-            }
-            let q = `${context.state.phenotype.name},${context.getters.region}`;
-            context.dispatch('associations/query', { q });
+        async queryGeneRegion(context, region) {
+            let { chromosome, start, end } = region || context.getters.region;
+            let q = `${chromosome}:${start}-${end}`;
+
+            context.dispatch('genes/query', { q });
         },
 
-    }
+        async queryUniprot(context, symbol) {
+            let name = symbol || context.getters.canonicalSymbol;
+
+            if (!!symbol) {
+                context.dispatch('uniprot/getUniprotGeneInfo', name);
+            }
+        }
+    },
 });

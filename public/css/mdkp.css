@@ -43,10 +43,21 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+.front-top-banner-v2fkp {
+    background-image: url(http://kp4cd.org/sites/default/files/vueportal/v2fkp_front_bg.png),
+        linear-gradient(#f7835c, #bd516f);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-t1dkp {
+    background-image: url(http://kp4cd.org/sites/default/files/vueportal/t1dkp_front_bg.png),
+        linear-gradient(#aec5e7, #5481c1);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
-    margin: 0 -15px 0 -15px;
     padding: 30px 0 50px 0;
 }
 
@@ -78,6 +89,14 @@ a:hover {
 }
 
 .front-top-banner-t2dkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-v2fkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-t1dkp .front-logo-img {
     width: 430px;
 }
 
@@ -115,6 +134,14 @@ a:hover {
 
 .front-logo-tagline-sleepkp {
     transform: translate(0%, 35%);
+}
+
+.front-logo-tagline-v2fkp {
+    transform: translate(0%,17%);
+}
+
+.front-logo-tagline-t1dkp {
+    transform: translate(0%, 20%);
 }
 
 .front-banner-ui-tabs {
@@ -177,11 +204,21 @@ a:hover {
     height: 50px;
 }
 
+.v2fkp-logo {
+    height: 50px;
+}
+
+.t1dkp-logo {
+    height: 50px;
+}
+
 .mdkp-menu-wrapper,
 .cvdkp-menu-wrapper,
 .sleepkp-menu-wrapper,
 .t2dkp-menu-wrapper,
-.cdkp-menu-wrapper {
+.cdkp-menu-wrapper,
+.v2fkp-menu-wrapper,
+.t1dkp-menu-wrapper{
     text-align: right;
 }
 
@@ -189,7 +226,9 @@ a:hover {
 .cvdkp-menu li,
 .sleepkp-menu li,
 .cdkp-menu li,
-.t2dkp-menu li {
+.t2dkp-menu li,
+.v2fkp-menu li,
+.t1dkp-menu li {
     list-style: none;
     display: inline-block;
     padding-top: 15px;
@@ -199,7 +238,9 @@ a:hover {
 .cvdkp-menu li a,
 .sleepkp-menu li a,
 .cdkp-menu li a,
-.t2dkp-menu li a {
+.t2dkp-menu li a,
+.v2fkp-menu li a,
+.t1dkp-menu li a {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 5px;
@@ -213,7 +254,9 @@ a:hover {
 .cvdkp-menu li a.cvdkp-login,
 .sleepkp-menu li a.sleepkp-login,
 .cdkp-menu li a.cdkp-login,
-.t2dkp-menu li a.t2dkp-login {
+.t2dkp-menu li a.t2dkp-login,
+.v2fkp-menu li a.v2fkp-login,
+.t1dkp-menu li a.t1dkp-login {
     border-left: solid 1px #fff;
 }
 
@@ -247,17 +290,29 @@ a:hover {
     height: 50px;
 }
 
+.v2fkp-header,
+.v2fkp-footer {
+    background-color: #f7835c;
+    height: 50px;
+}
+
+.t1dkp-header,
+.t1dkp-footer {
+    background-color: #5481c1;
+    height: 50px;
+}
+
 .am-menu {
     display: inline-block;
     position: relative;
- }
+}
 
 .am-menu > .am-submenu {
     display: none;
     position: absolute;
     z-index: 100000;
-    padding:0;
-    margin:0;
+    padding: 0;
+    margin: 0;
 }
 
 .am-menu:hover > .am-submenu {
@@ -266,37 +321,38 @@ a:hover {
 
 .am-submenu > li {
     width: 100%;
-	background-color: rgba(120, 120, 120, .75);
-	font-size: 0.8em;
-	padding: 5px 15px 5px 15px;
-	border-bottom: solid 1px #666;
-	text-align: left;
-	list-style: none;
+    background-color: rgba(120, 120, 120, 0.75);
+    font-size: 0.8em;
+    padding: 5px 15px 5px 15px;
+    border-bottom: solid 1px #666;
+    text-align: left;
+    list-style: none;
 }
 
 .am-submenu > li:hover {
-	background-color: rgba(90, 90, 90, 1);
-	font-size: 0.8em;
-	padding: 5px 15px 5px 15px;
-	border-bottom: solid 1px #666;
-	text-align: left;
-	list-style: none;
+    background-color: rgba(90, 90, 90, 1);
+    font-size: 0.8em;
+    padding: 5px 15px 5px 15px;
+    border-bottom: solid 1px #666;
+    text-align: left;
+    list-style: none;
 }
 
 .am-submenu > li > a {
-	color: #fff;
+    color: #fff;
 }
 
 .am-menu:hover > .am-submenu {
-	display: block;
+    display: block;
 }
-
 
 .mdkp-footer,
 .cvdkp-footer,
 .sleepkp-footer,
 .t2dkp-footer,
-.cdkp-footer {
+.cdkp-footer,
+.v2fkp-footer,
+.t1dkp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -308,7 +364,9 @@ a:hover {
 .cvdkp-body,
 .sleekp-body,
 .t2dkp-body,
-.cdkp-body {
+.cdkp-body,
+.v2fkp-body,
+.t1dkp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -318,9 +376,12 @@ a:hover {
 .cvdkp-card,
 .sleepkp-card,
 .t2dkp-card,
-.cdkp-card {
+.cdkp-card,
+.v2fkp-card,
+.t1dkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
+    min-width: 1024px !important;
 }
 
 .portal-front-tabs {
@@ -382,6 +443,8 @@ a:hover {
     height: 50px;
     width: 100%;
     font-size: 16px;
+    background-color: rgba(255, 255, 255, 0.75);
+    border-color: #fff;
 }
 
 .header-disease-group-select-wrapper {
@@ -421,6 +484,10 @@ a.edit-btn {
     z-index: 15;
 }
 
+a.edit-btn:hover {
+    cursor: pointer;
+}
+
 .gene-page-header-search-holder {
     position: absolute;
     top: 0;
@@ -447,7 +514,8 @@ div.filtering-tools {
     padding-top: 8px;
 }
 
-div.filtering-tools table td, div.filtering-tools table th {
+div.filtering-tools table td,
+div.filtering-tools table th {
     padding-right: 10px;
     padding-left: 10px;
     border-right: solid 1px #fff;
@@ -461,7 +529,7 @@ div.filtering-tools table td, div.filtering-tools table th {
 }
 
 .phenotype-btn {
-    position: relative
+    position: relative;
 }
 
 .phenotype-btn.mr-1 {
@@ -469,7 +537,7 @@ div.filtering-tools table td, div.filtering-tools table th {
 }
 
 .phenotype-btn > span.remove {
-    font-family: 'Roboto';
+    font-family: "Roboto";
     font-size: 1.2em;
     position: absolute;
     background-color: #ccc;
@@ -491,24 +559,33 @@ div.filtering-tools table td, div.filtering-tools table th {
     color: #fff;
 }
 
-#phenotypeSearchHolder {
-    padding: 15px 10px 15px 10px;
-}
-
-#phenotypeSearchHolder .bootstrap-select {
+#phenotypeSearchHolder input.form-control {
+    border-radius: 0;
+    border: solid 1px #ddd;
+    height: 65px;
     width: 100%;
-}
-
-#phenotypeSearchHolder button.dropdown-toggle {
-    border: solid 1px #ccc;
+    font-size: 20px;
+    background-image: url("/images/searchicon.png");
+    background-position: 10px 20px;
+    background-repeat: no-repeat;
+    padding-left: 40px;
 }
 
 #regionSearchHolder .region-search {
     height: 100%;
 }
 
+.region-search-examples {
+    text-align: center;
+    color: #fff;
+    margin-top: 10px;
+}
+
+.region-search-examples a {
+    color: #fff !important;
+}
+
 #regionSearchHolder .input-wrapper {
-    overflow: hidden;
     display: inline-block;
     min-height: 100%;
     position: relative;
@@ -531,7 +608,8 @@ div.filtering-tools table td, div.filtering-tools table th {
     top: 25%;
 }
 
-#regionSearchHolder .input-default {
+#regionSearchHolder .input-default,
+#variantSearchHolder .input-default {
     height: 100%;
     width: 100%;
     border: 0;
@@ -543,11 +621,23 @@ div.filtering-tools table td, div.filtering-tools table th {
     font-size: 20px;
 }
 
-#regionSearchHolder #regionSearchGo {
+#variantSearchHolder div {
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#variantSearchHolder div.search-example, div.search-example {
+    font-size: 14px;
+    padding-top: 8px;
+}
+
+#regionSearchHolder #regionSearchGo,
+#variantSearchHolder #variantSearchGo {
     position: absolute;
     padding: 0;
     top: 13px;
-    right: 6px;
+    right: calc(50% - 20px);
     height: 40px;
     width: 40px;
     border-radius: 30px;
@@ -556,19 +646,23 @@ div.filtering-tools table td, div.filtering-tools table th {
     text-align: center;
 }
 
-.front-gene-search-wrapper, .front-phenotype-search-wrapper {
+.front-gene-search-wrapper,
+.front-phenotype-search-wrapper {
     width: 50%;
     margin: auto;
 }
 
 .front-gene-search-wrapper .input-wrapper {
     display: inline-block;
+    padding: 0;
 }
 
-.front-gene-search-wrapper .input-wrapper .input-default, .front-phenotype-search-wrapper input {
+.front-gene-search-wrapper .input-wrapper .input-default,
+.front-phenotype-search-wrapper input {
     height: 50px;
     background-color: rgba(255, 255, 255, 0.75);
     border-color: #fff;
+    width: 100%;
 }
 
 .front-gene-search-wrapper #regionSearchGo {
@@ -580,6 +674,7 @@ div.filtering-tools table td, div.filtering-tools table th {
     border: solid 1px rgba(255, 255, 255, 1);
     text-align: center;
     color: #666;
+    margin-left: 10px;
 }
 
 .phenotypes-with-signal-wrapper {
@@ -587,7 +682,17 @@ div.filtering-tools table td, div.filtering-tools table th {
     overflow-y: auto;
 }
 
-.phenotype-with-signal,
+.phenotype-with-signal {
+    cursor: pointer;
+    display: inline-block;
+    margin: 0px 5px 5px 0;
+    padding: 2px 10px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
 .gene-with-signal {
     cursor: pointer;
     display: inline-block;
@@ -609,14 +714,21 @@ div.filtering-tools table td, div.filtering-tools table th {
     border: solid 1px #72ce49;
 }
 
+.gene-with-signal.none {
+    background-color: #eee;
+    border: solid 1px #ccc;
+}
+
 .phenotype-with-signal.high {
     background-color: #a0d7ff;
     border: solid 1px #30b7f6;
 }
 
 .phenotype-with-signal.moderate {
-    background-color: #d0efff;
-    border: solid 1px #30b7f6;
+    /*background-color: #d0efff;
+    border: solid 1px #30b7f6;*/
+    background-color: #ffffb3;
+    border: solid 1px #ffcc44;
 }
 
 .phenotype-with-signal.none {
@@ -740,6 +852,7 @@ polyline {
     width: 96%;
     left: 2%;
     height: 96% !important;
+    max-height: 96% !important;
 }
 
 .pop-out-icon {
@@ -750,8 +863,8 @@ polyline {
     background-position: center;
     background-repeat: no-repeat;
     float: right;
-    margin-top: 5px;
-    margin-right: 5px;
+    margin-top: -10px;
+    margin-right: -10px;
 }
 
 .pop-out-icon:hover {
@@ -760,4 +873,44 @@ polyline {
 
 .hidden {
     display: none;
+}
+
+.front-page-body {
+    background-color: #fff !important;
+}
+
+.pagination.b-pagination {
+    border: solid 1px #dddddd;
+    border-radius: 25px;
+    padding: 3px 10px;
+    font-size: 15px;
+    width: fit-content;
+    margin: auto;
+}
+
+.pagination.b-pagination .page-item {
+    display: inline-block;
+}
+
+.pagination.b-pagination .page-link {
+    border: solid 1px #fff !important;
+    border-radius: 20px;
+    min-width: 31px;
+    height: 31px;
+}
+
+.pagination.b-pagination .page-item:last-child .page-link, .pagination.b-pagination .page-item:first-child .page-link {
+    border-radius: 20px;
+}
+
+.alternative-names span::after {
+    content: ", ";
+}
+
+.alternative-names span:last-child::after {
+    content: "";
+}
+
+.dataset-page-header .card-body h2 {
+    margin: 0 !important;
 }

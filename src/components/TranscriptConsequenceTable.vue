@@ -1,8 +1,9 @@
 <template>
     <div>
-        <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
         <b-table
             hover
+            small
+            responsive="sm"
             :items="transcriptConsequences"
             :fields="fields"
             :per-page="perPage"
@@ -15,6 +16,12 @@
                 <a :href="'/gene.html?gene=' + v.item.gene_id">{{v.item.gene_id}}</a>
             </template>
         </b-table>
+        <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+        ></b-pagination>
     </div>
 </template>
 

@@ -1,13 +1,29 @@
 <template>
     <!-- Header -->
     <div>
-
+        <analytics></analytics>
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
-
         <!-- body -->
         <div class="container-fluid mdkp-body">
+            <h4>
+                Help content example
+                <tooltip-documentation name="test.tooltip.index.regionexample" :group="'md'"></tooltip-documentation>
+            </h4>
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
+                    <div class="col-md-1 gene-page-header-title">
+                        <button
+                            @click="$parent.postAlertError('Error Alert!','Debug.vue')"
+                        >Test Error Alert</button>
+
+                        <button @click="$parent.forceError()">Force Vue Error</button>
+                        <button></button>
+                    </div>
+
+                    <alert></alert>
+
+                    <ga-event-log></ga-event-log>
 
                     <div class="col-md-8 gene-page-header-title">
                         Chromosome: Start position - End position
@@ -88,11 +104,8 @@
                             v-if="$parent.selectedPhenotype"
                         >{{$parent.selectedPhenotype.description}}</span>
                     </div>
-
                 </div>
-                <loading-bar 
-                    v-bind:moduleIndex="'top-associations'">
-                </loading-bar>
+                <loading-bar v-bind:moduleIndex="'top-associations'"></loading-bar>
                 <igv
                     v-bind:modules="[
                         { 'module': 'top-associations',
@@ -106,10 +119,7 @@
                     v-bind:start="$store.state.start"
                     v-bind:end="$store.state.end"
                 ></igv>
-
             </div>
-
-
         </div>
 
         <!-- Footer-->

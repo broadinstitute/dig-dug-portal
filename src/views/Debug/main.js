@@ -7,12 +7,24 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 import IGV from "@/components/IGV";
-import LoadingBar from "../../components/LoadingBar";
+import LoadingBar from "@/components/LoadingBar";
 
-import PageHeader from "../../components/PageHeader";
-import PageFooter from "../../components/PageFooter";
+import PageHeader from "@/components/PageHeader";
+import PageFooter from "@/components/PageFooter";
 import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
 import { useTranslations, associationsForIGV, translate, associationsFromVariants } from "@/utils/dataMappingUtils";
+
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
+import uiUtils from "@/utils/uiUtils";
+
+
+import Documentation from "@/components/Documentation"
+import TooltipDocumentation from "@/components/TooltipDocumentation"
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -26,7 +38,10 @@ new Vue({
         PageFooter,
         PhenotypeSelectPicker,
         LoadingBar,
-        IGV
+        IGV,
+        Alert,
+        Documentation,
+        TooltipDocumentation,
     },
 
     render(createElement, context) {
@@ -34,10 +49,19 @@ new Vue({
     },
 
     methods: {
-        ...useTranslations,
-        associationsForIGV,
-        associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
-        pause: () => console.log('hello')
+        //...useTranslations,
+        //associationsForIGV,
+        //associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+        ...uiUtils,
+        pause: () => console.log('hello'),
+        forceError: () => {
+            null.hello()
+            throw new Error("error");
+        }
     },
 
     computed: {

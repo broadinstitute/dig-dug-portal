@@ -45,21 +45,6 @@ async function parseRegion(s, allowGeneLookup = true, geneRegionExpand = 0) {
 
     // allow for gene lookup?
     if (allowGeneLookup) {
-        if (s.toUpperCase().startsWith('ENSG')) {
-            let region = await fetch(`https://grch37.rest.ensembl.org/lookup/id/${s}`)
-                .then(resp => resp.json())
-                .then(json => {
-                    return {
-                        chr: json.seq_region_name,
-                        start: Math.max(json.start - geneRegionExpand, 0),
-                        end: json.end + geneRegionExpand,
-                    }
-                });
-
-            return region;
-        }
-
-        // use the bio index to lookup a gene name
         let region = await fetch(`${BIO_INDEX_HOST}/api/bio/query/gene?q=${s}`)
             .then(resp => resp.json())
             .then(json => {
@@ -71,6 +56,7 @@ async function parseRegion(s, allowGeneLookup = true, geneRegionExpand = 0) {
                     chr: json.data[0].chromosome,
                     start: Math.max(json.data[0].start - geneRegionExpand, 0),
                     end: json.data[0].end + geneRegionExpand,
+                    gene: s,
                 }
             });
 

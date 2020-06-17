@@ -1,43 +1,83 @@
 <template>
-    <div class="phenotypes-with-signal-wrapper new-phenotypes-with-signal-wrapper">
-        <a
-            href="javascript:;"
-            v-on:click="popOutElement('new-phenotypes-with-signal-wrapper')"
-            class="pop-out-icon"
-        >&nbsp;</a>
-        <b-container fluid="sm">
-            <b-form-row>
-                <div class="phenotype-group-header"></div>
-                <div class="phenotype_group_wrapper">
-                    <div class="legend-scale">
-                        <span class="legend-left">0</span>
-                        <span class="legend-center">-log10(p)</span>
-                        <span
-                            class="legend-right"
-                            v-if="phenotypes[0]"
-                        >{{getEvalue(phenotypes[0]["pValue"])}}</span>
-                    </div>
-                    <div class="legend"></div>
-                </div>
-            </b-form-row>
-        </b-container>
-        <b-container fluid="sm" v-for="key in Object.keys(topAssociationsGrouped)" :key="key">
-            <b-form-row>
-                <div class="phenotype-group-header" v-b-toggle="key2id(key)">
-                    {{ key }}
-                    <b-icon-arrows-expand></b-icon-arrows-expand>
-                </div>
+    <div>
+        <div class="pws-bubble-view new-phenotypes-with-signal-wrapper">
+            <a
+                href="javascript:;"
+                v-on:click="popOutElement('pws-bubble-view')"
+                class="pop-out-icon"
+            >&nbsp;</a>
+            <div
+                v-for="row in topAssociations"
+                class="bubble"
+                :class="row.pValue <= 5e-3 ? row.pValue <= 2.5e-6 ? 'phenotype-with-signal high' : 'phenotype-with-signal moderate' : 'phenotype-with-signal none'"
+            >{{row.description}}</div>
+        </div>
 
-                <div class="pt-1 phenotype_group_wrapper">
-                    <b-progress class="phenotype_group" :class="key" height="1.5rem">
+        <div class="pws-bar-view new-phenotypes-with-signal-wrapper hidden">
+            <a
+                href="javascript:;"
+                v-on:click="popOutElement('pws-bar-view')"
+                class="pop-out-icon"
+            >&nbsp;</a>
+
+            <div class="p-bellow-section-header">
+                <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for phenotypes in a group. Hover over bar or expand the group to see associations for individual phenotypes.
+            </div>
+
+            <div class="pws-phenotype-group-container">
+                <div class="pws-phenotype-group-row">
+                    <div class="pws-phenotype-group-header">Phenotype group</div>
+                    <div class="pws-phenotype-group-wrapper">
+                        <div class="legend-scale">
+                            <span class="legend-left">0</span>
+                            <span class="legend-center">-log10(p)</span>
+                            <span
+                                class="legend-right"
+                                v-if="phenotypes[0]"
+                            >{{getEvalue(phenotypes[0]["pValue"])}}</span>
+                        </div>
+                        <div class="legend"></div>
+                    </div>
+                </div>
+            </div>
+            <div
+                v-for="key in Object.keys(topAssociationsGrouped)"
+                class="pws-phenotype-group-container pws-phenotype-group"
+                :class="key"
+                :key="key"
+            >
+                <div class="pws-phenotype-group-row">
+                    <div
+                        class="pws-phenotype-group-header"
+                        v-on:click="showHideByClass('pws-phenotype-row '+key2id(key))"
+                    >
+                        {{key}}
+                        <b-icon-arrows-expand></b-icon-arrows-expand>
+                    </div>
+                    <div class="pws-phenotype-group-wrapper">
                         <template v-for="(item, i) in topAssociationsGrouped[key]">
-                            <template v-if="i == 0">
-                                <b-progress-bar
+                            <template v-if="i != 0">
+                                <div
+                                    v-if="item.pValue <= 5e-3"
+                                    class="pws-phenotype-summary-row"
+                                    :style="{'width': +log2css(item.pValue)+'%'}"
+                                    @click="showHideByClass('pws-phenotype-row '+key2id(key))"
+                                >
+                                    <div class="pws-progress-bar" style="width: 100%"></div>
+
+                                    <span class="tool-tip">{{item.description+' ('+item.pValue+')'}}</span>
+                                </div>
+                            </template>
+                            <div
+                                class="pws-phenotype-row"
+                                :class="i != 0 ? key2id(key)+' hidden':''"
+                            >
+                                <div
+                                    class="pws-progress-bar"
                                     :key="item.phenotype"
                                     :value="log2css(item.pValue)"
-                                    :title="item.description"
-                                    show
-                                    v-b-tooltip
+                                    :style="{'width': +log2css(item.pValue)+'%'}"
+                                    @click="(i === 0) ? showHideByClass('pws-phenotype-row '+key2id(key)) : i"
                                 >
                                     <span
                                         class="bar-desc"
@@ -53,50 +93,13 @@
                                             >Go to phenotype page</div>
                                         </div>
                                     </span>
-                                </b-progress-bar>
-                            </template>
-                            <template v-else>
-                                <phenotype-signal-item
-                                    v-if="item.pValue <= 5e-3"
-                                    :key="item.phenotype"
-                                    :title="item.description"
-                                    :width="log2css(item.pValue)"
-                                ></phenotype-signal-item>
-                            </template>
+                                </div>
+                            </div>
                         </template>
-                    </b-progress>
-                    <b-collapse :id="key2id(key)" accordion="my-accordion">
-                        <template v-for="(item, i) in topAssociationsGrouped[key]">
-                            <template v-if="i != 0 && item.pValue <= 5e-3">
-                                <b-progress
-                                    height="1.5rem"
-                                    class="phenotype_group"
-                                    :class="item.group"
-                                    :key="item.phenotype"
-                                >
-                                    <b-progress-bar :value="log2css(item.pValue)">
-                                        <span
-                                            class="bar-desc"
-                                            :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
-                                        >
-                                            {{item.description}} ({{item.pValue}})
-                                            <div class="options-4-actions">
-                                                <div
-                                                    @click="$store.commit('setPhenotypeByName', item.phenotype)"
-                                                >Click to set phenotype</div>
-                                                <div
-                                                    v-on:click="openPage('phenotype.html',{'phenotype':item.phenotype})"
-                                                >Go to phenotype page</div>
-                                            </div>
-                                        </span>
-                                    </b-progress-bar>
-                                </b-progress>
-                            </template>
-                        </template>
-                    </b-collapse>
+                    </div>
                 </div>
-            </b-form-row>
-        </b-container>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -142,17 +145,28 @@ export default Vue.component("phenotype-signal", {
             });
 
             return groupBy(data, "group");
+        },
+        topAssociations: function() {
+            let data = this.phenotypes;
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+
+            data.forEach(element => {
+                let phenotype = phenotypeMap[element.phenotype];
+
+                element["group"] = phenotype.group.toUpperCase();
+                element["description"] = phenotype.description;
+            });
+
+            return data;
         }
     },
     methods: {
         log2css(value) {
-            const minp = 0;
-            const maxp = 100;
-            const minv = -Math.log10(10);
-            const maxv = -Math.log10(this.topAssociationsHighest);
-            const scale = (maxv - minv) / (maxp - minp);
+            const maxWidth = Math.log10(this.topAssociationsHighest);
+            const barWidth = Math.log10(value);
 
-            let calculated = -(Math.log(value) - minv) / scale + minp;
+            let calculated = (barWidth / maxWidth) * 100;
+
             return calculated > 100 ? 100 : calculated;
         },
         key2id(key) {
@@ -169,6 +183,9 @@ export default Vue.component("phenotype-signal", {
         },
         openPage(PAGE, PARAMETER) {
             uiUtils.openPage(PAGE, PARAMETER);
+        },
+        showHideByClass(CLASS) {
+            uiUtils.showHideByClass(CLASS);
         }
     }
 });

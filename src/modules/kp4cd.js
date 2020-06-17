@@ -12,6 +12,7 @@ export default {
             newsFeed: [],
             frontContents: [],
             datasetsInfo: [],
+            datasetInfo: [],
         };
     },
 
@@ -25,6 +26,9 @@ export default {
         },
         setDatasetsInfo(state, datasetsInfo) {
             state.datasetsInfo = datasetsInfo;
+        },
+        setDatasetInfo(state, datasetInfo) {
+            state.datasetInfo = datasetInfo;
         }
     },
 
@@ -55,6 +59,14 @@ export default {
                 .then(resp => resp.json());
             // set the data
             context.commit('setDatasetsInfo', json)
+        },
+
+        async getDatasetInfo(context, datasetId) {
+
+            let json = await fetch(`http://kp4cd.org/rest/views/datasetinfo?datasetid=` + datasetId)
+                .then(resp => resp.json());
+            // set the data
+            context.commit('setDatasetInfo', json)
         },
     },
 }

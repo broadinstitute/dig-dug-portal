@@ -1,13 +1,20 @@
 <template>
     <div>
-        <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
         <b-table
             hover
+            small
+            responsive="sm"
             :items="transcriptionFactors"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
         ></b-table>
+        <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+        ></b-pagination>
     </div>
 </template>
 

@@ -18,7 +18,7 @@
 // interaction
 
 // Variants -> Annotation
-import { BIO_INDEX_HOST, fullQueryFromUrl, moduleQueryTemplate, camelKebab } from "@/utils/bioIndexUtils";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 function variantsToIgvAnnotations(variants) {
     return variants.map(variant => (
@@ -100,15 +100,15 @@ class BioIndexIGVReader {
         let data = [];
 
         data = await this.config.store.dispatch('onIGVCoords', { module: this.config.module, newChr: chrNum, newStart: start, newEnd: end })
-        .then(() => {
-            let value = this.config.store.getters[`${camelKebab(this.config.module)}/data`];
-            console.log('value', value);
-            if (value) {
-                return value;
-            }
-            const emptyObject = [];
-            return emptyObject;
-        });
+            .then(() => {
+                let value = this.config.store.getters[`${camelKebab(this.config.module)}/data`];
+                console.log('value', value);
+                if (value) {
+                    return value;
+                }
+                const emptyObject = [];
+                return emptyObject;
+            });
 
         // TODO: this is the localized version of BioIndexIGVReader
         // let url = makeSourceURLFunction(this.config.module)({chr, start, end})

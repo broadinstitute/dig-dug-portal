@@ -5,10 +5,12 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
 import variantUtils from "@/utils/variantUtils";
+import { postAlertError } from "@/components/Alert.vue";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+
     modules: {
         bioPortal,
         kp4cd,
@@ -21,7 +23,9 @@ export default new Vuex.Store({
         setInvalidGeneOrRegionOrVariant(state, flag) {
             state.invalidGeneOrRegionOrVariant = flag;
         },
-
+        setExample(state, example) {
+            state.geneOrRegionOrVariant = example;
+        }
     },
     state: {},
     actions: {
@@ -34,14 +38,17 @@ export default new Vuex.Store({
             let varID = await variantUtils.parseVariant(context.state.geneOrRegionOrVariant);
 
             if (locus) {
-                window.location.href = `./gene.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+                if (locus.gene) {
+                    window.location.href = `./gene.html?gene=${locus.gene}`;
+                }
+                else {
+                    window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+                }
             }
-            if (varID) {
-
+            else if (varID) {
                 window.location.href = `./variant.html?variant=${varID}`;
-            }
-            else {
-                context.commit('setInvalidGeneOrRegionOrVariant', true);
+            } else {
+                postAlertError("Invalid gene, variant, or region");
             }
 
         }

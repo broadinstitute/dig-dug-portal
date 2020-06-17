@@ -14,38 +14,36 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         variant: bioIndex("variant"),
-
+        regions: bioIndex("regions"),
     },
+
     state: {
         variantID: keyParams.variant,
-        newVariantID: keyParams.variant,
+        newVariantID: null,
     },
 
     mutations: {
         setVariantID(state, variantID) {
             state.variantID = variantID || state.newVariantID;
             state.newVariantID = state.variantID
-            keyParams.set({ variant: state.newVariantID })
+            keyParams.set({ variant: state.newVariantID });
         },
-
     },
+
     actions: {
-        async onLocusZoomCoords(context, { newChr, newStart, newEnd }) {
-            const { chr, start, end } = context.state;
+        async queryVariant(context, newVarId) {
+            let varID = variantUtils.parseVariant(newVarId || context.state.variantID);
 
-            if (newChr !== chr || newStart !== start || newEnd !== end) {
-                context.dispatch(`variant/query`, { q: context.state.variantID });
-            }
-        },
-
-        async queryVariant(context) {
-            let varID = variantUtils.parseVariant(context.state.newVariantID)
-            context.commit('setVariantID', varID);
             if (!!varID) {
-                context.commit('setVariantID');
-                await context.dispatch('variant/query', { q: varID });
+                context.commit('setVariantID', varID);
+                context.dispatch('variant/query', { q: varID });
             }
         },
-    }
 
+        async queryRegions(context, { chromosome, position }) {
+            let q = `${chromosome}:${position}`;
+
+            context.dispatch('regions/query', { q });
+        }
+    }
 });

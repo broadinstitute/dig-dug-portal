@@ -1,114 +1,378 @@
-.phenotype_group.ANTHROPOMETRIC > div.progress-bar {
+.pws-phenotype-group.ANTHROPOMETRIC div.pws-progress-bar {
     background-color: #048845;
 }
-.phenotype_group.ATRIAL.FIBRILLATION > div.progress-bar {
+.pws-phenotype-group.ATRIAL.FIBRILLATION div.pws-progress-bar {
     background-color: #7aaa1c;
 }
-.phenotype_group.CARDIOVASCULAR > div.progress-bar {
+.pws-phenotype-group.CARDIOVASCULAR div.pws-progress-bar {
     background-color: #6fc7b6;
 }
-.phenotype_group.ECG.TRAITS > div.progress-bar {
+.pws-phenotype-group.ECG.TRAITS  div.pws-progress-bar {
     background-color: #8490c8;
 }
-.phenotype_group.GLYCEMIC > div.progress-bar {
+.pws-phenotype-group.GLYCEMIC  div.pws-progress-bar {
     background-color: #9f78ac;
 }
-.phenotype_group.HEMORRHAGIC.STROKE > div.progress-bar {
+.pws-phenotype-group.HEMORRHAGIC.STROKE  div.pws-progress-bar {
     background-color: #bf61a5;
 }
-.phenotype_group.HEPATIC > div.progress-bar {
+.pws-phenotype-group.HEPATIC  div.pws-progress-bar {
     background-color: #f88084;
 }
-.phenotype_group.ISCHEMIC.STROKE > div.progress-bar {
+.pws-phenotype-group.ISCHEMIC.STROKE  div.pws-progress-bar {
     background-color: #ee3124;
 }
-.phenotype_group.INFLAMMATORY.BOWEL > div.progress-bar {
+.pws-phenotype-group.INFLAMMATORY.BOWEL  div.pws-progress-bar {
     background-color: #007bff;
 }
-.phenotype_group.LIPIDS > div.progress-bar {
+.pws-phenotype-group.LIPIDS  div.pws-progress-bar {
     background-color: #faa553;
 }
-.phenotype_group.LUNG > div.progress-bar {
+.pws-phenotype-group.LUNG  div.pws-progress-bar {
     background-color: #0000ff;
 }
-.phenotype_group.METABOLITE > div.progress-bar {
+.pws-phenotype-group.METABOLITE  div.pws-progress-bar {
     background-color: #fcc500;
 }
-.phenotype_group.MRI.TRAITS > div.progress-bar {
+.pws-phenotype-group.MRI.TRAITS  div.pws-progress-bar {
     background-color: #f5a4c7;
 }
-.phenotype_group.MUSCULOSKELETAL > div.progress-bar {
+.pws-phenotype-group.MUSCULOSKELETAL  div.pws-progress-bar {
     background-color: #aec6a1;
 }
-.phenotype_group.NEUROLOGICAL > div.progress-bar {
+.pws-phenotype-group.NEUROLOGICAL  div.pws-progress-bar {
     background-color: #33ff00;
 }
-.phenotype_group.OCULAR > div.progress-bar {
+.pws-phenotype-group.OCULAR  div.pws-progress-bar {
     background-color: #ccc698;
 }
-.phenotype_group.OTHER > div.progress-bar {
+.pws-phenotype-group.OTHER  div.pws-progress-bar {
     background-color: #b4b4b4;
 }
-.phenotype_group.PSYCHIATRIC > div.progress-bar {
+.pws-phenotype-group.PSYCHIATRIC  div.pws-progress-bar {
     background-color: #5555ff;
 }
-.phenotype_group.RENAL > div.progress-bar {
+.pws-phenotype-group.RENAL  div.pws-progress-bar {
     background-color: #ff55ff;
 }
-.phenotype_group.SLEEP.AND.CIRCADIAN > div.progress-bar {
+.pws-phenotype-group.SLEEP.AND.CIRCADIAN div.pws-progress-bar {
     background-color: #d5a768;
 }
-.phenotype_group.STROKE > div.progress-bar {
+.pws-phenotype-group.STROKE div.pws-progress-bar {
     background-color: #cccc00;
 }
 
+.pws-box.ANTHROPOMETRIC {
+    border-top: solid 5px #048845 !important;
+}
+.pws-box.ATRIAL.FIBRILLATION {
+    border-top: solid 5px #7aaa1c !important;
+}
+.pws-box.CARDIOVASCULAR {
+    border-top: solid 5px #6fc7b6 !important;
+}
+.pws-box.ECG.TRAITS  {
+    border-top: solid 5px #8a8fa3 !important;
+}
+.pws-box.GLYCEMIC  {
+    border-top: solid 5px #9f78ac !important;
+}
+.pws-box.HEMORRHAGIC.STROKE  {
+    border-top: solid 5px #bf61a5 !important;
+}
+.pws-box.HEPATIC  {
+    border-top: solid 5px #f88084 !important;
+}
+.pws-box.ISCHEMIC.STROKE  {
+    border-top: solid 5px #ee3124 !important;
+}
+.pws-box.INFLAMMATORY.BOWEL  {
+    border-top: solid 5px #007bff !important;
+}
+.pws-box.LIPIDS  {
+    border-top: solid 5px #faa553 !important;
+}
+.pws-box.LUNG  {
+    border-top: solid 5px #0000ff !important;
+}
+.pws-box.METABOLITE  {
+    border-top: solid 5px #fcc500 !important;
+}
+.pws-box.MRI.TRAITS  {
+    border-top: solid 5px #f5a4c7 !important;
+}
+.pws-box.MUSCULOSKELETAL  {
+    border-top: solid 5px #aec6a1 !important;
+}
+.pws-box.NEUROLOGICAL  {
+    border-top: solid 5px #33ff00 !important;
+}
+.pws-box.OCULAR  {
+    border-top: solid 5px #ccc698 !important;
+}
+.pws-box.OTHER  {
+    border-top: solid 5px #b4b4b4 !important;
+}
+.pws-box.PSYCHIATRIC  {
+    border-top: solid 5px #5555ff !important;
+}
+.pws-box.RENAL  {
+    border-top: solid 5px #ff55ff !important;
+}
+.pws-box.SLEEP.AND.CIRCADIAN {
+    border-top: solid 5px #d5a768 !important;
+}
+.pws-box.STROKE {
+    border-top: solid 5px #cccc00 !important;
+}
+
+/* merged plot */
+.pws-group-legend-wrapper {
+    width: 90%;
+    text-align: right;
+    margin-bottom: -30px;
+}
+
+.pws-group-legend {
+    display:inline-block;
+    font-size: 12px;
+    padding-right: 10px
+}
+
+.pws-group-legend-box {
+    height: 10px;
+    width:10px;
+    display:inline-block;
+}
+
+.pws-top-phenotypes-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin-bottom: 15px;
+    height: 190px;
+}
+
+.pws-top-phenotypes-bars-wrapper {
+    height: 80px;
+    position: relative;
+    text-align: center;
+    margin-top: 30px;
+    white-space: nowrap;
+}
+
+.pws-top-phenotypes-names-wrapper {
+    height: 50px;
+    position: relative;
+    text-align: center;
+    margin-bottom: 20px;
+
+    white-space: nowrap;
+}
+
+.pws-top-each-phenotype-wrapper {
+    display:inline-block;
+    height: 100%;
+    text-align: center;
+    width: 100px;
+}
+
+.pws-top-phenotypes-yaxis-wrapper {
+    width: 5px;
+    height: 100%;
+    position: absolute;
+    border-bottom: 1px solid rgb(204, 204, 204);
+    border-top: 1px solid rgb(204, 204, 204);
+    border-right:solid 1px #ccc;
+    margin-left: -5px;
+}
+
+.pws-top-each-phenotype {
+    width:100%;
+    height:100%;
+    position: relative;
+    border-bottom:solid 1px #ccc;
+}
+
+.pws-top-each-phenotype-pvalue {
+    font-size: 13px;
+    height: 20%;
+    position: relative;
+    line-height: 14px;
+    width: 100%;
+    top: 90px;
+}
+
+.pws-top-each-phenotype-bar {
+    width:20px;
+    padding:0;
+    position:absolute;
+    bottom:0;
+    margin:0;
+    left:calc(50% - 10px);
+}
+
+.pws-top-each-phenotype-name {
+
+    position: absolute;
+    left:0;
+    width: 100px;
+
+}
+
+.pws-top-each-phenotype-name > .name-wrapper {
+    position: absolute;
+    bottom: 0;
+    width: 100px;
+    white-space: pre-line;
+    line-height: 15px;
+    text-align: center;
+    font-size: 13px;
+    left: 0;
+}
+
+.pws-top-each-phenotype-name > .options-4-actions {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color:#fff;
+    font-weight: 400;
+    padding: 10px;
+    border-radius: 5px;
+    left:-12px;
+    top: 10px;
+    z-index: 20;
+    white-space: nowrap;
+    line-height: 1.5em;
+}
+
+.pws-top-each-phenotype-name:hover > .options-4-actions {
+    display: block;
+}
+
+.pws-top-each-phenotype-name:hover > .options-4-actions > div:hover  {
+    color: #aaaaff;
+}
+
+/* /////// */
+
 .new-phenotypes-with-signal-wrapper {
-    height: 400px;
+    height: auto;
+    max-height: 350px;
     border: solid 1px #ccc;
     border-left: none;
     border-right: none;
     box-shadow: inset 0px 0px 3px rgba(0,0,0,0.25);
     background-color: #f5f5f5;
     border-radius: 5px;
+    overflow: auto;
+    padding: 15px;
 }
 
-.phenotypes-with-signal-wrapper .container-sm {
-    width: 100% !important;
-    max-width: 100% !important;
+
+.pws-box {
+    display: inline-block;
+    position: relative;
+    margin: 5px;
+    width: 130px;
+    height: 130px;
+    background-color: #ddd;
+    vertical-align: top;
+    font-size: 13px;
+    padding-top: 8px;
+    text-align: center;
 }
 
-.phenotype_group_wrapper {
-    padding: 5px 0 !important;
+.pws-box.high {
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+    border-top: solid 5px #000000;
+}
+
+.pws-box.moderate {
+    background-color: #d0efff;
+    border: solid 1px #30b7f6;
+    border-top: solid 5px #000000;
+}
+
+.pws-box.none {
+    background-color: #eee;
+    border: solid 1px #ccc;
+    border-top: solid 5px #000000;
+}
+
+.pws-box .beta {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    color: #fff;
+    padding: 2px 0;
+}
+
+.pws-box .beta.up {
+    background-color: #007bff;
+}
+
+.pws-box .beta.up .direction:after {
+    content: " \2191";
+    position: absolute;
+    display: block;
+    left: 3px;
+    top: 0;
+}
+
+.pws-box .beta.down {
+    background-color: #ff1e00;
+}
+
+.pws-box .beta.down .direction:after {
+    content: ' \2193';
+    position: absolute;
+    display: block;
+    left: 3px;
+    top: 0;
+}
+
+.pws-phenotype-group-wrapper {
+    padding: 0 !important;
     width: 55%;
     position: relative;
-
+    display: inline-block;
 }
-.phenotype-group-header {
+.pws-phenotype-group-header {
     cursor: pointer;
+    display: inline-block;
     text-align: left;
-    padding-top: 5px;
+    padding-top: 2px;
     position: relative;
     width: 20%;
     padding-left: 15px;
+    vertical-align: top;
 }
 
-.phenotype-group-header .b-icon.bi {
+.pws-phenotype-group-header .b-icon.bi {
     display: inline-block;
     overflow: visible;
     vertical-align: -0.15em;
     position: absolute;
     right: 5px;
-    top: 8px;
+    top: 5px;
 }
 
-.container-sm {
-    margin-left: inherit;
-}
-.progress {
+.pws-progress {
     background-color: transparent;
     border-radius: 0;
+    font-size: 0.75rem;
 }
-.progress-bar:hover {
+
+.pws-phenotype-row {
+    margin-bottom: 5px;
+}
+
+.pws-progress-bar {
+    height: 25px;
+}
+
+.pws-progress-bar:hover {
     background-image: linear-gradient(
         45deg,
         hsla(0, 0%, 100%, 0.15) 25%,
@@ -123,27 +387,47 @@
     /*cursor: help;*/
 }
 
-span.marker {
+.pws-phenotype-summary-row {
     position: absolute;
-    width: 3px;
-    height: 1.3rem;
-    background-color: rgba(255, 255, 255, 0.25);
-    z-index: 5;
-    right: 0;
-    visibility: visible;
-    mix-blend-mode: screen;
-    top: 0.1rem;
+    top: 2px;
+    height: 22px;
 }
 
-.highlight-bar:hover  span.marker {
-    background-color: rgba(255, 200, 0, 1);
-    mix-blend-mode: normal;
+.pws-phenotype-summary-row > .pws-progress-bar {
+    background-color: transparent !important;
+    border-right: solid 3px rgba(255, 255, 255, 0.25);
+    height: 21px;
+}
+
+.pws-phenotype-summary-row:hover {
     border-right: solid 1px #333;
+}
+
+.pws-phenotype-summary-row:hover > .pws-progress-bar {
+    border-right: solid 3px rgba(255, 251, 0, 1);
+}
+
+.pws-phenotype-summary-row span.tool-tip {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color: #fff;
+    top: -30px;
+    right: -100px;
+    font-size: 14px;
+    padding: 3px 10px;
+    z-index: 20;
+    border-radius: 5px;
+    white-space: nowrap;
+}
+
+.pws-phenotype-summary-row:hover span.tool-tip {
+    display: block;
 }
 
 .bar-desc {
     position: absolute;
-    font-size: 1.2em;
+    font-size: 1em;
     white-space: nowrap;
     font-weight: bold;
     color: #000000;
@@ -159,7 +443,6 @@ span.marker {
     left: 0;
     color: blue;
     height: 1.5rem;
-    /*cursor: help;*/
 }
 
 .highlight-bar .b-tooltip {
@@ -208,7 +491,7 @@ span.marker {
     font-weight: 400;
     padding: 10px;
     border-radius: 5px;
-    right:-50%;
+    left:50%;
     z-index: 20;
 }
 
@@ -219,3 +502,5 @@ span.marker {
 .bar-desc:hover > .options-4-actions > div:hover {
     color: #aaaaff;
 }
+
+

@@ -1,154 +1,144 @@
 <template>
-    <!-- Header -->
     <div>
+        <!-- Header -->
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
-        <!-- body -->
+        <!-- Body -->
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">
-                        Chromosome: Start position - End position
+                    <div class="col-md-7 gene-page-header-title">
+                        Gene
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('regionSearchHolder')"
-                        >Edit position / Search gene</a>
+                            @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
+                        >Search gene</a>
                     </div>
-                    <div class="col-md-4 gene-page-header-title">
-                        Phenotype
-                        <a
-                            class="edit-btn"
-                            v-on:click="$parent.showHideElement('phenotypeSearchHolder')"
-                        >Select phenotype</a>
-                    </div>
-                    <div class="col-md-8 gene-page-header-body regionInfo">
-                        <div id="regionSearchHolder" class="gene-page-header-search-holder hidden">
-                            <div class="region-search">
-                                <div class="col-md-1 input-wrapper">
-                                    <input
-                                        v-model="$store.state.newChr"
-                                        type="text"
-                                        class="form-control input-default"
-                                        placeholder="Chromosome"
-                                    />
-                                </div>
-                                <div class="col-md-3 input-wrapper">
-                                    <input
-                                        v-model="$store.state.newStart"
-                                        type="text"
-                                        class="form-control input-default"
-                                        placeholder="Start position"
-                                    />
-                                </div>
-                                <div class="col-md-3 input-wrapper">
-                                    <input
-                                        v-model="$store.state.newEnd"
-                                        type="text"
-                                        class="form-control input-default"
-                                        placeholder="End position"
-                                    />
-                                </div>
+                    <div class="col-md-5 gene-page-header-title">Region (click to explore)</div>
 
-                                <div class="col-md-3 input-wrapper">
-                                    <input
-                                        v-model="$store.state.gene"
-                                        type="text"
-                                        class="form-control input-default"
-                                        style="margin-left: 15px;padding-left: 30px;"
-                                        placeholder="Search gene"
-                                    />
-                                    <span class="gene-search-or">OR</span>
-                                </div>
-                                <div class="col-md-2 input-wrapper">
-                                    <button
-                                        id="regionSearchGo"
-                                        class="btn btn-primary"
-                                        type="button"
-                                        @click="$store.dispatch('queryRegion')"
-                                    >GO</button>
-                                </div>
+                    <div class="col-md-7 gene-page-header-body">
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
+                            <div class="col-md-10">
+                                <input
+                                    v-model="$store.state.geneName"
+                                    type="text"
+                                    class="form-control input-default"
+                                    placeholder="Search gene"
+                                    id="gene_search_input"
+                                />
+                            </div>
+                            <div class="col-md-2 input-wrapper">
+                                <button
+                                    id="variantSearchGo"
+                                    class="btn btn-primary"
+                                    type="button btn-lg"
+                                    @click="$store.dispatch('queryGeneName')"
+                                >GO</button>
                             </div>
                         </div>
-                        {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.end}}
-                    </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <div
-                            id="phenotypeSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
-                            <phenotype-selectpicker v-bind:phenotypes="$parent.phenotypes"></phenotype-selectpicker>
+                        <div v-if="$parent.symbolName">
+                            <span>
+                                {{$parent.symbolName}}
+                                <span
+                                    v-if="$parent.symbolName.toLowerCase() !== $store.state.geneName.toLowerCase()"
+                                >({{$store.state.geneName}})</span>
+                            </span>
                         </div>
-                        <span
-                            v-if="$parent.selectedPhenotype"
-                        >{{$parent.selectedPhenotype.description}}</span>
+                    </div>
+                    <div class="col-md-5 gene-page-header-body">
+                        <div class="btn-group" v-if="$parent.region">
+                            <a
+                                type="button"
+                                class="btn btn-link btn-lg"
+                                :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start}&end=${$parent.region.end}`"
+                            >{{$parent.region.chromosome}}:{{$parent.region.start.toLocaleString()}}-{{$parent.region.end.toLocaleString()}}</a>
+                            <a
+                                type="button"
+                                class="btn btn-link btn-lg text-nowrap"
+                                :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start-50000}&end=${$parent.region.end+50000}`"
+                            >Extend &plusmn; 50 kb</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body row">
+                    <div class="col-md-8">
+                        <div v-if="$parent.geneFunction">
+                            <h4>Function</h4>
+                            <div>{{$parent.geneFunction}}</div>
+                        </div>
+                        <div v-else>
+                            <h5>Gene function not found</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Info</h4>
+                        <div v-if="$parent.geneNames" class="alternative-names">
+                            <strong>Alternative names:&nbsp;</strong>
+                            <span
+                                v-for="gene in $parent.alternateNames"
+                                v-if="gene.source == 'alias'"
+                                :key="gene.name"
+                            >{{gene.name}}</span>&nbsp;
+                        </div>
+                        <div>
+                            <strong>Length:</strong>
+                            {{" "+($parent.region.end - $parent.region.start).toLocaleString()}} bp
+                        </div>
+                        <div>
+                            <strong>Assembly:</strong> GRCh37
+                        </div>
+                        <div>
+                            <strong>Gene sources:</strong>
+                            <span>&nbsp;Ensembl, HGNC, UCSC, RGD, MGD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div v-if="$parent.dbReference">
+                        <h4 class="card-title">Uniprot References</h4>
+                        <uniprot-references-table v-bind:references="$parent.dbReference"></uniprot-references-table>
                     </div>
                 </div>
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Genes overlapping region</h4>
-                    <div
-                        v-for="row in $parent.genes"
-                        :class="'gene-with-signal '+row.type"
-                    >{{row.name}}</div>
+                    <div v-if="$parent.accession">
+                        <h4 class="card-title">Swiss Prot Accesssion IDs</h4>
+                        <div v-for="row in $parent.accession" class="gene-with-signal none">
+                            <a :href="`https://www.uniprot.org/uniprot/${row}`">{{row}}</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Phenotypes with signal in {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
-                    <div
-                        class="p-bellow-section-header"
-                    >*Showing phenotypes with p-value &lt;= 5e-3. To reset the page with a phenotype of interest, click a phenotype name. To view phenotypes in a phenotype group, click phenotype group name or expand icon. White bars indicate p-values of the phenotypes in phenotype groups. Bars are rendered in logarithmic scale</div>
-                    <phenotype-signal :phenotypes="$parent.topAssociations"></phenotype-signal>
-                </div>
-            </div>
-
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Phenotypes with signal in {{$store.state.chr}}:{{$store.state.start}} - {{$store.state.chr}}:{{$store.state.end}}</h4>
-                    <div class="phenotypes-with-signal-wrapper">
+                    <div v-if="$parent.geneNames">
+                        <h4 class="card-title">External resources</h4>
                         <div
-                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                            v-for="row in $parent.topAssociations"
-                            :class="row.pValue <= 5e-3 ? row.pValue <= 2.5e-6 ? 'phenotype-with-signal high' : 'phenotype-with-signal moderate' : 'phenotype-with-signal none'"
-                            :title="row.pValue"
-                            :slot-scope="row.phenotype.name"
-                        >{{$store.state.bioPortal.phenotypeMap[row.phenotype].description}}</div>
+                            v-for="gene in $parent.alternateNames"
+                            v-if="gene.source != 'alias'"
+                            class="gene-with-signal none"
+                            :key="gene.name"
+                        >
+                            <a
+                                :href="$parent.externalResources[gene.source]+gene.name"
+                                v-if="gene.source != 'ucsc'"
+                                target="_blank"
+                            >{{gene.name}}</a>
+                            <a
+                                :href="$parent.externalResources[gene.source]+$parent.symbolName"
+                                target="_blank"
+                                v-else
+                            >{{gene.name}}</a>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div v-if="$parent.selectedPhenotype" class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Associations for {{$parent.selectedPhenotype.description}}</h4>
-                    <locuszoom
-                        ref="lz"
-                        v-bind:panels="['association','genes','intervals',]"
-                        v-bind:assoc="{
-                            'data': $parent.associations,
-                            'translator': $parent.associationsForLZ,
-                        }"
-                        v-bind:chr="$store.state.chr"
-                        v-bind:start="$store.state.start"
-                        v-bind:end="$store.state.end"
-                    ></locuszoom>
-                </div>
-            </div>
-            <div v-if="$parent.selectedPhenotype" class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Top Associations for {{$parent.selectedPhenotype.description}}</h4>
-                    <associations-table
-                        :phenotypes="[$parent.selectedPhenotype]"
-                        :associations="$parent.associations"
-                    ></associations-table>
                 </div>
             </div>
         </div>

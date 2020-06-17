@@ -1,10 +1,8 @@
 <template>
     <div>
-        <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
         <b-table
             hover
             small
-            bordered
             responsive="sm"
             :items="pheWASAssociations"
             :fields="fields"
@@ -16,7 +14,19 @@
                     :href="`/phenotype.html?phenotype=${r.item.phenotype.name}`"
                 >{{phenotypeFormatter(r.item.phenotype)}}</a>
             </template>
+            <template
+                v-slot:cell(continuousEffect)="r"
+            >{{!!r.item.phenotype.dichotomous ? null : effectFormatter(r.item.beta)}}</template>
+            <template
+                v-slot:cell(dichotomousEffect)="r"
+            >{{!!r.item.phenotype.dichotomous ? effectFormatter(Math.exp(r.item.beta)) : null}}</template>
         </b-table>
+        <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+        ></b-pagination>
     </div>
 </template>
 
@@ -48,15 +58,20 @@ export default Vue.component("phewas-table", {
                 {
                     key: "pValue",
                     label: "P-Value",
-                    formatter: Formatters.floatFormatter,
+                    formatter: Formatters.pValueFormatter,
                     tdClass(x) {
                         return !!x && x < 1e-5 ? "variant-table-cell high" : "";
                     }
                 },
                 {
-                    key: "beta",
-                    label: "Effect (Beta)",
-                    formatter: Formatters.floatFormatter
+                    key: "continuousEffect",
+                    label: "Beta",
+                    formatter: Formatters.effectFormatter
+                },
+                {
+                    key: "dichotomousEffect",
+                    label: "Odds Ratio",
+                    formatter: Formatters.effectFormatter
                 },
                 {
                     key: "zScore",
@@ -95,7 +110,9 @@ export default Vue.component("phewas-table", {
     },
 
     methods: {
-        phenotypeFormatter: Formatters.phenotypeFormatter
+        phenotypeFormatter: Formatters.phenotypeFormatter,
+        floatFormatter: Formatters.floatFormatter,
+        effectFormatter: Formatters.effectFormatter
     }
 });
 </script>

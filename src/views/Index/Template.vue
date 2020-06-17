@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="front-page-body">
         <!-- Header -->
         <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
@@ -23,24 +23,26 @@
 
                             <div class="col-md-12 portal-front-tabs">
                                 <b-tabs content-class="mt-3" align="center">
-                                    <b-tab title="Explore by region or Variant" active>
+                                    <b-tab title="Explore by region or variant" active>
                                         <div class="front-gene-search-wrapper">
-                                            <div class="col-md-10 input-wrapper">
+                                            <div class="col-md-12 input-wrapper">
                                                 <input
                                                     v-model="$store.state.geneOrRegionOrVariant"
                                                     type="text"
                                                     class="form-control input-default"
                                                     placeholder="Gene, region, or variant"
+                                                    style="display:inline-block"
+                                                    autocomplete="off"
+                                                    @change="$store.dispatch('exploreRegionOrVariant')"
                                                 />
                                             </div>
-                                            <div class="col-md-2 input-wrapper">
-                                                <button
-                                                    id="regionSearchGo"
-                                                    class="btn btn-primary"
-                                                    type="button"
-                                                    @click="$store.dispatch('exploreRegionOrVariant')"
-                                                >GO</button>
+                                            <div class="region-search-examples">
+                                                <documentation
+                                                    name="home.example"
+                                                    :group="$parent.diseaseGroup"
+                                                ></documentation>
                                             </div>
+
                                             <div
                                                 class="text-danger"
                                                 v-show="$store.state.invalidGeneOrRegion"
@@ -56,7 +58,7 @@
                                         </div>
                                     </b-tab>
                                     <b-tab
-                                        title="Explore by disease group"
+                                        title="Explore by disease area"
                                         v-if="$parent.diseaseGroup.default"
                                     >
                                         <disease-group-select

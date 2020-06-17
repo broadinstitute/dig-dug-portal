@@ -1,12 +1,10 @@
 <template>
     <div>
         <div v-if="rows > 0">
-            <b-pagination v-model="currentPage" :total-rows="rows" :per-page="perPage"></b-pagination>
             <b-table
                 hover
                 small
-                responsive
-                bordered
+                responsive="sm"
                 :items="groupedAnnotations"
                 :fields="fields"
                 :per-page="perPage"
@@ -27,6 +25,12 @@
                     </b-th>
                 </template>
             </b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
         </div>
         <div v-else>
             <h4 v-if="annotations.length > 0">No overlapping annotations found</h4>
@@ -89,7 +93,7 @@ export default Vue.component("enrichment-table", {
                     {
                         key: `${p.name}_pValue`,
                         label: `P-Value`,
-                        formatter: Formatters.floatFormatter,
+                        formatter: Formatters.pValueFormatter,
                         tdClass(x) {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"

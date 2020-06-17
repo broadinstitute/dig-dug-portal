@@ -7,42 +7,63 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">Variant</div>
-                    <div class="col-md-4 gene-page-header-title">
-                        <a class="edit-btn">Set Variant</a>
+                    <div class="col-md-12 gene-page-header-title">
+                        Variant
+                        <a
+                            class="edit-btn"
+                            v-on:click="$parent.showHideElement('variantSearchHolder','variant_search_input')"
+                        >Set variant</a>
                     </div>
-                    <div class="col-md-8 gene-page-header-body">
-                        <span>
-                            {{$parent.variantData.varId}}
-                            <span
-                                v-if="$parent.variantData.dbSNP"
-                            >/ {{$parent.variantData.dbSNP}}</span>
-                        </span>
-                    </div>
-                    <!-- change this class to variantInfo -->
-                    <div class="col-md-4 gene-page-header-body variantInfo">
-                        <div id="variantSearchHolder" class="gene-page-header-search-holder">
-                            <div class="variant-search">
-                                <div class="col-md-10 input-wrapper">
-                                    <input
-                                        v-model="$store.state.newVariantID"
-                                        type="text"
-                                        class="form-control input-default"
-                                        style="margin-left: 15px;padding-top: 30px;padding-left:30px"
-                                        placeholder="Search Variant"
-                                        @change="$store.dispatch('queryVariant')"
-                                    />
-                                </div>
+                    <div class="col-md-12 gene-page-header-body">
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
+                            <div class="col-md-5">
+                                <input
+                                    v-model="$store.state.newVariantID"
+                                    type="text"
+                                    class="form-control input-default"
+                                    placeholder="Search Variant"
+                                    id="variant_search_input"
+                                />
+                            </div>
+                            <div class="col-md-1 input-wrapper">
+                                <button
+                                    id="variantSearchGo"
+                                    class="btn btn-primary"
+                                    type="button"
+                                    @click="$store.dispatch('queryVariant', $store.state.newVariantID)"
+                                >GO</button>
+                            </div>
+                            <div class="col-md-6 search-example">
+                                <strong>Search format examples</strong>
+                                <br />rs11716727, chr3:12489012_C_T, 3_12489012:C/T, chr3_12489012-C-T
                             </div>
                         </div>
+                        <span v-if="$parent.variantData">
+                            {{$parent.variantData.varId}}
+                            <span v-if="$parent.variantData.dbSNP">
+                                <span style="color: gray">/</span>
+                                {{$parent.variantData.dbSNP}}
+                            </span>
+                        </span>
                     </div>
                 </div>
             </div>
+
             <div v-if="$parent.variantData">
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">Most Severe Consequence</h4>
                         <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
+                    </div>
+                </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">PheWAS Associations</h4>
+                        <locuszoom :panels="['phewas']" :phewas="$parent.lzAssociations"></locuszoom>
+                        <phewas-table
+                            :associations="$parent.variantData.associations"
+                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        ></phewas-table>
                     </div>
                 </div>
                 <div class="card mdkp-card">
@@ -60,7 +81,9 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Transcription Factors</h4>
+                        <h4
+                            class="card-title"
+                        >Transcription factor binding motifs altered by {{$parent.variantName}}</h4>
                         <div v-if="$parent.variantData.transcriptionFactors">
                             <transcription-factors-table
                                 v-bind:transcriptionFactors="$parent.variantData.transcriptionFactors"
@@ -73,23 +96,8 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Phenotype-Wide Associations (PheWAS)</h4>
-                        <locuszoom
-                            ref="lz"
-                            v-if="$parent.variantData"
-                            v-bind:panels="['phewas']"
-                            v-bind:phewas="{
-                              'data': $parent.lzAssociations,
-                              'translator': $parent.lzAssociationsTransform
-                            }"
-                            v-bind:chr="$store.state.variant.data.chromosome"
-                            v-bind:start="$store.state.variant.data.position"
-                            v-bind:end="$store.state.variant.data.position+1"
-                        ></locuszoom>
-                        <phewas-table
-                            :associations="$parent.variantData.associations"
-                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
-                        ></phewas-table>
+                        <h4 class="card-title">Annotated regions overlapping {{$parent.variantName}}</h4>
+                        <regions-table :regions="$parent.regions"></regions-table>
                     </div>
                 </div>
             </div>

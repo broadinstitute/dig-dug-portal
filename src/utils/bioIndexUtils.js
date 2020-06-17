@@ -4,159 +4,73 @@
 */
 
 import querystring from "query-string";
-import * as _ from "lodash";
 
 // Constants
 export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
-export const BIO_INDEX_TYPE = Object.freeze({
-    Gene: 'gene',
-    Genes: 'genes',
-    PhenotypeAssociations: 'phenotype-associations',
-    GlobalEnrichment: 'global-enrichment',
-    Associations: 'associations',
-    TopAssociations: 'top-associations',
-    Variant: 'variant',
-    Variants: 'variants',
-});
 
-// Methods
-/*  bioIndex Query Chain Iterator
-    - Why? Because we want to encapsulate the behavior of continuations without duplicating them as state on the client.
-    - Features like "pausing" and "more of..." need to maintain a sense of where on a chain of continuations they are,
-        so that when users unpause or get more data after some time, they don't get data they already downloaded.
-*/
-export async function* beginIterableQuery(json, errHandler) {
-    const { index, q, limit } = json;
-    yield* iterateOnQuery({ index, q, limit }, errHandler);
-};
+/* Perform a BioIndex query.
+ */
+// NOTE: does pattern matching on the final three args make them necessary/mandatory for function to execute without errors?
+// => it does mean that in order for this code to not throw errors, those final parameters cannot be optional per se,
+//    but require an empty object for errors not to be reported.
+export async function query(index, q, { limit, resolveHandler, errHandler, finishHandler }) {
+    let qs = querystring.stringify({ q, limit }, { skipNull: true });
+    let req = fetch(`${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`);
 
-async function* iterateOnQuery(json, errHandler) {
-    // NOTE: we're implicitly guarded by beginIterableQuery having correct base case information,
-    // i.e. `{ index, q, limit }` – but this should be OK as long as iterateOnQuery is respected as private.
-    do {
-        let queryStr = makeBioIndexQueryStr(json);
-        json = await portalFetch(queryStr, errHandler);
-        yield json;
-    } while (json.continuation);
+    // perform the fetch, make sure it succeeds
+    return await processRequest(req, resolveHandler, errHandler, finishHandler);
 }
 
-export async function portalFetch(query, errHandler) {
-    let json = await fetch(query)
-        .then(resp => {
-            if (resp.status !== 200) {
-                throw Error(resp.status.toString());
-            }
-            return resp;
-        })
-        .then(resp => resp.json())
-        .catch(errHandler);
-    return json;
-};
+/* Perform a BioIndex match.
+ */
+export async function match(index, q, { limit, resolveHandler, errHandler, finishHandler }) {
+    let qs = querystring.stringify({ q, limit }, { skipNull: true });
+    let req = fetch(`${BIO_INDEX_HOST}/api/bio/match/${index}?${qs}`);
 
-export async function fullQuery(queryJson, { condition, resolveHandler, errHandler }) {
-    let query = await beginIterableQuery(queryJson, errHandler);
-    let accumulatedData = [];
-    let done = false;
+    // perform the fetch, make sure it succeeds
+    return await processRequest(req, resolveHandler, errHandler, finishHandler);
+}
 
-    do {
-        let responseJson = await query.next();
-        done = responseJson.done;
+/* Follow continuations and continue reading all data.
+ */
+async function processRequest(req, resolveHandler, errHandler, finishHandler) {
+    let resp = await req;
+    let json = await resp.json();
+    let data = [];
 
-        if (!done) {
-            accumulatedData = accumulatedData.concat(responseJson.value.data);
-            resolveHandler(responseJson.value);
+    // resolve or error
+    if (resp.status === 200) {
+        data = json.data;
+
+        if (!!resolveHandler) {
+            resolveHandler(json);
         }
-    } while (condition() && !done);
 
-    return accumulatedData;
-}
+        // this will also fail if resp.status !== 200
+        while (!!json.continuation) {
+            let qs = querystring.stringify({ token: json.continuation });
 
-export async function fullQueryFromUrl(initialUrl, resolveHandler, errHandler) {
+            // follow the continuation
+            resp = await fetch(`${BIO_INDEX_HOST}/api/bio/cont?${qs}`);
+            json = await resp.json();
 
-    let { data, continuation } = await portalFetch(initialUrl, errHandler);
-    let collectedData = [].concat(data);
-    let currentContinuation = continuation;
+            if (resp.status === 200) {
+                data = data.concat(json.data);
 
-    do {
-
-        const newUrl = makeBioIndexQueryStr({ continuation: currentContinuation });
-        let response = await portalFetch(newUrl, errHandler);
-        let { data, continuation } = response;
-        collectedData = collectedData.concat(data);
-        currentContinuation = continuation;
-
-    } while (currentContinuation);
-
-    return collectedData;
-
-}
-
-
-
-// Private methods
-function makeBioIndexQueryStr(json) {
-    const { index, q, limit, continuation } = json;
-    // check for the continuation first, since index && q are going to be true in all valid cases
-    // (they will only be false in malformed/invalid cases)
-    if (continuation) {
-        const qs = querystring.stringify({ token: continuation }, { skipNull: true });
-        return `${BIO_INDEX_HOST}/api/bio/cont?${qs}`;
-    } else if (index && q) {
-        const qs = querystring.stringify({ q, limit }, { skipNull: true });
-        return `${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`
-    }
-};
-
-const arityFilter = {
-    [BIO_INDEX_TYPE.Associations]: function (args) {
-        const { phenotype, chromosome, start, end } = args;
-        return { phenotype, chromosome, start, end };
-    },
-    [BIO_INDEX_TYPE.PhenotypeAssociations]: function (args) {
-        const { phenotype } = args;
-        return { phenotype };
-    },
-    [BIO_INDEX_TYPE.TopAssociations]: function (args) {
-        const { chromosome, start, end } = args;
-        return { chromosome, start, end };
-    },
-    [BIO_INDEX_TYPE.Variants]: function (args) {
-        const { chromosome, start, end } = args;
-        return { chromosome, start, end };
-    }
-};
-
-function queryTemplate(args) {
-    let queryTemplateStr = '';
-    if (args) {
-        const { phenotype, varId, chromosome, start, end, position } = args;
-        // logic below is based on the hierarchy of arities for bioIndex.
-        if (phenotype) {
-            queryTemplateStr = queryTemplateStr.concat(phenotype)
-        } else if (varId) {
-            queryTemplateStr = queryTemplateStr.concat(varId)
-        }
-        if (chromosome && (position || start && end)) {
-            if (!(queryTemplateStr === '')) {
-                queryTemplateStr = queryTemplateStr.concat(',');
-            }
-            queryTemplateStr = queryTemplateStr.concat(`${chromosome}:`);
-            if (position) {
-                queryTemplateStr = queryTemplateStr.concat(`${position}`);
-            } else if (start && end) {
-                queryTemplateStr = queryTemplateStr.concat(`${start}-${end}`);
+                if (!!resolveHandler) {
+                    resolveHandler(json);
+                }
             }
         }
+        if (!!finishHandler) {
+            finishHandler(json);
+        }
     }
-    return queryTemplateStr;
-}
 
-export function moduleQueryTemplate(module, args) {
-    return queryTemplate(arityFilter[module](args));
-}
-
-export function camelKebab(kebabcase) {
-    const words = kebabcase.split('-');
-    const capitalWords = words.splice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1));
-    return [].concat(words[0]).concat(capitalWords).join('');
+    if (resp.status !== 200) {
+        if (!!errHandler) {
+            errHandler(json);
+        }
+    }
+    return data;
 }
