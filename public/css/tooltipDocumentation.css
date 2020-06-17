@@ -106,7 +106,7 @@
 .help-content-caller {
     display: block;
     color: #fff;
-    background-color: #777;
+    background-color: #12a83f;
     border-radius: 20px;
     font-size: 0.6em;
     padding: 0.05em 0.425em;
@@ -119,11 +119,13 @@
 }
 
 .help-content-caller.hover {
+    /* color: #0099FF; */
     display: block;
-    color: #0099FF;
-    margin-left: -0.45em;
-    background: none;
-    font-size: 1.15em;
+    color: #fff;
+    background-color: #0099ff;
+    border-radius: 20px;
+    font-size: 0.6em;
+    padding: 0.05em 0.425em;
     position: relative;
 }
 
