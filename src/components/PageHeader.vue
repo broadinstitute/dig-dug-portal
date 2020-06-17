@@ -14,7 +14,11 @@
                     </div>
                 </div>
             </div>
-            <div class="row amp-header" v-if="!diseaseGroup.default" style="height: 50px;">
+            <div
+                class="row amp-header"
+                v-if="!diseaseGroup.default && diseaseGroup.memberCMD"
+                style="height: 50px;"
+            >
                 <div class="amp-banner-right" style="height: 50px;">
                     <a :href="url2Md">
                         <div
@@ -108,6 +112,7 @@
                 </div>
             </div>
         </div>
+        {{ diseaseGroup }}
     </div>
 </template>
 

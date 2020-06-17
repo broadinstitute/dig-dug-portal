@@ -43,6 +43,18 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+.front-top-banner-v2fkp {
+    background-image: url(http://kp4cd.org/sites/default/files/vueportal/v2fkp_front_bg.png),
+        linear-gradient(#f7835c, #bd516f);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-t1dkp {
+    background-image: url(http://kp4cd.org/sites/default/files/vueportal/t1dkp_front_bg.png),
+        linear-gradient(#aec5e7, #5481c1);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
@@ -80,6 +92,14 @@ a:hover {
     width: 430px;
 }
 
+.front-top-banner-v2fkp .front-logo-img {
+    width: 430px;
+}
+
+.front-top-banner-t1dkp .front-logo-img {
+    width: 430px;
+}
+
 .front-banner-btn {
     border-radius: 30px !important;
     width: 250px;
@@ -114,6 +134,14 @@ a:hover {
 
 .front-logo-tagline-sleepkp {
     transform: translate(0%, 35%);
+}
+
+.front-logo-tagline-v2fkp {
+    transform: translate(0%,17%);
+}
+
+.front-logo-tagline-t1dkp {
+    transform: translate(0%, 20%);
 }
 
 .front-banner-ui-tabs {
@@ -176,11 +204,21 @@ a:hover {
     height: 50px;
 }
 
+.v2fkp-logo {
+    height: 50px;
+}
+
+.t1dkp-logo {
+    height: 50px;
+}
+
 .mdkp-menu-wrapper,
 .cvdkp-menu-wrapper,
 .sleepkp-menu-wrapper,
 .t2dkp-menu-wrapper,
-.cdkp-menu-wrapper {
+.cdkp-menu-wrapper,
+.v2fkp-menu-wrapper,
+.t1dkp-menu-wrapper{
     text-align: right;
 }
 
@@ -188,7 +226,9 @@ a:hover {
 .cvdkp-menu li,
 .sleepkp-menu li,
 .cdkp-menu li,
-.t2dkp-menu li {
+.t2dkp-menu li,
+.v2fkp-menu li,
+.t1dkp-menu li {
     list-style: none;
     display: inline-block;
     padding-top: 15px;
@@ -198,7 +238,9 @@ a:hover {
 .cvdkp-menu li a,
 .sleepkp-menu li a,
 .cdkp-menu li a,
-.t2dkp-menu li a {
+.t2dkp-menu li a,
+.v2fkp-menu li a,
+.t1dkp-menu li a {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 5px;
@@ -212,7 +254,9 @@ a:hover {
 .cvdkp-menu li a.cvdkp-login,
 .sleepkp-menu li a.sleepkp-login,
 .cdkp-menu li a.cdkp-login,
-.t2dkp-menu li a.t2dkp-login {
+.t2dkp-menu li a.t2dkp-login,
+.v2fkp-menu li a.v2fkp-login,
+.t1dkp-menu li a.t1dkp-login {
     border-left: solid 1px #fff;
 }
 
@@ -243,6 +287,18 @@ a:hover {
 .t2dkp-header,
 .t2dkp-footer {
     background-color: #55aaee;
+    height: 50px;
+}
+
+.v2fkp-header,
+.v2fkp-footer {
+    background-color: #f7835c;
+    height: 50px;
+}
+
+.t1dkp-header,
+.t1dkp-footer {
+    background-color: #5481c1;
     height: 50px;
 }
 
@@ -294,7 +350,9 @@ a:hover {
 .cvdkp-footer,
 .sleepkp-footer,
 .t2dkp-footer,
-.cdkp-footer {
+.cdkp-footer,
+.v2fkp-footer,
+.t1dkp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -306,7 +364,9 @@ a:hover {
 .cvdkp-body,
 .sleekp-body,
 .t2dkp-body,
-.cdkp-body {
+.cdkp-body,
+.v2fkp-body,
+.t1dkp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -316,7 +376,9 @@ a:hover {
 .cvdkp-card,
 .sleepkp-card,
 .t2dkp-card,
-.cdkp-card {
+.cdkp-card,
+.v2fkp-card,
+.t1dkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
