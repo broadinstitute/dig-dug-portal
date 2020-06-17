@@ -1,9 +1,9 @@
 <template>
-    <div>
-        <h2>
+    <div class="page-info-wrapper">
+        <h3>
             Filter Datasets
             <small class="datasets-list-header-small">(Click one to start)</small>
-        </h2>
+        </h3>
         <div v-if="diseaseGroup.name == 'md'" class="datasets-filter-wrapper">
             <h4>Disease group</h4>
             <div
@@ -41,10 +41,10 @@
             >{{row.description}}</div>
         </div>
 
-        <h2 style="margin-top: 30px;">
+        <h3 style="margin-top: 30px;">
             New Datasets
             <small class="datasets-list-header-small">(Click datasets for description)</small>
-        </h2>
+        </h3>
         <div class="new datasets-list-table">
             <table class="table table-hover table-sm">
                 <thead>
@@ -90,10 +90,10 @@
             </table>
         </div>
 
-        <h2>
+        <h3>
             Datasets
             <small class="datasets-list-header-small">(Click datasets for description)</small>
-        </h2>
+        </h3>
         <div class="datasets-list-table">
             <table class="table table-hover table-sm">
                 <thead>
@@ -243,13 +243,9 @@ export default Vue.component("portal-datasets-list-table", {
             let filteredDatasets = [].slice
                 .call(this.datasetsList)
                 .filter(dataset => {
-                    let contents =
-                        this.diseaseGroup.name == "md"
-                            ? dataset["field_portals"].includes("t2d") ||
-                              dataset["field_portals"].includes("sleep") ||
-                              dataset["field_portals"].includes("cvd") ||
-                              dataset["field_portals"].includes("cd")
-                            : this.datasetsList;
+                    let contents = dataset["field_portals"].includes(
+                        this.diseaseGroup.name
+                    );
 
                     return contents;
                 });

@@ -7,11 +7,10 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 
-import keyParams from "@/utils/keyParams";
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import DatasetInfo from "@/components/DatasetInfo.vue";
+import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -24,7 +23,7 @@ new Vue({
     store,
 
     components: {
-        DatasetInfo,
+        StaticPageInfo,
         PageHeader,
         PageFooter,
         PortalDatasetsListTable,
@@ -62,20 +61,21 @@ new Vue({
             return contents[0];
         },
 
-        datasetInfo() {
-            let contents = this.$store.state.kp4cd.datasetInfo;
+        pageInfo() {
+            let contents = this.$store.state.kp4cd.pageInfo;
 
             if (contents.length === 0) {
                 return {};
             }
             return contents;
         },
+
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getDatasetInfo", keyParams.dataset);
+            this.$store.dispatch("kp4cd/getPageInfo", { "page": "apis", "portal": group.name });
         },
 
     }

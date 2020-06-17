@@ -7,12 +7,11 @@ Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
 
-import keyParams from "@/utils/keyParams";
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import DatasetInfo from "@/components/DatasetInfo.vue";
-import uiUtils from "@/utils/uiUtils";
+import NewFeatures from "@/components/NewFeatures.vue";
+import keyParams from "@/utils/keyParams";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -24,7 +23,7 @@ new Vue({
     store,
 
     components: {
-        DatasetInfo,
+        NewFeatures,
         PageHeader,
         PageFooter,
         PortalDatasetsListTable,
@@ -40,7 +39,6 @@ new Vue({
     },
 
     methods: {
-        ...uiUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -62,20 +60,27 @@ new Vue({
             return contents[0];
         },
 
-        datasetInfo() {
-            let contents = this.$store.state.kp4cd.datasetInfo;
+        newFeatures() {
+            let contents = this.$store.state.kp4cd.newFeatures;
 
             if (contents.length === 0) {
                 return {};
             }
             return contents;
         },
+
+        nid() {
+
+            let content = keyParams.nid;
+            return content;
+        }
+
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getDatasetInfo", keyParams.dataset);
+            this.$store.dispatch("kp4cd/getNewFeatures", group.name);
         },
 
     }
