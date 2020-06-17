@@ -7,7 +7,7 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("page-info-section", {
+export default Vue.component("static-page-info-section", {
     props: ["pageInfo"],
     mounted: function() {}
 });

@@ -39,7 +39,6 @@ new Vue({
     },
 
     methods: {
-        ...uiUtils,
         postAlert,
         postAlertNotice,
         postAlertError,

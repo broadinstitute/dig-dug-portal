@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <page-info-section :pageInfo="$parent.pageInfo"></page-info-section>
+                            <static-page-info-section :pageInfo="$parent.pageInfo"></static-page-info-section>
                         </div>
                     </div>
                 </div>

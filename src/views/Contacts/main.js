@@ -10,7 +10,7 @@ Vue.config.productionTip = false;
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import StaticPage from "@/components/StaticPage.vue";
+import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -23,7 +23,7 @@ new Vue({
     store,
 
     components: {
-        StaticPage,
+        StaticPageInfo,
         PageHeader,
         PageFooter,
         PortalDatasetsListTable,
