@@ -127,7 +127,7 @@ export default Vue.component("dbreferences-table", {
                     "source"
                 );
             } else if (this.moleculeType != "") {
-                return Filters.filterTable(
+                return Filters.filterExact(
                     this.dbreferences,
                     this.moleculeType,
                     "moleculeType"

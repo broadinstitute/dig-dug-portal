@@ -67,6 +67,14 @@ function filterPhenotype(data, value, key = "phenotype") {
     });
     return filtered;
 }
+//for special cases like molecule type
+function filterExact(data, value, key) {
+    if (!value || !key) return data;
+    const filtered = data.filter(row => {
+        return value === row[key];
+    });
+    return filtered;
+}
 
 function filterTable(data, value, key) {
     if (!value || !key) return data;
@@ -82,5 +90,6 @@ export default {
     filterBeta,
     filterPValue,
     filterPhenotype,
+    filterExact,
     filterTable
 };
