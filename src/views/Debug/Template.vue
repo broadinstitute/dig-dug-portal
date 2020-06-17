@@ -137,6 +137,42 @@
                     ></tooltip-documentation>
                 </h4>
 
+                <h5>
+                    Popup help content example
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="'md'"
+                        :isHover="false"
+                    ></tooltip-documentation>
+                </h5>
+
+                <h5 style="text-align: right">
+                    Popup help content example located on the right
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="'md'"
+                        :isHover="false"
+                    ></tooltip-documentation>
+                </h5>
+
+                <h5>
+                    Hover help content example
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="'md'"
+                        :isHover="true"
+                    ></tooltip-documentation>
+                </h5>
+
+                <h5 style="text-align: right">
+                    Hover content example located on the right
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="'md'"
+                        :isHover="true"
+                    ></tooltip-documentation>
+                </h5>
+
                 <loading-bar v-bind:moduleIndex="'top-associations'"></loading-bar>
                 <igv
                     v-bind:modules="[

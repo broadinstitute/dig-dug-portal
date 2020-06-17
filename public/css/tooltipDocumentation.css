@@ -108,25 +108,32 @@
     color: #fff;
     background-color: #12a83f;
     border-radius: 20px;
-    font-size: 0.6em;
-    padding: 0.05em 0.425em;
+    font-size: 0.5em;
+    padding: 0 0.3em 0 0.3em;
     position: relative;
+    top: -.5em;
+    margin-left: -0.2em;
+    text-align: center;
 }
 
-.help-content-caller:hover {
+.help-content-caller:hover, .help-content-caller.hover:hover {
     background-color: #000;
     cursor: pointer;
 }
 
 .help-content-caller.hover {
-    /* color: #0099FF; */
+    font-family: "Lucida Console", Monaco, monospace;
     display: block;
     color: #fff;
     background-color: #0099ff;
     border-radius: 20px;
-    font-size: 0.6em;
-    padding: 0.05em 0.425em;
+    font-size: 0.5em;
+    font-weight: 500;
+    padding: 0.075em 0.325em 0 0.325em;
     position: relative;
+    top: -.5em;
+    margin-left: -0.2em;
+    text-align: center;
 }
 
 .help-content-caller.hover:hover {
