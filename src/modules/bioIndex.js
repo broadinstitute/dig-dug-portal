@@ -105,12 +105,15 @@ export default function (index, extend) {
                         errHandler: error => {
                             closeAlert(alertID);
                             postAlertError(error.detail);
+                        },
+                        
+                        finishHandler: response => {
+                            closeAlert(alertID);
                         }
                     });
 
                     // data is loaded
                     context.commit("setResponse", { data, profile });
-                    closeAlert(alertID);
                 }
             }
         }

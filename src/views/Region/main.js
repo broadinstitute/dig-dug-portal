@@ -29,6 +29,8 @@ import Alert, {
 } from "@/components/Alert";
 
 import { igvLocusFormatter } from "@/utils/formatters"
+import * as d3 from "d3";
+
 
 Vue.config.productionTip = false;
 
@@ -83,15 +85,15 @@ new Vue({
         formatIGV: function (locus) {
             return igvLocusFormatter(locus)
         },
-        addCredibleSetsTracks: function () {
+        addCredibleSetsTracks: function (credibleSet) {
 
-            if(!!this.$store.state.currentCredibleSet && !!this.$store.state.phenotype){
+            if(!!this.$store.state.currentCredibleSet || credibleSet && !!this.$store.state.phenotype){
 
                 // Add Tracks
                 this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
                     data: {
                         phenotype: this.$store.state.phenotype.name,
-                        credibleSetId: this.$store.state.currentCredibleSet,
+                        credibleSetId: credibleSet,
                         posteriorProbability: true,
                         visualization: 'gwas',
                     }
@@ -105,47 +107,33 @@ new Vue({
                 //     }
                 // });
 
-                // Add to Table
+                // TODO Add to Table
 
             }
 
 
         },
-        addIntervalsTrack: function () {
-            if (!!this.$store.state.currentTissue) {
+        addIntervalsTrack: function (tissue) {
+            if (!!this.$store.state.currentTissue || tissue) {
                 this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
                     data: {
-                        tissue: this.$store.state.currentTissue,
-                        annotationScoring: this.annotationScoring,
-                        pValue: this.pValue,
-                        beta: this.beta,
+                        tissue: tissue,
                     }
                 });
             }
         },
-        addIntervalsTracksForAnnotation: function () {
-            console.log('add intervals tracks', this.globalEnrichmentByAnnotation)
+        addIntervalsTrackForAnnotation: function () {
             if (!!this.$store.state.currentAnnotation) {
-                // TODO: refactor to JSON selectors, or to lodash chaining?
-                const annotationGroups = _.groupBy(this.globalEnrichmentByAnnotation[this.$store.state.currentAnnotation], 'tissue');
-                Object.keys(annotationGroups)
-                    .forEach(annotationKey => {
-                        annotationGroups[annotationKey].forEach(annotation => {
-                            console.log(annotation)
-                            if (annotation.pValue > this.pValue && annotation.SNPs / annotation.expectedSNPs > this.beta) {
-                                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
-                                    data: {
-                                        tissue: annotation.tissue,
-                                        ancestry: annotation.ancestry,
-                                        annotations: [this.$store.state.currentAnnotation],
-                                        pValue: this.pValue,
-                                        beta: this.beta,
-                                        annotationScoring: this.annotationScoring,
-                                    }
-                                });
-                            }
-                        })
-                    });
+
+                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
+                    data: {
+                        // tissue: [annotation.tissue],
+                        annotations: [this.$store.state.currentAnnotation],
+                        colorScheme: this.tissueColorScheme,
+                        tissueScoring: this.tissueScoring,
+                    }
+                });
+                    
             }
         },
         routeResponseToModule(response) {
@@ -195,30 +183,52 @@ new Vue({
         },
 
         globalEnrichmentAnnotations() {
+            // an array of annotations
             return _.uniqBy(this.$store.state.globalEnrichment.data, 'annotation');
         },
 
-        globalEnrichmentByAnnotation() {
-            return _.groupBy(this.$store.state.globalEnrichment.data, 'annotation')
-        },
-
         tissues() {
+            // an array of tissue
             return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
         },
 
-        annotationScoring() {
-            let annotationScoring = this.$store.state.globalEnrichment.data.reduce((net, enrichment) => {
+        tissueColorScheme() {
+            return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
+        },
+
+        tissueScoring() {
+            let tissueScoring = this.$store.state.globalEnrichment.data.reduce((net, enrichment) => {
                     let tempNet = net;
-                    if (!!enrichment.tissue) {
-                        tempNet[enrichment.tissue] = net[enrichment.tissue] || {};
-                        tempNet[enrichment.tissue][enrichment.annotation] = {};
-                        tempNet[enrichment.tissue][enrichment.annotation]['pValue'] = enrichment.pValue;
-                        tempNet[enrichment.tissue][enrichment.annotation]['beta'] = enrichment.SNPs / enrichment.expectedSNPs ;
+                    if (!!enrichment.annotation) {
+                        tempNet[enrichment.annotation] = net[enrichment.annotation] || {};
+                        tempNet[enrichment.annotation][enrichment.tissue] = {};
+                        tempNet[enrichment.annotation][enrichment.tissue]['pValue'] = enrichment.pValue;
+                        tempNet[enrichment.annotation][enrichment.tissue]['beta'] = enrichment.SNPs / enrichment.expectedSNPs ;
                     }
                     return tempNet;
                 }, {});
-            return annotationScoring;
+            return tissueScoring;
         },
+
+        // globalEnrichmentAnnotationsFilteredByStats() {
+        //     let tempGlobalEnrichmentByAnnotation = this.globalEnrichmentByAnnotation;
+        //     Object.keys(tempGlobalEnrichmentByAnnotation).forEach(annotationKey => {
+        //         tempGlobalEnrichmentByAnnotation[annotationKey] = this.globalEnrichmentByAnnotation[annotationKey].filter(enrichment => 
+        //             this.tissueScoring[enrichment.annotation][enrichment.tissue].pValue < this.pValue && 
+        //             this.tissueScoring[enrichment.annotation][enrichment.tissue].beta > this.beta 
+        //         );
+        //     })
+        //     return tempGlobalEnrichmentByAnnotation;
+        // },
+
+        // globalEnrichmentAnnotationsFilteredByStatsCount() {
+        //     let tempGlobalEnrichmentByAnnotation = this.globalEnrichmentAnnotationsFilteredByStatsCount;
+        //     Object.keys(tempGlobalEnrichmentByAnnotation).forEach(annotationKey => {
+        //         // override the array with the length of the array
+        //         tempGlobalEnrichmentByAnnotation[annotationKey] = tempGlobalEnrichmentByAnnotation[annotationKey].length;
+        //     })
+        //     return tempGlobalEnrichmentByAnnotation;
+        // },
 
         // Give the top associations, find the best one across all unique
         // phenotypes available.
@@ -292,6 +302,7 @@ new Vue({
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement('phenotypeSearchHolder');
 
+            // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
             this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name});
             this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
         },
@@ -311,11 +322,15 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
-        "$store.state.start": function (start) {
-            console.log(start)
+        "$store.state.currentAnnotation": function (annotation) {
+            if(!!annotation) {
+                this.addIntervalsTrackForAnnotation(annotation);
+            }
         },
-        "$store.state.end": function (end) {
-            console.log(end)
+        "$store.state.currentCredibleSet": function (credibleSet) {
+            if (!!credibleSet) {
+                this.addCredibleSetsTracks(credibleSet);
+            }
         }
     }
 }).$mount("#app");

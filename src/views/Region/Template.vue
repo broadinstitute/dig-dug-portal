@@ -135,36 +135,34 @@
                     </h4>
 
                      <div class="row card-body">
-                        <div class="col-md-8">
+                        <div class="col-md-6">
                             Annotation Method Track
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             Credible Sets Track
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-md-6">
                             <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues"
                             ></tissue-selectpicker>
                             <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button><br> -->
                             <annotation-method-selectpicker
-                                :annotations="$parent.globalEnrichmentAnnotations">
-                            </annotation-method-selectpicker>
-                            <button v-on:click="$parent.addIntervalsTracksForAnnotation">Add Annotation Method Tracks</button><br>
-
-                            <tissue-selectpicker
+                                :annotations="$parent.globalEnrichmentAnnotations"
+                                :clearOnSelected="true"/>
+                            with tissues filtered on 
+                            pValue &lt; <input v-model.number="$parent.pValue"/> and
+                            beta &gt; <input v-model.number="$parent.beta"/>
+                            <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues">
                             </tissue-selectpicker>
-                            pValue &lt; <input v-model.number="$parent.pValue"/>
-                            beta &gt; <input v-model.number="$parent.beta"/>
-                            <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>
+
+                            <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button> -->
                         </div>
 
-                        <div class="col-md-4">
-                            <!-- TODO: Active on length of credibleSets > 0 -->
+                        <div class="col-md-6">
                             <credible-sets-selectpicker
                                 :credibleSets="$parent.credibleSets"
-                            ></credible-sets-selectpicker>
-                            <button v-on:click="$parent.addCredibleSetsTracks">Add Credible Variant Tracks</button><br>
+                                :clearOnSelected="true"/>
                         </div>
 
                     </div>

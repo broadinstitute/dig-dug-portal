@@ -106,7 +106,8 @@ export default Vue.component('igv-associations-track', {
                             ((response) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response)),
                     }
 
-                })
+                }),
+                // height: 160,
             }
         },
         associationsForIGV: function (associations) {

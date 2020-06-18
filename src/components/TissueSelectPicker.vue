@@ -27,7 +27,7 @@ export default Vue.component("tissue-selectpicker", {
     props: ['tissues'],
     data(){
         return {
-            query: 'All Tissues'
+            query: ''
         }
     },
     computed: {
@@ -36,7 +36,7 @@ export default Vue.component("tissue-selectpicker", {
                 return [];
             }
 
-            return this.tissues.concat('All Tissues');
+            return this.tissues;
         }
     }
 });

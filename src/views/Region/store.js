@@ -148,9 +148,9 @@ export default new Vuex.Store({
                 // find all the top associations and genes in the region
                 context.dispatch('topAssociations/query', { q: newRegion });
                 context.dispatch('genes/query', { q: newRegion });
-                
+
                 // for variant prioritizer?
-                context.dispatch('regions/query', { q: newRegion });
+                // context.dispatch('regions/query', { q: newRegion });
 
             }
         },

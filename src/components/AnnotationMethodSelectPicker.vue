@@ -2,7 +2,7 @@
     <vue-typeahead-bootstrap
         v-model="userText"
         ref="annotationOptionsSelect"
-        placeholder="Select an annotation ..."
+        placeholder="Add an annotation ..."
         :data="annotationOptions"
         :serializer="s => s.annotation"
         :showOnFocus="true"
@@ -42,7 +42,7 @@ export default Vue.component("annotation-method-selectpicker", {
         defaultSet: {
             type: String,
             required: false,
-        }
+        },
     },
     data() {
         return {
@@ -53,19 +53,27 @@ export default Vue.component("annotation-method-selectpicker", {
         annotationOptions() {
             if (!this.annotations) {
                 return [];
+            } else {
+                let annotations = this.annotations;
+                return annotations.sort((a, b) => {
+                    if (a.annotation < b.annotation) return -1;
+                    if (b.annotation < a.annotation) return 1;
+
+                    if (!!a.method && !!b.method) {
+                        if (a.method < b.method) return -1;
+                        if (b.method < a.method) return 1;
+                    }
+
+                    if (!!a.count && !!b.count) {
+                        if (a.count < b.count) return -1;
+                        if (b.count < a.count) return 1;
+                    }
+
+                    return 0;
+                });
             }
 
-            return this.annotations.sort((a, b) => {
-                if (a.annotation < b.annotation) return -1;
-                if (b.annotation < a.annotation) return 1;
-
-                if (!!a.method && !!b.method) {
-                    if (a.method < b.method) return -1;
-                    if (b.method < a.method) return 1;
-                }
-
-                return 0;
-            });
+            
         }
     },
     methods: {

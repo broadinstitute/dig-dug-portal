@@ -2,7 +2,7 @@
     <vue-typeahead-bootstrap
         v-model="userText"
         ref="credibleSetSelect"
-        placeholder="Select a credible set ..."
+        placeholder="Add a credible set ..."
         :data="credibleSetsOptions"
         :serializer="s => s.credibleSetId"
         :showOnFocus="true"

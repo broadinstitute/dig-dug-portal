@@ -74,7 +74,6 @@ export default Vue.component('igv', {
         });
 
         IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
-            console.log('force update/refresh for igv')
             // just go to the place we already are at
             // browser.search(`chr${this.chr}:${this.start}-${this.end}`);
             browser.updateViews();
@@ -117,23 +116,23 @@ export default Vue.component('igv', {
             IGVEvents.$emit(IGV_CHILD_DESTROY_TRACK, track)
         });
 
-        browser.on('trackclick', (track, popupData) => {
-            if (!!this.popupHandler) {
-                this.popupHandler(track, popupData);
-            } else {
-                popupData.forEach(nameValuePair => {
-                    if (!!nameValuePair.name) {
-                        if (!!nameValuePair.value) {
-                            // EITHER:
-                            // Build popup
-                            // OR
-                            // Run popup handler
-                        }
-                    }
-                });
-            }
-            return false;
-        });
+        // browser.on('trackclick', (track, popupData) => {
+        //     if (!!this.popupHandler) {
+        //         this.popupHandler(track, popupData);
+        //     } else {
+        //         popupData.forEach(nameValuePair => {
+        //             if (!!nameValuePair.name) {
+        //                 if (!!nameValuePair.value) {
+        //                     // EITHER:
+        //                     // Build popup
+        //                     // OR
+        //                     // Run popup handler
+        //                 }
+        //             }
+        //         });
+        //     }
+        //     return false;
+        // });
 
         browser.on('locuschange', _.debounce(locus => {
             if (!!this.regionHandler) {

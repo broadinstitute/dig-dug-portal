@@ -22,15 +22,19 @@ export default Vue.component('igv-intervals-track', {
     props: {
 
         tissue: {
-            type: String,
-            required: true
+            type: Array,
+            required: false
+        },
+        annotations: {
+            type: Array,
+            required: false,
         },
         ancestry: {
             type: String,
             required: false,
         },
 
-        annotationScoring: {
+        tissueScoring: {
             type: Object,
             required: false
         },
@@ -39,15 +43,27 @@ export default Vue.component('igv-intervals-track', {
             required: false,
             default: 1.0,
         },
-
         beta: {
             type: Number,
             required: false,
             default: 1.0,
         },
 
-        annotations: {
-            type: Array,
+        finishHandler: {
+            type: Function,
+            required: false,
+        },
+        resolveHandler: {
+            type: Function,
+            required: false,
+        },
+        errHandler: {
+            type: Function,
+            required: false,
+        },
+
+        colorScheme: {
+            type: Function,
             required: false,
         },
 
@@ -70,19 +86,6 @@ export default Vue.component('igv-intervals-track', {
             }
         },
 
-        finishHandler: {
-            type: Function,
-            required: false
-        },
-        resolveHandler: {
-            type: Function,
-            required: false
-        },
-        errHandler: {
-            type: Function,
-            required: false
-        }
-
     },
     data() {
         return {
@@ -92,7 +95,7 @@ export default Vue.component('igv-intervals-track', {
     },
     computed: {
         trackName() {
-            return `${this.tissue} ${this.ancestry}: pValue < ${this.pValue}, beta > ${this.beta}`
+            return `${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
         }
     },
     mounted() {
@@ -114,8 +117,8 @@ export default Vue.component('igv-intervals-track', {
                         finishHandler: this.finishHandler ||
                             ((response) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response)),
                     }
-
-                })
+                }),
+                height: 160,
             });
 
         IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
@@ -143,26 +146,22 @@ export default Vue.component('igv-intervals-track', {
             // In such a case the bioindex is not going to return any data for a given tissue leaving the access of that data by the track undefined
             // Since we don't want to destroy the track (what if there is more data just around the corner?) we return an empty array
                 // this.annotationScoring[this.tissue][interval.annotation]['pValue'] < 0.01 && this.annotationScoring[this.tissue][interval.annotation]['beta'] > 1.0
-            console.log(this.annotationScoring, intervals);
-            const tissuesOnRange = _.groupBy(intervals, 'tissue');
-            if (!!tissuesOnRange[this.tissue]) {
-                return tissuesOnRange[this.tissue]
-                .filter(interval =>
-                    // !!interval.tissue &&
-                    // either we have no annotations which is OK, or we do have annotations and can filter with them
-                    (!!!this.annotations || this.annotations.includes(interval.annotation))
-                    // this.annotationScoring[this.tissue][interval.annotation].pValue < this.pValue &&
-                    // this.annotationScoring[this.tissue][interval.annotation].beta > this.beta)
-                )
-                .map(interval => {
-                    return {
-                        chr: interval.chromosome,
-                        start: interval.start,
-                        end: interval.end,
-                        name: interval.annotation,
-                        color: `rgb(${interval.itemRgb})`,
-                    }
-                })
+            if (!!intervals) {
+                return intervals
+                    .filter(interval => 
+                        !!!this.pValue || this.tissueScoring[interval.annotation][interval.tissue].pValue < this.pValue && 
+                        !!!this.beta || this.tissueScoring[interval.annotation][interval.tissue].beta > this.beta 
+                    )
+                    .map(interval => {
+                        const color = this.colorScheme(interval.tissue)
+                        return {
+                            name: interval.tissue,
+                            chr: interval.chromosome,
+                            start: interval.start,
+                            end: interval.end,
+                            color: color,
+                        }
+                    })
             } else {
                 return [];
             }
