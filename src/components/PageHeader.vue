@@ -54,6 +54,12 @@
                         <li class="am-menu">
                             <a href>Data</a>
                             <ul class="am-submenu">
+                                <li
+                                    page="data"
+                                    v-if="diseaseGroup.name && diseaseGroup.name == 'v2f'"
+                                >
+                                    <a :href="'/epigeneticdatasets.html'">Epigenetic Datasets</a>
+                                </li>
                                 <li page="data">
                                     <a :href="'/datasets.html'">Datasets</a>
                                 </li>

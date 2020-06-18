@@ -133,6 +133,13 @@ module.exports = {
             title: "Apis",
             chunks: ["chunk-vendors", "chunk-common", "apis"]
         },
+        epigeneticdatasets: {
+            entry: "src/views/EpigeneticDatasets/main.js",
+            template: "public/index.html",
+            filename: "epigeneticdatasets.html",
+            title: "Epigenetic Datasets",
+            chunks: ["chunk-vendors", "chunk-common", "epigeneticdatasets"]
+        },
 
     }
 };
