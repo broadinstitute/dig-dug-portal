@@ -26,13 +26,6 @@ export default new Vuex.Store({
         // only used at the start
         phenotypeParam: keyParams.phenotype,
 
-        initial: {
-            phenotype: keyParams.phenotype,
-            chr: keyParams.chr,
-            start: keyParams.start,
-            end: keyParams.end,
-        },
-
         // user-entered locus
         chr: keyParams.chr,
         start: keyParams.start,
@@ -44,6 +37,10 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
+
+        currentTissue: '',
+        currentCredibleSet: '',
+        currentAnnotation: '',
     },
     mutations: {
         setCurrentTissue(state, tissue) {
@@ -104,7 +101,7 @@ export default new Vuex.Store({
         },
 
         async onTissueChange(context, eventData) {
-            context.commit('setCurrentTissue', eventData.tissue.description)
+            context.commit('setCurrentTissue', eventData.tissue)
         },
 
         async onCredibleSetChange(context, eventData) {
@@ -151,14 +148,9 @@ export default new Vuex.Store({
                 // find all the top associations and genes in the region
                 context.dispatch('topAssociations/query', { q: newRegion });
                 context.dispatch('genes/query', { q: newRegion });
-
-                // for variant prioritizer
-
-                // together these constitute a filtered set of region annotations
-                context.dispatch('globalEnrichment/query', { q: keyParams.phenotype });
+                
+                // for variant prioritizer?
                 context.dispatch('regions/query', { q: newRegion });
-
-                context.dispatch('credibleSets/query', { q: `${keyParams.phenotype},${ newRegion }` });
 
             }
         },

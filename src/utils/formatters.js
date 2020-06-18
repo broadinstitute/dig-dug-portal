@@ -128,7 +128,8 @@ function tissueFormatter(tissue) {
         return '-';
     }
 
-    return capitalizedFormatter(tissue.description);
+    // return capitalizedFormatter(tissue.description);
+    return capitalizedFormatter(tissue);
 }
 
 export default {

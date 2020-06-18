@@ -39,6 +39,7 @@ export default Vue.component('igv-intervals-track', {
             required: false,
             default: 1.0,
         },
+
         beta: {
             type: Number,
             required: false,
@@ -60,6 +61,15 @@ export default Vue.component('igv-intervals-track', {
             }
         },
 
+        index: {
+            type: String,
+            default: 'annotated-regions',
+            validator: function (value) {
+                // The value must match one of these strings
+                return ['regions', 'annotated-regions'].indexOf(value) !== -1
+            }
+        },
+
         finishHandler: {
             type: Function,
             required: false
@@ -76,7 +86,6 @@ export default Vue.component('igv-intervals-track', {
     },
     data() {
         return {
-            index: 'regions',
             salt: Math.floor((Math.random() * 10000)).toString(),
             padding: 0,
         }
@@ -126,7 +135,8 @@ export default Vue.component('igv-intervals-track', {
 
     methods: {
         queryStringMaker: function (chr, start, end) {
-            return `${chr}:${start}-${end}`;
+            // TODO: ASSUMES UNIQUE ANNOTATION!!! Will not extend to multiple annotation inputs!
+            return !!this.annotations ? `${this.annotations[0]},${chr}:${start}-${end}` : `${chr}:${start}-${end}`;
         },
         intervalsForIGV: function (intervals) {
             // NOTE: Sometimes a track might not have defined data for a tissue on an interval, but was already created
@@ -134,11 +144,11 @@ export default Vue.component('igv-intervals-track', {
             // Since we don't want to destroy the track (what if there is more data just around the corner?) we return an empty array
                 // this.annotationScoring[this.tissue][interval.annotation]['pValue'] < 0.01 && this.annotationScoring[this.tissue][interval.annotation]['beta'] > 1.0
             console.log(this.annotationScoring, intervals);
-            const tissuesOnRange = _.groupBy(intervals, 'tissue.description');
+            const tissuesOnRange = _.groupBy(intervals, 'tissue');
             if (!!tissuesOnRange[this.tissue]) {
                 return tissuesOnRange[this.tissue]
                 .filter(interval =>
-                    !!interval.tissue &&
+                    // !!interval.tissue &&
                     // either we have no annotations which is OK, or we do have annotations and can filter with them
                     (!!!this.annotations || this.annotations.includes(interval.annotation))
                     // this.annotationScoring[this.tissue][interval.annotation].pValue < this.pValue &&

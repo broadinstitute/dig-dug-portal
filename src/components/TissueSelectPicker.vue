@@ -1,17 +1,14 @@
 <template>
-    <div>
-        <vue-typeahead-bootstrap
-            v-model="userText"
-            ref="tissueSelect"
-            placeholder="Search for a tissue ..."
-            :data="tissueOptions"
-            :serializer="s => s.description"
-            :showOnFocus="true"
-            :minMatchingChars="0"
-            :maxMatches="30"
-            @hit="onTissueSelected($event)">
-        </vue-typeahead-bootstrap>
-    </div>
+    <vue-typeahead-bootstrap
+        :data="tissueOptions"
+        v-model="query"
+        :showOnFocus="true"
+        :minMatchingChars="0"
+        :maxMatches="30"
+        placeholder="Type in a tissue..."
+        
+    >
+    </vue-typeahead-bootstrap>
 </template>
 
 <script>
@@ -27,24 +24,11 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("tissue-selectpicker", {
-    props: {
-        tissues: {
-            type: Array,
-            required: true,
-        },
-        clearOnSelected: {
-            type: Boolean,
-            required: false,
-        },
-        defaultTissue: {
-            type: String,
-            required: false,
-        }
-    },
-    data() {
+    props: ['tissues'],
+    data(){
         return {
-            userText: this.defaultTissue || null,
-        };
+            query: 'All Tissues'
+        }
     },
     computed: {
         tissueOptions() {
@@ -52,34 +36,7 @@ export default Vue.component("tissue-selectpicker", {
                 return [];
             }
 
-            return this.tissues.sort((a, b) => {
-                if (a.group < b.group) return -1;
-                if (b.group < a.group) return 1;
-
-                if (a.description < b.description) return -1;
-                if (b.description < a.description) return 1;
-
-                return 0;
-            }).concat([
-
-            ]);
-        }
-    },
-    methods: {
-        onTissueSelected(event) {
-            this.$store.dispatch("onTissueChange", {
-                tissue: event,
-            });
-
-            if (this.clearOnSelected) {
-                this.userText = null;
-            }
-        },
-
-        setFocus() {
-            this.$nextTick(() => {
-                this.$refs.tissueSelect.$refs.input.focus();
-            });
+            return this.tissues.concat('All Tissues');
         }
     }
 });

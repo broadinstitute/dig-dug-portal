@@ -127,14 +127,15 @@ new Vue({
             console.log('add intervals tracks', this.globalEnrichmentByAnnotation)
             if (!!this.$store.state.currentAnnotation) {
                 // TODO: refactor to JSON selectors, or to lodash chaining?
-                const annotationGroups = _.groupBy(this.globalEnrichmentByAnnotation[this.$store.state.currentAnnotation], 'tissue.description');
+                const annotationGroups = _.groupBy(this.globalEnrichmentByAnnotation[this.$store.state.currentAnnotation], 'tissue');
                 Object.keys(annotationGroups)
                     .forEach(annotationKey => {
                         annotationGroups[annotationKey].forEach(annotation => {
+                            console.log(annotation)
                             if (annotation.pValue > this.pValue && annotation.SNPs / annotation.expectedSNPs > this.beta) {
                                 this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
                                     data: {
-                                        tissue: annotation.tissue.description,
+                                        tissue: annotation.tissue,
                                         ancestry: annotation.ancestry,
                                         annotations: [this.$store.state.currentAnnotation],
                                         pValue: this.pValue,
@@ -202,17 +203,17 @@ new Vue({
         },
 
         tissues() {
-            return _.uniqBy(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue), 'id');
+            return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
         },
 
         annotationScoring() {
             let annotationScoring = this.$store.state.globalEnrichment.data.reduce((net, enrichment) => {
                     let tempNet = net;
                     if (!!enrichment.tissue) {
-                        tempNet[enrichment.tissue.description] = net[enrichment.tissue.description] || {};
-                        tempNet[enrichment.tissue.description][enrichment.annotation] = {};
-                        tempNet[enrichment.tissue.description][enrichment.annotation]['pValue'] = enrichment.pValue;
-                        tempNet[enrichment.tissue.description][enrichment.annotation]['beta'] = enrichment.SNPs / enrichment.expectedSNPs ;
+                        tempNet[enrichment.tissue] = net[enrichment.tissue] || {};
+                        tempNet[enrichment.tissue][enrichment.annotation] = {};
+                        tempNet[enrichment.tissue][enrichment.annotation]['pValue'] = enrichment.pValue;
+                        tempNet[enrichment.tissue][enrichment.annotation]['beta'] = enrichment.SNPs / enrichment.expectedSNPs ;
                     }
                     return tempNet;
                 }, {});
@@ -288,7 +289,11 @@ new Vue({
         },
 
         "$store.state.phenotype": function (phenotype) {
-            uiUtils.hideElement('phenotypeSearchHolder')
+            // I don't like mixing UI effects with databinding - Ken
+            uiUtils.hideElement('phenotypeSearchHolder');
+
+            this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name});
+            this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
         },
 
         topAssociations(top) {
