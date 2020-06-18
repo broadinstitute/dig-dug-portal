@@ -24,7 +24,7 @@
                     <div class="label">Consequence</div>
                     <b-form-select
                         @change="addCompound($event, 'select_consequence','filter-consequence')"
-                        :options="filter_consequence"
+                        :options="filter_consequence_options"
                         id="filter-consequence"
                         ref="select_consequence"
                     ></b-form-select>
@@ -55,7 +55,7 @@
                         @input="addCompound($event, 'select_beta','filter-beta', false)"
                         :options="select_beta_options"
                         ref="select_beta"
-                        v-model="select_beta_text"
+                        v-model="select_beta"
                     ></b-form-select>
                 </b-col>
             </b-row>
@@ -244,9 +244,7 @@ export default Vue.component("associations-table", {
             select_gene: [],
             select_gene_text: "",
             select_beta: "",
-            select_beta_text: "",
             select_beta_options: [
-                { value: "", text: "All" },
                 { value: "p", text: "Positive" },
                 { value: "n", text: "Negative" }
             ]
@@ -349,54 +347,59 @@ export default Vue.component("associations-table", {
 
             return data;
         },
-        filter_consequence() {
+        filter_consequence_options() {
             return this.groupedAssociations
                 .map(v => Formatters.consequenceFormatter(v.consequence))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined);
         },
-
         tableData() {
             let dataRows = this.groupedAssociations;
 
             if (this.select_dbsnp.length > 0) {
-                dataRows = Filters.filterTable(
+                return Filters.filterTable(
                     dataRows,
                     this.select_dbsnp,
                     "dbSNP"
                 );
             } else {
-                if (this.select_consequence.length > 0) {
-                    dataRows = Filters.filterFormatted(
-                        dataRows,
-                        this.select_consequence,
-                        "consequence"
-                    );
-                }
-                if (this.select_gene.length > 0) {
-                    dataRows = Filters.filterTable(
-                        dataRows,
-                        this.select_gene,
-                        "gene"
-                    );
-                }
-                if (this.select_pValue != "") {
-                    dataRows = Filters.filterPValue(
-                        dataRows,
-                        this.select_pValue,
-                        `${this.phenotypes[0].name}_pValue`
-                    );
-                }
-                if (this.select_beta.length > 0) {
-                    dataRows = Filters.filterBeta(
-                        dataRows,
-                        this.select_beta,
-                        `${this.phenotypes[0].name}_beta`
-                    );
-                }
-            }
+                let consequenceFiltered =
+                    this.select_consequence.length > 0
+                        ? Filters.filterFormatted(
+                              dataRows,
+                              this.select_consequence,
+                              "consequence"
+                          )
+                        : dataRows;
 
-            return dataRows;
+                let geneFiltered =
+                    this.select_gene.length > 0
+                        ? Filters.filterTable(
+                              consequenceFiltered,
+                              this.select_gene,
+                              "gene"
+                          )
+                        : consequenceFiltered;
+
+                let pValueFiltered =
+                    this.select_pValue != ""
+                        ? Filters.filterPValue(
+                              geneFiltered,
+                              this.select_pValue,
+                              `${this.phenotypes[0].name}_pValue`
+                          )
+                        : geneFiltered;
+
+                let betaFiltered = this.select_beta
+                    ? Filters.filterBeta(
+                          pValueFiltered,
+                          this.select_beta,
+                          `${this.phenotypes[0].name}_beta`
+                      )
+                    : pValueFiltered;
+
+                return betaFiltered;
+            }
         }
     },
 
@@ -418,7 +421,6 @@ export default Vue.component("associations-table", {
         setFilter(event, obj) {
             this[obj] = event;
             this[obj + "_text"] = "";
-            this.selectedIndex = 0;
         },
         removeFilter(index, obj) {
             this[obj].splice(index, 1);
