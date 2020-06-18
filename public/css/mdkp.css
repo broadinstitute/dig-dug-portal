@@ -928,7 +928,7 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
 .help-content.filter-wrapper-help {
     display: block !important;
     position: absolute;
-    top: 8px;
+    top: 2px;
     left: 5px;
 }
 
