@@ -115,15 +115,17 @@
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
-                    <template v-if="select_beta.length > 0">
+                    <template v-if="select_beta">
                         <b-badge
                             pill
                             variant="primary"
                             @click="unsetFilter('select_beta')"
                             class="btn"
                         >
-                            {{select_beta_text}}
-                            <span class="remove">X</span>
+                            {{select_beta_options.find(e => e.value === select_beta).text}}
+                            <span
+                                class="remove"
+                            >X</span>
                         </b-badge>
                     </template>
                 </b-col>
@@ -415,6 +417,7 @@ export default Vue.component("associations-table", {
         setFilter(event, obj) {
             this[obj] = event;
             this[obj + "_text"] = "";
+            this.selectedIndex = 0;
         },
         removeFilter(index, obj) {
             this[obj].splice(index, 1);
