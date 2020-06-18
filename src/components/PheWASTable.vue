@@ -74,7 +74,7 @@
             hover
             small
             responsive="sm"
-            :items="filteredAssocs"
+            :items="tableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -169,23 +169,18 @@ export default Vue.component("phewas-table", {
             selectedPhenotypes: [],
             pValue: "",
             pValueText: "",
-            filteredAssocs: null,
             beta: "",
             betaText: "",
             beta_options: [
-                { value: null, text: "All" },
                 { value: "p", text: "Positive" },
                 { value: "n", text: "Negative" }
             ]
         };
     },
-    mounted() {
-        this.filteredAssocs = this.pheWASAssociations;
-    },
 
     computed: {
         rows() {
-            return this.filteredAssocs.length;
+            return this.tableData.length;
         },
 
         pheWASAssociations() {
@@ -203,8 +198,28 @@ export default Vue.component("phewas-table", {
                 .sort((a, b) => a.pValue - b.pValue);
         },
 
-        filteredAssocs() {
-            return this.pheWASAssociations;
+        tableData() {
+            let sourceData = this.pheWASAssociations;
+
+            let phenotypeFiltered =
+                this.selectedPhenotypes.length > 0
+                    ? Filters.filterPhenotype(
+                          this.pheWASAssociations,
+                          this.selectedPhenotypes
+                      )
+                    : this.pheWASAssociations;
+
+            let pValueFiltered =
+                this.pValue != ""
+                    ? Filters.filterPValue(phenotypeFiltered, this.pValue)
+                    : phenotypeFiltered;
+
+            let betaFiltered =
+                this.beta != "" && this.beta != null
+                    ? Filters.filterBeta(pValueFiltered, this.beta, "beta")
+                    : pValueFiltered;
+
+            return betaFiltered;
         }
     },
 
@@ -214,46 +229,17 @@ export default Vue.component("phewas-table", {
         addPhenotype(event) {
             this.selectedPhenotypes.push(event.description);
             this.userText = "";
-            this.filterPhenotype();
             this.resetOtherFilters("selectedPhenotypes");
         },
         removePhenotype(index) {
             this.selectedPhenotypes.splice(index, 1);
-            this.filterPhenotype();
-        },
-        filterPhenotype() {
-            this.filteredAssocs =
-                this.selectedPhenotypes.length > 0
-                    ? Filters.filterPhenotype(
-                          this.pheWASAssociations,
-                          this.selectedPhenotypes
-                      )
-                    : this.pheWASAssociations;
         },
         filterPValue(event) {
             this.pValue = event.trim();
-            this.filteredAssocs = Filters.filterPValue(
-                this.pheWASAssociations,
-                event
-            );
             this.resetOtherFilters("pValue");
             this.pValueText = "";
         },
         filterBeta() {
-            let sourceData =
-                this.pValue == ""
-                    ? this.pheWASAssociations
-                    : Filters.filterPValue(
-                          this.pheWASAssociations,
-                          this.pValue
-                      );
-
-            this.filteredAssocs = Filters.filterBeta(
-                sourceData,
-                this.beta,
-                "beta"
-            );
-
             this.betaText = this.beta == "p" ? "positive" : "negative";
             this.resetOtherFilters("beta");
         },
@@ -267,24 +253,9 @@ export default Vue.component("phewas-table", {
         },
         unsetPvalue() {
             this.pValue = "";
-            this.filteredAssocs =
-                this.beta != "" || this.beta != null
-                    ? (this.filteredAssocs = Filters.filterBeta(
-                          this.pheWASAssociations,
-                          this.beta,
-                          "beta"
-                      ))
-                    : this.pheWASAssociations;
         },
         unsetBeta() {
             this.beta = "";
-            this.filteredAssocs =
-                this.pValue != ""
-                    ? Filters.filterPValue(this.pheWASAssociations, this.pValue)
-                    : this.pheWASAssociations;
-        },
-        unsetFilter(obj) {
-            this[obj] = "";
         }
     }
 });
