@@ -2,6 +2,7 @@
     <div>
         <b-container fluid class="filtering-ui-wrapper">
             <tooltip-documentation
+                class="filter-wrapper-help"
                 name="test.tooltip.index.regionexample"
                 :group="'md'"
                 :isHover="true"
