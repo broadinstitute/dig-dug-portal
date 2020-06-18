@@ -1,6 +1,11 @@
 <template>
     <div>
         <b-container fluid class="filtering-ui-wrapper">
+            <tooltip-documentation
+                name="test.tooltip.index.regionexample"
+                :group="'md'"
+                :isHover="true"
+            ></tooltip-documentation>
             <b-row class="filtering-ui-content">
                 <b-col>
                     <div class="label">dbSNP</div>
@@ -11,12 +16,15 @@
                         @change="addSingle($event, 'select_dbsnp')"
                     ></b-form-input>
                 </b-col>
-                <b-col class="divider">&nbsp;</b-col>
+                <b-col class="divider">
+                    <span class="or-text">OR</span>
+                </b-col>
                 <b-col>
                     <div class="label">Consequence</div>
                     <b-form-select
-                        @change="addCompound($event, 'select_consequence')"
+                        @change="addCompound($event, 'select_consequence','filter-consequence')"
                         :options="filter_consequence"
+                        id="filter-consequence"
                         ref="select_consequence"
                     ></b-form-select>
                 </b-col>
@@ -26,7 +34,7 @@
                         id="filter-gene"
                         type="text"
                         v-model="select_gene_text"
-                        @change="addCompound($event, 'select_gene')"
+                        @change="addCompound($event, 'select_gene','filter-gene')"
                     ></b-form-input>
                 </b-col>
                 <b-col>
@@ -35,14 +43,15 @@
                         id="filter-pValue"
                         type="text"
                         v-model="select_pValue_text"
-                        @change="addCompound($event, 'select_pValue', false)"
+                        @change="addCompound($event, 'select_pValue','filter-pValue', false)"
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
                 <b-col>
                     <div class="label">Effect</div>
                     <b-form-select
-                        @input="addCompound($event, 'select_beta', false)"
+                        id="filter-beta"
+                        @input="addCompound($event, 'select_beta','filter-beta', false)"
                         :options="select_beta_options"
                         ref="select_beta"
                         v-model="select_beta_text"
@@ -52,7 +61,7 @@
         </b-container>
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
-                v-if="select_dbsnp.length > 0 || select_consequence.length > 0 || select_gene.length > 0 || select_pValue.length > 0"
+                v-if="select_dbsnp.length > 0 || select_consequence.length > 0 || select_gene.length > 0 || select_pValue.length > 0 || select_beta.length > 0"
             >
                 <b-col>
                     <span>Selected Filters:&nbsp;&nbsp;</span>
@@ -103,6 +112,17 @@
                             class="btn"
                         >
                             {{select_pValue}}
+                            <span class="remove">X</span>
+                        </b-badge>
+                    </template>
+                    <template v-if="select_beta.length > 0">
+                        <b-badge
+                            pill
+                            variant="primary"
+                            @click="unsetFilter('select_beta')"
+                            class="btn"
+                        >
+                            {{select_beta_text}}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -176,8 +196,15 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
+import Documentation from "@/components/Documentation";
+import TooltipDocumentation from "@/components/TooltipDocumentation";
+
 export default Vue.component("associations-table", {
     props: ["associations", "phenotypes"],
+    components: {
+        Documentation,
+        TooltipDocumentation
+    },
     data() {
         return {
             perPage: 10,
@@ -399,9 +426,13 @@ export default Vue.component("associations-table", {
             this.addFilter(event, obj);
             this.clearCompound();
         },
-        addCompound(event, obj, multiple = true) {
+        addCompound(event, obj, id, multiple = true) {
             if (multiple) this.addFilter(event, obj);
             else this.setFilter(event, obj);
+
+            let element = document.getElementById(id);
+            element.value = "";
+
             this.clearSingle();
         },
         clearSingle() {

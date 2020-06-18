@@ -1,6 +1,11 @@
 <template>
     <div>
         <b-container fluid class="filtering-ui-wrapper">
+            <tooltip-documentation
+                name="test.tooltip.index.regionexample"
+                :group="'md'"
+                :isHover="true"
+            ></tooltip-documentation>
             <b-row class="filtering-ui-content">
                 <b-col>
                     <div class="label">Phenotype</div>
@@ -13,7 +18,9 @@
                         @hit="addPhenotype($event)"
                     ></vue-typeahead-bootstrap>
                 </b-col>
-                <b-col class="divider">&nbsp;</b-col>
+                <b-col class="divider">
+                    <span class="or-text">OR</span>
+                </b-col>
                 <b-col>
                     <div class="label">pValue (&le;)</div>
                     <b-form-input
@@ -112,9 +119,15 @@ Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import Documentation from "@/components/Documentation";
+import TooltipDocumentation from "@/components/TooltipDocumentation";
 
 export default Vue.component("phewas-table", {
     props: ["associations", "phenotypeMap"],
+    components: {
+        Documentation,
+        TooltipDocumentation
+    },
     data() {
         return {
             perPage: 10,

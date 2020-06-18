@@ -858,6 +858,7 @@ div.filtering-ui-wrapper {
     text-align: center;
     margin-bottom: 10px;
     padding: 3px 0;
+    position: relative;
 }
 
 div.filtering-ui-wrapper .filter-by-label {
@@ -894,6 +895,18 @@ div.filtering-ui-content .divider.col {
     margin-right: 8px;
 }
 
+div.filtering-ui-content .divider.col .or-text {
+    display: block;
+    position: absolute;
+    left: -8px;
+    top: 35%;
+    font-size: 10px;
+    background-color: #aaa;
+    color: #fff;
+    padding: 2px 2px 1px 2px;
+    border-radius: 14px;
+}
+
 div.filtering-ui-content div.col {
     display: inline-block !important;
     width: auto !important;
@@ -910,4 +923,15 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
     width: 175px;
     font-size: 14px;
 
+}
+
+div.filtering-ui-wrapper .help-content {
+    display: block !important;
+    position: absolute;
+    top: 8px;
+    left: 5px;
+}
+
+div.filtering-ui-wrapper .help-content .help-content-caller.hover{
+    padding: 0.075em 0.525em 0.075em 0.525em !important;
 }
