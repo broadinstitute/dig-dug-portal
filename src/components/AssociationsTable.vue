@@ -62,7 +62,7 @@
         </b-container>
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
-                v-if="select_dbsnp.length > 0 || select_consequence.length > 0 || select_gene.length > 0 || select_pValue.length > 0 || select_beta.length > 0"
+                v-if="select_dbsnp.length > 0 || select_consequence.length > 0 || select_gene.length > 0 || select_pValue || select_beta"
             >
                 <b-col>
                     <span>Selected Filters:&nbsp;&nbsp;</span>

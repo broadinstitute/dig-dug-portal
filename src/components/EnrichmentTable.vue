@@ -32,6 +32,7 @@
                         @input="setFilter($event, 'select_ancestry')"
                         :options="filter_ancestry"
                         ref="select_ancestry"
+                        v-model="select_ancestry_text"
                     ></b-form-select>
                 </b-col>
                 <b-col>
@@ -40,6 +41,7 @@
                         type="text"
                         @change="setFilter($event, 'select_pValue')"
                         ref="select_pValue"
+                        v-model="select_pValue_text"
                     ></b-form-input>
                 </b-col>
             </b-row>
@@ -203,7 +205,9 @@ export default Vue.component("enrichment-table", {
             select_tissues: [],
             select_tissues_text: "",
             select_ancestry: "",
-            select_pValue: ""
+            select_ancestry_text: "",
+            select_pValue: "",
+            select_pValue_text: ""
         };
     },
 
@@ -371,6 +375,7 @@ export default Vue.component("enrichment-table", {
         },
         setFilter(event, obj) {
             this[obj] = event;
+            this[obj + "_text"] = "";
             this.$refs[obj].$el.value = "";
         },
         unsetFilter(obj) {
