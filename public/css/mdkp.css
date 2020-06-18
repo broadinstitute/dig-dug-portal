@@ -925,13 +925,13 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
 
 }
 
-div.filtering-ui-wrapper .help-content {
+.help-content.filter-wrapper-help {
     display: block !important;
     position: absolute;
     top: 8px;
     left: 5px;
 }
 
-div.filtering-ui-wrapper .help-content .help-content-caller.hover{
+.help-content.filter-wrapper-help .help-content-caller.hover{
     padding: 0.075em 0.525em 0.075em 0.525em !important;
 }
