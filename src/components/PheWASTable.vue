@@ -240,7 +240,7 @@ export default Vue.component("phewas-table", {
             this.pValueText = "";
         },
         filterBeta() {
-            this.betaText = this.beta == "p" ? "positive" : "negative";
+            this.betaText = this.beta == "p" ? "Positive" : "Negative";
             this.resetOtherFilters("beta");
         },
         resetOtherFilters(option) {
