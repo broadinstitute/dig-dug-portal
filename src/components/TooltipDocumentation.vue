@@ -1,15 +1,33 @@
 
 <template>
-    <div class="text-center">
-        <div>
-            <span id="tooltip-button-1" variant="primary" @click="show = !show">&#63;</span>
+    <div class="help-content">
+        <span
+            v-if="this.isHover == false"
+            class="help-content-caller"
+            :class="contentID"
+            v-on:click="showHideHelpContent(contentID)"
+        >&#43;</span>
+        <span
+            v-if="this.isHover == true"
+            class="help-content-caller hover"
+            :class="contentID"
+            @mouseover="showHideHelpContent(contentID)"
+            @mouseleave="showHideHelpContent(contentID)"
+        >i</span>
+        <div v-if="this.isHover == false" class="help-content-modal hidden" :id="contentID">
+            <span class="help-content-close" v-on:click="showHideHelpContent(contentID)">&#43;</span>
+            <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
         </div>
-        <b-tooltip :show.sync="show" target="tooltip-button-1" placement="top">
-            <div v-html="tooltipDocumentationContent"></div>
-        </b-tooltip>
+
+        <div v-if="this.isHover == true" class="help-hover-content-modal hidden" :id="contentID">
+            <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
+        </div>
     </div>
 </template>
 
+<style>
+@import url("/css/tooltipDocumentation.css");
+</style>
 
 <script>
 import Vue from "vue";
@@ -19,9 +37,10 @@ import queryString from "query-string";
 import * as showdown from "showdown";
 import documentationParser from "@/utils/documentationUtils";
 import Documentation from "@/components/Documentation.vue";
+import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("tooltip-documentation", {
-    props: ["name", "group", "contentFill"],
+    props: ["name", "group", "contentFill", "isHover"],
     components: {
         Documentation
     },
@@ -76,6 +95,13 @@ export default Vue.component("tooltip-documentation", {
             if (!!this.content) {
                 return this.converter.makeHtml(this.content);
             }
+        },
+        contentID() {
+            if (!!this.name) {
+                let contentID = this.name + "." + Math.random();
+                contentID.replace(/\./g, "_");
+                return contentID;
+            }
         }
     },
     watch: {
@@ -89,6 +115,11 @@ export default Vue.component("tooltip-documentation", {
         }
     },
 
-    methods: {}
+    methods: {
+        ...uiUtils,
+        showHideHelpContent(ELEMENT) {
+            uiUtils.showHideHelpContent(ELEMENT);
+        }
+    }
 });
 </script>
