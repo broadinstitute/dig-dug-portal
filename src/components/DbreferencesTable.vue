@@ -1,11 +1,6 @@
 <template>
     <div>
         <b-container fluid class="filtering-ui-wrapper">
-            <tooltip-documentation
-                name="test.tooltip.index.regionexample"
-                :group="'md'"
-                :isHover="true"
-            ></tooltip-documentation>
             <b-row class="filtering-ui-content">
                 <b-col>
                     <div class="label">Source</div>
