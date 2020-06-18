@@ -13,6 +13,7 @@ import PageHeader from "@/components/PageHeader";
 import PageFooter from "@/components/PageFooter";
 import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
 import { useTranslations, associationsForIGV, translate, associationsFromVariants } from "@/utils/dataMappingUtils";
+import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
     postAlert,
@@ -51,6 +52,7 @@ new Vue({
         //...useTranslations,
         //associationsForIGV,
         //associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
+        ...uiUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
