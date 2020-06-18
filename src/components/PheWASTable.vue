@@ -6,7 +6,7 @@
                     <div class="label">Phenotype</div>
                     <vue-typeahead-bootstrap
                         v-if="phenotypeMap"
-                        v-model="userText"
+                        v-model="phenotypeText"
                         ref="phenotypeSelect"
                         :data="Object.values(phenotypeMap)"
                         :serializer="s => s.description"
@@ -165,7 +165,7 @@ export default Vue.component("phewas-table", {
                 }
             ],
 
-            userText: "",
+            phenotypeText: "",
             selectedPhenotypes: [],
             pValue: "",
             pValueText: "",
@@ -228,7 +228,7 @@ export default Vue.component("phewas-table", {
         floatFormatter: Formatters.floatFormatter,
         addPhenotype(event) {
             this.selectedPhenotypes.push(event.description);
-            this.userText = "";
+            this.phenotypeText = "";
             this.resetOtherFilters("selectedPhenotypes");
         },
         removePhenotype(index) {

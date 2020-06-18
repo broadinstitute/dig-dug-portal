@@ -7,7 +7,7 @@
                     <b-form-select
                         @input="addFilter($event, 'annotations')"
                         :options="filter_annotation"
-                        v-model="annotation"
+                        id="annotations-filter"
                     ></b-form-select>
                 </b-col>
                 <b-col>
@@ -15,7 +15,7 @@
                     <b-form-select
                         @input="addFilter($event, 'methods')"
                         :options="filter_method"
-                        v-model="method"
+                        id="methods-filter"
                     ></b-form-select>
                 </b-col>
                 <b-col>
@@ -23,7 +23,7 @@
                     <b-form-select
                         @input="addFilter($event, 'tissues')"
                         :options="filter_tissue"
-                        v-model="tissue"
+                        id="tissues-filter"
                     ></b-form-select>
                 </b-col>
             </b-row>
@@ -163,9 +163,6 @@ export default Vue.component("regions-table", {
             methods: [],
             tissues: []
         };
-    },
-    mounted() {
-        //this.tableData = this.sortedRegions;
     },
 
     computed: {
