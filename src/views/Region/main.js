@@ -159,6 +159,12 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
+        documentationMap() {
+            return {
+                phenotype: this.$store.state.phenotype.description,
+            }
+        },
+
         genes() {
             return this.$store.state.genes.data.filter(function (gene) {
                 return gene.source == "symbol";

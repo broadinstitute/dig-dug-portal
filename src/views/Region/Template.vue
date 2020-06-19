@@ -119,7 +119,10 @@
                         v-if="$store.state.phenotype"
                         class="card-title"
                     >Associations for {{$store.state.phenotype.description}}</h4>
-                    <documentation :name="'region.lz.subheader'"></documentation>
+                    <documentation
+                        name="region.lz.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
                     <locuszoom
                         v-if="$store.state.phenotype"
                         :panels="['association','genes']"
@@ -152,7 +155,10 @@
                             class="card-title"
                         >Credible Sets and Annotations for {{$store.state.phenotype.description}} in the region: {{$parent.regionString}}</h4>
 
-                        <documentation name="region.igv.subheader"></documentation>
+                        <documentation
+                            name="region.igv.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
 
                         <div class="row card-body">
                             <div class="col-md-6">Annotation Method Track</div>
