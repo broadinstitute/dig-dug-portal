@@ -142,8 +142,11 @@ function tissueFormatter(tissue) {
         return '-';
     }
 
-    // return capitalizedFormatter(tissue.description);
-    return capitalizedFormatter(tissue);
+    if (typeof (tissue) === "string") {
+        return capitalizedFormatter(tissue);
+    }
+
+    return capitalizedFormatter(tissue.description);
 }
 
 export default {

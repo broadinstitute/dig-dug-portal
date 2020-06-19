@@ -83,7 +83,7 @@
                                 :key="gene.name"
                             >{{gene.name}}</span>&nbsp;
                         </div>
-                        <div>
+                        <div v-if="$parent.region">
                             <strong>Length:</strong>
                             {{" "+($parent.region.end - $parent.region.start).toLocaleString()}} bp
                         </div>

@@ -1,10 +1,25 @@
 
 <template>
     <div class="help-content">
-        <span class="help-content-caller" v-on:click="showHideHelpContent(contentID)">&#63;</span>
-
-        <div class="help-content-modal hidden" :id="contentID">
+        <span
+            v-if="this.isHover == false"
+            class="help-content-caller"
+            :class="contentID"
+            v-on:click="showHideHelpContent(contentID)"
+        >&#43;</span>
+        <span
+            v-if="this.isHover == true"
+            class="help-content-caller hover"
+            :class="contentID"
+            @mouseover="showHideHelpContent(contentID)"
+            @mouseleave="showHideHelpContent(contentID)"
+        >i</span>
+        <div v-if="this.isHover == false" class="help-content-modal hidden" :id="contentID">
             <span class="help-content-close" v-on:click="showHideHelpContent(contentID)">&#43;</span>
+            <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
+        </div>
+
+        <div v-if="this.isHover == true" class="help-hover-content-modal hidden" :id="contentID">
             <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
         </div>
     </div>
@@ -23,7 +38,7 @@ import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("tooltip-documentation", {
-    props: ["name", "group", "contentFill"],
+    props: ["name", "group", "contentFill", "isHover"],
     components: {
         Documentation
     },
