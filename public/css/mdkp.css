@@ -327,6 +327,7 @@ a:hover {
     border-bottom: solid 1px #666;
     text-align: left;
     list-style: none;
+    white-space: nowrap;
 }
 
 .am-submenu > li:hover {
