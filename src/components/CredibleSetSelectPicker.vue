@@ -67,7 +67,7 @@ export default Vue.component("credible-sets-selectpicker", {
             this.$store.dispatch("onCredibleSetChange", event);
 
             if (this.clearOnSelected) {
-                this.userText = null;
+                this.userText = '';
             }
         },
 

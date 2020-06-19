@@ -81,7 +81,7 @@ export default Vue.component("annotation-method-selectpicker", {
             this.$store.dispatch("onAnnotationChange", event);
 
             if (this.clearOnSelected) {
-                this.userText = null;
+                this.userText = '';
             }
         },
 
