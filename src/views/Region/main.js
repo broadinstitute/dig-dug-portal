@@ -161,7 +161,7 @@ new Vue({
 
         documentationMap() {
             return {
-                phenotype: this.$store.state.phenotype.description,
+                phenotype: this.$store.state.phenotype && this.$store.state.phenotype.description,
             }
         },
 

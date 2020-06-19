@@ -36,6 +36,7 @@ import * as showdown from "showdown";
 import documentationParser from "@/utils/documentationUtils";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 export default Vue.component("tooltip-documentation", {
     props: ["name", "group", "contentFill", "isHover"],
