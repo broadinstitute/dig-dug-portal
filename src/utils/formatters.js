@@ -94,8 +94,6 @@ function floatFormatter(value) {
     return Number.parseFloat(value).toFixed(2);
 }
 
-
-
 function pValueFormatter(value) {
     if (!value) {
         return '-';
@@ -121,6 +119,13 @@ function intFormatter(value) {
     return !!value ? Number.parseInt(value).toLocaleString() : '-';
 }
 
+function igvLocusFormatter(igvLocus) {
+    const chromosome = igvLocus.chr.charAt(3);
+    const start = igvLocus.start.replace(',', '');
+    const end = igvLocus.end.replace(',', '');
+    return locusFormatter(chromosome, position, end);
+}
+
 function locusFormatter(chromosome, position, end = undefined) {
     if (!!end) {
         return `${chromosome}:${position}-${end}`;
@@ -137,7 +142,8 @@ function tissueFormatter(tissue) {
         return '-';
     }
 
-    return capitalizedFormatter(tissue.description);
+    // return capitalizedFormatter(tissue.description);
+    return capitalizedFormatter(tissue);
 }
 
 export default {
@@ -152,6 +158,7 @@ export default {
     floatFormatter,
     intFormatter,
     locusFormatter,
+    igvLocusFormatter,
     phenotypeFormatter,
     tissueFormatter,
     pValueFormatter,

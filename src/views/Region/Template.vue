@@ -11,14 +11,14 @@
                         Chromosome: Start position - End position
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('regionSearchHolder','region_gene_search')"
+                            v-on:click="() => $parent.showHideElement('regionSearchHolder','region_gene_search')"
                         >Edit position / Search gene</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title">
                         Phenotype
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('phenotypeSearchHolder')"
+                            v-on:click="() => $parent.showHideElement('phenotypeSearchHolder')"
                         >Select phenotype</a>
                     </div>
                     <div class="col-md-8 gene-page-header-body regionInfo">
@@ -112,6 +112,7 @@
                     <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
@@ -131,16 +132,81 @@
                     ></locuszoom>
                 </div>
             </div>
-            <div v-if="$store.state.phenotype" class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Top Associations for {{$store.state.phenotype.description}}</h4>
-                    <documentation name="region.variantassociation.subheader"></documentation>
-                    <associations-table
-                        :phenotypes="$parent.phenotypes"
-                        :associations="$store.state.associations.data"
-                    ></associations-table>
+
+            <div v-if="$store.state.phenotype">
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4
+                            class="card-title"
+                        >Top Associations for {{$store.state.phenotype.description}}</h4>
+                        <documentation name="region.variantassociation.subheader"></documentation>
+                        <associations-table
+                            :phenotypes="$parent.phenotypes"
+                            :associations="$store.state.associations.data"
+                        ></associations-table>
+                    </div>
+                </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4
+                            class="card-title"
+                        >Credible Sets and Annotations for {{$store.state.phenotype.description}} in the region: {{$parent.regionString}}</h4>
+
+                        <documentation name="region.igv.subheader"></documentation>
+
+                        <div class="row card-body">
+                            <div class="col-md-6">Annotation Method Track</div>
+                            <div class="col-md-6">Credible Sets Track</div>
+                            <div class="col-md-6">
+                                <!-- <tissue-selectpicker
+                                :tissues="$parent.tissues"
+                            ></tissue-selectpicker>
+                                <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button><br>-->
+                                <annotation-method-selectpicker
+                                    :annotations="$parent.globalEnrichmentAnnotations"
+                                    :clearOnSelected="true"
+                                />
+                                <!-- with tissues filtered on
+                            pValue &lt; <input v-model.number="$parent.pValue"/> and
+                                beta &gt; <input v-model.number="$parent.beta"/>-->
+                                <!-- <tissue-selectpicker
+                                :tissues="$parent.tissues">
+                            </tissue-selectpicker>
+
+                                <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>-->
+                            </div>
+
+                            <div class="col-md-6">
+                                <credible-sets-selectpicker
+                                    :credibleSets="$parent.credibleSets"
+                                    :clearOnSelected="true"
+                                />
+                            </div>
+                        </div>
+
+                        <div v-if="!!$store.state.phenotype">
+                            <igv
+                                ref="igv"
+                                :chr="$store.state.chr"
+                                :start="$store.state.start"
+                                :end="$store.state.end"
+                                :regionHandler="locus => {
+                                const region = {
+                                    chr: locus.chr.charAt(3),
+                                    start: locus.start.replace(/,/g, ''),
+                                    end: locus.end.replace(/,/g, ''),
+                                };
+                                $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
+                            }"
+                            >
+                                <!-- <igv-associations-track
+                                :phenotype="$store.state.phenotype.name"
+                                visualization="gwas"
+                                :finishHandler="response => $parent.routeResponseToModule(response)"
+                                ></igv-associations-track>-->
+                            </igv>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

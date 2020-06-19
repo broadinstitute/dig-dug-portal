@@ -16,8 +16,6 @@
 
 <script>
 import Vue from "vue";
-import { camelKebab } from "@/utils/bioIndexUtils";
-import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import queryString from "query-string";
 import * as showdown from "showdown";
 import documentationParser from "@/utils/documentationUtils";

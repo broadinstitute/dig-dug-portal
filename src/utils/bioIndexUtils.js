@@ -14,6 +14,7 @@ export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
 // => it does mean that in order for this code to not throw errors, those final parameters cannot be optional per se,
 //    but require an empty object for errors not to be reported.
 export async function query(index, q, { limit, resolveHandler, errHandler, finishHandler }) {
+    console.log('querying', index)
     let qs = querystring.stringify({ q, limit }, { skipNull: true });
     let req = fetch(`${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`);
 
