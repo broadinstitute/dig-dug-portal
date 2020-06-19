@@ -1,94 +1,83 @@
 import Vue from "vue";
+
+import keyParams from "@/utils/keyParams"
+
+import store from "./store"
 import Template from "./Template.vue";
-import store from "./store.js";
+import IGV from "@/components/igv/IGV.vue"
+import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
+import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
+import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue"
 
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap-vue/dist/bootstrap-vue.css';
+import TissueSelectPicker from "@/components/TissueSelectPicker"
+import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 
-import IGV from "@/components/IGV";
-import LoadingBar from "@/components/LoadingBar";
-
-import PageHeader from "@/components/PageHeader";
-import PageFooter from "@/components/PageFooter";
-import PhenotypeSelectPicker from "../../components/PhenotypeSelectPicker";
-import { useTranslations, associationsForIGV, translate, associationsFromVariants } from "@/utils/dataMappingUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert
-} from "@/components/Alert";
-import uiUtils from "@/utils/uiUtils";
-
-
-import Documentation from "@/components/Documentation"
-import TooltipDocumentation from "@/components/TooltipDocumentation"
+import * as _ from "lodash";
 
 Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
-
     components: {
-        PageHeader,
-        PageFooter,
-        PhenotypeSelectPicker,
-        LoadingBar,
         IGV,
-        Alert,
-        Documentation,
-        TooltipDocumentation,
+        IGVAssociationsTrack,
+        IGVIntervalTrack,
+        IGVCredibleVariantsTrack,
+        TissueSelectPicker,
+        CredibleSetSelectPicker,
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    methods: {
-        //...useTranslations,
-        //associationsForIGV,
-        //associationsForIGVFromVariants: translate({ from: associationsFromVariants, to: associationsForIGV}),
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-        ...uiUtils,
-        pause: () => console.log('hello'),
-        forceError: () => {
-            null.hello()
-            throw new Error("error");
+    data() {
+        return {
+            trackPhenotype: '',
+            trackPhenotypeVisualization: 'gwas',
+            trackTissueDescription: '',
+            variantSelections: [],
+            phenotypes: ['BMI', 'T2D'],
+            datasets: [],
         }
     },
-
+    mounted() {
+        this.$store.dispatch('regions/query',{
+            q: `${keyParams.chr}:${keyParams.start}-${keyParams.end}`
+        });
+        this.$store.dispatch('credibleSets/query',{
+            q: `${keyParams.phenotype},${keyParams.chr}:${keyParams.start}-${keyParams.end}`
+        });
+    },
     computed: {
-        variantData() {
-            return this.$store.state.topAssociations.data;
+        tissues() {
+            return _.uniqBy(this.$store.state.regions.data.filter(interval => !!interval.tissue).map(interval => interval.tissue), 'id');
+        },
+        credibleSets() {
+            return this.$store.state.credibleSets.data;
+        },
+    },
+    methods: {
+        removeVariant: function (variant) {
+            this.variantSelections = this.variantSelections.filter(variantName => variant !== variantName)
         },
 
-        topAssociations() {
-            let top = {};
-
-            this.variantData.forEach(v => {
-                let p = v.phenotype;
-
-                if (!top[p] || v.pValue < top[p].pValue) {
-                    top[p] = v;
+        addCredibleSetsTrack: function () {
+            this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
+                data: {
+                    phenotype: keyParams.phenotype,
+                    credibleSetId: this.$store.state.currentCredibleSet,
+                    visualization: this.trackPhenotypeVisualization,
                 }
             });
-
-            let associations = Object.values(top);
-            associations.sort((a, b) => a.pValue - b.pValue);
-
-            return associations;
         },
 
-        percentComplete() {
-            return this.$store.getters['topAssociations/percentComplete'];
-        }
+        addIntervalsTrack: function () {
+            this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
+                data: {
+                    tissue: this.$store.state.currentTissue,
+                }
+            });
+        },
+
+    },
+    render(createElement, context) {
+        return createElement(Template);
     },
 
 }).$mount("#app");

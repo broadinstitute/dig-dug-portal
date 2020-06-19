@@ -38,11 +38,13 @@ new Vue({
         return {
             counter: 0,
             externalResources: {
-                "ensembl": "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
-                "hgnc": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
-                "mgd": "http://www.informatics.jax.org/marker/",
-                "rgd": "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=",
-                "ucsc": "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+                ensembl:
+                    "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
+                hgnc:
+                    "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                mgd: "http://www.informatics.jax.org/marker/",
+                rgd: "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=",
+                ucsc: "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
             }
         };
     },
@@ -64,7 +66,7 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert,
+        closeAlert
     },
 
     computed: {
@@ -89,12 +91,14 @@ new Vue({
         },
 
         aliasNames() {
-            return this.$store.state.genes.data.filter(g => g.source === 'alias');
+            return this.$store.state.genes.data.filter(
+                g => g.source === "alias"
+            );
         },
 
         alternateNames() {
             return this.$store.state.genes.data
-                .filter(g => g.source !== 'symbol')
+                .filter(g => g.source !== "symbol")
                 .sort((a, b) => {
                     if (a.source < b.source) return -1;
                     if (a.source > b.source) return 1;
@@ -103,26 +107,26 @@ new Vue({
         },
 
         dbReference() {
-            return this.$store.getters['uniprot/dbReference'];
+            return this.$store.getters["uniprot/dbReference"];
         },
 
         accession() {
-            return this.$store.getters['uniprot/accession'];
+            return this.$store.getters["uniprot/accession"];
         },
 
         geneFunction() {
-            return this.$store.getters['uniprot/geneFunction'];
+            return this.$store.getters["uniprot/geneFunction"];
         },
 
         geneNames() {
-            return this.$store.getters['uniprot/geneNames'];
+            return this.$store.getters["uniprot/geneNames"];
         },
 
         gene() {
-            let data = this.$store.state.gene
-            if (data.length > x0) {
-                console.log(data[0])
-                return data[0]
+            let data = this.$store.state.gene;
+            if (data.length > 0) {
+                console.log(data[0]);
+                return data[0];
             }
             return {};
         }
@@ -137,13 +141,13 @@ new Vue({
 
         // the region for the gene was found
         region(region) {
-            this.hideElement('variantSearchHolder')
-            this.$store.dispatch('queryGeneRegion', region);
+            this.hideElement("variantSearchHolder");
+            this.$store.dispatch("queryGeneRegion", region);
         },
 
         // the canonical symbol was found
         symbolName(symbol) {
-            this.$store.dispatch('queryUniprot', symbol);
+            this.$store.dispatch("queryUniprot", symbol);
         }
     }
 }).$mount("#app");

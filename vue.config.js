@@ -70,5 +70,69 @@ module.exports = {
             title: "Dataset Inspector",
             chunks: ["chunk-vendors", "chunk-common", "dinspector"]
         },
+        downloads: {
+            entry: "src/views/Downloads/main.js",
+            template: "public/index.html",
+            filename: "downloads.html",
+            title: "Downloads",
+            chunks: ["chunk-vendors", "chunk-common", "downloads"]
+        },
+        policies: {
+            entry: "src/views/Policies/main.js",
+            template: "public/index.html",
+            filename: "policies.html",
+            title: "Policies",
+            chunks: ["chunk-vendors", "chunk-common", "policies"]
+        },
+        about: {
+            entry: "src/views/About/main.js",
+            template: "public/index.html",
+            filename: "about.html",
+            title: "About",
+            chunks: ["chunk-vendors", "chunk-common", "about"]
+        },
+        collaborate: {
+            entry: "src/views/Collaborate/main.js",
+            template: "public/index.html",
+            filename: "collaborate.html",
+            title: "Collaborate",
+            chunks: ["chunk-vendors", "chunk-common", "collaborate"]
+        },
+        resources: {
+            entry: "src/views/Resources/main.js",
+            template: "public/index.html",
+            filename: "resources.html",
+            title: "Resources",
+            chunks: ["chunk-vendors", "chunk-common", "resources"]
+        },
+        publications: {
+            entry: "src/views/Publications/main.js",
+            template: "public/index.html",
+            filename: "publications.html",
+            title: "Publications",
+            chunks: ["chunk-vendors", "chunk-common", "publications"]
+        },
+        news: {
+            entry: "src/views/News/main.js",
+            template: "public/index.html",
+            filename: "news.html",
+            title: "News",
+            chunks: ["chunk-vendors", "chunk-common", "news"]
+        },
+        contacts: {
+            entry: "src/views/Contacts/main.js",
+            template: "public/index.html",
+            filename: "contacts.html",
+            title: "Contacts",
+            chunks: ["chunk-vendors", "chunk-common", "contacts"]
+        },
+        apis: {
+            entry: "src/views/Apis/main.js",
+            template: "public/index.html",
+            filename: "apis.html",
+            title: "Apis",
+            chunks: ["chunk-vendors", "chunk-common", "apis"]
+        },
+
     }
 };

@@ -54,6 +54,7 @@ export const associationsForLZ = associations => {
 };
 // IGV Datamapping
 // name these like xForY -> xForIGV
+*/
 export const associationsForIGV = associations => {
     return associations.map(association => {
         const annotation = cloneDeep(association);
@@ -72,8 +73,6 @@ export const associationsForIGV = associations => {
 }
 
 export const useTranslations = {
-    associationsForLZ,
     associationsForIGV,
 }
 
-*/

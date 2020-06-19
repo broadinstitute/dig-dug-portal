@@ -1,11 +1,128 @@
 <template>
     <div>
+        <b-container fluid class="filtering-ui-wrapper">
+            <b-row class="filtering-ui-content">
+                <b-col>
+                    <div class="label">Annotation</div>
+                    <b-form-select
+                        @input="addFilter($event, 'select_annotations')"
+                        :options="filter_annotation"
+                        v-model="select_annotations_text"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div class="label">Method</div>
+                    <b-form-select
+                        @input="addFilter($event, 'select_methods')"
+                        :options="filter_method"
+                        v-model="select_methods_text"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div class="label">Tissue</div>
+                    <b-form-select
+                        @input="addFilter($event, 'select_tissues')"
+                        :options="filter_tissue"
+                        v-model="select_tissues_text"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div class="label">Ancestry:</div>
+                    <b-form-select
+                        @input="setFilter($event, 'select_ancestry')"
+                        :options="filter_ancestry"
+                        ref="select_ancestry"
+                        v-model="select_ancestry_text"
+                    ></b-form-select>
+                </b-col>
+                <b-col>
+                    <div class="label">p-Value (&le;)</div>
+                    <b-form-input
+                        type="text"
+                        @change="setFilter($event, 'select_pValue')"
+                        ref="select_pValue"
+                        v-model="select_pValue_text"
+                    ></b-form-input>
+                </b-col>
+            </b-row>
+        </b-container>
+        <b-container fluid class="selected-filters-ui-wrapper">
+            <b-row>
+                <b-col>
+                    <span
+                        v-if="select_annotations.length > 0 || select_methods.length > 0 || select_tissues.length > 0 || select_ancestry || select_pValue"
+                    >Selected Filters:&nbsp;&nbsp;</span>
+                    <template v-if="select_annotations">
+                        <b-badge
+                            pill
+                            variant="info"
+                            v-for="(v,i) in select_annotations"
+                            :key="v"
+                            @click="removeFilter(i, 'select_annotations')"
+                            class="btn"
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
+                    </template>
+                    <template v-if="select_methods">
+                        <b-badge
+                            pill
+                            variant="primary"
+                            v-for="(v,i) in select_methods"
+                            :key="v"
+                            @click="removeFilter(i, 'select_methods')"
+                            class="btn"
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
+                    </template>
+                    <template v-if="select_tissues">
+                        <b-badge
+                            pill
+                            variant="warning"
+                            v-for="(v,i) in select_tissues"
+                            :key="v"
+                            @click="removeFilter(i, 'select_tissues')"
+                            class="btn"
+                        >
+                            {{v}}
+                            <span class="remove">X</span>
+                        </b-badge>
+                    </template>
+                    <template v-if="select_ancestry">
+                        <b-badge
+                            pill
+                            variant="success"
+                            @click="unsetFilter('select_ancestry')"
+                            class="btn"
+                        >
+                            {{select_ancestry}}
+                            <span class="remove">X</span>
+                        </b-badge>
+                    </template>
+                    <template v-if="select_pValue">
+                        <b-badge
+                            pill
+                            variant="danger"
+                            @click="unsetFilter('select_pValue')"
+                            class="btn"
+                        >
+                            {{select_pValue}}
+                            <span class="remove">X</span>
+                        </b-badge>
+                    </template>
+                </b-col>
+            </b-row>
+        </b-container>
+
         <div v-if="rows > 0">
             <b-table
                 hover
                 small
                 responsive="sm"
-                :items="groupedAnnotations"
+                :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -17,7 +134,7 @@
                     <b-th
                         :key="phenotype.name"
                         v-for="(phenotype, i) in phenotypes"
-                        colspan="2"
+                        colspan="3"
                         class="reference"
                         :class="'color-' + (i+1)"
                     >
@@ -44,6 +161,7 @@ import c3 from "c3";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
+import Filters from "@/utils/filters";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -66,7 +184,8 @@ export default Vue.component("enrichment-table", {
                 },
                 {
                     key: "method",
-                    label: "Method"
+                    label: "Method",
+                    formatter: Formatters.capitalizedFormatter
                 },
                 {
                     key: "tissue",
@@ -78,7 +197,17 @@ export default Vue.component("enrichment-table", {
                     label: "Ancestry",
                     formatter: Formatters.ancestryFormatter
                 }
-            ]
+            ],
+            select_annotations: [],
+            select_annotations_text: "",
+            select_methods: [],
+            select_methods_text: "",
+            select_tissues: [],
+            select_tissues_text: "",
+            select_ancestry: "",
+            select_ancestry_text: "",
+            select_pValue: "",
+            select_pValue_text: ""
         };
     },
 
@@ -98,12 +227,14 @@ export default Vue.component("enrichment-table", {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
                                 : "";
-                        }
+                        },
+                        sortable: true
                     },
                     {
                         key: `${p.name}_SNPs`,
                         label: `SNPs`,
-                        formatter: Formatters.intFormatter
+                        formatter: Formatters.intFormatter,
+                        sortable: true
                     }
                 ]);
             }
@@ -112,7 +243,7 @@ export default Vue.component("enrichment-table", {
         },
 
         rows() {
-            return this.groupedAnnotations.length;
+            return this.tableData.length;
         },
 
         groupedAnnotations() {
@@ -144,6 +275,7 @@ export default Vue.component("enrichment-table", {
                 data[dataIndex][`${r.phenotype}_expectedSNPs`] = r.expectedSNPs;
                 data[dataIndex][`${r.phenotype}_SNPs`] = r.SNPs;
                 data[dataIndex][`${r.phenotype}_pValue`] = r.pValue;
+                data[dataIndex][`${r.phenotype}_beta`] = r.beta;
 
                 // lowest p-value across all phenotypes
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
@@ -169,6 +301,85 @@ export default Vue.component("enrichment-table", {
             data.sort((a, b) => a.minP - b.minP);
 
             return data;
+        },
+        filter_annotation() {
+            return this.groupedAnnotations
+                .map(v => Formatters.annotationFormatter(v.annotation))
+                .filter((v, i, arr) => arr.indexOf(v) == i);
+        },
+        filter_method() {
+            return this.groupedAnnotations
+                .map(v => Formatters.capitalizedFormatter(v.method))
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != undefined);
+        },
+        filter_tissue() {
+            return this.groupedAnnotations
+                .map(v => Formatters.tissueFormatter(v.tissue))
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter((v, i, arr) => v != undefined)
+                .filter((v, i, arr) => v != "-");
+        },
+        filter_ancestry() {
+            return this.groupedAnnotations
+                .map(v => Formatters.ancestryFormatter(v.ancestry))
+                .filter((v, i, arr) => arr.indexOf(v) == i);
+        },
+        tableData() {
+            let dataRows = this.groupedAnnotations;
+            if (this.select_annotations.length > 0) {
+                dataRows = Filters.filterFormatted(
+                    dataRows,
+                    this.select_annotations,
+                    "annotation"
+                );
+            }
+            if (this.select_methods.length > 0) {
+                dataRows = Filters.filterFormatted(
+                    dataRows,
+                    this.select_methods,
+                    "method"
+                );
+            }
+            if (this.select_tissues.length > 0) {
+                dataRows = Filters.filterFormatted(
+                    dataRows,
+                    this.select_tissues,
+                    "tissue"
+                );
+            }
+            if (this.select_ancestry != "") {
+                dataRows = Filters.filterFormatted(
+                    dataRows,
+                    this.select_ancestry,
+                    "ancestry"
+                );
+            }
+            if (this.select_pValue != "") {
+                dataRows = Filters.filterPValue(
+                    dataRows,
+                    this.select_pValue,
+                    `${this.phenotypes[0].name}_pValue`
+                );
+            }
+            return dataRows;
+        }
+    },
+    methods: {
+        addFilter(event, obj) {
+            this[obj].push(event);
+            this[obj + "_text"] = "";
+        },
+        removeFilter(index, obj) {
+            this[obj].splice(index, 1);
+        },
+        setFilter(event, obj) {
+            this[obj] = event;
+            this[obj + "_text"] = "";
+            this.$refs[obj].$el.value = "";
+        },
+        unsetFilter(obj) {
+            this[obj] = "";
         }
     }
 });

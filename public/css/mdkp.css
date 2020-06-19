@@ -849,6 +849,89 @@ polyline {
     content: "";
 }
 
-.dataset-page-header .card-body h2 {
-    margin: 0 !important;
+
+/* Filtering UI */
+div.filtering-ui-wrapper {
+    border: solid 1px #ddd;
+    border-radius: 5px;
+    background-color: #efefef;
+    text-align: center;
+    margin-bottom: 10px;
+    padding: 3px 0;
+    position: relative;
+}
+
+div.filtering-ui-wrapper .filter-by-label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+div.selected-filters-ui-wrapper {
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 400;
+    min-height: 1px;
+}
+
+div.selected-filters-ui-wrapper .badge-pill {
+    font-size: 12px;
+    font-weight: 400;
+    margin: 0 3px;
+}
+
+div.filtering-ui-content {
+    width: auto !important;
+    display: block;
+}
+
+div.filtering-ui-content .divider.col {
+    width: 1px !important;
+    height: 61px;
+    padding: 0 1px 0 0;
+    background-color: #aaa;
+    margin-bottom: -17px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+div.filtering-ui-content .divider.col .or-text {
+    display: block;
+    position: absolute;
+    left: -8px;
+    top: 35%;
+    font-size: 10px;
+    background-color: #aaa;
+    color: #fff;
+    padding: 2px 2px 1px 2px;
+    border-radius: 14px;
+}
+
+div.filtering-ui-content div.col {
+    display: inline-block !important;
+    width: auto !important;
+    font-size: 14px;
+    padding: 5px 7px;
+}
+
+div.filtering-ui-content div.col .label {
+    font-weight: 600;
+}
+
+div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col select, div.filtering-ui-content div.col .input {
+    height: 30px;
+    width: 175px;
+    font-size: 14px;
+
+}
+
+.help-content.filter-wrapper-help {
+    display: block !important;
+    position: absolute;
+    top: 2px;
+    left: 5px;
+}
+
+.help-content.filter-wrapper-help .help-content-caller.hover{
+    padding: 0.075em 0.525em 0.075em 0.525em !important;
 }
