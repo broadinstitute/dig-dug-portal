@@ -8,6 +8,7 @@
             <h4>Disease group</h4>
             <div
                 v-for="(row, i) in diseaseGroupsFiltered"
+                v-if="row.memberCMD == true"
                 v-on:click="setSeletedDiseaseGroup(row.name)"
                 class="btn btn-sm btn-disease-group"
                 :class="row.name == selectedDiseaseGroup || (row.name == 'md' && selectedDiseaseGroup == null)? 'selected':''"
@@ -41,11 +42,11 @@
             >{{row.description}}</div>
         </div>
 
-        <h3 style="margin-top: 30px;">
+        <h3 style="margin-top: 30px;" v-if="datasetsListNew.length > 0">
             New Datasets
             <small class="datasets-list-header-small">(Click datasets for description)</small>
         </h3>
-        <div class="new datasets-list-table">
+        <div class="new datasets-list-table" v-if="datasetsListNew.length > 0">
             <table class="table table-hover table-sm">
                 <thead>
                     <tr>
@@ -90,11 +91,11 @@
             </table>
         </div>
 
-        <h3>
+        <h3 v-if="datasetsListNotNew.length > 0">
             Datasets
             <small class="datasets-list-header-small">(Click datasets for description)</small>
         </h3>
-        <div class="datasets-list-table">
+        <div class="datasets-list-table" v-if="datasetsListNotNew.length > 0">
             <table class="table table-hover table-sm">
                 <thead>
                     <tr>

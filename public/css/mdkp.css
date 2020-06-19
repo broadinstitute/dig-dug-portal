@@ -116,6 +116,14 @@ a:hover {
     transform: translate(0%, 35%);
 }
 
+.front-logo-tagline-v2fkp {
+    transform: translate(0%,42%);
+}
+
+.front-logo-tagline-t1dkp {
+    transform: translate(0%, 20%);
+}
+
 .front-banner-ui-tabs {
     width: 800px;
     margin-left: auto;
@@ -271,6 +279,7 @@ a:hover {
     border-bottom: solid 1px #666;
     text-align: left;
     list-style: none;
+    white-space: nowrap;
 }
 
 .am-submenu > li:hover {
