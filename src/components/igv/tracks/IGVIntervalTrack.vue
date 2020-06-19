@@ -155,7 +155,7 @@ export default Vue.component('igv-intervals-track', {
                     .map(interval => {
                         const color = this.colorScheme(interval.tissue)
                         return {
-                            name: interval.tissue,
+                            name: interval.tissue || interval.tissueId,
                             chr: interval.chromosome,
                             start: interval.start,
                             end: interval.end,

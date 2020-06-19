@@ -113,6 +113,7 @@ export default function (index, extend) {
                     });
 
                     // data is loaded
+                    closeAlert(alertID);
                     context.commit("setResponse", { data, profile });
                 }
             }

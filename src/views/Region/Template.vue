@@ -149,9 +149,9 @@
                             <annotation-method-selectpicker
                                 :annotations="$parent.globalEnrichmentAnnotations"
                                 :clearOnSelected="true"/>
-                            with tissues filtered on 
+                            <!-- with tissues filtered on 
                             pValue &lt; <input v-model.number="$parent.pValue"/> and
-                            beta &gt; <input v-model.number="$parent.beta"/>
+                            beta &gt; <input v-model.number="$parent.beta"/> -->
                             <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues">
                             </tissue-selectpicker>
@@ -180,11 +180,11 @@
                                 };
                                 $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
                             }">
-                            <igv-associations-track
+                            <!-- <igv-associations-track
                                 :phenotype="$store.state.phenotype.name"
                                 visualization="gwas"
                                 :finishHandler="response => $parent.routeResponseToModule(response)"
-                            ></igv-associations-track>
+                            ></igv-associations-track> -->
                         </igv>
                     </div>
 
@@ -193,7 +193,7 @@
 
         </div>
 
-        <!-- <div class="card mdkp-card">
+        <div class="card mdkp-card">
             <div class="card-body">
                 <h4
                     v-if="$store.state.phenotype"
@@ -211,7 +211,7 @@
                     @lzupdate="$store.dispatch('loadAssociations', $event)"
                 ></locuszoom>
             </div>
-        </div> -->
+        </div>
 
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
