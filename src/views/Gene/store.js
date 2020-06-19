@@ -31,6 +31,7 @@ export default new Vuex.Store({
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
+        
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
@@ -67,6 +68,7 @@ export default new Vuex.Store({
     actions: {
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
+            context.commit('setGeneName', name);
 
             if (!!name) {
                 context.dispatch('gene/query', { q: name });

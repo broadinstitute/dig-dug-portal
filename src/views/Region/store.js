@@ -109,7 +109,7 @@ export default new Vuex.Store({
         },
 
         async onAnnotationChange(context, eventData) {
-            console.log(eventData)
+            //console.log(eventData)
             context.commit('setAnnotationChange', eventData.annotation)
         },
 

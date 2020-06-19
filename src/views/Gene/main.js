@@ -54,6 +54,7 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+
     },
 
     render(createElement, context) {
@@ -124,14 +125,15 @@ new Vue({
         gene() {
             let data = this.$store.state.gene;
             if (data.length > 0) {
-                console.log(data[0]);
                 return data[0];
             }
             return {};
         }
     },
 
+
     watch: {
+
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
