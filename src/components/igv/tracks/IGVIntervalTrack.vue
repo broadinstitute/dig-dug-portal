@@ -161,15 +161,15 @@ export default Vue.component("igv-intervals-track", {
             if (!!intervals) {
                 return intervals
                     .filter(
-                        interval =>
+                        interval => (!!this.tissueScoring[interval.annotation][interval.tissue] &&
                             !!!this.pValue ||
                             (this.tissueScoring[interval.annotation][
                                 interval.tissue
                             ].pValue < this.pValue &&
-                                !!!this.beta) ||
+                                !!!this.beta) || !!!
                             this.tissueScoring[interval.annotation][
                                 interval.tissue
-                            ].beta > this.beta &&
+                            ].beta > this.beta) ||
                             (!!!this.method || !!!interval.method || 
                                 this.method === interval.method)
                     )

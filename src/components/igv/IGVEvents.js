@@ -25,5 +25,15 @@ export {
     IGV_BIOINDEX_QUERY_FINISH,
 };
 
+const IGV_ZOOM_IN = 'igv-zoomin'
+const IGV_ZOOM_OUT = 'igv-zoomout'
+const IGV_SET_COORDS = 'igv-setcoords'
+
+export {
+    IGV_ZOOM_IN,
+    IGV_ZOOM_OUT,
+    IGV_SET_COORDS,
+};
+
 const IGVEvents = new Vue();
 export default IGVEvents;
