@@ -76,7 +76,13 @@
                             class="btn btn-link btn-lg text-nowrap text-right"
                             :href="`region.html?chr=${$store.state.chr}&start=${$store.state.start-50000}&end=${$store.state.end+50000}`"
                         >Extend &plusmn; 50 kb</a>
-                        <lunaris-link :diseaseGroup="$parent.diseaseGroup.name"></lunaris-link>
+                        <lunaris-link
+                            :diseaseGroup="$parent.diseaseGroup.name"
+                            :chr="$store.state.chr"
+                            :begin="$store.state.start"
+                            :end="$store.state.end"
+                            :trait="$store.state.phenotype.name"
+                        ></lunaris-link>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
                         <div
