@@ -198,11 +198,11 @@
                                         :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
                                         target="_blank"
                                     >{{`View ${$store.state.phenotype.name} within ${$parent.regionString} in Variant Prioritizer`}}</b-button>-->
-                                    <button
+                                    <b-button
                                         class="btn btn-sm btn-2-vptz"
                                         :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
                                         target="_blank"
-                                    >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</button>
+                                    >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
                                 </div>
                             </div>
                         </div>
