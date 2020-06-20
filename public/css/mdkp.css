@@ -992,6 +992,15 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
 
 }
 
+div.filtering-ui-content div.col.filter-col-md .form-control, div.filtering-ui-content div.col.filter-col-md select, div.filtering-ui-content div.col.filter-col-md .input {
+    width: 220px;
+}
+
+div.filtering-ui-content div.col.filter-col-lz .form-control, div.filtering-ui-content div.col.filter-col-lz select, div.filtering-ui-content div.col.filter-col-lz .input {
+    width: 270px;
+}
+
+
 .help-content.filter-wrapper-help {
     display: block !important;
     position: absolute;
@@ -1001,4 +1010,19 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
 
 .help-content.filter-wrapper-help .help-content-caller.hover{
     padding: 0.075em 0.525em 0.075em 0.525em !important;
+}
+
+.btn.btn-sm.btn-2-vptz {
+    height: 30px;
+    font-size: 12px;
+    margin-top: -1px;
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+    color: #0087c6;
+}
+
+.btn.btn-sm.btn-2-vptz:hover {
+    background-color: #30b7f6;
+    border: solid 1px #30b7f6;
+    color: #fff;
 }
