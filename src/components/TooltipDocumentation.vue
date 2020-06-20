@@ -17,7 +17,11 @@
             <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
         </div>
 
-        <div v-if="this.isHover == true" class="help-hover-content-modal hidden" :id="contentID">
+        <div
+            v-if="this.isHover == true"
+            :class="'help-hover-content-modal hidden no-icon-'+this.noIcon"
+            :id="contentID"
+        >
             <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
         </div>
     </div>
