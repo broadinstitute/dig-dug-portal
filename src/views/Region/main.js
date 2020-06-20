@@ -128,7 +128,8 @@ new Vue({
                 this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
                     data: {
                         // tissue: [annotation.tissue],
-                        annotations: [this.$store.state.currentAnnotation],
+                        annotations: [this.$store.state.currentAnnotation.annotation],
+                        method: this.$store.state.currentAnnotation.method,
                         colorScheme: this.tissueColorScheme,
                         tissueScoring: this.tissueScoring,
                     }
@@ -190,7 +191,7 @@ new Vue({
 
         globalEnrichmentAnnotations() {
             // an array of annotations
-            return _.uniqBy(this.$store.state.globalEnrichment.data, 'annotation');
+            return _.uniqBy(this.$store.state.globalEnrichment.data, el => JSON.stringify([el.annotation, !!el.method ? el.method : ''].join()));
         },
 
         tissues() {

@@ -40,7 +40,7 @@ export default new Vuex.Store({
 
         currentTissue: '',
         currentCredibleSet: '',
-        currentAnnotation: '',
+        currentAnnotation: null,
     },
     mutations: {
         setCurrentTissue(state, tissue) {
@@ -108,9 +108,9 @@ export default new Vuex.Store({
             context.commit('setCredibleSet', eventData.credibleSetId)
         },
 
-        async onAnnotationChange(context, eventData) {
+        async onAnnotationChange(context, annotation) {
             //console.log(eventData)
-            context.commit('setAnnotationChange', eventData.annotation)
+            context.commit('setAnnotationChange', annotation)
         },
 
         async findGene(context) {

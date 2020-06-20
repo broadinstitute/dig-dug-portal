@@ -1,5 +1,5 @@
 <template>
-    <div :ref="`${index}_${salt}`"></div>
+    <div :ref="this.trackName"></div>
 </template>
 <script>
 import Vue from "vue";
@@ -29,6 +29,10 @@ export default Vue.component("igv-intervals-track", {
             required: false
         },
         ancestry: {
+            type: String,
+            required: false
+        },
+        method: {
             type: String,
             required: false
         },
@@ -93,7 +97,7 @@ export default Vue.component("igv-intervals-track", {
     },
     computed: {
         trackName() {
-            return this.annotations[0]; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
+            return `${this.annotations[0]}${!!this.method ? ' '+this.method : ''}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
         }
     },
     mounted() {
@@ -165,7 +169,9 @@ export default Vue.component("igv-intervals-track", {
                                 !!!this.beta) ||
                             this.tissueScoring[interval.annotation][
                                 interval.tissue
-                            ].beta > this.beta
+                            ].beta > this.beta &&
+                            (!!!this.method || !!!interval.method || 
+                                this.method === interval.method)
                     )
                     .map(interval => {
                         const color = this.colorScheme(interval.tissue);
