@@ -1018,11 +1018,11 @@ div.filtering-ui-content div.col.filter-col-lz .form-control, div.filtering-ui-c
     margin-top: -1px;
     background-color: #a0d7ff;
     border: solid 1px #30b7f6;
-    color: #0087c6;
+    color: #0087c6 !important;
 }
 
 .btn.btn-sm.btn-2-vptz:hover {
     background-color: #30b7f6;
     border: solid 1px #30b7f6;
-    color: #fff;
+    color: #fff !important;
 }
