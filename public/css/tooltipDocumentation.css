@@ -7,6 +7,12 @@
     position: relative;
 }
 
+.help-content.no-icon-true {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
 .help-content:hover .help-hover-content-modal {
     display: block !important;
 }
@@ -22,6 +28,15 @@
     top: 0em;
     margin-left: -.2em;
     text-align: center;
+}
+
+.help-content-caller.no-icon-true {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    color: rgba(47,86,135,.0) !important;
+    background: none !important;
+    display: block;
 }
 
 .help-content-caller:hover, .help-content-caller.hover:hover {

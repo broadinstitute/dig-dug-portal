@@ -1,16 +1,14 @@
 
 <template>
-    <div class="help-content">
+    <div :class="'help-content no-icon-' + this.noIcon">
         <span
             v-if="this.isHover == false"
-            class="help-content-caller"
-            :class="contentID"
+            :class="'help-content-caller no-icon-' + this.noIcon + ' '+contentID"
             v-on:click="showHideHelpContent(contentID)"
         >&#43;</span>
         <span
             v-if="this.isHover == true"
-            class="help-content-caller hover"
-            :class="contentID"
+            :class="'help-content-caller hover no-icon-' + this.noIcon + ' '+contentID"
             @mouseover="showHideHelpContent(contentID)"
             @mouseleave="showHideHelpContent(contentID)"
         >i</span>

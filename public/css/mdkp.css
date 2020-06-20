@@ -1010,6 +1010,7 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
 
 .lunaris-link {
     display: block;
+    position: relative;
     width: 35px;
     height: 35px;
     background-image: url(../images/lunaris_logo.svg);
