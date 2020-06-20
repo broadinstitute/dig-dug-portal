@@ -76,6 +76,7 @@
                             class="btn btn-link btn-lg text-nowrap text-right"
                             :href="`region.html?chr=${$store.state.chr}&start=${$store.state.start-50000}&end=${$store.state.end+50000}`"
                         >Extend &plusmn; 50 kb</a>
+                        <lunaris-link></lunaris-link>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
                         <div

@@ -19,6 +19,7 @@ import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariant
 import TissueSelectPicker from "@/components/TissueSelectPicker"
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
+import LunarisLink from "@/components/LunarisLink"
 
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -41,6 +42,7 @@ new Vue({
         PageFooter,
         Alert,
         Documentation,
+        LunarisLink,
 
         PhenotypeSelectPicker,
         LocusZoom,

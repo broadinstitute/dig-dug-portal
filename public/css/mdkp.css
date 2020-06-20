@@ -1002,3 +1002,21 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
 .help-content.filter-wrapper-help .help-content-caller.hover{
     padding: 0.075em 0.525em 0.075em 0.525em !important;
 }
+
+.lunaris-link-wrapper {
+    float: right;
+    margin-top: 5px;
+}
+
+.lunaris-link {
+    display: block;
+    width: 35px;
+    height: 35px;
+    background-image: url(../images/lunaris_logo.svg);
+    background-repeat: no-repeat;
+    border-radius: 45px;
+}
+
+.lunaris-link:hover {
+    background-color: #ddd;
+}

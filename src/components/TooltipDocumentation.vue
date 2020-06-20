@@ -39,7 +39,7 @@ import uiUtils from "@/utils/uiUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 export default Vue.component("tooltip-documentation", {
-    props: ["name", "group", "contentFill", "isHover"],
+    props: ["name", "group", "contentFill", "isHover", "noIcon"],
     components: {
         Documentation
     },
