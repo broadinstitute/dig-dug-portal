@@ -996,7 +996,7 @@ div.filtering-ui-content div.col.filter-col-md .form-control, div.filtering-ui-c
     width: 220px;
 }
 
-div.filtering-ui-content div.col.filter-col-lz .form-control, div.filtering-ui-content div.col.filter-col-lz select, div.filtering-ui-content div.col.filter-col-lz .input {
+div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-content div.col.filter-col-lg select, div.filtering-ui-content div.col.filter-col-lg .input {
     width: 270px;
 }
 

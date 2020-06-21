@@ -162,7 +162,7 @@
 
                         <div class="filtering-ui-wrapper">
                             <div class="row filtering-ui-content">
-                                <div class="col filter-col-lz">
+                                <div class="col filter-col-lg">
                                     <div class="label">Annotation Method Track</div>
                                     <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues"
@@ -182,7 +182,7 @@
                                     <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>-->
                                 </div>
 
-                                <div class="col filter-col-lz">
+                                <div class="col filter-col-lg">
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
@@ -190,7 +190,7 @@
                                     />
                                 </div>
                                 <div class="col divider">&nbsp;</div>
-                                <div class="col filter-col-lz">
+                                <div class="col filter-col-lg">
                                     <div class="label">View region in Variant Prioritizer</div>
                                     <!--<b-button
                                         variant="outline-secondary"
