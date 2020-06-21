@@ -6,7 +6,7 @@
 import querystring from "query-string";
 
 // Constants
-export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
+export const BIO_INDEX_HOST = "http://SERVER_IP_ADDRESS:5000";
 
 /* Perform a BioIndex query.
  */
