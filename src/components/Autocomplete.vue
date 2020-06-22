@@ -39,20 +39,9 @@ export default Vue.component("autocomplete", {
     data() {
         return {
             query: "",
-            genes: [] //users
+            genes: []
         };
     },
-    // computed: {
-    //     query() {
-    //         if (!this.matchedGenes) {
-    //             return [];
-    //         }
-    //         return this.matchedGenes;
-    //     }
-    // },
-    // watch: {
-    //     query(newQuery) {}
-    // },
 
     methods: {
         lookupGene: debounce(function() {
