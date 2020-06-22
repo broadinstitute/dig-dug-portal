@@ -164,23 +164,14 @@
                             <div class="row filtering-ui-content">
                                 <div class="col filter-col-lg">
                                     <div class="label">Annotation Method Track</div>
-                                    <!-- <tissue-selectpicker
-                                :tissues="$parent.tissues"
-                            ></tissue-selectpicker>
-                                    <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button><br>-->
-                                    <annotation-method-selectpicker
+                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
                                         :clearOnSelected="true"
                                     />
                                     with tissues filtered on
                                     pValue &le; <input v-model.number="$parent.pValue"/> and
                                     beta &ge; <input v-model.number="$parent.beta"/>
-                                    <!-- <tissue-selectpicker
-                                :tissues="$parent.tissues">
-                            </tissue-selectpicker>
-
-                                    <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>-->
-                                </div>
+                               </div>
 
                                 <div class="col filter-col-lg">
                                     <div class="label">Credible Sets Track</div>
@@ -189,15 +180,10 @@
                                         :clearOnSelected="true"
                                     />
                                 </div>
+
                                 <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-lg">
                                     <div class="label">View region in Variant Prioritizer</div>
-                                    <!--<b-button
-                                        variant="outline-secondary"
-                                        size="sm"
-                                        :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
-                                        target="_blank"
-                                    >{{`View ${$store.state.phenotype.name} within ${$parent.regionString} in Variant Prioritizer`}}</b-button>-->
                                     <b-button
                                         class="btn btn-sm btn-2-vptz"
                                         :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"

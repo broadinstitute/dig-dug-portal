@@ -74,8 +74,6 @@ new Vue({
     data() {
         return {
             counter: 0,
-            pValue: 1.0,
-            beta: 1.0,
         };
     },
 
@@ -285,8 +283,22 @@ new Vue({
             return assocs;
         },
 
-
-
+        pValue: {
+              get () {
+                return this.$store.state.pValue
+              },
+              set (value) {
+                this.$store.commit('setPValue', value)
+              }
+        },
+        beta: {
+            get () {
+              return this.$store.state.beta
+            },
+            set (value) {
+              this.$store.commit('setBeta', value)
+            }
+        }
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
@@ -339,10 +351,10 @@ new Vue({
             }
         },
         pValue(pValue) {
-            // this.$children[0].$refs.igv.updatePValueFilter(pValue);
+            console.log('pValue change', pValue)
         },
         beta(beta) {
-            // this.$children[0].$refs.igv.updateBetaFilter(beta);
+            console.log('beta change', beta)
         }
     },
 }).$mount("#app");

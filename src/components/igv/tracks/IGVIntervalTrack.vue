@@ -97,14 +97,8 @@ export default Vue.component("igv-intervals-track", {
     },
     computed: {
         trackName() {
-            return `${this.annotations[0]}${!!this.method ? ' '+this.method : ''}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
+            return `${this.annotations[0]}${!!this.method ? ' '+this.method : ''}: p>${this.pValue}, β>${this.beta}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
         },
-        // pValue() {
-        //     return this.$store.pValue;
-        // },
-        // beta() {
-        //     return this.$store.beta;
-        // }
     },
     mounted() {
         IGVEvents.$emit(IGV_ADD_TRACK, {
