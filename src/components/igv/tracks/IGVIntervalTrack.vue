@@ -98,7 +98,13 @@ export default Vue.component("igv-intervals-track", {
     computed: {
         trackName() {
             return `${this.annotations[0]}${!!this.method ? ' '+this.method : ''}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
-        }
+        },
+        // pValue() {
+        //     return this.$store.pValue;
+        // },
+        // beta() {
+        //     return this.$store.beta;
+        // }
     },
     mounted() {
         IGVEvents.$emit(IGV_ADD_TRACK, {
@@ -137,6 +143,10 @@ export default Vue.component("igv-intervals-track", {
                 this.$destroy();
             }
         });
+
+        // add watchers for p-value and beta
+        // this.$watch('pValue', function(pValue) { this.updatePValueFilter(pValue) }, { immediate: true });
+        // this.$watch('beta', beta => this.updateBetaFilter(beta), { immediate: true });
     },
 
     beforeDestroy() {
@@ -159,20 +169,17 @@ export default Vue.component("igv-intervals-track", {
             // Since we don't want to destroy the track (what if there is more data just around the corner?) we return an empty array
             // this.annotationScoring[this.tissue][interval.annotation]['pValue'] < 0.01 && this.annotationScoring[this.tissue][interval.annotation]['beta'] > 1.0
             if (!!intervals) {
-                return intervals
+                const newIntervals = intervals
                     .filter(
-                        interval => 
-                        (!!this.tissueScoring[interval.annotation][interval.tissue] &&
-                            !!!this.pValue ||
-                            (this.tissueScoring[interval.annotation][
-                                interval.tissue
-                            ].pValue < this.pValue &&
-                                !!!this.beta) || !!!
-                            this.tissueScoring[interval.annotation][
-                                interval.tissue
-                            ].beta > this.beta) ||
-                            (!!!this.method || !!!interval.method || 
-                                this.method === interval.method)
+                        interval => {
+                            let k = `${interval.tissueId || "NA"}_${interval.method || "NA"}_${interval.annotation}`;
+
+                            let filterP = !this.pValue || this.tissueScoring[k].minP <= this.pValue;
+                            let filterB = !this.beta || this.tissueScoring[k].maxB >= this.beta;
+                            let filterMethod = this.method == interval.method;
+
+                            return filterP && filterB && filterMethod;
+                        }
                     )
                     .map(interval => {
                         const color = this.colorScheme(interval.tissue);
@@ -184,10 +191,20 @@ export default Vue.component("igv-intervals-track", {
                             color: color
                         };
                     });
+                console.log(intervals.length, newIntervals.length, this.pValue, this.beta)
+                return newIntervals;
             } else {
                 return [];
             }
         }
+    },
+    watch: {
+        // pValue(newPValue) {
+
+        // },
+        // beta(newBeta) {
+
+        // }
     }
 });
 </script>
