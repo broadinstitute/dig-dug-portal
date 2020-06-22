@@ -20,6 +20,8 @@ import TissueSelectPicker from "@/components/TissueSelectPicker"
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
 
+import { BButton } from 'bootstrap-vue'
+
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -33,6 +35,7 @@ import * as d3 from "d3";
 
 
 Vue.config.productionTip = false;
+Vue.component('b-button', BButton)
 
 new Vue({
     store,
