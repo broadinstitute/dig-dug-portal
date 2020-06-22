@@ -34,7 +34,7 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["matchedGenes", "clearOnSelected", "defaultGene"],
+   
 
     data() {
         return {

@@ -11,6 +11,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
+import Autocomplete from "@/components/Autocomplete.vue";
 
 import Alert, {
     postAlert,
@@ -32,6 +33,7 @@ new Vue({
         Alert,
         UniprotReferencesTable,
         Documentation,
+        Autocomplete,
     },
 
     data() {

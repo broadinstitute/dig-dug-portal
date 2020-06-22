@@ -35,9 +35,7 @@
                                                     autocomplete="off"
                                                     @change="$store.dispatch('exploreRegionOrVariant')"
                                                 />-->
-                                                <autocomplete
-                                                    v-bind:matchedGenes="$parent.matchedGenes"
-                                                ></autocomplete>
+                                                <autocomplete></autocomplete>
                                             </div>
                                             <div class="region-search-examples">
                                                 <documentation

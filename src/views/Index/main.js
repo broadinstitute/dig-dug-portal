@@ -55,7 +55,6 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("bioPortal/getMatchedGenes");
     },
 
     render(createElement, context) {
@@ -77,10 +76,7 @@ new Vue({
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        //this is for autocomplete
-        matchedGenes() {
-            return this.$store.state.bioPortal.matchedGenes;
-        },
+
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
