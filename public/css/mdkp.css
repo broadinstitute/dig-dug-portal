@@ -933,6 +933,10 @@ div.filtering-ui-wrapper .filter-by-label {
     font-weight: 600;
 }
 
+div.filtering-ui-wrapper .list-group {
+    text-align: left;
+}
+
 div.selected-filters-ui-wrapper {
     margin-bottom: 30px;
     text-align: center;
@@ -989,8 +993,16 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
     height: 30px;
     width: 175px;
     font-size: 14px;
-
 }
+
+div.filtering-ui-content div.col.filter-col-md .form-control, div.filtering-ui-content div.col.filter-col-md select, div.filtering-ui-content div.col.filter-col-md .input {
+    width: 220px;
+}
+
+div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-content div.col.filter-col-lg select, div.filtering-ui-content div.col.filter-col-lg .input {
+    width: 270px;
+}
+
 
 .help-content.filter-wrapper-help {
     display: block !important;
@@ -1001,4 +1013,19 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
 
 .help-content.filter-wrapper-help .help-content-caller.hover{
     padding: 0.075em 0.525em 0.075em 0.525em !important;
+}
+
+.btn.btn-sm.btn-2-vptz {
+    height: 30px;
+    font-size: 12px;
+    margin-top: -1px;
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+    color: #0087c6 !important;
+}
+
+.btn.btn-sm.btn-2-vptz:hover {
+    background-color: #30b7f6;
+    border: solid 1px #30b7f6;
+    color: #fff !important;
 }
