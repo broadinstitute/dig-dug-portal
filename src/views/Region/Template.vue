@@ -174,7 +174,7 @@
 
                         <div class="filtering-ui-wrapper">
                             <div class="row filtering-ui-content">
-                                <div class="col filter-col-lg">
+                                <div class="col filter-col-">
                                     <div class="label">Annotation Method Track</div>
                                     <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues"
@@ -184,17 +184,32 @@
                                         :annotations="$parent.globalEnrichmentAnnotations"
                                         :clearOnSelected="true"
                                     />
-                                    with tissues filtered on
-                                    pValue &le; <input v-model.number="$parent.pValue"/> and
-                                    beta &ge; <input v-model.number="$parent.beta"/>
+                                    <!--with tissues filtered on
+                                    pValue &le;
+                                    <input
+                                        v-model.number="$parent.pValue"
+                                    /> and
+                                    beta &ge;
+                                    <input
+                                        v-model.number="$parent.beta"
+                                    />-->
                                     <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues">
                             </tissue-selectpicker>
 
                                     <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>-->
                                 </div>
+                                <div class="col filter-col-">
+                                    <div class="label">with tissues filtered on pValue &le;</div>
+                                    <input v-model.number="$parent.pValue" class="form-control" />
+                                </div>
 
-                                <div class="col filter-col-lg">
+                                <div class="col filter-col-">
+                                    <div class="label">and beta &ge;</div>
+                                    <input v-model.number="$parent.beta" class="form-control" />
+                                </div>
+
+                                <div class="col filter-col-">
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
@@ -238,7 +253,7 @@
                                 :phenotype="$store.state.phenotype.name"
                                 visualization="gwas"
                                 :finishHandler="response => $parent.routeResponseToModule(response)"
-                                ></igv-associations-track> -->
+                                ></igv-associations-track>-->
                             </igv>
                         </div>
                     </div>

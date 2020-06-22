@@ -1,6 +1,10 @@
 <template>
     <div>
-        <button v-on:click="zoomIn">Zoom In</button>&nbsp;<button v-on:click="zoomOut">Zoom Out</button>
+        <div class="igv-zooms-wrapper">
+            Zoom:
+            <button v-on:click="zoomIn" class="igv-zoom">+</button>&nbsp;
+            <button v-on:click="zoomOut" class="igv-zoom">—</button>
+        </div>
         <div id="igv-div"></div>
         <slot v-if="igvBrowser" />
     </div>
@@ -18,7 +22,7 @@ import IGVEvents, {
     IGV_BIOINDEX_QUERY_ERROR,
     IGV_BIOINDEX_QUERY_FINISH,
     IGV_ZOOM_IN,
-    IGV_ZOOM_OUT,
+    IGV_ZOOM_OUT
 } from "@/components/igv/IGVEvents";
 
 import {
