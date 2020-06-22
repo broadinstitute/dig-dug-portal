@@ -79,6 +79,7 @@ export function makeBioIndexIGVTrackWithReader({ store, module, track, translato
         type: track,
         reader: bioIndexIGVSource,
         autoHeight: true,
+        disableCache: true,
     };
 }
 

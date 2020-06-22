@@ -47,7 +47,10 @@ export default Vue.component("igv", {
 
     data() {
         return {
-            igvBrowser: null
+            igvBrowser: null,
+            currentChr: this.chr,
+            currentStart: this.start,
+            currentEnd: this.end,
         };
     },
 
@@ -79,9 +82,9 @@ export default Vue.component("igv", {
 
             // TODO
             IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
+                console.log('forcing igv refresh');
                 // just go to the place we already are at
-                // browser.search(`chr${this.chr}:${this.start}-${this.end}`);
-                browser.updateViews();
+                browser.search(`chr${this.currentChr}:${this.currentStart}-${this.currentEnd}`);
             });
 
             IGVEvents.$on(IGV_ZOOM_IN, () => {
@@ -152,6 +155,9 @@ export default Vue.component("igv", {
                     } else {
                         //console.log(locus);
                     }
+                    this.currentChr = locus.chr.charAt(3)
+                    this.currentStart = locus.start.replace(/,/g, '')
+                    this.currentEnd = locus.end.replace(/,/g, '')
                 }, 300)
             );
         },
@@ -164,7 +170,8 @@ export default Vue.component("igv", {
                 this.$el.appendChild(vueContainer);
 
                 const trackComponentInstance = new IGVTrackConstructor({
-                    propsData: trackConfig.data
+                    propsData: trackConfig.data,
+                    parent: this,  // important! creating new instances doesn't give you the parent by default
                 }).$mount(vueContainer);
             }
         },

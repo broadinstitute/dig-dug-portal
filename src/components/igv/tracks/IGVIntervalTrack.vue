@@ -41,16 +41,16 @@ export default Vue.component("igv-intervals-track", {
             type: Object,
             required: false
         },
-        pValue: {
-            type: Number,
-            required: false,
-            default: 1.0
-        },
-        beta: {
-            type: Number,
-            required: false,
-            default: 1.0
-        },
+        // pValue: {
+        //     type: Number,
+        //     required: false,
+        //     default: 1.0
+        // },
+        // beta: {
+        //     type: Number,
+        //     required: false,
+        //     default: 1.0
+        // },
 
         finishHandler: {
             type: Function,
@@ -97,10 +97,18 @@ export default Vue.component("igv-intervals-track", {
     },
     computed: {
         trackName() {
-            return `${this.annotations[0]}${!!this.method ? ' '+this.method : ''}: p>${this.pValue}, β>${this.beta}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
+            return `${this.annotations[0]}${!!this.method ? ' '+this.method : ''}: p<${this.pValue}, β>${this.beta}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
         },
+        pValue() {
+            return this.$parent.$parent.$store.state.pValue;
+        },
+        beta() {
+            return this.$parent.$parent.$store.state.beta;
+        }
     },
     mounted() {
+        // Evil
+        // console.log(this.$parent.$parent.$store)
         IGVEvents.$emit(IGV_ADD_TRACK, {
             name: this.trackName,
             type: this.visualization,
@@ -138,9 +146,6 @@ export default Vue.component("igv-intervals-track", {
             }
         });
 
-        // add watchers for p-value and beta
-        // this.$watch('pValue', function(pValue) { this.updatePValueFilter(pValue) }, { immediate: true });
-        // this.$watch('beta', beta => this.updateBetaFilter(beta), { immediate: true });
     },
 
     beforeDestroy() {
@@ -149,7 +154,6 @@ export default Vue.component("igv-intervals-track", {
         this.$el.parentNode.removeChild(this.$el);
         // console.log(this.$el);
     },
-
     methods: {
         queryStringMaker: function(chr, start, end) {
             // TODO: ASSUMES UNIQUE ANNOTATION!!! Will not extend to multiple annotation inputs!
@@ -185,20 +189,30 @@ export default Vue.component("igv-intervals-track", {
                             color: color
                         };
                     });
-                console.log(intervals.length, newIntervals.length, this.pValue, this.beta)
                 return newIntervals;
             } else {
                 return [];
             }
         }
-    },
+    }, 
     watch: {
-        // pValue(newPValue) {
-
-        // },
-        // beta(newBeta) {
-
-        // }
+        pValue(newP) {
+            // Evil
+            let currentLocusCache = { chr: this.$parent.currentChr, start: this.$parent.currentStart, end: this.$parent.currentEnd }
+            // this.$parent.igvBrowser.fireEvent('locuschange', currentLocusCache, `chr${currentLocusCache.chr}:${currentLocusCache.start}-${currentLocusCache.end}`)
+            console.log(`chr${currentLocusCache.chr}:${currentLocusCache.start }-${currentLocusCache.end + 1}`)
+            // this.$parent.igvBrowser.updateViews(undefined, undefined, true);
+            // this.$parent.igvBrowser.search(`chr${chr}:${start-100000}-${end-100000}`)
+            // this.$parent.igvBrowser.search(`chr${chr}:${start+100000}-${end+100000}`)
+        },
+        beta(newB) {
+            // Evil
+            let currentLocusCache = { chr: this.$parent.currentChr, start: this.$parent.currentStart, end: this.$parent.currentEnd }
+            // this.$parent.igvBrowser.updateViews(undefined, undefined, true);
+            // console.log(`chr${currentLocusCache.chr}:${currentLocusCache.start - 1}-${currentLocusCache.end + 1}`)
+            // this.$parent.igvBrowser.search(`chr${chr}:${start-100000}-${end-100000}`)
+            // this.$parent.igvBrowser.search(`chr${chr}:${start+100000}-${end+100000}`)
+        }
     }
 });
 </script>
