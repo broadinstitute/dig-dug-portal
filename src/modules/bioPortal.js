@@ -98,7 +98,7 @@ export default {
         async getMatchedGenes({ state, commit }) {
             //the input q would be whatever yhe user types in
             let qs = queryString.stringify({ q: "slc", limit: 5 }, { skipNull: true });
-
+        //use bioindex utils - match function
             let json = await fetch(`${BIO_INDEX_HOST}/api/bio/match/gene?${qs}`)
                 .then(resp => resp.json());
 
