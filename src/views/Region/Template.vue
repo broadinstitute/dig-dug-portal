@@ -183,40 +183,8 @@
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
                                         :clearOnSelected="true"
-                                    />with tissues filtered on
-                                    pValue &le;
-                                    <input
-                                        v-model.number="$parent.pValue"
-                                    /> and
-                                    beta &ge;
-                                    <input
-                                        v-model.number="$parent.beta"
                                     />
-                                    <!--with tissues filtered on
-                                    pValue &le;
-                                    <input
-                                        v-model.number="$parent.pValue"
-                                    /> and
-                                    beta &ge;
-                                    <input
-                                        v-model.number="$parent.beta"
-                                    />-->
-                                    <!-- <tissue-selectpicker
-                                :tissues="$parent.tissues">
-                            </tissue-selectpicker>
-
-                                    <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>-->
                                 </div>
-                                <div class="col filter-col-">
-                                    <div class="label">with tissues filtered on pValue &le;</div>
-                                    <input v-model.number="$parent.pValue" class="form-control" />
-                                </div>
-
-                                <div class="col filter-col-">
-                                    <div class="label">and beta &ge;</div>
-                                    <input v-model.number="$parent.beta" class="form-control" />
-                                </div>
-
                                 <div class="col filter-col-">
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
@@ -224,6 +192,17 @@
                                         :clearOnSelected="true"
                                     />
                                 </div>
+                                <div class="col divider">&nbsp;</div>
+                                <div class="col filter-col-">
+                                    <div class="label">pValue (&le;)</div>
+                                    <input v-model.number="$parent.pValue" class="form-control" />
+                                </div>
+
+                                <div class="col filter-col-">
+                                    <div class="label">Beta Ratio (&ge;)</div>
+                                    <input v-model.number="$parent.beta" class="form-control" />
+                                </div>
+
                                 <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-lg">
                                     <div class="label">View region in Variant Prioritizer</div>
