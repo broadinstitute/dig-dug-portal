@@ -94,7 +94,17 @@ new Vue({
 
             if (!!this.$store.state.currentCredibleSet || credibleSet && !!this.$store.state.phenotype) {
 
-                // Add Tracks
+                // p-value
+                // this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
+                //     data: {
+                //         phenotype: this.$store.state.phenotype.name,
+                //         credibleSetId: this.$store.state.currentCredibleSet,
+                //         posteriorProbability: false,  // logarithm
+                //         visualization: 'gwas',
+                //     }
+                // });
+
+                // posterior probability
                 this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
                     data: {
                         phenotype: this.$store.state.phenotype.name,
@@ -103,17 +113,6 @@ new Vue({
                         visualization: 'gwas',
                     }
                 });
-                this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
-                    data: {
-                        phenotype: this.$store.state.phenotype.name,
-                        credibleSetId: this.$store.state.currentCredibleSet,
-                        posteriorProbability: false,  // logarithm
-                        visualization: 'gwas',
-                    }
-                });
-
-                // TODO Add to Table
-
             }
 
 
