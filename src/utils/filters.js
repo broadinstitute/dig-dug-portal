@@ -60,6 +60,14 @@ function filterPValue(data, value, key = "pValue") {
     else return data;
 }
 
+function filterN(data, value, key = "N") {
+    if (!!value)
+        return data.filter(row => {
+            return row[key] >= value;
+        });
+    else return data;
+}
+
 function filterPhenotype(data, value, key = "phenotype") {
     if (!value || !key) return data;
     const filtered = data.filter(row => {
@@ -91,5 +99,6 @@ export default {
     filterPValue,
     filterPhenotype,
     filterExact,
+    filterN,
     filterTable
 };

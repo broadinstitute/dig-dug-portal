@@ -36,12 +36,21 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div class="label">p-Value (&le;)</div>
+                    <div class="label">P-Value (&le;)</div>
                     <b-form-input
                         type="text"
                         @change="setFilter($event, 'select_pValue')"
                         ref="select_pValue"
                         v-model="select_pValue_text"
+                    ></b-form-input>
+                </b-col>
+                <b-col>
+                    <div class="label">Beta Ratio (&ge;)</div>
+                    <b-form-input
+                        type="text"
+                        @change="setFilter($event, 'select_ratio')"
+                        ref="select_ratio"
+                        v-model="select_ratio_text"
                     ></b-form-input>
                 </b-col>
             </b-row>
@@ -50,7 +59,7 @@
             <b-row>
                 <b-col>
                     <span
-                        v-if="select_annotations.length > 0 || select_methods.length > 0 || select_tissues.length > 0 || select_ancestry || select_pValue"
+                        v-if="select_annotations.length > 0 || select_methods.length > 0 || select_tissues.length > 0 || select_ancestry || select_pValue || select_ratio"
                     >Selected Filters:&nbsp;&nbsp;</span>
                     <template v-if="select_annotations">
                         <b-badge
@@ -113,6 +122,17 @@
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
+                    <template v-if="select_ratio">
+                        <b-badge
+                            pill
+                            variant="danger"
+                            @click="unsetFilter('select_ratio')"
+                            class="btn"
+                        >
+                            {{select_ratio}}
+                            <span class="remove">X</span>
+                        </b-badge>
+                    </template>
                 </b-col>
             </b-row>
         </b-container>
@@ -134,7 +154,7 @@
                     <b-th
                         :key="phenotype.name"
                         v-for="(phenotype, i) in phenotypes"
-                        colspan="3"
+                        colspan="2"
                         class="reference"
                         :class="'color-' + (i+1)"
                     >
@@ -185,7 +205,7 @@ export default Vue.component("enrichment-table", {
                 {
                     key: "method",
                     label: "Method",
-                    formatter: Formatters.capitalizedFormatter
+                    formatter: Formatters.methodFormatter
                 },
                 {
                     key: "tissue",
@@ -207,7 +227,9 @@ export default Vue.component("enrichment-table", {
             select_ancestry: "",
             select_ancestry_text: "",
             select_pValue: "",
-            select_pValue_text: ""
+            select_pValue_text: "",
+            select_ratio: "",
+            select_ratio_text: ""
         };
     },
 
@@ -227,14 +249,12 @@ export default Vue.component("enrichment-table", {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
                                 : "";
-                        },
-                        sortable: true
+                        }
                     },
                     {
-                        key: `${p.name}_SNPs`,
-                        label: `SNPs`,
-                        formatter: Formatters.intFormatter,
-                        sortable: true
+                        key: `${p.name}_beta`,
+                        label: `Beta Ratio`,
+                        formatter: Formatters.floatFormatter
                     }
                 ]);
             }
@@ -253,10 +273,11 @@ export default Vue.component("enrichment-table", {
             // get all the data from all phenotypes
             for (let i in this.annotations) {
                 let r = this.annotations[i];
-                let t = !!r.tissue ? r.tissue.id : "NA";
+                let t = !!r.tissueId ? r.tissueId : "NA";
                 let m = r.method || "NA";
                 let group = `${t}_${m}_${r.annotation}_${r.ancestry}`;
                 let dataIndex = groups[group];
+                let beta = r.SNPs / r.expectedSNPs;
 
                 if (!dataIndex) {
                     dataIndex = data.length;
@@ -267,19 +288,29 @@ export default Vue.component("enrichment-table", {
                         method: r.method,
                         annotation: r.annotation,
                         ancestry: r.ancestry,
-                        minP: 2.0
+                        minP: null,
+                        maxBeta: null
                     });
                 }
 
                 // add the columns for each phenotype
-                data[dataIndex][`${r.phenotype}_expectedSNPs`] = r.expectedSNPs;
-                data[dataIndex][`${r.phenotype}_SNPs`] = r.SNPs;
                 data[dataIndex][`${r.phenotype}_pValue`] = r.pValue;
-                data[dataIndex][`${r.phenotype}_beta`] = r.beta;
+                data[dataIndex][`${r.phenotype}_beta`] = beta;
 
                 // lowest p-value across all phenotypes
-                if (!!r.pValue && r.pValue < data[dataIndex].minP) {
-                    data[dataIndex].minP = r.pValue;
+                if (r.pValue) {
+                    let minP = data[dataIndex].minP;
+
+                    if (!minP || r.pValue < minP) {
+                        data[dataIndex].minP = r.pValue;
+                    }
+                }
+
+                // maximum beta across all phenotypes
+                let maxBeta = data[dataIndex].maxBeta;
+
+                if (!maxBeta || beta > maxBeta) {
+                    data[dataIndex].maxBeta = beta;
                 }
             }
 
@@ -359,9 +390,17 @@ export default Vue.component("enrichment-table", {
                 dataRows = Filters.filterPValue(
                     dataRows,
                     this.select_pValue,
-                    `${this.phenotypes[0].name}_pValue`
+                    "minP"
                 );
             }
+            if (this.select_ratio != "") {
+                dataRows = Filters.filterN(
+                    dataRows,
+                    this.select_ratio,
+                    "maxBeta"
+                );
+            }
+
             return dataRows;
         }
     },

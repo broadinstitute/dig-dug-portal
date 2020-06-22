@@ -9,18 +9,6 @@
             ></tooltip-documentation>
             <b-row class="filtering-ui-content">
                 <b-col>
-                    <div class="label">dbSNP</div>
-                    <b-form-input
-                        id="filter-dbSNP"
-                        type="text"
-                        v-model="select_dbsnp_text"
-                        @change="addSingle($event, 'select_dbsnp')"
-                    ></b-form-input>
-                </b-col>
-                <b-col class="divider">
-                    <span class="or-text">OR</span>
-                </b-col>
-                <b-col>
                     <div class="label">Consequence</div>
                     <b-form-select
                         @change="addCompound($event, 'select_consequence','filter-consequence')"
@@ -62,23 +50,10 @@
         </b-container>
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
-                v-if="select_dbsnp.length > 0 || select_consequence.length > 0 || select_gene.length > 0 || select_pValue || select_beta"
+                v-if="select_consequence.length > 0 || select_gene.length > 0 || select_pValue || select_beta"
             >
                 <b-col>
                     <span>Selected Filters:&nbsp;&nbsp;</span>
-                    <template v-if="select_dbsnp.length > 0">
-                        <b-badge
-                            pill
-                            variant="info"
-                            v-for="(v,i) in select_dbsnp"
-                            :key="v"
-                            @click="removeFilter(i, 'select_dbsnp')"
-                            class="btn"
-                        >
-                            {{v}}
-                            <span class="remove">X</span>
-                        </b-badge>
-                    </template>
                     <template v-if="select_consequence.length > 0">
                         <b-badge
                             pill
@@ -238,8 +213,6 @@ export default Vue.component("associations-table", {
 
             select_pValue: "",
             select_pValue_text: "",
-            select_dbsnp: [],
-            select_dbsnp_text: "",
             select_consequence: [],
             select_gene: [],
             select_gene_text: "",
@@ -356,50 +329,42 @@ export default Vue.component("associations-table", {
         tableData() {
             let dataRows = this.groupedAssociations;
 
-            if (this.select_dbsnp.length > 0) {
-                return Filters.filterTable(
-                    dataRows,
-                    this.select_dbsnp,
-                    "dbSNP"
-                );
-            } else {
-                let consequenceFiltered =
-                    this.select_consequence.length > 0
-                        ? Filters.filterFormatted(
-                              dataRows,
-                              this.select_consequence,
-                              "consequence"
-                          )
-                        : dataRows;
-
-                let geneFiltered =
-                    this.select_gene.length > 0
-                        ? Filters.filterTable(
-                              consequenceFiltered,
-                              this.select_gene,
-                              "gene"
-                          )
-                        : consequenceFiltered;
-
-                let pValueFiltered =
-                    this.select_pValue != ""
-                        ? Filters.filterPValue(
-                              geneFiltered,
-                              this.select_pValue,
-                              `${this.phenotypes[0].name}_pValue`
-                          )
-                        : geneFiltered;
-
-                let betaFiltered = this.select_beta
-                    ? Filters.filterBeta(
-                          pValueFiltered,
-                          this.select_beta,
-                          `${this.phenotypes[0].name}_beta`
+            let consequenceFiltered =
+                this.select_consequence.length > 0
+                    ? Filters.filterFormatted(
+                          dataRows,
+                          this.select_consequence,
+                          "consequence"
                       )
-                    : pValueFiltered;
+                    : dataRows;
 
-                return betaFiltered;
-            }
+            let geneFiltered =
+                this.select_gene.length > 0
+                    ? Filters.filterTable(
+                          consequenceFiltered,
+                          this.select_gene,
+                          "gene"
+                      )
+                    : consequenceFiltered;
+
+            let pValueFiltered =
+                this.select_pValue != ""
+                    ? Filters.filterPValue(
+                          geneFiltered,
+                          this.select_pValue,
+                          "minP"
+                      )
+                    : geneFiltered;
+
+            let betaFiltered = this.select_beta
+                ? Filters.filterBeta(
+                      pValueFiltered,
+                      this.select_beta,
+                      `${this.phenotypes[0].name}_beta`
+                  )
+                : pValueFiltered;
+
+            return betaFiltered;
         }
     },
 
@@ -438,11 +403,6 @@ export default Vue.component("associations-table", {
 
             let element = document.getElementById(id);
             element.value = "";
-
-            this.clearSingle();
-        },
-        clearSingle() {
-            this.select_dbsnp = [];
         },
         clearCompound() {
             this.select_consequence = [];

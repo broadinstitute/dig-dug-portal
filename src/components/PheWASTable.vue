@@ -139,8 +139,7 @@ export default Vue.component("phewas-table", {
                     formatter: Formatters.pValueFormatter,
                     tdClass(x) {
                         return !!x && x < 1e-5 ? "variant-table-cell high" : "";
-                    },
-                    sortable: true
+                    }
                 },
                 {
                     key: "continuousEffect",
@@ -160,8 +159,7 @@ export default Vue.component("phewas-table", {
                 {
                     key: "n",
                     label: "Sample Size",
-                    formatter: Formatters.intFormatter,
-                    sortable: true
+                    formatter: Formatters.intFormatter
                 }
             ],
 

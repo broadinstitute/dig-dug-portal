@@ -137,6 +137,14 @@ function phenotypeFormatter(phenotype) {
     return !!phenotype ? phenotype.description : '-';
 }
 
+function methodFormatter(method) {
+    if (!method) {
+        return '-';
+    }
+
+    return capitalizedFormatter(method);
+}
+
 function tissueFormatter(tissue) {
     if (!tissue) {
         return '-';
@@ -164,6 +172,7 @@ export default {
     igvLocusFormatter,
     phenotypeFormatter,
     tissueFormatter,
+    methodFormatter,
     pValueFormatter,
     effectFormatter
 }

@@ -87,20 +87,17 @@ export default Vue.component("datasets-table", {
                 {
                     key: "cases",
                     label: "Cases",
-                    formatter: Formatters.intFormatter,
-                    sortable: true
+                    formatter: Formatters.intFormatter
                 },
                 {
                     key: "controls",
                     label: "Controls",
-                    formatter: Formatters.intFormatter,
-                    sortable: true
+                    formatter: Formatters.intFormatter
                 },
                 {
                     key: "subjects",
                     label: "Subjects",
-                    formatter: Formatters.intFormatter,
-                    sortable: true
+                    formatter: Formatters.intFormatter
                 }
             ],
             perPage: 5,
