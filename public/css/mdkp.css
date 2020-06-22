@@ -1049,4 +1049,20 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     background-color: #ddd;
 }
 
-
+/* IGV */
+.igv-zooms-wrapper {
+    float: right;
+    margin-right: 50px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    position: relative;
+    z-index: 10000;
+}
+.igv-zoom {
+    width: 25px;
+    height: 25px;
+    background-color: #30b7f6;
+    border: solid 1px #0087d6;
+    border-radius: 15px;
+    color: #fff;
+}
