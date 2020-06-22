@@ -85,6 +85,8 @@ new Vue({
         }
     },
 
+   
+
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let name = keyParams.phenotype;

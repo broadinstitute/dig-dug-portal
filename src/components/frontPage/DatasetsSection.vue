@@ -11,9 +11,7 @@
         <div id="datasets-chart"></div>
         <div style="text-align: center;">
             <h4>
-                <a
-                    :href="'http://www.kp4cd.org/datasets/'+this.diseaseGroup.name"
-                >Browse data here ></a>
+                <a href="/datasets.html">Browse data here ></a>
             </h4>
         </div>
     </div>

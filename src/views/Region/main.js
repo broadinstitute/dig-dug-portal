@@ -10,6 +10,19 @@ import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
 
+import IGV from "@/components/igv/IGV.vue"
+import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
+import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
+
+import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue"
+
+import TissueSelectPicker from "@/components/TissueSelectPicker"
+import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
+import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
+import LunarisLink from "@/components/LunarisLink"
+
+import { BButton } from 'bootstrap-vue'
+
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -18,7 +31,12 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import Formatters from "@/utils/formatters"
+import * as d3 from "d3";
+
+
 Vue.config.productionTip = false;
+Vue.component('b-button', BButton)
 
 new Vue({
     store,
@@ -26,19 +44,29 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
+        Documentation,
+        LunarisLink,
+
         PhenotypeSelectPicker,
         LocusZoom,
         AssociationsTable,
         PhenotypeSignalMixed,
-        Documentation,
+
+        IGV,
+        IGVAssociationsTrack,
+        IGVCredibleVariantsTrack,
+        IGVIntervalTrack,
+
+        TissueSelectPicker,
+        CredibleSetSelectPicker,
+        AnnotationMethodSelectPicker,
     },
 
     created() {
-        this.$store.dispatch("queryRegion");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
+        this.$store.dispatch("queryRegion");
     },
 
     render(createElement, context) {
@@ -47,7 +75,9 @@ new Vue({
 
     data() {
         return {
-            counter: 0
+            counter: 0,
+            pValue: 1.0,
+            beta: 1.0,
         };
     },
 
@@ -56,7 +86,69 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+        formatIGV: function (locus) {
+            return Formatters.igvLocusFormatter(locus)
+        },
+        addCredibleSetsTracks: function (credibleSet) {
+
+            if (!!this.$store.state.currentCredibleSet || credibleSet && !!this.$store.state.phenotype) {
+
+                // p-value
+                // this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
+                //     data: {
+                //         phenotype: this.$store.state.phenotype.name,
+                //         credibleSetId: this.$store.state.currentCredibleSet,
+                //         posteriorProbability: false,  // logarithm
+                //         visualization: 'gwas',
+                //     }
+                // });
+
+                // posterior probability
+                this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
+                    data: {
+                        phenotype: this.$store.state.phenotype.name,
+                        credibleSetId: credibleSet,
+                        posteriorProbability: true,
+                        visualization: 'gwas',
+                    }
+                });
+            }
+
+
+        },
+        addIntervalsTrack: function (tissue) {
+            if (!!this.$store.state.currentTissue || tissue) {
+                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
+                    data: {
+                        tissue: tissue,
+                    }
+                });
+            }
+        },
+        addIntervalsTrackForAnnotation: function () {
+            if (!!this.$store.state.currentAnnotation) {
+
+                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
+                    data: {
+                        // tissue: [annotation.tissue],
+                        annotations: [this.$store.state.currentAnnotation.annotation],
+                        method: this.$store.state.currentAnnotation.method,
+                        pValue: this.pValue,
+                        beta: this.beta,
+                        colorScheme: this.tissueColorScheme,
+                        tissueScoring: this.tissueScoring,
+                    }
+                });
+
+            }
+        },
+        routeResponseToModule(response) {
+            // NOTE! assumes BOTHthat this is a bioIndex call with a registered bioIndex module, with the same symbolic name of the index.
+            // TODO: move to store?
+            // TODO: how about camel-kebabing?
+            return this.$store.commit(`${response.index}/setResponse`, response);
+        },
     },
 
     computed: {
@@ -74,6 +166,12 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
+        documentationMap() {
+            return {
+                phenotype: this.$store.state.phenotype && this.$store.state.phenotype.description,
+            }
+        },
+
         genes() {
             return this.$store.state.genes.data.filter(function (gene) {
                 return gene.source == "symbol";
@@ -84,12 +182,57 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
+
+        credibleSets() {
+            return this.$store.state.credibleSets.data;
+        },
+
         regionString() {
             let chr = this.$store.state.chr;
             let start = parseInt(this.$store.state.start).toLocaleString();
             let end = parseInt(this.$store.state.end).toLocaleString();
 
             return `${chr}:${start}-${end}`;
+        },
+
+        globalEnrichmentAnnotations() {
+            // an array of annotations
+            return _.uniqBy(this.$store.state.globalEnrichment.data, el => JSON.stringify([el.annotation, !!el.method ? el.method : ''].join()));
+        },
+
+        tissues() {
+            // an array of tissue
+            return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
+        },
+
+        tissueColorScheme() {
+            return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
+        },
+
+        tissueScoring() {
+            let groups = {};
+
+            for (let i in this.$store.state.globalEnrichment.data) {
+                let r = this.$store.state.globalEnrichment.data[i];
+                let t = r.tissueId || "NA";
+                let m = r.method || "NA";
+
+                let key = `${t}_${m}_${r.annotation}`;
+                let group = groups[key];
+                let beta = r.SNPs / r.expectedSNPs;
+
+                if (!group) {
+                    groups[key] = {
+                        minP: r.pValue,
+                        maxB: beta,
+                    };
+                } else {
+                    group.minP = Math.min(group.minP, r.pValue);
+                    group.maxB = Math.max(group.maxB, beta);
+                }
+            }
+
+            return groups;
         },
 
         // Give the top associations, find the best one across all unique
@@ -141,9 +284,11 @@ new Vue({
             // uiUtils.hideElement("phenotypeSearchHolder");
 
             return assocs;
-        }
-    },
+        },
 
+
+
+    },
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
@@ -159,7 +304,12 @@ new Vue({
         },
 
         "$store.state.phenotype": function (phenotype) {
-            uiUtils.hideElement('phenotypeSearchHolder')
+            // I don't like mixing UI effects with databinding - Ken
+            uiUtils.hideElement('phenotypeSearchHolder');
+
+            // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
+            this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name });
+            this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
         },
 
         topAssociations(top) {
@@ -175,6 +325,25 @@ new Vue({
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+
+        "$store.state.currentAnnotation": function (annotation) {
+            if (!!annotation) {
+                this.addIntervalsTrackForAnnotation(annotation);
+                this.$store.commit('setAnnotationChange', '');
+            }
+        },
+        "$store.state.currentCredibleSet": function (credibleSet) {
+            if (!!credibleSet) {
+                this.addCredibleSetsTracks(credibleSet);
+                this.$store.commit('setCredibleSet', '');
+            }
+        },
+        pValue(pValue) {
+            // this.$children[0].$refs.igv.updatePValueFilter(pValue);
+        },
+        beta(beta) {
+            // this.$children[0].$refs.igv.updateBetaFilter(beta);
         }
-    }
+    },
 }).$mount("#app");
