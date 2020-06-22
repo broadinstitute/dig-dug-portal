@@ -135,6 +135,8 @@ new Vue({
                         // tissue: [annotation.tissue],
                         annotations: [this.$store.state.currentAnnotation.annotation],
                         method: this.$store.state.currentAnnotation.method,
+                        pValue: this.pValue,
+                        beta: this.beta,
                         colorScheme: this.tissueColorScheme,
                         tissueScoring: this.tissueScoring,
                     }
@@ -209,38 +211,30 @@ new Vue({
         },
 
         tissueScoring() {
-            let tissueScoring = this.$store.state.globalEnrichment.data.reduce((net, enrichment) => {
-                let tempNet = net;
-                if (!!enrichment.annotation) {
-                    tempNet[enrichment.annotation] = net[enrichment.annotation] || {};
-                    tempNet[enrichment.annotation][enrichment.tissue] = {};
-                    tempNet[enrichment.annotation][enrichment.tissue]['pValue'] = enrichment.pValue;
-                    tempNet[enrichment.annotation][enrichment.tissue]['beta'] = enrichment.SNPs / enrichment.expectedSNPs;
+            let groups = {};
+
+            for (let i in this.$store.state.globalEnrichment.data) {
+                let r = this.$store.state.globalEnrichment.data[i];
+                let t = r.tissueId || "NA";
+                let m = r.method || "NA";
+
+                let key = `${t}_${m}_${r.annotation}`;
+                let group = groups[key];
+                let beta = r.SNPs / r.expectedSNPs;
+
+                if (!group) {
+                    groups[key] = {
+                        minP: r.pValue,
+                        maxB: beta,
+                    };
+                } else {
+                    group.minP = Math.min(group.minP, r.pValue);
+                    group.maxB = Math.max(group.maxB, beta);
                 }
-                return tempNet;
-            }, {});
-            return tissueScoring;
+            }
+
+            return groups;
         },
-
-        // globalEnrichmentAnnotationsFilteredByStats() {
-        //     let tempGlobalEnrichmentByAnnotation = this.globalEnrichmentByAnnotation;
-        //     Object.keys(tempGlobalEnrichmentByAnnotation).forEach(annotationKey => {
-        //         tempGlobalEnrichmentByAnnotation[annotationKey] = this.globalEnrichmentByAnnotation[annotationKey].filter(enrichment =>
-        //             this.tissueScoring[enrichment.annotation][enrichment.tissue].pValue < this.pValue &&
-        //             this.tissueScoring[enrichment.annotation][enrichment.tissue].beta > this.beta
-        //         );
-        //     })
-        //     return tempGlobalEnrichmentByAnnotation;
-        // },
-
-        // globalEnrichmentAnnotationsFilteredByStatsCount() {
-        //     let tempGlobalEnrichmentByAnnotation = this.globalEnrichmentAnnotationsFilteredByStatsCount;
-        //     Object.keys(tempGlobalEnrichmentByAnnotation).forEach(annotationKey => {
-        //         // override the array with the length of the array
-        //         tempGlobalEnrichmentByAnnotation[annotationKey] = tempGlobalEnrichmentByAnnotation[annotationKey].length;
-        //     })
-        //     return tempGlobalEnrichmentByAnnotation;
-        // },
 
         // Give the top associations, find the best one across all unique
         // phenotypes available.
@@ -337,12 +331,20 @@ new Vue({
         "$store.state.currentAnnotation": function (annotation) {
             if (!!annotation) {
                 this.addIntervalsTrackForAnnotation(annotation);
+                this.$store.commit('setAnnotationChange', '');
             }
         },
         "$store.state.currentCredibleSet": function (credibleSet) {
             if (!!credibleSet) {
                 this.addCredibleSetsTracks(credibleSet);
+                this.$store.commit('setCredibleSet', '');
             }
+        },
+        pValue(pValue) {
+            // this.$children[0].$refs.igv.updatePValueFilter(pValue);
+        },
+        beta(beta) {
+            // this.$children[0].$refs.igv.updateBetaFilter(beta);
         }
-    }
+    },
 }).$mount("#app");

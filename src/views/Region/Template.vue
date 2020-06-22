@@ -184,9 +184,9 @@
                                         :annotations="$parent.globalEnrichmentAnnotations"
                                         :clearOnSelected="true"
                                     />
-                                    <!-- with tissues filtered on
-                            pValue &lt; <input v-model.number="$parent.pValue"/> and
-                                    beta &gt; <input v-model.number="$parent.beta"/>-->
+                                    with tissues filtered on
+                                    pValue &le; <input v-model.number="$parent.pValue"/> and
+                                    beta &ge; <input v-model.number="$parent.beta"/>
                                     <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues">
                             </tissue-selectpicker>
@@ -238,7 +238,7 @@
                                 :phenotype="$store.state.phenotype.name"
                                 visualization="gwas"
                                 :finishHandler="response => $parent.routeResponseToModule(response)"
-                                ></igv-associations-track>-->
+                                ></igv-associations-track> -->
                             </igv>
                         </div>
                     </div>

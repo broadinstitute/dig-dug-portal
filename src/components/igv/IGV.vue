@@ -1,5 +1,6 @@
 <template>
     <div>
+        <button v-on:click="zoomIn">Zoom In</button>&nbsp;<button v-on:click="zoomOut">Zoom Out</button>
         <div id="igv-div"></div>
         <slot v-if="igvBrowser" />
     </div>
@@ -15,7 +16,9 @@ import IGVEvents, {
     IGV_CHILD_DESTROY_TRACK,
     IGV_BIOINDEX_QUERY_RESOLVE,
     IGV_BIOINDEX_QUERY_ERROR,
-    IGV_BIOINDEX_QUERY_FINISH
+    IGV_BIOINDEX_QUERY_FINISH,
+    IGV_ZOOM_IN,
+    IGV_ZOOM_OUT,
 } from "@/components/igv/IGVEvents";
 
 import {
@@ -74,10 +77,19 @@ export default Vue.component("igv", {
                 browser.removeTrackByName(trackName);
             });
 
+            // TODO
             IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
                 // just go to the place we already are at
                 // browser.search(`chr${this.chr}:${this.start}-${this.end}`);
                 browser.updateViews();
+            });
+
+            IGVEvents.$on(IGV_ZOOM_IN, () => {
+                browser.zoomIn();
+            });
+
+            IGVEvents.$on(IGV_ZOOM_OUT, () => {
+                browser.zoomOut();
             });
 
             // default handlers for tracks completing their data
@@ -155,6 +167,14 @@ export default Vue.component("igv", {
                     propsData: trackConfig.data
                 }).$mount(vueContainer);
             }
+        },
+
+        zoomIn() {
+            return IGVEvents.$emit(IGV_ZOOM_IN);
+        },
+
+        zoomOut() {
+            return IGVEvents.$emit(IGV_ZOOM_OUT);
         }
     },
     watch: {}
