@@ -1029,3 +1029,22 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     border: solid 1px #30b7f6;
     color: #fff !important;
 }
+
+.lunaris-link-wrapper {
+    float: right;
+    margin-top: 5px;
+}
+
+.lunaris-link {
+    display: block;
+    position: relative;
+    width: 35px;
+    height: 35px;
+    background-image: url(../images/lunaris_logo.svg);
+    background-repeat: no-repeat;
+    border-radius: 45px;
+}
+
+.lunaris-link:hover {
+    background-color: #ddd;
+}
