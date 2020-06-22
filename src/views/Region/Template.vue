@@ -174,7 +174,7 @@
 
                         <div class="filtering-ui-wrapper">
                             <div class="row filtering-ui-content">
-                                <div class="col filter-col-">
+                                <div class="col filter-col-lg">
                                     <div class="label">Annotation Method Track</div>
                                     <!-- <tissue-selectpicker
                                 :tissues="$parent.tissues"
@@ -185,7 +185,7 @@
                                         :clearOnSelected="true"
                                     />
                                 </div>
-                                <div class="col filter-col-">
+                                <div class="col filter-col-lg">
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
@@ -193,12 +193,12 @@
                                     />
                                 </div>
                                 <div class="col divider">&nbsp;</div>
-                                <div class="col filter-col-">
+                                <div class="col filter-col-sm">
                                     <div class="label">pValue (&le;)</div>
                                     <input v-model.number="$parent.pValue" class="form-control" />
                                 </div>
 
-                                <div class="col filter-col-">
+                                <div class="col filter-col-sm">
                                     <div class="label">Beta Ratio (&ge;)</div>
                                     <input v-model.number="$parent.beta" class="form-control" />
                                 </div>

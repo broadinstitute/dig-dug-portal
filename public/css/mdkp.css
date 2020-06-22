@@ -995,12 +995,16 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
     font-size: 14px;
 }
 
+div.filtering-ui-content div.col.filter-col-sm .form-control, div.filtering-ui-content div.col.filter-col-sm select, div.filtering-ui-content div.col.filter-col-sm .input {
+    width: 110px;
+}
+
 div.filtering-ui-content div.col.filter-col-md .form-control, div.filtering-ui-content div.col.filter-col-md select, div.filtering-ui-content div.col.filter-col-md .input {
     width: 220px;
 }
 
 div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-content div.col.filter-col-lg select, div.filtering-ui-content div.col.filter-col-lg .input {
-    width: 270px;
+    width: 300px;
 }
 
 
