@@ -1,13 +1,13 @@
 <template>
-    <div class="lunaris-link-wrapper">
+    <div class="lunaris-link-wrapper" v-if="diseaseGroup && trait">
         <a
-            :href="'http://34.71.240.244:8080/lunaris/lunaris.html?chr='+this.chr+'&begin='+this.begin+'&end='+this.end+'&trait='+this.trait"
+            :href="'http://34.71.240.244:8080/lunaris/lunaris.html?chr='+chr+'&begin='+begin+'&end='+end+'&trait='+trait.name"
             class="lunaris-link"
             target="_blank"
         >
             <tooltip-documentation
                 name="test.tooltip.index.regionexample"
-                :group="this.diseaseGroup"
+                :group="diseaseGroup.name"
                 :isHover="true"
                 :noIcon="true"
             ></tooltip-documentation>

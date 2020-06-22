@@ -77,11 +77,11 @@
                             :href="`region.html?chr=${$store.state.chr}&start=${$store.state.start-50000}&end=${$store.state.end+50000}`"
                         >Extend &plusmn; 50 kb</a>
                         <lunaris-link
-                            :diseaseGroup="$parent.diseaseGroup.name"
+                            :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
                             :begin="$store.state.start"
                             :end="$store.state.end"
-                            :trait="$store.state.phenotype.name"
+                            :trait="$store.state.phenotype"
                         ></lunaris-link>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
@@ -183,6 +183,14 @@
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
                                         :clearOnSelected="true"
+                                    />with tissues filtered on
+                                    pValue &le;
+                                    <input
+                                        v-model.number="$parent.pValue"
+                                    /> and
+                                    beta &ge;
+                                    <input
+                                        v-model.number="$parent.beta"
                                     />
                                     <!--with tissues filtered on
                                     pValue &le;
