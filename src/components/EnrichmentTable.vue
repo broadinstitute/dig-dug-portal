@@ -125,7 +125,7 @@
                     <template v-if="select_ratio">
                         <b-badge
                             pill
-                            variant="danger"
+                            variant="dark"
                             @click="unsetFilter('select_ratio')"
                             class="btn"
                         >
@@ -273,7 +273,7 @@ export default Vue.component("enrichment-table", {
             // get all the data from all phenotypes
             for (let i in this.annotations) {
                 let r = this.annotations[i];
-                let t = !!r.tissueId ? r.tissueId : "NA";
+                let t = r.tissueId || "NA";
                 let m = r.method || "NA";
                 let group = `${t}_${m}_${r.annotation}_${r.ancestry}`;
                 let dataIndex = groups[group];
