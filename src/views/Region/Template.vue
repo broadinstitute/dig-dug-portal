@@ -160,6 +160,17 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
+                        <div style="text-align: left; padding-bottom: 5px;">
+                            <b-button
+                                variant="outline-secondary"
+                                size="sm"
+                                style="color: white;"
+                                :href='`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`'           
+                                target="_blank">
+                                {{`View ${$store.state.phenotype.name} within ${$parent.regionString} in Variant Prioritizer`}}
+                            </b-button>
+                        </div>
+
                         <div class="row card-body">
                             <div class="col-md-6">Annotation Method Track</div>
                             <div class="col-md-6">Credible Sets Track</div>
