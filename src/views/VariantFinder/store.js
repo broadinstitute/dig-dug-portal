@@ -23,6 +23,7 @@ export default new Vuex.Store({
     mutations: {
         setPhenotype(state, phenotype) {
             state.selectedPhenotypes.push(phenotype);
+            state.newPhenotype = phenotype;
         },
         removePhenotype(state, index) {
             state.selectedPhenotypes.splice(index, 1);
