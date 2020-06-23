@@ -40,6 +40,7 @@ export default Vue.component("manhattan-plot", {
                 enabled: false,
                 rescale: false
             },
+            colors: this.colors || {},
             point: {
                 r: 4
             },

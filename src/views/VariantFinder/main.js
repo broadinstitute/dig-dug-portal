@@ -71,7 +71,7 @@ new Vue({
         // },
 
         "$store.state.newPhenotype": function(phenotype) {
-            this.$store.dispatch("queryPhenotype");
+            this.$store.dispatch("queryAssociation", phenotype);
             uiUtils.hideElement("phenotypeSearchHolder");
         },
 
