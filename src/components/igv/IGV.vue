@@ -1,16 +1,19 @@
 <template>
     <div>
+        <!--
         <div class="igv-zooms-wrapper">
             Zoom:
-            <button v-on:click="zoomIn" class="igv-zoom">+</button>&nbsp;
-            <button v-on:click="zoomOut" class="igv-zoom">—</button>
+            <button style="z-index:10000" @click="zoomIn" class="igv-zoom">+</button>&nbsp;
+            <button style="z-index:10000" @click="zoomOut" class="igv-zoom">—</button>
         </div>
+        -->
         <div id="igv-div"></div>
         <slot v-if="igvBrowser" />
     </div>
 </template>
 <script>
 import Vue from "vue";
+import lodash from "lodash";
 
 import igv from "igv";
 import IGVEvents, {
@@ -46,12 +49,18 @@ export default Vue.component("igv", {
         "errHandler",
         // handlers on global IGV behavior
         "popupHandler",
-        "regionHandler"
+        "regionHandler",
+        // filters
+        "pValue",
+        "beta"
     ],
 
     data() {
         return {
-            igvBrowser: null
+            igvBrowser: null,
+            currentChr: this.chr,
+            currentStart: this.start,
+            currentEnd: this.end
         };
     },
 
@@ -83,9 +92,11 @@ export default Vue.component("igv", {
 
             // TODO
             IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
+                console.log("forcing igv refresh");
                 // just go to the place we already are at
-                // browser.search(`chr${this.chr}:${this.start}-${this.end}`);
-                browser.updateViews();
+                browser.search(
+                    `chr${this.currentChr}:${this.currentStart}-${this.currentEnd}`
+                );
             });
 
             IGVEvents.$on(IGV_ZOOM_IN, () => {
@@ -156,6 +167,9 @@ export default Vue.component("igv", {
                     } else {
                         //console.log(locus);
                     }
+                    this.currentChr = locus.chr.charAt(3);
+                    this.currentStart = locus.start.replace(/,/g, "");
+                    this.currentEnd = locus.end.replace(/,/g, "");
                 }, 300)
             );
         },
@@ -168,7 +182,8 @@ export default Vue.component("igv", {
                 this.$el.appendChild(vueContainer);
 
                 const trackComponentInstance = new IGVTrackConstructor({
-                    propsData: trackConfig.data
+                    propsData: trackConfig.data,
+                    parent: this // important! creating new instances doesn't give you the parent by default
                 }).$mount(vueContainer);
             }
         },
@@ -179,8 +194,26 @@ export default Vue.component("igv", {
 
         zoomOut() {
             return IGVEvents.$emit(IGV_ZOOM_OUT);
+        },
+
+        updateViews() {
+            let igvBrowser = this.igvBrowser;
+
+            lodash.debounce(function() {
+                igvBrowser.trackViews.forEach(v =>
+                    v.track.trackView.viewports.forEach(v => (v.tile = null))
+                );
+                igvBrowser.updateViews(undefined, undefined, true);
+            }, 300)();
         }
     },
-    watch: {}
+    watch: {
+        pValue(newP) {
+            this.updateViews();
+        },
+        beta(newB) {
+            this.updateViews();
+        }
+    }
 });
 </script>

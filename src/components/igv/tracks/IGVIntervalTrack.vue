@@ -41,16 +41,16 @@ export default Vue.component("igv-intervals-track", {
             type: Object,
             required: false
         },
-        pValue: {
-            type: Number,
-            required: false,
-            default: 1.0
-        },
-        beta: {
-            type: Number,
-            required: false,
-            default: 1.0
-        },
+        // pValue: {
+        //     type: Number,
+        //     required: false,
+        //     default: 1.0
+        // },
+        // beta: {
+        //     type: Number,
+        //     required: false,
+        //     default: 1.0
+        // },
 
         finishHandler: {
             type: Function,
@@ -97,16 +97,20 @@ export default Vue.component("igv-intervals-track", {
     },
     computed: {
         trackName() {
-            return `${this.annotations[0]}${!!this.method ? ' '+this.method : ''}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
+            return `${this.annotations[0]}${
+                !!this.method ? " " + this.method : ""
+            }`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
         },
-        // pValue() {
-        //     return this.$store.pValue;
-        // },
-        // beta() {
-        //     return this.$store.beta;
-        // }
+        pValue() {
+            return this.$parent.$parent.$store.state.pValue;
+        },
+        beta() {
+            return this.$parent.$parent.$store.state.beta;
+        }
     },
     mounted() {
+        // Evil
+        // console.log(this.$parent.$parent.$store)
         IGVEvents.$emit(IGV_ADD_TRACK, {
             name: this.trackName,
             type: this.visualization,
@@ -135,7 +139,8 @@ export default Vue.component("igv-intervals-track", {
                             ))
                 }
             }),
-            height: 160
+            height: 160,
+            disableCache: true
         });
 
         IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
@@ -143,10 +148,6 @@ export default Vue.component("igv-intervals-track", {
                 this.$destroy();
             }
         });
-
-        // add watchers for p-value and beta
-        // this.$watch('pValue', function(pValue) { this.updatePValueFilter(pValue) }, { immediate: true });
-        // this.$watch('beta', beta => this.updateBetaFilter(beta), { immediate: true });
     },
 
     beforeDestroy() {
@@ -155,7 +156,6 @@ export default Vue.component("igv-intervals-track", {
         this.$el.parentNode.removeChild(this.$el);
         // console.log(this.$el);
     },
-
     methods: {
         queryStringMaker: function(chr, start, end) {
             // TODO: ASSUMES UNIQUE ANNOTATION!!! Will not extend to multiple annotation inputs!
@@ -170,17 +170,22 @@ export default Vue.component("igv-intervals-track", {
             // this.annotationScoring[this.tissue][interval.annotation]['pValue'] < 0.01 && this.annotationScoring[this.tissue][interval.annotation]['beta'] > 1.0
             if (!!intervals) {
                 const newIntervals = intervals
-                    .filter(
-                        interval => {
-                            let k = `${interval.tissueId || "NA"}_${interval.method || "NA"}_${interval.annotation}`;
+                    .filter(interval => {
+                        let k = `${interval.tissueId ||
+                            "NA"}_${interval.method || "NA"}_${
+                            interval.annotation
+                        }`;
 
-                            let filterP = !this.pValue || this.tissueScoring[k].minP <= this.pValue;
-                            let filterB = !this.beta || this.tissueScoring[k].maxB >= this.beta;
-                            let filterMethod = this.method == interval.method;
+                        let filterP =
+                            !this.pValue ||
+                            this.tissueScoring[k].minP <= this.pValue;
+                        let filterB =
+                            !this.beta ||
+                            this.tissueScoring[k].maxB >= this.beta;
+                        let filterMethod = this.method == interval.method;
 
-                            return filterP && filterB && filterMethod;
-                        }
-                    )
+                        return filterP && filterB && filterMethod;
+                    })
                     .map(interval => {
                         const color = this.colorScheme(interval.tissue);
                         return {
@@ -191,20 +196,12 @@ export default Vue.component("igv-intervals-track", {
                             color: color
                         };
                     });
-                console.log(intervals.length, newIntervals.length, this.pValue, this.beta)
                 return newIntervals;
             } else {
                 return [];
             }
         }
     },
-    watch: {
-        // pValue(newPValue) {
-
-        // },
-        // beta(newBeta) {
-
-        // }
-    }
+    watch: {}
 });
 </script>
