@@ -52,7 +52,7 @@ export default Vue.component("igv", {
         "regionHandler",
         // filters
         "pValue",
-        "beta"
+        "fold"
     ],
 
     data() {
@@ -92,7 +92,6 @@ export default Vue.component("igv", {
 
             // TODO
             IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
-                console.log("forcing igv refresh");
                 // just go to the place we already are at
                 browser.search(
                     `chr${this.currentChr}:${this.currentStart}-${this.currentEnd}`
@@ -211,7 +210,7 @@ export default Vue.component("igv", {
         pValue(newP) {
             this.updateViews();
         },
-        beta(newB) {
+        fold(fold) {
             this.updateViews();
         }
     }

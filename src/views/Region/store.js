@@ -42,14 +42,14 @@ export default new Vuex.Store({
         currentCredibleSet: '',
         currentAnnotation: null,
         pValue: null,
-        beta: null,
+        fold: null,
     },
     mutations: {
         setPValue(state, pValue) {
             state.pValue = pValue;
         },
-        setBeta(state, beta) {
-            state.beta = beta;
+        setFold(state, fold) {
+            state.fold = fold;
         },
         setCurrentTissue(state, tissue) {
             state.currentTissue = tissue;

@@ -41,16 +41,6 @@ export default Vue.component("igv-intervals-track", {
             type: Object,
             required: false
         },
-        // pValue: {
-        //     type: Number,
-        //     required: false,
-        //     default: 1.0
-        // },
-        // beta: {
-        //     type: Number,
-        //     required: false,
-        //     default: 1.0
-        // },
 
         finishHandler: {
             type: Function,
@@ -99,13 +89,13 @@ export default Vue.component("igv-intervals-track", {
         trackName() {
             return `${this.annotations[0]}${
                 !!this.method ? " " + this.method : ""
-            }`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
+            }`;
         },
         pValue() {
             return this.$parent.$parent.$store.state.pValue;
         },
-        beta() {
-            return this.$parent.$parent.$store.state.beta;
+        fold() {
+            return this.$parent.$parent.$store.state.fold;
         }
     },
     mounted() {
@@ -179,12 +169,12 @@ export default Vue.component("igv-intervals-track", {
                         let filterP =
                             !this.pValue ||
                             this.tissueScoring[k].minP <= this.pValue;
-                        let filterB =
-                            !this.beta ||
-                            this.tissueScoring[k].maxB >= this.beta;
+                        let filterFold =
+                            !this.fold ||
+                            this.tissueScoring[k].maxFold >= this.fold;
                         let filterMethod = this.method == interval.method;
 
-                        return filterP && filterB && filterMethod;
+                        return filterP && filterFold && filterMethod;
                     })
                     .map(interval => {
                         const color = this.colorScheme(interval.tissue);

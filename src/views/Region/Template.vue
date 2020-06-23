@@ -196,8 +196,8 @@
                                 </div>
 
                                 <div class="col filter-col-sm">
-                                    <div class="label">Beta Ratio (&ge;)</div>
-                                    <input v-model.number="$parent.beta" class="form-control" />
+                                    <div class="label">Fold (&ge;)</div>
+                                    <input v-model.number="$parent.fold" class="form-control" />
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>
@@ -219,7 +219,7 @@
                                 :start="$store.state.start"
                                 :end="$store.state.end"
                                 :p-value="$store.state.pValue"
-                                :beta="$store.state.beta"
+                                :fold="$store.state.fold"
                                 :regionHandler="locus => {
                                 const region = {
                                     chr: locus.chr.charAt(3),

@@ -133,7 +133,7 @@ new Vue({
                         annotations: [this.$store.state.currentAnnotation.annotation],
                         method: this.$store.state.currentAnnotation.method,
                         pValue: this.pValue,
-                        beta: this.beta,
+                        fold: this.fold,
                         colorScheme: this.tissueColorScheme,
                         tissueScoring: this.tissueScoring,
                     }
@@ -217,16 +217,16 @@ new Vue({
 
                 let key = `${t}_${m}_${r.annotation}`;
                 let group = groups[key];
-                let beta = r.SNPs / r.expectedSNPs;
+                let fold = r.SNPs / r.expectedSNPs;
 
                 if (!group) {
                     groups[key] = {
                         minP: r.pValue,
-                        maxB: beta,
+                        maxFold: fold,
                     };
                 } else {
                     group.minP = Math.min(group.minP, r.pValue);
-                    group.maxB = Math.max(group.maxB, beta);
+                    group.maxFold = Math.max(group.maxFold, fold);
                 }
             }
 
@@ -285,19 +285,19 @@ new Vue({
         },
 
         pValue: {
-              get () {
+            get() {
                 return this.$store.state.pValue
-              },
-              set (value) {
-                this.$store.commit('setPValue', value)
-              }
-        },
-        beta: {
-            get () {
-              return this.$store.state.beta
             },
-            set (value) {
-              this.$store.commit('setBeta', value)
+            set(value) {
+                this.$store.commit('setPValue', value)
+            }
+        },
+        fold: {
+            get() {
+                return this.$store.state.fold
+            },
+            set(value) {
+                this.$store.commit('setFold', value)
             }
         }
     },
@@ -350,12 +350,6 @@ new Vue({
                 this.addCredibleSetsTracks(credibleSet);
                 this.$store.commit('setCredibleSet', '');
             }
-        },
-        pValue(pValue) {
-            console.log('pValue change', pValue)
-        },
-        beta(beta) {
-            console.log('beta change', beta)
         }
     },
 }).$mount("#app");

@@ -100,8 +100,6 @@ export class BioIndexReader {
     }
 
     async readFeatures(chr, start, end) {
-        console.log({ chr, start, end });
-        // let limit = Math.abs(end - start);
         const response = await query(
             this.index,
             this.queryStringMaker(
