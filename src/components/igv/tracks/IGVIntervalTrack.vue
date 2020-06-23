@@ -139,7 +139,8 @@ export default Vue.component("igv-intervals-track", {
                             ))
                 }
             }),
-            height: 160
+            height: 160,
+            disableCache: true
         });
 
         IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {

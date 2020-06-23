@@ -8,6 +8,7 @@
 </template>
 <script>
 import Vue from "vue";
+import lodash from "lodash";
 
 import igv from "igv";
 import IGVEvents, {
@@ -188,20 +189,25 @@ export default Vue.component("igv", {
 
         zoomOut() {
             return IGVEvents.$emit(IGV_ZOOM_OUT);
+        },
+
+        updateViews() {
+            let igvBrowser = this.igvBrowser;
+
+            lodash.debounce(function() {
+                igvBrowser.trackViews.forEach(v =>
+                    v.track.trackView.viewports.forEach(v => (v.tile = null))
+                );
+                igvBrowser.updateViews(undefined, undefined, true);
+            }, 200)();
         }
     },
     watch: {
         pValue(newP) {
-            this.igvBrowser.trackViews.forEach(v =>
-                v.track.trackView.viewports.forEach(v => (v.tile = null))
-            );
-            this.igvBrowser.updateViews(undefined, undefined, true);
+            this.updateViews();
         },
         beta(newB) {
-            this.igvBrowser.trackViews.forEach(v =>
-                v.track.trackView.viewports.forEach(v => (v.tile = null))
-            );
-            this.igvBrowser.updateViews(undefined, undefined, true);
+            this.updateViews();
         }
     }
 });

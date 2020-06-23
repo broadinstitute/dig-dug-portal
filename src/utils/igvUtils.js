@@ -79,7 +79,6 @@ export function makeBioIndexIGVTrackWithReader({ store, module, track, translato
         type: track,
         reader: bioIndexIGVSource,
         autoHeight: true,
-        disableCache: true,
     };
 }
 
@@ -101,6 +100,7 @@ export class BioIndexReader {
     }
 
     async readFeatures(chr, start, end) {
+        console.log({ chr, start, end });
         // let limit = Math.abs(end - start);
         const response = await query(
             this.index,
@@ -127,11 +127,11 @@ export class BioIndexReader {
                     }
                 },
             })
-        .then(bioIndexData => {
-            // TODO: abstract
-            let igvData = this.translator(bioIndexData);
-            return igvData;
-        })
+            .then(bioIndexData => {
+                // TODO: abstract
+                let igvData = this.translator(bioIndexData);
+                return igvData;
+            })
 
         return response;
 
@@ -191,11 +191,11 @@ export function colorIntervalAnnotation(intervalAnnotation) {
 // TODO
 export const colorRing = {
     labels: new Map(),
-    colorMapper: function(label) {
+    colorMapper: function (label) {
         if (!this.labels.has(label)) {
             this.colorGenerator.next();
         }
         return labels[label]
     },
-    colorGenerator: function* () {}
+    colorGenerator: function* () { }
 }
