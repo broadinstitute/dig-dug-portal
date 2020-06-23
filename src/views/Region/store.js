@@ -41,8 +41,8 @@ export default new Vuex.Store({
         currentTissue: '',
         currentCredibleSet: '',
         currentAnnotation: null,
-        pValue: 1.0,
-        beta: 1.0,
+        pValue: null,
+        beta: null,
     },
     mutations: {
         setPValue(state, pValue) {
