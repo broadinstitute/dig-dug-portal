@@ -164,14 +164,19 @@
                             <div class="row filtering-ui-content">
                                 <div class="col filter-col-lg">
                                     <div class="label">Annotation Method Track</div>
-                                     <annotation-method-selectpicker
+                                    <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
                                         :clearOnSelected="true"
+                                    />with tissues filtered on
+                                    pValue &le;
+                                    <input
+                                        v-model.number="$parent.pValue"
+                                    /> and
+                                    beta &ge;
+                                    <input
+                                        v-model.number="$parent.beta"
                                     />
-                                    with tissues filtered on
-                                    pValue &le; <input v-model.number="$parent.pValue"/> and
-                                    beta &ge; <input v-model.number="$parent.beta"/>
-                               </div>
+                                </div>
 
                                 <div class="col filter-col-lg">
                                     <div class="label">Credible Sets Track</div>
@@ -199,6 +204,8 @@
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
+                                :p-value="$store.state.pValue"
+                                :beta="$store.state.beta"
                                 :regionHandler="locus => {
                                 const region = {
                                     chr: locus.chr.charAt(3),
@@ -212,7 +219,7 @@
                                 :phenotype="$store.state.phenotype.name"
                                 visualization="gwas"
                                 :finishHandler="response => $parent.routeResponseToModule(response)"
-                                ></igv-associations-track> -->
+                                ></igv-associations-track>-->
                             </igv>
                         </div>
                     </div>

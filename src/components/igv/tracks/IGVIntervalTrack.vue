@@ -97,7 +97,9 @@ export default Vue.component("igv-intervals-track", {
     },
     computed: {
         trackName() {
-            return `${this.annotations[0]}${!!this.method ? ' '+this.method : ''}: p<${this.pValue}, β>${this.beta}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
+            return `${this.annotations[0]}${
+                !!this.method ? " " + this.method : ""
+            }: p<${this.pValue}, β>${this.beta}`; //`${this.annotations[0]}__pValue<${this.pValue}__beta>${this.beta}`
         },
         pValue() {
             return this.$parent.$parent.$store.state.pValue;
@@ -145,7 +147,6 @@ export default Vue.component("igv-intervals-track", {
                 this.$destroy();
             }
         });
-
     },
 
     beforeDestroy() {
@@ -168,17 +169,22 @@ export default Vue.component("igv-intervals-track", {
             // this.annotationScoring[this.tissue][interval.annotation]['pValue'] < 0.01 && this.annotationScoring[this.tissue][interval.annotation]['beta'] > 1.0
             if (!!intervals) {
                 const newIntervals = intervals
-                    .filter(
-                        interval => {
-                            let k = `${interval.tissueId || "NA"}_${interval.method || "NA"}_${interval.annotation}`;
+                    .filter(interval => {
+                        let k = `${interval.tissueId ||
+                            "NA"}_${interval.method || "NA"}_${
+                            interval.annotation
+                        }`;
 
-                            let filterP = !this.pValue || this.tissueScoring[k].minP <= this.pValue;
-                            let filterB = !this.beta || this.tissueScoring[k].maxB >= this.beta;
-                            let filterMethod = this.method == interval.method;
+                        let filterP =
+                            !this.pValue ||
+                            this.tissueScoring[k].minP <= this.pValue;
+                        let filterB =
+                            !this.beta ||
+                            this.tissueScoring[k].maxB >= this.beta;
+                        let filterMethod = this.method == interval.method;
 
-                            return filterP && filterB && filterMethod;
-                        }
-                    )
+                        return filterP && filterB && filterMethod;
+                    })
                     .map(interval => {
                         const color = this.colorScheme(interval.tissue);
                         return {
@@ -194,25 +200,7 @@ export default Vue.component("igv-intervals-track", {
                 return [];
             }
         }
-    }, 
-    watch: {
-        pValue(newP) {
-            // Evil
-            let currentLocusCache = { chr: this.$parent.currentChr, start: this.$parent.currentStart, end: this.$parent.currentEnd }
-            // this.$parent.igvBrowser.fireEvent('locuschange', currentLocusCache, `chr${currentLocusCache.chr}:${currentLocusCache.start}-${currentLocusCache.end}`)
-            console.log(`chr${currentLocusCache.chr}:${currentLocusCache.start }-${currentLocusCache.end + 1}`)
-            // this.$parent.igvBrowser.updateViews(undefined, undefined, true);
-            // this.$parent.igvBrowser.search(`chr${chr}:${start-100000}-${end-100000}`)
-            // this.$parent.igvBrowser.search(`chr${chr}:${start+100000}-${end+100000}`)
-        },
-        beta(newB) {
-            // Evil
-            let currentLocusCache = { chr: this.$parent.currentChr, start: this.$parent.currentStart, end: this.$parent.currentEnd }
-            // this.$parent.igvBrowser.updateViews(undefined, undefined, true);
-            // console.log(`chr${currentLocusCache.chr}:${currentLocusCache.start - 1}-${currentLocusCache.end + 1}`)
-            // this.$parent.igvBrowser.search(`chr${chr}:${start-100000}-${end-100000}`)
-            // this.$parent.igvBrowser.search(`chr${chr}:${start+100000}-${end+100000}`)
-        }
-    }
+    },
+    watch: {}
 });
 </script>
