@@ -74,6 +74,9 @@ new Vue({
             this.$store.dispatch("queryAssociation", phenotype);
             uiUtils.hideElement("phenotypeSearchHolder");
         },
+        "$store.state.associations.data": function(data) {
+            this.$store.commit("setAssociation", data);
+        },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);

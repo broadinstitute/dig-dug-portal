@@ -27,10 +27,10 @@
                         <template v-for="(p, i) in $store.state.selectedPhenotypes">
                             <b-badge
                                 pill
-                                class="btn"
-                                variant="primary"
+                                class="reference"
                                 :key="p.name"
                                 @click="$parent.removePhenotype(i)"
+                                :class="'color-' + (i+1)"
                             >
                                 {{p.description}}
                                 <b-icon-x-circle></b-icon-x-circle>

@@ -17,7 +17,8 @@ export default new Vuex.Store({
 
     state: {
         newPhenotype: "",
-        selectedPhenotypes: []
+        selectedPhenotypes: [],
+        phenotypeAssociations: {}
     },
 
     mutations: {
@@ -29,10 +30,10 @@ export default new Vuex.Store({
             state.selectedPhenotypes.splice(index, 1);
         },
         setAssociation(state, association) {
-            state.associations.push(association);
+            state.phenotypeAssociations[association[0].phenotype] = association;
         },
-        removeAssociation(state, index) {
-            state.associations.splice(index, 1);
+        removeAssociation(state, phenotype) {
+            delete state.phenotypeAssociations[phenotype];
         }
     },
 
@@ -45,11 +46,13 @@ export default new Vuex.Store({
             context.commit("removePhenotype", index);
             //set params
         },
-        queryAssociation(context, phenotype) {
-            let query = { q: phenotype };
+        async queryAssociation(context, phenotype) {
+            let query = { q: phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
 
             context.dispatch("associations/query", assocQuery);
+
+            //context.commit("setAssociation", context.state.associations.data);
             //context.dispatch("annotations/query", query);
             //context.dispatch("datasets/query", query);
         }
