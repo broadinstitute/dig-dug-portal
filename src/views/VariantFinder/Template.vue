@@ -27,9 +27,9 @@
                         <template v-for="(p, i) in $store.state.selectedPhenotypes">
                             <b-badge
                                 pill
-                                class="reference"
+                                class="btn reference"
                                 :key="p.name"
-                                @click="$parent.removePhenotype(i)"
+                                @click="$parent.removePhenotype(p, i)"
                                 :class="'color-' + (i+1)"
                             >
                                 {{p.description}}
@@ -45,10 +45,10 @@
                     <div class="row">
                         <div class="col-md-12">
                             <h4 class="card-title">Variant Finder</h4>
-                            <variant-finder
+                            <associations-table
+                                :associations="$store.state.phenotypeAssociations"
                                 :phenotypes="$store.state.selectedPhenotypes"
-                                :associations="$store.state.associations.data"
-                            ></variant-finder>
+                            ></associations-table>
                         </div>
                     </div>
                 </div>

@@ -6,7 +6,7 @@ import store from "./store.js";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker";
-import VariantFinder from "@/components/VariantFinder";
+import AssociationsTable from "@/components/AssociationsTable";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -26,7 +26,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
-        VariantFinder
+        AssociationsTable
     },
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
@@ -41,8 +41,13 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        removePhenotype(i) {
-            this.$store.dispatch("onPhenotypeRemove", i);
+        removePhenotype(p, i) {
+            // console.log("p", p);
+            // console.log("i", i);
+            this.$store.dispatch("onPhenotypeRemove", {
+                phenotype: p,
+                index: i
+            });
         }
     },
     computed: {
