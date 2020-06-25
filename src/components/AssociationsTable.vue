@@ -20,7 +20,7 @@
                         @change="addCompound($event, 'select_gene','filter-gene')"
                     ></b-form-input>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">pValue (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
@@ -30,7 +30,7 @@
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">Effect</div>
                     <b-form-select
                         id="filter-beta"
