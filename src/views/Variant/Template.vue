@@ -52,13 +52,26 @@
             <div v-if="$parent.variantData">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Most Severe Consequence</h4>
+                        <h4 class="card-title">
+                            Most Severe Consequence
+                            <tooltip-documentation
+                                name="variant.severe_consequence.tooltip.hover"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+
                         <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
                     </div>
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">PheWAS Associations</h4>
+                        <documentation
+                            name="variant.phewas.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
+
                         <locuszoom :panels="['phewas']" :phewas="$parent.lzAssociations"></locuszoom>
                         <phewas-table
                             :associations="$parent.variantData.associations"
@@ -69,6 +82,11 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">Transcript Consequences</h4>
+                        <tooltip-documentation
+                            name="variant.severe_consequence.tooltip.hover"
+                            :isHover="true"
+                            :noIcon="true"
+                        ></tooltip-documentation>
                         <div v-if="$parent.variantData.transcriptConsequences">
                             <transcript-consequence-table
                                 v-bind:transcriptConsequences="$parent.variantData.transcriptConsequences"
@@ -84,6 +102,11 @@
                         <h4
                             class="card-title"
                         >Transcription factor binding motifs altered by {{$parent.variantName}}</h4>
+                        <documentation
+                            name="variant.tfbinding.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
+
                         <div v-if="$parent.variantData.transcriptionFactors">
                             <transcription-factors-table
                                 v-bind:transcriptionFactors="$parent.variantData.transcriptionFactors"
@@ -97,6 +120,10 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">Annotated regions overlapping {{$parent.variantName}}</h4>
+                        <documentation
+                            name="variant.annotated.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
                         <regions-table :regions="$parent.regions"></regions-table>
                     </div>
                 </div>

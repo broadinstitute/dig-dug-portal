@@ -113,6 +113,8 @@
                     <h4
                         class="card-title"
                     >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
+                    <documentation name="region.phenos_w_signal.subheader"></documentation>
+                   
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div
                             href="javascript:;"
