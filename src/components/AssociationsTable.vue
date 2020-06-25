@@ -128,7 +128,7 @@
                 </template>
                 <template v-slot:cell(locus)="r">
                     <a
-                        :href="`/region.html?chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
+                        :href="`/region.html?phenotype=${phenotypes[0].name}&chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
                     >{{locusFormatter(r.item)}}</a>
                 </template>
                 <template v-slot:cell(allele)="r">
