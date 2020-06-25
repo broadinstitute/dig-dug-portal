@@ -167,7 +167,6 @@ export default Vue.component("datasets-table", {
                         : techFiltered;
 
                 return ancestryFiltered;
-                //}
             } else {
                 return this.sortedDatasets;
             }
