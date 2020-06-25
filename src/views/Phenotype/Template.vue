@@ -75,7 +75,10 @@
                         <h4
                             class="card-title"
                         >Datasets Associated with {{$store.state.phenotype.description}}</h4>
-                        <datasets-table :datasets="$store.state.datasets.data"></datasets-table>
+                        <datasets-table
+                            :datasets="$store.state.bioPortal.datasets"
+                            :phenotype="$store.state.phenotype"
+                        ></datasets-table>
                     </div>
                 </div>
 
