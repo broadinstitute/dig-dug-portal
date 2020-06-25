@@ -23,7 +23,7 @@
 
                             <div class="col-md-12 portal-front-tabs">
                                 <b-tabs content-class="mt-3" align="center">
-                                    <b-tab title="Explore by region or variant" active>
+                                    <b-tab title="Gene, regions or variants" active>
                                         <div class="front-gene-search-wrapper">
                                             <div class="col-md-12 input-wrapper">
                                                 <input
@@ -50,7 +50,7 @@
                                         </div>
                                     </b-tab>
 
-                                    <b-tab title="Explore by phenotype">
+                                    <b-tab title="Phenotypes">
                                         <div class="front-phenotype-search-wrapper">
                                             <phenotype-selectpicker
                                                 v-bind:phenotypes="$parent.phenotypes"
@@ -58,7 +58,7 @@
                                         </div>
                                     </b-tab>
                                     <b-tab
-                                        title="Explore by disease area"
+                                        title="Disease-specific portals"
                                         v-if="$parent.diseaseGroup.default"
                                     >
                                         <disease-group-select

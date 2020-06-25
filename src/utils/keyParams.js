@@ -28,7 +28,6 @@ export default {
 
     // update the params in the url (without redirect)
     set(paramMap) {
-        console.log("back");
         let url = Url(window.location.href);
         let params = queryString.parse(url.query);
 
