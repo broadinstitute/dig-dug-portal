@@ -50,7 +50,10 @@ export default {
                 }
             };
 
-            let json = await fetch(`http://34.71.240.244:8080/lunaris/query`, arg)
+            let json = await fetch(`http://34.71.240.244:8080/lunaris/query`, {
+                method: 'POST', // or 'PUT'
+                body: JSON.stringify(arg),
+            })
                 .then(resp => resp.json());
             // set the data
             context.commit('setDataFromLunaris', json)
