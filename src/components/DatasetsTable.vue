@@ -91,6 +91,7 @@ export default Vue.component("datasets-table", {
                     label: "Ancestry",
                     formatter: Formatters.ancestryFormatter
                 },
+                /*
                 {
                     key: "cases",
                     label: "Cases",
@@ -101,6 +102,7 @@ export default Vue.component("datasets-table", {
                     label: "Controls",
                     formatter: Formatters.intFormatter
                 },
+                */
                 {
                     key: "subjects",
                     label: "Subjects",
