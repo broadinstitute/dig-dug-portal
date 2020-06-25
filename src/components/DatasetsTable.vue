@@ -45,6 +45,9 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template center v-slot:cell(image)="r">
+                <span :class="'community-icon ' + r.item.community"></span>
+            </template>
             <template v-slot:cell(link)="r">
                 <a :href="`/dinspector.html?dataset=${r.item.name}`">{{r.item.description}}</a>
             </template>
@@ -102,6 +105,10 @@ export default Vue.component("datasets-table", {
                     key: "subjects",
                     label: "Subjects",
                     formatter: Formatters.intFormatter
+                },
+                {
+                    key: "image",
+                    label: "Community"
                 }
             ],
             perPage: 5,
@@ -173,3 +180,7 @@ export default Vue.component("datasets-table", {
     }
 });
 </script>
+
+<style>
+@import url("/css/datasetsList.css");
+</style>
