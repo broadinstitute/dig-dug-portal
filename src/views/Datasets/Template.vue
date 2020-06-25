@@ -16,10 +16,11 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
+                            {{$store.state.bioPortal.phenotypes}}
                             <portal-datasets-list-table
                                 :diseaseGroups="$store.state.bioPortal.diseaseGroups"
                                 :diseaseGroup="$parent.diseaseGroup"
-                                :datasetsList="$parent.datasetsList"
+                                :datasetsList="$store.state.bioPortal.datasets"
                                 :phenotypes="$store.state.bioPortal.phenotypes"
                             ></portal-datasets-list-table>
                         </div>
