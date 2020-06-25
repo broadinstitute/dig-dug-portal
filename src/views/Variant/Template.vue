@@ -81,12 +81,15 @@
                 </div>
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Transcript Consequences</h4>
-                        <tooltip-documentation
-                            name="variant.severe_consequence.tooltip.hover"
-                            :isHover="true"
-                            :noIcon="true"
-                        ></tooltip-documentation>
+                        <h4 class="card-title">
+                            Transcript Consequences
+                            <tooltip-documentation
+                                name="variant.consequences.tooltip.hover"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+
                         <div v-if="$parent.variantData.transcriptConsequences">
                             <transcript-consequence-table
                                 v-bind:transcriptConsequences="$parent.variantData.transcriptConsequences"
