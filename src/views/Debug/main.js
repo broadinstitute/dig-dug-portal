@@ -9,7 +9,6 @@ import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.v
 import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
 import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue"
 
-import TissueSelectPicker from "@/components/TissueSelectPicker"
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 
 import * as _ from "lodash";
@@ -23,7 +22,6 @@ new Vue({
         IGVAssociationsTrack,
         IGVIntervalTrack,
         IGVCredibleVariantsTrack,
-        TissueSelectPicker,
         CredibleSetSelectPicker,
     },
     data() {

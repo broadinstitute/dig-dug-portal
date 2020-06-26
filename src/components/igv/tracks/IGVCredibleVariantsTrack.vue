@@ -1,5 +1,5 @@
 <template>
-    <div :ref="`${index}_${salt}`">
+    <div :ref="`${trackName}_${salt}`">
         <pre></pre>
     </div>
 </template>
@@ -8,7 +8,6 @@ import Vue from "vue";
 
 import igv from "igv";
 import IGVEvents, {
-    IGV_BROWSER_FORCE_REFRESH,
     IGV_ADD_TRACK,
     IGV_REMOVE_TRACK,
     IGV_CHILD_DESTROY_TRACK,
@@ -22,58 +21,26 @@ import { cloneDeep } from "lodash";
 
 export default Vue.component('igv-credible-variants-track', {
     props: {
-
         phenotype: {
             type: String,
             required: true
         },
-
         credibleSetId: {
             type: String,
             required: true
         },
-
         posteriorProbability: {
             type: Boolean,
             require: false,
             default: false,
         },
-
-        // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
-        visualization: {
-            type: String,
-            default: 'annotation',
-            validator: function (value) {
-                // The value must match one of these strings
-                return ['annotation', 'gwas'].indexOf(value) !== -1
-            }
-        },
-
-        pValue: {
-
-        },
-
-        beta: {
-
-        },
-
-        finishHandler: {
-            type: Function,
-            required: false
-        },
-        resolveHandler: {
-            type: Function,
-            required: false
-        },
-        errHandler: {
-            type: Function,
-            required: false
+        events: {
+            type: Object,
+            default: {}
         }
-
     },
     data() {
         return {
-            index: 'credible-variants',
             salt: Math.floor((Math.random() * 10000)).toString(),
         }
     },
@@ -106,25 +73,34 @@ export default Vue.component('igv-credible-variants-track', {
         buildTrack: function () {
             return {
                 name: this.trackName,
-                type: this.visualization,
+                type: 'gwas',
                 posteriorProbability: this.posteriorProbability,
                 reader: new BioIndexReader({
-                    index: this.index,
+                    index: 'credible-variants',
                     queryString: this.queryStringMaker,
                     translator: this.associationsForIGV,
-
-                    // if the queryHandler is defined (i.e. passed as a prop), use it.
-                    // Else, use whatever default queryhandler the parent IGV instance has (given that one is defined there).
                     queryHandlers: {
-                        resolveHandler: this.resolveHandler ||
-                            ((json) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json)),
-                        errHandler: this.errHandler ||
-                            ((json) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json)),
-                        finishHandler: this.finishHandler ||
-                            ((response) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response)),
+                        resolveHandler: json =>
+                            IGVEvents.$emit(this.events.resolveEvent || IGV_BIOINDEX_QUERY_RESOLVE, {
+                                track: this.trackName,
+                                index: 'credible-variants',
+                                data: json,
+                            }),
+                        errHandler: json =>
+                            IGVEvents.$emit(this.events.errEvent || IGV_BIOINDEX_QUERY_ERROR, {
+                                track: this.trackName,
+                                index: 'credible-variants',
+                                data: json,
+                            }),
+                        finishHandler: response =>
+                            IGVEvents.$emit(this.events.finishEvent || IGV_BIOINDEX_QUERY_FINISH, {
+                                track: this.trackName,
+                                index: 'credible-variants',
+                                data: response,
+                            })
                     }
                 }),
-                // height: 160,
+                disableCache: true,
             }
         },
         associationsForIGV: function (associations) {

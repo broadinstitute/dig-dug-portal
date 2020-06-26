@@ -21,6 +21,8 @@
 import Vue from "vue";
 import _ from "lodash";
 
+import EventBus from "@/utils/eventBus";
+
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
@@ -73,12 +75,12 @@ export default Vue.component("annotation-method-selectpicker", {
                 });
             }
 
-            
+
         }
     },
     methods: {
         onAnnotationSelect(event) {
-            this.$store.dispatch("onAnnotationChange", event);
+            EventBus.$emit("onAnnotationChange", event);
 
             if (this.clearOnSelected) {
                 this.userText = '';

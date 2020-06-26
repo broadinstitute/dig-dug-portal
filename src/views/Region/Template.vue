@@ -179,25 +179,23 @@
                                 <div class="col filter-col-lg">
                                     <div class="label">Annotation Method Track</div>
                                     <annotation-method-selectpicker
-                                        :annotations="$parent.globalEnrichmentAnnotations"
-                                    />
-                                </div>
-                                <div class="col filter-col-lg">
-                                    <div class="label">Credible Sets Track</div>
-                                    <credible-sets-selectpicker
-                                        :credibleSets="$parent.credibleSets"
-                                    />
+                                        :annotations="$parent.globalEnrichmentAnnotations"/>
                                 </div>
 
-                                <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-sm">
                                     <div class="label">pValue (&le;)</div>
                                     <input v-model.number="$parent.pValue" class="form-control" />
                                 </div>
-
                                 <div class="col filter-col-sm">
                                     <div class="label">Fold (&ge;)</div>
                                     <input v-model.number="$parent.fold" class="form-control" />
+                                </div>
+
+                                <div class="col divider">&nbsp;</div>
+                                <div class="col filter-col-lg">
+                                    <div class="label">Credible Sets Track</div>
+                                    <credible-sets-selectpicker
+                                        :credibleSets="$parent.credibleSets"/>
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>
@@ -218,9 +216,8 @@
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
-                                :p-value="$store.state.pValue"
-                                :fold="$store.state.fold"
-                                :colorScheme="$parent.tissueColorScheme"
+                                :p-value="$parent.pValue"
+                                :fold="$parent.fold"
                                 :scoring="$parent.tissueScoring"/>
                         </div>
                     </div>

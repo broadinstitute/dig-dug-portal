@@ -1,12 +1,11 @@
 <template>
-    <div :ref="this.trackName"></div>
+    <div :ref="`${trackName}_${salt}`"></div>
 </template>
 <script>
 import Vue from "vue";
 
 import igv from "igv";
 import IGVEvents, {
-    IGV_BROWSER_FORCE_REFRESH,
     IGV_ADD_TRACK,
     IGV_REMOVE_TRACK,
     IGV_CHILD_DESTROY_TRACK,
@@ -14,22 +13,13 @@ import IGVEvents, {
     IGV_BIOINDEX_QUERY_ERROR,
     IGV_BIOINDEX_QUERY_FINISH
 } from "@/components/igv/IGVEvents";
-import { BioIndexReader, colorIntervalAnnotation } from "@/utils/igvUtils";
-
+import { BioIndexReader } from "@/utils/igvUtils";
 import * as _ from "lodash";
 
 export default Vue.component("igv-intervals-track", {
     props: {
-        tissue: {
-            type: Array,
-            required: false
-        },
         annotations: {
             type: Array,
-            required: false
-        },
-        ancestry: {
-            type: String,
             required: false
         },
         method: {
@@ -40,49 +30,19 @@ export default Vue.component("igv-intervals-track", {
             type: Object,
             required: false
         },
-
-        finishHandler: {
-            type: Function,
-            required: false
-        },
-        resolveHandler: {
-            type: Function,
-            required: false
-        },
-        errHandler: {
-            type: Function,
-            required: false
-        },
-
         colorScheme: {
             type: Function,
             required: false
         },
-
-        // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
-        visualization: {
-            type: String,
-            default: "annotation",
-            validator: function(value) {
-                // The value must match one of these strings
-                return ["annotation", "gwas"].indexOf(value) !== -1;
-            }
-        },
-
-        index: {
-            type: String,
-            default: "annotated-regions",
-            validator: function(value) {
-                // The value must match one of these strings
-                return ["regions", "annotated-regions"].indexOf(value) !== -1;
-            }
+        events: {
+            type: Object,
+            default: {}
         }
     },
     data() {
         return {
-            salt: Math.floor(Math.random() * 10000).toString(),
-            padding: 0
-        };
+            salt: Math.floor((Math.random() * 10000)).toString(),
+        }
     },
     computed: {
         trackName() {
@@ -90,25 +50,37 @@ export default Vue.component("igv-intervals-track", {
                 !!this.method ? " " + this.method : ""
             }`;
         },
-        pValue() {
-            return this.$parent.pValue;
+        igvFilter() {
+            return this.$parent.filter;
         },
-        fold() {
-            return this.$parent.fold;
-        }
     },
     mounted() {
         IGVEvents.$emit(IGV_ADD_TRACK, {
             name: this.trackName,
-            type: this.visualization,
+            type: "annotation",
             reader: new BioIndexReader({
-                index: this.index,
+                index: "annotated-regions",
                 queryString: this.queryStringMaker,
                 translator: this.intervalsForIGV,
                 queryHandlers: {
-                    resolveHandler: json => IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json),
-                    errHandler: json => IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json),
-                    finishHandler: response => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response)
+                    resolveHandler: json =>
+                        IGVEvents.$emit(this.events.resolveEvent || IGV_BIOINDEX_QUERY_RESOLVE, {
+                            track: this.trackName,
+                            index: "annotated-regions",
+                            data: json,
+                        }),
+                    errHandler: json =>
+                        IGVEvents.$emit(this.events.errEvent || IGV_BIOINDEX_QUERY_ERROR, {
+                            track: this.trackName,
+                            index: "annotated-regions",
+                            data: json,
+                        }),
+                    finishHandler: response =>
+                        IGVEvents.$emit(this.events.finishEvent || IGV_BIOINDEX_QUERY_FINISH, {
+                            track: this.trackName,
+                            index: "annotated-regions",
+                            data: response,
+                        })
                 }
             }),
             height: 160,
@@ -148,18 +120,19 @@ export default Vue.component("igv-intervals-track", {
                             interval.annotation
                         }`;
 
+                        // TODO: Pick out of the filter only those predicates that matter to the object
                         let filterP =
-                            !this.pValue ||
-                            this.$parent.scoring[k].minP <= this.pValue;
+                            !this.igvFilter.pValue ||
+                            this.$parent.scoring[k].minP <= this.igvFilter.pValue;
                         let filterFold =
-                            !this.fold ||
-                            this.$parent.scoring[k].maxFold >= this.fold;
+                            !this.igvFilter.fold ||
+                            this.$parent.scoring[k].maxFold >= this.igvFilter.fold;
                         let filterMethod = this.method == interval.method;
 
                         return filterP && filterFold && filterMethod;
                     })
                     .map(interval => {
-                        const color = this.$parent.colorScheme(interval.tissue);
+                        const color = this.colorScheme(interval.tissue);
                         return {
                             name: interval.tissue || interval.tissueId,
                             chr: interval.chromosome,

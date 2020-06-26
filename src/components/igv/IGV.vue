@@ -17,24 +17,15 @@ import lodash from "lodash";
 
 import igv from "igv";
 import IGVEvents, {
-    IGV_BROWSER_FORCE_REFRESH,
     IGV_ADD_TRACK,
     IGV_REMOVE_TRACK,
     IGV_CHILD_DESTROY_TRACK,
-    IGV_BIOINDEX_QUERY_RESOLVE,
-    IGV_BIOINDEX_QUERY_ERROR,
-    IGV_BIOINDEX_QUERY_FINISH,
     IGV_LOCUSCHANGE,
 } from "@/components/igv/IGVEvents";
 
-import {
-    igvError
-    // igvResolve,
-    // igvFinish
-} from "@/utils/igvUtils";
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack";
-import IGVIntervalTrack from "./tracks/IGVIntervalTrack.vue";
-import IGVCredibleVariantsTrack from "./tracks/IGVIntervalTrack.vue";
+import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue";
+import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue";
 
 export default Vue.component("igv", {
     props: [
@@ -42,18 +33,11 @@ export default Vue.component("igv", {
         "chr",
         "start",
         "end",
-        // handlers for network requests
-        "resolveHandler",
-        "finishHandler",
-        "errHandler",
-        // handlers on global IGV behavior
-        "popupHandler",
-        "regionHandler",
+
         // filters
-        "pValue",
+        "p-value",
         "fold",
         "scoring",
-        "colorScheme"
     ],
 
     data() {
@@ -98,14 +82,6 @@ export default Vue.component("igv", {
                 browser.removeTrackByName(trackName);
             });
 
-            // TODO
-            IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
-                // just go to the place we already are at
-                browser.search(
-                    `chr${this.currentChr}:${this.currentStart}-${this.currentEnd}`
-                );
-            });
-
             // 'trackremoved' is an igv.js event
             // Since it can execute independently of the track component being destroyed, we have to
             // either emit or re-emit the destruction signal to ensure 1-1 correspondence between the Vue component and the igvBrowser track.
@@ -140,7 +116,7 @@ export default Vue.component("igv", {
             }
         },
 
-        addCredibleVariantsTrack(phenotype, credibleSetId, posteriorProbability) {
+        addCredibleVariantsTrack(phenotype, credibleSetId, posteriorProbability, options = {}) {
             this.addIGVTrack(IGVCredibleVariantsTrack, {
                 phenotype: phenotype,
                 credibleSetId: credibleSetId,
@@ -148,10 +124,11 @@ export default Vue.component("igv", {
             })
         },
 
-        addIntervalsTrack(annotation, annotationMethod) {
+        addIntervalsTrack(annotation, annotationMethod, options = {}) {
             this.addIGVTrack(IGVIntervalTrack, {
                 annotations: [annotation],
                 method: annotationMethod,
+                ...options,
             })
         },
 
@@ -174,10 +151,7 @@ export default Vue.component("igv", {
         }
     },
     watch: {
-        pValue() {
-            this.updateViews();
-        },
-        fold() {
+        filter() {
             this.updateViews();
         },
     }

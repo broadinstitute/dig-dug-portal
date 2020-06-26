@@ -11,14 +11,12 @@ import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
 
 import IGV from "@/components/igv/IGV.vue"
-import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
-import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
+import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
-import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue"
-
-import TissueSelectPicker from "@/components/TissueSelectPicker"
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
+import EventBus from "@/utils/eventBus";
+
 import LunarisLink from "@/components/LunarisLink"
 
 import { BButton } from 'bootstrap-vue'
@@ -33,7 +31,6 @@ import Alert, {
 
 import Formatters from "@/utils/formatters"
 import * as d3 from "d3";
-import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
 
 Vue.config.productionTip = false;
@@ -48,19 +45,16 @@ new Vue({
         Documentation,
         LunarisLink,
 
-        PhenotypeSelectPicker,
         LocusZoom,
         AssociationsTable,
         PhenotypeSignalMixed,
 
         IGV,
-        IGVAssociationsTrack,
-        IGVCredibleVariantsTrack,
-        IGVIntervalTrack,
 
-        TissueSelectPicker,
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
+        PhenotypeSelectPicker,
+
     },
 
     created() {
@@ -79,6 +73,20 @@ new Vue({
             this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
         });
 
+        EventBus.$on("onCredibleSetChange", credibleSet => {
+            // you can update the store here if you really need to. but you don't need to.
+            // instead use a computed property with custom getters and setters plus v-model if at all possible.
+            const { phenotype, credibleSetId } = credibleSet;
+            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true);
+        });
+
+        EventBus.$on("onAnnotationChange", enrichment => {
+            const { annotation, method } = enrichment;
+            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
+                colorScheme: this.tissueColorScheme,
+            });
+        });
+
     },
 
     render(createElement) {
@@ -88,6 +96,10 @@ new Vue({
     data() {
         return {
             counter: 0,
+
+            // page controls
+            pValue: null,
+            fold: null,
         };
     },
 
@@ -97,27 +109,14 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        addCredibleVariantsTrack: function () {
-            if (!!this.$store.state.currentCredibleSet && !!this.$store.state.phenotype) {
-                // true for posterior probability
-                this.$children[0].$refs.igv.addCredibleVariantsTrack(this.$store.state.phenotype.name, this.$store.state.currentCredibleSet, true);
-            }
-        },
-        addIntervalsTrackForAnnotation: function () {
-            if (!!this.$store.state.currentAnnotation) {
-                this.$children[0].$refs.igv.addIntervalsTrack(this.$store.state.currentAnnotation.annotation, this.$store.state.currentAnnotation.method);
-            }
-        },
     },
 
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
-
             if (contents.length === 0) {
                 return {};
             }
-
             return contents[0];
         },
 
@@ -148,10 +147,9 @@ new Vue({
 
         regionString() {
             let chr = this.$store.state.chr;
-            let start = parseInt(this.$store.state.start).toLocaleString();
-            let end = parseInt(this.$store.state.end).toLocaleString();
-
-            return `${chr}:${start}-${end}`;
+            let start = Formatters.intFormatter(this.$store.state.start);
+            let end = Formatters.intFormatter(this.$store.state.end);
+            return Formatters.locusFormatter(chr, start, end);
         },
 
         globalEnrichmentAnnotations() {
@@ -164,6 +162,7 @@ new Vue({
             return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
         },
 
+        // TODO: refactor into IGV Utils
         tissueColorScheme() {
             return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
         },
@@ -215,10 +214,8 @@ new Vue({
                     assocMap[assoc.phenotype] = assoc;
                 }
             }
-
             // region loaded, hide search
             uiUtils.hideElement("regionSearchHolder");
-
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
@@ -238,29 +235,8 @@ new Vue({
                         ref_allele: v.reference
                     };
                 });
-
-            // phenotype data loaded, close search
-            // uiUtils.hideElement("phenotypeSearchHolder");
-
             return assocs;
         },
-
-        pValue: {
-            get() {
-                return this.$store.state.pValue
-            },
-            set(value) {
-                this.$store.commit('setPValue', value)
-            }
-        },
-        fold: {
-            get() {
-                return this.$store.state.fold
-            },
-            set(value) {
-                this.$store.commit('setFold', value)
-            }
-        }
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
@@ -291,7 +267,6 @@ new Vue({
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                     topAssoc.phenotype
                 ];
-
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
@@ -299,18 +274,5 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-
-        "$store.state.currentAnnotation": function (annotation) {
-            if (!!annotation) {
-                this.addIntervalsTrackForAnnotation();
-                this.$store.commit('setAnnotationChange', '');
-            }
-        },
-        "$store.state.currentCredibleSet": function (credibleSet) {
-            if (!!credibleSet) {
-                this.addCredibleVariantsTrack();
-                this.$store.commit('setCredibleSet', '');
-            }
-        }
     },
 }).$mount("#app");
