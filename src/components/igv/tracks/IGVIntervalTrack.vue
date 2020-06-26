@@ -55,37 +55,7 @@ export default Vue.component("igv-intervals-track", {
         },
     },
     mounted() {
-        IGVEvents.$emit(IGV_ADD_TRACK, {
-            name: this.trackName,
-            type: "annotation",
-            reader: new BioIndexReader({
-                index: "annotated-regions",
-                queryString: this.queryStringMaker,
-                translator: this.intervalsForIGV,
-                queryHandlers: {
-                    resolveHandler: json =>
-                        IGVEvents.$emit(this.events.resolveEvent || IGV_BIOINDEX_QUERY_RESOLVE, {
-                            track: this.trackName,
-                            index: "annotated-regions",
-                            data: json,
-                        }),
-                    errHandler: json =>
-                        IGVEvents.$emit(this.events.errEvent || IGV_BIOINDEX_QUERY_ERROR, {
-                            track: this.trackName,
-                            index: "annotated-regions",
-                            data: json,
-                        }),
-                    finishHandler: response =>
-                        IGVEvents.$emit(this.events.finishEvent || IGV_BIOINDEX_QUERY_FINISH, {
-                            track: this.trackName,
-                            index: "annotated-regions",
-                            data: response,
-                        })
-                }
-            }),
-            height: 160,
-            disableCache: true
-        });
+        IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
 
         IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
             if (trackName === this.trackName) {
@@ -98,9 +68,41 @@ export default Vue.component("igv-intervals-track", {
         // clean up external data before destroying the component instance from memory
         IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
         this.$el.parentNode.removeChild(this.$el);
-        // console.log(this.$el);
     },
     methods: {
+        buildTrack: function(trackName, queryStringMaker, translator, type, index, events) {
+            return {
+                name: this.trackName,
+                type: "annotation",
+                reader: new BioIndexReader({
+                    index: "annotated-regions",
+                    queryString: this.queryStringMaker,
+                    translator: this.intervalsForIGV,
+                    queryHandlers: {
+                        resolveHandler: json =>
+                            IGVEvents.$emit(this.events.resolveEvent || IGV_BIOINDEX_QUERY_RESOLVE, {
+                                track: this.trackName,
+                                index: "annotated-regions",
+                                data: json,
+                            }),
+                        errHandler: json =>
+                            IGVEvents.$emit(this.events.errEvent || IGV_BIOINDEX_QUERY_ERROR, {
+                                track: this.trackName,
+                                index: "annotated-regions",
+                                data: json,
+                            }),
+                        finishHandler: response =>
+                            IGVEvents.$emit(this.events.finishEvent || IGV_BIOINDEX_QUERY_FINISH, {
+                                track: this.trackName,
+                                index: "annotated-regions",
+                                data: response,
+                            })
+                    }
+                }),
+                height: 160,
+                disableCache: true
+            }
+        },
         queryStringMaker: function(chr, start, end) {
             // TODO: ASSUMES UNIQUE ANNOTATION!!! Will not extend to multiple annotation inputs!
             return !!this.annotations

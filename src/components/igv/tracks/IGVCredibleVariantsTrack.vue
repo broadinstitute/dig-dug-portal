@@ -65,12 +65,11 @@ export default Vue.component('igv-credible-variants-track', {
     beforeDestroy () {
         // clean up external data before destroying the component instance from memory
         IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
-        // console.log(this.$el);
         this.$el.parentNode.removeChild(this.$el);
     },
 
     methods: {
-        buildTrack: function () {
+        buildTrack: function (trackName, queryStringMaker, translator, type, index, events) {
             return {
                 name: this.trackName,
                 type: 'gwas',
