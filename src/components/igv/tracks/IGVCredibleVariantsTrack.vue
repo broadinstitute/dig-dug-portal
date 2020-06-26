@@ -42,11 +42,7 @@ export default Vue.component('igv-credible-variants-track', {
         // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
         visualization: {
             type: String,
-            default: 'annotation',
-            validator: function (value) {
-                // The value must match one of these strings
-                return ['annotation', 'gwas'].indexOf(value) !== -1
-            }
+            default: 'gwas'
         },
 
         pValue: {

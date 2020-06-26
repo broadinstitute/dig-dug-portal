@@ -24,8 +24,8 @@ export default Vue.component("igv-intervals-track", {
             type: Array,
             required: false
         },
-        annotations: {
-            type: Array,
+        annotation: {
+            type: String,
             required: false
         },
         ancestry: {
@@ -39,19 +39,6 @@ export default Vue.component("igv-intervals-track", {
 
         tissueScoring: {
             type: Object,
-            required: false
-        },
-
-        finishHandler: {
-            type: Function,
-            required: false
-        },
-        resolveHandler: {
-            type: Function,
-            required: false
-        },
-        errHandler: {
-            type: Function,
             required: false
         },
 
@@ -87,10 +74,11 @@ export default Vue.component("igv-intervals-track", {
     },
     computed: {
         trackName() {
-            return `${this.annotations[0]}${
+            return `${this.annotation}${
                 !!this.method ? " " + this.method : ""
             }`;
         },
+        // TODO how to eliminate
         pValue() {
             return this.$parent.$parent.$store.state.pValue;
         },
@@ -112,21 +100,9 @@ export default Vue.component("igv-intervals-track", {
                 // if the queryHandler is defined (i.e. passed as a prop), use it.
                 // Else, use whatever default queryhandler the parent IGV instance has (given that one is defined there).
                 queryHandlers: {
-                    resolveHandler:
-                        this.resolveHandler ||
-                        (json =>
-                            IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json)),
-                    errHandler:
-                        this.errHandler ||
-                        (json =>
-                            IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json)),
-                    finishHandler:
-                        this.finishHandler ||
-                        (response =>
-                            IGVEvents.$emit(
-                                IGV_BIOINDEX_QUERY_FINISH,
-                                response
-                            ))
+                    resolveHandler: (json => IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json)),
+                    errHandler: (json => IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json)),
+                    finishHandler: (response => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response))
                 }
             }),
             height: 160,
@@ -144,13 +120,11 @@ export default Vue.component("igv-intervals-track", {
         // clean up external data before destroying the component instance from memory
         IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
         this.$el.parentNode.removeChild(this.$el);
-        // console.log(this.$el);
     },
     methods: {
         queryStringMaker: function(chr, start, end) {
-            // TODO: ASSUMES UNIQUE ANNOTATION!!! Will not extend to multiple annotation inputs!
-            return !!this.annotations
-                ? `${this.annotations[0]},${chr}:${start}-${end}`
+            return !!this.annotation
+                ? `${this.annotation},${chr}:${start}-${end}`
                 : `${chr}:${start}-${end}`;
         },
         intervalsForIGV: function(intervals) {

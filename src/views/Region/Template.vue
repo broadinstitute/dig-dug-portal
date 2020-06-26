@@ -114,7 +114,7 @@
                         class="card-title"
                     >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
                     <documentation name="region.phenos_w_signal.subheader"></documentation>
-                   
+
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div
                             href="javascript:;"
@@ -220,22 +220,19 @@
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
+
+                                :regionHandler="locus => {
+                                    const region = {
+                                        chr: locus.chr.charAt(3),
+                                        start: locus.start.replace(/,/g, ''),
+                                        end: locus.end.replace(/,/g, ''),
+                                    };
+                                    $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
+                                }"
+
                                 :p-value="$store.state.pValue"
                                 :fold="$store.state.fold"
-                                :regionHandler="locus => {
-                                const region = {
-                                    chr: locus.chr.charAt(3),
-                                    start: locus.start.replace(/,/g, ''),
-                                    end: locus.end.replace(/,/g, ''),
-                                };
-                                $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
-                            }"
-                            >
-                                <!-- <igv-associations-track
-                                :phenotype="$store.state.phenotype.name"
-                                visualization="gwas"
-                                :finishHandler="response => $parent.routeResponseToModule(response)"
-                                ></igv-associations-track>-->
+                                :colorScheme="$parent.colorScheme">
                             </igv>
                         </div>
                     </div>

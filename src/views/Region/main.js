@@ -11,10 +11,6 @@ import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
 
 import IGV from "@/components/igv/IGV.vue"
-import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
-import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
-
-import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue"
 
 import TissueSelectPicker from "@/components/TissueSelectPicker"
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
@@ -51,12 +47,7 @@ new Vue({
         LocusZoom,
         AssociationsTable,
         PhenotypeSignalMixed,
-
         IGV,
-        IGVAssociationsTrack,
-        IGVCredibleVariantsTrack,
-        IGVIntervalTrack,
-
         TissueSelectPicker,
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
@@ -85,66 +76,17 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        formatIGV: function (locus) {
-            return Formatters.igvLocusFormatter(locus)
-        },
-        addCredibleSetsTracks: function (credibleSet) {
-
-            if (!!this.$store.state.currentCredibleSet || credibleSet && !!this.$store.state.phenotype) {
-
-                // p-value
-                // this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
-                //     data: {
-                //         phenotype: this.$store.state.phenotype.name,
-                //         credibleSetId: this.$store.state.currentCredibleSet,
-                //         posteriorProbability: false,  // logarithm
-                //         visualization: 'gwas',
-                //     }
-                // });
-
-                // posterior probability
-                this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
-                    data: {
-                        phenotype: this.$store.state.phenotype.name,
-                        credibleSetId: credibleSet,
-                        posteriorProbability: true,
-                        visualization: 'gwas',
-                    }
-                });
-            }
-
-
-        },
-        addIntervalsTrack: function (tissue) {
-            if (!!this.$store.state.currentTissue || tissue) {
-                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
-                    data: {
-                        tissue: tissue,
-                    }
-                });
+        addCredibleSetsTracks: function () {
+            if(!!this.$store.state.phenotype && !!this.$store.state.currentCredibleSet) {
+                this.$children[0].$refs.igv.addCredibleSetsTrack(this.$store.state.phenotype.name, this.$store.state.currentCredibleSet);
             }
         },
         addIntervalsTrackForAnnotation: function () {
             if (!!this.$store.state.currentAnnotation) {
-
-                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
-                    data: {
-                        // tissue: [annotation.tissue],
-                        annotations: [this.$store.state.currentAnnotation.annotation],
-                        method: this.$store.state.currentAnnotation.method,
-                        pValue: this.pValue,
-                        fold: this.fold,
-                        colorScheme: this.tissueColorScheme,
-                        tissueScoring: this.tissueScoring,
-                    }
-                });
-
+                this.$children[0].$refs.igv.addIntervalsTrack(this.$store.state.currentAnnotation.annotation, this.$store.state.currentAnnotation.method);
             }
         },
         routeResponseToModule(response) {
-            // NOTE! assumes BOTHthat this is a bioIndex call with a registered bioIndex module, with the same symbolic name of the index.
-            // TODO: move to store?
-            // TODO: how about camel-kebabing?
             return this.$store.commit(`${response.index}/setResponse`, response);
         },
     },
@@ -180,7 +122,6 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
-
         credibleSets() {
             return this.$store.state.credibleSets.data;
         },
@@ -203,7 +144,7 @@ new Vue({
             return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
         },
 
-        tissueColorScheme() {
+        colorScheme() {
             return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
         },
 
