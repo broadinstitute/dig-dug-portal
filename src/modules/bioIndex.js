@@ -80,6 +80,7 @@ export default function (index, extend) {
                 console.log(args);
             },
             async query(context, { q, limit }) {
+                console.log(index, q)
                 let profile = {
                     fetch: 0,
                     query: 0

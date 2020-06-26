@@ -33,6 +33,7 @@ import Alert, {
 
 import Formatters from "@/utils/formatters"
 import * as d3 from "d3";
+import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
 
 Vue.config.productionTip = false;
@@ -69,7 +70,18 @@ new Vue({
         this.$store.dispatch("queryRegion");
     },
 
-    render(createElement, context) {
+    mounted() {
+
+        IGVEvents.$on(IGV_LOCUSCHANGE, locus => {
+            const phenotype = this.$store.state.phenotype.name;
+            const region = Formatters.igvLocusFormatter(locus);
+            // I keep on forgetting this 'q'
+            this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
+        });
+
+    },
+
+    render(createElement) {
         return createElement(Template);
     },
 
@@ -85,67 +97,16 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        formatIGV: function (locus) {
-            return Formatters.igvLocusFormatter(locus)
-        },
-        addCredibleSetsTracks: function (credibleSet) {
-
-            if (!!this.$store.state.currentCredibleSet || credibleSet && !!this.$store.state.phenotype) {
-
-                // p-value
-                // this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
-                //     data: {
-                //         phenotype: this.$store.state.phenotype.name,
-                //         credibleSetId: this.$store.state.currentCredibleSet,
-                //         posteriorProbability: false,  // logarithm
-                //         visualization: 'gwas',
-                //     }
-                // });
-
-                // posterior probability
-                this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
-                    data: {
-                        phenotype: this.$store.state.phenotype.name,
-                        credibleSetId: credibleSet,
-                        posteriorProbability: true,
-                        visualization: 'gwas',
-                    }
-                });
-            }
-
-
-        },
-        addIntervalsTrack: function (tissue) {
-            if (!!this.$store.state.currentTissue || tissue) {
-                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
-                    data: {
-                        tissue: tissue,
-                    }
-                });
+        addCredibleVariantsTrack: function () {
+            if (!!this.$store.state.currentCredibleSet && !!this.$store.state.phenotype) {
+                // true for posterior probability
+                this.$children[0].$refs.igv.addCredibleVariantsTrack(this.$store.state.phenotype.name, this.$store.state.currentCredibleSet, true);
             }
         },
         addIntervalsTrackForAnnotation: function () {
             if (!!this.$store.state.currentAnnotation) {
-
-                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
-                    data: {
-                        // tissue: [annotation.tissue],
-                        annotations: [this.$store.state.currentAnnotation.annotation],
-                        method: this.$store.state.currentAnnotation.method,
-                        pValue: this.pValue,
-                        fold: this.fold,
-                        colorScheme: this.tissueColorScheme,
-                        tissueScoring: this.tissueScoring,
-                    }
-                });
-
+                this.$children[0].$refs.igv.addIntervalsTrack(this.$store.state.currentAnnotation.annotation, this.$store.state.currentAnnotation.method);
             }
-        },
-        routeResponseToModule(response) {
-            // NOTE! assumes BOTHthat this is a bioIndex call with a registered bioIndex module, with the same symbolic name of the index.
-            // TODO: move to store?
-            // TODO: how about camel-kebabing?
-            return this.$store.commit(`${response.index}/setResponse`, response);
         },
     },
 
@@ -341,13 +302,13 @@ new Vue({
 
         "$store.state.currentAnnotation": function (annotation) {
             if (!!annotation) {
-                this.addIntervalsTrackForAnnotation(annotation);
+                this.addIntervalsTrackForAnnotation();
                 this.$store.commit('setAnnotationChange', '');
             }
         },
         "$store.state.currentCredibleSet": function (credibleSet) {
             if (!!credibleSet) {
-                this.addCredibleSetsTracks(credibleSet);
+                this.addCredibleVariantsTrack();
                 this.$store.commit('setCredibleSet', '');
             }
         }

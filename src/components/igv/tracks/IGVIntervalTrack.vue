@@ -36,7 +36,6 @@ export default Vue.component("igv-intervals-track", {
             type: String,
             required: false
         },
-
         tissueScoring: {
             type: Object,
             required: false
@@ -92,15 +91,13 @@ export default Vue.component("igv-intervals-track", {
             }`;
         },
         pValue() {
-            return this.$parent.$parent.$store.state.pValue;
+            return this.$parent.pValue;
         },
         fold() {
-            return this.$parent.$parent.$store.state.fold;
+            return this.$parent.fold;
         }
     },
     mounted() {
-        // Evil
-        // console.log(this.$parent.$parent.$store)
         IGVEvents.$emit(IGV_ADD_TRACK, {
             name: this.trackName,
             type: this.visualization,
@@ -108,25 +105,10 @@ export default Vue.component("igv-intervals-track", {
                 index: this.index,
                 queryString: this.queryStringMaker,
                 translator: this.intervalsForIGV,
-
-                // if the queryHandler is defined (i.e. passed as a prop), use it.
-                // Else, use whatever default queryhandler the parent IGV instance has (given that one is defined there).
                 queryHandlers: {
-                    resolveHandler:
-                        this.resolveHandler ||
-                        (json =>
-                            IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json)),
-                    errHandler:
-                        this.errHandler ||
-                        (json =>
-                            IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json)),
-                    finishHandler:
-                        this.finishHandler ||
-                        (response =>
-                            IGVEvents.$emit(
-                                IGV_BIOINDEX_QUERY_FINISH,
-                                response
-                            ))
+                    resolveHandler: json => IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json),
+                    errHandler: json => IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json),
+                    finishHandler: response => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response)
                 }
             }),
             height: 160,
@@ -168,16 +150,16 @@ export default Vue.component("igv-intervals-track", {
 
                         let filterP =
                             !this.pValue ||
-                            this.tissueScoring[k].minP <= this.pValue;
+                            this.$parent.scoring[k].minP <= this.pValue;
                         let filterFold =
                             !this.fold ||
-                            this.tissueScoring[k].maxFold >= this.fold;
+                            this.$parent.scoring[k].maxFold >= this.fold;
                         let filterMethod = this.method == interval.method;
 
                         return filterP && filterFold && filterMethod;
                     })
                     .map(interval => {
-                        const color = this.colorScheme(interval.tissue);
+                        const color = this.$parent.colorScheme(interval.tissue);
                         return {
                             name: interval.tissue || interval.tissueId,
                             chr: interval.chromosome,
@@ -192,6 +174,5 @@ export default Vue.component("igv-intervals-track", {
             }
         }
     },
-    watch: {}
 });
 </script>
