@@ -73,6 +73,10 @@ new Vue({
             this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
         });
 
+        IGVEvents.$on('custom-event', event => {
+            console.log('returning custom event', event);
+        })
+
         EventBus.$on("onCredibleSetChange", credibleSet => {
             // you can update the store here if you really need to. but you don't need to.
             // instead use a computed property with custom getters and setters plus v-model if at all possible.
@@ -84,6 +88,9 @@ new Vue({
             const { annotation, method } = enrichment;
             this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
                 colorScheme: this.tissueColorScheme,
+                events: {
+                    finishEvent: 'custom-event'
+                }
             });
         });
 
