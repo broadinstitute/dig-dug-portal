@@ -126,7 +126,7 @@
                 </tbody>
             </table>
         </div>
-        <manhattan-plot class="mb-3" :associations="overlappingVariants" :colors="colors"></manhattan-plot>
+        <manhattan-plot class="mb-3" :associations="associationsByPhenotype" :colors="colors"></manhattan-plot>
         <associations-table
             :associations="overlappingVariants"
             :phenotypes="phenotypes"

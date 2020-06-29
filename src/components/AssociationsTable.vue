@@ -404,6 +404,12 @@ export default Vue.component("associations-table", {
             this.select_pValue = "";
             this.select_beta = "";
         }
+    },
+
+    watch: {
+        tableData: function(data) {
+            this.$store.dispatch("onFiltered", data);
+        }
     }
 });
 </script>

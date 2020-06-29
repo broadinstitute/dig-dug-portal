@@ -18,7 +18,8 @@ export default new Vuex.Store({
     state: {
         newPhenotype: "",
         selectedPhenotypes: [],
-        phenotypeAssociations: []
+        phenotypeAssociations: [],
+        tableData: []
     },
 
     mutations: {
@@ -40,6 +41,12 @@ export default new Vuex.Store({
             state.phenotypeAssociations = state.phenotypeAssociations.filter(
                 a => a.phenotype != phenotype.name
             );
+        },
+        updateTableData(state, data) {
+            state.tableData = data;
+        },
+        updateMplotData(state, data) {
+            state.mplotData = data;
         }
     },
 
@@ -64,6 +71,12 @@ export default new Vuex.Store({
             //context.commit("setAssociation", context.state.associations.data);
             //context.dispatch("annotations/query", query);
             //context.dispatch("datasets/query", query);
+        },
+        onFiltered(context, data) {
+            context.commit("updateTableData", data);
+        },
+        mplotData(context, data) {
+            context.commit("updateMplotData", data);
         }
     }
 });

@@ -53,6 +53,22 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4 class="card-title">Plot</h4>
+                            <manhattan-plot
+                                v-if="!!$store.state.mplotData"
+                                class="mb-3"
+                                :associations="$store.state.mplotData"
+                                :colors="$parent.colors"
+                            ></manhattan-plot>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Footer-->
