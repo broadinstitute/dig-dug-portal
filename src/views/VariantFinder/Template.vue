@@ -58,11 +58,10 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <h4 class="card-title">Plot</h4>
+                            <h4 class="card-title">Manhattan Plot</h4>
                             <manhattan-plot
-                                v-if="!!$store.state.mplotData"
                                 class="mb-3"
-                                :associations="$store.state.mplotData"
+                                :associations="$parent.associationsByPhenotype"
                                 :colors="$parent.colors"
                             ></manhattan-plot>
                         </div>
