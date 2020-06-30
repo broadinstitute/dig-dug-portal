@@ -65,35 +65,12 @@ new Vue({
     },
 
     mounted() {
-
         IGVEvents.$on(IGV_LOCUSCHANGE, locus => {
             const phenotype = this.$store.state.phenotype.name;
             const region = Formatters.igvLocusFormatter(locus);
             // I keep on forgetting this 'q'
             this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
         });
-
-        IGVEvents.$on('custom-event', event => {
-            console.log('returning custom event', event);
-        })
-
-        EventBus.$on("onCredibleSetChange", credibleSet => {
-            // you can update the store here if you really need to. but you don't need to.
-            // instead use a computed property with custom getters and setters plus v-model if at all possible.
-            const { phenotype, credibleSetId } = credibleSet;
-            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true);
-        });
-
-        EventBus.$on("onAnnotationChange", enrichment => {
-            const { annotation, method } = enrichment;
-            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
-                colorScheme: this.tissueColorScheme,
-                events: {
-                    finishEvent: 'custom-event'
-                }
-            });
-        });
-
     },
 
     render(createElement) {
@@ -116,6 +93,25 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        tap(event) {
+            console.log(event)
+        },
+        addCredibleVariantTrack(credibleSet) {
+            // you can update the store here if you really need to. but you don't need to.
+            // instead use a computed property with custom getters and setters plus v-model if at all possible.
+            const { phenotype, credibleSetId } = credibleSet;
+            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true, {
+                colorScheme: this.tissueColorScheme,
+                dataLoaded: event => console.log(event),
+            });
+        },
+        addAnnotationTrack(enrichment) {
+            const { annotation, method } = enrichment;
+            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
+                colorScheme: this.tissueColorScheme,
+                dataLoaded: event => console.log(event),
+            });
+        }
     },
 
     computed: {

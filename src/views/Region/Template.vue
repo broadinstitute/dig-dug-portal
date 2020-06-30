@@ -179,7 +179,8 @@
                                 <div class="col filter-col-lg">
                                     <div class="label">Annotation Method Track</div>
                                     <annotation-method-selectpicker
-                                        :annotations="$parent.globalEnrichmentAnnotations"/>
+                                        :annotations="$parent.globalEnrichmentAnnotations"
+                                        @annotation="$parent.addAnnotationTrack($event)"/>
                                 </div>
 
                                 <div class="col filter-col-sm">
@@ -195,7 +196,8 @@
                                 <div class="col filter-col-lg">
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
-                                        :credibleSets="$parent.credibleSets"/>
+                                        :credibleSets="$parent.credibleSets"
+                                        @credibleset="$parent.addCredibleVariantTrack($event)"/>
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>

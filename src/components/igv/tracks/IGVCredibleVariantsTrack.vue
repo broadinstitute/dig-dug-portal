@@ -1,25 +1,25 @@
 <template>
-    <div :ref="`${trackName}_${salt}`">
-        <pre></pre>
-    </div>
+    <igv-track
+        :track-name="trackName"
+        :track-type="'gwas'"
+        :index="'credible-variants'"
+        :query-string-maker="queryStringMaker"
+        :translator="associationsForIGV"
+        :data-loaded="dataLoaded"
+        :data-resolve="dataResolve"
+        :data-error="dataError"
+        :track-options="{ posteriorProbability }"
+    ></igv-track>
 </template>
 <script>
 import Vue from "vue";
-
-import igv from "igv";
-import IGVEvents, {
-    IGV_ADD_TRACK,
-    IGV_REMOVE_TRACK,
-    IGV_CHILD_DESTROY_TRACK,
-    IGV_BIOINDEX_QUERY_RESOLVE,
-    IGV_BIOINDEX_QUERY_ERROR,
-    IGV_BIOINDEX_QUERY_FINISH,
-    } from "@/components/igv/IGVEvents"
-import { BioIndexReader } from "@/utils/igvUtils"
-
-import { cloneDeep } from "lodash";
+import IGVTrack from "./IGVTrack"
+import { cloneDeep } from "lodash"
 
 export default Vue.component('igv-credible-variants-track', {
+    components: {
+        IGVTrack,
+    },
     props: {
         phenotype: {
             type: String,
@@ -34,9 +34,14 @@ export default Vue.component('igv-credible-variants-track', {
             require: false,
             default: false,
         },
-        events: {
-            type: Object,
-            default: {}
+        dataLoaded: {
+            type: Function,
+        },
+        dataError: {
+            type: Function,
+        },
+        dataResolve: {
+            type: Function,
         }
     },
     data() {
@@ -52,56 +57,7 @@ export default Vue.component('igv-credible-variants-track', {
             return (chr, start, end) => `${this.phenotype},${this.credibleSetId}`;
         },
     },
-
-    mounted() {
-        IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
-        IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
-            if (trackName === this.trackName) {
-                this.$destroy();
-            };
-        });
-
-    },
-    beforeDestroy () {
-        // clean up external data before destroying the component instance from memory
-        IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
-        this.$el.parentNode.removeChild(this.$el);
-    },
-
     methods: {
-        buildTrack: function (trackName, queryStringMaker, translator, type, index, events) {
-            return {
-                name: this.trackName,
-                type: 'gwas',
-                posteriorProbability: this.posteriorProbability,
-                reader: new BioIndexReader({
-                    index: 'credible-variants',
-                    queryString: this.queryStringMaker,
-                    translator: this.associationsForIGV,
-                    queryHandlers: {
-                        resolveHandler: json =>
-                            IGVEvents.$emit(this.events.resolveEvent || IGV_BIOINDEX_QUERY_RESOLVE, {
-                                track: this.trackName,
-                                index: 'credible-variants',
-                                data: json,
-                            }),
-                        errHandler: json =>
-                            IGVEvents.$emit(this.events.errEvent || IGV_BIOINDEX_QUERY_ERROR, {
-                                track: this.trackName,
-                                index: 'credible-variants',
-                                data: json,
-                            }),
-                        finishHandler: response =>
-                            IGVEvents.$emit(this.events.finishEvent || IGV_BIOINDEX_QUERY_FINISH, {
-                                track: this.trackName,
-                                index: 'credible-variants',
-                                data: response,
-                            })
-                    }
-                }),
-                disableCache: true,
-            }
-        },
         associationsForIGV: function (associations) {
             return associations.map(association => {
                 const annotation = cloneDeep(association);
@@ -118,12 +74,6 @@ export default Vue.component('igv-credible-variants-track', {
             });
         }
     },
-    watch: {
-        phenotype(newPhenotype, oldPhenotype) {
-            IGVEvents.$emit(IGV_REMOVE_TRACK, `${oldPhenotype} ${this.visualization}`);
-            IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
-        }
-    }
 })
 
 </script>

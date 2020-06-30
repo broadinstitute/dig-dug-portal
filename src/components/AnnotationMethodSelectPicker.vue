@@ -80,7 +80,7 @@ export default Vue.component("annotation-method-selectpicker", {
     },
     methods: {
         onAnnotationSelect(event) {
-            EventBus.$emit("onAnnotationChange", event);
+            this.$emit("annotation", event);
 
             if (this.clearOnSelected) {
                 this.userText = '';
