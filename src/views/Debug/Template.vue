@@ -8,6 +8,7 @@
         <button @click="$parent.removeAPhenotype">Remove Phenotype</button>
 
         <locuszoom
+            ref="locuszoom"
             :chr="$store.state.chr"
             :start="$store.state.start"
             :end="$store.state.end">

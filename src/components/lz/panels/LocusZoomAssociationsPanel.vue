@@ -103,7 +103,6 @@ export default Vue.component('lz-associations-panel', {
             }
         },
         associationsToLZ: associations => {
-            console.log(associations)
             const translation = associations.map(association => ({
                 id: association.varId,
                 chr: association.chromosome,
@@ -114,8 +113,6 @@ export default Vue.component('lz-associations-panel', {
                 log_pvalue: calcLog(association.pValue).toPrecision(4),
                 variant: association.varId,
                 ref_allele: association.varId,
-                // trait_group: association.phenotype.group,
-                // trait_label: association.phenotype.description,
             }));
             return translation
         }

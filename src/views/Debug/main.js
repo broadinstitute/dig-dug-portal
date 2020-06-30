@@ -32,7 +32,10 @@ new Vue({
     render(createElement, context) {
         return createElement(Template);
     },
-
+    mounted() {
+        console.log(this.$children[0].$refs.locuszoom.addAssociationsPanel('T2D'))
+        console.log(this.$children[0].$refs.locuszoom.addIntervalsPanel())
+    },
     methods: {
         addAPhenotype() {
             console.log(this.addPhenotype);
