@@ -25,7 +25,7 @@ export default Vue.component("alert", {
                 warning: "Warning",
                 danger: "Error!",
                 primary: "Notice",
-                secondary: "System Notice"
+                secondary: "Status"
             };
             this.$bvToast.toast(alert.message, {
                 id: alert.params ? alert.params.id : null,
@@ -46,7 +46,7 @@ export default Vue.component("alert", {
              * never close. By waiting 100 ms, the DOM has enough time
              * to add it, and then we can close it.
              */
-            setTimeout((() => this.$bvToast.hide(id)).bind(this), 100);
+            setTimeout((() => this.$bvToast.hide(id)).bind(this), 500);
         }
     }
 });

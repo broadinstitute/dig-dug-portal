@@ -15,7 +15,6 @@ import LocusZoomChild from "@/components/lz/panels/LocusZoomChild";
 Vue.config.productionTip = false;
 new Vue({
     store,
-
     components: {
         LocusZoom,
         LocusZoomAssociationsPanel,

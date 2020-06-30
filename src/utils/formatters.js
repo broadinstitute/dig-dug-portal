@@ -91,21 +91,40 @@ function floatFormatter(value) {
     if (!value) {
         return '-';
     }
+    return Number.parseFloat(value).toFixed(2);
+}
+
+function pValueFormatter(value) {
+    if (!value) {
+        return '-';
+    }
 
     let x = Number.parseFloat(value);
 
-    if (Math.abs(x) < 1e-5) {
+    if (x < 1e-5) {
         return x.toExponential(2);
     } else {
-        return x.toFixed(2);
+        return x.toFixed(7);
     }
 }
 
-function intFormatter(value) {
-    return !!value ? Number.parseFloat(value).toFixed(0) : '-';
+function effectFormatter(value) {
+    if (!value) {
+        return '-';
+    }
+    return Number.parseFloat(value).toFixed(4);
 }
 
+function intFormatter(value) {
+    return !!value ? Number.parseInt(value).toLocaleString() : '-';
+}
 
+function igvLocusFormatter(igvLocus) {
+    const chromosome = igvLocus.chr.charAt(3);
+    const start = igvLocus.start.replace(/,/g, '');
+    const end = igvLocus.end.replace(/,/g, '');
+    return locusFormatter(chromosome, start, end);
+}
 
 function locusFormatter(chromosome, position, end = undefined) {
     if (!!end) {
@@ -118,9 +137,21 @@ function phenotypeFormatter(phenotype) {
     return !!phenotype ? phenotype.description : '-';
 }
 
+function methodFormatter(method) {
+    if (!method) {
+        return '-';
+    }
+
+    return capitalizedFormatter(method);
+}
+
 function tissueFormatter(tissue) {
     if (!tissue) {
         return '-';
+    }
+
+    if (typeof (tissue) === "string") {
+        return capitalizedFormatter(tissue);
     }
 
     return capitalizedFormatter(tissue.description);
@@ -138,6 +169,10 @@ export default {
     floatFormatter,
     intFormatter,
     locusFormatter,
+    igvLocusFormatter,
     phenotypeFormatter,
     tissueFormatter,
+    methodFormatter,
+    pValueFormatter,
+    effectFormatter
 }

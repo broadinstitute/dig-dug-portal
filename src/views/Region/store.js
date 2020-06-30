@@ -18,6 +18,9 @@ export default new Vuex.Store({
         topAssociations: bioIndex("top-associations"),
         variants: bioIndex("variants"),
         documentation: bioIndex("documentation"),
+        regions: bioIndex("regions"),
+        credibleSets: bioIndex("credible-sets"),
+        globalEnrichment: bioIndex("global-enrichment"),
     },
     state: {
         // only used at the start
@@ -100,7 +103,8 @@ export default new Vuex.Store({
             }
         },
 
-        async queryRegion(context) {
+        async queryRegion(context, region) {
+            const newRegion = region || context.getters.region;
             if (context.state.searchGene) {
                 context.dispatch('findGene');
             } else {
@@ -116,8 +120,12 @@ export default new Vuex.Store({
                 }
 
                 // find all the top associations and genes in the region
-                context.dispatch('topAssociations/query', { q: context.getters.region });
-                context.dispatch('genes/query', { q: context.getters.region });
+                context.dispatch('topAssociations/query', { q: newRegion });
+                context.dispatch('genes/query', { q: newRegion });
+
+                // for variant prioritizer?
+                // context.dispatch('regions/query', { q: newRegion });
+
             }
         },
 
@@ -133,10 +141,13 @@ export default new Vuex.Store({
             context.dispatch('associations/query', query);
         },
 
-        // loadDocumentationContent(context) {
-        //     let group = "md"
-        //     let name = "template string" //get it as props
-        //     context.dispatch('portal/documentation', query);
-        // }
-    }
+        async resetToDefaultRegion(context) {
+            context.commit('setLocus', {
+                chr: context.state.initial.chr,
+                start: context.state.initial.start,
+                end: context.state.initial.end,
+            });
+        }
+
+    },
 });

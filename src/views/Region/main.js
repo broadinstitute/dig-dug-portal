@@ -10,6 +10,17 @@ import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
 
+import IGV from "@/components/igv/IGV.vue"
+import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
+
+import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
+import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
+import EventBus from "@/utils/eventBus";
+
+import LunarisLink from "@/components/LunarisLink"
+
+import { BButton } from 'bootstrap-vue'
+
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -18,7 +29,12 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import Formatters from "@/utils/formatters"
+import * as d3 from "d3";
+
+
 Vue.config.productionTip = false;
+Vue.component('b-button', BButton)
 
 new Vue({
     store,
@@ -26,28 +42,48 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
-        PhenotypeSelectPicker,
+        Documentation,
+        LunarisLink,
+
         LocusZoom,
         AssociationsTable,
         PhenotypeSignalMixed,
-        Documentation,
+
+        IGV,
+
+        CredibleSetSelectPicker,
+        AnnotationMethodSelectPicker,
+        PhenotypeSelectPicker,
+
     },
 
     created() {
-        this.$store.dispatch("queryRegion");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
+        this.$store.dispatch("queryRegion");
     },
 
-    render(createElement, context) {
+    mounted() {
+        IGVEvents.$on(IGV_LOCUSCHANGE, locus => {
+            const phenotype = this.$store.state.phenotype.name;
+            const region = Formatters.igvLocusFormatter(locus);
+            // I keep on forgetting this 'q'
+            this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
+        });
+    },
+
+    render(createElement) {
         return createElement(Template);
     },
 
     data() {
         return {
-            counter: 0
+            counter: 0,
+
+            // page controls
+            pValue: null,
+            fold: null,
         };
     },
 
@@ -56,22 +92,45 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+        tap(event) {
+            console.log(event)
+        },
+        addCredibleVariantTrack(credibleSet) {
+            // you can update the store here if you really need to. but you don't need to.
+            // instead use a computed property with custom getters and setters plus v-model if at all possible.
+            const { phenotype, credibleSetId } = credibleSet;
+            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true, {
+                colorScheme: this.tissueColorScheme,
+                dataLoaded: event => console.log(event),
+            });
+        },
+        addAnnotationTrack(enrichment) {
+            const { annotation, method } = enrichment;
+            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
+                colorScheme: this.tissueColorScheme,
+                dataLoaded: event => console.log(event),
+            });
+        }
     },
 
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
-
             if (contents.length === 0) {
                 return {};
             }
-
             return contents[0];
         },
 
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+
+        documentationMap() {
+            return {
+                phenotype: this.$store.state.phenotype && this.$store.state.phenotype.description,
+            }
         },
 
         genes() {
@@ -84,12 +143,57 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
+
+        credibleSets() {
+            return this.$store.state.credibleSets.data;
+        },
+
         regionString() {
             let chr = this.$store.state.chr;
-            let start = parseInt(this.$store.state.start).toLocaleString();
-            let end = parseInt(this.$store.state.end).toLocaleString();
+            let start = Formatters.intFormatter(this.$store.state.start);
+            let end = Formatters.intFormatter(this.$store.state.end);
+            return Formatters.locusFormatter(chr, start, end);
+        },
 
-            return `${chr}:${start}-${end}`;
+        globalEnrichmentAnnotations() {
+            // an array of annotations
+            return _.uniqBy(this.$store.state.globalEnrichment.data, el => JSON.stringify([el.annotation, !!el.method ? el.method : ''].join()));
+        },
+
+        tissues() {
+            // an array of tissue
+            return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
+        },
+
+        // TODO: refactor into IGV Utils
+        tissueColorScheme() {
+            return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
+        },
+
+        tissueScoring() {
+            let groups = {};
+
+            for (let i in this.$store.state.globalEnrichment.data) {
+                let r = this.$store.state.globalEnrichment.data[i];
+                let t = r.tissueId || "NA";
+                let m = r.method || "NA";
+
+                let key = `${t}_${m}_${r.annotation}`;
+                let group = groups[key];
+                let fold = r.SNPs / r.expectedSNPs;
+
+                if (!group) {
+                    groups[key] = {
+                        minP: r.pValue,
+                        maxFold: fold,
+                    };
+                } else {
+                    group.minP = Math.min(group.minP, r.pValue);
+                    group.maxFold = Math.max(group.maxFold, fold);
+                }
+            }
+
+            return groups;
         },
 
         // Give the top associations, find the best one across all unique
@@ -113,10 +217,8 @@ new Vue({
                     assocMap[assoc.phenotype] = assoc;
                 }
             }
-
             // region loaded, hide search
             uiUtils.hideElement("regionSearchHolder");
-
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
@@ -136,14 +238,9 @@ new Vue({
                         ref_allele: v.reference
                     };
                 });
-
-            // phenotype data loaded, close search
-            // uiUtils.hideElement("phenotypeSearchHolder");
-
             return assocs;
-        }
+        },
     },
-
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
@@ -159,7 +256,12 @@ new Vue({
         },
 
         "$store.state.phenotype": function (phenotype) {
-            uiUtils.hideElement('phenotypeSearchHolder')
+            // I don't like mixing UI effects with databinding - Ken
+            uiUtils.hideElement('phenotypeSearchHolder');
+
+            // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
+            this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name });
+            this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
         },
 
         topAssociations(top) {
@@ -168,13 +270,12 @@ new Vue({
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                     topAssoc.phenotype
                 ];
-
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        }
-    }
+        },
+    },
 }).$mount("#app");

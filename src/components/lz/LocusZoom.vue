@@ -36,12 +36,10 @@ export default Vue.component("locuszoom", {
         "chr",
         "start",
         "end",
-
         "finishHandler",
         "resolveHandler",
         "errHandler",
     ],
-
     data() {
         return {
             locuszoomMounted: false,
@@ -53,7 +51,6 @@ export default Vue.component("locuszoom", {
         this.dataSourceList = [];
     },
     created() {
-        console.log('parent created');
         LZEvents.$on(LZ_LOAD_PANEL, config => {
             console.log('capturing loaded panel', config)
             this.panelList.push(config.panel);
@@ -61,7 +58,6 @@ export default Vue.component("locuszoom", {
         })
     },
     mounted() {
-        console.log('parent mounted', this.panelList)
         this.panels = this.panelList.map(p => {
             return LocusZoom.Layouts.get("panel", p.type, {
                 // TODO: override/extend defaults here...
@@ -72,7 +68,6 @@ export default Vue.component("locuszoom", {
             });
         });
 
-
         this.dataSources = new LocusZoom.DataSources();
         // Add Default Data Sources:
         Object.values(LZ_TYPE).forEach(lzType => {
@@ -82,14 +77,20 @@ export default Vue.component("locuszoom", {
             }
         });
 
-        // Add Child Data Sources:
         if (this.dataSourceList.length > 0) {
             this.dataSourceList.map(dataSource => {
                 this.dataSources.add(dataSource.gives, dataSource.reader);
             });
         }
-
-        this.locuszoom = this.plot(this.dataSources, this.panels);
+        this.locuszoom = LocusZoom.populate("#lz", dataSources, {
+            panels: panels,
+            responsive_resize: "width_only",
+            state: Object.assign({}, {
+                chr: this.chr,
+                start: this.start,
+                end: this.end,
+            })
+        });
         this.createEventHandlers(this.locuszoom);
         this.locuszoomMounted = true
     },
@@ -122,34 +123,7 @@ export default Vue.component("locuszoom", {
                 locuszoom.addPanel(newPanel);
             });
 
-            LZEvents.$on(LZ_REMOVE_PANEL, panelId => {
-                console.log('remove panel', panelId)
-                locuszoom.removePanel(panelId);
-            });
-
-            // default handlers for tracks completing their data
-            // TODO: this is the wierdest part of the application right now. It works out as long as we only have one instance of LocusZoom per page.
-            LZEvents.$on(LZ_BIOINDEX_QUERY_RESOLVE, json => {
-                if (!!this.resolveHandler) {
-                    this.resolveHandler(response);
-                } else {
-                }
-            })
-            LZEvents.$on(LZ_BIOINDEX_QUERY_ERROR, json => {
-                if (!!this.errHandler) {
-                    this.errHandler(response);
-                } else {
-                }
-            })
-            LZEvents.$on(LZ_BIOINDEX_QUERY_FINISH, response => {
-                if (!!this.finishHandler) {
-                    this.finishHandler(response);
-                } else {
-                }
-            });
-
         },
-
         addLZPanel: function(PanelComponentType, panelConfig) {
             if (this.lz != null) {
 
@@ -164,25 +138,6 @@ export default Vue.component("locuszoom", {
 
             }
         },
-
-
-        plot(dataSources, panels) {
-            // create the final plot with a layout and desired state
-            return LocusZoom.populate("#lz", dataSources, {
-                panels: panels,
-                responsive_resize: "width_only",
-                state: Object.assign({}, {
-                    chr: this.chr,
-                    start: this.start,
-                    end: this.end,
-                })
-            });
-        },
-
     },
-
-    watch: {
-
-    }
 });
 </script>

@@ -66,7 +66,15 @@
                 <div class="card-body row">
                     <div class="col-md-8">
                         <div v-if="$parent.geneFunction">
-                            <h4>Function</h4>
+                            <h4>
+                                Function
+                                <tooltip-documentation
+                                    name="gene.function.tooltip.hover"
+                                    :isHover="true"
+                                    :noIcon="false"
+                                ></tooltip-documentation>
+                            </h4>
+
                             <div>{{$parent.geneFunction}}</div>
                         </div>
                         <div v-else>
@@ -83,7 +91,7 @@
                                 :key="gene.name"
                             >{{gene.name}}</span>&nbsp;
                         </div>
-                        <div>
+                        <div v-if="$parent.region">
                             <strong>Length:</strong>
                             {{" "+($parent.region.end - $parent.region.start).toLocaleString()}} bp
                         </div>
@@ -101,7 +109,14 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
-                        <h4 class="card-title">Uniprot References</h4>
+                        <h4 class="card-title">
+                            UniProt cross-references
+                            <tooltip-documentation
+                                name="gene.xref.tooltip.hover"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
                         <uniprot-references-table v-bind:references="$parent.dbReference"></uniprot-references-table>
                     </div>
                 </div>

@@ -405,19 +405,14 @@ const PHEWAS_PANEL = {
 
 
 export default Vue.component('locuszoom-phewas-panel', {
-
     props: {
-
         phenotype: {
             type: String,
             // required: true
         },
-
-        // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
         panel: {
             type: String,
         },
-
         finishHandler: {
             type: Function,
             required: false
@@ -432,44 +427,31 @@ export default Vue.component('locuszoom-phewas-panel', {
         }
 
     },
-
     data() {
         return {
             index: 'associations',
             salt: Math.floor((Math.random() * 10000)).toString(),
         }
     },
-
     computed: {
-
         panelName() {
             return `${this.phenotype} ${this.panel}`
         },
-
         queryStringMaker: function () {
             return (chr, start, end) => `${this.phenotype},${chr}:${start}-${end}`;
         },
-
     },
-
     mounted() {
-
         LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
-
         LZEvents.$on(LZ_CHILD_DESTROY_PANEL, panelName => {
             if (panelName === this.panelName) {
                 this.$destroy();
             };
         });
-
     },
-
     beforeDestroy () {
-
         LZEvents.$emit(LZ_REMOVE_PANEL, this.panelName);
-
     },
-
     methods: {
         buildPanel() {
             return {
@@ -478,13 +460,10 @@ export default Vue.component('locuszoom-phewas-panel', {
             }
         }
     },
-
     watch: {
         phenotype(newPhenotype, oldPhenotype) {
-
             LZEvents.$emit(LZ_REMOVE_PANEL, `${this.phenotype} ${this.visualization}`);
             LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
-
         }
     }
 

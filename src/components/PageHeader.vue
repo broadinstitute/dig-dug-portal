@@ -14,7 +14,11 @@
                     </div>
                 </div>
             </div>
-            <div class="row amp-header" v-if="!diseaseGroup.default" style="height: 50px;">
+            <div
+                class="row amp-header"
+                v-if="!diseaseGroup.default && diseaseGroup.memberCMD"
+                style="height: 50px;"
+            >
                 <div class="amp-banner-right" style="height: 50px;">
                     <a :href="url2Md">
                         <div
@@ -22,14 +26,8 @@
                             style="padding: 5px; text-align: center;height: 50px;"
                         >
                             <img
-                                v-if="frontContents.field_banner_logo"
-                                :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
-                                :class="diseaseGroup.name+'kp-logo'"
-                            />
-                            <img
-                                v-else
-                                src="http://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
-                                class="mdkp-logo"
+                                :src="'http://kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
+                                :class="'portals-2-mdkp-logo'"
                             />
                         </div>
                     </a>
@@ -54,7 +52,27 @@
                             <a href="/">Home</a>
                         </li>
                         <li class="am-menu">
-                            <a :href="'http://kp4cd.org/datasets/' + diseaseGroup.name">Data</a>
+                            <a href>Data</a>
+                            <ul class="am-submenu">
+                                <li
+                                    page="data"
+                                    v-if="diseaseGroup.name && diseaseGroup.name == 'v2f'"
+                                >
+                                    <a :href="'/epigeneticdatasets.html'">Epigenetic Datasets</a>
+                                </li>
+                                <li page="data">
+                                    <a :href="'/datasets.html'">Datasets</a>
+                                </li>
+                                <li page="data">
+                                    <a :href="'/downloads.html'">Downloads</a>
+                                </li>
+                                <li
+                                    page="data"
+                                    v-if="diseaseGroup.name && diseaseGroup.name == 't2d'"
+                                >
+                                    <a :href="'/apis.html'">APIs</a>
+                                </li>
+                            </ul>
                         </li>
                         <li class="am-menu">
                             <a href>Tools</a>
@@ -63,37 +81,25 @@
                             <a href>Information</a>
                             <ul class="am-submenu">
                                 <li page="information">
-                                    <a :href="'http://kp4cd.org/about/' + diseaseGroup.name">About</a>
+                                    <a href="/about.html">About</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/collaborate/' + diseaseGroup.name"
-                                    >Collaborate</a>
+                                    <a href="/collaborate.html">Collaborate</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/policies/' + diseaseGroup.name"
-                                    >Policies</a>
+                                    <a href="/policies.html">Policies</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/resources/' + diseaseGroup.name"
-                                    >Resources</a>
+                                    <a href="/resources.html">Resources</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/publications/' + diseaseGroup.name"
-                                    >Publications</a>
+                                    <a href="/publications.html">Publications</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/new_features/' + diseaseGroup.name"
-                                    >News</a>
+                                    <a href="/news.html">News</a>
                                 </li>
                                 <li page="information">
-                                    <a
-                                        :href="'http://kp4cd.org/contacts/' + diseaseGroup.name"
-                                    >Contacts</a>
+                                    <a href="/contacts.html">Contacts</a>
                                 </li>
                             </ul>
                         </li>

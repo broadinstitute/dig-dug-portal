@@ -6,7 +6,6 @@ import bioPortal from "@/modules/bioPortal";
 
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
-
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -16,6 +15,9 @@ export default new Vuex.Store({
         associations: bioIndex("associations"),
         topAssociations: bioIndex("top-associations"),
         variants: bioIndex("variants"),
+        credibleSets: bioIndex("credible-sets"),
+        credibleVariants: bioIndex("credible-variants"),
+        regions: bioIndex("regions"),
     },
     state: {
         // user-entered locus
@@ -29,10 +31,13 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         gene: null,
+
+        currentTissue: '',
+        currentCredibleSet: '',
+
     },
     mutations: {
         setLocus(state, region = {}) {
-            console.log('set locus')
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
             state.end = region.end || state.newEnd || state.end;
@@ -47,21 +52,19 @@ export default new Vuex.Store({
                 end: state.end,
             });
         },
-    },
-    actions: {
-        async onIGVCoords(context, { module, newChr, newStart, newEnd }) {
-            console.log('on igv coords')
-            const { chr, start, end } = context.state;
-            if (newChr !== chr || newStart !== start || newEnd !== end) {
-                const query = moduleQueryTemplate(module, {
-                    phenotype: context.state.phenotype.name,
-                    // varId?
-                    chromosome: newChr,
-                    start: newStart,
-                    end: newEnd,
-                });
-                await context.dispatch(`${module}/query`, { q: query });
-            }
+        setCurrentTissue(state, tissue) {
+            state.currentTissue = tissue;
+        },
+        setCredibleSet(state, credibleSet) {
+            state.currentCredibleSet = credibleSet;
         },
     },
+    actions: {
+        onCredibleSetChange(context, eventData) {
+            context.commit('setCredibleSet', eventData.credibleSetId)
+        },
+        onTissueChange(context, eventData) {
+            context.commit('setCurrentTissue', eventData.description)
+        },
+    }
 });

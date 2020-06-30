@@ -29,12 +29,10 @@ import LZEvents, {
 export default Vue.component('lz-associations-panel', {
 
     props: {
-
         phenotype: {
             type: String,
             // required: true
         },
-
         finishHandler: {
             type: Function,
             required: false
@@ -47,9 +45,7 @@ export default Vue.component('lz-associations-panel', {
             type: Function,
             required: false
         }
-
     },
-
     data() {
         return {
             panel: 'association',   // locuszoom
@@ -58,20 +54,15 @@ export default Vue.component('lz-associations-panel', {
             salt: Math.floor((Math.random() * 10000)).toString(),
         }
     },
-
     computed: {
-
         panelId() {
             return `${this.phenotype}_${this.salt}`
         },
-
         queryStringMaker: function () {
             return (chr, start, end) => `${this.phenotype},${chr}:${start}-${end}`;
         },
-
     },
     created() {
-        console.log('child created')
         LZEvents.$emit(LZ_LOAD_PANEL, this.buildPanel());
     },
     mounted() {
@@ -81,9 +72,7 @@ export default Vue.component('lz-associations-panel', {
                 this.$destroy();
             };
         });
-
     },
-
     beforeDestroy () {
         console.log('before destroy')
         LZEvents.$emit(LZ_REMOVE_PANEL, this.panelId);
@@ -92,11 +81,8 @@ export default Vue.component('lz-associations-panel', {
     destroy () {
         console.log('destroy')
     },
-
     methods: {
-
         buildPanel() {
-            // console.log('hello', new LZBioIndexSource())
             return {
                 panel: {
                     type: this.panel,
@@ -116,7 +102,6 @@ export default Vue.component('lz-associations-panel', {
                 }
             }
         },
-
         associationsToLZ: associations => {
             console.log(associations)
             const translation = associations.map(association => ({
