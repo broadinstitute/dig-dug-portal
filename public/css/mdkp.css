@@ -1034,26 +1034,6 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     color: #fff !important;
 }
 
-.lunaris-link-wrapper {
-    float: right;
-    margin-top: 5px;
-}
-
-.lunaris-link {
-    display: block;
-    position: relative;
-    width: 35px;
-    height: 35px;
-    background-image: url(../images/lunaris_logo.svg);
-    background-repeat: no-repeat;
-    border-radius: 45px;
-}
-
-.lunaris-link:hover {
-    background-color: #ddd;
-}
-
-
 /* IGV */
 .igv-zooms-wrapper {
     float: right;

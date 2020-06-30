@@ -1,11 +1,10 @@
 import Vue from "vue";
 
-import keyParams from "@/utils/keyParams"
-
 import store from "./store"
 import Template from "./Template.vue";
 
 import * as _ from "lodash";
+import { BIconPersonBoundingBox } from "bootstrap-vue";
 
 Vue.config.productionTip = false;
 
@@ -20,7 +19,7 @@ new Vue({
         }
     },
     created() {
-        this.$store.dispatch("lunaris/getDataFromLunaris", "");
+
     },
     mounted() {
 
@@ -29,6 +28,7 @@ new Vue({
 
     },
     methods: {
+
 
     },
     render(createElement, context) {

@@ -1,5 +1,5 @@
 /**
- * This is the module that is used to pull the news feed for KPN website
+ * This is the module to pull data through Lunaris.
 
  */
 import queryString from 'query-string';
@@ -24,37 +24,12 @@ export default {
 
     // dispatch methods
     actions: {
-        async getDataFromLunaris(context, lunarisQueryInfo) {
-
-            let arg = {
-                "id": "requestMinimalTsv",
-                "regions": {
-                    "1": [
-                        {
-                            "begin": 100000,
-                            "end": 200000
-                        }
-                    ]
-                },
-                "recipe": {
-                    "read": {
-                        "file": "gs://fc-6fe31e1f-2c36-411c-bf23-60656d621184/data/t2d/variants.tsv.gz",
-                        "idField": "varId",
-                        "tool": "IndexedRecordReader"
-                    },
-                    "write": {
-                        "from": "read",
-                        "file": "responseMinimalTsv.json",
-                        "tool": "JSONWriter"
-                    }
-                }
-            };
+        async getDataFromLunaris(context, arg) {
 
             let json = await fetch(`http://34.71.240.244:8080/lunaris/query`, {
                 method: 'POST', // or 'PUT'
                 body: JSON.stringify(arg),
-            })
-                .then(resp => resp.json());
+            }).then(resp => resp.text());
             // set the data
             context.commit('setDataFromLunaris', json)
         },

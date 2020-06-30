@@ -147,6 +147,42 @@ new Vue({
             // TODO: how about camel-kebabing?
             return this.$store.commit(`${response.index}/setResponse`, response);
         },
+        loadLunaris() {
+            let arg = {
+                "id": "requestFilterTsv",
+                "regions": {
+
+                },
+                "recipe": {
+                    "read": {
+                        "file": "gs://fc-6fe31e1f-2c36-411c-bf23-60656d621184/data/t2d/associations.tsv.gz",
+                        "idField": "varId",
+                        "tool": "IndexedRecordReader"
+                    },
+                    "filter": {
+                        "from": "read",
+                        "field": "phenotype",
+                        "stringValue": null,
+                        "tool": "RecordsFilter"
+                    },
+                    "write": {
+                        "from": "filter",
+                        "file": "responseFilterTsv.tsv",
+                        "tool": "TSVWriter"
+                    }
+                }
+            }
+
+            let CHR = this.$store.state.chr;
+            let BEGIN = this.$store.state.start;
+            let END = this.$store.state.end;
+            let TRAIT = this.$store.state.phenotype.name;
+
+            arg.regions[CHR] = [{ "begin": BEGIN, "end": END }];
+            arg.recipe.filter.stringValue = TRAIT;
+
+            this.$store.dispatch("lunaris/getDataFromLunaris", arg);
+        },
     },
 
     computed: {
