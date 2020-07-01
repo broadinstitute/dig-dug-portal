@@ -12,12 +12,12 @@
                     <a
                         :href="'http://34.71.240.244:8080/lunaris/lunaris.html?chr='+chr+'&begin='+begin+'&end='+end+'&trait='+trait.name"
                         target="_blank"
-                    >Go to Lunaris for more options &nbsp;</a>
-                    <tooltip-documentation
+                    >Open Lunaris for more options &nbsp;</a>
+                    <!--<tooltip-documentation
                         name="test.tooltip.index.regionexample"
                         :group="diseaseGroup.name"
-                        :isHover="true"
-                    ></tooltip-documentation>
+                        :isHover="false"
+                    ></tooltip-documentation>-->
                 </div>
             </div>
         </a>
