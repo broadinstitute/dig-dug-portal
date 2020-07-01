@@ -26,7 +26,7 @@
                         v-model="select_tissues_text"
                     ></b-form-select>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">Ancestry:</div>
                     <b-form-select
                         @input="setFilter($event, 'select_ancestry')"
@@ -35,7 +35,7 @@
                         v-model="select_ancestry_text"
                     ></b-form-select>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">P-Value (&le;)</div>
                     <b-form-input
                         type="text"
@@ -44,7 +44,7 @@
                         v-model="select_pValue_text"
                     ></b-form-input>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">Fold (&ge;)</div>
                     <b-form-input
                         type="text"
