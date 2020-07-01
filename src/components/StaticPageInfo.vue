@@ -1,11 +1,12 @@
 <template>
-    <div>
-        <div class="page-info-wrapper" v-html="this.pageInfo[0].body[0].value"></div>
-    </div>
+    <div class="page-info-wrapper row" v-html="this.pageInfo[0].body[0].value"></div>
 </template>
 
 <script>
 import Vue from "vue";
+import { BootstrapVueIcons } from "bootstrap-vue";
+
+Vue.use(BootstrapVueIcons);
 
 export default Vue.component("static-page-info-section", {
     props: ["pageInfo"],
@@ -14,5 +15,5 @@ export default Vue.component("static-page-info-section", {
 </script>
 
 <style>
-@import url("/css/datasetsInfo.css");
+@import url("/css/staticPages.css");
 </style>

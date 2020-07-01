@@ -83,7 +83,10 @@
                                 <li page="information">
                                     <a href="/about.html">About</a>
                                 </li>
-                                <li page="information">
+                                <li
+                                    page="information"
+                                    v-if="diseaseGroup.name && (diseaseGroup.name != 'v2f' && diseaseGroup.name != 'cvd' && diseaseGroup.name != 'cd' && diseaseGroup.name != 'sleep')"
+                                >
                                     <a href="/collaborate.html">Collaborate</a>
                                 </li>
                                 <li page="information">
@@ -92,7 +95,10 @@
                                 <li page="information">
                                     <a href="/resources.html">Resources</a>
                                 </li>
-                                <li page="information">
+                                <li
+                                    page="information"
+                                    v-if="diseaseGroup.name && (diseaseGroup.name != 'cvd' && diseaseGroup.name != 'cd' && diseaseGroup.name != 'sleep')"
+                                >
                                     <a href="/publications.html">Publications</a>
                                 </li>
                                 <li page="information">

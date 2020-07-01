@@ -14,11 +14,7 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <static-page-info-section :pageInfo="$parent.pageInfo"></static-page-info-section>
-                        </div>
-                    </div>
+                    <static-page-info-section :pageInfo="$parent.pageInfo"></static-page-info-section>
                 </div>
             </div>
         </div>

@@ -1049,3 +1049,27 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     border-radius: 15px;
     color: #fff;
 }
+
+/* style for new features page */
+.news-content-wrapper, .resource-content-wrapper {
+    background-color: #eee;
+    padding: 15px;
+    border: solid 1px #ccc;
+    border-radius: 0.25em;
+}
+
+.new-feature-item-wrapper, .resource-item-wrapper {
+    margin: 15px 0;
+    padding-bottom: 10px;
+    border-bottom: solid 1px #ddd;
+}
+
+.new-feature-item-wrapper h3, .resource-item-wrapper h3 {
+    font-size: 22px;
+}
+
+.resources-iframe-wrapper {
+    width: 560px;
+    height: 315px;
+    margin: 0 auto;
+}
