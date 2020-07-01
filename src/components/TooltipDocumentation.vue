@@ -1,9 +1,9 @@
 
 <template>
-    <div :class="this.wrapperClass">
+    <div :class="this.wrapperClass + ' '+contentID">
         <span
             v-if="this.isHover == false"
-            :class="'help-content-caller no-icon-' + this.noIcon + ' '+contentID"
+            :class="'help-content-caller no-icon-' + this.noIcon"
             v-on:click="showHideHelpContent(contentID)"
             @mouseover="getToolTipPosition(contentID)"
         >
@@ -11,7 +11,7 @@
         </span>
         <span
             v-if="this.isHover == true"
-            :class="'help-content-caller hover no-icon-' + this.noIcon + ' '+contentID"
+            :class="'help-content-caller hover no-icon-' + this.noIcon"
             @mouseover="getToolTipPosition(contentID)"
         >
             <b-icon-info-circle-fill></b-icon-info-circle-fill>
@@ -107,10 +107,9 @@ export default Vue.component("tooltip-documentation", {
         },
         contentID() {
             if (!!this.name) {
-                let content =
-                    this.name.split(".").join("_") + "_" + Math.random();
+                let content = this.name + "_" + Math.random();
 
-                return content;
+                return content.split(".").join("_");
             }
         },
         wrapperClass() {
