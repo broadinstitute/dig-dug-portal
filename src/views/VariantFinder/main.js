@@ -132,10 +132,9 @@ new Vue({
             //uiUtils.hideElement("phenotypeSearchHolder");
         },
 
-        associationsByPhenotype: function(data) {
-            this.$store.dispatch("mplotData", data);
-            //uiUtils.hideElement("phenotypeSearchHolder");
-        },
+        // associationsByPhenotype: function(data) {
+        //     this.$store.dispatch("mplotData", data);
+        // },
 
         "$store.state.associations.data": function(data) {
             this.$store.commit("setAssociation", data);

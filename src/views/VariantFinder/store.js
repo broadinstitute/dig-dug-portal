@@ -44,10 +44,10 @@ export default new Vuex.Store({
         },
         updateTableData(state, data) {
             state.tableData = data;
-        },
-        updateMplotData(state, data) {
-            state.mplotData = data;
         }
+        // updateMplotData(state, data) {
+        //     state.mplotData = data;
+        // }
     },
 
     actions: {
@@ -74,9 +74,9 @@ export default new Vuex.Store({
         },
         onFiltered(context, data) {
             context.commit("updateTableData", data);
-        },
-        mplotData(context, data) {
-            context.commit("updateMplotData", data);
         }
+        // mplotData(context, data) {
+        //     context.commit("updateMplotData", data);
+        // }
     }
 });
