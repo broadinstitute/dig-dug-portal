@@ -48,6 +48,7 @@
                             <associations-table
                                 :associations="$store.state.phenotypeAssociations"
                                 :phenotypes="$store.state.selectedPhenotypes"
+                                hideFilters
                             ></associations-table>
                         </div>
                     </div>

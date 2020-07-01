@@ -1,106 +1,108 @@
 <template>
     <div>
-        <b-container fluid class="filtering-ui-wrapper">
-            <b-row class="filtering-ui-content">
-                <b-col>
-                    <div class="label">Consequence</div>
-                    <b-form-select
-                        @change="addCompound($event, 'select_consequence','filter-consequence')"
-                        :options="filter_consequence_options"
-                        id="filter-consequence"
-                        ref="select_consequence"
-                    ></b-form-select>
-                </b-col>
-                <b-col>
-                    <div class="label">Gene</div>
-                    <b-form-input
-                        id="filter-gene"
-                        type="text"
-                        v-model="select_gene_text"
-                        @change="addCompound($event, 'select_gene','filter-gene')"
-                    ></b-form-input>
-                </b-col>
-                <b-col class="filter-col-sm">
-                    <div class="label">pValue (&le;)</div>
-                    <b-form-input
-                        id="filter-pValue"
-                        type="text"
-                        v-model="select_pValue_text"
-                        @change="addCompound($event, 'select_pValue','filter-pValue', false)"
-                        ref="select_pValue"
-                    ></b-form-input>
-                </b-col>
-                <b-col class="filter-col-sm">
-                    <div class="label">Effect</div>
-                    <b-form-select
-                        id="filter-beta"
-                        @input="addCompound($event, 'select_beta','filter-beta', false)"
-                        :options="select_beta_options"
-                        ref="select_beta"
-                        v-model="select_beta"
-                    ></b-form-select>
-                </b-col>
-            </b-row>
-        </b-container>
-        <b-container fluid class="selected-filters-ui-wrapper">
-            <b-row
-                v-if="select_consequence.length > 0 || select_gene.length > 0 || select_pValue || select_beta"
-            >
-                <b-col>
-                    <span>Selected Filters:&nbsp;&nbsp;</span>
-                    <template v-if="select_consequence.length > 0">
-                        <b-badge
-                            pill
-                            variant="success"
-                            v-for="(v,i) in select_consequence"
-                            :key="v"
-                            @click="removeFilter(i, 'select_consequence')"
-                            class="btn"
-                        >
-                            {{v}}
-                            <span class="remove">X</span>
-                        </b-badge>
-                    </template>
-                    <template v-if="select_gene.length > 0">
-                        <b-badge
-                            pill
-                            variant="warning"
-                            v-for="(g,i) in select_gene"
-                            :key="g"
-                            @click="removeFilter(i, 'select_gene')"
-                            class="btn"
-                        >
-                            {{g}}
-                            <span class="remove">X</span>
-                        </b-badge>
-                    </template>
-                    <template v-if="select_pValue.length > 0">
-                        <b-badge
-                            pill
-                            variant="danger"
-                            @click="unsetFilter('select_pValue')"
-                            class="btn"
-                        >
-                            {{select_pValue}}
-                            <span class="remove">X</span>
-                        </b-badge>
-                    </template>
-                    <template v-if="select_beta">
-                        <b-badge
-                            pill
-                            variant="primary"
-                            @click="unsetFilter('select_beta')"
-                            class="btn"
-                        >
-                            {{select_beta_options.find(e => e.value === select_beta).text}}
-                            <span
-                                class="remove"
-                            >X</span>
-                        </b-badge>
-                    </template>
-                </b-col>
-            </b-row>
-        </b-container>
+        <div v-if="!hideFilters">
+            <b-container fluid class="filtering-ui-wrapper">
+                <b-row class="filtering-ui-content">
+                    <b-col>
+                        <div class="label">Consequence</div>
+                        <b-form-select
+                            @change="addCompound($event, 'select_consequence','filter-consequence')"
+                            :options="filter_consequence_options"
+                            id="filter-consequence"
+                            ref="select_consequence"
+                        ></b-form-select>
+                    </b-col>
+                    <b-col>
+                        <div class="label">Gene</div>
+                        <b-form-input
+                            id="filter-gene"
+                            type="text"
+                            v-model="select_gene_text"
+                            @change="addCompound($event, 'select_gene','filter-gene')"
+                        ></b-form-input>
+                    </b-col>
+                    <b-col class="filter-col-sm">
+                        <div class="label">pValue (&le;)</div>
+                        <b-form-input
+                            id="filter-pValue"
+                            type="text"
+                            v-model="select_pValue_text"
+                            @change="addCompound($event, 'select_pValue','filter-pValue', false)"
+                            ref="select_pValue"
+                        ></b-form-input>
+                    </b-col>
+                    <b-col class="filter-col-sm">
+                        <div class="label">Effect</div>
+                        <b-form-select
+                            id="filter-beta"
+                            @input="addCompound($event, 'select_beta','filter-beta', false)"
+                            :options="select_beta_options"
+                            ref="select_beta"
+                            v-model="select_beta"
+                        ></b-form-select>
+                    </b-col>
+                </b-row>
+            </b-container>
+            <b-container fluid class="selected-filters-ui-wrapper">
+                <b-row
+                    v-if="select_consequence.length > 0 || select_gene.length > 0 || select_pValue || select_beta"
+                >
+                    <b-col>
+                        <span>Selected Filters:&nbsp;&nbsp;</span>
+                        <template v-if="select_consequence.length > 0">
+                            <b-badge
+                                pill
+                                variant="success"
+                                v-for="(v,i) in select_consequence"
+                                :key="v"
+                                @click="removeFilter(i, 'select_consequence')"
+                                class="btn"
+                            >
+                                {{v}}
+                                <span class="remove">X</span>
+                            </b-badge>
+                        </template>
+                        <template v-if="select_gene.length > 0">
+                            <b-badge
+                                pill
+                                variant="warning"
+                                v-for="(g,i) in select_gene"
+                                :key="g"
+                                @click="removeFilter(i, 'select_gene')"
+                                class="btn"
+                            >
+                                {{g}}
+                                <span class="remove">X</span>
+                            </b-badge>
+                        </template>
+                        <template v-if="select_pValue.length > 0">
+                            <b-badge
+                                pill
+                                variant="danger"
+                                @click="unsetFilter('select_pValue')"
+                                class="btn"
+                            >
+                                {{select_pValue}}
+                                <span class="remove">X</span>
+                            </b-badge>
+                        </template>
+                        <template v-if="select_beta">
+                            <b-badge
+                                pill
+                                variant="primary"
+                                @click="unsetFilter('select_beta')"
+                                class="btn"
+                            >
+                                {{select_beta_options.find(e => e.value === select_beta).text}}
+                                <span
+                                    class="remove"
+                                >X</span>
+                            </b-badge>
+                        </template>
+                    </b-col>
+                </b-row>
+            </b-container>
+        </div>
 
         <div v-if="rows > 0">
             <b-table
@@ -172,7 +174,7 @@ import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
 export default Vue.component("associations-table", {
-    props: ["associations", "phenotypes"],
+    props: { associations: Object, phenotypes: Object, hideFilters: Boolean },
     components: {
         Documentation,
         TooltipDocumentation
