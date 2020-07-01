@@ -10,7 +10,6 @@
                     <div class="col-md-12">
                         <h2>{{ $parent.datasetInfo[0].title[0].value }}</h2>
                     </div>
-
                 </div>
             </div>
 

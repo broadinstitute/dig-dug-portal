@@ -1,17 +1,21 @@
 
 <template>
-    <div :class="'help-content no-icon-' + this.noIcon">
+    <div :class="this.wrapperClass + ' '+contentID">
         <span
             v-if="this.isHover == false"
-            :class="'help-content-caller no-icon-' + this.noIcon + ' '+contentID"
+            :class="'help-content-caller no-icon-' + this.noIcon"
             v-on:click="showHideHelpContent(contentID)"
-        >&#43;</span>
+            @mouseover="getToolTipPosition(contentID)"
+        >
+            <b-icon-plus-circle-fill></b-icon-plus-circle-fill>
+        </span>
         <span
             v-if="this.isHover == true"
-            :class="'help-content-caller hover no-icon-' + this.noIcon + ' '+contentID"
-            @mouseover="showHideHelpContent(contentID)"
-            @mouseleave="showHideHelpContent(contentID)"
-        >i</span>
+            :class="'help-content-caller hover no-icon-' + this.noIcon"
+            @mouseover="getToolTipPosition(contentID)"
+        >
+            <b-icon-info-circle-fill></b-icon-info-circle-fill>
+        </span>
         <div v-if="this.isHover == false" class="help-content-modal hidden" :id="contentID">
             <span class="help-content-close" v-on:click="showHideHelpContent(contentID)">&#43;</span>
             <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
@@ -19,7 +23,7 @@
 
         <div
             v-if="this.isHover == true"
-            :class="'help-hover-content-modal hidden no-icon-'+this.noIcon"
+            :class="'help-hover-content-modal no-icon-'+this.noIcon"
             :id="contentID"
         >
             <div v-html="tooltipDocumentationContent" class="help-content-wrapper"></div>
@@ -39,6 +43,10 @@ import documentationParser from "@/utils/documentationUtils";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+
+Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 
 export default Vue.component("tooltip-documentation", {
     props: ["name", "group", "contentFill", "isHover", "noIcon"],
@@ -99,10 +107,16 @@ export default Vue.component("tooltip-documentation", {
         },
         contentID() {
             if (!!this.name) {
-                let contentID = this.name + "." + Math.random();
-                contentID.replace(/\./g, "_");
-                return contentID;
+                let content = this.name + "_" + Math.random();
+
+                return content.split(".").join("_");
             }
+        },
+        wrapperClass() {
+            let content =
+                this.isHover == true ? "help-content hover " : "help-content ";
+            content += this.noIcon == true ? "no-icon-true" : "no-icon-false";
+            return content;
         }
     },
     watch: {
@@ -120,6 +134,9 @@ export default Vue.component("tooltip-documentation", {
         ...uiUtils,
         showHideHelpContent(ELEMENT) {
             uiUtils.showHideHelpContent(ELEMENT);
+        },
+        getToolTipPosition(ELEMENT) {
+            uiUtils.getToolTipPosition(ELEMENT);
         }
     }
 });

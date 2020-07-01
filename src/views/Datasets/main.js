@@ -30,6 +30,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
     },
 
     render(createElement, context) {
@@ -61,6 +62,8 @@ new Vue({
 
         datasetsList() {
             let contents = this.$store.state.kp4cd.datasetsInfo;
+
+            // TODO: use this.$store.state.bioPortal.datasets instead!
 
             if (contents.length === 0) {
                 return {};

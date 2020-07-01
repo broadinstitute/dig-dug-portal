@@ -121,9 +121,9 @@ function intFormatter(value) {
 
 function igvLocusFormatter(igvLocus) {
     const chromosome = igvLocus.chr.charAt(3);
-    const start = igvLocus.start.replace(',', '');
-    const end = igvLocus.end.replace(',', '');
-    return locusFormatter(chromosome, position, end);
+    const start = igvLocus.start.replace(/,/g, '');
+    const end = igvLocus.end.replace(/,/g, '');
+    return locusFormatter(chromosome, start, end);
 }
 
 function locusFormatter(chromosome, position, end = undefined) {

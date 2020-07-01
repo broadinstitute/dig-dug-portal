@@ -995,12 +995,16 @@ div.filtering-ui-content div.col .form-control, div.filtering-ui-content div.col
     font-size: 14px;
 }
 
+div.filtering-ui-content div.col.filter-col-sm .form-control, div.filtering-ui-content div.col.filter-col-sm select, div.filtering-ui-content div.col.filter-col-sm .input {
+    width: 110px;
+}
+
 div.filtering-ui-content div.col.filter-col-md .form-control, div.filtering-ui-content div.col.filter-col-md select, div.filtering-ui-content div.col.filter-col-md .input {
     width: 220px;
 }
 
 div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-content div.col.filter-col-lg select, div.filtering-ui-content div.col.filter-col-lg .input {
-    width: 270px;
+    width: 300px;
 }
 
 
@@ -1030,21 +1034,42 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     color: #fff !important;
 }
 
-.lunaris-link-wrapper {
+/* IGV */
+.igv-zooms-wrapper {
     float: right;
-    margin-top: 5px;
+    margin-right: 50px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+.igv-zoom {
+    width: 28px;
+    height: 28px;
+    background-color: #30b7f6;
+    border: solid 1px #0087d6;
+    border-radius: 15px;
+    color: #fff;
 }
 
-.lunaris-link {
-    display: block;
-    position: relative;
-    width: 35px;
-    height: 35px;
-    background-image: url(../images/lunaris_logo.svg);
-    background-repeat: no-repeat;
-    border-radius: 45px;
+/* style for new features page */
+.news-content-wrapper, .resource-content-wrapper {
+    background-color: #eee;
+    padding: 15px;
+    border: solid 1px #ccc;
+    border-radius: 0.25em;
 }
 
-.lunaris-link:hover {
-    background-color: #ddd;
+.new-feature-item-wrapper, .resource-item-wrapper {
+    margin: 15px 0;
+    padding-bottom: 10px;
+    border-bottom: solid 1px #ddd;
+}
+
+.new-feature-item-wrapper h3, .resource-item-wrapper h3 {
+    font-size: 22px;
+}
+
+.resources-iframe-wrapper {
+    width: 560px;
+    height: 315px;
+    margin: 0 auto;
 }

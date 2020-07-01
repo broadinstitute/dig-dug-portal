@@ -26,7 +26,7 @@
                         v-model="select_tissues_text"
                     ></b-form-select>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">Ancestry:</div>
                     <b-form-select
                         @input="setFilter($event, 'select_ancestry')"
@@ -35,7 +35,7 @@
                         v-model="select_ancestry_text"
                     ></b-form-select>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">P-Value (&le;)</div>
                     <b-form-input
                         type="text"
@@ -44,8 +44,8 @@
                         v-model="select_pValue_text"
                     ></b-form-input>
                 </b-col>
-                <b-col>
-                    <div class="label">Beta Ratio (&ge;)</div>
+                <b-col class="filter-col-sm">
+                    <div class="label">Fold (&ge;)</div>
                     <b-form-input
                         type="text"
                         @change="setFilter($event, 'select_ratio')"
@@ -252,8 +252,8 @@ export default Vue.component("enrichment-table", {
                         }
                     },
                     {
-                        key: `${p.name}_beta`,
-                        label: `Beta Ratio`,
+                        key: `${p.name}_fold`,
+                        label: `Fold`,
                         formatter: Formatters.floatFormatter
                     }
                 ]);
@@ -277,7 +277,7 @@ export default Vue.component("enrichment-table", {
                 let m = r.method || "NA";
                 let group = `${t}_${m}_${r.annotation}_${r.ancestry}`;
                 let dataIndex = groups[group];
-                let beta = r.SNPs / r.expectedSNPs;
+                let fold = r.SNPs / r.expectedSNPs;
 
                 if (!dataIndex) {
                     dataIndex = data.length;
@@ -289,13 +289,13 @@ export default Vue.component("enrichment-table", {
                         annotation: r.annotation,
                         ancestry: r.ancestry,
                         minP: null,
-                        maxBeta: null
+                        maxFold: null
                     });
                 }
 
                 // add the columns for each phenotype
                 data[dataIndex][`${r.phenotype}_pValue`] = r.pValue;
-                data[dataIndex][`${r.phenotype}_beta`] = beta;
+                data[dataIndex][`${r.phenotype}_fold`] = fold;
 
                 // lowest p-value across all phenotypes
                 if (r.pValue) {
@@ -306,11 +306,11 @@ export default Vue.component("enrichment-table", {
                     }
                 }
 
-                // maximum beta across all phenotypes
-                let maxBeta = data[dataIndex].maxBeta;
+                // maximum fold across all phenotypes
+                let maxFold = data[dataIndex].maxFold;
 
-                if (!maxBeta || beta > maxBeta) {
-                    data[dataIndex].maxBeta = beta;
+                if (!maxFold || fold > maxFold) {
+                    data[dataIndex].maxFold = fold;
                 }
             }
 
@@ -397,7 +397,7 @@ export default Vue.component("enrichment-table", {
                 dataRows = Filters.filterN(
                     dataRows,
                     this.select_ratio,
-                    "maxBeta"
+                    "maxFold"
                 );
             }
 

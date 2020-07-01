@@ -11,14 +11,12 @@ import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
 
 import IGV from "@/components/igv/IGV.vue"
-import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack.vue"
-import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue"
+import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
-import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue"
-
-import TissueSelectPicker from "@/components/TissueSelectPicker"
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
+import EventBus from "@/utils/eventBus";
+
 import LunarisLink from "@/components/LunarisLink"
 
 import { BButton } from 'bootstrap-vue'
@@ -47,19 +45,16 @@ new Vue({
         Documentation,
         LunarisLink,
 
-        PhenotypeSelectPicker,
         LocusZoom,
         AssociationsTable,
         PhenotypeSignalMixed,
 
         IGV,
-        IGVAssociationsTrack,
-        IGVCredibleVariantsTrack,
-        IGVIntervalTrack,
 
-        TissueSelectPicker,
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
+        PhenotypeSelectPicker,
+
     },
 
     created() {
@@ -69,15 +64,26 @@ new Vue({
         this.$store.dispatch("queryRegion");
     },
 
-    render(createElement, context) {
+    mounted() {
+        IGVEvents.$on(IGV_LOCUSCHANGE, locus => {
+            const phenotype = this.$store.state.phenotype.name;
+            const region = Formatters.igvLocusFormatter(locus);
+            // I keep on forgetting this 'q'
+            this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
+        });
+    },
+
+    render(createElement) {
         return createElement(Template);
     },
 
     data() {
         return {
             counter: 0,
-            pValue: 1.0,
-            beta: 1.0,
+
+            // page controls
+            pValue: null,
+            fold: null,
         };
     },
 
@@ -87,78 +93,33 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        formatIGV: function (locus) {
-            return Formatters.igvLocusFormatter(locus)
+        tap(event) {
+            console.log(event)
         },
-        addCredibleSetsTracks: function (credibleSet) {
-
-            if (!!this.$store.state.currentCredibleSet || credibleSet && !!this.$store.state.phenotype) {
-
-                // p-value
-                // this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
-                //     data: {
-                //         phenotype: this.$store.state.phenotype.name,
-                //         credibleSetId: this.$store.state.currentCredibleSet,
-                //         posteriorProbability: false,  // logarithm
-                //         visualization: 'gwas',
-                //     }
-                // });
-
-                // posterior probability
-                this.$children[0].$refs.igv.addIGVTrack(IGVCredibleVariantsTrack, {
-                    data: {
-                        phenotype: this.$store.state.phenotype.name,
-                        credibleSetId: credibleSet,
-                        posteriorProbability: true,
-                        visualization: 'gwas',
-                    }
-                });
-            }
-
-
+        addCredibleVariantTrack(credibleSet) {
+            // you can update the store here if you really need to. but you don't need to.
+            // instead use a computed property with custom getters and setters plus v-model if at all possible.
+            const { phenotype, credibleSetId } = credibleSet;
+            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true, {
+                colorScheme: this.tissueColorScheme,
+                dataLoaded: event => console.log(event),
+            });
         },
-        addIntervalsTrack: function (tissue) {
-            if (!!this.$store.state.currentTissue || tissue) {
-                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
-                    data: {
-                        tissue: tissue,
-                    }
-                });
-            }
-        },
-        addIntervalsTrackForAnnotation: function () {
-            if (!!this.$store.state.currentAnnotation) {
-
-                this.$children[0].$refs.igv.addIGVTrack(IGVIntervalTrack, {
-                    data: {
-                        // tissue: [annotation.tissue],
-                        annotations: [this.$store.state.currentAnnotation.annotation],
-                        method: this.$store.state.currentAnnotation.method,
-                        pValue: this.pValue,
-                        beta: this.beta,
-                        colorScheme: this.tissueColorScheme,
-                        tissueScoring: this.tissueScoring,
-                    }
-                });
-
-            }
-        },
-        routeResponseToModule(response) {
-            // NOTE! assumes BOTHthat this is a bioIndex call with a registered bioIndex module, with the same symbolic name of the index.
-            // TODO: move to store?
-            // TODO: how about camel-kebabing?
-            return this.$store.commit(`${response.index}/setResponse`, response);
-        },
+        addAnnotationTrack(enrichment) {
+            const { annotation, method } = enrichment;
+            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
+                colorScheme: this.tissueColorScheme,
+                dataLoaded: event => console.log(event),
+            });
+        }
     },
 
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
-
             if (contents.length === 0) {
                 return {};
             }
-
             return contents[0];
         },
 
@@ -189,10 +150,9 @@ new Vue({
 
         regionString() {
             let chr = this.$store.state.chr;
-            let start = parseInt(this.$store.state.start).toLocaleString();
-            let end = parseInt(this.$store.state.end).toLocaleString();
-
-            return `${chr}:${start}-${end}`;
+            let start = Formatters.intFormatter(this.$store.state.start);
+            let end = Formatters.intFormatter(this.$store.state.end);
+            return Formatters.locusFormatter(chr, start, end);
         },
 
         globalEnrichmentAnnotations() {
@@ -205,6 +165,7 @@ new Vue({
             return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
         },
 
+        // TODO: refactor into IGV Utils
         tissueColorScheme() {
             return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
         },
@@ -219,16 +180,16 @@ new Vue({
 
                 let key = `${t}_${m}_${r.annotation}`;
                 let group = groups[key];
-                let beta = r.SNPs / r.expectedSNPs;
+                let fold = r.SNPs / r.expectedSNPs;
 
                 if (!group) {
                     groups[key] = {
                         minP: r.pValue,
-                        maxB: beta,
+                        maxFold: fold,
                     };
                 } else {
                     group.minP = Math.min(group.minP, r.pValue);
-                    group.maxB = Math.max(group.maxB, beta);
+                    group.maxFold = Math.max(group.maxFold, fold);
                 }
             }
 
@@ -256,10 +217,8 @@ new Vue({
                     assocMap[assoc.phenotype] = assoc;
                 }
             }
-
             // region loaded, hide search
             uiUtils.hideElement("regionSearchHolder");
-
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
@@ -279,15 +238,8 @@ new Vue({
                         ref_allele: v.reference
                     };
                 });
-
-            // phenotype data loaded, close search
-            // uiUtils.hideElement("phenotypeSearchHolder");
-
             return assocs;
         },
-
-
-
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
@@ -318,7 +270,6 @@ new Vue({
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                     topAssoc.phenotype
                 ];
-
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
@@ -326,24 +277,5 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-
-        "$store.state.currentAnnotation": function (annotation) {
-            if (!!annotation) {
-                this.addIntervalsTrackForAnnotation(annotation);
-                this.$store.commit('setAnnotationChange', '');
-            }
-        },
-        "$store.state.currentCredibleSet": function (credibleSet) {
-            if (!!credibleSet) {
-                this.addCredibleSetsTracks(credibleSet);
-                this.$store.commit('setCredibleSet', '');
-            }
-        },
-        pValue(pValue) {
-            // this.$children[0].$refs.igv.updatePValueFilter(pValue);
-        },
-        beta(beta) {
-            // this.$children[0].$refs.igv.updateBetaFilter(beta);
-        }
     },
 }).$mount("#app");

@@ -106,7 +106,7 @@ export default function (index, extend) {
                             closeAlert(alertID);
                             postAlertError(error.detail);
                         },
-                        
+
                         finishHandler: response => {
                             closeAlert(alertID);
                         }

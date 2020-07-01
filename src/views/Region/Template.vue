@@ -77,11 +77,12 @@
                             :href="`region.html?chr=${$store.state.chr}&start=${$store.state.start-50000}&end=${$store.state.end+50000}`"
                         >Extend &plusmn; 50 kb</a>
                         <lunaris-link
-                            :diseaseGroup="$parent.diseaseGroup.name"
+                            :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
                             :begin="$store.state.start"
                             :end="$store.state.end"
-                            :trait="$store.state.phenotype.name"
+                            :trait="$store.state.phenotype"
+                            :dataContent="this.$store.state.lunaris.dataFromLunaris"
                         ></lunaris-link>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
@@ -113,6 +114,8 @@
                     <h4
                         class="card-title"
                     >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
+                    <documentation name="region.phenos_w_signal.subheader"></documentation>
+
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div
                             href="javascript:;"
@@ -176,40 +179,31 @@
                             <div class="row filtering-ui-content">
                                 <div class="col filter-col-lg">
                                     <div class="label">Annotation Method Track</div>
-                                    <!-- <tissue-selectpicker
-                                :tissues="$parent.tissues"
-                            ></tissue-selectpicker>
-                                    <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button><br>-->
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
-                                        :clearOnSelected="true"
-                                    />
-                                    with tissues filtered on
-                                    pValue &le; <input v-model.number="$parent.pValue"/> and
-                                    beta &ge; <input v-model.number="$parent.beta"/>
-                                    <!-- <tissue-selectpicker
-                                :tissues="$parent.tissues">
-                            </tissue-selectpicker>
-
-                                    <button v-on:click="$parent.addIntervalsTrack">Add Tissue Annotation Track</button>-->
+                                        @annotation="$parent.addAnnotationTrack($event)"/>
                                 </div>
 
+                                <div class="col filter-col-sm">
+                                    <div class="label">pValue (&le;)</div>
+                                    <input v-model.number="$parent.pValue" class="form-control" />
+                                </div>
+                                <div class="col filter-col-sm">
+                                    <div class="label">Fold (&ge;)</div>
+                                    <input v-model.number="$parent.fold" class="form-control" />
+                                </div>
+
+                                <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-lg">
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
-                                        :clearOnSelected="true"
-                                    />
+                                        @credibleset="$parent.addCredibleVariantTrack($event)"/>
                                 </div>
+
                                 <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-lg">
                                     <div class="label">View region in Variant Prioritizer</div>
-                                    <!--<b-button
-                                        variant="outline-secondary"
-                                        size="sm"
-                                        :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
-                                        target="_blank"
-                                    >{{`View ${$store.state.phenotype.name} within ${$parent.regionString} in Variant Prioritizer`}}</b-button>-->
                                     <b-button
                                         class="btn btn-sm btn-2-vptz"
                                         :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
@@ -220,26 +214,14 @@
                         </div>
 
                         <div v-if="!!$store.state.phenotype">
-                            <igv
-                                ref="igv"
+                            <!-- TODO: Refactor p-value, fold, colorscheme, scoring to providers? -->
+                            <igv ref="igv"
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
-                                :regionHandler="locus => {
-                                const region = {
-                                    chr: locus.chr.charAt(3),
-                                    start: locus.start.replace(/,/g, ''),
-                                    end: locus.end.replace(/,/g, ''),
-                                };
-                                $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
-                            }"
-                            >
-                                <!-- <igv-associations-track
-                                :phenotype="$store.state.phenotype.name"
-                                visualization="gwas"
-                                :finishHandler="response => $parent.routeResponseToModule(response)"
-                                ></igv-associations-track> -->
-                            </igv>
+                                :p-value="$parent.pValue"
+                                :fold="$parent.fold"
+                                :scoring="$parent.tissueScoring"/>
                         </div>
                     </div>
                 </div>

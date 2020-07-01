@@ -54,7 +54,7 @@ export default Vue.component("transcript-consequence-table", {
                 },
                 {
                     key: "biotype",
-                    label: "BIO Type",
+                    label: "Biotype",
                     formatter: Formatters.bioTypeFormatter
                 },
                 {

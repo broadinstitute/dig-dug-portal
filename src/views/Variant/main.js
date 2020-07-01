@@ -56,6 +56,11 @@ new Vue({
     },
 
     computed: {
+        documentationMap() {
+            return {
+                variant: this.$store.state.variantID,
+            }
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 

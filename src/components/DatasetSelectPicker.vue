@@ -1,9 +1,9 @@
 <template>
+    <!-- TODO: refactor to computed property + v-model -->
     <v-select
         v-model="selectedDataset"
         @input="$store.dispatch('onDatasetChange', selectedDataset)"
-        :options="datasets"
-    >
+        :options="datasets">
         <option v-for="dataset in datasets">{{ dataset }}</option>
     </v-select>
 </template>

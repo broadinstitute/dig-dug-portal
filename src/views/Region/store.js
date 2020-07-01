@@ -4,13 +4,16 @@ import Vuex from "vuex";
 import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
+import lunaris from "@/modules/lunaris";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
+
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
+        lunaris,
         bioPortal,
         kp4cd,
         genes: bioIndex("genes"),
@@ -37,21 +40,8 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
-
-        currentTissue: '',
-        currentCredibleSet: '',
-        currentAnnotation: null,
     },
     mutations: {
-        setCurrentTissue(state, tissue) {
-            state.currentTissue = tissue;
-        },
-        setCredibleSet(state, credibleSet) {
-            state.currentCredibleSet = credibleSet;
-        },
-        setAnnotationChange(state, annotation) {
-            state.currentAnnotation = annotation;
-        },
         setSelectedPhenotype(state, phenotype) {
             state.phenotypeParam = null;
             state.phenotype = phenotype;
@@ -98,19 +88,6 @@ export default new Vuex.Store({
     actions: {
         async onPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);
-        },
-
-        async onTissueChange(context, eventData) {
-            context.commit('setCurrentTissue', eventData.tissue)
-        },
-
-        async onCredibleSetChange(context, eventData) {
-            context.commit('setCredibleSet', eventData.credibleSetId)
-        },
-
-        async onAnnotationChange(context, annotation) {
-            //console.log(eventData)
-            context.commit('setAnnotationChange', annotation)
         },
 
         async findGene(context) {

@@ -44,7 +44,14 @@
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
-        ></b-table>
+        >
+            <template center v-slot:cell(image)="r">
+                <span :class="'community-icon ' + r.item.community"></span>
+            </template>
+            <template v-slot:cell(link)="r">
+                <a :href="`/dinspector.html?dataset=${r.item.name}`">{{r.item.description}}</a>
+            </template>
+        </b-table>
         <b-pagination
             class="pagination-sm justify-content-center"
             v-model="currentPage"
@@ -67,12 +74,12 @@ import Formatters from "@/utils/formatters";
 import Filters from "@/utils/filters";
 
 export default Vue.component("datasets-table", {
-    props: ["datasets"],
+    props: ["datasets", "phenotype"],
     data() {
         return {
             fields: [
                 {
-                    key: "name",
+                    key: "link",
                     label: "Name"
                 },
                 {
@@ -84,6 +91,7 @@ export default Vue.component("datasets-table", {
                     label: "Ancestry",
                     formatter: Formatters.ancestryFormatter
                 },
+                /*
                 {
                     key: "cases",
                     label: "Cases",
@@ -94,10 +102,15 @@ export default Vue.component("datasets-table", {
                     label: "Controls",
                     formatter: Formatters.intFormatter
                 },
+                */
                 {
                     key: "subjects",
                     label: "Subjects",
                     formatter: Formatters.intFormatter
+                },
+                {
+                    key: "image",
+                    label: "Community"
                 }
             ],
             perPage: 5,
@@ -114,9 +127,16 @@ export default Vue.component("datasets-table", {
         },
         sortedDatasets() {
             let rawDatasets = this.datasets;
-            let content = rawDatasets.sort((a, b) => b.subjects - a.subjects);
 
-            return content;
+            // filter by phenotype if set
+            if (this.phenotype) {
+                rawDatasets = rawDatasets.filter(d =>
+                    d.phenotypes.includes(this.phenotype.name)
+                );
+            }
+
+            // sort datasets by subjects
+            return rawDatasets.sort((a, b) => b.subjects - a.subjects);
         },
         filter_tech() {
             return this.sortedDatasets
@@ -149,7 +169,6 @@ export default Vue.component("datasets-table", {
                         : techFiltered;
 
                 return ancestryFiltered;
-                //}
             } else {
                 return this.sortedDatasets;
             }
@@ -162,3 +181,7 @@ export default Vue.component("datasets-table", {
     }
 });
 </script>
+
+<style>
+@import url("/css/datasetsList.css");
+</style>

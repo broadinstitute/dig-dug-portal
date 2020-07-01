@@ -20,7 +20,7 @@
                         @change="addCompound($event, 'select_gene','filter-gene')"
                     ></b-form-input>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">pValue (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
@@ -30,7 +30,7 @@
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">Effect</div>
                     <b-form-select
                         id="filter-beta"
@@ -128,7 +128,7 @@
                 </template>
                 <template v-slot:cell(locus)="r">
                     <a
-                        :href="`/region.html?chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
+                        :href="`/region.html?phenotype=${phenotypes[0].name}&chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
                     >{{locusFormatter(r.item)}}</a>
                 </template>
                 <template v-slot:cell(allele)="r">

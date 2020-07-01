@@ -1,79 +1,51 @@
 <template>
-    <div :ref="`${index}_${salt}`">
-        <pre></pre>
-    </div>
+    <igv-track
+        :track-name="trackName"
+        :track-type="'gwas'"
+        :index="'credible-variants'"
+        :query-string-maker="queryStringMaker"
+        :translator="associationsForIGV"
+        :data-loaded="dataLoaded"
+        :data-resolve="dataResolve"
+        :data-error="dataError"
+        :track-options="{ posteriorProbability }"
+    ></igv-track>
 </template>
 <script>
 import Vue from "vue";
-
-import igv from "igv";
-import IGVEvents, {
-    IGV_BROWSER_FORCE_REFRESH,
-    IGV_ADD_TRACK,
-    IGV_REMOVE_TRACK,
-    IGV_CHILD_DESTROY_TRACK,
-    IGV_BIOINDEX_QUERY_RESOLVE,
-    IGV_BIOINDEX_QUERY_ERROR,
-    IGV_BIOINDEX_QUERY_FINISH,
-    } from "@/components/igv/IGVEvents"
-import { BioIndexReader } from "@/utils/igvUtils"
-
-import { cloneDeep } from "lodash";
+import IGVTrack from "./IGVTrack"
+import { cloneDeep } from "lodash"
 
 export default Vue.component('igv-credible-variants-track', {
+    components: {
+        IGVTrack,
+    },
     props: {
-
         phenotype: {
             type: String,
             required: true
         },
-
         credibleSetId: {
             type: String,
             required: true
         },
-
         posteriorProbability: {
             type: Boolean,
             require: false,
             default: false,
         },
-
-        // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
-        visualization: {
-            type: String,
-            default: 'annotation',
-            validator: function (value) {
-                // The value must match one of these strings
-                return ['annotation', 'gwas'].indexOf(value) !== -1
-            }
-        },
-
-        pValue: {
-
-        },
-
-        beta: {
-
-        },
-
-        finishHandler: {
+        dataLoaded: {
             type: Function,
-            required: false
         },
-        resolveHandler: {
+        dataError: {
             type: Function,
-            required: false
         },
-        errHandler: {
+        dataResolve: {
             type: Function,
-            required: false
         }
-
     },
     data() {
         return {
-            index: 'credible-variants',
             salt: Math.floor((Math.random() * 10000)).toString(),
         }
     },
@@ -85,48 +57,7 @@ export default Vue.component('igv-credible-variants-track', {
             return (chr, start, end) => `${this.phenotype},${this.credibleSetId}`;
         },
     },
-
-    mounted() {
-        IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
-        IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
-            if (trackName === this.trackName) {
-                this.$destroy();
-            };
-        });
-
-    },
-    beforeDestroy () {
-        // clean up external data before destroying the component instance from memory
-        IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
-        // console.log(this.$el);
-        this.$el.parentNode.removeChild(this.$el);
-    },
-
     methods: {
-        buildTrack: function () {
-            return {
-                name: this.trackName,
-                type: this.visualization,
-                posteriorProbability: this.posteriorProbability,
-                reader: new BioIndexReader({
-                    index: this.index,
-                    queryString: this.queryStringMaker,
-                    translator: this.associationsForIGV,
-
-                    // if the queryHandler is defined (i.e. passed as a prop), use it.
-                    // Else, use whatever default queryhandler the parent IGV instance has (given that one is defined there).
-                    queryHandlers: {
-                        resolveHandler: this.resolveHandler ||
-                            ((json) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json)),
-                        errHandler: this.errHandler ||
-                            ((json) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json)),
-                        finishHandler: this.finishHandler ||
-                            ((response) => IGVEvents.$emit(IGV_BIOINDEX_QUERY_FINISH, response)),
-                    }
-                }),
-                // height: 160,
-            }
-        },
         associationsForIGV: function (associations) {
             return associations.map(association => {
                 const annotation = cloneDeep(association);
@@ -143,12 +74,6 @@ export default Vue.component('igv-credible-variants-track', {
             });
         }
     },
-    watch: {
-        phenotype(newPhenotype, oldPhenotype) {
-            IGVEvents.$emit(IGV_REMOVE_TRACK, `${oldPhenotype} ${this.visualization}`);
-            IGVEvents.$emit(IGV_ADD_TRACK, this.buildTrack());
-        }
-    }
 })
 
 </script>
