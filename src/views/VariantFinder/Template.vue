@@ -44,12 +44,12 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <h4 class="card-title">Variant Finder</h4>
-                            <associations-table
-                                :associations="$store.state.phenotypeAssociations"
-                                :phenotypes="$store.state.selectedPhenotypes"
-                                hideFilters
-                            ></associations-table>
+                            <h4 class="card-title">Associations Plot</h4>
+                            <manhattan-plot
+                                class="mb-3"
+                                :associations="$parent.associationsByPhenotype"
+                                :colors="$parent.colors"
+                            ></manhattan-plot>
                         </div>
                     </div>
                 </div>
@@ -59,12 +59,12 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <h4 class="card-title">Manhattan Plot</h4>
-                            <manhattan-plot
-                                class="mb-3"
-                                :associations="$parent.associationsByPhenotype"
-                                :colors="$parent.colors"
-                            ></manhattan-plot>
+                            <h4 class="card-title">Associations Table</h4>
+                            <associations-table
+                                :associations="$store.state.phenotypeAssociations"
+                                :phenotypes="$store.state.selectedPhenotypes"
+                                hideFilters
+                            ></associations-table>
                         </div>
                     </div>
                 </div>
