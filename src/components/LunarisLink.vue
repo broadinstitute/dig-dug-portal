@@ -5,25 +5,21 @@
                 <div>
                     <a
                         href="javascript:;"
-                        @click="showHideElement('lunaris-modal-wrapper')"
+                        @click="loadDataFromLunaris('lunaris-modal-wrapper')"
                     >Download data with Lunaris API</a>
                 </div>
                 <div>
                     <a
                         :href="'http://34.71.240.244:8080/lunaris/lunaris.html?chr='+chr+'&begin='+begin+'&end='+end+'&trait='+trait.name"
                         target="_blank"
-                    >Go to Lunaris for more options</a>
+                    >Go to Lunaris for more options &nbsp;</a>
+                    <tooltip-documentation
+                        name="test.tooltip.index.regionexample"
+                        :group="diseaseGroup.name"
+                        :isHover="true"
+                    ></tooltip-documentation>
                 </div>
             </div>
-            <!--
-
-            <tooltip-documentation
-                name="test.tooltip.index.regionexample"
-                :group="diseaseGroup.name"
-                :isHover="true"
-                :noIcon="true"
-            ></tooltip-documentation>
-            -->
         </a>
         <div class="lunaris-modal-wrapper hidden">
             <span
@@ -34,12 +30,6 @@
                 <p>
                     {{"Region: "+this.chr + " : " + this.begin + " - " + this.end }}
                     {{"&nbsp;&nbsp;|&nbsp;&nbsp;Phenotype: "+this.trait.name}}
-                </p>
-                <p>
-                    <button
-                        v-on:click="this.lunarisCaller"
-                        class="btn btn-primary btn-sm"
-                    >Download data</button>
                 </p>
             </div>
             <button
@@ -60,15 +50,7 @@ export default Vue.component("lunaris-link", {
     modules: {
         uiUtils
     },
-    props: [
-        "diseaseGroup",
-        "chr",
-        "begin",
-        "end",
-        "trait",
-        "dataContent",
-        "lunarisCaller"
-    ],
+    props: ["diseaseGroup", "chr", "begin", "end", "trait", "dataContent"],
     data() {
         return {
             dataFromLunaris: null
@@ -76,6 +58,43 @@ export default Vue.component("lunaris-link", {
     },
     mounted: function() {},
     methods: {
+        loadDataFromLunaris(CLASS) {
+            uiUtils.showHideElement(CLASS);
+            //this.lunarisCaller();
+            let arg = {
+                id: "requestFilterTsv",
+                regions: {},
+                recipe: {
+                    read: {
+                        file:
+                            "gs://fc-6fe31e1f-2c36-411c-bf23-60656d621184/data/t2d/associations.tsv.gz",
+                        idField: "varId",
+                        tool: "IndexedRecordReader"
+                    },
+                    filter: {
+                        from: "read",
+                        field: "phenotype",
+                        stringValue: null,
+                        tool: "RecordsFilter"
+                    },
+                    write: {
+                        from: "filter",
+                        file: "responseFilterTsv.tsv",
+                        tool: "TSVWriter"
+                    }
+                }
+            };
+
+            let CHR = this.$store.state.chr;
+            let BEGIN = this.$store.state.start;
+            let END = this.$store.state.end;
+            let TRAIT = this.$store.state.phenotype.name;
+
+            arg.regions[CHR] = [{ begin: BEGIN, end: END }];
+            arg.recipe.filter.stringValue = TRAIT;
+
+            this.$store.dispatch("lunaris/getDataFromLunaris", arg);
+        },
         showHideElement(CLASS) {
             uiUtils.showHideElement(CLASS);
         },

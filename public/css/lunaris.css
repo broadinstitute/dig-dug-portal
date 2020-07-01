@@ -31,12 +31,12 @@
     left:100%;
     top: 0;
     z-index: 20;
-    white-space: nowrap;
     line-height: 1.5em;
 }
 
 .lunaris-link > .options-4-actions a {
     color:#fff !important;
+    white-space: nowrap;
 }
 
 .lunaris-link > .options-4-actions a:hover {
