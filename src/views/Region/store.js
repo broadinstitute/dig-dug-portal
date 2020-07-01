@@ -40,29 +40,8 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
-
-        currentTissue: '',
-        currentCredibleSet: '',
-        currentAnnotation: null,
-        pValue: null,
-        fold: null,
     },
     mutations: {
-        setPValue(state, pValue) {
-            state.pValue = pValue;
-        },
-        setFold(state, fold) {
-            state.fold = fold;
-        },
-        setCurrentTissue(state, tissue) {
-            state.currentTissue = tissue;
-        },
-        setCredibleSet(state, credibleSet) {
-            state.currentCredibleSet = credibleSet;
-        },
-        setAnnotationChange(state, annotation) {
-            state.currentAnnotation = annotation;
-        },
         setSelectedPhenotype(state, phenotype) {
             state.phenotypeParam = null;
             state.phenotype = phenotype;
@@ -109,19 +88,6 @@ export default new Vuex.Store({
     actions: {
         async onPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);
-        },
-
-        async onTissueChange(context, eventData) {
-            context.commit('setCurrentTissue', eventData.tissue)
-        },
-
-        async onCredibleSetChange(context, eventData) {
-            context.commit('setCredibleSet', eventData.credibleSetId)
-        },
-
-        async onAnnotationChange(context, annotation) {
-            //console.log(eventData)
-            context.commit('setAnnotationChange', annotation)
         },
 
         async findGene(context) {

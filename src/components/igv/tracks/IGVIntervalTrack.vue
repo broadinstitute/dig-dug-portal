@@ -1,89 +1,44 @@
 <template>
-    <div :ref="this.trackName"></div>
+    <igv-track
+        :track-name="trackName"
+        :track-type="'annotation'"
+        :index="'annotated-regions'"
+        :query-string-maker="queryStringMaker"
+        :translator="intervalsForIGV"
+        :data-loaded="dataLoaded"
+        :data-resolve="dataResolve"
+        :data-error="dataError"
+    ></igv-track>
 </template>
 <script>
 import Vue from "vue";
-
-import igv from "igv";
-import IGVEvents, {
-    IGV_BROWSER_FORCE_REFRESH,
-    IGV_ADD_TRACK,
-    IGV_REMOVE_TRACK,
-    IGV_CHILD_DESTROY_TRACK,
-    IGV_BIOINDEX_QUERY_RESOLVE,
-    IGV_BIOINDEX_QUERY_ERROR,
-    IGV_BIOINDEX_QUERY_FINISH
-} from "@/components/igv/IGVEvents";
-import { BioIndexReader, colorIntervalAnnotation } from "@/utils/igvUtils";
-
-import * as _ from "lodash";
-
+import IGVTrack from "./IGVTrack"
 export default Vue.component("igv-intervals-track", {
+    components: {
+        IGVTrack,
+    },
     props: {
-        tissue: {
-            type: Array,
-            required: false
-        },
         annotations: {
             type: Array,
-            required: false
-        },
-        ancestry: {
-            type: String,
             required: false
         },
         method: {
             type: String,
             required: false
         },
-
-        tissueScoring: {
-            type: Object,
-            required: false
-        },
-
-        finishHandler: {
-            type: Function,
-            required: false
-        },
-        resolveHandler: {
-            type: Function,
-            required: false
-        },
-        errHandler: {
-            type: Function,
-            required: false
-        },
-
         colorScheme: {
             type: Function,
             required: false
         },
-
-        // TODO: Problem with setting this as a prop is that the translation method depends on visualization type being targeted?
-        visualization: {
-            type: String,
-            default: "annotation",
-            validator: function(value) {
-                // The value must match one of these strings
-                return ["annotation", "gwas"].indexOf(value) !== -1;
-            }
+        dataLoaded: {
+            type: Function,
         },
-
-        index: {
-            type: String,
-            default: "annotated-regions",
-            validator: function(value) {
-                // The value must match one of these strings
-                return ["regions", "annotated-regions"].indexOf(value) !== -1;
-            }
+        dataError: {
+            type: Function,
+        },
+        dataResolve: {
+            type: Function,
         }
-    },
-    data() {
-        return {
-            salt: Math.floor(Math.random() * 10000).toString(),
-            padding: 0
-        };
     },
     computed: {
         trackName() {
@@ -91,60 +46,9 @@ export default Vue.component("igv-intervals-track", {
                 !!this.method ? " " + this.method : ""
             }`;
         },
-        pValue() {
-            return this.$parent.$parent.$store.state.pValue;
+        filter() {
+            return this.$parent.filter;
         },
-        fold() {
-            return this.$parent.$parent.$store.state.fold;
-        }
-    },
-    mounted() {
-        // Evil
-        // console.log(this.$parent.$parent.$store)
-        IGVEvents.$emit(IGV_ADD_TRACK, {
-            name: this.trackName,
-            type: this.visualization,
-            reader: new BioIndexReader({
-                index: this.index,
-                queryString: this.queryStringMaker,
-                translator: this.intervalsForIGV,
-
-                // if the queryHandler is defined (i.e. passed as a prop), use it.
-                // Else, use whatever default queryhandler the parent IGV instance has (given that one is defined there).
-                queryHandlers: {
-                    resolveHandler:
-                        this.resolveHandler ||
-                        (json =>
-                            IGVEvents.$emit(IGV_BIOINDEX_QUERY_RESOLVE, json)),
-                    errHandler:
-                        this.errHandler ||
-                        (json =>
-                            IGVEvents.$emit(IGV_BIOINDEX_QUERY_ERROR, json)),
-                    finishHandler:
-                        this.finishHandler ||
-                        (response =>
-                            IGVEvents.$emit(
-                                IGV_BIOINDEX_QUERY_FINISH,
-                                response
-                            ))
-                }
-            }),
-            height: 160,
-            disableCache: true
-        });
-
-        IGVEvents.$on(IGV_CHILD_DESTROY_TRACK, trackName => {
-            if (trackName === this.trackName) {
-                this.$destroy();
-            }
-        });
-    },
-
-    beforeDestroy() {
-        // clean up external data before destroying the component instance from memory
-        IGVEvents.$emit(IGV_REMOVE_TRACK, this.trackName);
-        this.$el.parentNode.removeChild(this.$el);
-        // console.log(this.$el);
     },
     methods: {
         queryStringMaker: function(chr, start, end) {
@@ -166,12 +70,13 @@ export default Vue.component("igv-intervals-track", {
                             interval.annotation
                         }`;
 
+                        // TODO: Pick out of the filter only those predicates that matter to the object
                         let filterP =
-                            !this.pValue ||
-                            this.tissueScoring[k].minP <= this.pValue;
+                            !this.filter.pValue ||
+                            this.$parent.scoring[k].minP <= this.filter.pValue;
                         let filterFold =
-                            !this.fold ||
-                            this.tissueScoring[k].maxFold >= this.fold;
+                            !this.filter.fold ||
+                            this.$parent.scoring[k].maxFold >= this.filter.fold;
                         let filterMethod = this.method == interval.method;
 
                         return filterP && filterFold && filterMethod;
@@ -192,6 +97,5 @@ export default Vue.component("igv-intervals-track", {
             }
         }
     },
-    watch: {}
 });
 </script>

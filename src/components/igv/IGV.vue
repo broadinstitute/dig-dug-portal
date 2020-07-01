@@ -17,25 +17,15 @@ import lodash from "lodash";
 
 import igv from "igv";
 import IGVEvents, {
-    IGV_BROWSER_FORCE_REFRESH,
     IGV_ADD_TRACK,
     IGV_REMOVE_TRACK,
     IGV_CHILD_DESTROY_TRACK,
-    IGV_BIOINDEX_QUERY_RESOLVE,
-    IGV_BIOINDEX_QUERY_ERROR,
-    IGV_BIOINDEX_QUERY_FINISH,
-    IGV_ZOOM_IN,
-    IGV_ZOOM_OUT
+    IGV_LOCUSCHANGE,
 } from "@/components/igv/IGVEvents";
 
-import {
-    igvError
-    // igvResolve,
-    // igvFinish
-} from "@/utils/igvUtils";
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack";
-
-import * as _ from "lodash";
+import IGVIntervalTrack from "@/components/igv/tracks/IGVIntervalTrack.vue";
+import IGVCredibleVariantsTrack from "@/components/igv/tracks/IGVCredibleVariantsTrack.vue";
 
 export default Vue.component("igv", {
     props: [
@@ -43,24 +33,16 @@ export default Vue.component("igv", {
         "chr",
         "start",
         "end",
-        // handlers for network requests
-        "resolveHandler",
-        "finishHandler",
-        "errHandler",
-        // handlers on global IGV behavior
-        "popupHandler",
-        "regionHandler",
+
         // filters
-        "pValue",
-        "fold"
+        "p-value",
+        "fold",
+        "scoring",
     ],
 
     data() {
         return {
             igvBrowser: null,
-            currentChr: this.chr,
-            currentStart: this.start,
-            currentEnd: this.end
         };
     },
 
@@ -80,6 +62,16 @@ export default Vue.component("igv", {
             this.createEventHandlers(this.igvBrowser);
         });
     },
+
+    computed: {
+        filter() {
+            return {
+                pValue: this.pValue,
+                fold: this.fold,
+            }
+        }
+    },
+
     methods: {
         createEventHandlers(browser) {
             IGVEvents.$on(IGV_ADD_TRACK, trackConfiguration => {
@@ -88,46 +80,6 @@ export default Vue.component("igv", {
 
             IGVEvents.$on(IGV_REMOVE_TRACK, trackName => {
                 browser.removeTrackByName(trackName);
-            });
-
-            // TODO
-            IGVEvents.$on(IGV_BROWSER_FORCE_REFRESH, () => {
-                // just go to the place we already are at
-                browser.search(
-                    `chr${this.currentChr}:${this.currentStart}-${this.currentEnd}`
-                );
-            });
-
-            IGVEvents.$on(IGV_ZOOM_IN, () => {
-                browser.zoomIn();
-            });
-
-            IGVEvents.$on(IGV_ZOOM_OUT, () => {
-                browser.zoomOut();
-            });
-
-            // default handlers for tracks completing their data
-            // TODO: this is the wierdest part of the application right now. It works out as long as we only have one instance of IGV per page.
-            IGVEvents.$on(IGV_BIOINDEX_QUERY_RESOLVE, json => {
-                if (!!this.resolveHandler) {
-                    this.resolveHandler(response);
-                } else {
-                    // igvResolve(json);
-                }
-            });
-            IGVEvents.$on(IGV_BIOINDEX_QUERY_ERROR, json => {
-                if (!!this.errHandler) {
-                    this.errHandler(response);
-                } else {
-                    igvError(json);
-                }
-            });
-            IGVEvents.$on(IGV_BIOINDEX_QUERY_FINISH, response => {
-                if (!!this.finishHandler) {
-                    this.finishHandler(response);
-                } else {
-                    // igvFinish(json);
-                }
             });
 
             // 'trackremoved' is an igv.js event
@@ -140,35 +92,10 @@ export default Vue.component("igv", {
                 IGVEvents.$emit(IGV_CHILD_DESTROY_TRACK, track);
             });
 
-            // browser.on('trackclick', (track, popupData) => {
-            //     if (!!this.popupHandler) {
-            //         this.popupHandler(track, popupData);
-            //     } else {
-            //         popupData.forEach(nameValuePair => {
-            //             if (!!nameValuePair.name) {
-            //                 if (!!nameValuePair.value) {
-            //                     // EITHER:
-            //                     // Build popup
-            //                     // OR
-            //                     // Run popup handler
-            //                 }
-            //             }
-            //         });
-            //     }
-            //     return false;
-            // });
-
             browser.on(
                 "locuschange",
-                _.debounce(locus => {
-                    if (!!this.regionHandler) {
-                        this.regionHandler(locus);
-                    } else {
-                        //console.log(locus);
-                    }
-                    this.currentChr = locus.chr.charAt(3);
-                    this.currentStart = locus.start.replace(/,/g, "");
-                    this.currentEnd = locus.end.replace(/,/g, "");
+                lodash.debounce(locus => {
+                    IGVEvents.$emit(IGV_LOCUSCHANGE, locus);
                 }, 300)
             );
         },
@@ -176,28 +103,45 @@ export default Vue.component("igv", {
         addIGVTrack: function(IGVTrackComponentType, trackConfig) {
             if (this.igvBrowser != null) {
                 let IGVTrackConstructor = Vue.extend(IGVTrackComponentType);
-                let vueContainer = document.createElement("div");
-
-                this.$el.appendChild(vueContainer);
 
                 const trackComponentInstance = new IGVTrackConstructor({
-                    propsData: trackConfig.data,
+                    propsData: trackConfig,
                     parent: this // important! creating new instances doesn't give you the parent by default
-                }).$mount(vueContainer);
+                })
+
+                let vueContainer = document.createElement("div");
+                this.$el.appendChild(vueContainer);
+
+                trackComponentInstance.$mount(vueContainer);
             }
         },
 
+        addCredibleVariantsTrack(phenotype, credibleSetId, posteriorProbability, options = {}) {
+            this.addIGVTrack(IGVCredibleVariantsTrack, {
+                phenotype: phenotype,
+                credibleSetId: credibleSetId,
+                posteriorProbability: posteriorProbability,
+            })
+        },
+
+        addIntervalsTrack(annotation, annotationMethod, options = {}) {
+            this.addIGVTrack(IGVIntervalTrack, {
+                annotations: [annotation],
+                method: annotationMethod,
+                ...options,
+            })
+        },
+
         zoomIn() {
-            return IGVEvents.$emit(IGV_ZOOM_IN);
+            return browser.zoomIn();
         },
 
         zoomOut() {
-            return IGVEvents.$emit(IGV_ZOOM_OUT);
+            return browser.zoomOut();
         },
 
         updateViews() {
             let igvBrowser = this.igvBrowser;
-
             lodash.debounce(function() {
                 igvBrowser.trackViews.forEach(v =>
                     v.track.trackView.viewports.forEach(v => (v.tile = null))
@@ -207,12 +151,9 @@ export default Vue.component("igv", {
         }
     },
     watch: {
-        pValue(newP) {
+        filter() {
             this.updateViews();
         },
-        fold(fold) {
-            this.updateViews();
-        }
     }
 });
 </script>

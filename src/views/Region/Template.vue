@@ -115,7 +115,7 @@
                         class="card-title"
                     >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
                     <documentation name="region.phenos_w_signal.subheader"></documentation>
-                   
+
                     <div style="text-align: right; padding-bottom: 5px;">
                         <div
                             href="javascript:;"
@@ -181,26 +181,24 @@
                                     <div class="label">Annotation Method Track</div>
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
-                                        :clearOnSelected="true"
-                                    />
-                                </div>
-                                <div class="col filter-col-lg">
-                                    <div class="label">Credible Sets Track</div>
-                                    <credible-sets-selectpicker
-                                        :credibleSets="$parent.credibleSets"
-                                        :clearOnSelected="true"
-                                    />
+                                        @annotation="$parent.addAnnotationTrack($event)"/>
                                 </div>
 
-                                <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-sm">
                                     <div class="label">pValue (&le;)</div>
                                     <input v-model.number="$parent.pValue" class="form-control" />
                                 </div>
-
                                 <div class="col filter-col-sm">
                                     <div class="label">Fold (&ge;)</div>
                                     <input v-model.number="$parent.fold" class="form-control" />
+                                </div>
+
+                                <div class="col divider">&nbsp;</div>
+                                <div class="col filter-col-lg">
+                                    <div class="label">Credible Sets Track</div>
+                                    <credible-sets-selectpicker
+                                        :credibleSets="$parent.credibleSets"
+                                        @credibleset="$parent.addCredibleVariantTrack($event)"/>
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>
@@ -216,28 +214,14 @@
                         </div>
 
                         <div v-if="!!$store.state.phenotype">
-                            <igv
-                                ref="igv"
+                            <!-- TODO: Refactor p-value, fold, colorscheme, scoring to providers? -->
+                            <igv ref="igv"
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
-                                :p-value="$store.state.pValue"
-                                :fold="$store.state.fold"
-                                :regionHandler="locus => {
-                                const region = {
-                                    chr: locus.chr.charAt(3),
-                                    start: locus.start.replace(/,/g, ''),
-                                    end: locus.end.replace(/,/g, ''),
-                                };
-                                $store.dispatch('credibleSets/query', {q: `${$store.state.phenotype.name},${region.chr}:${region.start}-${region.end}`});
-                            }"
-                            >
-                                <!-- <igv-associations-track
-                                :phenotype="$store.state.phenotype.name"
-                                visualization="gwas"
-                                :finishHandler="response => $parent.routeResponseToModule(response)"
-                                ></igv-associations-track>-->
-                            </igv>
+                                :p-value="$parent.pValue"
+                                :fold="$parent.fold"
+                                :scoring="$parent.tissueScoring"/>
                         </div>
                     </div>
                 </div>
