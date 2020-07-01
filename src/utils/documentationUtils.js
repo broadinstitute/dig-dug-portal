@@ -65,7 +65,7 @@ function makeConverter(content, contentFill, name) {
         ]
     });
 
-    converter.setOption('openLinksInNewWindow', true);
+    //converter.setOption('openLinksInNewWindow', true);
 
     return converter
 }
