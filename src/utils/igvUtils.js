@@ -41,3 +41,8 @@ export class BioIndexReader {
 
     }
 }
+
+// TODO
+// export function tissueColorScheme(tissues) {
+//     return d3.scaleOrdinal().domain(tissues).range(d3.schemeSet1);
+// }

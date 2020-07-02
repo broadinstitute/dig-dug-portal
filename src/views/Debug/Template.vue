@@ -46,7 +46,6 @@
         </div>
 
         <locuszoom
-            ref="locuszoom"
             :chr="$store.state.chr"
             :start="$store.state.start"
             :end="$store.state.end">

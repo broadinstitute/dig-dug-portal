@@ -19,12 +19,14 @@ function readOnCoords(index, queryStringMaker, {
         }
     }
 }
+
 export const LZBioIndexSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
 });
 LZBioIndexSource.prototype.parseInit = function (params) {
     const { index, queryStringMaker, translator, resolveHandler, errHandler, finishHandler } = params;
     this.params = params;
+
     this.queryStringMaker = queryStringMaker;
     this.index = index;
     this.translator = translator;
@@ -33,6 +35,7 @@ LZBioIndexSource.prototype.parseInit = function (params) {
         errHandler,
         finishHandler,
     });
+
 };
 LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;
