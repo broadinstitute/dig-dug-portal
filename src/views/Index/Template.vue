@@ -35,7 +35,7 @@
                                                     autocomplete="off"
                                                     @change="$store.dispatch('exploreRegionOrVariant')"
                                                 />-->
-                                                <autocomplete></autocomplete>
+                                                <autocomplete :userInput="$store.state.userInput"></autocomplete>
                                             </div>
                                             <div class="region-search-examples">
                                                 <documentation

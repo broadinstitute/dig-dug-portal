@@ -76,6 +76,10 @@ new Vue({
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
+        userInput() {
+            return this.$store.state.userInput;
+        },
+
 
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;

@@ -18,6 +18,7 @@ export default new Vuex.Store({
     state: {
         geneOrRegionOrVariant: null,
         invalidGeneOrRegionOrVariant: false,
+        userInput: null,
     },
     mutations: {
         setInvalidGeneOrRegionOrVariant(state, flag) {
@@ -25,9 +26,11 @@ export default new Vuex.Store({
         },
         setExample(state, example) {
             state.geneOrRegionOrVariant = example;
-        }
+        },
+        
+
     },
-    state: {},
+
     actions: {
         async onPhenotypeChange(context, phenotype) {
             window.location.href = "./phenotype.html?phenotype=" + phenotype.name;

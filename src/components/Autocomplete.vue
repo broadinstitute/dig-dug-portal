@@ -1,7 +1,7 @@
 <template>
     <div>
         <vue-typeahead-bootstrap
-            v-model="query"
+            v-model="userText"
             :data="genes"
             ref="optionSelect"
             placeholder="Type in a gene..."
@@ -34,19 +34,19 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-   
+    props: ["userInput"],
 
     data() {
         return {
-            query: "",
-            genes: []
+            genes: [],
+            userText: this.userInput || null
         };
     },
 
     methods: {
         lookupGene: debounce(function() {
             let qs = queryString.stringify(
-                { q: this.query, limit: 5 },
+                { q: this.userText, limit: 5 },
                 { skipNull: true }
             );
             // in practice this action should be debounced
