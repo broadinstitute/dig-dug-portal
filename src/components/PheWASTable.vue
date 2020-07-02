@@ -2,7 +2,7 @@
     <div>
         <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
-                <b-col>
+                <b-col class="filter-col-lg">
                     <div class="label">Phenotype</div>
                     <vue-typeahead-bootstrap
                         v-if="phenotypeMap"
@@ -16,7 +16,7 @@
                 <b-col class="divider">
                     <span class="or-text">OR</span>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">pValue (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
@@ -25,7 +25,7 @@
                         v-model="pValueText"
                     ></b-form-input>
                 </b-col>
-                <b-col>
+                <b-col class="filter-col-sm">
                     <div class="label">Effect</div>
                     <b-form-select
                         @input="filterBeta()"

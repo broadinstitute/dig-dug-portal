@@ -64,6 +64,9 @@ function makeConverter(content, contentFill, name) {
             ...name_and_class_extensions
         ]
     });
+
+    //converter.setOption('openLinksInNewWindow', true);
+
     return converter
 }
 

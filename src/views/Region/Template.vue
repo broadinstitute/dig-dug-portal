@@ -82,6 +82,7 @@
                             :begin="$store.state.start"
                             :end="$store.state.end"
                             :trait="$store.state.phenotype"
+                            :dataContent="this.$store.state.lunaris.dataFromLunaris"
                         ></lunaris-link>
                     </div>
                     <div class="col-md-4 gene-page-header-body">

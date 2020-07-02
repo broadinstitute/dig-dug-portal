@@ -4,13 +4,16 @@ import Vuex from "vuex";
 import keyParams from "@/utils/keyParams";
 import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
+import lunaris from "@/modules/lunaris";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
+
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
+        lunaris,
         bioPortal,
         kp4cd,
         genes: bioIndex("genes"),

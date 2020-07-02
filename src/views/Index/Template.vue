@@ -13,6 +13,7 @@
                                 <div class="front-logo-wrapper">
                                     <img
                                         class="front-logo-img"
+                                        v-if="$parent.frontContents.field_front_logo"
                                         :src="'http://kp4cd.org/sites/default/files/vueportal/'+$parent.frontContents.field_front_logo"
                                     />
                                     <span
