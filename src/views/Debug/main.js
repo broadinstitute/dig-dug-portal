@@ -37,10 +37,7 @@ new Vue({
         this.$store.dispatch("queryRegion");
     },
     mounted() {
-        let self = this;
-        this.$children[0].$refs.locuszoom.addAssociationsPanel('T2D', function(dataLoadedResponse) {
-            self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
-        })
+        this.addAssociationsPanel({ phenotype: 'T2D' })
     },
     render(createElement, context) {
         return createElement(Template);
@@ -58,28 +55,26 @@ new Vue({
         },
         addAssociationsPanel(event) {
             const { phenotype } = event;
+            let self = this;
             this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
                 // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
                 function(dataLoadedResponse) {
-                    this.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
+                    self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
                 }
             );
         },
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
-            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId)
+            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
+                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    // TODO: callbacks for creating a new table column for credible sets might go here
+                }
+            )
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
-            let self = this;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
-                annotation,
-                method,
-                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
-                    self.$store.dispatch(`${dataLoadedResponse.index}/tap`, 'hello', dataLoadedResponse);
-                }
-            );
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
         },
      },
 

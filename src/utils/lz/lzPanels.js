@@ -33,7 +33,9 @@ export class LZAssociationsPanel {
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
+        // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
+            "id": this.panel_id,
             y_index: -9001,
         };
         this.handlers = { finishHandler, resolveHandler, errHandler };
@@ -107,6 +109,7 @@ export class LZAnnotationIntervalsPanel {
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
+        // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
             title: {
                 text: `${annotation} ${method ? method : ''}`
@@ -176,6 +179,7 @@ export class LZCredibleVariantsPanel {
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
+        // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
             title: {
                 text: `${credibleSetId}`
@@ -197,7 +201,7 @@ export class LZCredibleVariantsPanel {
                     // narrowing down data from datasources of <datasource_type> to <datasource_namespace_symbol>
                     [this.datasource_type]: this.datasource_namespace_symbol_for_panel
                 },
-                "id": "credible_variants",
+                "id": this.panel_id,
                 "type": "scatter",
                 // id_field is necessary for the scatter visualization to work (used by the d3 code generating the viz)
                 "id_field": `${this.datasource_namespace_symbol_for_panel}:id`,

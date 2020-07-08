@@ -5,13 +5,14 @@ import store from "./store.js";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import LocusZoom from "@/components/LocusZoom";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
 
 import IGV from "@/components/igv/IGV.vue"
 import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
+
+import LocusZoom from "@/components/lz/LocusZoom";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
@@ -30,7 +31,6 @@ import Alert, {
 
 import Formatters from "@/utils/formatters"
 import * as d3 from "d3";
-
 
 Vue.config.productionTip = false;
 Vue.component('b-button', BButton)
@@ -70,6 +70,7 @@ new Vue({
             // I keep on forgetting this 'q'
             this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
         });
+
     },
 
     render(createElement) {
@@ -83,6 +84,9 @@ new Vue({
             // page controls
             pValue: null,
             fold: null,
+
+            currentAssociationsPanel: null
+
         };
     },
 
@@ -92,6 +96,27 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+
+        addAssociationsPanel(event) {
+            const { phenotype } = event;
+            let self = this;
+            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
+                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
+                }
+            );
+            return newAssociationsPanelId;
+        },
+        // TODO: refactor to closure for extra programmer points
+        // TODO: does the idea of using components handle this problem?
+        updateAssociationsPanel(phenotype) {
+            if (this.currentAssociationsPanel) {
+                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
+            }
+            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
+        },
+        
         addCredibleVariantTrack(credibleSet) {
             // you can update the store here if you really need to. but you don't need to.
             // instead use a computed property with custom getters and setters plus v-model if at all possible.
@@ -256,9 +281,11 @@ new Vue({
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement('phenotypeSearchHolder');
 
+            this.updateAssociationsPanel(phenotype.name);
+
             // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
-            this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name });
-            this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
+            this.$store.dispatch('globalEnrichment/query', { q: phenotype.name });
+            this.$store.dispatch('credibleSets/query', { q: `${ phenotype.name },${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
         },
 
         topAssociations(top) {

@@ -6,14 +6,35 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 
-import {
-    LZ_TYPE,
-    BASE_PANEL_OPTIONS,
-    PANEL_OPTIONS
-} from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
 import LZVueSource from "@/utils/lz/lzVueSource";
 import * as _ from "lodash";
+
+/*
+ */
+const BASE_PANEL_OPTIONS = {
+    // proportional_height: 1,
+    height: 240,
+    dashboard: {
+        components: [
+            {
+                type: "resize_to_data",
+                position: "right"
+            },
+            {
+                type: "region_scale",
+                position: "left"
+            }
+        ]
+    }
+}
+
+/* panel options by panel type
+ */
+const PANEL_OPTIONS = {
+    'association': { min_height: 240, height: 240 },
+    'genes': { min_height: 240, height: 240 },
+};
 
 export default Vue.component("locuszoom", {
     props: [
@@ -29,7 +50,7 @@ export default Vue.component("locuszoom", {
         "variant",
 
         // computed properties for each data source type
-        ...Object.values(LZ_TYPE)
+        ...Object.keys(LZDataSources)
     ],
 
     /* This is the last region LocusZoom requested to be loaded.
@@ -96,7 +117,7 @@ export default Vue.component("locuszoom", {
         this.dataSources = new LocusZoom.DataSources();
 
         // register all the possible data sources
-        Object.values(LZ_TYPE).forEach(lzType => {
+        Object.keys(LZDataSources).forEach(lzType => {
             if (!!this[lzType]) {
                 this.createSource(lzType, this[lzType]);
             } else {

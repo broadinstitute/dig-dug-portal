@@ -13,8 +13,6 @@ import "locuszoom/dist/ext/lz-intervals-track.min.js";
 
 import {
     LZ_TYPE,
-    BASE_PANEL_OPTIONS,
-    PANEL_OPTIONS
 } from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel } from "@/utils/lz/lzPanels";
@@ -24,6 +22,30 @@ import LZEvents, {
 } from "@/components/lz/LocusZoomEvents"
 
 import idCounter from "@/utils/idCounter"
+
+const BASE_PANEL_OPTIONS = {
+    // proportional_height: 1,
+    height: 240,
+    dashboard: {
+        components: [
+            {
+                type: "resize_to_data",
+                position: "right"
+            },
+            {
+                type: "region_scale",
+                position: "left"
+            }
+        ]
+    }
+}
+
+/* panel options by panel type
+ */
+const PANEL_OPTIONS = {
+    'association': { min_height: 240, height: 240 },
+    'genes': { min_height: 240, height: 240 },
+};
 
 export default Vue.component("locuszoom", {
     props: [
@@ -46,7 +68,7 @@ export default Vue.component("locuszoom", {
             }
         });
 
-        this.locuszoom = LocusZoom.populate("#lz", this.dataSources, {
+        this.plot = LocusZoom.populate("#lz", this.dataSources, {
             responsive_resize: "width_only",
             state: Object.assign({}, {
                 chr: this.chr,
@@ -56,26 +78,26 @@ export default Vue.component("locuszoom", {
         });
 
         // adding default panel for gene reference track
-        this.locuszoom.addPanel(LocusZoom.Layouts.get("panel", "genes", {
+        this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
             y_index: 9001
         }));
 
         // event listeners
         let self = this;
 
-        this.locuszoom.on('panel_removed', function(event) {
+        this.plot.on('panel_removed', function(event) {
             self.$emit('panelremoved', event);
         })
 
         // region change handler
-        this.locuszoom.on('state_changed', function(event) {
+        this.plot.on('state_changed', function(event) {
             // TODO: doesn't pass out chromosome!
             const { start, end } = event; // coordinates are in decimals
             self.$emit('regionchanged', event);
         })
 
         // this shows what panels updated
-        // this.locuszoom.on('layout_changed', function() {
+        // this.plot.on('layout_changed', function() {
         //  console.log('layout_changed', arguments)
         // })
 
@@ -92,14 +114,18 @@ export default Vue.component("locuszoom", {
             const { panel, source } = panelClass;
             this.dataSources.add(source.givingDataSourceName, source.withDataSourceReader);
 
-            this.locuszoom.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, {
+            this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, {
                 namespace: { [panel.forDataSourceType]: panel.takingDataSourceName },
                 id: panel.id,
                 ...panel.locusZoomLayoutOptions,                // other locuszoom configuration required for the panel, including overrides(?)
             })).addBasicLoader();
 
+            // so we can figure out how to remove it later
+            return panel.id;
+
         },
 
+        // TODO: component system for LocusZoom
         addLZComponent: function(PanelComponentType, panelConfig) {
             if (this.lz != null) {
 
@@ -116,31 +142,35 @@ export default Vue.component("locuszoom", {
             }
         },
 
-        // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into this function
+        // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
+        // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
         addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler) {
-            this.addPanelAndDataSource(
+            const panelId = this.addPanelAndDataSource(
                 new LZAssociationsPanel(
                     phenotype,
                     { finishHandler, resolveHandler, errHandler }
                 )
             );
+            return panelId;
         },
         addAnnotationIntervalsPanel: function(annotation, method, finishHandler, resolveHandler, errHandler) {
-            this.addPanelAndDataSource(
+            const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
                     annotation, method,
                     { finishHandler, resolveHandler, errHandler },
-                    this.colorScheme
+                    this.colorScheme  // this constructor has a default function if this.colorScheme is undefined
                 )
             );
+            return panelId;
         },
         addCredibleVariantsPanel: function(phenotype, credibleSetId, finishHandler, resolveHandler, errHandler) {
-            this.addPanelAndDataSource(
+            const panelId = this.addPanelAndDataSource(
                 new LZCredibleVariantsPanel(
                     phenotype, credibleSetId,
                     { finishHandler, resolveHandler, errHandler }
                 )
             );
+            return panelId;
         },
 
     },

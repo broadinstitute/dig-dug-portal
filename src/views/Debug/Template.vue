@@ -1,12 +1,6 @@
 <template>
     <div>
-
-        <input v-model="$parent.addPhenotype"/>
-        <button @click="$parent.addAPhenotype">Add Phenotype</button>
-
-        <input v-model="$parent.removePhenotype"/>
-        <button @click="$parent.removeAPhenotype">Remove Phenotype</button>
-
+        
         <div class="filtering-ui-wrapper">
             <div class="row filtering-ui-content">
                 <div class="col filter-col-lg">
@@ -14,15 +8,6 @@
                     <annotation-method-selectpicker
                         :annotations="$parent.globalEnrichmentAnnotations"
                         @annotation="$parent.addAnnotationIntervalsPanel($event)"/>
-                </div>
-
-                <div class="col filter-col-sm">
-                    <div class="label">pValue (&le;)</div>
-                    <input v-model.number="$parent.pValue" class="form-control" />
-                </div>
-                <div class="col filter-col-sm">
-                    <div class="label">Fold (&ge;)</div>
-                    <input v-model.number="$parent.fold" class="form-control" />
                 </div>
 
                 <div class="col divider">&nbsp;</div>
@@ -45,6 +30,6 @@
             @panelremoved="$parent.tap($event)"
             @regionchanged="$parent.requestCredibleSets($event.data)">
         </locuszoom>
-        
+
     </div>
 </template>
