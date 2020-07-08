@@ -13,8 +13,7 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         associations: bioIndex("phenotype-associations"),
-        annotations: bioIndex("global-enrichment"),
-        datasets: bioIndex("datasets")
+        annotations: bioIndex("global-enrichment")
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
@@ -45,7 +44,6 @@ export default new Vuex.Store({
 
             context.dispatch("associations/query", assocQuery);
             context.dispatch("annotations/query", query);
-            context.dispatch("datasets/query", query);
         }
     }
 });

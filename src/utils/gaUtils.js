@@ -32,12 +32,7 @@ const EVENT_ENDPOINT_NAME = 'errorLog'
  */
 const logAnalyticsEvent = async function (category, action, params) {
 
-    let value;
-    if(isNaN(value)) {
-        value = 1
-    }
-
-    let qs = queryString.stringify({ action, category, value, ...params }, { skipNull: true });
+    let qs = queryString.stringify({ action, category, ...params }, { skipNull: true });
     return await fetch(`/eventLog?${qs}`)
         .then(response => {
             if (response) {
@@ -55,20 +50,21 @@ const logAnalyticsEvent = async function (category, action, params) {
  * Issue an Application Error Event Log notification for Google Analytics (GA) reporting, to the server.
  * The "context" of the event specifies the GA event "category" and the message is sent as the
  * GA event value for a hard coded label "message".
+ * TODO: need to further disambiguate the semantics of 'context' and 'page'; 'page' not currently used in logErrorEvent
  *
  * @param {string} [context]
  * @param {string} [message]
  * @return null
  * @public
  */
-const logErrorEvent = async function (action, message, page) {
+const logErrorEvent = async function (context, message, page) {
     let params = {
         page: page,
         label: message,
     }
     logAnalyticsEvent(
         GA_APPLICATION_ERROR_EVENT_CATEGORY,
-        action,
+        context,
         params
     );
 }

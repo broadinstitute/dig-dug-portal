@@ -12,7 +12,7 @@
                         <a
                             class="edit-btn"
                             v-on:click="$parent.showHideElement('phenotypeSearchHolder')"
-                        >Select phenotype</a>
+                        >Set phenotype</a>
                     </div>
 
                     <div class="col-md-12 gene-page-header-body">
@@ -75,7 +75,14 @@
                         <h4
                             class="card-title"
                         >Datasets Associated with {{$store.state.phenotype.description}}</h4>
-                        <datasets-table :datasets="$store.state.datasets.data"></datasets-table>
+                        <documentation
+                            name="pheno.assocdatasets.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
+                        <datasets-table
+                            :datasets="$store.state.bioPortal.datasets"
+                            :phenotype="$store.state.phenotype"
+                        ></datasets-table>
                     </div>
                 </div>
 
@@ -84,6 +91,11 @@
                         <h4
                             class="card-title"
                         >Globally Enriched Annotations for {{$store.state.phenotype.description}}</h4>
+                        <documentation
+                            name="pheno.globalenrich.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
+
                         <enrichment-table
                             :phenotypes="[$store.state.phenotype]"
                             :annotations="$store.state.annotations.data"

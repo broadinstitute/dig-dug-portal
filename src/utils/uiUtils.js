@@ -42,21 +42,46 @@ let showHideElement = function (ELEMENT, SEARCHBOX) {
 
 let showHideHelpContent = function (ELEMENT) {
     let element = checkExist(ELEMENT);
-    if (!!element) {
-        if (element.classList.contains('hidden')) {
-
-            element.classList.remove('hidden');
-            let intViewportWidth = window.innerWidth;
-            let elementLeft = (intViewportWidth - element.offsetWidth) / 2 + 'px';
-
-            element.style.setProperty('left', elementLeft);
-
-        } else {
-            element.classList.add('hidden');
-            hideElement(ELEMENT);
-        }
+    if (element.classList.contains('hidden')) {
+        element.classList.remove('hidden');
+    } else {
+        element.classList.add('hidden');
     }
+
 };
+
+let getToolTipPosition = function (ELEMENT) {
+    //let element = document.getElementById(ELEMENT);
+    let caller = document.getElementsByClassName(ELEMENT)[0];
+    let viewer = document.getElementById(ELEMENT);
+    let intViewportWidth = window.innerWidth;
+    let elementWidth = viewer.offsetWidth;
+
+    let location = getOffset(caller);
+
+    let elementLeft = (location.left > (intViewportWidth - elementWidth)) ? -elementWidth : 10;
+
+    viewer.style.setProperty('left', elementLeft + 'px');
+
+    console.log(ELEMENT + " : " + location.left);
+}
+
+
+let getOffset = function (ELEMENT) {
+    let _x = 0;
+    let _y = 0;
+    while (
+        ELEMENT &&
+        !isNaN(ELEMENT.offsetLeft) &&
+        !isNaN(ELEMENT.offsetTop)
+    ) {
+        _x += ELEMENT.offsetLeft - ELEMENT.scrollLeft;
+        _y += ELEMENT.offsetTop - ELEMENT.scrollTop;
+        ELEMENT = ELEMENT.offsetParent;
+    }
+    return { top: _y, left: _x };
+}
+
 
 let switchViews = function (VIEWS) {
     let x = VIEWS.length;
@@ -112,4 +137,5 @@ export default {
     openPage,
     showHideByClass,
     switchViews,
+    getToolTipPosition,
 }

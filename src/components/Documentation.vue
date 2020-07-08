@@ -4,11 +4,9 @@
 
 <script>
 import Vue from "vue";
-import { camelKebab } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import documentationParser from "@/utils/documentationUtils";
 import queryString from "query-string";
-import * as showdown from "showdown";
 
 export default Vue.component("documentation", {
     props: ["name", "group", "contentFill"],

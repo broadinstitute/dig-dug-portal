@@ -39,6 +39,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
     },
 
     render(createElement, context) {
@@ -84,6 +85,8 @@ new Vue({
             }
         }
     },
+
+
 
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
