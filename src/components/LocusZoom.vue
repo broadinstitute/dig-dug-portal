@@ -6,8 +6,10 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 
-import LZDataSources from "@/utils/lz/lzDataSources";
+import LZDataSources, { LZ_TYPE } from "@/utils/lz/lzDataSources";
 import LZVueSource from "@/utils/lz/lzVueSource";
+import "locuszoom/dist/ext/lz-intervals-track.min.js";
+
 import * as _ from "lodash";
 
 /*
@@ -50,7 +52,7 @@ export default Vue.component("locuszoom", {
         "variant",
 
         // computed properties for each data source type
-        ...Object.keys(LZDataSources)
+        ...Object.values(LZ_TYPE)
     ],
 
     /* This is the last region LocusZoom requested to be loaded.
@@ -117,7 +119,7 @@ export default Vue.component("locuszoom", {
         this.dataSources = new LocusZoom.DataSources();
 
         // register all the possible data sources
-        Object.keys(LZDataSources).forEach(lzType => {
+        Object.values(LZ_TYPE).forEach(lzType => {
             if (!!this[lzType]) {
                 this.createSource(lzType, this[lzType]);
             } else {

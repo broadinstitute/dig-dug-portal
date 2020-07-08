@@ -97,11 +97,12 @@ new Vue({
         postAlertError,
         closeAlert,
 
+        // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
             let self = this;
             const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
-                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
+                // this arg for dataLoaded callback, next arg for dataResolved callback, last arg for error callback
                 function(dataLoadedResponse) {
                     self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
                 }
@@ -116,19 +117,19 @@ new Vue({
             }
             this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
         },
-        
+
+        // IGV has "Tracks"
         addCredibleVariantTrack(credibleSet) {
             // you can update the store here if you really need to. but you don't need to.
             // instead use a computed property with custom getters and setters plus v-model if at all possible.
             const { phenotype, credibleSetId } = credibleSet;
-            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, {
-                colorScheme: this.tissueColorScheme,
+            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true, {
                 dataLoaded: event => console.log(event),
             });
         },
         addAnnotationTrack(enrichment) {
             const { annotation, method } = enrichment;
-            this.$children[0].$refs.igv.addAnnotationIntervalsPanel(annotation, method, {
+            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
                 colorScheme: this.tissueColorScheme,
                 dataLoaded: event => console.log(event),
             });

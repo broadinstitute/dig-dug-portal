@@ -196,7 +196,7 @@
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
-                                        @credibleset="$parent.igvAddCredibleVariantTrack($event)"/>
+                                        @credibleset="$parent.addCredibleVariantTrack($event)"/>
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>
@@ -221,7 +221,7 @@
                                 :fold="$parent.fold"
                                 :scoring="$parent.tissueScoring"/>
                         </div>
-                        
+
                     </div>
                 </div>
             </div>

@@ -10,13 +10,6 @@ import LocusZoom from "locuszoom";
 import LZDataSources from "@/utils/lz/lzDataSources";
 import { LZBioIndexSource } from "@/utils/lz/lzBioIndexSource";
 
-import LZEvents, {
-    LZ_ADD_PANEL,
-    LZ_REMOVE_PANEL,
-    LZ_LOAD_PANEL,
-    LZ_CHILD_DESTROY_PANEL,
-} from "@/components/lz/LocusZoomEvents"
-
 export default Vue.component('lz-associations-panel', {
 
     props: {
@@ -54,11 +47,11 @@ export default Vue.component('lz-associations-panel', {
         },
     },
     created() {
-        LZEvents.$emit(LZ_LOAD_PANEL, this.buildPanel());
+        $parent.$emit("LZ_LOAD_PANEL", this.buildPanel());
     },
     mounted() {
-        LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
-        LZEvents.$on(LZ_CHILD_DESTROY_PANEL, panelId => {
+        $parent.$emit("LZ_ADD_PANEL", this.buildPanel());
+        $parent.$on("LZ_CHILD_DESTROY_PANEL", panelId => {
             if (panelId === this.panelId) {
                 this.$destroy();
             };
@@ -66,8 +59,7 @@ export default Vue.component('lz-associations-panel', {
     },
     beforeDestroy () {
         console.log('before destroy')
-        LZEvents.$emit(LZ_REMOVE_PANEL, this.panelId);
-
+        $parent.$emit("LZ_REMOVE_PANEL", this.panelId);
     },
     destroy () {
         console.log('destroy')
@@ -112,9 +104,9 @@ export default Vue.component('lz-associations-panel', {
 
     watch: {
         phenotype(newPhenotype, oldPhenotype) {
-            LZEvents.$emit(LZ_REMOVE_PANEL, `${oldPhenotype} ${this.visualization}`);
+            $parent.$emit("LZ_REMOVE_PANEL", `${oldPhenotype} ${this.visualization}`);
             this.myPhenotype = newPhenotype;
-            LZEvents.$emit(LZ_ADD_PANEL, this.buildPanel());
+            $parent.$emit("LZ_ADD_PANEL", this.buildPanel());
         }
     }
 

@@ -9,18 +9,9 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 
-import "locuszoom/dist/ext/lz-intervals-track.min.js";
-
-import {
-    LZ_TYPE,
-} from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel } from "@/utils/lz/lzPanels";
-import LZEvents, {
-    LZ_ADD_PANEL,
-    LZ_LOAD_PANEL,
-} from "@/components/lz/LocusZoomEvents"
-
+import "locuszoom/dist/ext/lz-intervals-track.min.js";
 import idCounter from "@/utils/idCounter"
 
 const BASE_PANEL_OPTIONS = {
@@ -57,7 +48,7 @@ export default Vue.component("locuszoom", {
     mounted() {
 
         this.dataSources = new LocusZoom.DataSources();
-        Object.values(LZ_TYPE).forEach(lzType => {
+        Object.keys(LZDataSources).forEach(lzType => {
             if (!!this[lzType]) {
                 this.createSource(lzType, this[lzType]);
             } else {
