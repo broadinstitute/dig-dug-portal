@@ -27,32 +27,15 @@
                                     <b-tab title="Gene, regions or variants" active>
                                         <div class="front-gene-search-wrapper">
                                             <div class="col-md-12 input-wrapper">
-                                                <select v-model="$parent.selected">
-                                                    <option
-                                                        v-for="search in $parent.searches"
-                                                        v-bind:value="{ id: search.id, text: search.name }"
-                                                    >{{ search.name }}</option>
-                                                </select>
-
-                                                <div
-                                                    v-if="$parent.selected.id == 'variantOrRegion'"
-                                                >
-                                                    <input
-                                                        v-model="$store.state.geneOrRegionOrVariant"
-                                                        type="text"
-                                                        class="form-control input-default"
-                                                        placeholder="Gene, region, or variant"
-                                                        style="display:inline-block"
-                                                        autocomplete="off"
-                                                        @change="$store.dispatch('exploreRegionOrVariant')"
-                                                    />
-                                                </div>
-                                                <div v-else>
-                                                    <autocomplete
-                                                        :userInput="$store.state.userInput"
-                                                        v-bind:matchingOutput="$parent.matchingGenes"
-                                                    ></autocomplete>
-                                                </div>
+                                                <input
+                                                    v-model="$store.state.geneOrRegionOrVariant"
+                                                    type="text"
+                                                    class="form-control input-default"
+                                                    placeholder="Gene, region, or variant"
+                                                    style="display:inline-block"
+                                                    autocomplete="off"
+                                                    @change="$store.dispatch('exploreRegionOrVariant')"
+                                                />
                                             </div>
                                             <div class="region-search-examples">
                                                 <documentation
