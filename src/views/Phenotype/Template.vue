@@ -47,7 +47,6 @@
                                 </b-tabs>
                             </div>
                             <div class="col-md-6">
-                                <h4 class="card-title">Documentation</h4>
                                 <documentation
                                     name="phenotype.associationplots.description"
                                     :content-fill="$store.getters['documentationMap']"

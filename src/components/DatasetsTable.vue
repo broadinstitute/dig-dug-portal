@@ -84,25 +84,14 @@ export default Vue.component("datasets-table", {
                 },
                 {
                     key: "tech",
-                    label: "Tech"
+                    label: "Technology"
                 },
                 {
                     key: "ancestry",
                     label: "Ancestry",
                     formatter: Formatters.ancestryFormatter
                 },
-                /*
-                {
-                    key: "cases",
-                    label: "Cases",
-                    formatter: Formatters.intFormatter
-                },
-                {
-                    key: "controls",
-                    label: "Controls",
-                    formatter: Formatters.intFormatter
-                },
-                */
+
                 {
                     key: "subjects",
                     label: "Subjects",

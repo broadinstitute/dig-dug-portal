@@ -151,11 +151,11 @@ export default Vue.component("phewas-table", {
                     label: "Odds Ratio",
                     formatter: Formatters.effectFormatter
                 },
-                {
-                    key: "zScore",
-                    label: "Z-Score",
-                    formatter: Formatters.floatFormatter
-                },
+                // {
+                //     key: "zScore",
+                //     label: "Z-Score",
+                //     formatter: Formatters.floatFormatter
+                // },
                 {
                     key: "n",
                     label: "Sample Size",
