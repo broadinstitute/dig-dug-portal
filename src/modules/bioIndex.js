@@ -23,9 +23,6 @@ export default function (index, extend) {
                 data: [],
                 profile: {},
                 progress: null,
-
-                paused: false,
-                iterableQuery: null
             };
         },
 
@@ -42,22 +39,12 @@ export default function (index, extend) {
                     1.0
                 );
             },
-            paused(state) {
-                return state.paused;
-            }
         },
 
         // commit methods
         mutations: {
             clearData(state) {
                 state.data = [];
-            },
-
-            setIterableQuery(state, iterableQuery) {
-                state.iterableQuery = iterableQuery;
-            },
-            clearIterableQuery(state) {
-                state.iterableQuery = null;
             },
 
             setResponse(state, json) {
@@ -68,10 +55,7 @@ export default function (index, extend) {
             setProgress(state, progress) {
                 state.progress = progress;
             },
-
-            setPause(state, flag) {
-                state.paused = flag;
-            }
+            
         },
 
         // dispatch methods

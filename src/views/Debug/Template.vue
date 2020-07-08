@@ -33,16 +33,6 @@
                         @credibleset="$parent.addCredibleVariantsPanel($event)"/>
                 </div>
 
-                <!-- <div class="col divider">&nbsp;</div>
-                <div class="col filter-col-lg">
-                    <div class="label">View region in Variant Prioritizer</div>
-                    <b-button
-                        class="btn btn-sm btn-2-vptz"
-                        :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
-                        target="_blank"
-                    >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
-                </div> -->
-
             </div>
         </div>
 
@@ -55,5 +45,6 @@
             @panelremoved="$parent.tap($event)"
             @regionchanged="$parent.requestCredibleSets($event.data)">
         </locuszoom>
+        
     </div>
 </template>

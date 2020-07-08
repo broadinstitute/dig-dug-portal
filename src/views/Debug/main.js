@@ -37,7 +37,10 @@ new Vue({
         this.$store.dispatch("queryRegion");
     },
     mounted() {
-        this.$children[0].$refs.locuszoom.addAssociationsPanel('T2D')
+        let self = this;
+        this.$children[0].$refs.locuszoom.addAssociationsPanel('T2D', function(dataLoadedResponse) {
+            self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
+        })
     },
     render(createElement, context) {
         return createElement(Template);
@@ -48,14 +51,19 @@ new Vue({
         },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
-            console.log(eventData)
             if (!!start && !!end) {
                 const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
                 this.$store.dispatch('credibleSets/query', { q: queryString });
             }
         },
         addAssociationsPanel(event) {
-            this.$children[0].$refs.locuszoom.addAssociationsPanel('T2D')
+            const { phenotype } = event;
+            this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
+                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    this.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
+                }
+            );
         },
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
@@ -63,16 +71,16 @@ new Vue({
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
+            let self = this;
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
+                annotation,
+                method,
+                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    self.$store.dispatch(`${dataLoadedResponse.index}/tap`, 'hello', dataLoadedResponse);
+                }
+            );
         },
-        addAPhenotype() {
-            console.log(this.addPhenotype);
-            this.phenotypes.push(this.addPhenotype);
-        },
-        removeAPhenotype() {
-            console.log(this.removePhenotype);
-            this.phenotypes = this.phenotypes.filter(p => p !== this.removePhenotype);
-        }
      },
 
     computed: {

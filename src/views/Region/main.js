@@ -92,9 +92,6 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        tap(event) {
-            console.log(event)
-        },
         addCredibleVariantTrack(credibleSet) {
             // you can update the store here if you really need to. but you don't need to.
             // instead use a computed property with custom getters and setters plus v-model if at all possible.

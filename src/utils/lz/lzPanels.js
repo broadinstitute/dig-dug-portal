@@ -30,7 +30,9 @@ export class LZAssociationsPanel {
                 ref_allele: association.varId,
         }));
 
-
+        // LocusZoom Layout configuration options
+        // See the LocusZoom docs for how this works
+        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         this.locusZoomLayoutOptions = {
             y_index: -9001,
         };
@@ -43,9 +45,9 @@ export class LZAssociationsPanel {
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
+            finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
-            finishHandler: this.handlers.finishHandler
         });
     }
 
@@ -102,11 +104,14 @@ export class LZAnnotationIntervalsPanel {
             return tissueIntervals;
         }
 
+        // LocusZoom Layout configuration options
+        // See the LocusZoom docs for how this works
+        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         this.locusZoomLayoutOptions = {
             title: {
                 text: `${annotation} ${method ? method : ''}`
             }
-        };   // using LocusZoom defaults for the <panelLayoutType> if empty object
+        };
         this.handlers = { finishHandler, resolveHandler, errHandler }
     }
 
@@ -115,9 +120,9 @@ export class LZAnnotationIntervalsPanel {
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
+            finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
-            finishHandler: this.handlers.finishHandler
         });
     }
 
@@ -168,7 +173,13 @@ export class LZCredibleVariantsPanel {
                 ref_allele: association.varId,
         }));
 
+        // LocusZoom Layout configuration options
+        // See the LocusZoom docs for how this works
+        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         this.locusZoomLayoutOptions = {
+            title: {
+                text: `${credibleSetId}`
+            },
             axes: {
                 y1: {
                     label: 'Posterior Probability'
@@ -183,12 +194,13 @@ export class LZCredibleVariantsPanel {
             // Fifth: add stylings, and the data layer ID
             data_layers: [{
                 "namespace": {
-                    // drawing data from <datasource_type> as <datasource_namespace_symbol>
+                    // narrowing down data from datasources of <datasource_type> to <datasource_namespace_symbol>
                     [this.datasource_type]: this.datasource_namespace_symbol_for_panel
                 },
                 "id": "credible_variants",
-                "id_field": `${this.datasource_namespace_symbol_for_panel}:id`,
                 "type": "scatter",
+                // id_field is necessary for the scatter visualization to work (used by the d3 code generating the viz)
+                "id_field": `${this.datasource_namespace_symbol_for_panel}:id`,
                 "fields": [
                   `${this.datasource_namespace_symbol_for_panel}:id`,
                   `${this.datasource_namespace_symbol_for_panel}:position`,
@@ -197,9 +209,13 @@ export class LZCredibleVariantsPanel {
                 "x_axis": {
                   "field": `${this.datasource_namespace_symbol_for_panel}:position`
                 },
+                // this overrides the log-pvalue and recombinant scales of the default associations plot
+                // since y-axes are partitioned into either axis: 1 -> y1 and axis: 2 -> y2, by overriding y_axis
+                // we've removed axis y2 from the associations plot (as we're only defining y1)
                 "y_axis": {
                   "axis": 1,
                   "field": `${this.datasource_namespace_symbol_for_panel}:posteriorProbability`,
+                  // normalizing the scale to probability space
                   "floor": 0,
                   "ceiling": 1
                 }
@@ -214,9 +230,9 @@ export class LZCredibleVariantsPanel {
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
+            finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
-            finishHandler: this.handlers.finishHandler
         });
     }
 
@@ -246,9 +262,9 @@ class LZBioIndexPanel {
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
+            finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
-            finishHandler: this.handlers.finishHandler
         });
     }
 
@@ -277,15 +293,15 @@ const _LZBioIndexSource = LocusZoom.Data.Source.extend(function(init) {
     this.parseInit(init);
 });
 _LZBioIndexSource.prototype.parseInit = function (params) {
-    const { index, queryStringMaker, translator, resolveHandler, errHandler, finishHandler } = params;
+    const { index, queryStringMaker, translator, finishHandler, resolveHandler, errHandler } = params;
     this.params = params;
     this.queryStringMaker = queryStringMaker;
     this.index = index;
     this.translator = translator;
     this.reader = readOnCoords(index, queryStringMaker, {
+        finishHandler,
         resolveHandler,
         errHandler,
-        finishHandler,
     });
 };
 _LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
@@ -309,11 +325,10 @@ function readOnCoords(index, queryStringMaker, {
     return {
         async fetch(chr, start, end, callback) {
             let q = queryStringMaker(chr, start, end);
-            console.log('fetch', chr, start, end, q);
             let responseData = await query(index, q, {
+                finishHandler,
                 resolveHandler,
                 errHandler,
-                finishHandler,
             })
             return callback(responseData);
         }

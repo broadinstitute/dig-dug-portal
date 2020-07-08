@@ -23,7 +23,7 @@ export async function query(index, q, { limit, resolveHandler, errHandler, finis
 
 /* Perform a BioIndex match.
  */
-export async function match(index, q, { limit, resolveHandler, errHandler, finishHandler }) {
+export async function match(index, q, { limit, finishHandler, resolveHandler, errHandler  }) {
     let qs = querystring.stringify({ q, limit }, { skipNull: true });
     let req = fetch(`${BIO_INDEX_HOST}/api/bio/match/${index}?${qs}`);
 
@@ -43,7 +43,6 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
         data = json.data;
 
         if (!!resolveHandler) {
-            console.log(resolveHandler)
             resolveHandler(json);
         }
 

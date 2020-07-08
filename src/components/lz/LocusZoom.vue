@@ -90,7 +90,6 @@ export default Vue.component("locuszoom", {
             // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <panel.takingDataSourceName>
 
             const { panel, source } = panelClass;
-            console.log(panel)
             this.dataSources.add(source.givingDataSourceName, source.withDataSourceReader);
 
             this.locuszoom.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, {
