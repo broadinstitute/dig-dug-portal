@@ -1,7 +1,7 @@
 <template>
     <div>
         <vue-typeahead-bootstrap
-            v-model="userText"
+            :v-model="this.userInput"
             :data="lookupOptions"
             ref="optionSelect"
             placeholder="Type in a gene..."

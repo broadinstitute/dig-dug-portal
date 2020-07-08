@@ -78,7 +78,7 @@ new Vue({
             return this.$store.state.userInput;
         },
         matchingGenes() {
-            return ["pcs", "pcsk9"];;
+            return this.$store.state.matchingGenes;;
         },
 
         frontContents() {

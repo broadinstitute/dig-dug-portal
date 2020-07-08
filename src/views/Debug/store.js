@@ -59,9 +59,8 @@ export default new Vuex.Store({
         },
 
         async lookupGenes(context, input) {
-
             let qs = queryString.stringify(
-                { q: input, limit: 5 },
+                { q: context.state.userInput, limit: 5 },
                 { skipNull: true }
             );
             // in practice this action should be debounced
