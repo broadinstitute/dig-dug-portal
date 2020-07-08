@@ -6,14 +6,37 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 
-import {
-    LZ_TYPE,
-    BASE_PANEL_OPTIONS,
-    PANEL_OPTIONS
-} from "@/utils/lz/lzConstants";
-import LZDataSources from "@/utils/lz/lzDataSources";
+import LZDataSources, { LZ_TYPE } from "@/utils/lz/lzDataSources";
 import LZVueSource from "@/utils/lz/lzVueSource";
+import "locuszoom/dist/ext/lz-intervals-track.min.js";
+
 import * as _ from "lodash";
+
+/*
+ */
+const BASE_PANEL_OPTIONS = {
+    // proportional_height: 1,
+    height: 240,
+    dashboard: {
+        components: [
+            {
+                type: "resize_to_data",
+                position: "right"
+            },
+            {
+                type: "region_scale",
+                position: "left"
+            }
+        ]
+    }
+}
+
+/* panel options by panel type
+ */
+const PANEL_OPTIONS = {
+    'association': { min_height: 240, height: 240 },
+    'genes': { min_height: 240, height: 240 },
+};
 
 export default Vue.component("locuszoom", {
     props: [

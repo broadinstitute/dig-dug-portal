@@ -7,7 +7,7 @@ module.exports = {
             config.devtool = 'inline-source-map';
         }
     },
-    productionSourceMap: false,
+    productionSourceMap: true,
     pages: {
         index: {
             entry: "src/views/Index/main.js",

@@ -138,16 +138,14 @@
                         name="region.lz.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
+
                     <locuszoom
-                        v-if="$store.state.phenotype"
-                        :panels="['association','genes']"
-                        :assoc="$parent.lzAssociations"
+                        ref="locuszoom"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
-                        :end="$store.state.end"
-                        :phenotype="$store.state.phenotype.name"
-                        @lzupdate="$store.dispatch('loadAssociations', $event)"
-                    ></locuszoom>
+                        :end="$store.state.end">
+                    </locuszoom>
+
                 </div>
             </div>
 
@@ -223,6 +221,7 @@
                                 :fold="$parent.fold"
                                 :scoring="$parent.tissueScoring"/>
                         </div>
+
                     </div>
                 </div>
             </div>

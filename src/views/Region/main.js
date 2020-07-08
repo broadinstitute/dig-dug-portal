@@ -5,7 +5,6 @@ import store from "./store.js";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import LocusZoom from "@/components/LocusZoom";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
@@ -13,9 +12,10 @@ import Documentation from "@/components/Documentation";
 import IGV from "@/components/igv/IGV.vue"
 import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
+import LocusZoom from "@/components/lz/LocusZoom";
+
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
-import EventBus from "@/utils/eventBus";
 
 import LunarisLink from "@/components/LunarisLink"
 
@@ -31,7 +31,6 @@ import Alert, {
 
 import Formatters from "@/utils/formatters"
 import * as d3 from "d3";
-
 
 Vue.config.productionTip = false;
 Vue.component('b-button', BButton)
@@ -71,6 +70,7 @@ new Vue({
             // I keep on forgetting this 'q'
             this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
         });
+
     },
 
     render(createElement) {
@@ -84,6 +84,9 @@ new Vue({
             // page controls
             pValue: null,
             fold: null,
+
+            currentAssociationsPanel: null
+
         };
     },
 
@@ -93,15 +96,34 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        tap(event) {
-            console.log(event)
+
+        // LocusZoom has "Panels"
+        addAssociationsPanel(event) {
+            const { phenotype } = event;
+            let self = this;
+            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
+                // this arg for dataLoaded callback, next arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
+                }
+            );
+            return newAssociationsPanelId;
         },
+        // TODO: refactor to closure for extra programmer points
+        // TODO: does the idea of using components handle this problem?
+        updateAssociationsPanel(phenotype) {
+            if (this.currentAssociationsPanel) {
+                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
+            }
+            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
+        },
+
+        // IGV has "Tracks"
         addCredibleVariantTrack(credibleSet) {
             // you can update the store here if you really need to. but you don't need to.
             // instead use a computed property with custom getters and setters plus v-model if at all possible.
             const { phenotype, credibleSetId } = credibleSet;
             this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true, {
-                colorScheme: this.tissueColorScheme,
                 dataLoaded: event => console.log(event),
             });
         },
@@ -155,47 +177,6 @@ new Vue({
             return Formatters.locusFormatter(chr, start, end);
         },
 
-        globalEnrichmentAnnotations() {
-            // an array of annotations
-            return _.uniqBy(this.$store.state.globalEnrichment.data, el => JSON.stringify([el.annotation, !!el.method ? el.method : ''].join()));
-        },
-
-        tissues() {
-            // an array of tissue
-            return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
-        },
-
-        // TODO: refactor into IGV Utils
-        tissueColorScheme() {
-            return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
-        },
-
-        tissueScoring() {
-            let groups = {};
-
-            for (let i in this.$store.state.globalEnrichment.data) {
-                let r = this.$store.state.globalEnrichment.data[i];
-                let t = r.tissueId || "NA";
-                let m = r.method || "NA";
-
-                let key = `${t}_${m}_${r.annotation}`;
-                let group = groups[key];
-                let fold = r.SNPs / r.expectedSNPs;
-
-                if (!group) {
-                    groups[key] = {
-                        minP: r.pValue,
-                        maxFold: fold,
-                    };
-                } else {
-                    group.minP = Math.min(group.minP, r.pValue);
-                    group.maxFold = Math.max(group.maxFold, fold);
-                }
-            }
-
-            return groups;
-        },
-
         // Give the top associations, find the best one across all unique
         // phenotypes available.
         topAssociations() {
@@ -240,6 +221,48 @@ new Vue({
                 });
             return assocs;
         },
+
+        globalEnrichmentAnnotations() {
+            // an array of annotations
+            return _.uniqBy(this.$store.state.globalEnrichment.data, el => JSON.stringify([el.annotation, !!el.method ? el.method : ''].join()));
+        },
+
+        tissues() {
+            // an array of tissue
+            return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
+        },
+
+        // TODO: refactor into IGV Utils
+        tissueColorScheme() {
+            return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
+        },
+
+        tissueScoring() {
+            let groups = {};
+
+            for (let i in this.$store.state.globalEnrichment.data) {
+                let r = this.$store.state.globalEnrichment.data[i];
+                let t = r.tissueId || "NA";
+                let m = r.method || "NA";
+
+                let key = `${t}_${m}_${r.annotation}`;
+                let group = groups[key];
+                let fold = r.SNPs / r.expectedSNPs;
+
+                if (!group) {
+                    groups[key] = {
+                        minP: r.pValue,
+                        maxFold: fold,
+                    };
+                } else {
+                    group.minP = Math.min(group.minP, r.pValue);
+                    group.maxFold = Math.max(group.maxFold, fold);
+                }
+            }
+
+            return groups;
+        },
+
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
@@ -259,9 +282,11 @@ new Vue({
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement('phenotypeSearchHolder');
 
+            this.updateAssociationsPanel(phenotype.name);
+
             // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
-            this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name });
-            this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
+            this.$store.dispatch('globalEnrichment/query', { q: phenotype.name });
+            this.$store.dispatch('credibleSets/query', { q: `${ phenotype.name },${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
         },
 
         topAssociations(top) {
