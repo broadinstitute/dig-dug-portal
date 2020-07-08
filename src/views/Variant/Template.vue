@@ -54,14 +54,13 @@
             <div v-if="$parent.variantData">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">
-                            Variant Effect Predictions
-                            <documentation
-                                name="variant.effect.subheader"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
-                        </h4>
+                        <h4 class="card-title">Variant Effect Predictions</h4>
+                        <documentation
+                            name="variant.effect.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
 
+                        <h6 class="card-title">Most Severe Consequence</h6>
                         <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
                         <br />
                         <h6 class="card-title">Transcript Consequences</h6>
@@ -95,7 +94,7 @@
                 </div>
                 <!-- <div class="card mdkp-card">
                     <div class="card-body">
-                       
+
                     </div>
                 </div>-->
                 <div class="card mdkp-card">

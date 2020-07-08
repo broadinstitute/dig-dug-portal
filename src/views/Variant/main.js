@@ -57,9 +57,20 @@ new Vue({
 
     computed: {
         documentationMap() {
-            return {
-                variant: this.$store.state.variantID,
+            let map = {};
+
+            if (this.variantData) {
+                let varId = this.variantData.varId;
+                let dbSNP = this.variantData.dbSNP;
+
+                if (dbSNP) {
+                    map['variant'] = `${varId} / ${dbSNP}`
+                } else {
+                    map['variant'] = varId;
+                }
             }
+
+            return map;
         },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
