@@ -1,11 +1,11 @@
 <template>
     <div>
         <vue-typeahead-bootstrap
-            :v-model="this.userInput"
+            v-model="userInput"
             :data="lookupOptions"
-            ref="optionSelect"
-            placeholder="Type in a gene..."
-            @hit="onOptionSelected($event)"
+            :placeholder="placeholder"
+            @hit="onAutoCompleteItemSelected($event)"
+            @keyup.enter="onUserEnterNonAutoCompleteItem"
         >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
@@ -27,37 +27,47 @@ import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["userInput", "matchingOutput"],
+    props: ["matches", "placeholder"],
 
     data() {
         return {
-            // genes: [],
-            userText: this.userInput || null
+            userInput: null,
+            selectedItem: null
         };
     },
+
     computed: {
         lookupOptions() {
-            if (!this.matchingOutput) {
+            if (!this.matches) {
                 return [];
             }
-            return this.matchingOutput;
+            return this.matches;
         }
     },
 
     methods: {
-        //currently working only for gene
-        onOptionSelected(event) {
-            this.$store.dispatch("onGeneChange", event);
+        onAutoCompleteItemSelected(item) {
+            this.selectedItem = item;
+            this.userText = null;
 
-            if (this.clearOnSelected) {
-                this.userText = null;
-            }
+            this.$emit("item-select", item);
+        },
+
+        onUserEnterNonAutoCompleteItem() {
+            this.$emit("keyup-enter", this.userInput);
+        }
+    },
+
+    watch: {
+        userInput(text) {
+            this.$emit("input-change", text);
         }
     }
 });

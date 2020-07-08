@@ -49,8 +49,11 @@
                                                 </div>
                                                 <div v-else>
                                                     <autocomplete
-                                                        :userInput="$store.state.userInput"
-                                                        v-bind:matchingOutput="$parent.matchingGenes"
+                                                        :placeholder="'Gene symbol'"
+                                                        :matches="$parent.matchingGenes"
+                                                        @input-change="$store.dispatch('lookupGenes', $event)"
+                                                        @keyup-enter="$store.dispatch('exploreRegionOrVariant', $event)"
+                                                        @item-select="$store.dispatch('onGeneChange', $event)"
                                                     ></autocomplete>
                                                 </div>
                                             </div>

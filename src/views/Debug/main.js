@@ -74,13 +74,9 @@ new Vue({
         phenotypes() {
             return this.$store.state.bioPortal.phenotypes;
         },
-        userInput() {
-            return this.$store.state.userInput;
-        },
         matchingGenes() {
-            return this.$store.state.matchingGenes;;
+            return this.$store.state.matchingGenes;
         },
-
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -113,9 +109,5 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
             this.$store.dispatch("kp4cd/getDatasetsInfo", group.name);
         },
-        userInput(input) {
-            console.log("i am here");
-            this.$store.dispatch("lookupGenes", input);
-        }
     }
 }).$mount("#app");

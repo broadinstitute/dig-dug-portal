@@ -6,6 +6,7 @@ import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
 import variantUtils from "@/utils/variantUtils";
 import { postAlertError } from "@/components/Alert.vue";
+import { match } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -38,9 +39,9 @@ export default new Vuex.Store({
             window.location.href = "./phenotype.html?phenotype=" + phenotype.name;
         },
 
-        async exploreRegionOrVariant(context) {
-            let locus = await regionUtils.parseRegion(context.state.geneOrRegionOrVariant, true, 50000);
-            let varID = await variantUtils.parseVariant(context.state.geneOrRegionOrVariant);
+        async exploreRegionOrVariant(context, input) {
+            let locus = await regionUtils.parseRegion(input, true, 50000);
+            let varID = await variantUtils.parseVariant(input);
 
             if (locus) {
                 if (locus.gene) {
@@ -59,24 +60,12 @@ export default new Vuex.Store({
         },
 
         async lookupGenes(context, input) {
-
-            let qs = queryString.stringify(
-                { q: input, limit: 5 },
-                { skipNull: true }
-            );
-            // in practice this action should be debounced
-            let json = await fetch(`${BIO_INDEX_HOST}/api/bio/match/gene?${qs}`)
-                .then(response => {
-                    console.log("looking up genes ")
-                    return response.json();
-                });
-            context.commit('setMatchingGenes', json.data)
-
+            let matches = await match('gene', input, { limit: 10 })
+            context.commit('setMatchingGenes', matches);
         },
 
         //select gene on autocomplete.
         async onGeneChange(context, gene) {
-
             window.location.href = "./gene.html?gene=" + gene;
         },
     },
