@@ -2,11 +2,10 @@
     <div>
         <vue-typeahead-bootstrap
             v-model="userText"
-            :data="genes"
+            :data="lookupOptions"
             ref="optionSelect"
             placeholder="Type in a gene..."
             @hit="onOptionSelected($event)"
-            @input="lookupGene"
         >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
@@ -34,31 +33,24 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["userInput"],
+    props: ["userInput", "matchingOutput"],
 
     data() {
         return {
-            genes: [],
+            // genes: [],
             userText: this.userInput || null
         };
     },
+    computed: {
+        lookupOptions() {
+            if (!this.matchingOutput) {
+                return [];
+            }
+            return this.matchingOutput;
+        }
+    },
 
     methods: {
-        lookupGene: debounce(function() {
-            let qs = queryString.stringify(
-                { q: this.userText, limit: 5 },
-                { skipNull: true }
-            );
-            // in practice this action should be debounced
-            fetch(`${BIO_INDEX_HOST}/api/bio/match/gene?${qs}`)
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                    this.genes = data.data;
-                });
-        }, 500),
-
         //currently working only for gene
         onOptionSelected(event) {
             this.$store.dispatch("onGeneChange", event);

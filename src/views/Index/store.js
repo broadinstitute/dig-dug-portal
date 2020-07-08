@@ -19,6 +19,7 @@ export default new Vuex.Store({
         geneOrRegionOrVariant: null,
         invalidGeneOrRegionOrVariant: false,
         userInput: null,
+        matchingGenes: null
     },
     mutations: {
         setInvalidGeneOrRegionOrVariant(state, flag) {
@@ -27,8 +28,9 @@ export default new Vuex.Store({
         setExample(state, example) {
             state.geneOrRegionOrVariant = example;
         },
-        
-
+        setMatchingGenes(state, genes) {
+            state.matchingGenes = genes;
+        }
     },
 
     actions: {
@@ -56,9 +58,27 @@ export default new Vuex.Store({
 
         },
 
+        async lookupGenes(context, input) {
+
+            let qs = queryString.stringify(
+                { q: input, limit: 5 },
+                { skipNull: true }
+            );
+            // in practice this action should be debounced
+            let json = await fetch(`${BIO_INDEX_HOST}/api/bio/match/gene?${qs}`)
+                .then(response => {
+                    console.log("looking up genes ")
+                    return response.json();
+                });
+            context.commit('setMatchingGenes', json.data)
+
+        },
+
         //select gene on autocomplete.
         async onGeneChange(context, gene) {
+
             window.location.href = "./gene.html?gene=" + gene;
         },
-    }
+    },
+
 });
