@@ -10,6 +10,7 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker"
+
 import * as d3 from "d3";
 
 Vue.config.productionTip = false;
@@ -42,6 +43,17 @@ new Vue({
         return createElement(Template);
     },
     methods: {
+        tap(event) {
+            console.log(event)
+        },
+        requestCredibleSets(eventData) {
+            const { start, end } = eventData;
+            console.log(eventData)
+            if (!!start && !!end) {
+                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
+                this.$store.dispatch('credibleSets/query', { q: queryString });
+            }
+        },
         addAssociationsPanel(event) {
             this.$children[0].$refs.locuszoom.addAssociationsPanel('T2D')
         },

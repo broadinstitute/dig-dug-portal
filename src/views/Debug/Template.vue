@@ -51,7 +51,9 @@
             :chr="$store.state.chr"
             :start="$store.state.start"
             :end="$store.state.end"
-            :colorScheme="$parent.tissueColorScheme">
+            :colorScheme="$parent.tissueColorScheme"
+            @panelremoved="$parent.tap($event)"
+            @regionchanged="$parent.requestCredibleSets($event.data)">
         </locuszoom>
     </div>
 </template>

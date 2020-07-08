@@ -45,8 +45,8 @@ export default Vue.component("locuszoom", {
                 }
             }
         });
+
         this.locuszoom = LocusZoom.populate("#lz", this.dataSources, {
-            panels: [{ type: 'genes', for: 'genes', takes: 'genes'}],
             responsive_resize: "width_only",
             state: Object.assign({}, {
                 chr: this.chr,
@@ -54,7 +54,30 @@ export default Vue.component("locuszoom", {
                 end: this.end,
             })
         });
-        this.locuszoom.addPanel(LocusZoom.Layouts.get("panel", "genes"));
+
+        // adding default panel for gene reference track
+        this.locuszoom.addPanel(LocusZoom.Layouts.get("panel", "genes", {
+            y_index: 9001
+        }));
+
+        // event listeners
+        let self = this;
+
+        this.locuszoom.on('panel_removed', function(event) {
+            self.$emit('panelremoved', event);
+        })
+
+        // region change handler
+        this.locuszoom.on('state_changed', function(event) {
+            // TODO: doesn't pass out chromosome!
+            const { start, end } = event; // coordinates are in decimals
+            self.$emit('regionchanged', event);
+        })
+
+        // this shows what panels updated
+        // this.locuszoom.on('layout_changed', function() {
+        //  console.log('layout_changed', arguments)
+        // })
 
     },
     methods: {
@@ -95,28 +118,28 @@ export default Vue.component("locuszoom", {
         },
 
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into this function
-        addAssociationsPanel: function(phenotype, resolveHandler, errHandler, finishHandler) {
+        addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler) {
             this.addPanelAndDataSource(
                 new LZAssociationsPanel(
                     phenotype,
-                    { resolveHandler, errHandler, finishHandler }
+                    { finishHandler, resolveHandler, errHandler }
                 )
             );
         },
-        addAnnotationIntervalsPanel: function(annotation, method, resolveHandler, errHandler, finishHandler) {
+        addAnnotationIntervalsPanel: function(annotation, method, finishHandler, resolveHandler, errHandler) {
             this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
                     annotation, method,
-                    { resolveHandler, errHandler, finishHandler },
+                    { finishHandler, resolveHandler, errHandler },
                     this.colorScheme
                 )
             );
         },
-        addCredibleVariantsPanel: function(phenotype, credibleSetId, resolveHandler, errHandler, finishHandler) {
+        addCredibleVariantsPanel: function(phenotype, credibleSetId, finishHandler, resolveHandler, errHandler) {
             this.addPanelAndDataSource(
                 new LZCredibleVariantsPanel(
                     phenotype, credibleSetId,
-                    { resolveHandler, errHandler, finishHandler }
+                    { finishHandler, resolveHandler, errHandler }
                 )
             );
         },
