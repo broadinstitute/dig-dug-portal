@@ -43,6 +43,7 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
         data = json.data;
 
         if (!!resolveHandler) {
+            console.log(resolveHandler)
             resolveHandler(json);
         }
 

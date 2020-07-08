@@ -7,23 +7,14 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 
-import {
-    LZ_TYPE,
-    BASE_PANEL_OPTIONS,
-    PANEL_OPTIONS
-} from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
 import { LZBioIndexSource } from "@/utils/lz/lzBioIndexSource";
 
 import LZEvents, {
-    LZ_BROWSER_FORCE_REFRESH,
     LZ_ADD_PANEL,
     LZ_REMOVE_PANEL,
     LZ_LOAD_PANEL,
     LZ_CHILD_DESTROY_PANEL,
-    LZ_BIOINDEX_QUERY_RESOLVE,
-    LZ_BIOINDEX_QUERY_ERROR,
-    LZ_BIOINDEX_QUERY_FINISH,
 } from "@/components/lz/LocusZoomEvents"
 
 export default Vue.component('lz-associations-panel', {

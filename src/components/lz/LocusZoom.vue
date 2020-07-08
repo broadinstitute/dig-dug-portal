@@ -9,42 +9,31 @@
 import Vue from "vue";
 import LocusZoom from "locuszoom";
 
+import "locuszoom/dist/ext/lz-intervals-track.min.js";
+
 import {
     LZ_TYPE,
     BASE_PANEL_OPTIONS,
     PANEL_OPTIONS
 } from "@/utils/lz/lzConstants";
 import LZDataSources from "@/utils/lz/lzDataSources";
-import { LZBioIndexSource } from "@/utils/lz/lzBioIndexSource";
+import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel } from "@/utils/lz/lzPanels";
 import LZEvents, {
     LZ_ADD_PANEL,
     LZ_LOAD_PANEL,
 } from "@/components/lz/LocusZoomEvents"
-import * as _ from "lodash";
+
+import idCounter from "@/utils/idCounter"
 
 export default Vue.component("locuszoom", {
     props: [
         "chr",
         "start",
         "end",
+        "colorScheme",
     ],
-    data() {
-        return {
-            locuszoomMounted: false,
-        };
-    },
-    beforeCreate() {
-        // can't be data
-        this.panelList = [{ type: 'genes', for: 'genes', takes: 'genes'}];
-        this.dataSourceList = [];
-    },
-    created() {
-        LZEvents.$on(LZ_LOAD_PANEL, config => {
-            this.panelList.push(config.panel);
-            this.dataSourceList.push(config.source);
-        })
-    },
     mounted() {
+
         this.dataSources = new LocusZoom.DataSources();
         Object.values(LZ_TYPE).forEach(lzType => {
             if (!!this[lzType]) {
@@ -56,7 +45,6 @@ export default Vue.component("locuszoom", {
                 }
             }
         });
-
         this.locuszoom = LocusZoom.populate("#lz", this.dataSources, {
             panels: [{ type: 'genes', for: 'genes', takes: 'genes'}],
             responsive_resize: "width_only",
@@ -66,175 +54,73 @@ export default Vue.component("locuszoom", {
                 end: this.end,
             })
         });
-        LZEvents.$on(LZ_ADD_PANEL, this.addPanelAndDataSource);
-        this.locuszoomMounted = true
+        this.locuszoom.addPanel(LocusZoom.Layouts.get("panel", "genes"));
+
     },
     methods: {
-        addPanelAndDataSource: function(panelConfiguration) {
-            const { panel, source } = panelConfiguration;
-            this.dataSources.add(source.gives, source.reader);
-            const myPanel = LocusZoom.Layouts.get("panel", panel.type, {
-                // TODO: override/extend defaults here...
-                namespace: { [panel.for]: panel.takes },
+
+        addPanelAndDataSource: function(panelClass) {
+
+            // DataSources and Panels/Layouts are linked together via namespaces.
+            // A DataSource name is given to the panel, for a particular data type
+            // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
+            // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <panel.takingDataSourceName>
+
+            const { panel, source } = panelClass;
+            console.log(panel)
+            this.dataSources.add(source.givingDataSourceName, source.withDataSourceReader);
+
+            this.locuszoom.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, {
+                namespace: { [panel.forDataSourceType]: panel.takingDataSourceName },
                 id: panel.id,
-                ...BASE_PANEL_OPTIONS,
-                ...PANEL_OPTIONS[panel.type],
-            });
-            const newPanel = this.locuszoom.addPanel(myPanel);
-            newPanel.addBasicLoader();
-        },
-        addIntervalsPanel: function() {
-            console.log(LocusZoom)
-            const panel_identification = `intervals_${1}`;
-            const panel_source_namespace_symbol = `intervals_${1}_src`;
-            this.addPanelAndDataSource({
-                panel: {
-                    id: panel_identification,
-                    type: 'intervals',
-                    takes: panel_source_namespace_symbol,
-                    for: 'intervals',
-                },
-                source: {
-                    gives: panel_source_namespace_symbol,
-                    as: 'intervals',
-                    reader: new LZBioIndexSource({
-                        index: 'regions',
-                        queryStringMaker: (chr, start, end) => `${chr}:${start}-${end}`,
-                        translator: function(intervals) {
-                            // NOTE: Sometimes a track might not have defined data for a tissue on an interval, but was already created
-                            // In such a case the bioindex is not going to return any data for a given tissue leaving the access of that data by the track undefined
-                            // Since we don't want to destroy the track (what if there is more data just around the corner?) we return an empty array
-                            // this.annotationScoring[this.tissue][interval.annotation]['pValue'] < 0.01 && this.annotationScoring[this.tissue][interval.annotation]['beta'] > 1.0
-                            if (!!intervals) {
-                                const newIntervals = intervals
-                                    // .filter(interval => {
-                                    //     let k = `${interval.tissueId ||
-                                    //         "NA"}_${interval.method || "NA"}_${
-                                    //         interval.annotation
-                                    //     }`;
+                ...panel.locusZoomLayoutOptions,                // other locuszoom configuration required for the panel, including overrides(?)
+            })).addBasicLoader();
 
-                                    //     // TODO: Pick out of the filter only those predicates that matter to the object
-                                    //     let filterP =
-                                    //         !this.filter.pValue ||
-                                    //         this.$parent.scoring[k].minP <= this.filter.pValue;
-                                    //     let filterFold =
-                                    //         !this.filter.fold ||
-                                    //         this.$parent.scoring[k].maxFold >= this.filter.fold;
-                                    //     let filterMethod = this.method == interval.method;
+        },
 
-                                    //     return filterP && filterFold && filterMethod;
-                                    // })
-                                    .map(interval => {
-                                        // const color = this.colorScheme(interval.tissue);
-                                        return {
-                                            name: interval.tissue || interval.tissueId,
-                                            chr: interval.chromosome,
-                                            start: interval.start,
-                                            end: interval.end,
-                                            // TODO: state_id, state_name?
-                                            state_id: `${interval.annotation} ${interval.method}`,
-                                            state_name: `${interval.annotation} ${interval.method}`,
-                                            // color: color
-                                        };
-                                    });
-                                return newIntervals;
-                            } else {
-                                return [];
-                            }
-                        },
-                        resolveHandler: () => {},
-                        errHandler: () => {},
-                        finishHandler: () => {}
-                    }),
-                }
-            });
-        },
-        addCredibleVariantsPanel: function() {
-            const panel_identification = `assoc_${phenotype}`;
-            const panel_source_namespace_symbol = `assoc_${phenotype}_src`;
-            this.addPanelAndDataSource({
-                panel: {
-                    id: panel_identification,
-                    type: 'association',
-                    takes: panel_source_namespace_symbol,
-                    for: 'assoc',
-                },
-                source: {
-                    gives: panel_source_namespace_symbol,
-                    as: 'assoc',
-                    reader: new LZBioIndexSource({
-                        index: 'associations',
-                        queryStringMaker: (chr, start, end) => `${phenotype},${chr}:${start}-${end}`,
-                        translator: associations => {
-                            const translation = associations.map(association => ({
-                                id: association.varId,
-                                chr: association.chromosome,
-                                start: association.position,
-                                end: association.position,
-                                position: association.position,
-                                pvalue: association.pValue,
-                                log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
-                                variant: association.varId,
-                                ref_allele: association.varId,
-                            }));
-                            return translation
-                        },
-                        resolveHandler: () => {},
-                        errHandler: () => {},
-                        finishHandler: () => {}
-                    }),
-                }
-            });
-        },
-        addAssociationsPanel: function(phenotype) {
-            const panel_identification = `assoc_${phenotype}`;
-            const panel_source_namespace_symbol = `assoc_${phenotype}_src`;
-            this.addPanelAndDataSource({
-                panel: {
-                    id: panel_identification,
-                    type: 'association',
-                    takes: panel_source_namespace_symbol,
-                    for: 'assoc',
-                },
-                source: {
-                    gives: panel_source_namespace_symbol,
-                    as: 'assoc',
-                    reader: new LZBioIndexSource({
-                        index: 'associations',
-                        queryStringMaker: (chr, start, end) => `${phenotype},${chr}:${start}-${end}`,
-                        translator: associations => {
-                            const translation = associations.map(association => ({
-                                id: association.varId,
-                                chr: association.chromosome,
-                                start: association.position,
-                                end: association.position,
-                                position: association.position,
-                                pvalue: association.pValue,
-                                log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
-                                variant: association.varId,
-                                ref_allele: association.varId,
-                            }));
-                            return translation
-                        },
-                        resolveHandler: () => {},
-                        errHandler: () => {},
-                        finishHandler: () => {}
-                    }),
-                }
-            });
-        },
         addLZComponent: function(PanelComponentType, panelConfig) {
             if (this.lz != null) {
-                let LZPanelConstructor = Vue.extend(PanelComponentType);
-                let vueContainer = document.createElement('div');
 
+                let LZPanelConstructor = Vue.extend(PanelComponentType);
+
+                let vueContainer = document.createElement('div');
                 this.$el.appendChild(vueContainer)
 
                 const trackComponentInstance = new LZPanelConstructor({
-                    propsData: trackConfig.data
+                    propsData: trackConfig.data,
+                    parent: this,
                 }).$mount(vueContainer);
+
             }
         },
+
+        // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into this function
+        addAssociationsPanel: function(phenotype, resolveHandler, errHandler, finishHandler) {
+            this.addPanelAndDataSource(
+                new LZAssociationsPanel(
+                    phenotype,
+                    { resolveHandler, errHandler, finishHandler }
+                )
+            );
+        },
+        addAnnotationIntervalsPanel: function(annotation, method, resolveHandler, errHandler, finishHandler) {
+            this.addPanelAndDataSource(
+                new LZAnnotationIntervalsPanel(
+                    annotation, method,
+                    { resolveHandler, errHandler, finishHandler },
+                    this.colorScheme
+                )
+            );
+        },
+        addCredibleVariantsPanel: function(phenotype, credibleSetId, resolveHandler, errHandler, finishHandler) {
+            this.addPanelAndDataSource(
+                new LZCredibleVariantsPanel(
+                    phenotype, credibleSetId,
+                    { resolveHandler, errHandler, finishHandler }
+                )
+            );
+        },
+
     },
 });
 

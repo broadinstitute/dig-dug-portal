@@ -15,7 +15,6 @@ import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
-import EventBus from "@/utils/eventBus";
 
 import LunarisLink from "@/components/LunarisLink"
 
@@ -100,14 +99,14 @@ new Vue({
             // you can update the store here if you really need to. but you don't need to.
             // instead use a computed property with custom getters and setters plus v-model if at all possible.
             const { phenotype, credibleSetId } = credibleSet;
-            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true, {
+            this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, {
                 colorScheme: this.tissueColorScheme,
                 dataLoaded: event => console.log(event),
             });
         },
         addAnnotationTrack(enrichment) {
             const { annotation, method } = enrichment;
-            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
+            this.$children[0].$refs.igv.addAnnotationIntervalsPanel(annotation, method, {
                 colorScheme: this.tissueColorScheme,
                 dataLoaded: event => console.log(event),
             });
