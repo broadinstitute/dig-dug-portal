@@ -2,6 +2,21 @@ module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
+    chainWebpack: config => {
+      config.module
+      .rule('md')
+      .test(/bioIndexUtils.js$/)
+      .use("string-replace-loader")
+      .loader("string-replace-loader")
+      .options({
+              multiple: [{
+                  search: 'SERVER_IP_ADDRESS',
+                  replace:  (process.env.NODE_ENV !== 'production') ? '18.215.38.136' : '3.221.48.161',
+                  flags: 'ig'
+                }],
+       }, )
+      .end()
+    },
     configureWebpack: config => {
         if (process.env.NODE_ENV !== 'production') {
             config.devtool = 'inline-source-map';
