@@ -1,7 +1,7 @@
 <template>
     <div>
         <div id="lz"></div>
-        <slot></slot>
+        <slot v-if="locuszoommounted"></slot>
     </div>
 </template>
 
@@ -10,7 +10,7 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 
 import LZDataSources from "@/utils/lz/lzDataSources";
-import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel } from "@/utils/lz/lzPanels";
+import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 import "locuszoom/dist/ext/lz-intervals-track.min.js";
 import idCounter from "@/utils/idCounter"
 
@@ -44,7 +44,13 @@ export default Vue.component("locuszoom", {
         "start",
         "end",
         "colorScheme",
+        "refSeq",
     ],
+    data() {
+        return {
+            locuszoommounted: false,
+        }
+    },
     mounted() {
 
         this.dataSources = new LocusZoom.DataSources();
@@ -67,11 +73,14 @@ export default Vue.component("locuszoom", {
                 end: this.end,
             })
         });
+        this.locuszoommounted = true;
 
-        // adding default panel for gene reference track
-        this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
-            y_index: 9001
-        }));
+        if (this.refSeq) {
+            // adding default panel for gene reference track
+            this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
+                y_index: 9001
+            }));
+        }
 
         // event listeners
         let self = this;
@@ -91,6 +100,10 @@ export default Vue.component("locuszoom", {
         // this.plot.on('layout_changed', function() {
         //  console.log('layout_changed', arguments)
         // })
+
+        self.$on("LZ_ADD_PANEL", () => {
+            console.log('load panel')
+        });
 
     },
     methods: {
@@ -163,7 +176,16 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-
+        addPhewasPanel: function(varId, phenotypeMap, finishHandler, resolveHandler, errHandler) {
+            const panelId = this.addPanelAndDataSource(
+                new LZPhewasPanel(
+                    varId,
+                    phenotypeMap,
+                    { finishHandler, resolveHandler, errHandler }
+                )
+            );
+            return panelId;
+        }
     },
 });
 
