@@ -79,18 +79,7 @@
                     <div class="card-body">
                         <h4 class="card-title">PheWAS Visualization</h4>
 
-                        <locuszoom
-                            ref="locuszoom"
-                            :chr="$store.state.chr"
-                            :start="$store.state.start"
-                            :end="$store.state.end"
-                            :refSeq="false">
-                            <lz-phewas-panel
-                                :varId="$store.state.variantID"
-                                :phenotypeMap="$store.state.bioPortal.phenotypeMap">
-                            </lz-phewas-panel>
-                        </locuszoom>
-
+                        <locuszoom :panels="['phewas']" :phewas="$parent.lzAssociations"></locuszoom>
                         <h4 class="card-title">
                             <documentation
                                 name="variant.phewas.table.subheader"

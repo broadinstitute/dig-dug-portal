@@ -13,11 +13,7 @@ import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
 import RegionsTable from "@/components/RegionsTable.vue";
-
-import LocusZoom from "@/components/lz/LocusZoom";
-import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
-import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
-
+import LocusZoom from "@/components/LocusZoom";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -39,21 +35,12 @@ new Vue({
         TranscriptionFactorsTable,
         PheWASTable,
         RegionsTable,
-
-        LocusZoom,
-        LocusZoomAssociationsPanel,
-        LocusZoomPhewasPanel,
+        LocusZoom
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-    },
-
-    mounted() {
-        this.addPhewasPanel({
-            varId: this.$store.state.variantID,
-        });
     },
 
     render(createElement, context) {
@@ -65,14 +52,7 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert,
-        addPhewasPanel(event) {
-            if(!!this.$store.state.bioPortal.phenotypeMap) {
-                const { varId } = event;
-                const newPhewasPanelId = this.$children[0].$refs.locuszoom.addPhewasPanel(varId, this.$store.state.bioPortal.phenotypeMap);
-                return newPhewasPanelId;
-            }
-        },
+        closeAlert
     },
 
     computed: {

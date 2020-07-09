@@ -24,7 +24,6 @@ export default new Vuex.Store({
         regions: bioIndex("regions"),
         credibleSets: bioIndex("credible-sets"),
         globalEnrichment: bioIndex("global-enrichment"),
-        variant: bioIndex("variant"),
     },
     state: {
         // only used at the start
