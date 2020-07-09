@@ -6,12 +6,16 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component('lz-associations-panel', {
+export default Vue.component('lz-phewas-panel', {
 
     props: {
-        phenotype: {
+        varId: {
             type: String,
-            // required: true
+            required: true
+        },
+        phenotypeMap: {
+            type: Object,
+            required: true
         },
         finishHandler: {
             type: Function,
@@ -32,17 +36,13 @@ export default Vue.component('lz-associations-panel', {
         }
     },
     mounted() {
-        this.id = this.$parent.addAssociationsPanel(this.phenotype);
+        this.id = this.$parent.addPhewasPanel(this.varId, this.phenotypeMap);
     },
     destroy() {
         this.$parent.plot.removePanel(this.id);
     }
-
+    
 })
-
-const calcLog = function (values) {
-    return (-1) * Math.log10(values);
-};
 
 </script>
 
