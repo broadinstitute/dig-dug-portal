@@ -37,12 +37,7 @@ export default Vue.component('lz-associations-panel', {
     destroy() {
         this.$parent.plot.removePanel(this.id);
     }
-
 })
-
-const calcLog = function (values) {
-    return (-1) * Math.log10(values);
-};
 
 </script>
 

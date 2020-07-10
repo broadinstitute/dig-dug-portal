@@ -41,7 +41,6 @@ export default Vue.component('lz-phewas-panel', {
     destroy() {
         this.$parent.plot.removePanel(this.id);
     }
-    
 })
 
 </script>

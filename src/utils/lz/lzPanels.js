@@ -3,7 +3,12 @@ import LocusZoom from "locuszoom";
 import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
 import { rgb } from "d3";
-import * as _ from "lodash";
+
+import {
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }) {
@@ -39,7 +44,11 @@ export class LZAssociationsPanel {
             "id": this.panel_id,
             y_index: -9001,
         };
-        this.handlers = { finishHandler, resolveHandler, errHandler };
+        this.handlers = {
+            finishHandler,
+            resolveHandler,
+            errHandler
+        };
 
     }
 
@@ -332,38 +341,6 @@ export class LZPhewasPanel {
         }
     }
 }
-class LZBioIndexPanel {
-
-    get makeBioIndexToLZReader() {
-        return new _LZBioIndexSource({
-            index: this.index,
-            queryStringMaker: this.queryStringMaker,
-            translator: this.translator,
-            finishHandler: this.handlers.finishHandler,
-            resolveHandler: this.handlers.resolveHandler,
-            errHandler: this.handlers.errHandler,
-        });
-    }
-
-    get panel() {
-        return {
-            id: this.panel_id,
-            panelLayoutType: this.panel_layout_type,
-            takingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            forDataSourceType: this.datasource_type,
-            locusZoomLayoutOptions: this.locusZoomLayoutOptions,
-        }
-    }
-
-    get source() {
-        return {
-            isDataSourceType: this.datasource_type,
-            givingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            withDataSourceReader: this.bioIndexToLZReader,
-        }
-    }
-
-}
 
 
 const _LZBioIndexSource = LocusZoom.Data.Source.extend(function(init) {
@@ -384,10 +361,14 @@ _LZBioIndexSource.prototype.parseInit = function (params) {
 _LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;
     return new Promise((resolve, reject) => {
+        const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
         self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
             if (err) {
+                closeAlert(alertID);
+                postAlertError(err.detail);
                 reject(new Error(err));
             }
+            closeAlert(alertID);
             resolve(self.translator(data));
         });
     });
