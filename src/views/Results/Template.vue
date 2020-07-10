@@ -33,31 +33,34 @@
 
         <b-container>
             <b-row no-gutters>
-
                 <b-col cols="2">
+
                     <a  v-for="(queryHash, n) in $parent.queryHashes"
                         :key="`link-${queryHash}-${n}`"
                         :id="`link-${queryHash}-${n}`"
                         @click="$parent.jumpToElementBy(`#card-${queryHash}-${n}`)"
-                    >{{queryHash}} {{n}}<br></a>
-                </b-col>
+                    >
+                        {{queryHash}} {{n}}<br>
+                    </a>
 
+                </b-col>
                 <b-col class="reverseorder">
+
                     <!-- TODO: content addressing id vs timestamp id? right now list index serves role of relative timestamp. don't like that -->
                     <div class="card"
                         v-for="(queryHash, n) in $parent.queryHashes"
                         :key="`card-${queryHash}-${n}`"
-                        :id="`card-${queryHash}-${n}`">
+                        :id="`card-${queryHash}-${n}`"
+                    >
                         {{`card-${queryHash}-${n}`}}
-
                         <!-- TODO: v-if for different datatypes? -->
                         <regions-result-card
                             :title="`${queryHash}`"
                             :regions="$parent.dataCache[queryHash]"
                         ></regions-result-card>
                     </div>
-                </b-col>
 
+                </b-col>
             </b-row>
         </b-container>
 
