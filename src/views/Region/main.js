@@ -70,7 +70,6 @@ new Vue({
             // I keep on forgetting this 'q'
             this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
         });
-
     },
 
     render(createElement) {
@@ -184,7 +183,7 @@ new Vue({
             let assocMap = {};
 
             for (let i in data) {
-                let assoc = data[i];
+                const assoc = data[i];
 
                 // skip associations not part of the disease group
                 if (
@@ -193,7 +192,7 @@ new Vue({
                     continue;
                 }
 
-                let curAssoc = assocMap[assoc.phenotype];
+                const curAssoc = assocMap[assoc.phenotype];
                 if (!curAssoc || assoc.pValue < curAssoc.pValue) {
                     assocMap[assoc.phenotype] = assoc;
                 }
@@ -276,6 +275,7 @@ new Vue({
                     this.$store.commit("setSelectedPhenotype", phenotype);
                 }
             }
+            this.addPhewasPanel({ varId: "rs1260326" });
         },
 
         "$store.state.phenotype": function (phenotype) {

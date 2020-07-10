@@ -143,7 +143,8 @@
                         ref="locuszoom"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
-                        :end="$store.state.end">
+                        :end="$store.state.end"
+                        :refSeq="true">
                     </locuszoom>
 
                 </div>
