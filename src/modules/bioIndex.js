@@ -55,13 +55,13 @@ export default function (index, extend) {
             setProgress(state, progress) {
                 state.progress = progress;
             },
-            
+
         },
 
         // dispatch methods
         actions: {
             async tap(context, args) {
-                console.log(args);
+                console.log('tap', index, args);
             },
             async query(context, { q, limit }) {
                 let profile = {

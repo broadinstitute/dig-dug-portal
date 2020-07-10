@@ -161,6 +161,12 @@ module.exports = {
             title: "Epigenetic Datasets",
             chunks: ["chunk-vendors", "chunk-common", "epigeneticdatasets"]
         },
-
+        results: {
+            entry: "src/views/Results/main.js",
+            template: "public/index.html",
+            filename: "results.html",
+            title: "Results",
+            chunks: ["chunk-vendors", "chunk-common", "results"]
+        },
     }
 };
