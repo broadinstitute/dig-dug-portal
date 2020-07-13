@@ -24,7 +24,7 @@ module.exports = {
             .options({
                 multiple: [{
                     search: 'SERVER_IP_ADDRESS',
-                    replace: function () {
+                    replace(match, p1, offset, string) {
                         const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
                         const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
 
