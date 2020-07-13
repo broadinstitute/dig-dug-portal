@@ -47,7 +47,7 @@
                             <h4 class="card-title">Associations Plot</h4>
                             <manhattan-plot
                                 class="mb-3"
-                                :associations="$parent.associationsByPhenotype"
+                                :associations="$store.state.phenotypeAssociations"
                                 :colors="$parent.colors"
                             ></manhattan-plot>
                         </div>

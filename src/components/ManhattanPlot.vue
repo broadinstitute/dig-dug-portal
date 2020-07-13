@@ -58,6 +58,60 @@ export default Vue.component("manhattan-plot", {
             }
         });
     },
+    computed: {
+        // For the manhattan plot, the associations need to be in a map like
+        // so: { [phenotype]: [associations] }.
+        // associationsByPhenotype() {
+        //     let assocs = {};
+
+        //     if (this.colors !== undefined) {
+        //         Object.keys(this.colors).forEach(key => {
+        //             //console.log(key + "_beta");
+        //             //console.log("data", this.$store.state.tableData);
+
+        //             this.associations.forEach(item => {
+        //                 let check = key + "_pValue";
+
+        //                 if (item.hasOwnProperty(check)) {
+        //                     //assocs[key].push(item);
+        //                     let line = {
+        //                         pValue: item[check],
+        //                         chromosome: item.chromosome,
+        //                         position: item.position
+        //                     };
+        //                     if (!assocs[key]) {
+        //                         assocs[key] = [line];
+        //                     } else {
+        //                         assocs[key].push(line);
+        //                     }
+
+        //                     //console.log("yes");
+        //                 } else {
+        //                     console.log("no");
+        //                 }
+        //                 //console.log(typeof item);
+        //             });
+        //         });
+        //     }
+
+        //     return assocs;
+        // }
+        associationsByPhenotype() {
+            let assocs = {};
+
+            for (let i in this.associations) {
+                let r = this.associations[i];
+
+                if (!assocs[r.phenotype]) {
+                    assocs[r.phenotype] = [r];
+                } else {
+                    assocs[r.phenotype].push(r);
+                }
+            }
+
+            return assocs;
+        }
+    },
 
     methods: {
         associationsToUnload(assocs) {
@@ -69,35 +123,28 @@ export default Vue.component("manhattan-plot", {
     },
 
     watch: {
-        associations(data) {
+        associationsByPhenotype(data) {
             let columns = [];
             let xs = {};
-
             // data is in the format { [phenotype]: [associations] }
             for (let k in data) {
                 let v = data[k];
-
                 if (v.length == 0) {
                     continue;
                 }
-
                 xs[k] = `${k}_x`;
-
                 // calculate the x-position
                 columns.push([
                     `${k}_x`,
                     ...v.map(assoc => {
                         let chr = chromosomeStart[assoc.chromosome];
                         let pos = assoc.position;
-
                         return chr + pos;
                     })
                 ]);
-
                 // extract the p-values
                 columns.push([k, ...v.map(assoc => -Math.log10(assoc.pValue))]);
             }
-
             // update the chart
             this.chart.load({
                 xs,

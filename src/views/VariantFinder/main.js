@@ -68,43 +68,7 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
-        // For the manhattan plot, the associations need to be in a map like
-        // so: { [phenotype]: [associations] }.
-        associationsByPhenotype() {
-            let assocs = {};
 
-            if (this.colors !== undefined) {
-                Object.keys(this.colors).forEach(key => {
-                    //console.log(key + "_beta");
-                    //console.log("data", this.$store.state.tableData);
-
-                    this.$store.state.tableData.forEach(item => {
-                        let check = key + "_pValue";
-
-                        if (item.hasOwnProperty(check)) {
-                            //assocs[key].push(item);
-                            let line = {
-                                pValue: item[check],
-                                chromosome: item.chromosome,
-                                position: item.position
-                            };
-                            if (!assocs[key]) {
-                                assocs[key] = [line];
-                            } else {
-                                assocs[key].push(line);
-                            }
-
-                            //console.log("yes");
-                        } else {
-                            console.log("no");
-                        }
-                        //console.log(typeof item);
-                    });
-                });
-            }
-
-            return assocs;
-        },
         colors() {
             let colors = {};
             let phenotypes = this.$store.state.selectedPhenotypes;
