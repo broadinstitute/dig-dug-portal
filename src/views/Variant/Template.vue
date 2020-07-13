@@ -9,11 +9,13 @@
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">
                         Variant
+                        <tooltip-documentation name="variant.alleles.tooltip.hover" :isHover="true"></tooltip-documentation>
                         <a
                             class="edit-btn"
                             v-on:click="$parent.showHideElement('variantSearchHolder','variant_search_input')"
                         >Set variant</a>
                     </div>
+
                     <div class="col-md-12 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-5">
@@ -52,43 +54,16 @@
             <div v-if="$parent.variantData">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">
-                            Most Severe Consequence
-                            <tooltip-documentation
-                                name="variant.severe_consequence.tooltip.hover"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation>
-                        </h4>
-
-                        <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
-                    </div>
-                </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">PheWAS Associations</h4>
+                        <h4 class="card-title">Variant Effect Predictions</h4>
                         <documentation
-                            name="variant.phewas.subheader"
+                            name="variant.effect.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <locuszoom :panels="['phewas']" :phewas="$parent.lzAssociations"></locuszoom>
-                        <phewas-table
-                            :associations="$parent.variantData.associations"
-                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
-                        ></phewas-table>
-                    </div>
-                </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Transcript Consequences
-                            <tooltip-documentation
-                                name="variant.consequences.tooltip.hover"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation>
-                        </h4>
+                        <h6 class="card-title">Most Severe Consequence</h6>
+                        <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
+                        <br />
+                        <h6 class="card-title">Transcript Consequences</h6>
 
                         <div v-if="$parent.variantData.transcriptConsequences">
                             <transcript-consequence-table
@@ -100,6 +75,39 @@
                         </div>
                     </div>
                 </div>
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">PheWAS Visualization</h4>
+
+                        <locuszoom
+                            ref="locuszoom"
+                            :chr="$store.state.chr"
+                            :start="$store.state.start"
+                            :end="$store.state.end"
+                            :refSeq="false">
+                            <lz-phewas-panel
+                                :varId="$store.state.variantID"
+                                :phenotypeMap="$store.state.bioPortal.phenotypeMap">
+                            </lz-phewas-panel>
+                        </locuszoom>
+
+                        <h4 class="card-title">
+                            <documentation
+                                name="variant.phewas.table.subheader"
+                                :content-fill="$parent.documentationMap"
+                            ></documentation>
+                        </h4>
+                        <phewas-table
+                            :associations="$parent.variantData.associations"
+                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        ></phewas-table>
+                    </div>
+                </div>
+                <!-- <div class="card mdkp-card">
+                    <div class="card-body">
+
+                    </div>
+                </div>-->
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4

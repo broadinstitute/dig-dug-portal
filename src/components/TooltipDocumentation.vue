@@ -5,7 +5,6 @@
             v-if="this.isHover == false"
             :class="'help-content-caller no-icon-' + this.noIcon"
             v-on:click="showHideHelpContent(contentID)"
-            @mouseover="getToolTipPosition(contentID)"
         >
             <b-icon-plus-circle-fill></b-icon-plus-circle-fill>
         </span>

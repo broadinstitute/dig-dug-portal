@@ -1,13 +1,34 @@
+const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
+
+if (BIOINDEX_DEV) {
+    console.log('Using development BIOINDEX');
+}
+
 module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
+    },
+    chainWebpack: config => {
+        config.module
+            .rule('md')
+            .test(/bioIndexUtils.js$/)
+            .use("string-replace-loader")
+            .loader("string-replace-loader")
+            .options({
+                multiple: [{
+                    search: 'SERVER_IP_ADDRESS',
+                    replace: (BIOINDEX_DEV) ? '18.215.38.136' : '3.221.48.161',
+                    flags: 'ig'
+                }],
+            })
+            .end()
     },
     configureWebpack: config => {
         if (process.env.NODE_ENV !== "production") {
             config.devtool = "inline-source-map";
         }
     },
-    productionSourceMap: false,
+    productionSourceMap: true,
     pages: {
         index: {
             entry: "src/views/Index/main.js",

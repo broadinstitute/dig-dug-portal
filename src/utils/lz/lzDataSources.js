@@ -1,4 +1,18 @@
-import { LZ_TYPE, HUMAN_GENOME_BUILD_VERSION } from "@/utils/lz/lzConstants"
+/* Used by several of the default data sources.
+ */
+const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';
+
+/* The available data sources available to bind.
+ */
+export const LZ_TYPE = Object.freeze({
+    assoc: 'assoc',
+    gene: 'gene',
+    recomb: 'recomb',
+    ld: 'ld',
+    constraint: 'constraint',
+    intervals: 'intervals',
+    phewas: 'phewas',
+});
 
 export default {
     [LZ_TYPE.gene]: ["GeneLZ", {
