@@ -50,7 +50,8 @@ export default Vue.component("igv", {
         const options = {
             genome: "hg19",
             visibilityWindow: 1000,
-            showNavigation: false,
+            showNavigation: true,
+            showCursorTrackingGuide: true,
             locus: `chr${this.chr}:${this.start}-${this.end}`
         };
 
