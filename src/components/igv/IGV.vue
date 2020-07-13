@@ -51,6 +51,7 @@ export default Vue.component("igv", {
             genome: "hg19",
             visibilityWindow: 1000,
             showNavigation: false,
+            showCursorTrackingGuide: true,
             locus: `chr${this.chr}:${this.start}-${this.end}`
         };
 
