@@ -174,7 +174,7 @@ import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
 export default Vue.component("associations-table", {
-    props: { associations: Object, phenotypes: Object, hideFilters: Boolean },
+    props: { associations: Array, phenotypes: Array, hideFilters: Boolean },
     components: {
         Documentation,
         TooltipDocumentation
