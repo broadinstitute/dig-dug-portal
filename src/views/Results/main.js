@@ -39,13 +39,13 @@ new Vue({
             console.log('tap', arguments);
             return event;
         },
-        queryBioIndex() {
-            console.log('dispatching query', this.index, this.queryString);
+        queryBioIndexForResults(index, queryString) {
+            console.log('dispatching query', index, queryString);
 
             this.loading = true;
 
             const self = this;
-            const queryObj = { index: self.index, queryString: self.queryString };
+            const queryObj = { index: index, queryString: queryString };
             const queryHash = self.hashQuery(queryObj);
             console.log('queryHash', queryHash);
 
@@ -74,7 +74,11 @@ new Vue({
 
             // NOTE: Vue apparently likes even *fewer* characters than the HTML5 spec constrains. doesn't work with `.` nor `:`
             // using `_` to be consistent with HTML spec, AND what Vue can handle, for valid ids for elements (the default `,` breaks document selector behavior)
-            return [index, queryString].join('_')
+            // TODO: in thr case of locii, *for now*, we'll replace colon with a double underscore...
+            return [
+                index,
+                queryString.replace(':', '__')
+            ].join('_')
         },
         jumpToElementBy(elementSelector) {
             // https://stackoverflow.com/a/17938519/1991892

@@ -2,12 +2,13 @@
     <div>
         <result-card :title="title">
             <template #content>
+                <!-- TODO: For posterity: would be interesting for tables to have selectable rows to trigger side-effects (like modifying sidebar or prompting popups/navs) -->
                 <regions-table
                     :regions="regions"
                 ></regions-table>
             </template>
             <template #sidebar>
-                <p>Sidebar</p>
+                <regions-results-sidebar :regions="regions"></regions-results-sidebar>
             </template>
         </result-card>
     </div>
@@ -15,6 +16,7 @@
 <script>
 import Vue from "vue"
 import ResultCard from "./ResultCard"
+import RegionsResultsSidebar from "./RegionsResultSidebar"
 import RegionsTable from "@/components/RegionsTable"
 
 export default Vue.component('regions-result-card', {
@@ -22,6 +24,7 @@ export default Vue.component('regions-result-card', {
     components: {
         ResultCard,
         RegionsTable,
+        RegionsResultsSidebar,
     },
 })
 </script>

@@ -23,7 +23,7 @@
                 ></b-form-input>
 
                 <template v-slot:append>
-                    <b-button v-on:click="$parent.queryBioIndex" variant="outline-secondary">Run</b-button>
+                    <b-button v-on:click="$parent.queryBioIndexForResults($parent.index, $parent.queryString)" variant="outline-secondary">Run</b-button>
                 </template>
             </b-input-group>
         </div>
@@ -38,8 +38,7 @@
                     <a  v-for="(queryHash, n) in $parent.queryHashes"
                         :key="`link-${queryHash}-${n}`"
                         :id="`link-${queryHash}-${n}`"
-                        @click="$parent.jumpToElementBy(`#card-${queryHash}-${n}`)"
-                    >
+                        @click="$parent.jumpToElementBy(`#card-${queryHash}-${n}`)">
                         {{queryHash}} {{n}}<br>
                     </a>
 
@@ -50,14 +49,15 @@
                     <div class="card"
                         v-for="(queryHash, n) in $parent.queryHashes"
                         :key="`card-${queryHash}-${n}`"
-                        :id="`card-${queryHash}-${n}`"
-                    >
-                        {{`card-${queryHash}-${n}`}}
+                        :id="`card-${queryHash}-${n}`">
+
+
                         <!-- TODO: v-if for different datatypes? -->
                         <regions-result-card
                             :title="`${queryHash}`"
                             :regions="$parent.dataCache[queryHash]"
                         ></regions-result-card>
+
                     </div>
 
                 </b-col>
