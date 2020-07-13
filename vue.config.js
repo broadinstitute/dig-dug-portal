@@ -11,7 +11,7 @@ module.exports = {
 
         // add the transform rule for bioindex
         config.module.rules.push({
-            test: /bioIndexUtils.js$/,
+            test: /bioIndexUtils\.js$/,
             loader: 'string-replace-loader',
             options: {
                 search: 'SERVER_IP_ADDRESS',
