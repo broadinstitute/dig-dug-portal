@@ -1,14 +1,15 @@
-const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
-const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
-
-// output which bioindex is being used
-console.log(`Using ${BIOINDEX_DEV ? 'development' : 'production'} BIOINDEX (${BIOINDEX_HOST})`);
-
 module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
     chainWebpack: config => {
+        const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
+        const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
+
+        // output which bioindex is being used
+        console.log(`Using ${BIOINDEX_DEV ? 'development' : 'production'} BIOINDEX (${BIOINDEX_HOST})`);
+
+        // replace SERVER_IP_ADDRESS with the bioindex host to use
         config.module
             .rule('md')
             .test(/bioIndexUtils.js$/)
