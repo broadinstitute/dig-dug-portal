@@ -1,7 +1,8 @@
 const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
+const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
 
 // output which bioindex is being used
-console.log(`Using ${BIOINDEX_DEV ? 'development' : 'production'} BIOINDEX`);
+console.log(`Using ${BIOINDEX_DEV ? 'development' : 'production'} BIOINDEX (${BIOINDEX_HOST})`);
 
 module.exports = {
     devServer: {
@@ -16,7 +17,7 @@ module.exports = {
             .options({
                 multiple: [{
                     search: 'SERVER_IP_ADDRESS',
-                    replace: (BIOINDEX_DEV) ? '18.215.38.136' : '3.221.48.161',
+                    replace: BIOINDEX_HOST,
                     flags: 'ig'
                 }],
             })
