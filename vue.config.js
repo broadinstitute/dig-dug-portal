@@ -18,7 +18,10 @@ module.exports = {
             .options({
                 multiple: [{
                     search: 'SERVER_IP_ADDRESS',
-                    replace: BIOINDEX_HOST,
+                    replace: function () {
+                        console.log(`Replacing SERVER_IP_ADDRESS with: ${BIOINDEX_HOST}`);
+                        return BIOINDEX_HOST;
+                    },
                     flags: 'ig'
                 }],
             })
