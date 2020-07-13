@@ -1,13 +1,19 @@
+function getBioIndexHost() {
+    const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
+    const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
+
+    // output which bioindex is being used
+    console.log(`Using ${BIOINDEX_DEV ? 'development' : 'production'} BIOINDEX (${BIOINDEX_HOST})`);
+
+    return BIOINDEX_HOST;
+}
+
 module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
     chainWebpack: function (config) {
-        const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
-        const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
-
-        // output which bioindex is being used
-        console.log(`Using ${BIOINDEX_DEV ? 'development' : 'production'} BIOINDEX (${BIOINDEX_HOST})`);
+        getBioIndexHost();
 
         // replace SERVER_IP_ADDRESS with the bioindex host to use
         config.module
@@ -19,7 +25,9 @@ module.exports = {
                 multiple: [{
                     search: 'SERVER_IP_ADDRESS',
                     replace: function () {
-                        console.log(`Replacing SERVER_IP_ADDRESS with: ${BIOINDEX_HOST}`);
+                        const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
+                        const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
+
                         return BIOINDEX_HOST;
                     },
                     flags: 'ig'
