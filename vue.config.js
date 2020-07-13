@@ -1,8 +1,7 @@
 const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
 
-if (BIOINDEX_DEV) {
-    console.log('Using development BIOINDEX');
-}
+// output which bioindex is being used
+console.log(`Using ${BIOINDEX_DEV ? 'development' : 'production'} BIOINDEX`);
 
 module.exports = {
     devServer: {
