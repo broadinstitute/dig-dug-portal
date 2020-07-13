@@ -2,7 +2,7 @@ module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
-    chainWebpack: config => {
+    chainWebpack: function (config) {
         const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
         const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
 
