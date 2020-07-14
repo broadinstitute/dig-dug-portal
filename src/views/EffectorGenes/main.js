@@ -84,10 +84,11 @@ new Vue({
             return contents;
         },
         effectorGenesTable() {
-
             let contents = {
                 'richards': EffectorGenesRichards
             };
+
+            //contents = eval('EffectorGenes'+keyParams.dataset);
 
             return contents[keyParams.dataset];
         },

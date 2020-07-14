@@ -1,10 +1,9 @@
 <template>
     <div>
-        <div>
-            <effector-genes-graphs :v-if="!!graphData" :graphData="graphData"></effector-genes-graphs>
+        <div class="feature-scores-wrapper">
+            <effector-genes-graphs :graphData="graphData" graphType="line"></effector-genes-graphs>
         </div>
-        <h3>Richards EGL</h3>
-        <div>{{tableGeneData}}</div>
+        <div class="EGL-table-wrapper">{{tableGeneData}}</div>
     </div>
 </template>
 
@@ -25,9 +24,8 @@ export default Vue.component("effector-genes-richards", {
         tableGeneData() {
             return this.tableData;
         },
-        graphData() {
-            let content = this.tableData;
-            return content;
+        graphData: function() {
+            return this.tableData;
         }
     }
 });

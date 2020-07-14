@@ -12,11 +12,13 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-graphs", {
-    props: ["graphData"],
+    props: ["graphData", "graphType", "gene"],
     mounted: function() {},
     computed: {
         tableGraphData() {
-            return this.graphData;
+            if (!!this.graphData) {
+                return this.graphData.data;
+            }
         }
     }
 });
