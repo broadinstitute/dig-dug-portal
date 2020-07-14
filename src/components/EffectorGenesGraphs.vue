@@ -1,8 +1,5 @@
 <template>
-    <div>
-        <h3>EGL Graph</h3>
-        <div>{{tableGraphData}}</div>
-    </div>
+    <div class="feature-scores-wrapper">{{tableGraphData}}</div>
 </template>
 
 <script>
@@ -12,12 +9,18 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-graphs", {
-    props: ["graphData", "graphType", "gene"],
+    props: ["graphData", "graphType"],
     mounted: function() {},
     computed: {
         tableGraphData() {
             if (!!this.graphData) {
-                return this.graphData.data;
+                let features = {};
+
+                this.graphData.data.forEach(element => {
+                    features[element.gene] = element.features;
+                });
+
+                return features;
             }
         }
     }

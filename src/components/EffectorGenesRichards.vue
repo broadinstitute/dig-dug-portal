@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="feature-scores-wrapper">
+        <div>
             <effector-genes-graphs :graphData="graphData" graphType="line"></effector-genes-graphs>
         </div>
         <div class="EGL-table-wrapper">{{tableGeneData}}</div>
