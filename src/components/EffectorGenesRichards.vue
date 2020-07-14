@@ -1,19 +1,37 @@
 <template>
-    <div class="page-info-wrapper row" v-html="this.pageInfo[0].body[0].value"></div>
+    <div>
+        <div>
+            <effector-genes-graphs :v-if="!!graphData" :graphData="graphData"></effector-genes-graphs>
+        </div>
+        <h3>Richards EGL</h3>
+        <div>{{tableGeneData}}</div>
+    </div>
 </template>
 
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import EffectorGenesGraphs from "@/components/EffectorGenesGraphs.vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("static-page-info-section", {
-    props: ["pageInfo"],
-    mounted: function() {}
+export default Vue.component("effector-genes-richards", {
+    props: ["tableData"],
+    components: {
+        EffectorGenesGraphs
+    },
+    mounted: function() {},
+    computed: {
+        tableGeneData() {
+            return this.tableData;
+        },
+        graphData() {
+            let content = this.tableData;
+            return content;
+        }
+    }
 });
 </script>
 
 <style>
-@import url("/css/staticPages.css");
 </style>

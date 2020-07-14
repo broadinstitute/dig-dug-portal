@@ -9,6 +9,7 @@ Vue.config.productionTip = false;
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ResearchMethod from "@/components/ResearchMethod.vue";
+import EffectorGenesRichards from "@/components/EffectorGenesRichards.vue";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
 import Alert, {
@@ -20,12 +21,12 @@ import Alert, {
 
 new Vue({
     store,
-
     components: {
         PageHeader,
         PageFooter,
         Alert,
         ResearchMethod,
+        EffectorGenesRichards,
     },
 
     created() {
@@ -81,6 +82,14 @@ new Vue({
                 return null;
             }
             return contents;
+        },
+        effectorGenesTable() {
+
+            let contents = {
+                'richards': EffectorGenesRichards
+            };
+
+            return contents[keyParams.dataset];
         },
     },
 

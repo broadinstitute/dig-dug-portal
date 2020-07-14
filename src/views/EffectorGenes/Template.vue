@@ -19,9 +19,10 @@
                         <div class="col-md-12">
                             <b-tabs content-class="mt-3" align="center">
                                 <b-tab title="Explore genes" active>
-                                    <!--<component :is="$parent.tableComponent"></component>-->
-                                    <egl-table></egl-table>
-                                    {{$parent.effectorGenesData}}
+                                    <component
+                                        v-bind:is="$parent.effectorGenesTable"
+                                        :tableData="$parent.effectorGenesData"
+                                    ></component>
                                 </b-tab>
                                 <b-tab title="Research method">
                                     <research-method-section
