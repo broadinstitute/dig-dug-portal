@@ -108,6 +108,29 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <!-- <h4
+                        v-if="$store.state.phenotype"
+                        class="card-title"
+                    >Associations for {{$store.state.phenotype.description}}</h4>
+                    <documentation
+                        name="region.lz.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>-->
+
+                    <locuszoom
+                        ref="locuszoom"
+                        :chr="'1'"
+                        :start="'55505221'"
+                        :end="'55530525'"
+                        :refSeq="true"
+                    >
+                        <lz-associations-panel :phenotype="'T2D'"></lz-associations-panel>
+                    </locuszoom>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
                             UniProt cross-references

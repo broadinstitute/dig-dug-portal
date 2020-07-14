@@ -25,17 +25,29 @@ export default new Vuex.Store({
     },
     state: {
         geneName: keyParams.gene,
+        chromosome: ``,
+        start: ``,
+        end: ``,
     },
 
     mutations: {
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
-        
+
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
             state.geneRegion = `${chromosome}:${start}-${end}`;
+        },
+        setChromosome(state, chromosome) {
+            state.chromosome = chromosome;
+        },
+        setStart(state, start) {
+            state.start = start;
+        },
+        setEnd(state, end) {
+            state.end = end
         }
     },
 
@@ -78,7 +90,9 @@ export default new Vuex.Store({
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
             let q = `${chromosome}:${start}-${end}`;
-
+            context.commit('setChromosome', chromosome);
+            context.commit('setStart', start);
+            context.commit('setEnd', end);
             context.dispatch('genes/query', { q });
         },
 

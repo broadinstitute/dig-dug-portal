@@ -12,6 +12,9 @@ import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
+import LocusZoom from "@/components/lz/LocusZoom";
+
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
 
 import Alert, {
     postAlert,
@@ -34,6 +37,8 @@ new Vue({
         UniprotReferencesTable,
         Documentation,
         Autocomplete,
+        LocusZoom,
+        LocusZoomAssociationsPanel
     },
 
     data() {
@@ -68,7 +73,27 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+        // LocusZoom has "Panels"
+        addAssociationsPanel(event) {
+            const { phenotype } = event;
+            let self = this;
+            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
+                // this arg for dataLoaded callback, next arg for dataResolved callback, last arg for error callback
+                function (dataLoadedResponse) {
+                    self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
+                }
+            );
+            return newAssociationsPanelId;
+        },
+        // TODO: refactor to closure for extra programmer points
+        // TODO: does the idea of using components handle this problem?
+        updateAssociationsPanel(phenotype) {
+            if (this.currentAssociationsPanel) {
+                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
+            }
+            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
+        },
     },
 
     computed: {
@@ -149,6 +174,11 @@ new Vue({
         // the canonical symbol was found
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
-        }
+        },
+        "$store.state.phenotype": function (phenotype) {
+            // I don't like mixing UI effects with databinding - Ken
+            this.updateAssociationsPanel(phenotype.name);
+
+        },
     }
 }).$mount("#app");
