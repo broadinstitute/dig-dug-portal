@@ -24,7 +24,7 @@ export default {
             datasets: [],
             phenotypeMap: {},
             documentation: {},
-         
+
         }
     },
 
@@ -42,7 +42,7 @@ export default {
                 state.phenotypeMap[state.phenotypes[i].name] = state.phenotypes[i];
             }
         },
-    
+
 
         setDatasets(state, data) {
             state.datasets = data;

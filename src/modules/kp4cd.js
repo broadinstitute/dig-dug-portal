@@ -16,6 +16,7 @@ export default {
             pageInfo: [],
             newFeatures: [],
             resources: [],
+            researchMethod: [],
         };
     },
 
@@ -41,6 +42,9 @@ export default {
         },
         setResources(state, resources) {
             state.resources = resources;
+        },
+        setResearchMethod(state, researchMethod) {
+            state.researchMethod = researchMethod;
         },
     },
 
@@ -106,6 +110,13 @@ export default {
                 .then(resp => resp.json());
             // set the data
             context.commit('setResources', json)
+        },
+        async getResearchMethod(context, methodFrom) {
+
+            let json = await fetch('http://kp4cd.org/rest/views/eglmethod?from=' + methodFrom)
+                .then(resp => resp.json());
+            // set the data
+            context.commit('setResearchMethod', json)
         },
     },
 }

@@ -161,6 +161,13 @@ module.exports = {
             title: "Epigenetic Datasets",
             chunks: ["chunk-vendors", "chunk-common", "epigeneticdatasets"]
         },
+        effectorgenes: {
+            entry: "src/views/EffectorGenes/main.js",
+            template: "public/index.html",
+            filename: "effectorgenes.html",
+            title: "Predicted effector genes",
+            chunks: ["chunk-vendors", "chunk-common", "effectorgenes"]
+        },
 
     }
 };
