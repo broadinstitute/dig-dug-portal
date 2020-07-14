@@ -40,6 +40,20 @@ new Vue({
     render(createElement, context) {
         return createElement(Template);
     },
+    data() {
+        return {
+            select_pValue: "",
+            select_pValue_text: "",
+            select_consequence: [],
+            select_gene: [],
+            select_gene_text: "",
+            select_beta: "",
+            select_beta_options: [
+                { value: "p", text: "Positive" },
+                { value: "n", text: "Negative" }
+            ]
+        };
+    },
     methods: {
         ...uiUtils,
         postAlert,
@@ -78,6 +92,46 @@ new Vue({
             }
 
             return colors;
+        },
+        filteredData() {
+            let dataRows = this.$store.state.phenotypeAssociations;
+
+            let consequenceFiltered =
+                this.select_consequence.length > 0
+                    ? Filters.filterFormatted(
+                          dataRows,
+                          this.select_consequence,
+                          "consequence"
+                      )
+                    : dataRows;
+
+            let geneFiltered =
+                this.select_gene.length > 0
+                    ? Filters.filterTable(
+                          consequenceFiltered,
+                          this.select_gene,
+                          "gene"
+                      )
+                    : consequenceFiltered;
+
+            let pValueFiltered =
+                this.select_pValue != ""
+                    ? Filters.filterPValue(
+                          geneFiltered,
+                          this.select_pValue,
+                          "minP"
+                      )
+                    : geneFiltered;
+
+            let betaFiltered = this.select_beta
+                ? Filters.filterBeta(
+                      pValueFiltered,
+                      this.select_beta,
+                      `${this.phenotypes[0].name}_beta`
+                  )
+                : pValueFiltered;
+
+            return betaFiltered;
         }
     },
     watch: {
