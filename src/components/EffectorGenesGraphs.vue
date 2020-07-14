@@ -1,5 +1,5 @@
 <template>
-    <div class="feature-scores-wrapper">{{tableGraphData}}</div>
+    <div class="feature-scores-wrapper hidden">{{tableGraphData}}</div>
 </template>
 
 <script>
@@ -162,7 +162,7 @@ export default Vue.component("effector-genes-graphs", {
                 let features = {};
 
                 this.graphData.data.forEach(element => {
-                    features[element.gene] = element.features;
+                    features[element.gene] = element.features.predictor;
                 });
 
                 return features;
