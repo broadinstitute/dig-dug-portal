@@ -1,17 +1,18 @@
 <template>
-    <div>
-        <result-card :title="title">
-            <template #content>
-                <!-- TODO: For posterity: would be interesting for tables to have selectable rows to trigger side-effects (like modifying sidebar or prompting popups/navs) -->
-                <regions-table
-                    :regions="regions"
-                ></regions-table>
-            </template>
-            <template #sidebar>
-                <regions-results-sidebar :regions="regions"></regions-results-sidebar>
-            </template>
-        </result-card>
-    </div>
+    <result-card :title="title">
+        <template #content>
+            <!-- TODO: For posterity: would be interesting for tables to have selectable rows to trigger side-effects (like modifying sidebar or prompting popups/navs) -->
+            <regions-table
+                :regions="regions"
+            ></regions-table>
+        </template>
+        <template #sidebar>
+            <regions-results-sidebar
+                :regions="regions"
+                @pushQuery="$emit('pushQuery', $event)">
+            </regions-results-sidebar>
+        </template>
+    </result-card>
 </template>
 <script>
 import Vue from "vue"

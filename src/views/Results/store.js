@@ -28,6 +28,9 @@ export default new Vuex.Store({
 
     },
     actions: {
-    
+        // can you tell that i'm bitter
+        async globalFunction(context, preQuery) {
+            
+        }
     },
 });

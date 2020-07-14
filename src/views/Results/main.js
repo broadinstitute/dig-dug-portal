@@ -59,6 +59,7 @@ new Vue({
 
             } else {
                 console.log("didn't have to query, using cache");
+                // TODO: use jumpTo functionality here if we know that the data already exists?
                 // Hmm, intermix this with timestamps? get a cache hit, but for data at a different time -> use the cached data but identify it by timestamp
                 self.queries.push(queryObj);
                 self.loading = false;
@@ -91,6 +92,8 @@ new Vue({
         elClassFormatter(text) {
             return '.'+text;
         }
+    },
+    watch: {
     },
     render(createElement, context) {
         return createElement(Template);

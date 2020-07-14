@@ -31,7 +31,7 @@
         <p v-if="!$parent.loading">Not loading anything</p>
         <p v-if="$parent.loading">Loading stuff</p>
 
-        <b-container>
+        <b-container fluid>
             <b-row no-gutters>
                 <b-col cols="2">
 
@@ -56,6 +56,7 @@
                         <regions-result-card
                             :title="`${queryHash}`"
                             :regions="$parent.dataCache[queryHash]"
+                            @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
                         ></regions-result-card>
 
                     </div>
