@@ -1,5 +1,5 @@
 <template>
-    <div class="feature-scores-wrapper">{{tableGraphData}}</div>
+    <div class="feature-scores-wrapper hidden">{{tableGraphData}}</div>
 </template>
 
 <script>
