@@ -53,11 +53,26 @@
 
 
                         <!-- TODO: v-if for different datatypes? -->
-                        <regions-result-card
-                            :title="`${queryHash}`"
-                            :regions="$parent.dataCache[queryHash]"
-                            @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
-                        ></regions-result-card>
+                        <div v-if="$parent.bioIndexFromHash(queryHash) === 'regions'">
+                            <regions-result-card
+                                :title="`${queryHash}`"
+                                :regions="$parent.dataCache[queryHash]"
+                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
+                            ></regions-result-card>
+                        </div>
+
+                        <div v-else-if="$parent.bioIndexFromHash(queryHash) === 'top-associations'">
+                            <associations-result-card
+                                :title="`${queryHash}`"
+                                :associations="$parent.dataCache[queryHash]"
+                                :locus="$parent.locusFromHash(queryHash)"
+                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
+                            ></associations-result-card>
+                        </div>
+
+                        <div v-else>
+                            I'm a {{queryHash}} that's not yet supported
+                        </div>
 
                     </div>
 

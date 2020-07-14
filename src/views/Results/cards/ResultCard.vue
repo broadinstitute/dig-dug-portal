@@ -6,7 +6,9 @@
                 <slot name="content"></slot>
             </b-col>
             <b-col cols="3">
-                <slot name="sidebar"></slot>
+                <slot name="sidebar">
+                    TODO: Sidebar for card type compatible with {{ title }}
+                </slot>
             </b-col>
         </b-row>
     </div>

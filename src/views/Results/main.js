@@ -5,6 +5,7 @@ import store from "./store.js";
 import { query } from "@/utils/bioIndexUtils";
 
 import RegionsResultCard from "./cards/RegionsResultCard.vue"
+import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
 
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
@@ -14,7 +15,8 @@ Vue.use(BootstrapVue);
 new Vue({
     store,
     components: {
-        RegionsResultCard
+        RegionsResultCard,
+        AssociationsResultCard,
     },
     data() {
         return {
@@ -38,6 +40,15 @@ new Vue({
         tap() {
             console.log('tap', arguments);
             return event;
+        },
+        bioIndexFromHash(queryHash) {
+            // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+            return queryHash.split('__')[0]
+        },
+        locusFromHash(queryHash) {
+            // NB: doesn't check if the hash actually contains a locus
+            // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+            return queryHash.split('__')[1].replace("_",":")
         },
         queryBioIndexForResults(index, queryString) {
             console.log('dispatching query', index, queryString);
@@ -75,11 +86,11 @@ new Vue({
 
             // NOTE: Vue apparently likes even *fewer* characters than the HTML5 spec constrains. doesn't work with `.` nor `:`
             // using `_` to be consistent with HTML spec, AND what Vue can handle, for valid ids for elements (the default `,` breaks document selector behavior)
-            // TODO: in thr case of locii, *for now*, we'll replace colon with a double underscore...
+            // TODO: in thr case of locii, *for now*, we'll replace colon with an underscore...
             return [
                 index,
-                queryString.replace(':', '__')
-            ].join('_')
+                queryString.replace(':', '_')
+            ].join('__')  // double underscore since single underscore is now reserved
         },
         jumpToElementBy(elementSelector) {
             // https://stackoverflow.com/a/17938519/1991892
