@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <effector-genes-graphs :graphData="graphData" graphType="line"></effector-genes-graphs>
+            <effector-genes-graph-richards :graphData="graphData" graphType="line"></effector-genes-graph-richards>
         </div>
         <div class="EGL-table-wrapper">{{tableGeneData}}</div>
     </div>
@@ -10,14 +10,14 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import EffectorGenesGraphs from "@/components/EffectorGenesGraphs.vue";
+import EffectorGenesGraphRichards from "@/components/EffectorGenesGraphRichards.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-richards", {
     props: ["tableData"],
     components: {
-        EffectorGenesGraphs
+        EffectorGenesGraphRichards
     },
     mounted: function() {},
     computed: {
