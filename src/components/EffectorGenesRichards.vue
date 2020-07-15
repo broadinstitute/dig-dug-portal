@@ -19,12 +19,12 @@ export default Vue.component("effector-genes-richards", {
     components: {
         EffectorGenesGraphs
     },
-    mounted: function() {},
+    mounted() {},
     computed: {
         tableGeneData() {
             return this.tableData;
         },
-        graphData: function() {
+        graphData() {
             return this.tableData;
         }
     }
