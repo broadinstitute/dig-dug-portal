@@ -51,3 +51,6 @@
 .text.color-13 { color: #6FC7B6; }
 .text.color-14 { color: #D5A768; }
 .text.color-15 { color: #D4D4D4; }
+
+.effect.positive { color: #048845; }
+.effect.negative { color: #EE3124; }
