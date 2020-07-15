@@ -1036,6 +1036,8 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
 
 /* IGV */
 .igv-zooms-wrapper {
+    position: relative;
+    z-index: 1000000;
     float: right;
     margin-right: 50px;
     margin-bottom: 8px;
