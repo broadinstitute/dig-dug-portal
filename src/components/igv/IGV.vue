@@ -137,11 +137,11 @@ export default Vue.component("igv", {
         },
 
         zoomIn() {
-            return browser.zoomIn();
+            return this.igvBrowser.zoomIn();
         },
 
         zoomOut() {
-            return browser.zoomOut();
+            return this.igvBrowser.zoomOut();
         },
 
         updateViews() {
