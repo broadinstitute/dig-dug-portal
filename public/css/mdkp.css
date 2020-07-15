@@ -1036,13 +1036,15 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
 
 /* IGV */
 .igv-zooms-wrapper {
+    position: relative;
+    z-index: 1000000;
     float: right;
     margin-right: 50px;
     margin-bottom: 8px;
-    font-size: 14px;
+    font-size: 12px;
 }
 .igv-zoom {
-    width: 28px;
+    width: auto;
     height: 28px;
     background-color: #30b7f6;
     border: solid 1px #0087d6;

@@ -1,12 +1,11 @@
 <template>
     <div>
-        <!--
         <div class="igv-zooms-wrapper">
             Zoom:
-            <button style="z-index:10000" @click="zoomIn" class="igv-zoom">+</button>&nbsp;
-            <button style="z-index:10000" @click="zoomOut" class="igv-zoom">—</button>
+            <button @click="zoomIn" class="igv-zoom">+50kb</button>&nbsp;
+            <button @click="zoomOut" class="igv-zoom">—50kb</button>
         </div>
-        -->
+
         <div id="igv-div"></div>
         <slot v-if="igvBrowser" />
     </div>
@@ -20,7 +19,7 @@ import IGVEvents, {
     IGV_ADD_TRACK,
     IGV_REMOVE_TRACK,
     IGV_CHILD_DESTROY_TRACK,
-    IGV_LOCUSCHANGE,
+    IGV_LOCUSCHANGE
 } from "@/components/igv/IGVEvents";
 
 import IGVAssociationsTrack from "@/components/igv/tracks/IGVAssociationsTrack";
@@ -37,12 +36,12 @@ export default Vue.component("igv", {
         // filters
         "p-value",
         "fold",
-        "scoring",
+        "scoring"
     ],
 
     data() {
         return {
-            igvBrowser: null,
+            igvBrowser: null
         };
     },
 
@@ -67,8 +66,8 @@ export default Vue.component("igv", {
         filter() {
             return {
                 pValue: this.pValue,
-                fold: this.fold,
-            }
+                fold: this.fold
+            };
         }
     },
 
@@ -107,7 +106,7 @@ export default Vue.component("igv", {
                 const trackComponentInstance = new IGVTrackConstructor({
                     propsData: trackConfig,
                     parent: this // important! creating new instances doesn't give you the parent by default
-                })
+                });
 
                 let vueContainer = document.createElement("div");
                 this.$el.appendChild(vueContainer);
@@ -116,20 +115,25 @@ export default Vue.component("igv", {
             }
         },
 
-        addCredibleVariantsTrack(phenotype, credibleSetId, posteriorProbability, options = {}) {
+        addCredibleVariantsTrack(
+            phenotype,
+            credibleSetId,
+            posteriorProbability,
+            options = {}
+        ) {
             this.addIGVTrack(IGVCredibleVariantsTrack, {
                 phenotype: phenotype,
                 credibleSetId: credibleSetId,
-                posteriorProbability: posteriorProbability,
-            })
+                posteriorProbability: posteriorProbability
+            });
         },
 
         addIntervalsTrack(annotation, annotationMethod, options = {}) {
             this.addIGVTrack(IGVIntervalTrack, {
                 annotations: [annotation],
                 method: annotationMethod,
-                ...options,
-            })
+                ...options
+            });
         },
 
         zoomIn() {
@@ -153,7 +157,7 @@ export default Vue.component("igv", {
     watch: {
         filter() {
             this.updateViews();
-        },
+        }
     }
 });
 </script>
