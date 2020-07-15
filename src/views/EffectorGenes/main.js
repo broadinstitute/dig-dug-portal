@@ -10,6 +10,8 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ResearchMethod from "@/components/ResearchMethod.vue";
 import EffectorGenesRichards from "@/components/EffectorGenesRichards.vue";
+import EffectorGenesManning from "@/components/EffectorGenesManning.vue";
+import EffectorGenesMccarthy from "@/components/EffectorGenesMccarthy.vue";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
 import Alert, {
@@ -27,6 +29,7 @@ new Vue({
         Alert,
         ResearchMethod,
         EffectorGenesRichards,
+        EffectorGenesManning,
     },
 
     created() {
@@ -85,11 +88,15 @@ new Vue({
         },
         effectorGenesTable() {
             let contents = {
-                'richards': EffectorGenesRichards
+                'richards': EffectorGenesRichards,
+                "manning": EffectorGenesManning,
+                "mccarthy": EffectorGenesMccarthy,
             };
 
-            //contents = eval('EffectorGenes'+keyParams.dataset);
+            //let datasetName = 'EffectorGenes' + keyParams.dataset[0].toUpperCase() + keyParams.dataset.substr(1);
+            //contents = eval(datasetName);
 
+            //return contents;
             return contents[keyParams.dataset];
         },
     },
