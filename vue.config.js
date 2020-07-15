@@ -3,6 +3,24 @@ module.exports = {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
     configureWebpack: config => {
+        let bioindex_dev = process.env.BIOINDEX_DEV;
+        let bioindex_host = !!bioindex_dev ? '18.215.38.136' : '3.221.48.161';
+
+        // output which bioindex is being used
+        console.log(`BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`);
+
+        // add the transform rule for bioindex
+        config.module.rules.push({
+            test: /bioIndexUtils\.js$/,
+            loader: 'string-replace-loader',
+            options: {
+                search: 'SERVER_IP_ADDRESS',
+                replace: bioindex_host,
+                flags: 'g',
+            },
+        });
+
+        // create inline maps for dev builds
         if (process.env.NODE_ENV !== 'production') {
             config.devtool = 'inline-source-map';
         }

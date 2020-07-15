@@ -6,7 +6,7 @@
 import querystring from "query-string";
 
 // Constants
-export const BIO_INDEX_HOST = "http://18.215.38.136:5000";
+export const BIO_INDEX_HOST = "http://SERVER_IP_ADDRESS:5000";
 
 /* Perform a BioIndex query.
  */
@@ -23,7 +23,7 @@ export async function query(index, q, { limit, resolveHandler, errHandler, finis
 
 /* Perform a BioIndex match.
  */
-export async function match(index, q, { limit, resolveHandler, errHandler, finishHandler }) {
+export async function match(index, q, { limit, finishHandler, resolveHandler, errHandler  }) {
     let qs = querystring.stringify({ q, limit }, { skipNull: true });
     let req = fetch(`${BIO_INDEX_HOST}/api/bio/match/${index}?${qs}`);
 

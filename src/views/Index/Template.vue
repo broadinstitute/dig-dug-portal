@@ -27,15 +27,13 @@
                                     <b-tab title="Gene, regions or variants" active>
                                         <div class="front-gene-search-wrapper">
                                             <div class="col-md-12 input-wrapper">
-                                                <input
-                                                    v-model="$store.state.geneOrRegionOrVariant"
-                                                    type="text"
-                                                    class="form-control input-default"
-                                                    placeholder="Gene, region, or variant"
-                                                    style="display:inline-block"
-                                                    autocomplete="off"
-                                                    @change="$store.dispatch('exploreRegionOrVariant')"
-                                                />
+                                                <autocomplete
+                                                    :placeholder="'Gene symbol'"
+                                                    :matches="$parent.matchingGenes"
+                                                    @input-change="$store.dispatch('lookupGenes', $event)"
+                                                    @keyup-enter="$store.dispatch('exploreRegionOrVariant', $event)"
+                                                    @item-select="$store.dispatch('onGeneChange', $event)"
+                                                ></autocomplete>
                                             </div>
                                             <div class="region-search-examples">
                                                 <documentation

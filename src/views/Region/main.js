@@ -5,7 +5,6 @@ import store from "./store.js";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import LocusZoom from "@/components/LocusZoom";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
@@ -13,9 +12,10 @@ import Documentation from "@/components/Documentation";
 import IGV from "@/components/igv/IGV.vue"
 import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
+import LocusZoom from "@/components/lz/LocusZoom";
+
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
-import EventBus from "@/utils/eventBus";
 
 import LunarisLink from "@/components/LunarisLink"
 
@@ -31,7 +31,6 @@ import Alert, {
 
 import Formatters from "@/utils/formatters"
 import * as d3 from "d3";
-
 
 Vue.config.productionTip = false;
 Vue.component('b-button', BButton)
@@ -84,6 +83,9 @@ new Vue({
             // page controls
             pValue: null,
             fold: null,
+
+            currentAssociationsPanel: null
+
         };
     },
 
@@ -93,15 +95,34 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        tap(event) {
-            console.log(event)
+
+        // LocusZoom has "Panels"
+        addAssociationsPanel(event) {
+            const { phenotype } = event;
+            let self = this;
+            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
+                // this arg for dataLoaded callback, next arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
+                }
+            );
+            return newAssociationsPanelId;
         },
+        // TODO: refactor to closure for extra programmer points
+        // TODO: does the idea of using components handle this problem?
+        updateAssociationsPanel(phenotype) {
+            if (this.currentAssociationsPanel) {
+                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
+            }
+            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
+        },
+
+        // IGV has "Tracks"
         addCredibleVariantTrack(credibleSet) {
             // you can update the store here if you really need to. but you don't need to.
             // instead use a computed property with custom getters and setters plus v-model if at all possible.
             const { phenotype, credibleSetId } = credibleSet;
             this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true, {
-                colorScheme: this.tissueColorScheme,
                 dataLoaded: event => console.log(event),
             });
         },
@@ -155,6 +176,51 @@ new Vue({
             return Formatters.locusFormatter(chr, start, end);
         },
 
+        // Give the top associations, find the best one across all unique
+        // phenotypes available.
+        topAssociations() {
+            let data = this.$store.state.topAssociations.data;
+            let assocMap = {};
+
+            for (let i in data) {
+                const assoc = data[i];
+
+                // skip associations not part of the disease group
+                if (
+                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
+                ) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+            // region loaded, hide search
+            uiUtils.hideElement("regionSearchHolder");
+            // convert to an array, sorted by p-value
+            return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+        },
+
+        // the associations in LZ format
+        lzAssociations() {
+            let data = this.$store.state.associations.data;
+            let threshold = 1000 / data.length;
+            let assocs = this.$store.state.associations.data
+                .filter(v => v.pValue < 1e-5 || Math.random() < threshold)
+                .map(v => {
+                    return {
+                        id: v.varId,
+                        variant: v.varId,
+                        position: v.position,
+                        log_pvalue: -Math.log10(v.pValue),
+                        ref_allele: v.reference
+                    };
+                });
+            return assocs;
+        },
+
         globalEnrichmentAnnotations() {
             // an array of annotations
             return _.uniqBy(this.$store.state.globalEnrichment.data, el => JSON.stringify([el.annotation, !!el.method ? el.method : ''].join()));
@@ -196,50 +262,6 @@ new Vue({
             return groups;
         },
 
-        // Give the top associations, find the best one across all unique
-        // phenotypes available.
-        topAssociations() {
-            let data = this.$store.state.topAssociations.data;
-            let assocMap = {};
-
-            for (let i in data) {
-                let assoc = data[i];
-
-                // skip associations not part of the disease group
-                if (
-                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
-                ) {
-                    continue;
-                }
-
-                let curAssoc = assocMap[assoc.phenotype];
-                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
-                    assocMap[assoc.phenotype] = assoc;
-                }
-            }
-            // region loaded, hide search
-            uiUtils.hideElement("regionSearchHolder");
-            // convert to an array, sorted by p-value
-            return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
-        },
-
-        // the associations in LZ format
-        lzAssociations() {
-            let data = this.$store.state.associations.data;
-            let threshold = 1000 / data.length;
-            let assocs = this.$store.state.associations.data
-                .filter(v => v.pValue < 1e-5 || Math.random() < threshold)
-                .map(v => {
-                    return {
-                        id: v.varId,
-                        variant: v.varId,
-                        position: v.position,
-                        log_pvalue: -Math.log10(v.pValue),
-                        ref_allele: v.reference
-                    };
-                });
-            return assocs;
-        },
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
@@ -253,15 +275,18 @@ new Vue({
                     this.$store.commit("setSelectedPhenotype", phenotype);
                 }
             }
+            this.addPhewasPanel({ varId: "rs1260326" });
         },
 
         "$store.state.phenotype": function (phenotype) {
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement('phenotypeSearchHolder');
 
+            this.updateAssociationsPanel(phenotype.name);
+
             // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
-            this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name });
-            this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
+            this.$store.dispatch('globalEnrichment/query', { q: phenotype.name });
+            this.$store.dispatch('credibleSets/query', { q: `${ phenotype.name },${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
         },
 
         topAssociations(top) {

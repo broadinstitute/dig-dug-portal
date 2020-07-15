@@ -50,7 +50,6 @@ export const associationsForLZ = associations => {
         // trait_label: association.phenotype.description,
     }));
     return translation
-
 };
 // IGV Datamapping
 // name these like xForY -> xForIGV

@@ -47,11 +47,11 @@ let showHideHelpContent = function (ELEMENT) {
     } else {
         element.classList.add('hidden');
     }
-
+    getToolTipPosition(ELEMENT);
 };
 
 let getToolTipPosition = function (ELEMENT) {
-    //let element = document.getElementById(ELEMENT);
+
     let caller = document.getElementsByClassName(ELEMENT)[0];
     let viewer = document.getElementById(ELEMENT);
     let intViewportWidth = window.innerWidth;
@@ -59,11 +59,15 @@ let getToolTipPosition = function (ELEMENT) {
 
     let location = getOffset(caller);
 
-    let elementLeft = (location.left > (intViewportWidth - elementWidth)) ? -elementWidth : 10;
+    let elementLeft = (location.left > (intViewportWidth - elementWidth)) ? -elementWidth + 'px' : '1.0em';
 
-    viewer.style.setProperty('left', elementLeft + 'px');
-
-    console.log(ELEMENT + " : " + location.left);
+    viewer.style.setProperty('left', elementLeft);
+    /*
+        console.log(ELEMENT);
+        console.log(" intViewportWidth: " + intViewportWidth);
+        console.log(" elementWidth: " + elementWidth);
+        console.log(" locatin.left: " + location.left);
+        */
 }
 
 
