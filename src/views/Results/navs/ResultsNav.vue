@@ -22,10 +22,10 @@
                         <input v-for="bioIndexQueryKey in bioIndexSchema.query.keys"
                             :key="bioIndexQueryKey"
                             :placeholder="bioIndexSchema.query.keys"
-                            @input="$data[[bioIndexSchema.index,bioIndexQueryKey,i].join('-')]=$event"
+                            v-model="$data[[bioIndexSchema.index,bioIndexQueryKey,i].join('-')]"
                             :disabled="queryKey === bioIndexQueryKey"/>
                         <input  v-if="bioIndexSchema.query.locus"
-                                @input="$data[[bioIndexSchema.index,'locus',i].join('-')]=$event"
+                                v-model="$data[[bioIndexSchema.index,'locus',i].join('-')]"
                                 disabled/>
                     </div>
                 </div>
@@ -91,8 +91,8 @@ export default Vue.component("results-nav", {
     background-color: #000000;
     color:#fff;
     font-size: 14px;
-    top: -14px;
-    left: 10%;
+    top: -100%;
+    /* left: 100%; */
     font-weight: 400;
     padding: 10px;
     border-radius: 5px;
