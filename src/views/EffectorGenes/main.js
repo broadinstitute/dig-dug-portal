@@ -34,6 +34,9 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
+        this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait);
+        this.$store.dispatch("effectorGenes/getEffectorGenes", { "trait": keyParams.trait, "dataset": keyParams.dataset });
     },
 
     render(createElement, context) {
@@ -104,9 +107,7 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
-            this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait);
-            this.$store.dispatch("effectorGenes/getEffectorGenes", { "trait": keyParams.trait, "dataset": keyParams.dataset });
+
         },
 
     }
