@@ -31,11 +31,19 @@ export default Vue.component('lz-associations-panel', {
             id: null,
         }
     },
+    // TODO: destroying needs to attach a new Vue component to the LocusZoom, need to get that to work
     mounted() {
         this.id = this.$parent.addAssociationsPanel(this.phenotype);
     },
-    destroy() {
+    beforeDestroy() {
         this.$parent.plot.removePanel(this.id);
+    },
+    watch: {
+        phenotype(newPhenotype) {
+            this.$parent.addAssociationsPanel(newPhenotype);
+            this.$parent.plot.removePanel(this.id);
+            this.$destroy();
+        }
     }
 })
 

@@ -13,6 +13,7 @@ import IGV from "@/components/igv/IGV.vue"
 import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
 import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
@@ -45,6 +46,7 @@ new Vue({
         LunarisLink,
 
         LocusZoom,
+        LocusZoomAssociationsPanel,
         AssociationsTable,
         PhenotypeSignalMixed,
 

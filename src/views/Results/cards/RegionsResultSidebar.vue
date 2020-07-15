@@ -18,13 +18,16 @@
          -->
 
         <div class="results-nav-container">
+            <!-- Region Navs -->
             <results-nav v-for="(regionData, i) in regions"
                         :key="locusFrom(regionData)+i"
                         :queryKey="'regions'"
-                        :showCompoundIndexes="false"
+                        :showCompoundIndexes="true"
                         :inputValue="locusFrom(regionData)"
                         @pushQuery="$emit('pushQuery', $event)">
             </results-nav>
+            <!-- TODO: Annotation-Method Navs -->
+            <!-- TODO: Tissue Navs? -->
         </div>
     </div>
 

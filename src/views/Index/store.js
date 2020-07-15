@@ -40,7 +40,7 @@ export default new Vuex.Store({
         },
 
         async exploreRegionOrVariant(context, input) {
-            let locus = await regionUtils.parseRegion(input, true, 50000);
+            let locus = await regionUtils.parseRegionAsync(input, true, 50000);
             let varID = await variantUtils.parseVariant(input);
 
             if (locus) {

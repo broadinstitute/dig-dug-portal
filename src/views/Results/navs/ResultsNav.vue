@@ -11,18 +11,22 @@
                     </a>
                 </div>
                 <div v-if="showCompoundIndexes">
-                    <div v-for="bioIndexSchema in compoundIndexes" :key="bioIndexSchema.index">
-                        <a @click="dispatchToIndex(bioIndexSchema.index, inputValue, true)">
+                    <div v-for="(bioIndexSchema, i) in compoundIndexes" :key="bioIndexSchema.index">
+                        <a @click="dispatchToIndex(bioIndexSchema.index, makeCompoundInputValue(bioIndexSchema, i), true)">
                             {{ bioIndexSchema.index }}
-                            <input v-for="bioIndexQueryKey in bioIndexSchema.query.keys"
-                                :key="bioIndexQueryKey"
-                                :value="queryKey === bioIndexQueryKey ? inputValue : ''"
-                                :placeholder="bioIndexSchema.query.keys"
-                                :disabled="queryKey === bioIndexQueryKey"/>
-                            <input  v-if="bioIndexSchema.query.locus"
-                                    :value="queryKey === 'regions' || queryKey === 'genes' ? inputValue : ''"
-                                    disabled/>
                         </a>
+                        <!-- Dynamic v-model symbols within v-for: https://stackoverflow.com/a/49902508/1991892 -->
+                        <!-- Replace v-model with v-bind:value and v-on:input since we wouldn't be able to assign an initial value
+                             for the input if the reference was also defined here https://stackoverflow.com/a/55023171/1991892 -->
+                        <!-- Initialize a default value with v-on:click.once -->
+                        <input v-for="bioIndexQueryKey in bioIndexSchema.query.keys"
+                            :key="bioIndexQueryKey"
+                            :placeholder="bioIndexSchema.query.keys"
+                            @input="$data[[bioIndexSchema.index,bioIndexQueryKey,i].join('-')]=$event"
+                            :disabled="queryKey === bioIndexQueryKey"/>
+                        <input  v-if="bioIndexSchema.query.locus"
+                                @input="$data[[bioIndexSchema.index,'locus',i].join('-')]=$event"
+                                disabled/>
                     </div>
                 </div>
 
@@ -53,9 +57,13 @@ export default Vue.component("results-nav", {
             if (!isCompound) {
                 // const response = await query(index, queryString, { limit: null });
                 this.$emit("pushQuery", { index, queryString });
-            } else {
-                console.log("TODO: Handle compound indecies here");
             }
+        },
+        makeCompoundInputValue(bioIndexSchema, i) {
+            // get all the data that was assigned to bioIndexSchema-i-<*>, where * is the queryKeys satisfied in the schema
+            bioIndexSchema.query.keys.forEach(bioIndexQueryKey => {
+                console.log(this.$data)
+            });
         }
     }
 })
@@ -84,11 +92,11 @@ export default Vue.component("results-nav", {
     color:#fff;
     font-size: 14px;
     top: -14px;
-    left: 20%;
+    left: 10%;
     font-weight: 400;
     padding: 10px;
     border-radius: 5px;
-    z-index: 20;
+    z-index: 20 !important;
     line-height: 1.5em;
 }
 

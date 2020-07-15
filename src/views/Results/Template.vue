@@ -33,7 +33,7 @@
 
         <b-container fluid>
             <b-row no-gutters>
-                <b-col cols="2">
+                <b-col cols="1">
 
                     <a  v-for="(queryHash, n) in $parent.queryHashes"
                         :key="`link-${queryHash}-${n}`"

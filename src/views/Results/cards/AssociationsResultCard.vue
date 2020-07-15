@@ -1,33 +1,52 @@
 <template>
     <result-card :title="title">
         <template #content>
-            <!-- TODO: For posterity: would be interesting for tables to have selectable rows to trigger side-effects (like modifying sidebar or prompting popups/navs) -->
+            {{ region }}
+            <locuszoom
+                ref="locuszoom"
+                :chr="region.chr"
+                :start="region.start"
+                :end="region.end"
+                :refSeq="true">
+                <lz-associations-panel
+                    :phenotype="phenotype"
+                ></lz-associations-panel>
+            </locuszoom>
             <associations-table
                 :associations="associations"
-                :phenotypes="[{
-                    description:'Coronary artery disease',
-                    dichotomous:1,
-                    group:'CARDIOVASCULAR',
-                    name:'CAD',
-                }]"
+                :phenotype="phenotype"
             ></associations-table>
         </template>
     </result-card>
 </template>
 <script>
 import Vue from "vue"
+
+import regionUtils from "@/utils/regionUtils"
+
 import ResultCard from "./ResultCard"
 import AssociationsTable from "@/components/AssociationsTable"
+import LocusZoom from "@/components/lz/LocusZoom"
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
 
 export default Vue.component('associations-result-card', {
-    // TODO: Phenotypes
-    props: ["title", "associations", "locus"],
-    mounted() {
-        console.log('associations-result-card', this.locus)
+    // TODO: Phenotypes – should there be a default?
+    props: [
+        "title",
+        "phenotype",
+        "associations",
+        "locus"
+    ],
+    computed: {
+        region() {
+            return regionUtils.parseRegion(this.locus)
+        }
     },
     components: {
         ResultCard,
+        LocusZoom,
         AssociationsTable,
+        LocusZoomAssociationsPanel,
     },
 })
 </script>

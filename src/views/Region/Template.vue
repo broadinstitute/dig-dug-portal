@@ -145,6 +145,9 @@
                         :start="$store.state.start"
                         :end="$store.state.end"
                         :refSeq="true">
+                        <lz-associations-panel
+                            :phenotype="$store.state.phenotype.name"
+                        ></lz-associations-panel>
                     </locuszoom>
 
                 </div>
