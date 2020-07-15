@@ -4,6 +4,12 @@ import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
 import { rgb } from "d3";
 
+import {
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
+
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }) {
 
@@ -38,7 +44,11 @@ export class LZAssociationsPanel {
             "id": this.panel_id,
             y_index: -9001,
         };
-        this.handlers = { finishHandler, resolveHandler, errHandler };
+        this.handlers = {
+            finishHandler,
+            resolveHandler,
+            errHandler
+        };
 
     }
 
@@ -148,7 +158,6 @@ export class LZAnnotationIntervalsPanel {
     }
 
 }
-
 export class LZCredibleVariantsPanel {
     constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }) {
 
@@ -259,7 +268,49 @@ export class LZCredibleVariantsPanel {
     }
 }
 
-class LZBioIndexPanel {
+export class LZPhewasPanel {
+    constructor(varIdDbSNP, phenotypeMap, { finishHandler, resolveHandler, errHandler }) {
+
+        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
+        // however they are also jointly necessary for LocusZoom –
+        this.panel_layout_type = 'phewas';
+        this.datasource_type = 'phewas';
+
+        // this is arbitrary, but we want to base it on the ID
+        this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
+        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+
+        this.index = 'variant';
+        this.queryStringMaker = (chr, start, end) => `${varIdDbSNP}`
+        this.translator = variantData => {
+            const associations = variantData[0].associations;
+            const result = associations.flatMap(a => {
+                const portalAssociations = associations.filter(a => {
+                    return !!phenotypeMap[a.phenotype];
+                });
+                // transform from bio index to locuszoom
+                const phewas = portalAssociations.map(a => {
+                    const phenotypeInfo = phenotypeMap[a.phenotype];
+                    return {
+                        id: phenotypeInfo.name,
+                        log_pvalue: -Math.log10(a.pValue),
+                        trait_group: phenotypeInfo.group,
+                        trait_label: phenotypeInfo.description
+                    };
+                });
+                return phewas;
+            })
+            return result;
+        }
+
+        // LocusZoom Layout configuration options
+        // See the LocusZoom docs for how this works
+        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
+        // If there's not a lot in here it's because we're overriding defaults
+        this.locusZoomLayoutOptions = {};
+        this.handlers = { finishHandler, resolveHandler, errHandler };
+
+    }
 
     get bioIndexToLZReader() {
         return new _LZBioIndexSource({
@@ -289,7 +340,6 @@ class LZBioIndexPanel {
             withDataSourceReader: this.bioIndexToLZReader,
         }
     }
-
 }
 
 
@@ -311,10 +361,14 @@ _LZBioIndexSource.prototype.parseInit = function (params) {
 _LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;
     return new Promise((resolve, reject) => {
+        const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
         self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
             if (err) {
+                closeAlert(alertID);
+                postAlertError(err.detail);
                 reject(new Error(err));
             }
+            closeAlert(alertID);
             resolve(self.translator(data));
         });
     });

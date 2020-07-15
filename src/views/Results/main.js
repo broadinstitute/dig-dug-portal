@@ -5,6 +5,7 @@ import store from "./store.js";
 import { query } from "@/utils/bioIndexUtils";
 
 import RegionsResultCard from "./cards/RegionsResultCard.vue"
+import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
 
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
@@ -14,7 +15,8 @@ Vue.use(BootstrapVue);
 new Vue({
     store,
     components: {
-        RegionsResultCard
+        RegionsResultCard,
+        AssociationsResultCard,
     },
     data() {
         return {
@@ -39,13 +41,22 @@ new Vue({
             console.log('tap', arguments);
             return event;
         },
-        queryBioIndex() {
-            console.log('dispatching query', this.index, this.queryString);
+        bioIndexFromHash(queryHash) {
+            // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+            return queryHash.split('__')[0]
+        },
+        locusFromHash(queryHash) {
+            // NB: doesn't check if the hash actually contains a locus
+            // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+            return queryHash.split('__')[1].replace("_",":")
+        },
+        queryBioIndexForResults(index, queryString) {
+            console.log('dispatching query', index, queryString);
 
             this.loading = true;
 
             const self = this;
-            const queryObj = { index: self.index, queryString: self.queryString };
+            const queryObj = { index: index, queryString: queryString };
             const queryHash = self.hashQuery(queryObj);
             console.log('queryHash', queryHash);
 
@@ -59,6 +70,7 @@ new Vue({
 
             } else {
                 console.log("didn't have to query, using cache");
+                // TODO: use jumpTo functionality here if we know that the data already exists?
                 // Hmm, intermix this with timestamps? get a cache hit, but for data at a different time -> use the cached data but identify it by timestamp
                 self.queries.push(queryObj);
                 self.loading = false;
@@ -74,7 +86,11 @@ new Vue({
 
             // NOTE: Vue apparently likes even *fewer* characters than the HTML5 spec constrains. doesn't work with `.` nor `:`
             // using `_` to be consistent with HTML spec, AND what Vue can handle, for valid ids for elements (the default `,` breaks document selector behavior)
-            return [index, queryString].join('_')
+            // TODO: in thr case of locii, *for now*, we'll replace colon with an underscore...
+            return [
+                index,
+                queryString.replace(':', '_')
+            ].join('__')  // double underscore since single underscore is now reserved
         },
         jumpToElementBy(elementSelector) {
             // https://stackoverflow.com/a/17938519/1991892
@@ -87,6 +103,8 @@ new Vue({
         elClassFormatter(text) {
             return '.'+text;
         }
+    },
+    watch: {
     },
     render(createElement, context) {
         return createElement(Template);

@@ -1,16 +1,16 @@
 <template>
     <div>
         <h4>{{title}}</h4>
-        <b-container>
-            <b-row>
-                <b-col>
-                    <slot name="content"></slot>
-                </b-col>
-                <b-col cols="2">
-                    <slot name="sidebar"></slot>
-                </b-col>
-            </b-row>
-        </b-container>     
+        <b-row>
+            <b-col>
+                <slot name="content"></slot>
+            </b-col>
+            <b-col cols="4">
+                <slot name="sidebar">
+                    TODO: Sidebar for card type compatible with {{ title }}
+                </slot>
+            </b-col>
+        </b-row>
     </div>
 </template>
 <script>

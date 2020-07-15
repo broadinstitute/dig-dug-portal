@@ -24,6 +24,7 @@ export default new Vuex.Store({
         regions: bioIndex("regions"),
         credibleSets: bioIndex("credible-sets"),
         globalEnrichment: bioIndex("global-enrichment"),
+        variant: bioIndex("variant"),
     },
     state: {
         // only used at the start
@@ -92,7 +93,7 @@ export default new Vuex.Store({
 
         async findGene(context) {
             if (context.state.searchGene) {
-                let locus = await regionUtils.parseRegion(context.state.searchGene, true, 50000);
+                let locus = await regionUtils.parseRegionAsync(context.state.searchGene, true, 50000);
 
                 if (locus) {
                     context.state.newChr = locus.chr;
