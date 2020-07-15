@@ -2,8 +2,8 @@
     <div>
         <div class="igv-zooms-wrapper">
             Zoom:
-            <button @click="zoomIn" class="igv-zoom">+50kb</button>&nbsp;
-            <button @click="zoomOut" class="igv-zoom">—50kb</button>
+            <button @click="zoomIn" class="igv-zoom">+</button>&nbsp;
+            <button @click="zoomOut" class="igv-zoom">—</button>
         </div>
 
         <div id="igv-div"></div>

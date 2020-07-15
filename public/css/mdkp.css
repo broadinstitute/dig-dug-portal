@@ -1041,10 +1041,10 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     float: right;
     margin-right: 50px;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: 14px;
 }
 .igv-zoom {
-    width: auto;
+    width: 28px;
     height: 28px;
     background-color: #30b7f6;
     border: solid 1px #0087d6;
