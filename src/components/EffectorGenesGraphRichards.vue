@@ -19,7 +19,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-graph-richards", {
-    props: ["graphData", "selectedGeneName"],
+    props: ["graphData"],
     data() {
         return {
             featureHeaders: {
@@ -168,6 +168,10 @@ export default Vue.component("effector-genes-graph-richards", {
     },
     mounted: function() {},
     computed: {
+        selectedGeneName() {
+            console.log(this.$store.state.geneName);
+            return this.$store.state.geneName;
+        },
         tableGraphData() {
             if (!!this.graphData) {
                 let massagedData = { GENES: {} };
@@ -252,11 +256,14 @@ export default Vue.component("effector-genes-graph-richards", {
         }
     },
     watch: {
-        tableGraphData(DATA) {
-            this.renderCharts(DATA);
-        },
-        "this.selectedGeneName"() {
-            console.log("foo");
+        // tableGraphData(DATA) {
+        //     this.renderCharts(DATA);
+        // },
+        // "this.selectedGeneName"() {
+        //     console.log("foo");
+        // }
+        selectedGeneName(GENE) {
+            this.renderCharts(GENE);
         }
     },
     methods: {
@@ -264,9 +271,10 @@ export default Vue.component("effector-genes-graph-richards", {
         hideElement(ELEMENT) {
             uiUtils.hideElement(ELEMENT);
         },
-        renderCharts(DATA) {
+        renderCharts(GENE) {
             let featureHeaders = this.featureHeaders;
-            let GENE = this.selectedGeneName;
+            let DATA = this.tableGraphData;
+            //let GENE = this.selectedGeneName;
 
             $.each(DATA.DATA, function(KEY, FEATURE) {
                 let NAME = FEATURE[0].group;

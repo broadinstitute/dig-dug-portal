@@ -595,7 +595,7 @@
                     <div>Top-20 Gene Features</div>
                 </div>
                 <div v-for="(row, i) in tableGeneData" :key="i">
-                    <div class="sum geneName">{{row.gene}}</div>
+                    <div class="sum geneName" @click="showGene(row.gene)">{{row.gene}}</div>
                     <div class="sum prediction">{{parseFloat(row.prediction).toFixed(3)}}</div>
                     <div class="probInfo">
                         <div class="probHeaders">
@@ -670,12 +670,12 @@
                             >in gtex</div>
                         </div>
                         <div class="probDetails">
-                            <template v-for="(v, i) in row.variants">
-                                <div :class="`col${i}`">{{v.id}}</div>
+                            <div class="rowVariant" v-for="(v, i) in row.variants">
+                                <div class="variantID">{{v.id}}</div>
                                 <template v-for="(f,j) in v.features">
                                     <div :class="`${j}`">{{f}}</div>
                                 </template>
-                            </template>
+                            </div>
                         </div>
                     </div>
                     <div class="eiInfo">
@@ -703,7 +703,7 @@
                             <div class="col20ei" title="Nearest SNP in DHS / Δg">dhsSNP/dist</div>
                         </div>
                         <div class="eiDetails">
-                            <template v-for="(f, i) in row.features">
+                            <template v-for="(f, i) in row.features.predictor">
                                 <div :class="`${i}`">{{f}}</div>
                             </template>
                         </div>
@@ -734,6 +734,12 @@ export default Vue.component("effector-genes-richards", {
         },
         graphData() {
             return this.tableData;
+        }
+    },
+    methods: {
+        showGene(gene) {
+            //console.log("gene", gene);
+            this.$store.dispatch("selectGene", gene);
         }
     }
 });
