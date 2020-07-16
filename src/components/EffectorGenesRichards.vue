@@ -716,6 +716,7 @@
 
 <script>
 import Vue from "vue";
+import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
@@ -740,6 +741,7 @@ export default Vue.component("effector-genes-richards", {
         showGene(gene) {
             //console.log("gene", gene);
             this.$store.dispatch("selectGene", gene);
+            uiUtils.showElement("feature-scores-wrapper");
         }
     }
 });

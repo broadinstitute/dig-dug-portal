@@ -169,7 +169,6 @@ export default Vue.component("effector-genes-graph-richards", {
     mounted: function() {},
     computed: {
         selectedGeneName() {
-            console.log(this.$store.state.geneName);
             return this.$store.state.geneName;
         },
         tableGraphData() {
