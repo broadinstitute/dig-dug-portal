@@ -9,8 +9,17 @@ import logErrorEvent from "@/utils/gaUtils";
 export default Vue.component("alert", {
     data() {
         return {
-            message: null
+            message: null,
+            timer: null,
+            queue: [],
         };
+    },
+    created() {
+        this.timer = setInterval(() => {
+            if(this.queue.length > 0) {
+                this.$bvToast.hide(this.queue.pop())
+            }
+        }, 1000)
     },
     mounted() {
         EventBus.$on("ALERT", this.showAlert);
@@ -46,7 +55,7 @@ export default Vue.component("alert", {
              * never close. By waiting 100 ms, the DOM has enough time
              * to add it, and then we can close it.
              */
-            setTimeout((() => this.$bvToast.hide(id)).bind(this), 500);
+            this.queue.push(id);
         }
     }
 });

@@ -55,7 +55,7 @@ export default function (index, extend) {
             setProgress(state, progress) {
                 state.progress = progress;
             },
-            
+
         },
 
         // dispatch methods
@@ -97,7 +97,7 @@ export default function (index, extend) {
                     });
 
                     // data is loaded
-                    closeAlert(alertID);
+                    // closeAlert(alertID);
                     context.commit("setResponse", { data, profile });
                 }
             }
