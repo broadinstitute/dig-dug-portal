@@ -1,5 +1,5 @@
 <template>
-    <div class="feature-scores-wrapper">
+    <div class="feature-scores-wrapper hidden">
         <b-icon-x-circle-fill
             v-on:click="hideElement('feature-scores-wrapper')"
             class="feature-plot-close"
