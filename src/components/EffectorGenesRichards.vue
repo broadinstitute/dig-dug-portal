@@ -1,8 +1,5 @@
 <template>
     <div>
-        <div>
-            <effector-genes-graphs :graphData="graphData" graphType="line"></effector-genes-graphs>
-        </div>
         <div class="EGL-table-wrapper" v-if="tableGeneData">
             <div id="igv-div" class="hidden"></div>
             <div class="filtering-tools">
@@ -720,15 +717,11 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import EffectorGenesGraphs from "@/components/EffectorGenesGraphs.vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-richards", {
     props: ["tableData"],
-    components: {
-        EffectorGenesGraphs
-    },
     mounted() {},
     computed: {
         tableGeneData() {
