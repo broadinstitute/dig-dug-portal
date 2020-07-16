@@ -13,6 +13,7 @@ import LZDataSources from "@/utils/lz/lzDataSources";
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 import "locuszoom/dist/ext/lz-intervals-track.min.js";
 import idCounter from "@/utils/idCounter"
+import LocusZoomAssociationsPanel from "./panels/LocusZoomAssociationsPanel.vue";
 
 const BASE_PANEL_OPTIONS = {
     // proportional_height: 1,
@@ -131,7 +132,8 @@ export default Vue.component("locuszoom", {
 
         // TODO: component system for LocusZoom
         addLZComponent: function(PanelComponentType, panelConfig) {
-            if (this.lz != null) {
+            if (this.plot != null) {
+                console.log('mounting', PanelComponentType)
 
                 let LZPanelConstructor = Vue.extend(PanelComponentType);
 
@@ -139,12 +141,21 @@ export default Vue.component("locuszoom", {
                 this.$el.appendChild(vueContainer)
 
                 const trackComponentInstance = new LZPanelConstructor({
-                    propsData: trackConfig.data,
+                    propsData: panelConfig,
                     parent: this,
                 }).$mount(vueContainer);
 
+            } else {
+                console.log('lz is null right now')
             }
         },
+
+        // addAssociationsPanelComponent: function(phenotype) {
+        //     console.log('add associations panel component')
+        //     this.addLZComponent(LocusZoomAssociationsPanel, {
+        //         phenotype
+        //     });
+        // },
 
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
