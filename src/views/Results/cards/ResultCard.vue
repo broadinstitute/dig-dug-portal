@@ -2,13 +2,13 @@
     <div>
         <h4>{{title}}</h4>
         <b-row>
-            <b-col>
-                <slot name="content"></slot>
-            </b-col>
-            <b-col cols="4">
+            <b-col cols="3">
                 <slot name="sidebar">
                     TODO: Sidebar for card type compatible with {{ title }}
                 </slot>
+            </b-col>
+            <b-col>
+                <slot name="content"></slot>
             </b-col>
         </b-row>
     </div>

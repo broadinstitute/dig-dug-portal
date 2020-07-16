@@ -2,8 +2,8 @@ import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
-import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
+import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
 import variantUtils from "@/utils/variantUtils";
 

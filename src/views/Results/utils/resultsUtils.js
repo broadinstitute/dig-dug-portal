@@ -4,7 +4,7 @@ import { partition } from "lodash"
 
 // Local copy of http://<BIOINDEX>/api/bio/indexes on July 13 2020
 // TODO: convert into an API call that loads on startup
-const BIOINDEX_SCHEMA = {
+export const BIOINDEX_SCHEMA = {
     "count": 14,
     "data": [
       {

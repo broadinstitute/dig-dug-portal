@@ -1,5 +1,5 @@
 <template>
-    <div :ref="`${index}_${salt}`">
+    <div :ref="`${id}_el`">
         <pre></pre>
     </div>
 </template>

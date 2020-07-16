@@ -140,6 +140,14 @@
                 <template v-slot:cell(symbol)="r">
                     <a :href="`/gene.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
                 </template>
+                <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
+                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}_beta`]) : r.item[`${p.name}_beta`])}}</span>
+                    <span
+                        :class="`effect ${r.item[`${p.name}_beta`] < 0 ? 'negative' : 'positive'}`"
+                        style="float:right"
+                    >{{r.item[`${p.name}_beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
+                </template>
+                <template v-slot:cell()
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
@@ -238,14 +246,7 @@ export default Vue.component("associations-table", {
                     },
                     {
                         key: `${p.name}_beta`,
-                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
-                        formatter: x => {
-                            if (p.dichotomous) {
-                                x = Math.exp(x);
-                            }
-
-                            return Formatters.effectFormatter(x);
-                        }
+                        label: !!p.dichotomous ? "Odds Ratio" : "Beta"
                     }
                 ]);
             }
@@ -363,6 +364,9 @@ export default Vue.component("associations-table", {
     },
 
     methods: {
+        phenotypeBetaColumn(phenotype) {
+            return `cell(${phenotype.name}_beta)`;
+        },
         alleleFormatter({ reference, alt }) {
             return Formatters.alleleFormatter(reference, alt);
         },
@@ -371,6 +375,9 @@ export default Vue.component("associations-table", {
         },
         dbSNPFormatter({ dbSNP }) {
             return Formatters.dbSNPFormatter(dbSNP);
+        },
+        effectFormatter(effect) {
+            return Formatters.effectFormatter(effect);
         },
         addFilter(event, obj) {
             //console.log("add" + event);

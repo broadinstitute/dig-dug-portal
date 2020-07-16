@@ -33,7 +33,7 @@
 
         <b-container fluid>
             <b-row no-gutters>
-                <b-col cols="1">
+                <b-col cols="2">
 
                     <a  v-for="(queryHash, n) in $parent.queryHashes"
                         :key="`link-${queryHash}-${n}`"
@@ -51,8 +51,6 @@
                         :key="`card-${queryHash}-${n}`"
                         :id="`card-${queryHash}-${n}`">
 
-
-                        <!-- TODO: v-if for different datatypes? -->
                         <div v-if="$parent.bioIndexFromHash(queryHash) === 'regions'">
                             <regions-result-card
                                 :title="`${queryHash}`"
@@ -65,6 +63,16 @@
                             <associations-result-card
                                 :title="`${queryHash}`"
                                 :associations="$parent.dataCache[queryHash]"
+                                :locus="$parent.locusFromHash(queryHash)"
+                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
+                            ></associations-result-card>
+                        </div>
+
+                        <div v-else-if="$parent.bioIndexFromHash(queryHash) === 'associations'">
+                            <associations-result-card
+                                :title="`${queryHash}`"
+                                :associations="$parent.dataCache[queryHash]"
+                                :phenotype="$parent.phenotypeFromHash(queryHash)"
                                 :locus="$parent.locusFromHash(queryHash)"
                                 @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
                             ></associations-result-card>
