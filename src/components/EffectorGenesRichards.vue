@@ -6,7 +6,7 @@
                 <div id="traits">
                     <div class="form-group table-filter">
                         <label for="traits">Traits</label>
-                        <select class="form-control" id="selectTrait">
+                        <select class="form-control" id="selectTrait" v-model="selected">
                             <option value="calcium">Calcium</option>
                             <option value="dbilirubin">Bbilirubin</option>
                             <option value="dbp">Diastolic blood pressure</option>
@@ -17,7 +17,7 @@
                             <option value="lowtsh">Hypothyroidism</option>
                             <option value="rbc">Red blood cell count</option>
                             <option value="sbp">Systolic blood pressure</option>
-                            <option value="t2d" selected>Type 2 diabetes</option>
+                            <option value="t2d">Type 2 diabetes</option>
                             <option value="tg">Triglycerides</option>
                         </select>
                     </div>
@@ -717,12 +717,18 @@
 <script>
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
+import keyParams from "@/utils/keyParams";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-richards", {
     props: ["tableData"],
+    data() {
+        return {
+            selected: keyParams.trait || "t2d"
+        };
+    },
     mounted() {},
     computed: {
         tableGeneData() {
@@ -742,6 +748,11 @@ export default Vue.component("effector-genes-richards", {
             //console.log("gene", gene);
             this.$store.dispatch("selectGene", gene);
             uiUtils.showElement("feature-scores-wrapper");
+        }
+    },
+    watch: {
+        selected(value) {
+            window.location = `/effectorgenes.html?trait=${value}&dataset=${keyParams.dataset}`;
         }
     }
 });

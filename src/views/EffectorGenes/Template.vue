@@ -21,7 +21,6 @@
                                     <component
                                         v-bind:is="$parent.effectorGenesGraph"
                                         :graphData="$parent.effectorGenesData"
-                                        :selectedGeneName="$store.state.geneName"
                                     ></component>
                                     <component
                                         v-bind:is="$parent.effectorGenesTable"
