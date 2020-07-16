@@ -45,10 +45,21 @@ new Vue({
             // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
             return queryHash.split('__')[0]
         },
+        leftmostArgFromHash(queryHash) {
+            return queryHash.split('__')[1].split('--')[0];
+        },
+        rightmostArgFromHash(queryHash) {
+            return queryHash.split('__')[1].split('--').pop();
+        },
+        phenotypeFromHash(queryHash) {
+            // NB: doesn't check if the hash actually contains a phenotype
+            // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+            return this.leftmostArgFromHash(queryHash);
+        },
         locusFromHash(queryHash) {
             // NB: doesn't check if the hash actually contains a locus
             // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
-            return queryHash.split('__')[1].replace("_",":")
+            return this.rightmostArgFromHash(queryHash).replace("_",":")
         },
         queryBioIndexForResults(index, queryString) {
             console.log('dispatching query', index, queryString);
@@ -89,7 +100,7 @@ new Vue({
             // TODO: in thr case of locii, *for now*, we'll replace colon with an underscore...
             return [
                 index,
-                queryString.replace(':', '_')
+                queryString.replace(':', '_').replace(',','--')
             ].join('__')  // double underscore since single underscore is now reserved
         },
         jumpToElementBy(elementSelector) {

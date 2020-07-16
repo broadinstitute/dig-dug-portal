@@ -284,17 +284,17 @@ export class LZPhewasPanel {
         this.queryStringMaker = (chr, start, end) => `${varIdDbSNP}`
         this.translator = variantData => {
             const associations = variantData[0].associations;
-            const portalAssociations = associations.filter(assoc => {
-                return !!phenotypeMap[assoc.phenotype];
+            const portalAssociations = associations.filter(a => {
+                return !!phenotypeMap[a.phenotype];
             });
             // transform from bio index to locuszoom
-            const phewas = portalAssociations.map((assoc2, i) => {
-                const phenotypeInfo = phenotypeMap[assoc2.phenotype];
+            const phewas = portalAssociations.map(a => {
+                const phenotypeInfo = phenotypeMap[a.phenotype];
                 return {
                     id: phenotypeInfo.name,
-                    log_pvalue: -Math.log10(assoc2.pValue),
+                    log_pvalue: -Math.log10(a.pValue),
                     trait_group: phenotypeInfo.group,
-                    trait_label: phenotypeInfo.description,
+                    trait_label: phenotypeInfo.description
                 };
             });
             return phewas;

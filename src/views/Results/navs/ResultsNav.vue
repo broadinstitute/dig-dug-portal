@@ -22,10 +22,13 @@
                         <input v-for="bioIndexQueryKey in bioIndexSchema.query.keys"
                             :key="bioIndexQueryKey"
                             :placeholder="bioIndexSchema.query.keys"
-                            v-model="$data[[bioIndexSchema.index,bioIndexQueryKey,i].join('-')]"
+                            v-model="inputs[[bioIndexSchema.index,bioIndexQueryKey,i].join('-')]"
                             :disabled="queryKey === bioIndexQueryKey"/>
+                        <!-- TODO: refactor the gnarly code in :value to use a custom directive that can set a default, to initialize the field -->
                         <input  v-if="bioIndexSchema.query.locus"
-                                v-model="$data[[bioIndexSchema.index,'locus',i].join('-')]"
+                                :value="inputs[[bioIndexSchema.index,'locus',i].join('-')] ? inputs[[bioIndexSchema.index,'locus',i].join('-')] 
+                                    : (() => { inputs[[bioIndexSchema.index,'locus',i].join('-')] = inputValue; return inputs[[bioIndexSchema.index,'locus',i].join('-')]})()"
+                                @input="inputs[[bioIndexSchema.index,'locus',i].join('-')] = $event.target.value"
                                 disabled/>
                     </div>
                 </div>
@@ -40,6 +43,11 @@ import { basicIndexesForKey, compoundIndexesForKey, } from "../utils/resultsUtil
 import { query } from "@/utils/bioIndexUtils"
 export default Vue.component("results-nav", {
     props: ["queryKey", "inputValue", "showCompoundIndexes"],
+    data() {
+        return {
+            inputs: {}
+        }
+    },
     computed: {
         // compatibleIndexes: function() {
         //     return compatibleIndexesForKey(this.queryKey)
@@ -52,18 +60,26 @@ export default Vue.component("results-nav", {
         }
     },
     methods: {
+        tap() {
+            console.log('ResultsNav tap', arguments)
+        },
         async dispatchToIndex(index, queryString, isCompound=false) {
             console.log("querying bioindex", index, queryString);
-            if (!isCompound) {
-                // const response = await query(index, queryString, { limit: null });
-                this.$emit("pushQuery", { index, queryString });
-            }
+            this.$emit("pushQuery", { index, queryString });
         },
         makeCompoundInputValue(bioIndexSchema, i) {
             // get all the data that was assigned to bioIndexSchema-i-<*>, where * is the queryKeys satisfied in the schema
+            let queryStringVals = []
             bioIndexSchema.query.keys.forEach(bioIndexQueryKey => {
-                console.log(this.$data)
+                const key = [bioIndexSchema.index,bioIndexQueryKey,i].join('-');
+                queryStringVals.push(this.inputs[key]);
             });
+            if (bioIndexSchema.query.locus) {
+                const key = [bioIndexSchema.index,'locus',i].join('-');
+                queryStringVals.push(this.inputs[key]);
+            }
+            const queryString = queryStringVals.join();
+            return queryString;
         }
     }
 })

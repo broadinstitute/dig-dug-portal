@@ -14,7 +14,7 @@
             </locuszoom>
             <associations-table
                 :associations="associations"
-                :phenotype="phenotype"
+                :phenotypes="[phenotypesLookup]"
             ></associations-table>
         </template>
     </result-card>
@@ -29,6 +29,8 @@ import AssociationsTable from "@/components/AssociationsTable"
 import LocusZoom from "@/components/lz/LocusZoom"
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
 
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"
+
 export default Vue.component('associations-result-card', {
     // TODO: Phenotypes – should there be a default?
     props: [
@@ -37,6 +39,17 @@ export default Vue.component('associations-result-card', {
         "associations",
         "locus"
     ],
+    data() {
+        return {
+            phenotypesLookup: null
+        }
+    },
+    created() {
+        let self = this;
+        Promise.resolve(fetch(BIO_INDEX_HOST+'/api/portal/phenotypes').then(response => response.json()).then(json => {
+            self.phenotypesLookup = json.data.filter(phenotypeInfo => phenotypeInfo.name === this.phenotype)[0];
+        }));
+    },
     computed: {
         region() {
             return regionUtils.parseRegion(this.locus)
