@@ -36,7 +36,7 @@ export default Vue.component('lz-phewas-panel', {
         }
     },
     mounted() {
-        this.id = this.$parent.addPhewasPanel(this.phenotype);
+        this.id = this.$parent.addPhewasPanel(this.varId);
     },
     // beforeDestroy() {
     //     this.$parent.plot.removePanel(this.id);
@@ -46,7 +46,7 @@ export default Vue.component('lz-phewas-panel', {
             // this is good enough
             this.$parent.plot.removePanel(this.id);
             this.id = null;
-            this.id = this.$parent.addPhewasPanel(newVarId);
+            this.id = this.$parent.addPhewasPanel(newVarId, this.phenotypeMap);
         }
     }
 })
