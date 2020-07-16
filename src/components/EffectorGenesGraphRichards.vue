@@ -276,6 +276,8 @@ export default Vue.component("effector-genes-graph-richards", {
             let DATA = this.tableGraphData;
             //let GENE = this.selectedGeneName;
 
+            $(".feature-scores").empty(); //remove previous chart, if any
+
             $.each(DATA.DATA, function(KEY, FEATURE) {
                 let NAME = FEATURE[0].group;
                 let featureName =
