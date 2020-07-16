@@ -123,14 +123,14 @@ new Vue({
             // instead use a computed property with custom getters and setters plus v-model if at all possible.
             const { phenotype, credibleSetId } = credibleSet;
             this.$children[0].$refs.igv.addCredibleVariantsTrack(phenotype, credibleSetId, true, {
-                dataLoaded: event => console.log(event),
+                // dataLoaded: event => console.log(event),
             });
         },
         addAnnotationTrack(enrichment) {
             const { annotation, method } = enrichment;
             this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
                 colorScheme: this.tissueColorScheme,
-                dataLoaded: event => console.log(event),
+                // dataLoaded: event => console.log(event),
             });
         }
     },
@@ -275,7 +275,6 @@ new Vue({
                     this.$store.commit("setSelectedPhenotype", phenotype);
                 }
             }
-            this.addPhewasPanel({ varId: "rs1260326" });
         },
 
         "$store.state.phenotype": function (phenotype) {

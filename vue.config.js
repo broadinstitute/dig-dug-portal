@@ -1,41 +1,26 @@
-function getBioIndexHost() {
-    const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
-    const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
-
-    // output which bioindex is being used
-    console.log(`Using ${BIOINDEX_DEV ? 'development' : 'production'} BIOINDEX (${BIOINDEX_HOST})`);
-
-    return BIOINDEX_HOST;
-}
-
 module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
-    chainWebpack: function (config) {
-        getBioIndexHost();
-
-        // replace SERVER_IP_ADDRESS with the bioindex host to use
-        config.module
-            .rule('md')
-            .test(/bioIndexUtils.js$/)
-            .use("string-replace-loader")
-            .loader("string-replace-loader")
-            .options({
-                multiple: [{
-                    search: 'SERVER_IP_ADDRESS',
-                    replace(match, p1, offset, string) {
-                        const BIOINDEX_DEV = !!process.env.BIOINDEX_DEV;
-                        const BIOINDEX_HOST = BIOINDEX_DEV ? '18.215.38.136' : '3.221.48.161';
-
-                        return BIOINDEX_HOST;
-                    },
-                    flags: 'ig'
-                }],
-            })
-            .end()
-    },
     configureWebpack: config => {
+        let bioindex_dev = process.env.BIOINDEX_DEV;
+        let bioindex_host = !!bioindex_dev ? '18.215.38.136' : '3.221.48.161';
+
+        // output which bioindex is being used
+        console.log(`BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`);
+
+        // add the transform rule for bioindex
+        config.module.rules.push({
+            test: /bioIndexUtils\.js$/,
+            loader: 'string-replace-loader',
+            options: {
+                search: 'SERVER_IP_ADDRESS',
+                replace: bioindex_host,
+                flags: 'g',
+            },
+        });
+
+        // create inline maps for dev builds
         if (process.env.NODE_ENV !== 'production') {
             config.devtool = 'inline-source-map';
         }
