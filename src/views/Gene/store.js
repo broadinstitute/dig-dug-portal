@@ -8,7 +8,7 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
-
+import { match } from "@/utils/bioIndexUtils";
 
 
 
@@ -25,30 +25,25 @@ export default new Vuex.Store({
     },
     state: {
         geneName: keyParams.gene,
-        chromosome: ``,
-        start: ``,
-        end: ``,
+        matchingEffectorGenesPhenotypes: null,
+        phenotype: 't2d',
     },
 
     mutations: {
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
-
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
             state.geneRegion = `${chromosome}:${start}-${end}`;
         },
-        setChromosome(state, chromosome) {
-            state.chromosome = chromosome;
+        setMatchingEffectorGenesPhenotypes(state, phenotypes) {
+            state.matchingEffectorGenesPhenotypes = phenotypes;
         },
-        setStart(state, start) {
-            state.start = start;
+        setPhenotype(state, phenotype) {
+            state.phenotype = phenotype;
         },
-        setEnd(state, end) {
-            state.end = end
-        }
     },
 
     getters: {
@@ -90,9 +85,7 @@ export default new Vuex.Store({
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
             let q = `${chromosome}:${start}-${end}`;
-            context.commit('setChromosome', chromosome);
-            context.commit('setStart', start);
-            context.commit('setEnd', end);
+
             context.dispatch('genes/query', { q });
         },
 
@@ -102,6 +95,15 @@ export default new Vuex.Store({
             if (!!symbol) {
                 context.dispatch('uniprot/getUniprotGeneInfo', name);
             }
-        }
+        },
+        async lookupEffectorGenesPhenotypes(context, input) {
+            let matches = await match('effector-genes', "_", { limit: null })
+            context.commit('setMatchingEffectorGenesPhenotypes', matches);
+        },
+        //select gene on autocomplete.
+        async onEffectorGenesPhenotypeChange(context, phenotype) {
+            context.commit('setPhenotype', phenotype);
+
+        },
     },
 });

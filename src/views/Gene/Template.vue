@@ -105,27 +105,26 @@
                     </div>
                 </div>
             </div>
-
+            <!-- HuGeCalculator -->
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <!-- <h4
-                        v-if="$store.state.phenotype"
+                    <h4
                         class="card-title"
-                    >Associations for {{$store.state.phenotype.description}}</h4>
-                    <documentation
-                        name="region.lz.subheader"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>-->
-
-                    <locuszoom
-                        ref="locuszoom"
-                        :chr="'1'"
-                        :start="'55505221'"
-                        :end="'55530525'"
-                        :refSeq="true"
-                    >
-                        <lz-associations-panel :phenotype="'T2D'"></lz-associations-panel>
-                    </locuszoom>
+                    >Associations for {{$store.state.phenotype}} in {{$parent.symbolName}}</h4>
+                    <autocomplete
+                        :placeholder="'Phenotype'"
+                        :defaultText="$store.state.phenotype"
+                        :matches="$parent.matchingEffectorGenesPhenotypes"
+                        @input-change="$store.dispatch('lookupEffectorGenesPhenotypes', $event)"
+                        @item-select="$store.dispatch('onEffectorGenesPhenotypeChange', $event)"
+                    ></autocomplete>
+                    <huge-calculator
+                        v-if="$parent.region"
+                        :chromosome="$parent.region.chromosome"
+                        :start="$parent.region.start"
+                        :end="$parent.region.end"
+                        :phenotype="$store.state.phenotype"
+                    ></huge-calculator>
                 </div>
             </div>
 

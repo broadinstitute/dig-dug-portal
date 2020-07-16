@@ -102,7 +102,7 @@ new Vue({
             let self = this;
             const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
                 // this arg for dataLoaded callback, next arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
+                function (dataLoadedResponse) {
                     self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
                 }
             );
@@ -286,7 +286,7 @@ new Vue({
 
             // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
             this.$store.dispatch('globalEnrichment/query', { q: phenotype.name });
-            this.$store.dispatch('credibleSets/query', { q: `${ phenotype.name },${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
+            this.$store.dispatch('credibleSets/query', { q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
         },
 
         topAssociations(top) {
@@ -302,5 +302,6 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+       
     },
 }).$mount("#app");

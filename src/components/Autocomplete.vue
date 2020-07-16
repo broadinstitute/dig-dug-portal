@@ -34,11 +34,11 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["matches", "placeholder"],
+    props: ["matches", "placeholder", "defaultText"],
 
     data() {
         return {
-            userInput: null,
+            userInput: this.defaultText || null,
             selectedItem: null
         };
     },

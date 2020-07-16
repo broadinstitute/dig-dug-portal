@@ -10,11 +10,11 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import Documentation from "@/components/Documentation.vue";
-import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
-
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
+import HuGeCalculator from "@/components/HuGeCalculator.vue";
+import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
     postAlert,
@@ -38,7 +38,8 @@ new Vue({
         Documentation,
         Autocomplete,
         LocusZoom,
-        LocusZoomAssociationsPanel
+        LocusZoomAssociationsPanel,
+        HuGeCalculator
     },
 
     data() {
@@ -75,25 +76,8 @@ new Vue({
         postAlertError,
         closeAlert,
         // LocusZoom has "Panels"
-        addAssociationsPanel(event) {
-            const { phenotype } = event;
-            let self = this;
-            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
-                // this arg for dataLoaded callback, next arg for dataResolved callback, last arg for error callback
-                function (dataLoadedResponse) {
-                    self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
-                }
-            );
-            return newAssociationsPanelId;
-        },
-        // TODO: refactor to closure for extra programmer points
-        // TODO: does the idea of using components handle this problem?
-        updateAssociationsPanel(phenotype) {
-            if (this.currentAssociationsPanel) {
-                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
-            }
-            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
-        },
+     
+
     },
 
     computed: {
@@ -155,7 +139,10 @@ new Vue({
                 return data[0];
             }
             return {};
-        }
+        },
+        matchingEffectorGenesPhenotypes() {
+            return this.$store.state.matchingEffectorGenesPhenotypes;
+        },
     },
 
 
@@ -175,10 +162,7 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
         },
-        "$store.state.phenotype": function (phenotype) {
-            // I don't like mixing UI effects with databinding - Ken
-            this.updateAssociationsPanel(phenotype.name);
+       
 
-        },
     }
 }).$mount("#app");

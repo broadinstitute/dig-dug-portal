@@ -6,11 +6,10 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component('lz-associations-panel', {
-
+export default Vue.component("lz-associations-panel", {
     props: {
         phenotype: {
-            type: String,
+            type: String
             // required: true
         },
         finishHandler: {
@@ -28,16 +27,24 @@ export default Vue.component('lz-associations-panel', {
     },
     data() {
         return {
-            id: null,
-        }
+            id: null
+        };
     },
     mounted() {
         this.id = this.$parent.addAssociationsPanel(this.phenotype);
     },
-    destroy() {
-        this.$parent.plot.removePanel(this.id);
-    }
-})
 
+    watch: {
+        phenotype(newPhenotype) {
+            // This is good enough
+            this.$parent.plot.removePanel(this.id);
+           
+            this.id = this.$parent.addAssociationsPanel(this.phenotype);
+            // this.$parent.addAssociationsPanelComponent(this, {
+            //     phenotype: newPhenotype
+            // });
+        }
+    }
+});
 </script>
 
