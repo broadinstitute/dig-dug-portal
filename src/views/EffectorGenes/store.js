@@ -22,11 +22,14 @@ export default new Vuex.Store({
         effectorGenes,
     },
     state: {
+        geneName: "ABCC8",
     },
     mutations: {
+
     },
     getters: {
     },
     actions: {
+
     }
 });

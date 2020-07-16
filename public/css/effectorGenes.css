@@ -516,6 +516,7 @@ div#data div.row > div.locusName {
     padding-bottom: 1px;
     border-radius: 5px;
     box-shadow: 5px 5px 5px rgba(0,0,0,0.25);
+    font-size: 14px;
 }
 .feature-scores-wrapper.hidden {
     display: none;
@@ -523,6 +524,7 @@ div#data div.row > div.locusName {
 .feature-scores-wrapper .gene-name {
     width: 100%;
     text-align: center;
+    font-size: 1.25em;
 }
 
 .feature-scores {
@@ -532,6 +534,7 @@ div#data div.row > div.locusName {
     padding-bottom: 15px;
     white-space: nowrap;
 }
+
 
 .feature-scores .chart{
     display: inline-block;
@@ -545,6 +548,7 @@ div#data div.row > div.locusName {
     top: 0;
     word-break: break-word;
     white-space: normal;
+    font-size: 1em;
 }
 
 .feature-scores .chart svg {

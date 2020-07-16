@@ -10,7 +10,6 @@
                     <div class="col-md-12">
                         <h2>Predicted Effector Genes</h2>
                     </div>
-                    {{$parent.datasets}}
                 </div>
             </div>
             <div class="card mdkp-card">
@@ -19,6 +18,15 @@
                         <div class="col-md-12">
                             <b-tabs content-class="mt-3" align="center">
                                 <b-tab title="Explore genes" active>
+                                    <b-icon-x-circle-fill
+                                        v-on:click="$parent.showElement('feature-scores-wrapper')"
+                                        class="feature-plot-close"
+                                    ></b-icon-x-circle-fill>
+                                    <component
+                                        v-bind:is="$parent.effectorGenesGraph"
+                                        :graphData="$parent.effectorGenesData"
+                                        :selectedGeneName="$store.state.geneName"
+                                    ></component>
                                     <component
                                         v-bind:is="$parent.effectorGenesTable"
                                         :tableData="$parent.effectorGenesData"
