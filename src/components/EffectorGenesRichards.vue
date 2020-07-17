@@ -23,22 +23,28 @@
                     </div>
                     <div class="table-filter">
                         <label>Search a gene</label>
-                        <input id="geneSearch" type="text" placeholder="Gene Name" />
-                    </div>
-                    <div class="table-filter">
-                        <label class="hidden">Search a locus</label>
-                        <input class="hidden" id="locusSearch" type="text" placeholder="Locus ID" />
+                        <input
+                            id="geneSearch"
+                            type="text"
+                            placeholder="Gene Name"
+                            v-model="findGene"
+                        />
                     </div>
                     <div class="table-filter">
                         <label>Filter by prob score</label>&GreaterEqual;
-                        <input id="probFilter" type="text" placeholder="Prob score" />
+                        <input
+                            id="probFilter"
+                            type="text"
+                            placeholder="Prob score"
+                            v-model="findProb"
+                        />
                     </div>
                 </div>
                 <div id="regionFilter">
                     <div class="form-group">
                         <div class="table-filter">
                             <label for="region">Chromosome</label>
-                            <select class="form-control" id="selectChrom">
+                            <select class="form-control" id="selectChrom" disabled>
                                 <option value="0" selected>All</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -66,11 +72,11 @@
                         </div>
                         <div class="table-filter">
                             <label>Region start</label>
-                            <input id="geneStart" type="text" placeholder="Start position" />
+                            <input id="geneStart" type="text" placeholder="Start position" disabled />
                         </div>
                         <div class="table-filter">
                             <label>Region end</label>
-                            <input id="geneEnd" type="text" placeholder="End position" />
+                            <input id="geneEnd" type="text" placeholder="End position" disabled />
                         </div>
                     </div>
                 </div>
@@ -594,9 +600,9 @@
                     <div>Locus Location</div>
                     <div>Top-20 Gene Features</div>
                 </div>
-                <div v-for="(row, i) in tableGeneData" :key="i">
+                <div v-for="(row, i) in filteredData" :key="i">
                     <div class="sum geneName" @click="showGene(row.gene)">{{row.gene}}</div>
-                    <div class="sum prediction">{{parseFloat(row.prediction).toFixed(3)}}</div>
+                    <div class="sum prediction">{{parseFloat(row.prediction).toFixed(decimals)}}</div>
                     <div class="probInfo">
                         <div class="probHeaders">
                             <div
@@ -704,7 +710,7 @@
                         </div>
                         <div class="eiDetails">
                             <template v-for="(f, i) in row.features.predictor">
-                                <div :class="`${i}`">{{f}}</div>
+                                <div :class="`${i}`" :key="i">{{f}}</div>
                             </template>
                         </div>
                     </div>
@@ -726,7 +732,10 @@ export default Vue.component("effector-genes-richards", {
     props: ["tableData"],
     data() {
         return {
-            selected: keyParams.trait || "t2d"
+            decimals: 3,
+            selected: keyParams.trait || "t2d",
+            findGene: "",
+            findProb: ""
         };
     },
     mounted() {},
@@ -741,6 +750,11 @@ export default Vue.component("effector-genes-richards", {
         },
         graphData() {
             return this.tableData;
+        },
+        filteredData() {
+            if (this.findGene) return this.filterGene(this.findGene);
+            else if (this.findProb) return this.filterProb(this.findProb);
+            else return this.tableGeneData;
         }
     },
     methods: {
@@ -748,6 +762,21 @@ export default Vue.component("effector-genes-richards", {
             //console.log("gene", gene);
             this.$store.dispatch("selectGene", gene);
             uiUtils.showElement("feature-scores-wrapper");
+        },
+        filterGene(input) {
+            if (!!input)
+                return this.tableGeneData.filter(row => {
+                    return (
+                        row.gene.toLowerCase().indexOf(input.toLowerCase()) > -1
+                    );
+                });
+        },
+        filterProb(input) {
+            if (!!input)
+                return this.tableGeneData.filter(row => {
+                    return row.prediction >= input;
+                });
+            else return data;
         }
     },
     watch: {
