@@ -1,16 +1,14 @@
 <template>
-    <div :ref="`${index}_${salt}`">
-        <pre></pre>
-    </div>
+    <div></div>
 </template>
+
 <script>
 import Vue from "vue";
 
-export default Vue.component('lz-associations-panel', {
-
+export default Vue.component("lz-associations-panel", {
     props: {
         phenotype: {
-            type: String,
+            type: String
             // required: true
         },
         finishHandler: {
@@ -28,11 +26,21 @@ export default Vue.component('lz-associations-panel', {
     },
     data() {
         return {
-            id: null,
-        }
+            id: null
+        };
     },
     mounted() {
-        this.id = this.$parent.addAssociationsPanel(this.phenotype);
+        this.updatePanel();
+    },
+    methods: {
+        updatePanel() {
+            this.id = this.$parent.addAssociationsPanel(
+                this.phenotype,
+                this.finishHandler,
+                this.resolveHandler,
+                this.errHandler
+            );
+        }
     },
     // beforeDestroy() {
     //     this.$parent.plot.removePanel(this.id);
@@ -40,16 +48,16 @@ export default Vue.component('lz-associations-panel', {
     watch: {
         phenotype(newPhenotype) {
             // This is good enough
-            this.$parent.plot.removePanel(this.id);
-            this.id = null;
-            this.id = this.$parent.addAssociationsPanel(this.phenotype);
+            if (!!this.id) {
+                this.$parent.plot.removePanel(this.id);
+            }
+
+            this.updatePanel();
 
             // this.$parent.addAssociationsPanelComponent(this, {
             //     phenotype: newPhenotype
             // });
         }
     }
-})
-
+});
 </script>
-
