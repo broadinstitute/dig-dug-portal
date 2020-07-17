@@ -40,9 +40,6 @@ export default Vue.component("lz-associations-panel", {
             this.$parent.plot.removePanel(this.id);
            
             this.id = this.$parent.addAssociationsPanel(this.phenotype);
-            // this.$parent.addAssociationsPanelComponent(this, {
-            //     phenotype: newPhenotype
-            // });
         }
     }
 });

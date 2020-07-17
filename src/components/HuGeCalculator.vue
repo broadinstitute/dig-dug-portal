@@ -1,14 +1,11 @@
 <template>
     <div>
-        <locuszoom
-            v-if="phenotype"
-            ref="locuszoom"
-            :chr="chromosome"
-            :start="start"
-            :end="end"
-            :refSeq="true"
-        >
-            <lz-associations-panel :phenotype="phenotype"></lz-associations-panel>
+        <locuszoom ref="locuszoom" :chr="chromosome" :start="start" :end="end" :refSeq="true">
+            <lz-associations-panel
+                v-if="phenotype"
+                :phenotype="phenotype"
+                :finish-handler="dataLoaded"
+            ></lz-associations-panel>
         </locuszoom>
     </div>
 </template>
@@ -32,15 +29,16 @@ export default Vue.component("huge-calculator", {
     props: ["chromosome", "start", "end", "phenotype"],
 
     data() {
-        return {
-            currentAssociationsPanel: null,
-            phenotype: phenotype || null
-        };
+        return {};
     },
 
     computed: {},
 
-    methods: {},
+    methods: {
+        dataLoaded(data) {
+            console.log(data);
+        }
+    },
 
     watch: {}
 });
