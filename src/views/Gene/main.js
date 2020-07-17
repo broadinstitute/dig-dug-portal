@@ -75,8 +75,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        // LocusZoom has "Panels"
-     
+
 
     },
 
@@ -162,7 +161,7 @@ new Vue({
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
         },
-       
+
 
     }
 }).$mount("#app");

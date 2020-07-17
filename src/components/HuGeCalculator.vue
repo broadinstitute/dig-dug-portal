@@ -7,6 +7,7 @@
                 :finish-handler="dataLoaded"
             ></lz-associations-panel>
         </locuszoom>
+        <associations-table :phenotype="phenotype" :associations="associations"></associations-table>
     </div>
 </template>
 
@@ -19,14 +20,16 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import AssociationsTable from "@/components/AssociationsTable";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.component("locuszoom", LocusZoom);
 Vue.component("lz-associations-panel", LocusZoomAssociationsPanel);
+Vue.component("associations-table", AssociationsTable);
 
 export default Vue.component("huge-calculator", {
-    props: ["chromosome", "start", "end", "phenotype"],
+    props: ["chromosome", "start", "end", "phenotype", "associations"],
 
     data() {
         return {};
@@ -37,7 +40,8 @@ export default Vue.component("huge-calculator", {
     methods: {
         dataLoaded(data) {
             console.log(data);
-        }
+        },
+       
     },
 
     watch: {}
