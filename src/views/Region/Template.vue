@@ -141,12 +141,17 @@
 
                     <locuszoom
                         ref="locuszoom"
+                        v-if="$store.state.phenotype"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
                         :end="$store.state.end"
-                        :refSeq="true">
+                        :refSeq="true"
+                    >
+                        <lz-associations-panel
+                            :phenotype="$store.state.phenotype.name"
+                            :finishHandler="$parent.updateAssociationsTable"
+                        ></lz-associations-panel>
                     </locuszoom>
-
                 </div>
             </div>
 
@@ -180,7 +185,8 @@
                                     <div class="label">Annotation Method Track</div>
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
-                                        @annotation="$parent.addAnnotationTrack($event)"/>
+                                        @annotation="$parent.addAnnotationTrack($event)"
+                                    />
                                 </div>
 
                                 <div class="col filter-col-sm">
@@ -197,7 +203,8 @@
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
-                                        @credibleset="$parent.addCredibleVariantTrack($event)"/>
+                                        @credibleset="$parent.addCredibleVariantTrack($event)"
+                                    />
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>
@@ -214,15 +221,16 @@
 
                         <div v-if="!!$store.state.phenotype">
                             <!-- TODO: Refactor p-value, fold, colorscheme, scoring to providers? -->
-                            <igv ref="igv"
+                            <igv
+                                ref="igv"
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
                                 :p-value="$parent.pValue"
                                 :fold="$parent.fold"
-                                :scoring="$parent.tissueScoring"/>
+                                :scoring="$parent.tissueScoring"
+                            />
                         </div>
-
                     </div>
                 </div>
             </div>

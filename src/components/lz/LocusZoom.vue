@@ -149,12 +149,20 @@ export default Vue.component("locuszoom", {
 
                 const trackComponentInstance = new LZPanelConstructor({
                     propsData: panelConfig,
-                    parent: this
+                    parent: this,
                 }).$mount(vueContainer);
+
             } else {
-                console.log("lz is null right now");
+                console.log('lz is null right now')
             }
         },
+
+        // addAssociationsPanelComponent: function(phenotype) {
+        //     console.log('add associations panel component')
+        //     this.addLZComponent(LocusZoomAssociationsPanel, {
+        //         phenotype
+        //     });
+        // },
 
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional

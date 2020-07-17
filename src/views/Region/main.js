@@ -13,6 +13,7 @@ import IGV from "@/components/igv/IGV.vue"
 import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 
 import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
@@ -45,7 +46,9 @@ new Vue({
         LunarisLink,
 
         LocusZoom,
+        LocusZoomAssociationsPanel,
         AssociationsTable,
+
         PhenotypeSignalMixed,
 
         IGV,
@@ -70,6 +73,9 @@ new Vue({
             // I keep on forgetting this 'q'
             this.$store.dispatch('credibleSets/query', { q: `${phenotype},${region}` })
         });
+
+        // this.$children[0].$refs.locuszoom.addAssociationsPanelComponent('T2D')
+
     },
 
     render(createElement) {
@@ -99,14 +105,15 @@ new Vue({
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
-            let self = this;
-            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
-                // this arg for dataLoaded callback, next arg for dataResolved callback, last arg for error callback
-                function (dataLoadedResponse) {
-                    self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
-                }
+            let finishHandler = this.updateAssociationsTable;
+            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
+                phenotype,
+                finishHandler
             );
             return newAssociationsPanelId;
+        },
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, data);
         },
         // TODO: refactor to closure for extra programmer points
         // TODO: does the idea of using components handle this problem?
@@ -281,7 +288,7 @@ new Vue({
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement('phenotypeSearchHolder');
 
-            this.updateAssociationsPanel(phenotype.name);
+            // this.updateAssociationsPanel(phenotype.name);
 
             // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
             this.$store.dispatch('globalEnrichment/query', { q: phenotype.name });

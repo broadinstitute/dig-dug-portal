@@ -1,13 +1,10 @@
 <template>
-    <div :ref="`${index}_${salt}`">
-        <pre></pre>
-    </div>
+    <div></div>
 </template>
 <script>
 import Vue from "vue";
 
-export default Vue.component('lz-phewas-panel', {
-
+export default Vue.component("lz-phewas-panel", {
     props: {
         varId: {
             type: String,
@@ -32,22 +29,34 @@ export default Vue.component('lz-phewas-panel', {
     },
     data() {
         return {
-            id: null,
-        }
+            id: null
+        };
     },
     mounted() {
-        this.id = this.$parent.addPhewasPanel(this.phenotype);
+        this.updatePanel();
     },
+    methods: {
+        updatePanel() {
+            this.id = this.$parent.addPhewasPanel(
+                this.varId,
+                this.phenotypeMap,
+                this.finishHandler,
+                this.resolveHandler,
+                this.errHandler
+            );
+        }
+    },
+    // beforeDestroy() {
+    //     this.$parent.plot.removePanel(this.id);
+    // },
     watch: {
         varId(newVarId) {
             // this is good enough
-            this.$parent.plot.removePanel(this.id);
-            this.id = null;
-            this.id = this.$parent.addPhewasPanel(newVarId);
+            if (!!this.id) {
+                this.$parent.plot.removePanel(this.id);
+            }
+            this.updatePanel();
         }
-    },
-  
-})
-
+    }
+});
 </script>
-

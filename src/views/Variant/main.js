@@ -50,12 +50,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
     },
 
-    mounted() {
-        this.addPhewasPanel({
-            varId: this.$store.state.variantID,
-        });
-    },
-
     render(createElement, context) {
         return createElement(Template);
     },
@@ -66,13 +60,6 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        addPhewasPanel(event) {
-            if(!!this.$store.state.bioPortal.phenotypeMap) {
-                const { varId } = event;
-                const newPhewasPanelId = this.$children[0].$refs.locuszoom.addPhewasPanel(varId, this.$store.state.bioPortal.phenotypeMap);
-                return newPhewasPanelId;
-            }
-        },
     },
 
     computed: {
