@@ -601,7 +601,7 @@
                     <div>Top-20 Gene Features</div>
                 </div>
                 <template v-for="(row, i) in filteredData">
-                    <effector-genes-item :gene="row" :key="i"></effector-genes-item>
+                    <effector-genes-richards-item :gene="row" :key="i"></effector-genes-richards-item>
                 </template>
             </div>
         </div>
@@ -611,7 +611,7 @@
 <script>
 import Vue from "vue";
 import $ from "jquery";
-import EffectorGenesItem from "@/components/EffectorGenesItem";
+import EffectorGenesRichardsItem from "@/components/EffectorGenesRichardsItem";
 import keyParams from "@/utils/keyParams";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
@@ -620,7 +620,7 @@ Vue.use(BootstrapVueIcons);
 export default Vue.component("effector-genes-richards", {
     props: ["tableData"],
     components: {
-        EffectorGenesItem
+        EffectorGenesRichardsItem
     },
     data() {
         return {

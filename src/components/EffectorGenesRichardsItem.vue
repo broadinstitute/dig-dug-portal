@@ -118,7 +118,7 @@
 <script>
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
-export default Vue.component("effector-genes-item", {
+export default Vue.component("effector-genes-richards-item", {
     props: ["gene"],
     data() {
         return {
