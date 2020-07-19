@@ -106,13 +106,6 @@ div.filtering-tools {
     width: auto;
 }
 
-.prob_score_1,
-.prob_score_2,
-.prob_score_3,
-.prob_score_4,
-.prob_score_5 {
-}
-
 div.legends1,
 div.legends2 {
     text-align: left;
@@ -146,27 +139,27 @@ div.legends span > b {
     font-size: 14px;
 }
 
-.prob_score_1 div.prob,
+div.prob.prob_score_1,
 div.legends span.legend.prob_1 {
     background-color: rgba(91, 203, 245, 0);
 }
 
-.prob_score_2 div.prob,
+div.prob.prob_score_2,
 div.legends span.legend.prob_2 {
     background-color: rgba(91, 203, 245, 0.15);
 }
 
-.prob_score_3 div.prob,
+div.prob.prob_score_3,
 div.legends span.legend.prob_3 {
     background-color: rgba(91, 203, 245, 0.35);
 }
 
-.prob_score_4 div.prob,
+div.prob.prob_score_4,
 div.legends span.legend.prob_4 {
     background-color: rgba(91, 203, 245, 0.55);
 }
 
-.prob_score_5 div.prob,
+div.prob.prob_score_5,
 div.legends span.legend.prob_5 {
     background-color: rgba(91, 203, 245, 1);
 }
@@ -192,7 +185,7 @@ div.legends span.legend.prob_5 {
     color: #fff;
 }
 
-.snp_eff_5 {
+.snp_eff_0 {
     background-color: rgba(255, 150, 0, 1) !important;
     color: #fff;
 }

@@ -1,7 +1,7 @@
 <template>
-    <div>
+    <div class="row-summary">
         <div class="sum geneName">{{this.gene.gene}}</div>
-        <div class="sum prob">
+        <div class="sum prob" :class="this.classProb">
             {{parseFloat(this.gene.prediction).toFixed(decimals)}}
             <button
                 class="btn btn-xs btn-default probBtn"
@@ -77,7 +77,7 @@
                 <div class="rowVariant" v-for="(v, i) in this.gene.variants">
                     <div class="variantID">{{v.id}}</div>
                     <template v-for="(f,j) in v.features">
-                        <div :class="`${j}`">{{f}}</div>
+                        <div :class="classImpact(v,j)">{{f}}</div>
                     </template>
                 </div>
             </div>
@@ -127,10 +127,37 @@ export default Vue.component("effector-genes-item", {
             showFeatures: false
         };
     },
+    computed: {
+        classProb() {
+            let prob = this.gene.prediction;
+            let lvl = "";
+            switch (true) {
+                case prob >= 0.8:
+                    lvl = "5";
+                    break;
+                case prob >= 0.6:
+                    lvl = "4";
+                    break;
+                case prob >= 0.4:
+                    lvl = "3";
+                    break;
+                case prob >= 0.2:
+                    lvl = "2";
+                    break;
+                default:
+                    lvl = "1";
+            }
+            return `prob_score_${lvl}`;
+        }
+    },
     methods: {
         plotGene() {
             this.$store.dispatch("selectGene", this.gene.gene);
             uiUtils.showElement("feature-scores-wrapper");
+        },
+        classImpact(variant, column) {
+            if (column != "snpeff.impact") return column;
+            else return `${column} snp_eff_${variant.features["snpeff.rank"]}`;
         }
     }
 });

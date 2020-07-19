@@ -587,7 +587,7 @@
                     <span class="legend snp_eff_3">moderate</span>
                     <span class="legend snp_eff_2">low</span>
                     <span class="legend snp_eff_1">modifier</span>
-                    <span class="legend snp_eff_5">none</span>
+                    <span class="legend snp_eff_0">none</span>
                 </div>
                 <div class="legends legends2">
                     <span>*Hover gene name for gene information</span>
@@ -612,7 +612,6 @@
 import Vue from "vue";
 import $ from "jquery";
 import EffectorGenesItem from "@/components/EffectorGenesItem";
-import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
 import { BootstrapVueIcons } from "bootstrap-vue";
 
@@ -652,11 +651,6 @@ export default Vue.component("effector-genes-richards", {
         }
     },
     methods: {
-        showGene(gene) {
-            //console.log("gene", gene);
-            this.$store.dispatch("selectGene", gene);
-            uiUtils.showElement("feature-scores-wrapper");
-        },
         filterGene(input) {
             if (!!input)
                 return this.tableGeneData.filter(row => {
@@ -671,15 +665,6 @@ export default Vue.component("effector-genes-richards", {
                     return row.prediction >= parseFloat(input);
                 });
             else return data;
-        },
-        toggleInfo(divID) {
-            console.log(divID);
-            $("div#eiInfo_" + divID).addClass("hidden");
-            $("div#info_" + divID).toggleClass("hidden");
-        },
-        toggleEI(divID) {
-            $("div#info_" + divID).addClass("hidden");
-            $("div#eiInfo_" + divID).toggleClass("hidden");
         }
     },
     watch: {
