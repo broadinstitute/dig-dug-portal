@@ -1,10 +1,25 @@
 <template>
     <div class="row-summary">
-        <div class="sum geneName">{{this.gene.gene}}</div>
+        <div class="sum geneName">
+            {{this.gene.gene}}
+            <div class="geneInfo">
+                <span>NCBI ID:</span>
+                <span>Ensembl ID:</span>
+                <span>Location:</span>
+                <span>Gene strand: {{this.gene.variants[0].features["gene.strand"]}}</span>
+                <span>Gene TSS:</span>
+                <span>
+                    <a :href="'/gene.html?gene='+this.gene.gene">Go to gene page</a>
+                </span>
+                <span>
+                    <a :href="'javascript:;'">Go to region page</a>
+                </span>
+            </div>
+        </div>
         <div class="sum prob" :class="this.classProb">
             {{parseFloat(this.gene.prediction).toFixed(decimals)}}
             <button
-                class="btn btn-xs btn-default probBtn"
+                class="btn btn-sm btn-default probBtn"
                 @click="showVariants = !showVariants"
             >View variant features</button>
         </div>
@@ -75,10 +90,33 @@
             </div>
             <div class="probDetails">
                 <div class="rowVariant" v-for="(v, i) in this.gene.variants">
-                    <div class="variantID">{{v.id}}</div>
-                    <template v-for="(f,j) in v.features">
+                    <div class="variantID probDetail">{{v.id}}</div>
+                    <div class="probDetail">{{v.features["snp.locus"]}}</div>
+                    <div class="probDetail">{{v.features["snp.pos"]}}</div>
+                    <div class="probDetail">{{v.features["maf"]}}</div>
+                    <div class="probDetail">{{v.features["beta"]}}</div>
+                    <div class="probDetail">{{v.features["se"]}}</div>
+                    <div class="probDetail">{{v.features["z"]}}</div>
+                    <div class="probDetail">{{v.features["prob"]}}</div>
+                    <div class="probDetail">{{v.features["log10bf"]}}</div>
+                    <div class="probDetail">{{v.features["log10bf_group"]}}</div>
+                    <div
+                        :class="'probDetail snp_eff_' + v.features['snpeff.rank']"
+                    >{{v.features["snpeff.impact"]}}</div>
+                    <div class="probDetail">{{v.features["dsbsnp.func"]}}</div>
+                    <div class="probDetail">{{v.features["is.dbsnp.delit"]}}</div>
+                    <div class="probDetail">{{v.features["is.snpeff.delit"]}}</div>
+                    <div class="probDetail">{{v.features["snp.in.trait.DHS"]}}</div>
+                    <div class="probDetail">{{v.features["nearest.trait.DHS.from.gene"]}}</div>
+                    <div class="probDetail">{{v.features["nearest.gene.from.trait.DHS"]}}</div>
+                    <div class="probDetail">{{v.features["snp.in.DHS"]}}</div>
+                    <div class="probDetail">{{v.features["nearest.DHS.from.gene"]}}</div>
+                    <div class="probDetail">{{v.features["nearest.gene.from.DHS"]}}</div>
+                    <div class="probDetail">{{v.features["in.gtex"]}}</div>
+
+                    <!--<template v-for="(f,j) in v.features">
                         <div :class="classImpact(v,j)">{{f}}</div>
-                    </template>
+                    </template>-->
                 </div>
             </div>
         </div>
@@ -107,9 +145,36 @@
                 <div class="col20ei" title="Nearest SNP in DHS / Δg">dhsSNP/dist</div>
             </div>
             <div class="eiDetails">
-                <template v-for="(f, i) in this.gene.features.predictor">
+                <div class v-for="(v, i) in this.gene.features">
+                    <div :class="'col'+i+'ei eiDetail'">{{v["Ei"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.locus.no.genes"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.snpeff.rank"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.locus.no.SNPs"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.sum.nearest.gene.from.DHS"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.min.snp.tss.dist"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.max.locus.z"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.sum.overlap.bf"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.max.length"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.mean.dist.prob"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.max.overlap.1m.snpeff.one"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.max.beta.overlap"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.max.maf"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.mean.dist.prob.square"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.sum.snp.in.DHS.count.beta"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.max.1m.snpeff.impact.none"]}}</div>
+                    <div
+                        :class="'col'+i+'ei eiDetail'"
+                    >{{v["fn.sum.nearest.nearest.DHS.from.gene.snp.in.DHS"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.max.z"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.mean.locus.prob"]}}</div>
+                    <div :class="'col'+i+'ei eiDetail'">{{v["fn.mean.beta.overlap"]}}</div>
+                    <div
+                        :class="'col'+i+'ei eiDetail'"
+                    >{{v["fn.nearest.trait.DHS.from.gene.dist.inv"]}}</div>
+                </div>
+                <!--<template v-for="(f, i) in this.gene.features.predictor">
                     <div :class="`${i}`" :key="i">{{f}}</div>
-                </template>
+                </template>-->
             </div>
         </div>
     </div>

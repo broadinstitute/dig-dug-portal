@@ -18,27 +18,28 @@
 .row.locus_y_1 {
     border-right: 8px #fa0 solid;
 }
-div#data .row {
+div.data .row {
     margin: 0 !important;
     border-bottom: solid 1px #fff;
 }
 
-div#data .row:hover {
+div.data .row:hover {
     background-color: #eee;
 }
 
-div#data div.row > div.sum,
-div#data div.headers > div {
+div.data div.row-summary > div.sum,
+div.data div.headers > div {
     display: inline-block;
     width: 25%;
+    width: 33%;
     white-space: nowrap;
     text-overflow: ellipsis;
     padding: 3px 8px;
     vertical-align: top;
 }
 
-div#data div.row.headers,
-div#data div.eiDetails {
+div.data div.row.headers,
+div.data div.eiDetails {
     border-bottom: solid 1px #bbb;
     margin-bottom: 5px !important;
 }
@@ -75,6 +76,7 @@ div.filtering-tools {
     text-align: center;
     margin-bottom: 40px;
     padding-top: 8px;
+    font-size: 14px;
 }
 
 #traits,
@@ -104,6 +106,7 @@ div.filtering-tools {
 
 #selectTrait {
     width: auto;
+    font-size: 14px;
 }
 
 div.legends1,
@@ -164,30 +167,28 @@ div.legends span.legend.prob_5 {
     background-color: rgba(91, 203, 245, 1);
 }
 
-.snp_eff_4 {
-    /*background-color: rgba(100, 200, 0, 1) !important;*/
-    background-color: rgba(255, 50, 0, 1) !important;
+.snp_eff_4, .snp_eff_3, .snp_eff_2, .snp_eff_1, .snp_eff_0 {
     color: #fff;
+}
+
+.snp_eff_4 {
+    background-color: rgba(255, 50, 0, 1) !important;
 }
 
 .snp_eff_3 {
     background-color: rgba(100, 100, 255, 1) !important;
-    color: #fff;
 }
 
 .snp_eff_2 {
     background-color: rgba(0, 150, 200, 1) !important;
-    color: #fff;
 }
 
 .snp_eff_1 {
     background-color: rgba(0, 180, 0, 1) !important;
-    color: #fff;
 }
 
 .snp_eff_0 {
     background-color: rgba(255, 150, 0, 1) !important;
-    color: #fff;
 }
 
 div.geneName,
@@ -349,14 +350,16 @@ div.eiDetails:hover {
     background-color: #eee;
 }
 
-div.probDetails > div,
-div.eiDetails > div {
+div.probDetails div.probDetail,
+div.eiDetails div.eiDetail {
     display: inline-block;
     width: 9%;
     max-width: 9%;
     padding: 3px 8px;
     text-align: center;
     background-color: #eee;
+    font-size: 14px;
+    border-bottom: solid 1px #fff;
 }
 
 .sum.prob {
@@ -369,6 +372,10 @@ div.eiDetails > div {
     background-color: #eef6ff;
     color: #0099bb;
     border: solid 1px #33bbdd;
+    padding: 1px 6px;
+    margin-right: 10px;
+    height: 22px;
+    font-size: 12px;
 }
 
 .sum.prob .probBtn:hover {
@@ -382,7 +389,7 @@ div.eiDetails > div {
     width: 150px !important;
 }
 
-div#data div.row > div.locusName {
+div.data div.row > div.locusName {
     white-space: normal;
 }
 
@@ -427,6 +434,8 @@ div#data div.row > div.locusName {
 .btn.eiPlot {
     padding: 1px 6px;
     margin-right: 10px;
+    height: 22px;
+    font-size: 12px;
 }
 
 .EGL-method-wrapper {
@@ -622,4 +631,13 @@ div#data div.row > div.locusName {
     padding-top: 35px;
     border-radius: 5px;
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
+}
+
+/* Richards table */
+.EGL-table-wrapper-richards {
+    font-size: 14px;
+}
+
+.EGL-table-wrapper-richards .row.headers {
+
 }

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="EGL-table-wrapper" v-if="tableGeneData">
+        <div class="EGL-table-wrapper-richards" v-if="tableGeneData">
             <div id="igv-div" class="hidden"></div>
             <div class="filtering-tools">
                 <div id="traits">
@@ -40,6 +40,7 @@
                         />
                     </div>
                 </div>
+                <!--
                 <div id="regionFilter">
                     <div class="form-group">
                         <div class="table-filter">
@@ -79,9 +80,10 @@
                             <input id="geneEnd" type="text" placeholder="End position" disabled />
                         </div>
                     </div>
-                </div>
+                </div>-->
             </div>
-            <div id="setButton">
+
+            <!--<div id="setButton">
                 <div id="colOptions" class="hidden">
                     <a class="colOptionClose" href="javascript:;">
                         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
@@ -565,7 +567,8 @@
                     </div>
                 </div>
                 <button id="setColumn" class="btn btn-default">Set columns / view column description</button>
-            </div>
+
+            </div>-->
             <div class="data">
                 <div class="legends legends1">
                     <span class="legend">
@@ -597,7 +600,7 @@
                     <div>Gene Name</div>
                     <div>Gene Probability</div>
                     <div class="hidden">Locus ID</div>
-                    <div>Locus Location</div>
+                    <!--<div>Locus Location</div>-->
                     <div>Top-20 Gene Features</div>
                 </div>
                 <template v-for="(row, i) in filteredData">
