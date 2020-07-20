@@ -19,17 +19,20 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        effectorGenes,
+        effectorGenes
     },
     state: {
-        geneName: "ABCC8",
+        geneName: ""
     },
     mutations: {
-
+        setGene(state, gene) {
+            state.geneName = gene;
+        }
     },
-    getters: {
-    },
+    getters: {},
     actions: {
-
+        selectGene(context, gene) {
+            context.commit("setGene", gene);
+        }
     }
 });

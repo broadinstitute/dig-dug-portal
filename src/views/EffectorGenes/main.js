@@ -35,14 +35,17 @@ new Vue({
         ResearchMethod,
         EffectorGenesRichards,
         EffectorGenesGraphRichards,
-        EffectorGenesManning,
+        EffectorGenesManning
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
         this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait);
-        this.$store.dispatch("effectorGenes/getEffectorGenes", { "trait": keyParams.trait, "dataset": keyParams.dataset });
+        this.$store.dispatch("effectorGenes/getEffectorGenes", {
+            trait: keyParams.trait,
+            dataset: keyParams.dataset
+        });
     },
 
     render(createElement, context) {
@@ -57,9 +60,9 @@ new Vue({
         closeAlert,
         showElement(ELEMENT) {
             uiUtils.showElement(ELEMENT);
-            this.$store.state.geneName = "AEBP1";
-            this.$forceUpdate();
-        },
+            //this.$store.state.geneName = "AEBP1";
+            //this.$forceUpdate();
+        }
     },
 
     computed: {
@@ -102,9 +105,9 @@ new Vue({
         },
         effectorGenesTable() {
             let contents = {
-                "richards": EffectorGenesRichards,
-                "manning": EffectorGenesManning,
-                "mccarthy": EffectorGenesMccarthy,
+                richards: EffectorGenesRichards,
+                manning: EffectorGenesManning,
+                mccarthy: EffectorGenesMccarthy
             };
 
             //let datasetName = 'EffectorGenes' + keyParams.dataset[0].toUpperCase() + keyParams.dataset.substr(1);
@@ -115,7 +118,7 @@ new Vue({
         },
         effectorGenesGraph() {
             let contents = {
-                'richards': EffectorGenesGraphRichards,
+                richards: EffectorGenesGraphRichards
             };
 
             //let datasetName = 'EffectorGenes' + keyParams.dataset[0].toUpperCase() + keyParams.dataset.substr(1);
@@ -123,14 +126,12 @@ new Vue({
 
             //return contents;
             return contents[keyParams.dataset];
-        },
+        }
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-
         }
-
     }
 }).$mount("#app");

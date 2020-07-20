@@ -16,7 +16,7 @@
 }
 
 .row.locus_y_1 {
-    border-right: 8px #FA0 solid;
+    border-right: 8px #fa0 solid;
 }
 div#data .row {
     margin: 0 !important;
@@ -27,7 +27,8 @@ div#data .row:hover {
     background-color: #eee;
 }
 
-div#data div.row > div.sum , div#data div.headers>div {
+div#data div.row > div.sum,
+div#data div.headers > div {
     display: inline-block;
     width: 25%;
     white-space: nowrap;
@@ -36,21 +37,19 @@ div#data div.row > div.sum , div#data div.headers>div {
     vertical-align: top;
 }
 
-div#data div.row.headers, div#data div.eiDetails {
+div#data div.row.headers,
+div#data div.eiDetails {
     border-bottom: solid 1px #bbb;
     margin-bottom: 5px !important;
 }
-
-
-
 
 .selected {
     color: blue;
 }
 
-
-
-.hidden, .start-hidden, .end-hidden {
+.hidden,
+.start-hidden,
+.end-hidden {
     display: none;
 }
 
@@ -58,13 +57,15 @@ div#data div.row.headers, div#data div.eiDetails {
     font-weight: bold;
     font-size: 1.2em;
 }
-.probHeaders, .eiHeaders {
+.probHeaders,
+.eiHeaders {
     font-size: 1.1em;
 }
 #setButton {
     text-align: right;
 }
-.prob, .ei {
+.prob,
+.ei {
     cursor: pointer;
 }
 div.filtering-tools {
@@ -76,9 +77,13 @@ div.filtering-tools {
     padding-top: 8px;
 }
 
-#traits, #regionFilter { display: inline-block; }
+#traits,
+#regionFilter {
+    display: inline-block;
+}
 
-.table-filter, #traits {
+.table-filter,
+#traits {
     display: inline-block;
     padding-right: 5px;
     padding-left: 5px;
@@ -93,15 +98,16 @@ div.filtering-tools {
     border-right: none;
 }
 
-.table-filter label { display: block; }
-
-#selectTrait { width: auto;  }
-
-.prob_score_1, .prob_score_2, .prob_score_3, .prob_score_4, .prob_score_5 {
-
+.table-filter label {
+    display: block;
 }
 
-div.legends1, div.legends2 {
+#selectTrait {
+    width: auto;
+}
+
+div.legends1,
+div.legends2 {
     text-align: left;
     border-bottom: solid 1px #ddd;
     padding-bottom: 10px;
@@ -116,7 +122,7 @@ div.legends2 {
     text-align: left;
 }
 
-div.legends span{
+div.legends span {
     display: inline-block;
     padding: 0px 5px;
     margin-left: 5px;
@@ -133,24 +139,29 @@ div.legends span > b {
     font-size: 14px;
 }
 
-.prob_score_1 div.prob, div.legends span.legend.prob_1 {
-    background-color: rgba(91,203,245, 0);
+div.prob.prob_score_1,
+div.legends span.legend.prob_1 {
+    background-color: rgba(91, 203, 245, 0);
 }
 
-.prob_score_2 div.prob, div.legends span.legend.prob_2 {
-    background-color: rgba(91,203,245, .15);
+div.prob.prob_score_2,
+div.legends span.legend.prob_2 {
+    background-color: rgba(91, 203, 245, 0.15);
 }
 
-.prob_score_3 div.prob, div.legends span.legend.prob_3 {
-    background-color: rgba(91,203,245, .35);
+div.prob.prob_score_3,
+div.legends span.legend.prob_3 {
+    background-color: rgba(91, 203, 245, 0.35);
 }
 
-.prob_score_4 div.prob, div.legends span.legend.prob_4 {
-    background-color: rgba(91,203,245, .55);
+div.prob.prob_score_4,
+div.legends span.legend.prob_4 {
+    background-color: rgba(91, 203, 245, 0.55);
 }
 
-.prob_score_5 div.prob, div.legends span.legend.prob_5 {
-    background-color: rgba(91,203,245, 1);
+div.prob.prob_score_5,
+div.legends span.legend.prob_5 {
+    background-color: rgba(91, 203, 245, 1);
 }
 
 .snp_eff_4 {
@@ -174,20 +185,21 @@ div.legends span > b {
     color: #fff;
 }
 
-.snp_eff_5 {
+.snp_eff_0 {
     background-color: rgba(255, 150, 0, 1) !important;
     color: #fff;
 }
 
-div.geneName, div.chromLocation {
+div.geneName,
+div.chromLocation {
     position: relative;
     color: #337ab7;
     cursor: pointer;
     font-weight: 500;
 }
 
-div.geneName div.geneInfo, div.chromLocation span.viewLocus {
-
+div.geneName div.geneInfo,
+div.chromLocation span.viewLocus {
     width: 0px;
     height: 0px;
     padding: 0px;
@@ -199,7 +211,7 @@ div.geneName div.geneInfo, div.chromLocation span.viewLocus {
     -o-transition: all 0.3s ease-out;
     transition: all 0.3s ease-out;
     position: absolute;
-    z-index:100;
+    z-index: 100;
     border: none;
     border-radius: 5px;
 }
@@ -208,19 +220,22 @@ div.chromLocation span.viewLocus {
     left: 70%;
 }
 
-div.geneName:hover div.geneInfo, div.chromLocation:hover span.viewLocus {
+div.geneName:hover div.geneInfo,
+div.chromLocation:hover span.viewLocus {
     width: auto;
     height: auto;
     padding: 10px;
     border: solid 1px #ddd;
-    box-shadow: 5px 5px 5px rgba(0,0,0, 0.25);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
 }
-div.geneName:hover div.geneInfo span, div.chromLocation:hover span.viewLocus .btn {
+div.geneName:hover div.geneInfo span,
+div.chromLocation:hover span.viewLocus .btn {
     display: block;
     text-align: left;
 }
 
-div.geneName div.geneInfo span, div.chromLocation span.viewLocus .btn {
+div.geneName div.geneInfo span,
+div.chromLocation span.viewLocus .btn {
     display: none;
     color: #000;
     font-weight: 400;
@@ -234,8 +249,8 @@ div.legends .legend.locus_y_0 {
     background-color: #eee;
 }
 
-div.legends  .legend.locus_y_1 {
-    background-color: #FA0;
+div.legends .legend.locus_y_1 {
+    background-color: #fa0;
 }
 
 #colOptions {
@@ -248,7 +263,7 @@ div.legends  .legend.locus_y_1 {
     padding-right: 15px;
     width: 600px;
     border-radius: 15px;
-    box-shadow: 5px 5px 5px rgba(0,0,0,0.25);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
     height: 650px;
 }
 
@@ -274,7 +289,6 @@ div.legends  .legend.locus_y_1 {
     color: #888;
 }
 
-
 #colOptions .colInfo span {
     display: block;
 }
@@ -283,8 +297,9 @@ div.legends  .legend.locus_y_1 {
     display: block;
 }
 
-div.probInfo, div.eiInfo {
-    position:relative;
+div.probInfo,
+div.eiInfo {
+    position: relative;
     border-top: 1px solid #000;
     border-bottom: 1px solid #000;
     background-color: #fff;
@@ -293,13 +308,15 @@ div.probInfo, div.eiInfo {
     overflow-x: auto;
 }
 
-div.probHeaders, div.eiHeaders {
+div.probHeaders,
+div.eiHeaders {
     width: auto;
     display: block;
-    white-space : nowrap;
+    white-space: nowrap;
 }
 
-div.probHeaders > div, div.eiHeaders > div{
+div.probHeaders > div,
+div.eiHeaders > div {
     display: inline-block;
     width: 9%;
     max-width: 9%;
@@ -318,19 +335,22 @@ div.probHeaders > div, div.eiHeaders > div{
     */
 }
 
-div.probDetails, div.eiDetails {
+div.probDetails,
+div.eiDetails {
     background-color: #fff;
     display: block;
-    white-space : nowrap;
+    white-space: nowrap;
     border-bottom: solid 1px #fff;
     clear: both;
 }
 
-div.probDetails:hover, div.eiDetails:hover {
+div.probDetails:hover,
+div.eiDetails:hover {
     background-color: #eee;
 }
 
-div.probDetails > div, div.eiDetails > div {
+div.probDetails > div,
+div.eiDetails > div {
     display: inline-block;
     width: 9%;
     max-width: 9%;
@@ -355,13 +375,12 @@ div.probDetails > div, div.eiDetails > div {
     background-color: #ffffff;
 }
 
-.filtering-tools input[type=text] {
+.filtering-tools input[type="text"] {
     height: 34px;
     border: solid 1px #ccc;
     padding: 5px;
     width: 150px !important;
 }
-
 
 div#data div.row > div.locusName {
     white-space: normal;
@@ -372,7 +391,7 @@ div#data div.row > div.locusName {
 }
 
 .effector_genes_page_title {
-    font-family: 'Oswald';
+    font-family: "Oswald";
     font-size: 55px;
     padding-bottom: 20px;
     border-bottom: solid 2px #dddddd;
@@ -401,14 +420,14 @@ div#data div.row > div.locusName {
 
 #effector-genes-table-switch > a.switch.active {
     color: #000;
-    border-bottom:solid 1px #fff;
+    border-bottom: solid 1px #fff;
 }
 
-.btn.eiButton, .btn.eiPlot {
+.btn.eiButton,
+.btn.eiPlot {
     padding: 1px 6px;
     margin-right: 10px;
 }
-
 
 .EGL-method-wrapper {
     font-size: 16px;
@@ -418,7 +437,6 @@ div#data div.row > div.locusName {
     font-size: 18px;
 }
 
-
 /* loading animation */
 
 #load_spinner {
@@ -427,16 +445,16 @@ div#data div.row > div.locusName {
     height: 160px;
     padding-top: 10px;
     color: #fff;
-    background-color: rgba(0,0,0,0.75);
+    background-color: rgba(0, 0, 0, 0.75);
     top: 200px;
     text-align: center;
     border-radius: 10px;
 }
 
 .lds-grid {
-    position:absolute;
-    top:40px;
-    left:40px;
+    position: absolute;
+    top: 40px;
+    left: 40px;
     width: 80px;
     height: 80px;
 }
@@ -445,7 +463,7 @@ div#data div.row > div.locusName {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: rgb(91,203,245);
+    background: rgb(91, 203, 245);
     animation: lds-grid 1.2s linear infinite;
 }
 .lds-grid div:nth-child(1) {
@@ -494,7 +512,8 @@ div#data div.row > div.locusName {
     animation-delay: -1.6s;
 }
 @keyframes lds-grid {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
     }
     50% {
@@ -505,7 +524,7 @@ div#data div.row > div.locusName {
 /* for plots */
 .feature-scores-wrapper {
     position: fixed;
-    top:15%;
+    top: 15%;
     left: 0;
     width: 86%;
     margin-left: 7%;
@@ -515,7 +534,7 @@ div#data div.row > div.locusName {
     padding: 10px;
     padding-bottom: 1px;
     border-radius: 5px;
-    box-shadow: 5px 5px 5px rgba(0,0,0,0.25);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
     font-size: 14px;
 }
 .feature-scores-wrapper.hidden {
@@ -535,13 +554,12 @@ div#data div.row > div.locusName {
     white-space: nowrap;
 }
 
-
-.feature-scores .chart{
+.feature-scores .chart {
     display: inline-block;
     position: relative;
 }
 
-.feature-scores .chart h5{
+.feature-scores .chart h5 {
     position: absolute;
     width: 100%;
     text-align: center;
@@ -564,18 +582,20 @@ div#data div.row > div.locusName {
 
 .feature-scores .chart .data-line {
     fill: none;
-    stroke: #55AAEE;
+    stroke: #55aaee;
     stroke-width: 1.25;
 }
 
-.feature-plot-close, .igv-close {
+.feature-plot-close,
+.igv-close {
     position: absolute;
     top: 10px;
     right: 10px;
     color: #aaa;
 }
 
-.feature-plot-close:hover, .igv-close:hover {
+.feature-plot-close:hover,
+.igv-close:hover {
     color: #333;
 }
 
@@ -587,12 +607,11 @@ div#data div.row > div.locusName {
     text-anchor: end;
 }
 
-
 /* IGV */
 
 #igv-div {
     position: fixed;
-    top:15%;
+    top: 15%;
     left: 0;
     width: 86%;
     margin-left: 7%;
@@ -602,5 +621,5 @@ div#data div.row > div.locusName {
     padding: 10px;
     padding-top: 35px;
     border-radius: 5px;
-    box-shadow: 5px 5px 5px rgba(0,0,0,0.25);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
 }
