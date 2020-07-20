@@ -141,11 +141,11 @@
                     <a :href="`/gene.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
                 </template>
                 <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
-                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}_beta`]) : r.item[`${p.name}_beta`])}}</span>
+                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p}_beta`]) : r.item[`${p}_beta`])}}</span>
                     <span
-                        :class="`effect ${r.item[`${p.name}_beta`] < 0 ? 'negative' : 'positive'}`"
+                        :class="`effect ${r.item[`${p}_beta`] < 0 ? 'negative' : 'positive'}`"
                         style="float:right"
-                    >{{r.item[`${p.name}_beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
+                    >{{r.item[`${p}_beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
                 </template>
                 <template v-slot:cell()
             </b-table>
@@ -235,7 +235,7 @@ export default Vue.component("associations-table", {
 
                 fields = fields.concat([
                     {
-                        key: `${p.name}_pValue`,
+                        key: `${p}_pValue`,
                         label: `P-Value`,
                         formatter: Formatters.pValueFormatter,
                         tdClass(x) {
@@ -245,7 +245,7 @@ export default Vue.component("associations-table", {
                         }
                     },
                     {
-                        key: `${p.name}_beta`,
+                        key: `${p}_beta`,
                         label: !!p.dichotomous ? "Odds Ratio" : "Beta"
                     }
                 ]);
@@ -302,12 +302,12 @@ export default Vue.component("associations-table", {
                     let phenotype = this.phenotypes[i];
 
                     // ensure a p-value exists for each phenotype
-                    if (!row[`${phenotype.name}_pValue`]) {
-                        return false;
+                    if (!row[`${phenotype}_pValue`]) {
+                        return true;
                     }
                 }
 
-                return true;
+                return false;
             });
 
             // sort all the records by phenotype p-value

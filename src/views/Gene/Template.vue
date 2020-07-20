@@ -124,6 +124,7 @@
                         :start="$parent.region.start"
                         :end="$parent.region.end"
                         :phenotype="$store.state.phenotype"
+                        :phenotypes="$parent.effectorGenePhenotypes"
                         :associations="$store.state.associations.data"
                     ></huge-calculator>
                 </div>

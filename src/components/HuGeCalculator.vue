@@ -2,12 +2,11 @@
     <div>
         <locuszoom ref="locuszoom" :chr="chromosome" :start="start" :end="end" :refSeq="true">
             <lz-associations-panel
-                v-if="phenotype"
                 :phenotype="phenotype"
-                :finish-handler="dataLoaded"
+                :finishHandler="this.updateAssociationsTable"
             ></lz-associations-panel>
         </locuszoom>
-        <associations-table :phenotype="phenotype" :associations="associations"></associations-table>
+        <associations-table :phenotypes="phenotypes" :associations="associations"></associations-table>
     </div>
 </template>
 
@@ -29,7 +28,14 @@ Vue.component("lz-associations-panel", LocusZoomAssociationsPanel);
 Vue.component("associations-table", AssociationsTable);
 
 export default Vue.component("huge-calculator", {
-    props: ["chromosome", "start", "end", "phenotype", "associations"],
+    props: [
+        "chromosome",
+        "start",
+        "end",
+        "phenotype",
+        "associations",
+        "phenotypes"
+    ],
 
     data() {
         return {};
@@ -38,10 +44,12 @@ export default Vue.component("huge-calculator", {
     computed: {},
 
     methods: {
-        dataLoaded(data) {
-            console.log(data);
-        },
-       
+        // dataLoaded(data) {
+        //     console.log(data);
+        // },
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, data);
+        }
     },
 
     watch: {}
