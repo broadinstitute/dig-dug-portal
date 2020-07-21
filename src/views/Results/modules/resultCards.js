@@ -41,6 +41,7 @@ export default {
         cardsReverseTopological(state) {
             return state.getters.cardsTopological.slice().reverse();
         },
+        // TODO: refactor to results utils
         encodeHistory(state) {
             const queries = ``
             const edges = ``
@@ -48,6 +49,7 @@ export default {
         },
     },
     mutations: {
+        // TODO: refactor decoding to results utils
         decodeHistoryAndLoad(state, historyString) {
             const [preQueries, preEdges] = historyString.split('!');
             
