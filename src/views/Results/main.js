@@ -22,7 +22,7 @@ new Vue({
         return {
 
             index: 'regions',
-            queryString: 'slc30a8',
+            query: 'slc30a8',
 
             queries: [],
             dataCache: {},
@@ -33,7 +33,11 @@ new Vue({
     computed: {
         queryHashes: function() {
             // TODO: implement hash function which can also compactify the query
-            return this.queries.map(query => this.hashQuery(query));
+            // return this.queries.map(query => this.hashQuery(query));
+            return this.$store.state.resultCards.cards.map(card => {
+                const { index, query } = card;
+                return this.hashQuery({ index, query });
+            });
         }
     },
     methods: {
@@ -61,21 +65,23 @@ new Vue({
             // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
             return this.rightmostArgFromHash(queryHash).replace("_",":")
         },
-        queryBioIndexForResults(index, queryString) {
-            console.log('dispatching query', index, queryString);
+        queryBioIndexForResults(index, query, parent=-1) {
+            // TODO: parent
+
+            console.log('dispatching query', index, query, 'from', parent);
 
             this.loading = true;
 
-            const self = this;
-            const queryObj = { index: index, queryString: queryString };
-            const queryHash = self.hashQuery(queryObj);
+            const queryObj = { index, query, parent };
+            const queryHash = this.hashQuery(queryObj);
             console.log('queryHash', queryHash);
 
             if (typeof this.dataCache[queryHash] === 'undefined') {
-
-                Promise.resolve(query(queryObj.index, queryObj.queryString, { limit: null } )).then(data => {
+                const self = this;
+                Promise.resolve(query(queryObj.index, queryObj.query, { limit: null } )).then(data => {
                     self.dataCache[queryHash] = data;
-                    self.queries.push(queryObj);
+                    // self.queries.push(queryObj);
+                    self.$store.dispatch('addCard', queryObj);
                     self.loading = false;
                 });
 
@@ -83,13 +89,15 @@ new Vue({
                 console.log("didn't have to query, using cache");
                 // TODO: use jumpTo functionality here if we know that the data already exists?
                 // Hmm, intermix this with timestamps? get a cache hit, but for data at a different time -> use the cached data but identify it by timestamp
-                self.queries.push(queryObj);
-                self.loading = false;
+                
+                // self.queries.push(queryObj);
+                this.$store.dispatch('addCard', queryObj);
+                this.loading = false;
             }
 
             // this.$store.dispatch(`${this.index}/query`, { q: this.queryString });
         },
-        hashQuery({ index, queryString }) {
+        hashQuery({ index, query }) {
             // NOTA BENE: we're going to use this under conditions where it's a div ID, so it needs to follow HTML spec
             // https://stackoverflow.com/questions/70579/what-are-valid-values-for-the-id-attribute-in-html
             // For now since 'index' refers to an english word plus hyphens, we're in the clear for HTML5, but if we can't put constraints
@@ -100,7 +108,7 @@ new Vue({
             // TODO: in thr case of locii, *for now*, we'll replace colon with an underscore...
             return [
                 index,
-                queryString.replace(':', '_').replace(',','--')
+                query.replace(':', '_').replace(',','--')
             ].join('__')  // double underscore since single underscore is now reserved
         },
         jumpToElementBy(elementSelector) {
@@ -114,8 +122,6 @@ new Vue({
         elClassFormatter(text) {
             return '.'+text;
         }
-    },
-    watch: {
     },
     render(createElement, context) {
         return createElement(Template);
