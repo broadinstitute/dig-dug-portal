@@ -1,0 +1,41 @@
+{
+  "mccarthy": {
+    "isTable": false,
+    "filters": [
+      {
+        "field": "gene",
+        "label": "Gene",
+        "type": "search"
+      },
+      {
+        "field": "category",
+        "label": "Prediction",
+        "type": "dropdown"
+      },
+      {
+        "field": "genetic",
+        "label": "Genetic evidence",
+        "type": "dropdown"
+      },
+      {
+        "field": "genomic",
+        "label": "Regulatory evidence",
+        "type": "dropdown"
+      },
+      {
+        "field": "perturbational",
+        "label": "Perturbational evidence",
+        "type": "dropdown"
+      }
+    ],
+    "data_sort": "prediction",
+    "sortBy": [],
+    "render": {
+      "gene": "Gene",
+      "category": "Combined prediction",
+      "genetic": "Combined genetic evidence",
+      "genomic": "Combined regulatory evidence",
+      "perturbational": "Combined perturbation evidence"
+    }
+  }
+}
