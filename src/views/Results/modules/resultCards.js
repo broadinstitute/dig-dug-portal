@@ -43,8 +43,9 @@ export default {
         },
         // TODO: refactor to results utils
         encodeHistory(state) {
-            const queries = ``
-            const edges = ``
+            // TODO
+            const queries = state.cards.map(card => `${card.index};${card.query}`).join(',');  // ordering should equal id
+            const edges = state.edges.map(edgePair => `${edgePair[0]};${edgePair[1]}`).join(',');
             return `${queries}!${edges}`;
         },
     },
@@ -54,15 +55,25 @@ export default {
             const [preQueries, preEdges] = historyString.split('!');
             
             // const edgePairs = preEdges.match(/.{2}/g);
-            for (let i = 0, charsLength = preEdges.length; i < charsLength; i += 2) {
-                const [child, parent] = preEdges.substring(i, i + 2);
-                state.edges.push(Object.freeze([child, parent]))
-                state.parenthood[child] = parent;
-            };
+            // for (let i = 0, charsLength = preEdges.length; i < charsLength; i += 2) {
+            //     const [child, parent] = preEdges.substring(i, i + 2);
+            //     state.edges.push(Object.freeze([child, parent]))
+            //     state.parenthood[child] = parent;
+            // };
 
             // TODO
+            // Problem: parent being -1, where's the information?
+            const edgePairs = preEdges.split(',');
+            edgePairs.forEach(content => {
+                const [child, parent] = content.split(';');
+                state.edges.push(Object.freeze([child, parent]))
+                state.parenthood[child] = parent;                
+            });
+
+            // TODO
+            // Problem: parent being -1, where's the information?
             const queries = preQueries.split(',');
-            state.queries = queries.map((content, inc) => {
+            state.cards = queries.map((content, inc) => {
                 const [index, query] = content.split(';');
                 return { id: inc, index, query };
             });
