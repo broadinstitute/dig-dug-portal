@@ -3,7 +3,7 @@ import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
-import bioIndex from "@/modules/bioIndex";
+import resultCards from "./modules/resultCards"
 
 import { BIOINDEX_SCHEMA } from "./utils/resultsUtils"
 
@@ -15,13 +15,9 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        genes: bioIndex("genes"),
-        associations: bioIndex("associations"),
-        variants: bioIndex("variants"),
-        regions: bioIndex("regions"),
+        resultCards,
     },
     state: {
-        queries: [],
         indexes,
     },
     mutations: {

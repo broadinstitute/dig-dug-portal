@@ -1,14 +1,18 @@
 <template>
     <result-card :title="title">
+        <template #sidebar>
+        </template>
         <template #content>
             {{ region }}
             <locuszoom
                 ref="locuszoom"
+                :key="title"
                 :chr="region.chr"
                 :start="region.start"
                 :end="region.end"
                 :refSeq="true">
                 <lz-associations-panel
+                    :key="title+'_panel'"
                     :phenotype="phenotype"
                 ></lz-associations-panel>
             </locuszoom>
@@ -26,6 +30,8 @@ import Vue from "vue"
 import regionUtils from "@/utils/regionUtils"
 
 import ResultCard from "./ResultCard"
+import ResultsNav from "../navs/ResultsNav"
+
 import AssociationsTable from "@/components/AssociationsTable"
 import LocusZoom from "@/components/lz/LocusZoom"
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
