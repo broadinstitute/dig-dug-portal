@@ -143,7 +143,7 @@ new Vue({
             return this.$store.state.matchingEffectorGenesPhenotypes;
         },
         effectorGenePhenotypes() {
-            return [this.$store.state.phenotype];
+            return [{ "name": this.$store.state.phenotype.toUpperCase(), "description": this.$store.state.phenotype }];
         }
     },
 
