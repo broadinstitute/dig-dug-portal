@@ -15,7 +15,6 @@ import PheWASTable from "@/components/PheWASTable.vue";
 import RegionsTable from "@/components/RegionsTable.vue";
 
 import LocusZoom from "@/components/lz/LocusZoom";
-import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 
 import Formatters from "@/utils/formatters";
@@ -41,19 +40,12 @@ new Vue({
         RegionsTable,
 
         LocusZoom,
-        LocusZoomAssociationsPanel,
         LocusZoomPhewasPanel,
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-    },
-
-    mounted() {
-        this.addPhewasPanel({
-            varId: this.$store.state.variantID,
-        });
     },
 
     render(createElement, context) {
@@ -66,13 +58,6 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        addPhewasPanel(event) {
-            if(!!this.$store.state.bioPortal.phenotypeMap) {
-                const { varId } = event;
-                const newPhewasPanelId = this.$children[0].$refs.locuszoom.addPhewasPanel(varId, this.$store.state.bioPortal.phenotypeMap);
-                return newPhewasPanelId;
-            }
-        },
     },
 
     computed: {

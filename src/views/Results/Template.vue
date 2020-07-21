@@ -20,6 +20,7 @@
 
                 <b-form-input
                     v-model="$parent.queryString"
+                    :placeholder="$parent.placeholder"
                 ></b-form-input>
 
                 <template v-slot:append>
@@ -59,15 +60,6 @@
                             ></regions-result-card>
                         </div>
 
-                        <div v-else-if="$parent.bioIndexFromHash(queryHash) === 'top-associations'">
-                            <associations-result-card
-                                :title="`${queryHash}`"
-                                :associations="$parent.dataCache[queryHash]"
-                                :locus="$parent.locusFromHash(queryHash)"
-                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
-                            ></associations-result-card>
-                        </div>
-
                         <div v-else-if="$parent.bioIndexFromHash(queryHash) === 'associations'">
                             <associations-result-card
                                 :title="`${queryHash}`"
@@ -77,6 +69,14 @@
                                 @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
                             ></associations-result-card>
                         </div>
+
+                        <!-- <div v-else-if="$parent.bioIndexFromHash(queryHash) === 'variant'">
+                            <variant-result-card
+                                :title="`${queryHash}`"
+                                :variant="$parent.dataCache[queryHash]"
+                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
+                            ></variant-result-card>
+                        </div> -->
 
                         <div v-else>
                             I'm a {{queryHash}} that's not yet supported

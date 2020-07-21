@@ -6,10 +6,13 @@ import { query } from "@/utils/bioIndexUtils";
 
 import RegionsResultCard from "./cards/RegionsResultCard.vue"
 import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
+import VariantResultCard from "./cards/VariantResultCard.vue"
 
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
+
+import { BIOINDEX_SCHEMA } from "./utils/resultsUtils"
 
 Vue.use(BootstrapVue);
 new Vue({
@@ -17,6 +20,7 @@ new Vue({
     components: {
         RegionsResultCard,
         AssociationsResultCard,
+        VariantResultCard,
     },
     data() {
         return {
@@ -34,6 +38,9 @@ new Vue({
         queryHashes: function() {
             // TODO: implement hash function which can also compactify the query
             return this.queries.map(query => this.hashQuery(query));
+        },
+        placeholder() {
+            return BIOINDEX_SCHEMA.data.filter(schema => schema.index === this.index)[0].schema;
         }
     },
     methods: {

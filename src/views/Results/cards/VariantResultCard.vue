@@ -4,19 +4,12 @@
             {{ region }}
             <locuszoom
                 ref="locuszoom"
-                :chr="region.chr"
-                :start="region.start"
-                :end="region.end"
                 :refSeq="true">
-                <lz-associations-panel
-                    :phenotype="phenotype"
-                ></lz-associations-panel>
+                <lz-phewas-panel
+                    :varId="variant"
+                    :phenotypeMap="phenotypesLookup"
+                ></lz-phewas-panel>
             </locuszoom>
-            <associations-table
-                v-if="phenotypesLookup"
-                :associations="associations"
-                :phenotypes="[phenotypesLookup]"
-            ></associations-table>
         </template>
     </result-card>
 </template>
@@ -28,17 +21,15 @@ import regionUtils from "@/utils/regionUtils"
 import ResultCard from "./ResultCard"
 import AssociationsTable from "@/components/AssociationsTable"
 import LocusZoom from "@/components/lz/LocusZoom"
-import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
+import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel"
 
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"
 
-export default Vue.component('associations-result-card', {
+export default Vue.component('variant-result-card', {
     // TODO: Phenotypes – should there be a default?
     props: [
         "title",
-        "phenotype",
-        "associations",
-        "locus"
+        "variant",
     ],
     data() {
         return {
@@ -48,19 +39,14 @@ export default Vue.component('associations-result-card', {
     created() {
         let self = this;
         Promise.resolve(fetch(BIO_INDEX_HOST+'/api/portal/phenotypes').then(response => response.json()).then(json => {
-            self.phenotypesLookup = json.data.filter(phenotypeInfo => phenotypeInfo.name === this.phenotype)[0];
+            self.phenotypesLookup = json.data;
         }));
-    },
-    computed: {
-        region() {
-            return regionUtils.parseRegion(this.locus)
-        }
     },
     components: {
         ResultCard,
         LocusZoom,
         AssociationsTable,
-        LocusZoomAssociationsPanel,
+        LocusZoomPhewasPanel,
     },
 })
 </script>

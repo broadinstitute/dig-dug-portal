@@ -27,6 +27,13 @@
                         @pushQuery="$emit('pushQuery', $event)">
             </results-nav>
             <!-- TODO: Annotation-Method Navs -->
+            <results-nav v-for="(annotationWithMethod, i) in annotationsWithMethods"
+                        :key="annotationWithMethod+i"
+                        :queryKey="'annotated-regions'"
+                        :showCompoundIndexes="true"
+                        :inputValue="locusFrom(regionData)"
+                        @pushQuery="$emit('pushQuery', $event)">
+            </results-nav>
             <!-- TODO: Tissue Navs? -->
         </div>
     </div>
