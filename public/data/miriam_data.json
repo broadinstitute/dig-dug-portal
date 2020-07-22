@@ -1,0 +1,1431 @@
+{
+  "dataset": "miriam",
+  "phenotype": "T2D",
+  "qualitative": true,
+  "data": [
+    {
+      "cell": "Beta-cell",
+      "loci": "0-3.81",
+      "traits": "0-5.17",
+      "features": {
+        "loci": [
+          {
+            "Loci": "MTNR1B",
+            "SNP": "rs10830961",
+            "marker_name": "chr11:92334405",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-71'>3.81</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-5'>0.27</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "CDKAL1",
+            "SNP": "rs7756992",
+            "marker_name": "chr22:42656063",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-57'>3.05</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-2'>0.11</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "C2CD4A",
+            "SNP": "rs4502156",
+            "marker_name": "chr4:6340887",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-50'>2.68</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-11'>0.64</span>"
+          },
+          {
+            "Loci": "HHEX",
+            "SNP": "rs1111875",
+            "marker_name": "chr16:52377394",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-49'>2.66</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-2'>0.14</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0.05</span>",
+            "Liver": "<span class='cell-weight-3'>0.17</span>"
+          },
+          {
+            "Loci": "TCF7L2",
+            "SNP": "rs7903146",
+            "marker_name": "chr8:96006678",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-46'>2.47</span>",
+            "Proinsulin": "<span class='cell-weight-5'>0.29</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-13'>0.74</span>",
+            "Liver": "<span class='cell-weight-2'>0.14</span>"
+          },
+          {
+            "Loci": "SLC30A8",
+            "SNP": "rs3802177",
+            "marker_name": "chr11:43833011",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-45'>2.41</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.09</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-4'>0.22</span>",
+            "Liver": "<span class='cell-weight-4'>0.23</span>"
+          },
+          {
+            "Loci": "CDKN2A_B",
+            "SNP": "rs10811661",
+            "marker_name": "chr9:22124094",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-33'>1.77</span>",
+            "Proinsulin": "<span class='cell-weight-3'>0.2</span>",
+            "Obesity": "<span class='cell-weight-5'>0.32</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "CDC123.CAMK1D",
+            "SNP": "rs11257655",
+            "marker_name": "chr11:65121747",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-29'>1.59</span>",
+            "Proinsulin": "<span class='cell-weight-14'>0.78</span>",
+            "Obesity": "<span class='cell-weight-0'>0.05</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-7'>0.41</span>"
+          },
+          {
+            "Loci": "HNF1A",
+            "SNP": "rs7957197",
+            "marker_name": "chr10:114748339",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-29'>1.56</span>",
+            "Proinsulin": "<span class='cell-weight-7'>0.41</span>",
+            "Obesity": "<span class='cell-weight-7'>0.39</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "AP3S2",
+            "SNP": "rs1371135",
+            "marker_name": "chr13:79615157",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-28'>1.54</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-1'>0.07</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.07</span>",
+            "Liver": "<span class='cell-weight-1'>0.07</span>"
+          },
+          {
+            "Loci": "ZHX3",
+            "SNP": "rs17265513",
+            "marker_name": "chr1:50682573",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-25'>1.37</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-10'>0.56</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-1'>0.08</span>"
+          },
+          {
+            "Loci": "UBE2E2",
+            "SNP": "rs1496653",
+            "marker_name": "chr15:88192274",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-25'>1.35</span>",
+            "Proinsulin": "<span class='cell-weight-4'>0.23</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.06</span>",
+            "Liver": "<span class='cell-weight-2'>0.15</span>"
+          },
+          {
+            "Loci": "ACSL1",
+            "SNP": "rs1996546",
+            "marker_name": "chr4:185951283",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-25'>1.35</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.06</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-3'>0.17</span>",
+            "Liver": "<span class='cell-weight-9'>0.51</span>"
+          },
+          {
+            "Loci": "PRC1",
+            "SNP": "rs12899811",
+            "marker_name": "chr10:80612637",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-23'>1.26</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-2'>0.14</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "GIPR",
+            "SNP": "rs8108269",
+            "marker_name": "chr17:3932613",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-23'>1.25</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.04</span>",
+            "Obesity": "<span class='cell-weight-0'>0.03</span>",
+            "Lipodystrophy": "<span class='cell-weight-5'>0.27</span>",
+            "Liver": "<span class='cell-weight-1'>0.1</span>"
+          },
+          {
+            "Loci": "GLP2R",
+            "SNP": "rs17676067",
+            "marker_name": "chr20:39266042",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-22'>1.22</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-10'>0.58</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-4'>0.26</span>"
+          },
+          {
+            "Loci": "KCNJ11",
+            "SNP": "rs5215",
+            "marker_name": "chr8:41638405",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-22'>1.19</span>",
+            "Proinsulin": "<span class='cell-weight-10'>0.56</span>",
+            "Obesity": "<span class='cell-weight-2'>0.16</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.06</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "KCNQ1_2",
+            "SNP": "rs233449",
+            "marker_name": "chr11:2800379",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-22'>1.18</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.62</span>",
+            "Obesity": "<span class='cell-weight-4'>0.24</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0.03</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "ABO",
+            "SNP": "rs505922",
+            "marker_name": "chr20:42422681",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-21'>1.17</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.04</span>",
+            "Obesity": "<span class='cell-weight-12'>0.66</span>",
+            "Lipodystrophy": "<span class='cell-weight-3'>0.19</span>",
+            "Liver": "<span class='cell-weight-8'>0.44</span>"
+          },
+          {
+            "Loci": "ANK1",
+            "SNP": "rs516946",
+            "marker_name": "chr9:135139050",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-20'>1.12</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.62</span>",
+            "Obesity": "<span class='cell-weight-0'>0.05</span>",
+            "Lipodystrophy": "<span class='cell-weight-3'>0.19</span>",
+            "Liver": "<span class='cell-weight-6'>0.35</span>"
+          },
+          {
+            "Loci": "GLIS3",
+            "SNP": "rs10758593",
+            "marker_name": "chr9:4282083",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-20'>1.09</span>",
+            "Proinsulin": "<span class='cell-weight-5'>0.27</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-3'>0.18</span>",
+            "Liver": "<span class='cell-weight-8'>0.44</span>"
+          },
+          {
+            "Loci": "HNF1B",
+            "SNP": "rs4430796",
+            "marker_name": "chr6:137340845",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-19'>1.04</span>",
+            "Proinsulin": "<span class='cell-weight-5'>0.32</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-5'>0.27</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "CTRB2",
+            "SNP": "rs9921586",
+            "marker_name": "chr17:63418511",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-18'>1.01</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0.01</span>",
+            "Lipodystrophy": "<span class='cell-weight-8'>0.43</span>",
+            "Liver": "<span class='cell-weight-3'>0.19</span>"
+          },
+          {
+            "Loci": "CDKN2A_2",
+            "SNP": "rs2184061",
+            "marker_name": "chr9:22051562",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-18'>0.97</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-1'>0.09</span>",
+            "Lipodystrophy": "<span class='cell-weight-5'>0.32</span>",
+            "Liver": "<span class='cell-weight-13'>0.7</span>"
+          },
+          {
+            "Loci": "DUSP8",
+            "SNP": "rs2334499",
+            "marker_name": "chr11:1653425",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-17'>0.96</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.64</span>",
+            "Obesity": "<span class='cell-weight-1'>0.06</span>",
+            "Lipodystrophy": "<span class='cell-weight-6'>0.35</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "ADCY5",
+            "SNP": "rs11708067",
+            "marker_name": "chr10:12347900",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-17'>0.92</span>",
+            "Proinsulin": "<span class='cell-weight-2'>0.11</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-23'>1.24</span>",
+            "Liver": "<span class='cell-weight-3'>0.18</span>"
+          },
+          {
+            "Loci": "GIP",
+            "SNP": "rs15563",
+            "marker_name": "chr11:72110746",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-16'>0.88</span>",
+            "Proinsulin": "<span class='cell-weight-3'>0.2</span>",
+            "Obesity": "<span class='cell-weight-2'>0.14</span>",
+            "Lipodystrophy": "<span class='cell-weight-9'>0.5</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "HNF4A",
+            "SNP": "rs4812829",
+            "marker_name": "chr10:71140396",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-15'>0.84</span>",
+            "Proinsulin": "<span class='cell-weight-14'>0.79</span>",
+            "Obesity": "<span class='cell-weight-1'>0.08</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-1'>0.1</span>"
+          },
+          {
+            "Loci": "TLE4",
+            "SNP": "rs17791513",
+            "marker_name": "chr17:9732100",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-14'>0.78</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.01</span>",
+            "Obesity": "<span class='cell-weight-4'>0.23</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-3'>0.17</span>"
+          },
+          {
+            "Loci": "HSD17B12",
+            "SNP": "rs3736505",
+            "marker_name": "chr22:28672191",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-14'>0.78</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-23'>1.24</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0.03</span>",
+            "Liver": "<span class='cell-weight-3'>0.21</span>"
+          }
+        ],
+        "traits": [
+          {
+            "Trait": "cir_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-100'>5.17</span>",
+            "Proinsulin": "<span class='cell-weight-6'>0.35</span>",
+            "Obesity": "<span class='cell-weight-0'>0.04</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "di_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-89'>4.63</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-9'>0.51</span>",
+            "Liver": "<span class='cell-weight-14'>0.76</span>"
+          },
+          {
+            "Trait": "ins30_bmi_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-64'>3.31</span>",
+            "Proinsulin": "<span class='cell-weight-16'>0.87</span>",
+            "Obesity": "<span class='cell-weight-10'>0.56</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "incr30_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-63'>3.28</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.58</span>",
+            "Obesity": "<span class='cell-weight-16'>0.85</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "proins_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-45'>2.33</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-18'>0.97</span>",
+            "Liver": "<span class='cell-weight-17'>0.92</span>"
+          },
+          {
+            "Trait": "fg_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-34'>1.8</span>",
+            "Proinsulin": "<span class='cell-weight-14'>0.73</span>",
+            "Obesity": "<span class='cell-weight-4'>0.24</span>",
+            "Lipodystrophy": "<span class='cell-weight-9'>0.49</span>",
+            "Liver": "<span class='cell-weight-19'>0.99</span>"
+          },
+          {
+            "Trait": "fg2hr_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-33'>1.72</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.62</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-30'>1.59</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "homab_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-27'>1.44</span>",
+            "Proinsulin": "<span class='cell-weight-19'>0.99</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.09</span>",
+            "Liver": "<span class='cell-weight-0'>0.03</span>"
+          },
+          {
+            "Trait": "hba1c_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-23'>1.23</span>",
+            "Proinsulin": "<span class='cell-weight-10'>0.52</span>",
+            "Obesity": "<span class='cell-weight-8'>0.43</span>",
+            "Lipodystrophy": "<span class='cell-weight-16'>0.84</span>",
+            "Liver": "<span class='cell-weight-4'>0.23</span>"
+          }
+        ]
+      }
+    },
+    {
+      "cell": "Proinsulin",
+      "loci": "0-4.48",
+      "traits": "0-4.62",
+      "features": {
+        "loci": [
+          {
+            "Loci": "ARAP1",
+            "SNP": "rs1552224",
+            "marker_name": "chr3:23429794",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-7'>0.42</span>",
+            "Proinsulin": "<span class='cell-weight-83'>4.48</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0.05</span>",
+            "Liver": "<span class='cell-weight-0'>0.05</span>"
+          },
+          {
+            "Loci": "SPRY2",
+            "SNP": "rs1359790",
+            "marker_name": "chr2:165237122",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-7'>0.39</span>",
+            "Proinsulin": "<span class='cell-weight-20'>1.07</span>",
+            "Obesity": "<span class='cell-weight-3'>0.2</span>",
+            "Lipodystrophy": "<span class='cell-weight-5'>0.27</span>",
+            "Liver": "<span class='cell-weight-1'>0.06</span>"
+          },
+          {
+            "Loci": "DGKB_2",
+            "SNP": "rs10276674",
+            "marker_name": "chr7:14888532",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-8'>0.47</span>",
+            "Proinsulin": "<span class='cell-weight-18'>1</span>",
+            "Obesity": "<span class='cell-weight-2'>0.14</span>",
+            "Lipodystrophy": "<span class='cell-weight-2'>0.11</span>",
+            "Liver": "<span class='cell-weight-3'>0.19</span>"
+          },
+          {
+            "Loci": "IGF2BP2",
+            "SNP": "rs4402960",
+            "marker_name": "chr7:130095474",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-10'>0.56</span>",
+            "Proinsulin": "<span class='cell-weight-18'>0.97</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-9'>0.5</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "CCND2",
+            "SNP": "rs11063069",
+            "marker_name": "chr12:4244634",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-15'>0.81</span>",
+            "Obesity": "<span class='cell-weight-0'>0.01</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.94</span>",
+            "Liver": "<span class='cell-weight-2'>0.13</span>"
+          },
+          {
+            "Loci": "HNF4A",
+            "SNP": "rs4812829",
+            "marker_name": "chr10:71140396",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-15'>0.84</span>",
+            "Proinsulin": "<span class='cell-weight-14'>0.79</span>",
+            "Obesity": "<span class='cell-weight-1'>0.08</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-1'>0.1</span>"
+          },
+          {
+            "Loci": "CDC123.CAMK1D",
+            "SNP": "rs11257655",
+            "marker_name": "chr11:65121747",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-29'>1.59</span>",
+            "Proinsulin": "<span class='cell-weight-14'>0.78</span>",
+            "Obesity": "<span class='cell-weight-0'>0.05</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-7'>0.41</span>"
+          }
+        ],
+        "traits": [
+          {
+            "Trait": "proins_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-89'>4.62</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "homab_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-27'>1.44</span>",
+            "Proinsulin": "<span class='cell-weight-19'>0.99</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.09</span>",
+            "Liver": "<span class='cell-weight-0'>0.03</span>"
+          },
+          {
+            "Trait": "ins30_bmi_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-64'>3.31</span>",
+            "Proinsulin": "<span class='cell-weight-16'>0.87</span>",
+            "Obesity": "<span class='cell-weight-10'>0.56</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          }
+        ]
+      }
+    },
+    {
+      "cell": "Obesity",
+      "loci": "0-4.96",
+      "traits": "0-2.01",
+      "features": {
+        "loci": [
+          {
+            "Loci": "FTO",
+            "SNP": "rs9939609",
+            "marker_name": "chr16:73802504",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-7'>0.4</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-92'>4.96</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-5'>0.27</span>"
+          },
+          {
+            "Loci": "MC4R",
+            "SNP": "rs12970134",
+            "marker_name": "chr15:89345080",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-2'>0.12</span>",
+            "Obesity": "<span class='cell-weight-52'>2.78</span>",
+            "Lipodystrophy": "<span class='cell-weight-6'>0.37</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "NRXN3",
+            "SNP": "rs10146997",
+            "marker_name": "chr14:79014915",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.07</span>",
+            "Obesity": "<span class='cell-weight-32'>1.72</span>",
+            "Lipodystrophy": "<span class='cell-weight-6'>0.37</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "HSD17B12",
+            "SNP": "rs3736505",
+            "marker_name": "chr22:28672191",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-14'>0.78</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-23'>1.24</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0.03</span>",
+            "Liver": "<span class='cell-weight-3'>0.21</span>"
+          },
+          {
+            "Loci": "RBMS1",
+            "SNP": "rs6742799 ",
+            "marker_name": "chr11:17365206",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-0'>0.03</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-19'>1.04</span>",
+            "Lipodystrophy": "<span class='cell-weight-12'>0.69</span>",
+            "Liver": "<span class='cell-weight-4'>0.26</span>"
+          }
+        ],
+        "traits": [
+          {
+            "Trait": "wc_female_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0.03</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-38'>2.01</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.07</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "sat_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-2'>0.13</span>",
+            "Proinsulin": "<span class='cell-weight-2'>0.13</span>",
+            "Obesity": "<span class='cell-weight-38'>1.97</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.09</span>",
+            "Liver": "<span class='cell-weight-0'>0.05</span>"
+          },
+          {
+            "Trait": "wc_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-34'>1.79</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "hip_m_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-33'>1.74</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-6'>0.33</span>"
+          },
+          {
+            "Trait": "bmi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-33'>1.73</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0.04</span>"
+          },
+          {
+            "Trait": "wc_male_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-33'>1.72</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-3'>0.17</span>"
+          },
+          {
+            "Trait": "hip_f_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0.02</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-32'>1.67</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0.01</span>"
+          },
+          {
+            "Trait": "hip_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-31'>1.63</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-2'>0.13</span>"
+          },
+          {
+            "Trait": "vat_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-3'>0.16</span>",
+            "Proinsulin": "<span class='cell-weight-7'>0.38</span>",
+            "Obesity": "<span class='cell-weight-25'>1.34</span>",
+            "Lipodystrophy": "<span class='cell-weight-5'>0.26</span>",
+            "Liver": "<span class='cell-weight-2'>0.12</span>"
+          },
+          {
+            "Trait": "bodyfat_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-1'>0.07</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-25'>1.34</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "whr_m_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-1'>0.08</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-25'>1.33</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0.03</span>",
+            "Liver": "<span class='cell-weight-0'>0.05</span>"
+          },
+          {
+            "Trait": "leptin_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-2'>0.14</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-24'>1.27</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.07</span>",
+            "Liver": "<span class='cell-weight-17'>0.93</span>"
+          },
+          {
+            "Trait": "leptinbmi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-2'>0.14</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-24'>1.27</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.07</span>",
+            "Liver": "<span class='cell-weight-17'>0.93</span>"
+          },
+          {
+            "Trait": "whr_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-1'>0.08</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-21'>1.13</span>",
+            "Lipodystrophy": "<span class='cell-weight-10'>0.52</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "whr_f_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-2'>0.15</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-20'>1.04</span>",
+            "Lipodystrophy": "<span class='cell-weight-22'>1.17</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "n6_2031_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-10'>0.54</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.62</span>",
+            "Obesity": "<span class='cell-weight-18'>0.96</span>",
+            "Lipodystrophy": "<span class='cell-weight-21'>1.12</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "dpa_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-7'>0.39</span>",
+            "Proinsulin": "<span class='cell-weight-8'>0.42</span>",
+            "Obesity": "<span class='cell-weight-17'>0.93</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-43'>2.26</span>"
+          },
+          {
+            "Trait": "incr30_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-63'>3.28</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.58</span>",
+            "Obesity": "<span class='cell-weight-16'>0.85</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "homair_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-1'>0.06</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-15'>0.81</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.92</span>",
+            "Liver": "<span class='cell-weight-12'>0.65</span>"
+          },
+          {
+            "Trait": "fi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-14'>0.77</span>",
+            "Lipodystrophy": "<span class='cell-weight-21'>1.13</span>",
+            "Liver": "<span class='cell-weight-12'>0.67</span>"
+          }
+        ]
+      }
+    },
+    {
+      "cell": "Lipodystrophy",
+      "loci": "0-3.01",
+      "traits": "0-2.45",
+      "features": {
+        "loci": [
+          {
+            "Loci": "IRS1",
+            "SNP": "rs2943641",
+            "marker_name": "chr16:80092291",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-56'>3.01</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "GRB14",
+            "SNP": "rs13389219",
+            "marker_name": "chr18:56035730",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-1'>0.08</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-3'>0.17</span>",
+            "Lipodystrophy": "<span class='cell-weight-51'>2.74</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "PPARG",
+            "SNP": "rs1801282",
+            "marker_name": "chr20:42475778",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-2'>0.14</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.06</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-39'>2.11</span>",
+            "Liver": "<span class='cell-weight-1'>0.08</span>"
+          },
+          {
+            "Loci": "LYPLAL1",
+            "SNP": "rs2820443",
+            "marker_name": "chr1:217820132",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-5'>0.28</span>",
+            "Lipodystrophy": "<span class='cell-weight-35'>1.92</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "ANKRD55",
+            "SNP": "rs459193",
+            "marker_name": "chr15:60170447",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-33'>1.8</span>",
+            "Liver": "<span class='cell-weight-10'>0.55</span>"
+          },
+          {
+            "Loci": "CMIP",
+            "SNP": "rs2925979",
+            "marker_name": "chr3:12371955",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-2'>0.14</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-32'>1.74</span>",
+            "Liver": "<span class='cell-weight-5'>0.3</span>"
+          },
+          {
+            "Loci": "KLF14",
+            "SNP": "rs3996352",
+            "marker_name": "chr5:55892132",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-8'>0.46</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-30'>1.63</span>",
+            "Liver": "<span class='cell-weight-7'>0.4</span>"
+          },
+          {
+            "Loci": "LPL",
+            "SNP": "rs10503669",
+            "marker_name": "chr8:19891970",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-1'>0.06</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-7'>0.41</span>",
+            "Lipodystrophy": "<span class='cell-weight-28'>1.54</span>",
+            "Liver": "<span class='cell-weight-2'>0.16</span>"
+          },
+          {
+            "Loci": "ANKRD55_2",
+            "SNP": "rs3843467",
+            "marker_name": "chr11:2869129",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-5'>0.32</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-3'>0.19</span>",
+            "Lipodystrophy": "<span class='cell-weight-24'>1.31</span>",
+            "Liver": "<span class='cell-weight-2'>0.15</span>"
+          },
+          {
+            "Loci": "ARL15",
+            "SNP": "rs702634",
+            "marker_name": "chr4:153739925",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-10'>0.55</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-3'>0.18</span>",
+            "Lipodystrophy": "<span class='cell-weight-24'>1.29</span>",
+            "Liver": "<span class='cell-weight-9'>0.49</span>"
+          },
+          {
+            "Loci": "ADCY5",
+            "SNP": "rs11708067",
+            "marker_name": "chr10:12347900",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-17'>0.92</span>",
+            "Proinsulin": "<span class='cell-weight-2'>0.11</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-23'>1.24</span>",
+            "Liver": "<span class='cell-weight-3'>0.18</span>"
+          },
+          {
+            "Loci": "C17orf58",
+            "SNP": "rs9891146",
+            "marker_name": "chr6:7203616",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-2'>0.15</span>",
+            "Obesity": "<span class='cell-weight-11'>0.59</span>",
+            "Lipodystrophy": "<span class='cell-weight-20'>1.08</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "POU5F1",
+            "SNP": "rs3132524",
+            "marker_name": "chr2:226801989",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-6'>0.36</span>",
+            "Obesity": "<span class='cell-weight-4'>0.24</span>",
+            "Lipodystrophy": "<span class='cell-weight-19'>1.06</span>",
+            "Liver": "<span class='cell-weight-5'>0.32</span>"
+          },
+          {
+            "Loci": "MACF1",
+            "SNP": "rs2296172",
+            "marker_name": "chr1:39608404",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-1'>0.09</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-13'>0.74</span>",
+            "Lipodystrophy": "<span class='cell-weight-19'>1.03</span>",
+            "Liver": "<span class='cell-weight-1'>0.08</span>"
+          },
+          {
+            "Loci": "KIF9",
+            "SNP": "rs2276853",
+            "marker_name": "chr3:47257307",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.04</span>",
+            "Obesity": "<span class='cell-weight-5'>0.31</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.96</span>",
+            "Liver": "<span class='cell-weight-0'>0.02</span>"
+          },
+          {
+            "Loci": "ZBED3",
+            "SNP": "rs4457053",
+            "marker_name": "chr17:33172153",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-7'>0.39</span>",
+            "Proinsulin": "<span class='cell-weight-5'>0.3</span>",
+            "Obesity": "<span class='cell-weight-0'>0.04</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.96</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "ADAMTS9",
+            "SNP": "rs6795735",
+            "marker_name": "chr2:161025706",
+            "RISK_ALLELE": "A",
+            "Beta-Cell": "<span class='cell-weight-10'>0.54</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-3'>0.18</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.95</span>",
+            "Liver": "<span class='cell-weight-2'>0.16</span>"
+          },
+          {
+            "Loci": "CCND2",
+            "SNP": "rs11063069",
+            "marker_name": "chr12:4244634",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-15'>0.81</span>",
+            "Obesity": "<span class='cell-weight-0'>0.01</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.94</span>",
+            "Liver": "<span class='cell-weight-2'>0.13</span>"
+          },
+          {
+            "Loci": "FAF1",
+            "SNP": "rs17106184",
+            "marker_name": "chr19:19519472",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-10'>0.57</span>",
+            "Proinsulin": "<span class='cell-weight-6'>0.35</span>",
+            "Obesity": "<span class='cell-weight-0'>0.05</span>",
+            "Lipodystrophy": "<span class='cell-weight-15'>0.81</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Loci": "MPHOSPH9",
+            "SNP": "rs1106240",
+            "marker_name": "chr12:122192935",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-1'>0.1</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.1</span>",
+            "Obesity": "<span class='cell-weight-0'>0.05</span>",
+            "Lipodystrophy": "<span class='cell-weight-14'>0.79</span>",
+            "Liver": "<span class='cell-weight-9'>0.49</span>"
+          }
+        ],
+        "traits": [
+          {
+            "Trait": "isibmi_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-3'>0.17</span>",
+            "Proinsulin": "<span class='cell-weight-7'>0.4</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-47'>2.45</span>",
+            "Liver": "<span class='cell-weight-2'>0.12</span>"
+          },
+          {
+            "Trait": "adip_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-4'>0.23</span>",
+            "Proinsulin": "<span class='cell-weight-6'>0.32</span>",
+            "Obesity": "<span class='cell-weight-2'>0.14</span>",
+            "Lipodystrophy": "<span class='cell-weight-38'>2</span>",
+            "Liver": "<span class='cell-weight-0'>0.04</span>"
+          },
+          {
+            "Trait": "hdl_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-3'>0.16</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.03</span>",
+            "Obesity": "<span class='cell-weight-7'>0.39</span>",
+            "Lipodystrophy": "<span class='cell-weight-35'>1.83</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "isi_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-2'>0.13</span>",
+            "Proinsulin": "<span class='cell-weight-5'>0.29</span>",
+            "Obesity": "<span class='cell-weight-8'>0.46</span>",
+            "Lipodystrophy": "<span class='cell-weight-35'>1.81</span>",
+            "Liver": "<span class='cell-weight-1'>0.09</span>"
+          },
+          {
+            "Trait": "ins30_bmi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-1'>0.08</span>",
+            "Lipodystrophy": "<span class='cell-weight-33'>1.72</span>",
+            "Liver": "<span class='cell-weight-5'>0.31</span>"
+          },
+          {
+            "Trait": "tg_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-4'>0.21</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-6'>0.35</span>",
+            "Lipodystrophy": "<span class='cell-weight-33'>1.71</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "fi_bmi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-33'>1.71</span>",
+            "Liver": "<span class='cell-weight-16'>0.84</span>"
+          },
+          {
+            "Trait": "incr30_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-1'>0.1</span>",
+            "Lipodystrophy": "<span class='cell-weight-32'>1.7</span>",
+            "Liver": "<span class='cell-weight-8'>0.42</span>"
+          },
+          {
+            "Trait": "sat_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-9'>0.49</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.04</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-31'>1.63</span>",
+            "Liver": "<span class='cell-weight-1'>0.06</span>"
+          },
+          {
+            "Trait": "fg2hr_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-33'>1.72</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.62</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-30'>1.59</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "cir_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.04</span>",
+            "Obesity": "<span class='cell-weight-4'>0.22</span>",
+            "Lipodystrophy": "<span class='cell-weight-23'>1.22</span>",
+            "Liver": "<span class='cell-weight-2'>0.11</span>"
+          },
+          {
+            "Trait": "whr_f_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-2'>0.15</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-20'>1.04</span>",
+            "Lipodystrophy": "<span class='cell-weight-22'>1.17</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "bodyfat_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-3'>0.18</span>",
+            "Proinsulin": "<span class='cell-weight-6'>0.32</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-22'>1.16</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "fi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-14'>0.77</span>",
+            "Lipodystrophy": "<span class='cell-weight-21'>1.13</span>",
+            "Liver": "<span class='cell-weight-12'>0.67</span>"
+          },
+          {
+            "Trait": "n6_2031_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-10'>0.54</span>",
+            "Proinsulin": "<span class='cell-weight-11'>0.62</span>",
+            "Obesity": "<span class='cell-weight-18'>0.96</span>",
+            "Lipodystrophy": "<span class='cell-weight-21'>1.12</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "hip_f_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-4'>0.25</span>",
+            "Proinsulin": "<span class='cell-weight-8'>0.44</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-19'>1.02</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "vat_adjbmi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-4'>0.24</span>",
+            "Proinsulin": "<span class='cell-weight-9'>0.51</span>",
+            "Obesity": "<span class='cell-weight-3'>0.16</span>",
+            "Lipodystrophy": "<span class='cell-weight-19'>0.99</span>",
+            "Liver": "<span class='cell-weight-2'>0.14</span>"
+          },
+          {
+            "Trait": "proins_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-45'>2.33</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-18'>0.97</span>",
+            "Liver": "<span class='cell-weight-17'>0.92</span>"
+          },
+          {
+            "Trait": "leptin_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-3'>0.18</span>",
+            "Proinsulin": "<span class='cell-weight-5'>0.3</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.93</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "leptinbmi_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-3'>0.18</span>",
+            "Proinsulin": "<span class='cell-weight-5'>0.3</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.93</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "homair_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-1'>0.06</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-15'>0.81</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.92</span>",
+            "Liver": "<span class='cell-weight-12'>0.65</span>"
+          },
+          {
+            "Trait": "palmitoleic_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-4'>0.24</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.09</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.91</span>",
+            "Liver": "<span class='cell-weight-48'>2.49</span>"
+          },
+          {
+            "Trait": "wc_male_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-5'>0.29</span>",
+            "Proinsulin": "<span class='cell-weight-7'>0.39</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.9</span>",
+            "Liver": "<span class='cell-weight-0'>0.02</span>"
+          },
+          {
+            "Trait": "hip_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-5'>0.28</span>",
+            "Proinsulin": "<span class='cell-weight-7'>0.41</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.88</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "hipadjbmi_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-3'>0.19</span>",
+            "Proinsulin": "<span class='cell-weight-5'>0.26</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.88</span>",
+            "Liver": "<span class='cell-weight-0'>0.01</span>"
+          },
+          {
+            "Trait": "whradjbmi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-5'>0.28</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.06</span>",
+            "Obesity": "<span class='cell-weight-2'>0.13</span>",
+            "Lipodystrophy": "<span class='cell-weight-16'>0.86</span>",
+            "Liver": "<span class='cell-weight-0'>0.01</span>"
+          },
+          {
+            "Trait": "n6_1831_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-7'>0.4</span>",
+            "Proinsulin": "<span class='cell-weight-13'>0.72</span>",
+            "Obesity": "<span class='cell-weight-7'>0.39</span>",
+            "Lipodystrophy": "<span class='cell-weight-16'>0.86</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "hba1c_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-23'>1.23</span>",
+            "Proinsulin": "<span class='cell-weight-10'>0.52</span>",
+            "Obesity": "<span class='cell-weight-8'>0.43</span>",
+            "Lipodystrophy": "<span class='cell-weight-16'>0.84</span>",
+            "Liver": "<span class='cell-weight-4'>0.23</span>"
+          },
+          {
+            "Trait": "dpa_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-10'>0.54</span>",
+            "Proinsulin": "<span class='cell-weight-10'>0.52</span>",
+            "Obesity": "<span class='cell-weight-0'>0.04</span>",
+            "Lipodystrophy": "<span class='cell-weight-16'>0.84</span>",
+            "Liver": "<span class='cell-weight-0'>0</span>"
+          },
+          {
+            "Trait": "hip_m_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-8'>0.43</span>",
+            "Proinsulin": "<span class='cell-weight-8'>0.42</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-16'>0.84</span>",
+            "Liver": "<span class='cell-weight-0'>0.01</span>"
+          },
+          {
+            "Trait": "bl_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-8'>0.46</span>",
+            "Proinsulin": "<span class='cell-weight-4'>0.23</span>",
+            "Obesity": "<span class='cell-weight-2'>0.11</span>",
+            "Lipodystrophy": "<span class='cell-weight-15'>0.79</span>",
+            "Liver": "<span class='cell-weight-2'>0.13</span>"
+          },
+          {
+            "Trait": "whr_m_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-1'>0.08</span>",
+            "Proinsulin": "<span class='cell-weight-2'>0.13</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-14'>0.75</span>",
+            "Liver": "<span class='cell-weight-0'>0.05</span>"
+          }
+        ]
+      }
+    },
+    {
+      "cell": "Liver/Lipid",
+      "loci": "0-5.34",
+      "traits": "0-2.71",
+      "features": {
+        "loci": [
+          {
+            "Loci": "GCKR",
+            "SNP": "rs780094",
+            "marker_name": "chr6:20787688",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-1'>0.06</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-10'>0.58</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-100'>5.34</span>"
+          },
+          {
+            "Loci": "CILP2",
+            "SNP": "rs16996148 ",
+            "marker_name": "chr17:44360192",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-12'>0.67</span>",
+            "Liver": "<span class='cell-weight-38'>2.05</span>"
+          },
+          {
+            "Loci": "HLA.DQA1",
+            "SNP": "rs9271775",
+            "marker_name": "chr7:28147081",
+            "RISK_ALLELE": "T",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-9'>0.52</span>",
+            "Obesity": "<span class='cell-weight-2'>0.12</span>",
+            "Lipodystrophy": "<span class='cell-weight-13'>0.73</span>",
+            "Liver": "<span class='cell-weight-18'>0.98</span>"
+          },
+          {
+            "Loci": "PNPLA3",
+            "SNP": "rs738409",
+            "marker_name": "chr15:75534245",
+            "RISK_ALLELE": "G",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.04</span>",
+            "Obesity": "<span class='cell-weight-4'>0.22</span>",
+            "Lipodystrophy": "<span class='cell-weight-11'>0.59</span>",
+            "Liver": "<span class='cell-weight-15'>0.84</span>"
+          },
+          {
+            "Loci": "TSPAN8.LGR5",
+            "SNP": "rs7961581",
+            "marker_name": "chr12:69949369",
+            "RISK_ALLELE": "C",
+            "Beta-Cell": "<span class='cell-weight-10'>0.54</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-3'>0.17</span>",
+            "Liver": "<span class='cell-weight-15'>0.83</span>"
+          }
+        ],
+        "traits": [
+          {
+            "Trait": "tg_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.09</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-52'>2.71</span>"
+          },
+          {
+            "Trait": "palmitoleic_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-4'>0.24</span>",
+            "Proinsulin": "<span class='cell-weight-1'>0.09</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-17'>0.91</span>",
+            "Liver": "<span class='cell-weight-48'>2.49</span>"
+          },
+          {
+            "Trait": "dpa_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-7'>0.39</span>",
+            "Proinsulin": "<span class='cell-weight-8'>0.42</span>",
+            "Obesity": "<span class='cell-weight-17'>0.93</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-43'>2.26</span>"
+          },
+          {
+            "Trait": "n6_1831_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-5'>0.3</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-6'>0.33</span>",
+            "Liver": "<span class='cell-weight-42'>2.19</span>"
+          },
+          {
+            "Trait": "n6_1821_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-4'>0.24</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0.03</span>",
+            "Obesity": "<span class='cell-weight-10'>0.53</span>",
+            "Lipodystrophy": "<span class='cell-weight-9'>0.47</span>",
+            "Liver": "<span class='cell-weight-35'>1.82</span>"
+          },
+          {
+            "Trait": "tc_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-0'>0.03</span>",
+            "Proinsulin": "<span class='cell-weight-4'>0.25</span>",
+            "Obesity": "<span class='cell-weight-2'>0.11</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0.03</span>",
+            "Liver": "<span class='cell-weight-26'>1.38</span>"
+          },
+          {
+            "Trait": "urate_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-0'>0.04</span>",
+            "Proinsulin": "<span class='cell-weight-8'>0.44</span>",
+            "Obesity": "<span class='cell-weight-0'>0.03</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-24'>1.27</span>"
+          },
+          {
+            "Trait": "fg2hr_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-3'>0.19</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-0'>0</span>",
+            "Liver": "<span class='cell-weight-23'>1.21</span>"
+          },
+          {
+            "Trait": "n6_2031_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-11'>0.58</span>",
+            "Proinsulin": "<span class='cell-weight-3'>0.16</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-3'>0.19</span>",
+            "Liver": "<span class='cell-weight-20'>1.07</span>"
+          },
+          {
+            "Trait": "fg_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-34'>1.8</span>",
+            "Proinsulin": "<span class='cell-weight-14'>0.73</span>",
+            "Obesity": "<span class='cell-weight-4'>0.24</span>",
+            "Lipodystrophy": "<span class='cell-weight-9'>0.49</span>",
+            "Liver": "<span class='cell-weight-19'>0.99</span>"
+          },
+          {
+            "Trait": "leptin_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-2'>0.14</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-24'>1.27</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.07</span>",
+            "Liver": "<span class='cell-weight-17'>0.93</span>"
+          },
+          {
+            "Trait": "leptinbmi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-2'>0.14</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-24'>1.27</span>",
+            "Lipodystrophy": "<span class='cell-weight-1'>0.07</span>",
+            "Liver": "<span class='cell-weight-17'>0.93</span>"
+          },
+          {
+            "Trait": "proins_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-45'>2.33</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-18'>0.97</span>",
+            "Liver": "<span class='cell-weight-17'>0.92</span>"
+          },
+          {
+            "Trait": "fi_bmi_zscale2_pos",
+            "Beta-Cell": "<span class='cell-weight-0'>0</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-33'>1.71</span>",
+            "Liver": "<span class='cell-weight-16'>0.84</span>"
+          },
+          {
+            "Trait": "di_zscale2_neg",
+            "Beta-Cell": "<span class='cell-weight-89'>4.63</span>",
+            "Proinsulin": "<span class='cell-weight-0'>0</span>",
+            "Obesity": "<span class='cell-weight-0'>0</span>",
+            "Lipodystrophy": "<span class='cell-weight-9'>0.51</span>",
+            "Liver": "<span class='cell-weight-14'>0.76</span>"
+          }
+        ]
+      }
+    }
+  ]
+}
