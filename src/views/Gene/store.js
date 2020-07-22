@@ -27,7 +27,7 @@ export default new Vuex.Store({
     state: {
         geneName: keyParams.gene,
         matchingEffectorGenesPhenotypes: null,
-        phenotype: 't2d',
+        phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
     },
 
     mutations: {
@@ -42,7 +42,7 @@ export default new Vuex.Store({
         setMatchingEffectorGenesPhenotypes(state, phenotypes) {
             state.matchingEffectorGenesPhenotypes = phenotypes;
         },
-        setPhenotype(state, phenotype) {
+        setSelectedPhenotype(state, phenotype) {
             state.phenotype = phenotype;
         },
     },
@@ -101,10 +101,10 @@ export default new Vuex.Store({
             let matches = await match('effector-genes', "_", { limit: null })
             context.commit('setMatchingEffectorGenesPhenotypes', matches);
         },
-        //select gene on autocomplete.
-        async onEffectorGenesPhenotypeChange(context, phenotype) {
-            context.commit('setPhenotype', phenotype);
 
+
+        async onPhenotypeChange(context, phenotype) {
+            context.commit('setSelectedPhenotype', phenotype);
         },
     },
 });

@@ -109,22 +109,29 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
+                        v-if="$store.state.phenotype"
                         class="card-title"
-                    >Associations for {{$store.state.phenotype}} in {{$parent.symbolName}}</h4>
-                    <autocomplete
+                    >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
+                    <!-- <autocomplete
                         :placeholder="'Phenotype'"
                         :defaultText="$store.state.phenotype"
                         :matches="$parent.matchingEffectorGenesPhenotypes"
                         @input-change="$store.dispatch('lookupEffectorGenesPhenotypes', $event)"
                         @item-select="$store.dispatch('onEffectorGenesPhenotypeChange', $event)"
-                    ></autocomplete>
+                    ></autocomplete>-->
+
+                    <phenotype-selectpicker
+                        v-if="$store.state.phenotype"
+                        :phenotypes="$store.state.bioPortal.phenotypes"
+                        :default-phenotype="$store.state.phenotype.description"
+                    ></phenotype-selectpicker>
                     <huge-calculator
-                        v-if="$parent.region"
+                        v-if="$store.state.phenotype && $parent.region"
                         :chromosome="$parent.region.chromosome"
                         :start="$parent.region.start"
                         :end="$parent.region.end"
-                        :phenotype="$store.state.phenotype"
-                        :phenotypes="$parent.effectorGenePhenotypes"
+                        :phenotype="$store.state.phenotype.name"
+                        :phenotypes="$parent.phenotypes"
                         :associations="$store.state.associations.data"
                     ></huge-calculator>
                 </div>

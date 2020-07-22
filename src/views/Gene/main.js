@@ -12,6 +12,7 @@ import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
 import HuGeCalculator from "@/components/HuGeCalculator.vue";
 import uiUtils from "@/utils/uiUtils";
@@ -39,7 +40,8 @@ new Vue({
         Autocomplete,
         LocusZoom,
         LocusZoomAssociationsPanel,
-        HuGeCalculator
+        HuGeCalculator,
+        PhenotypeSelectPicker
     },
 
     data() {
@@ -142,8 +144,8 @@ new Vue({
         matchingEffectorGenesPhenotypes() {
             return this.$store.state.matchingEffectorGenesPhenotypes;
         },
-        effectorGenePhenotypes() {
-            return [{ "name": this.$store.state.phenotype.toUpperCase(), "description": this.$store.state.phenotype }];
+        phenotypes() {
+            return [this.$store.state.phenotype];
         }
     },
 

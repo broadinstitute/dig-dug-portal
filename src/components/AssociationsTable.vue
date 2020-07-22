@@ -302,7 +302,7 @@ export default Vue.component("associations-table", {
                     let phenotype = this.phenotypes[i];
 
                     // ensure a p-value exists for each phenotype
-                    if (!row[`${phenotype.name.toUpperCase()}_pValue`]) {
+                    if (!row[`${phenotype.name}_pValue`]) {
                         return false;
                     }
                 }
