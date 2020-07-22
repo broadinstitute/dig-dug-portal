@@ -9,7 +9,7 @@ export default {
     state() {
         return {
             cards: [],
-            // `child`: `parent` since keys must be unique by values 
+            // `child`: `parent` since keys must be unique by values
             parenthood: {},
             edges: [],
         };
@@ -35,12 +35,12 @@ export default {
                     // to resolve ambiguity, sort by timestamps?
                 // TODO
         },
-        cardsReverseChronological(state) {
-            return state.getters.cardsChronological.slice().reverse();
-        },
-        cardsReverseTopological(state) {
-            return state.getters.cardsTopological.slice().reverse();
-        },
+        // cardsReverseChronological(state) {
+        //     return state.cardsChronological.slice().reverse();
+        // },
+        // cardsReverseTopological(state) {
+        //     return state.cardsTopological.slice().reverse();
+        // },
         // TODO: refactor to results utils
         encodeHistory(state) {
             const queries = ``
@@ -52,7 +52,7 @@ export default {
         // TODO: refactor decoding to results utils
         decodeHistoryAndLoad(state, historyString) {
             const [preQueries, preEdges] = historyString.split('!');
-            
+
             // const edgePairs = preEdges.match(/.{2}/g);
             for (let i = 0, charsLength = preEdges.length; i < charsLength; i += 2) {
                 const [child, parent] = preEdges.substring(i, i + 2);
@@ -67,25 +67,25 @@ export default {
                 return { id: inc, index, query };
             });
         },
-        addCard(state, { query, index, parent }) {
+        addCard(state, newCard) {
             const card = {
                 id: state.cards.length, // should start off as 0
-                // parent: parent || -1,   // -1 means the root parent -> the query bar at the top of the card page? also means that this should be a card id
+                parent: newCard.parent,   // -1 means the root parent -> the query bar at the top of the card page? also means that this should be a card id
                 // timestamp: Date.now(),  // TODO: autogenerate this? (TODO: it gets lost in the decoding so who cares)
-                index,
-                query,
+                index: newCard.index,
+                query: newCard.query,
             }
             state.cards.push(card);
             if (!!parent) {
-                state.edges.push(Object.freeze([card.id, parent])) 
-                state.parenthood[card.id] = parent;    
+                state.edges.push(Object.freeze([card.id, parent]))
+                state.parenthood[card.id] = parent;
             }
 
         }
     },
     actions: {
-        addCard(context, query, parent) {
-            context.commit('addCard', { query, parent });
+        addCard(context, { index, query, parent }) {
+            context.commit('addCard', { index, query, parent });
         }
     }
 }

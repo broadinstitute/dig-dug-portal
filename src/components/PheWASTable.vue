@@ -121,7 +121,8 @@ export default Vue.component("phewas-table", {
     props: ["associations", "phenotypeMap"],
     components: {
         Documentation,
-        TooltipDocumentation
+        TooltipDocumentation,
+        VueTypeaheadBootstrap
     },
     data() {
         return {

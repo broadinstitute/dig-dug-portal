@@ -81,9 +81,6 @@
 
                         <locuszoom
                             ref="locuszoom"
-                            :chr="$store.state.chr"
-                            :start="$store.state.start"
-                            :end="$store.state.end"
                             :refSeq="false">
                             <lz-phewas-panel
                                 :varId="$store.state.variantID"
@@ -101,6 +98,7 @@
                             :associations="$parent.variantData.associations"
                             :phenotype-map="$store.state.bioPortal.phenotypeMap"
                         ></phewas-table>
+                        
                     </div>
                 </div>
                 <!-- <div class="card mdkp-card">

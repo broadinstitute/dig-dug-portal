@@ -1,11 +1,9 @@
 <template>
-    <result-card :title="title">
+    <result-card :title="title" :parent="parent">
         <template #sidebar>
         </template>
         <template #content>
-            {{ region }}
             <locuszoom
-                ref="locuszoom"
                 :key="title"
                 :chr="region.chr"
                 :start="region.start"
@@ -42,6 +40,7 @@ export default Vue.component('associations-result-card', {
     // TODO: Phenotypes – should there be a default?
     props: [
         "title",
+        "parent",
         "phenotype",
         "associations",
         "locus"

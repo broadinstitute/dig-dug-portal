@@ -21,11 +21,14 @@ import RegionsResultsSidebar from "./RegionsResultSidebar"
 import RegionsTable from "@/components/RegionsTable"
 
 export default Vue.component('regions-result-card', {
-    props: ["title", "regions"],
+    props: ["title", "parent", "regions"],
     components: {
         ResultCard,
         RegionsTable,
         RegionsResultsSidebar,
     },
+    mounted() {
+        console.log(this.title, this.parent)
+    }
 })
 </script>

@@ -19,12 +19,11 @@
                 </template>
 
                 <b-form-input
-                    v-model="$parent.queryString"
+                    v-model="$parent.query"
                     :placeholder="$parent.placeholder"
                 ></b-form-input>
-
                 <template v-slot:append>
-                    <b-button v-on:click="$parent.queryBioIndexForResults($parent.index, $parent.queryString)" variant="outline-secondary">Run</b-button>
+                    <b-button v-on:click="$parent.queryBioIndexForResults($parent.index, $parent.query)" variant="outline-secondary">Run</b-button>
                 </template>
             </b-input-group>
         </div>
@@ -40,7 +39,9 @@
                         :key="`link-${queryHash}-${n}`"
                         :id="`link-${queryHash}-${n}`"
                         @click="$parent.jumpToElementBy(`#card-${queryHash}-${n}`)">
+
                         {{queryHash}} {{n}}<br>
+
                     </a>
 
                 </b-col>
@@ -48,38 +49,51 @@
 
                     <!-- TODO: content addressing id vs timestamp id? right now list index serves role of relative timestamp. don't like that -->
                     <div class="card"
-                        v-for="(queryHash, n) in $parent.queryHashes"
-                        :key="`card-${queryHash}-${n}`"
-                        :id="`card-${queryHash}-${n}`">
+                        v-for="card in $store.state.resultCards.cards"
+                        :key="`card-${$parent.hashQuery(card)}-${card.id}`"
+                        :id="`card-${$parent.hashQuery(card)}-${card.id}`">
 
-                        <div v-if="$parent.bioIndexFromHash(queryHash) === 'regions'">
+
+                        <div v-if="card.index === 'regions'">
                             <regions-result-card
-                                :title="`${queryHash}`"
-                                :regions="$parent.dataCache[queryHash]"
-                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
+                                :title="`${$parent.hashQuery(card)}`"
+                                :parent="card.parent"
+                                :regions="$parent.dataCache[$parent.hashQuery(card)]"
+                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString, card.id)"
                             ></regions-result-card>
                         </div>
 
-                        <div v-else-if="$parent.bioIndexFromHash(queryHash) === 'associations'">
+
+                        <div v-else-if="card.index === 'associations'">
                             <associations-result-card
-                                :title="`${queryHash}`"
-                                :associations="$parent.dataCache[queryHash]"
-                                :phenotype="$parent.phenotypeFromHash(queryHash)"
-                                :locus="$parent.locusFromHash(queryHash)"
-                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
+                                :title="`${$parent.hashQuery(card)}`"
+                                :parent="card.parent"
+
+                                :associations="$parent.dataCache[$parent.hashQuery(card)]"
+                                :phenotype="$parent.phenotypeFromHash($parent.hashQuery(card))"
+                                :locus="$parent.locusFromHash($parent.hashQuery(card))"
+
+                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString, card.id)"
                             ></associations-result-card>
                         </div>
 
-                        <!-- <div v-else-if="$parent.bioIndexFromHash(queryHash) === 'variant'">
-                            <variant-result-card
-                                :title="`${queryHash}`"
-                                :variant="$parent.dataCache[queryHash]"
+
+                        <div v-else-if="card.index === 'variant'">
+                            <!-- <variant-result-card
+                                :title="`${$parent.hashQuery(card)}`"
+                                :parent="card.parent"
+                                :variant="$parent.dataCache[$parent.hashQuery(card)]"
                                 @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
-                            ></variant-result-card>
-                        </div> -->
+                            ></variant-result-card> -->
+                            {{$parent.dataCache[$parent.hashQuery(card)][0].associations}}
+                            <phewas-table
+                                :associations="$parent.dataCache[$parent.hashQuery(card)][0].associations"
+                                :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                            ></phewas-table>
+                        </div>
 
                         <div v-else>
-                            I'm a {{queryHash}} that's not yet supported
+                            I'm a {{card}} that's not yet supported
                         </div>
 
                     </div>
