@@ -44,7 +44,7 @@ export default {
         // TODO: refactor to results utils
         encodeHistory(state) {
             // TODO
-            const queries = state.cards.map(card => `${card.index};${card.query}`).join(',');  // ordering should equal id
+            const queries = state.cards.map(card => `${card.index};${card.query}`).join('_');  // ordering should equal id
             const edges = state.edges.map(edgePair => `${edgePair[0]};${edgePair[1]}`).join(',');
             return `${queries}!${edges}`;
         },
@@ -72,7 +72,7 @@ export default {
 
             // TODO
             // Problem: parent being -1, where's the information?
-            const queries = preQueries.split(',');
+            const queries = preQueries.split('_');
             state.cards = queries.map((content, inc) => {
                 const [index, query] = content.split(';');
                 return { id: inc, index, query };
