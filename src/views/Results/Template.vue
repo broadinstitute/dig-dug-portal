@@ -31,6 +31,10 @@
         <p v-if="!$parent.loading">Not loading anything</p>
         <p v-if="$parent.loading">Loading stuff</p>
 
+        {{$store.getters.encodeHistory.trim()}}<br>
+        <input v-model="$parent.decodeString" placeholder="decode string"/>
+        <button @click="$store.commit('decodeHistoryAndLoad',$event.target.value)" :value="$parent.decodeString.trim()">Decode</button>
+
         <b-container fluid>
             <b-row no-gutters>
                 <b-col cols="2">

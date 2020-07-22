@@ -43,31 +43,53 @@ export default {
         // },
         // TODO: refactor to results utils
         encodeHistory(state) {
-            const queries = ``
-            const edges = ``
+            // TODO
+            const queries = state.cards.map(card => `${card.index};${card.query}`).join(',');  // ordering should equal id
+            const edges = state.edges.map(edgePair =>
+                `${edgePair[0]};${edgePair[1]}`
+            // {
+            //     console.log(edgePair)
+            //     return ''
+            // }
+            ).join(',');
             return `${queries}!${edges}`;
         },
     },
     mutations: {
         // TODO: refactor decoding to results utils
         decodeHistoryAndLoad(state, historyString) {
+            state.cards = [];
+            state.edges = [];
+            state.parenthood = {};
+
             const [preQueries, preEdges] = historyString.split('!');
 
             // const edgePairs = preEdges.match(/.{2}/g);
-            for (let i = 0, charsLength = preEdges.length; i < charsLength; i += 2) {
-                const [child, parent] = preEdges.substring(i, i + 2);
-                state.edges.push(Object.freeze([child, parent]))
+            // for (let i = 0, charsLength = preEdges.length; i < charsLength; i += 2) {
+            //     const [child, parent] = preEdges.substring(i, i + 2);
+            //     state.edges.push([child, parent])
+            //     state.parenthood[child] = parent;
+            // };
+
+            const edgePairs = preEdges.split(',')
+            edgePairs.forEach(content => {
+                const [child, parent] = content.split(';')
+                state.edges.push([child, parent])
                 state.parenthood[child] = parent;
-            };
+            })
 
             // TODO
+            // Problem: parent being -1, where's the information?
             const queries = preQueries.split(',');
-            state.queries = queries.map((content, inc) => {
+            state.cards = queries.map((content, inc) => {
                 const [index, query] = content.split(';');
-                return { id: inc, index, query };
+                console.log(content, inc, index, query)
+                // TODO: parenthood and id are correct?
+                return { id: inc, index, query, parent: state.parenthood[inc] };
             });
         },
         addCard(state, newCard) {
+            console.log(newCard)
             const card = {
                 id: state.cards.length, // should start off as 0
                 parent: newCard.parent,   // -1 means the root parent -> the query bar at the top of the card page? also means that this should be a card id
@@ -76,9 +98,12 @@ export default {
                 query: newCard.query,
             }
             state.cards.push(card);
-            if (!!parent) {
-                state.edges.push(Object.freeze([card.id, parent]))
-                state.parenthood[card.id] = parent;
+            if (typeof card.parent !== "undefined") {  // !!parent won't work here since it makes 0 go to false
+                console.log('can add parent', card.parent)
+                state.edges.push([card.id, card.parent])
+                state.parenthood[card.id] = card.parent;
+            } else {
+                console.log('could not add parent')
             }
 
         }

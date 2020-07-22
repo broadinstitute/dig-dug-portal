@@ -31,8 +31,9 @@ new Vue({
             index: 'regions',
             query: 'slc30a8',
 
-            queries: [],
             dataCache: {},
+
+            decodeString: '',
 
             loading: false,
         }
@@ -114,7 +115,6 @@ new Vue({
             // using `_` to be consistent with HTML spec, AND what Vue can handle, for valid ids for elements (the default `,` breaks document selector behavior)
             // TODO: in thr case of locii, *for now*, we'll replace colon with an underscore...
             const { index, query, parent } = queryObj;
-            console.log(queryObj)
             return [
                 index,
                 parent,
