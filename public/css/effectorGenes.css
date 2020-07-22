@@ -167,7 +167,11 @@ div.legends span.legend.prob_5 {
     background-color: rgba(91, 203, 245, 1);
 }
 
-.snp_eff_4, .snp_eff_3, .snp_eff_2, .snp_eff_1, .snp_eff_0 {
+.snp_eff_4,
+.snp_eff_3,
+.snp_eff_2,
+.snp_eff_1,
+.snp_eff_0 {
     color: #fff;
 }
 
@@ -639,5 +643,8 @@ div.data div.row > div.locusName {
 }
 
 .EGL-table-wrapper-richards .row.headers {
+}
 
+#maccarthy .feature-name {
+    text-align: center;
 }
