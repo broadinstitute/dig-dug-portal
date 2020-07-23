@@ -87,6 +87,15 @@
                                 :phenotypeMap="$store.state.bioPortal.phenotypeMap">
                             </lz-phewas-panel>
                         </locuszoom>
+                        
+                        <locuszoom
+                            ref="locuszoom2"
+                            :refSeq="false">
+                            <lz-phewas-panel
+                                :varId="$store.state.variantID"
+                                :phenotypeMap="$store.state.bioPortal.phenotypeMap">
+                            </lz-phewas-panel>
+                        </locuszoom>
 
                         <h4 class="card-title">
                             <documentation
