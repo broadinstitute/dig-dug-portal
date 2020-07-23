@@ -12,6 +12,10 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 import { BIOINDEX_SCHEMA, decodeHistory, provenanceHash, contentHash } from "./utils/resultsUtils"
 import _ from "lodash";
+
+import keyParams from "@/utils/keyParams";
+
+
 // import PheWASTable from "@/components/PheWASTable.vue";
 
 Vue.use(BootstrapVue);
@@ -30,7 +34,19 @@ new Vue({
 
             decodeString: '',
 
+            loadedHistory: keyParams.q,
+
             loading: false,
+        }
+    },
+    created() {
+        // neither an empty string nor undefined
+        // NOTE: assumes it's valid!
+        if (!!this.loadedHistory) {
+            console.log('loading history')
+            this.decodeAndLoad(this.loadedHistory);
+        } else {
+            console.log('not loading history')
         }
     },
     computed: {

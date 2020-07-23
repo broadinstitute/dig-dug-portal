@@ -6,7 +6,7 @@ import kp4cd from "@/modules/kp4cd";
 import resultCards from "./modules/resultCards"
 
 import bioIndexUtils from "@/utils/bioIndexUtils";
-import { BIOINDEX_SCHEMA, provenanceHash, contentHash } from "./utils/resultsUtils"
+import { BIOINDEX_SCHEMA, provenanceHash, contentHash, decodeHistory } from "./utils/resultsUtils"
 
 Vue.use(Vuex);
 
@@ -39,6 +39,15 @@ export default new Vuex.Store({
     actions: {
         clearEverything(context) {
             context.commit('clearEverything');
+        },
+        decodeAndLoad(context, historyString) {
+            const decodedHistory = decodeHistory(historyString);
+            // console.log('decodedHistory', decodedHistory);
+            // NOTE: Doesn't delete the cache. Feature and not bug?
+            context.dispatch('clearEverything');
+            Promise.all(decodedHistory.cards.map(card => {
+                context.dispatch('queryBioIndexForResults', { ...card })
+            }))
         },
         queryBioIndexForResults(context, { id, index, query, parent=-1 }) {
             const card = { id, index, query, parent };

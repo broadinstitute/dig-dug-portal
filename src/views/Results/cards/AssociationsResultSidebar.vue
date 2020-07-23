@@ -9,25 +9,17 @@
                        With Links/Options to Satisfy Partial Queries
                           And autocompletes that provide already-hit options prioritized first
         -->
-
-        <!--
-            For Regions:
-            * Region => go to other region card
-            - Annotation-Method (!!!)
-            - Tissue => go to tissue card
-         -->
-
         <div class="results-nav-container">
             <!-- Region Navs -->
             <results-nav v-for="(regionData, i) in regions"
-                        :key="locusFrom(regionData)+i"
-                        :queryKey="'regions'"
-                        :showCompoundIndexes="true"
-                        :inputValue="locusFrom(regionData)"
-                        @pushQuery="$emit('pushQuery', $event)">
+                    :key="locusFrom(regionData)+i"
+                    :queryKey="'regions'"
+                    :showCompoundIndexes="true"
+                    :inputValue="locusFrom(regionData)"
+                    @pushQuery="$emit('pushQuery', $event)">
             </results-nav>
-            <!-- TODO: Annotation-Method Navs -->
-            <!-- TODO: Tissue Navs? -->
+            <!-- TODO: Variant Navs -->
+            <!-- TODO: Gene Navs? -->
         </div>
     </div>
 
