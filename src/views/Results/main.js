@@ -2,21 +2,26 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-// import RegionsResultCard from "./cards/RegionsResultCard.vue"
-// import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
-// import VariantResultCard from "./cards/VariantResultCard.vue"
+import RegionsResultCard from "./cards/RegionsResultCard.vue"
+import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
+import VariantResultCard from "./cards/VariantResultCard.vue"
 
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
-import { BIOINDEX_SCHEMA, decodeHistory, hashQuery } from "./utils/resultsUtils"
+import { BIOINDEX_SCHEMA, decodeHistory, hashQuery, contentHash } from "./utils/resultsUtils"
 import _ from "lodash";
 // import PheWASTable from "@/components/PheWASTable.vue";
 
 Vue.use(BootstrapVue);
 new Vue({
     store,
+    components: {
+        RegionsResultCard,
+        AssociationsResultCard,
+        VariantResultCard,
+    },
     data() {
         return {
 
@@ -32,14 +37,6 @@ new Vue({
         placeholder: function() {
             return BIOINDEX_SCHEMA.data.filter(schema => schema.index === this.index)[0].schema;
         },
-        queryHashes: function() {
-            // TODO: implement hash function which can also compactify the query
-            // return this.queries.map(query => this.hashQuery(query));
-            return this.$store.state.resultCards.cards.map(card => {
-                return this.hashQuery(card);
-            });
-        },
-
     },
     methods: {
         tap() {
@@ -48,6 +45,7 @@ new Vue({
         },
 
         hashQuery,
+        contentHash,
         // TODO: Move these to utils
         bioIndexFromHash(queryHash) {
             // TODO: need to refactor use of queryHash if queryHash is not decodable into parts

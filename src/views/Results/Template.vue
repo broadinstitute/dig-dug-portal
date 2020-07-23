@@ -30,7 +30,7 @@
 
         <p v-if="!$store.getters.busy">Not loading anything</p>
         <p v-if="$store.getters.busy">Loading stuff</p>
-        {{$store.state.busyBodies}}
+        {{$store.state.busyBodies}}<br>
 
         {{$store.getters.encodeHistory.trim()}}<br>
         <input v-model="$parent.decodeString" placeholder="decode string"/>
@@ -50,23 +50,35 @@
                     </a>
 
                 </b-col>
-                <!-- <b-col class="reverseorder"> -->
-                <b-col>
+                <b-col class="reverseorder">
+                <!-- <b-col> -->
                     <!-- TODO: content addressing id vs timestamp id? right now list index serves role of relative timestamp. don't like that -->
                     <div class="card"
                         v-for="card in $store.getters.cardsById"
                         :key="`card-${$parent.hashQuery(card)}-${card.id}`"
                         :id="`card-${$parent.hashQuery(card)}-${card.id}`">
 
-
                         <div v-if="card.index === 'regions'">
                             I'm a {{card}} that is supported ({{card.index}})
-                            <!-- <regions-result-card
+                            <regions-result-card
                                 :title="`${$parent.hashQuery(card)}`"
-                                :regions="$store.state.dataCache[$parent.hashQuery(card)]"
+                                :regions="$store.state.dataCache[$parent.contentHash(card)]"
                                 :parent="card.parent"
                                 @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
-                            ></regions-result-card> -->
+                            ></regions-result-card>
+                        </div>
+
+                        <div v-else-if="card.index === 'associations'">
+                            I'm a {{card}} that is supported ({{card.index}})
+                            <associations-result-card
+                                :title="`${$parent.hashQuery(card)}`"
+                                :associations="$store.state.dataCache[$parent.contentHash(card)]"
+                                :phenotype="$parent.phenotypeFromHash($parent.hashQuery(card))"
+                                :locus="$parent.locusFromHash($parent.hashQuery(card))"
+
+                                :parent="card.parent"
+                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
+                            ></associations-result-card>
                         </div>
 
                         <div v-else>

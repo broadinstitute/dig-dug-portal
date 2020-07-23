@@ -246,8 +246,18 @@ function hashQuery(queryObj) {
   ].join('__')  // double underscore since single underscore is now reserved
 }
 
+// TODO: refactor to use this in hashQuery (problem comes from extracting data from hash, may need to reserve different location for parent)
+function contentHash(queryObj) {
+  const { index, query } = queryObj;
+  return [
+      index,
+      query.replace(':', '_').replace(',','--'),
+  ].join('__')  // double underscore since single underscore is now reserved
+}
+
 export {
     hashQuery,
+    contentHash,
     decodeHistory,
     basicIndexesForKey,
     compoundIndexesForKey,

@@ -42,12 +42,14 @@ export default {
         },
     },
     mutations: {
-        decodeHistoryAndLoad(state, historyString) {
-            const decodedHistory = decodeHistory(historyString);
-            state.cards = decodedHistory.cards;
-            state.edges = decodedHistory.edges;
-            state.parenthood = decodedHistory.parenthood;
-        },
+        // NOTE: doesn't work straightforwardly here because needs the side effect of calling data into the cache
+        // would need to use e.g. a watcher? but gets kind of lengthy in reactivity chain
+        // decodeHistoryAndLoad(state, historyString) {
+        //     const decodedHistory = decodeHistory(historyString);
+        //     state.cards = decodedHistory.cards;
+        //     state.edges = decodedHistory.edges;
+        //     state.parenthood = decodedHistory.parenthood;
+        // },
         addCard(state, newCard) {
             const card = {
                 id: typeof newCard.id != 'undefined' ? newCard.id : state.cards.length, // should start off as 0
