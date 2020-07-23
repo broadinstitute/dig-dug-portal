@@ -59,7 +59,7 @@ export default Vue.component("regions-results-sidebar", {
 <style scoped>
     .results-nav-container {
         height: 500px;
-        width: 200%;
+        width: 150%;
         overflow-y: scroll;
     }
 </style>

@@ -69,7 +69,7 @@ new Vue({
             return this.leftmostArgFromHash(queryHash);
         },
         locusFromHash(queryHash) {
-            // NB: doesn't check if the hash actually contains a locus
+            // NB: doesn't check if the hash actually contains a locus or if it's in the right place
             // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
             return this.rightmostArgFromHash(queryHash).replace("_",":")
         },

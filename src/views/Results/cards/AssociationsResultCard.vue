@@ -4,6 +4,7 @@
         </template>
         <template #content>
             <locuszoom
+                v-if="region"
                 :key="title"
                 :chr="region.chr"
                 :start="region.start"
@@ -51,6 +52,7 @@ export default Vue.component('associations-result-card', {
         }
     },
     created() {
+        console.log('locus',this.locus)
         let self = this;
         Promise.resolve(fetch(BIO_INDEX_HOST+'/api/portal/phenotypes').then(response => response.json()).then(json => {
             self.phenotypesLookup = json.data.filter(phenotypeInfo => phenotypeInfo.name === this.phenotype)[0];

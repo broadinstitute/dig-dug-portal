@@ -43,7 +43,11 @@ export default new Vuex.Store({
         queryBioIndexForResults(context, { id, index, query, parent=-1 }) {
             const card = { id, index, query, parent };
 
-            const queryPageId = provenanceHash(card);
+            // if the id doesn't exist it will be assigned when the card is created
+            // but for the sake of representing loading accurately we need to assign the provenanceHash with
+            // some noise to disitnguish it from other hashes which may be identical at the time of loading
+            // this should be revisited if we are making any decisions using the query being passed in before it's fully loaded
+            const queryPageId = provenanceHash(card) + (id || '_tmp'+Math.floor(Math.random()*100));
             const queryContentId = contentHash(card);
 
             if (typeof context.state.dataCache[queryContentId] === 'undefined') {

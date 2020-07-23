@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { decodeHistory } from "../utils/resultsUtils"
+import { decodeHistory, encodeHistory } from "../utils/resultsUtils"
 
 /*
     Requirements
@@ -36,9 +36,7 @@ export default {
                 // TODO
         },
         encodeHistory(state, getters) {
-            const queries = getters.cardsById.map(card => `${card.index};${card.query}`).join(',');  // ordering should equal id
-            const edges = state.edges.map(edgePair =>`${edgePair[0]};${edgePair[1]}`).join(',');
-            return `${queries}!${edges}`;
+            return encodeHistory(getters.cardsById, state.edges)
         },
     },
     mutations: {

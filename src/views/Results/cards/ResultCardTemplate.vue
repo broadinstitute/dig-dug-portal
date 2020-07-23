@@ -2,7 +2,7 @@
     <div>
         <h4>{{title}}</h4>
         <b-row>
-            <b-col cols="3">
+            <b-col cols="2">
                 <slot name="sidebar">
                     TODO: Sidebar for card type compatible with {{ title }}
                 </slot>

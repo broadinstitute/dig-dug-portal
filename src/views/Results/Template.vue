@@ -38,7 +38,7 @@
 
         <b-container fluid>
             <b-row no-gutters>
-                <b-col cols="2">
+                <b-col cols="2" class="reverseorder">
 
                     <a  v-for="card in $store.getters.cardsById"
                         :key="`link-${$parent.provenanceHash(card)}-${card.id}`"
@@ -99,5 +99,6 @@
     .reverseorder {
         display: flex;
         flex-direction: column-reverse;
+        align-self: flex-start;
     }
 </style>

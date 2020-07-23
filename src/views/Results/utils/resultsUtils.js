@@ -1,7 +1,3 @@
-import regionUtils from "@/utils/regionUtils.js"
-import variantUtils from "@/utils/regionUtils.js"
-import { partition } from "lodash"
-
 // Local copy of http://<BIOINDEX>/api/bio/indexes on July 13 2020
 // TODO: convert into an API call that loads on startup
 export const BIOINDEX_SCHEMA = {
@@ -200,23 +196,34 @@ const compoundIndexesForKey = function(queryKey) {
     }
 }
 
+const JOIN_HISTORY='!'
+const JOIN_QUERIES = '|' // this can't be equal to `,` (or `-` or `:` for that matter), because bioIndex uses that for its queries, which would result in false splits when we're decoding the history later
+const JOIN_EDGES = ','   // could technically be `|` but `,` is more readable (when we can use it)
+const JOIN_PARTS =';' // can be overloaded between queries and edges since we (should) guarantee splitting on the JOIN_CHAR_HISTORY marker first
+
+function encodeHistory(cardsById, edgeList) {
+  const queries = cardsById.map(card => `${card.index}${JOIN_PARTS}${card.query}`).join(JOIN_QUERIES);  // ordering should equal id
+  const edges = edgeList.map(edgePair =>`${edgePair[0]}${JOIN_PARTS}${edgePair[1]}`).join(JOIN_EDGES);
+  return `${queries}${JOIN_HISTORY}${edges}`;
+}
+
 const decodeHistory = function(historyString) {
   let cards = [];
   let edges = [];
   let parenthood = {};
 
-  const [preQueries, preEdges] = historyString.split('!');
+  const [preQueries, preEdges] = historyString.split(JOIN_HISTORY);
 
-  const edgePairs = preEdges.split(',')
+  const edgePairs = preEdges.split(JOIN_EDGES)
   edgePairs.forEach(content => {
-      const [child, parent] = content.split(';')
+      const [child, parent] = content.split(JOIN_PARTS)
       edges.push([child, parent])
       parenthood[child] = parent;
   })
 
-  const queries = preQueries.split(',');
+  const queries = preQueries.split(JOIN_QUERIES);
   cards = queries.map((content, inc) => {
-      const [index, query] = content.split(';');
+      const [index, query] = content.split(JOIN_PARTS);
       const card = { id: inc, index, query, parent: parenthood[inc] };
       return card;
   });
@@ -258,6 +265,7 @@ function contentHash(queryObj) {
 export {
     provenanceHash,
     contentHash,
+    encodeHistory,
     decodeHistory,
     basicIndexesForKey,
     compoundIndexesForKey,
