@@ -30,11 +30,8 @@ export default Vue.component("effector-genes-features", {
     props: ["features"],
     data() {
         return {
-            showFeatures: false
+            showFeatures: false,
         };
-    }
+    },
 });
 </script>
-
-<style>
-</style>
