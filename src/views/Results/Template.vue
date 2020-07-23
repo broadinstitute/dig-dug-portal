@@ -27,10 +27,10 @@
                 </template>
             </b-input-group>
         </div>
-        {{$store.getters.busy}}
-        {{$store.state.busyBodies}}
+
         <p v-if="!$store.getters.busy">Not loading anything</p>
         <p v-if="$store.getters.busy">Loading stuff</p>
+        {{$store.state.busyBodies}}
 
         {{$store.getters.encodeHistory.trim()}}<br>
         <input v-model="$parent.decodeString" placeholder="decode string"/>

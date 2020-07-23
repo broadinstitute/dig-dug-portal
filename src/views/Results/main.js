@@ -83,11 +83,10 @@ new Vue({
 
         decodeAndLoad(historyString) {
             const decodedHistory = decodeHistory(historyString);
-            console.log('decodedHistory', decodedHistory);
+            // console.log('decodedHistory', decodedHistory);
             // NOTE: Doesn't delete the cache. Feature and not bug?
             this.$store.dispatch('clearEverything');
             Promise.all(decodedHistory.cards.map(card => {
-                console.log(card);
                 this.$store.dispatch('queryBioIndexForResults', { ...card })
             }))
         }

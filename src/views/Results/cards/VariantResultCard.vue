@@ -1,5 +1,5 @@
 <template>
-    <result-card :title="title">
+    <result-card-template :title="title" :parent="parent">
         <template #content>
             {{ region }}
             <locuszoom
@@ -11,7 +11,7 @@
                 ></lz-phewas-panel>
             </locuszoom>
         </template>
-    </result-card>
+    </result-card-template>
 </template>
 <script>
 import Vue from "vue"
@@ -29,6 +29,7 @@ export default Vue.component('variant-result-card', {
     // TODO: Phenotypes – should there be a default?
     props: [
         "title",
+        "parent",
         "variant",
     ],
     data() {

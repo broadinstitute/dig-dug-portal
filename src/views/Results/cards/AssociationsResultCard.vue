@@ -1,5 +1,5 @@
 <template>
-    <result-card :title="title" :parent="parent">
+    <result-card-template :title="title" :parent="parent">
         <template #sidebar>
         </template>
         <template #content>
@@ -20,7 +20,7 @@
                 :phenotypes="[phenotypesLookup]"
             ></associations-table>
         </template>
-    </result-card>
+    </result-card-template>
 </template>
 <script>
 import Vue from "vue"
