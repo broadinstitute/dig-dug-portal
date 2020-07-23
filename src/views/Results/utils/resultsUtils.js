@@ -200,7 +200,54 @@ const compoundIndexesForKey = function(queryKey) {
     }
 }
 
+const decodeHistory = function(historyString) {
+  let cards = [];
+  let edges = [];
+  let parenthood = {};
+
+  const [preQueries, preEdges] = historyString.split('!');
+
+  const edgePairs = preEdges.split(',')
+  edgePairs.forEach(content => {
+      const [child, parent] = content.split(';')
+      edges.push([child, parent])
+      parenthood[child] = parent;
+  })
+
+  const queries = preQueries.split(',');
+  cards = queries.map((content, inc) => {
+      const [index, query] = content.split(';');
+      return { id: inc, index, query, parent: parenthood[inc] };
+  });
+
+  return {
+    cards,
+    edges,
+    parenthood,
+  }
+
+}
+
+function hashQuery(queryObj) {
+  // NOTA BENE: we're going to use this under conditions where it's a div ID, so it needs to follow HTML spec
+  // https://stackoverflow.com/questions/70579/what-are-valid-values-for-the-id-attribute-in-html
+  // For now since 'index' refers to an english word plus hyphens, we're in the clear for HTML5, but if we can't put constraints
+  // on our hashing algo we're going to have (small) problems later. (?: could just put a random letter in front? -> breaks non-determinism)
+
+  // NOTE: Vue apparently likes even *fewer* characters than the HTML5 spec constrains. doesn't work with `.` nor `:`
+  // using `_` to be consistent with HTML spec, AND what Vue can handle, for valid ids for elements (the default `,` breaks document selector behavior)
+  // TODO: in thr case of locii, *for now*, we'll replace colon with an underscore...
+  const { index, query, parent } = queryObj;
+  return [
+      index,
+      parent,
+      query.replace(':', '_').replace(',','--'),
+  ].join('__')  // double underscore since single underscore is now reserved
+}
+
 export {
+    hashQuery,
+    decodeHistory,
     basicIndexesForKey,
     compoundIndexesForKey,
     compatibleIndexesForKey,

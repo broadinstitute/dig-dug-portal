@@ -13,7 +13,7 @@
     "bootstrap-vue": "^2.6.1",
     "c3": "0.7.7",
     "core-js": "^2.6.11",
-    "igv": "https://github.com/kbruskiewicz/igv.js/tarball/master",
+    "igv": "^2.6.2",
     "jquery": "^3.4.1",
     "json-query": "^2.2.2",
     "jsonpath": "^1.0.2",

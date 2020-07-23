@@ -18,7 +18,7 @@ import Vue from "vue"
 
 import regionUtils from "@/utils/regionUtils"
 
-import ResultCard from "./ResultCard"
+import ResultCardTemplate from "./ResultCardTemplate"
 import AssociationsTable from "@/components/AssociationsTable"
 import LocusZoom from "@/components/lz/LocusZoom"
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel"
@@ -43,7 +43,7 @@ export default Vue.component('variant-result-card', {
         }));
     },
     components: {
-        ResultCard,
+        ResultCardTemplate,
         LocusZoom,
         AssociationsTable,
         LocusZoomPhewasPanel,

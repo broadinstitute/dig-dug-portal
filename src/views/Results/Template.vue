@@ -23,17 +23,17 @@
                     :placeholder="$parent.placeholder"
                 ></b-form-input>
                 <template v-slot:append>
-                    <b-button v-on:click="$parent.queryBioIndexForResults($parent.index, $parent.query)" variant="outline-secondary">Run</b-button>
+                    <b-button v-on:click="$store.dispatch('queryBioIndexForResults', { index: $parent.index, query: $parent.query })" variant="outline-secondary">Run</b-button>
                 </template>
             </b-input-group>
         </div>
 
         <p v-if="!$parent.loading">Not loading anything</p>
         <p v-if="$parent.loading">Loading stuff</p>
-
+        
         {{$store.getters.encodeHistory.trim()}}<br>
         <input v-model="$parent.decodeString" placeholder="decode string"/>
-        <button @click="$store.commit('decodeHistoryAndLoad',$event.target.value)" :value="$parent.decodeString.trim()">Decode</button>
+        <button :value="$parent.decodeString.trim()" @click="$parent.decodeAndLoad($event.target.value)">Decode</button>
 
         <b-container fluid>
             <b-row no-gutters>
@@ -61,39 +61,10 @@
                         <div v-if="card.index === 'regions'">
                             <regions-result-card
                                 :title="`${$parent.hashQuery(card)}`"
+                                :regions="$store.state.dataCache[$parent.hashQuery(card)]"
                                 :parent="card.parent"
-                                :regions="$parent.dataCache[$parent.hashQuery(card)]"
-                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString, card.id)"
+                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
                             ></regions-result-card>
-                        </div>
-
-
-                        <div v-else-if="card.index === 'associations'">
-                            <associations-result-card
-                                :title="`${$parent.hashQuery(card)}`"
-                                :parent="card.parent"
-
-                                :associations="$parent.dataCache[$parent.hashQuery(card)]"
-                                :phenotype="$parent.phenotypeFromHash($parent.hashQuery(card))"
-                                :locus="$parent.locusFromHash($parent.hashQuery(card))"
-
-                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString, card.id)"
-                            ></associations-result-card>
-                        </div>
-
-
-                        <div v-else-if="card.index === 'variant'">
-                            <!-- <variant-result-card
-                                :title="`${$parent.hashQuery(card)}`"
-                                :parent="card.parent"
-                                :variant="$parent.dataCache[$parent.hashQuery(card)]"
-                                @pushQuery="$parent.queryBioIndexForResults($event.index, $event.queryString)"
-                            ></variant-result-card> -->
-                            {{$parent.dataCache[$parent.hashQuery(card)][0].associations}}
-                            <phewas-table
-                                :associations="$parent.dataCache[$parent.hashQuery(card)][0].associations"
-                                :phenotype-map="$store.state.bioPortal.phenotypeMap"
-                            ></phewas-table>
                         </div>
 
                         <div v-else>

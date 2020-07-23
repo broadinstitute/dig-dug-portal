@@ -27,7 +27,7 @@ import Vue from "vue"
 
 import regionUtils from "@/utils/regionUtils"
 
-import ResultCard from "./ResultCard"
+import ResultCardTemplate from "./ResultCardTemplate"
 import ResultsNav from "../navs/ResultsNav"
 
 import AssociationsTable from "@/components/AssociationsTable"
@@ -62,7 +62,7 @@ export default Vue.component('associations-result-card', {
         }
     },
     components: {
-        ResultCard,
+        ResultCardTemplate,
         LocusZoom,
         AssociationsTable,
         LocusZoomAssociationsPanel,

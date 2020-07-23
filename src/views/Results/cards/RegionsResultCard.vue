@@ -16,14 +16,14 @@
 </template>
 <script>
 import Vue from "vue"
-import ResultCard from "./ResultCard"
+import ResultCardTemplate from "./ResultCardTemplate"
 import RegionsResultsSidebar from "./RegionsResultSidebar"
 import RegionsTable from "@/components/RegionsTable"
 
 export default Vue.component('regions-result-card', {
     props: ["title", "parent", "regions"],
     components: {
-        ResultCard,
+        ResultCardTemplate,
         RegionsTable,
         RegionsResultsSidebar,
     },

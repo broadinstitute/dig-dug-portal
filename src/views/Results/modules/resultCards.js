@@ -1,5 +1,5 @@
 import _ from "lodash";
-
+import { decodeHistory } from "../utils/resultsUtils"
 
 /*
     Requirements
@@ -43,50 +43,17 @@ export default {
         // },
         // TODO: refactor to results utils
         encodeHistory(state) {
-            // TODO
             const queries = state.cards.map(card => `${card.index};${card.query}`).join(',');  // ordering should equal id
-            const edges = state.edges.map(edgePair =>
-                `${edgePair[0]};${edgePair[1]}`
-            // {
-            //     console.log(edgePair)
-            //     return ''
-            // }
-            ).join(',');
+            const edges = state.edges.map(edgePair =>`${edgePair[0]};${edgePair[1]}`).join(',');
             return `${queries}!${edges}`;
         },
     },
     mutations: {
-        // TODO: refactor decoding to results utils
         decodeHistoryAndLoad(state, historyString) {
-            state.cards = [];
-            state.edges = [];
-            state.parenthood = {};
-
-            const [preQueries, preEdges] = historyString.split('!');
-
-            // const edgePairs = preEdges.match(/.{2}/g);
-            // for (let i = 0, charsLength = preEdges.length; i < charsLength; i += 2) {
-            //     const [child, parent] = preEdges.substring(i, i + 2);
-            //     state.edges.push([child, parent])
-            //     state.parenthood[child] = parent;
-            // };
-
-            const edgePairs = preEdges.split(',')
-            edgePairs.forEach(content => {
-                const [child, parent] = content.split(';')
-                state.edges.push([child, parent])
-                state.parenthood[child] = parent;
-            })
-
-            // TODO
-            // Problem: parent being -1, where's the information?
-            const queries = preQueries.split(',');
-            state.cards = queries.map((content, inc) => {
-                const [index, query] = content.split(';');
-                console.log(content, inc, index, query)
-                // TODO: parenthood and id are correct?
-                return { id: inc, index, query, parent: state.parenthood[inc] };
-            });
+            const decodedHistory = decodeHistory(historyString);
+            state.cards = decodedHistory.cards;
+            state.edges = decodedHistory.edges;
+            state.parenthood = decodedHistory.parenthood;
         },
         addCard(state, newCard) {
             console.log(newCard)
@@ -106,6 +73,11 @@ export default {
                 console.log('could not add parent')
             }
 
+        },
+        clearEverything(state) {
+            state.cards = [];
+            state.edges = [];
+            state.parenthood = {};
         }
     },
     actions: {
