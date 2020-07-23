@@ -33,7 +33,7 @@ export default {
                 // Let "cards" be state.cards, `T` be a topologically sorted set of cards, and `L` be a dummy variable pronounced "level"
                 // Find the root cards, i.e. find all cards with root parent === -1, and place them in `L`
                     // to resolve ambiguity, sort by timestamps?
-                // TODO
+            // TODO: PICK TOPOLOGICAL ORDERING – there are several
         },
         encodeHistory(state, getters) {
             return encodeHistory(getters.cardsById, state.edges)
