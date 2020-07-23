@@ -6,7 +6,7 @@ import kp4cd from "@/modules/kp4cd";
 import resultCards from "./modules/resultCards"
 
 import bioIndexUtils from "@/utils/bioIndexUtils";
-import { BIOINDEX_SCHEMA, hashQuery, contentHash } from "./utils/resultsUtils"
+import { BIOINDEX_SCHEMA, provenanceHash, contentHash } from "./utils/resultsUtils"
 
 Vue.use(Vuex);
 
@@ -43,7 +43,7 @@ export default new Vuex.Store({
         queryBioIndexForResults(context, { id, index, query, parent=-1 }) {
             const card = { id, index, query, parent };
 
-            const queryPageId = hashQuery(card);
+            const queryPageId = provenanceHash(card);
             const queryContentId = contentHash(card);
 
             if (typeof context.state.dataCache[queryContentId] === 'undefined') {

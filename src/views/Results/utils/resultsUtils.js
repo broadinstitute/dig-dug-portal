@@ -229,7 +229,7 @@ const decodeHistory = function(historyString) {
 
 }
 
-function hashQuery(queryObj) {
+function provenanceHash(queryObj) {
   // NOTA BENE: we're going to use this under conditions where it's a div ID, so it needs to follow HTML spec
   // https://stackoverflow.com/questions/70579/what-are-valid-values-for-the-id-attribute-in-html
   // For now since 'index' refers to an english word plus hyphens, we're in the clear for HTML5, but if we can't put constraints
@@ -246,7 +246,7 @@ function hashQuery(queryObj) {
   ].join('__')  // double underscore since single underscore is now reserved
 }
 
-// TODO: refactor to use this in hashQuery (problem comes from extracting data from hash, may need to reserve different location for parent)
+// TODO: refactor to use this in provenanceHash (problem comes from extracting data from hash, may need to reserve different location for parent)
 function contentHash(queryObj) {
   const { index, query } = queryObj;
   return [
@@ -256,7 +256,7 @@ function contentHash(queryObj) {
 }
 
 export {
-    hashQuery,
+    provenanceHash,
     contentHash,
     decodeHistory,
     basicIndexesForKey,

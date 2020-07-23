@@ -41,11 +41,11 @@
                 <b-col cols="2">
 
                     <a  v-for="card in $store.getters.cardsById"
-                        :key="`link-${$parent.hashQuery(card)}-${card.id}`"
-                        :id="`link-${$parent.hashQuery(card)}-${card.id}`"
-                        @click="$parent.jumpToElementBy(`#card-${$parent.hashQuery(card)}-${card.id}`)">
+                        :key="`link-${$parent.provenanceHash(card)}-${card.id}`"
+                        :id="`link-${$parent.provenanceHash(card)}-${card.id}`"
+                        @click="$parent.jumpToElementBy(`#card-${$parent.provenanceHash(card)}-${card.id}`)">
 
-                        {{$parent.hashQuery(card)}} {{card.id}}<br>
+                        {{$parent.provenanceHash(card)}} {{card.id}}<br>
 
                     </a>
 
@@ -55,13 +55,13 @@
                     <!-- TODO: content addressing id vs timestamp id? right now list index serves role of relative timestamp. don't like that -->
                     <div class="card"
                         v-for="card in $store.getters.cardsById"
-                        :key="`card-${$parent.hashQuery(card)}-${card.id}`"
-                        :id="`card-${$parent.hashQuery(card)}-${card.id}`">
+                        :key="`card-${$parent.provenanceHash(card)}-${card.id}`"
+                        :id="`card-${$parent.provenanceHash(card)}-${card.id}`">
 
                         <div v-if="card.index === 'regions'">
                             I'm a {{card}} that is supported ({{card.index}})
                             <regions-result-card
-                                :title="`${$parent.hashQuery(card)}`"
+                                :title="`${$parent.provenanceHash(card)}`"
                                 :regions="$store.state.dataCache[$parent.contentHash(card)]"
                                 :parent="card.parent"
                                 @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
@@ -71,10 +71,10 @@
                         <div v-else-if="card.index === 'associations'">
                             I'm a {{card}} that is supported ({{card.index}})
                             <associations-result-card
-                                :title="`${$parent.hashQuery(card)}`"
+                                :title="`${$parent.provenanceHash(card)}`"
                                 :associations="$store.state.dataCache[$parent.contentHash(card)]"
-                                :phenotype="$parent.phenotypeFromHash($parent.hashQuery(card))"
-                                :locus="$parent.locusFromHash($parent.hashQuery(card))"
+                                :phenotype="$parent.phenotypeFromHash($parent.provenanceHash(card))"
+                                :locus="$parent.locusFromHash($parent.provenanceHash(card))"
 
                                 :parent="card.parent"
                                 @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"

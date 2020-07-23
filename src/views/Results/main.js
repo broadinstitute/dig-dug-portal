@@ -10,7 +10,7 @@ import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
-import { BIOINDEX_SCHEMA, decodeHistory, hashQuery, contentHash } from "./utils/resultsUtils"
+import { BIOINDEX_SCHEMA, decodeHistory, provenanceHash, contentHash } from "./utils/resultsUtils"
 import _ from "lodash";
 // import PheWASTable from "@/components/PheWASTable.vue";
 
@@ -44,7 +44,7 @@ new Vue({
             return event;
         },
 
-        hashQuery,
+        provenanceHash,
         contentHash,
         // TODO: Move these to utils
         bioIndexFromHash(queryHash) {
