@@ -199,7 +199,7 @@ const compoundIndexesForKey = function(queryKey) {
 const JOIN_HISTORY='!'
 const JOIN_QUERIES = '|' // this can't be equal to `,` (or `-` or `:` for that matter), because bioIndex uses that for its queries, which would result in false splits when we're decoding the history later
 const JOIN_EDGES = ','   // could technically be `|` but `,` is more readable (when we can use it)
-const JOIN_PARTS =';' // can be overloaded between queries and edges since we (should) guarantee splitting on the JOIN_CHAR_HISTORY marker first
+const JOIN_PARTS =';'    // can be overloaded between queries and edges since we (should) guarantee splitting on the JOIN_CHAR_HISTORY marker first
 
 function encodeHistory(cardsById, edgeList) {
   const queries = cardsById.map(card => `${card.index}${JOIN_PARTS}${card.query}`).join(JOIN_QUERIES);  // ordering should equal id
@@ -236,6 +236,7 @@ const decodeHistory = function(historyString) {
 
 }
 
+// TODO: use regexp for all this coding/decoding nonsense?
 function provenanceHash(queryObj) {
   // NOTA BENE: we're going to use this under conditions where it's a div ID, so it needs to follow HTML spec
   // https://stackoverflow.com/questions/70579/what-are-valid-values-for-the-id-attribute-in-html
