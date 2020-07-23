@@ -21,28 +21,41 @@ export default new Vuex.Store({
     state: {
         indexes,
         dataCache: {},
+        busyBodies: [],
+    },
+    getters: {
+        busy(state) {
+            return state.busyBodies.length > 0;
+        }
+    },
+    mutations: {
+        moreBusy(state, queryHash) {
+            state.busyBodies.push(queryHash)
+        },
+        lessBusy(state, queryHash) {
+            state.busyBodies = state.busyBodies.filter(el => el != queryHash)
+        }
     },
     actions: {
         clearEverything(context) {
             context.commit('clearEverything');
         },
-        queryBioIndexForResults(context, { index, query, parent=-1 }) {
-            console.log(index, query, parent);
-
-            const card = { index, query, parent };
+        queryBioIndexForResults(context, { id, index, query, parent=-1 }) {
+            const card = { id, index, query, parent };
             const queryHash = hashQuery(card);
 
             if (typeof context.state.dataCache[queryHash] === 'undefined') {
-                console.log('using load in store')
-                const self = this;
+                context.commit('moreBusy', queryHash);
                 Promise.resolve(bioIndexUtils.query(card.index, card.query, { limit: null } )).then(data => {
                     context.state.dataCache[queryHash] = data;
                     context.dispatch('addCard', card);
+                    context.commit('lessBusy', queryHash);
                 });
             } else {
                 console.log('using cache in store')
                 context.dispatch('addCard', card);
             }
+
         },
     }
 });

@@ -1,34 +1,22 @@
 import Vue from "vue";
-import AsyncComputed from "vue-async-computed";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import bioIndexUtils from "@/utils/bioIndexUtils";
-
-import RegionsResultCard from "./cards/RegionsResultCard.vue"
-import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
-import VariantResultCard from "./cards/VariantResultCard.vue"
+// import RegionsResultCard from "./cards/RegionsResultCard.vue"
+// import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
+// import VariantResultCard from "./cards/VariantResultCard.vue"
 
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 import { BIOINDEX_SCHEMA, decodeHistory, hashQuery } from "./utils/resultsUtils"
-import PheWASTable from "@/components/PheWASTable.vue";
+import _ from "lodash";
+// import PheWASTable from "@/components/PheWASTable.vue";
 
-Vue.use(AsyncComputed);
 Vue.use(BootstrapVue);
-
-
 new Vue({
     store,
-    components: {
-        RegionsResultCard,
-        AssociationsResultCard,
-        VariantResultCard,
-        PheWASTable,
-
-    },
     data() {
         return {
 
@@ -51,6 +39,7 @@ new Vue({
                 return this.hashQuery(card);
             });
         },
+
     },
     methods: {
         tap() {
@@ -87,54 +76,22 @@ new Vue({
             return this.rightmostArgFromHash(queryHash).replace("_",":")
         },
         jumpToElementBy(elementSelector) {
+            console.log('jumping to element', this.$el.querySelector(elementSelector))
             // https://stackoverflow.com/a/17938519/1991892
             this.$el.querySelector(elementSelector).scrollIntoView();
         },
-        elIdFormatter(text) {
-            return '#'+text;
-        },
-        elClassFormatter(text) {
-            return '.'+text;
-        },
-
-        // Data Processing Methods
-        queryBioIndexForResults({ index, query, parent=-1 }) {
-            console.log(index, query, parent);
-            this.loading = true;
-
-            const queryObj = { index, query, parent };
-            const queryHash = this.hashQuery(queryObj);
-
-            if (typeof this.$store.state.dataCache[queryHash] === 'undefined') {
-                console.log('using load')
-                const self = this;
-                Promise.resolve(bioIndexUtils.query(queryObj.index, queryObj.query, { limit: null } )).then(data => {
-                    self.$store.state.dataCache[queryHash] = data;
-                    self.$store.dispatch('addCard', queryObj);
-                    self.loading = false;
-                });
-            } else {
-                console.log('using cache')
-                this.$store.dispatch('addCard', queryObj);
-                this.loading = false;
-            }
-        },
 
         decodeAndLoad(historyString) {
-            const self = this;
-
+            const decodedHistory = decodeHistory(historyString);
+            console.log('decodedHistory', decodedHistory);
             // NOTE: Doesn't delete the cache. Feature and not bug?
             this.$store.dispatch('clearEverything');
-            decodeHistory(historyString).cards.forEach(card => {
-                this.loading = true;
-                console.log(Date.now())
+            Promise.all(decodedHistory.cards.map(card => {
+                console.log(card);
                 this.$store.dispatch('queryBioIndexForResults', { ...card })
-                    .then(() => {
-                        console.log(Date.now())
-                        self.loading = false;
-                    });
-            });
+            }))
         }
+
     },
     render(createElement, context) {
         return createElement(Template);
