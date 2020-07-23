@@ -21,10 +21,10 @@ export default {
         cardsByQuery(state) {
             return _.keyBy(state.cards, 'query')
         },
-        cardsChronological(state) {
+        cardsById(state) {
             // Return cards in the order of creation
             // return _.sortBy(state.cards, 'timestamp')
-            return state.cards;
+            return _.sortBy(state.cards, 'id');
         },
         cardsTopological(state, getters) {
             // Return cards in the order of their parents
@@ -35,15 +35,8 @@ export default {
                     // to resolve ambiguity, sort by timestamps?
                 // TODO
         },
-        // cardsReverseChronological(state) {
-        //     return state.cardsChronological.slice().reverse();
-        // },
-        // cardsReverseTopological(state) {
-        //     return state.cardsTopological.slice().reverse();
-        // },
-        // TODO: refactor to results utils
-        encodeHistory(state) {
-            const queries = state.cards.map(card => `${card.index};${card.query}`).join(',');  // ordering should equal id
+        encodeHistory(state, getters) {
+            const queries = getters.cardsById.map(card => `${card.index};${card.query}`).join(',');  // ordering should equal id
             const edges = state.edges.map(edgePair =>`${edgePair[0]};${edgePair[1]}`).join(',');
             return `${queries}!${edges}`;
         },
@@ -56,9 +49,8 @@ export default {
             state.parenthood = decodedHistory.parenthood;
         },
         addCard(state, newCard) {
-            console.log(newCard)
             const card = {
-                id: state.cards.length, // should start off as 0
+                id: typeof newCard.id != 'undefined' ? newCard.id : state.cards.length, // should start off as 0
                 parent: newCard.parent,   // -1 means the root parent -> the query bar at the top of the card page? also means that this should be a card id
                 // timestamp: Date.now(),  // TODO: autogenerate this? (TODO: it gets lost in the decoding so who cares)
                 index: newCard.index,
@@ -66,13 +58,9 @@ export default {
             }
             state.cards.push(card);
             if (typeof card.parent !== "undefined") {  // !!parent won't work here since it makes 0 go to false
-                console.log('can add parent', card.parent)
                 state.edges.push([card.id, card.parent])
                 state.parenthood[card.id] = card.parent;
-            } else {
-                console.log('could not add parent')
             }
-
         },
         clearEverything(state) {
             state.cards = [];
@@ -81,8 +69,8 @@ export default {
         }
     },
     actions: {
-        addCard(context, { index, query, parent }) {
-            context.commit('addCard', { index, query, parent });
+        addCard(context, { id, index, query, parent }) {
+            context.commit('addCard', { id, index, query, parent });
         }
     }
 }

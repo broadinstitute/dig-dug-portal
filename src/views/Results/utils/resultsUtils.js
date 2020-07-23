@@ -217,7 +217,8 @@ const decodeHistory = function(historyString) {
   const queries = preQueries.split(',');
   cards = queries.map((content, inc) => {
       const [index, query] = content.split(';');
-      return { id: inc, index, query, parent: parenthood[inc] };
+      const card = { id: inc, index, query, parent: parenthood[inc] };
+      return card;
   });
 
   return {
