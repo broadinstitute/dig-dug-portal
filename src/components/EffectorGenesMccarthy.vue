@@ -39,7 +39,6 @@
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import EffectorGenesFeatures from "@/components/eg/EffectorGenesFeatures";
-import EffectorGenesFilters from "@/components/eg/EffectorGenesFilters";
 
 Vue.use(BootstrapVueIcons);
 
