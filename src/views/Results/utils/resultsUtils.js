@@ -252,7 +252,8 @@ function provenanceHash(queryObj) {
   return [
       index,
       parent,
-      query.replace(':', '_').replace(',','--'),
+      // TODO: replace double replaces with a global substitute of some kind; it's only necessary because of varId
+      query.replace(':', '_').replace(':', '_').replace(',','--'),
   ].join(HASH_JOINER)  // double underscore since single underscore is now reserved
 }
 
@@ -261,7 +262,8 @@ function contentHash(queryObj) {
   const { index, query } = queryObj;
   return [
       index,
-      query.replace(':', '_').replace(',','--'),
+      // TODO: replace double replaces with a global substitute of some kind; it's only necessary because of varId
+      query.replace(':', '_').replace(':', '_').replace(',','--'),
   ].join(HASH_JOINER)  // double underscore since single underscore is now reserved
 }
 

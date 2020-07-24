@@ -1,12 +1,12 @@
 <template>
     <result-card-template :title="title" :parent="parent">
         <template #content>
-            {{ region }}
             <locuszoom
+                v-if="phenotypesLookup"
                 ref="locuszoom"
-                :refSeq="true">
+                :refSeq="false">
                 <lz-phewas-panel
-                    :varId="variant"
+                    :varId="variantName"
                     :phenotypeMap="phenotypesLookup"
                 ></lz-phewas-panel>
             </locuszoom>
@@ -40,8 +40,16 @@ export default Vue.component('variant-result-card', {
     created() {
         let self = this;
         Promise.resolve(fetch(BIO_INDEX_HOST+'/api/portal/phenotypes').then(response => response.json()).then(json => {
-            self.phenotypesLookup = json.data;
+            self.phenotypesLookup = {}
+            for (let i in json.data) {
+                self.phenotypesLookup[json.data[i].name] = json.data[i];
+            }
         }));
+    },
+    computed: {
+        variantName() {
+            return this.variant[0].varId
+        }
     },
     components: {
         ResultCardTemplate,

@@ -78,6 +78,15 @@
                             ></associations-result-card>
                         </div>
 
+                        <div v-else-if="card.index === 'variant'">
+                            <variant-result-card
+                                :title="`${$parent.provenanceHash(card)}`"
+                                :variant="$store.state.dataCache[$parent.contentHash(card)]"
+                                :parent="card.parent"
+                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
+                            ></variant-result-card>
+                        </div>
+
                         <div v-else>
                             I'm a {{card}} that's not yet supported ({{card.index}})
                         </div>

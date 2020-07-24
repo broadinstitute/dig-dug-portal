@@ -1,6 +1,9 @@
 <template>
     <result-card-template :title="title" :parent="parent">
         <template #sidebar>
+            <associations-results-sidebar
+                :associations="associations"
+            ></associations-results-sidebar>
         </template>
         <template #content>
             <locuszoom
@@ -26,7 +29,7 @@
 <script>
 import Vue from "vue"
 
-import regionUtils from "@/utils/regionUtils"
+import { parseRegionAsync } from "@/utils/regionUtils"
 
 import ResultCardTemplate from "./ResultCardTemplate"
 import ResultsNav from "../navs/ResultsNav"
@@ -34,6 +37,8 @@ import ResultsNav from "../navs/ResultsNav"
 import AssociationsTable from "@/components/AssociationsTable"
 import LocusZoom from "@/components/lz/LocusZoom"
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
+
+import AssociationsResultSideBar from "./AssociationsResultSidebar"
 
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils"
 
@@ -48,26 +53,23 @@ export default Vue.component('associations-result-card', {
     ],
     data() {
         return {
-            phenotypesLookup: null
+            phenotypesLookup: null,
+            region: null,
         }
     },
-    created() {
-        console.log('locus',this.locus)
+    async created() {
         let self = this;
         Promise.resolve(fetch(BIO_INDEX_HOST+'/api/portal/phenotypes').then(response => response.json()).then(json => {
             self.phenotypesLookup = json.data.filter(phenotypeInfo => phenotypeInfo.name === this.phenotype)[0];
         }));
-    },
-    computed: {
-        region() {
-            return regionUtils.parseRegion(this.locus)
-        }
+        this.region = await parseRegionAsync(this.locus, true);
     },
     components: {
         ResultCardTemplate,
         LocusZoom,
         AssociationsTable,
         LocusZoomAssociationsPanel,
+        AssociationsResultSideBar,
     },
 })
 </script>

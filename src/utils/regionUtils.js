@@ -7,7 +7,7 @@ import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 // matches a string to a region string (same as used in BioIndex)
 const REGION_REGEXP = /^(?:chr)?(1\d?|2[0-2]?|[3-9]|x|y|xy|mt?)[:_](\d+)(?:([+/-])(\d+))?$/i;
 
-function parseRegion(s,  geneRegionExpand = 0) {
+export function parseRegion(s,  geneRegionExpand = 0) {
     let match = s.trim().replace(/,/g, '').match(REGION_REGEXP);
 
     // region matched, return chrom, start, and stop
@@ -51,8 +51,8 @@ function parseRegion(s,  geneRegionExpand = 0) {
     }
 }
 
-// parse a region as either a gene name, ENS ID, or chr:start-stop
-async function parseRegionAsync(s, allowGeneLookup = true, geneRegionExpand = 0) {
+// parse a region as either a gene name, ENS ID, or chr:start-stopexport
+export async function parseRegionAsync(s, allowGeneLookup = true, geneRegionExpand = 0) {
 
     let match = s.trim().replace(/,/g, '').match(REGION_REGEXP);
 

@@ -11,14 +11,17 @@
         -->
         <div class="results-nav-container">
             <!-- Region Navs -->
-            <results-nav v-for="(regionData, i) in regions"
+            <!-- <results-nav v-for="(regionData, i) in regions"
                     :key="locusFrom(regionData)+i"
                     :queryKey="'regions'"
                     :showCompoundIndexes="true"
                     :inputValue="locusFrom(regionData)"
                     @pushQuery="$emit('pushQuery', $event)">
-            </results-nav>
+            </results-nav> -->
             <!-- TODO: Variant Navs -->
+            <div v-for="variant in variantIDs" :key="variant">
+                <a @click="$emit('pushQuery', { index: 'variant', queryString: `${variant}`})">{{ variant }}</a>
+            </div>
             <!-- TODO: Gene Navs? -->
         </div>
     </div>
@@ -29,10 +32,20 @@
 import Vue from "vue";
 import ResultsNav from "../navs/ResultsNav"
 import Formatters from "@/utils/formatters.js"
-export default Vue.component("regions-results-sidebar", {
-    props: ["regions"],
+export default Vue.component("associations-results-sidebar", {
+    props: ["associations"],
     components: {
         ResultsNav
+    },
+    computed: {
+        variantIDs() {
+            console.log(this.associations)
+            return this.associations.map(association => association.varId);
+        },
+        genes() {
+            console.log(this.associations)
+            return this.associations.map(association => association.gene);
+        }
     },
     methods: {
          locusFrom({ chromosome, start, end}) {

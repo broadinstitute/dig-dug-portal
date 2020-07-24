@@ -58,8 +58,9 @@ new Vue({
             return event;
         },
 
-        provenanceHash,
-        contentHash,
+        provenanceHash,  // used for identifying cards
+        contentHash,     // used for accessing data cache
+        // extractors for a provenanceHash (*not* a contentHash)
         bioIndexFromHash,
         parentFromHash,
         phenotypeFromHash,
@@ -71,7 +72,8 @@ new Vue({
             this.$el.querySelector(elementSelector).scrollIntoView();
         },
         makeURLWithEncodeHistory() {
-            alert(window.location+'?q='+encodeHistory(this.$store.state.resultCards.cards, this.$store.state.resultCards.edges));
+            // need concatenate these two together because sometimes `window.location.href` will contain unecessary junk
+            alert(window.location.host+window.location.pathname+'?q='+encodeHistory(this.$store.state.resultCards.cards, this.$store.state.resultCards.edges));
         },
         decodeAndLoad(historyString) {
             const decodedHistory = decodeHistory(historyString);
@@ -81,7 +83,6 @@ new Vue({
                 this.$store.dispatch('queryBioIndexForResults', { ...card })
             }))
         }
-
     },
     render(createElement, context) {
         return createElement(Template);

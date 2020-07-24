@@ -41,7 +41,7 @@
             <!-- TODO: making this generic? i.e. a tooltip? -->
             <!-- TODO: Method is a filter! do we want to pass filters to pushQuery? -->
             <div v-for="annotation in annotations" :key="annotation">
-                <a @click="$emit('pushQuery', { index: 'annotated-regions', queryString: `${annotation},${metadata.locusOrGene}`})">{{annotation}} for {{metadata.locusOrGene}}</a>
+                <a @click="$emit('pushQuery', { index: 'annotated-regions', queryString: `${annotation},${metadata.locusOrGene}`})">{{annotation}}</a>
             </div>
 
         </div>
