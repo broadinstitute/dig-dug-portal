@@ -13,6 +13,7 @@
                                 :key="i"
                                 href="#"
                                 @click="$parent.index = i">
+                                {{i}}
                             </a>
                     </b-dropdown>
                 </template>
@@ -27,12 +28,9 @@
             </b-input-group>
         </div>
 
-        <p v-if="!$store.getters.busy">Not loading anything</p>
-        <p v-if="$store.getters.busy">Loading stuff {{$store.state.busyBodies}}<br></p>
-
-        <input v-model="$parent.decodeString" placeholder="decode string"/>
-        <button :value="$parent.decodeString.trim()" @click="$parent.decodeAndLoad($event.target.value)">Decode</button>
         <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Make URL</button>
+        <p v-if="$store.getters.busy">Loading</p>
+
 
         <b-container fluid>
             <b-row no-gutters>
@@ -43,7 +41,7 @@
                         :id="`link-${$parent.provenanceHash(card)}-${card.id}`"
                         @click="$parent.jumpToElementBy(`#card-${$parent.provenanceHash(card)}-${card.id}`)">
 
-                        {{$parent.provenanceHash(card)}} {{card.id}}<br>
+                        {{$parent.bioIndexFromHash($parent.provenanceHash(card))}} for {{$parent.queryFromHash($parent.provenanceHash(card))}}<br>
 
                     </a>
 
@@ -58,7 +56,7 @@
 
                         <div v-if="card.index === 'regions'">
                             <regions-result-card
-                                :title="`${$parent.provenanceHash(card)}`"
+                                :title="`${$parent.bioIndexFromHash($parent.provenanceHash(card))} for ${$parent.queryFromHash($parent.provenanceHash(card))}`"
                                 :regions="$store.state.dataCache[$parent.contentHash(card)]"
                                 :parent="card.parent"
                                 @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
@@ -67,7 +65,7 @@
 
                         <div v-else-if="card.index === 'associations'">
                             <associations-result-card
-                                :title="`${$parent.provenanceHash(card)}`"
+                                :title="`${$parent.bioIndexFromHash($parent.provenanceHash(card))} for ${$parent.queryFromHash($parent.provenanceHash(card))}`"
                                 :associations="$store.state.dataCache[$parent.contentHash(card)]"
                                 :phenotype="$parent.phenotypeFromHash($parent.provenanceHash(card))"
                                 :locus="$parent.locusFromHash($parent.provenanceHash(card))"
@@ -79,20 +77,24 @@
 
                         <div v-else-if="card.index === 'variant'">
                             <variant-result-card
-                                :title="`${$parent.provenanceHash(card)}`"
+                                :title="`${$parent.bioIndexFromHash($parent.provenanceHash(card))} for ${$parent.queryFromHash($parent.provenanceHash(card))}`"
                                 :variant="$store.state.dataCache[$parent.contentHash(card)]"
                                 :parent="card.parent"
                                 @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
                             ></variant-result-card>
                         </div>
 
+                        <div v-else-if="card.index === 'gene'">
+                            <gene-result-card
+                                :card="card"
+                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
+                            ></gene-result-card>
+                        </div>
+
                         <div v-else>
-                            I'm a {{card}} that's not yet supported ({{card.index}})
-                            <pre>
-                                <code>
-                                    {{$store.state.dataCache[$parent.contentHash(card)]}}
-                                </code>
-                            </pre>
+                            <result-card-template
+                                :card="card"
+                            ></result-card-template>
                         </div>
 
                     </div>

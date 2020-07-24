@@ -63,7 +63,7 @@ export default {
                 id: typeof newCard.id != 'undefined' ? newCard.id : state.cards.length, // should start off as 0
                 parent: newCard.parent,   // -1 means the root parent -> the query bar at the top of the card page? also means that this should be a card id
                 // timestamp: Date.now(),  // TODO: autogenerate this? (TODO: it gets lost in the decoding so who cares)
-                index: newCard.index,
+                index: newCard.index,  // TODO: extend with non-bioindex types?
                 query: newCard.query,
             }
             state.cards.push(card);

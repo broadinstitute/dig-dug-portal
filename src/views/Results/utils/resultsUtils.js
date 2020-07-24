@@ -305,11 +305,11 @@ export {
     phenotypeFromHash,
     locusFromHash,
     provenanceHash,
+    rightmostArgFromHash as queryFromHash,
     contentHash,
     encodeHistory,
     decodeHistory,
     basicIndexesForKey,
     compoundIndexesForKey,
     compatibleIndexesForKey,
-}
-;
+};

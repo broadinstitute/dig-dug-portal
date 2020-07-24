@@ -1,7 +1,7 @@
 <template>
-    <div :class="'scroll-to-arrow'+toWhere">
+    <!-- <div :class="'scroll-to-arrow'+toWhere"> -->
         <a v-on:click="scrollToPoint(toWhere)"><slot>↑</slot></a>
-    </div>
+    <!-- </div> -->
 </template>
 
 <script>

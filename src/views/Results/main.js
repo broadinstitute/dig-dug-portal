@@ -5,12 +5,13 @@ import store from "./store.js";
 import RegionsResultCard from "./cards/RegionsResultCard.vue"
 import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
 import VariantResultCard from "./cards/VariantResultCard.vue"
+import GeneResultCard from "./cards/GeneResultCard.vue"
 
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
-import { BIOINDEX_SCHEMA, decodeHistory, provenanceHash, contentHash, encodeHistory, bioIndexFromHash, parentFromHash, phenotypeFromHash, locusFromHash } from "./utils/resultsUtils"
+import { BIOINDEX_SCHEMA, decodeHistory, provenanceHash, contentHash, encodeHistory, bioIndexFromHash, parentFromHash, phenotypeFromHash, locusFromHash, queryFromHash } from "./utils/resultsUtils"
 import _ from "lodash";
 
 import keyParams from "@/utils/keyParams";
@@ -25,12 +26,13 @@ new Vue({
         RegionsResultCard,
         AssociationsResultCard,
         VariantResultCard,
+        GeneResultCard,
     },
     data() {
         return {
 
-            index: 'regions',
-            query: 'slc30a8',
+            index: 'gene',
+            query: 'psck9',
 
             decodeString: '',
 
@@ -65,6 +67,7 @@ new Vue({
         parentFromHash,
         phenotypeFromHash,
         locusFromHash,
+        queryFromHash,
 
         jumpToElementBy(elementSelector) {
             console.log('jumping to element', this.$el.querySelector(elementSelector))
