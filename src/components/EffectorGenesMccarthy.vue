@@ -21,6 +21,9 @@
             </b-row>
         </b-container>
         <b-container fluid v-if="!!config && !!filteredData">
+            <b-row class="headers">
+                <b-col v-for="name in config[dataset]['render']">{{name}}</b-col>
+            </b-row>
             <b-row v-for="row in filteredData">
                 <template v-for="(col, i) in config[dataset]['render']">
                     <b-col :class="i" :key="i">{{row[i]}}</b-col>
