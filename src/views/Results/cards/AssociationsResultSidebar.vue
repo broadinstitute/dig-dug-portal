@@ -20,7 +20,7 @@
             </results-nav> -->
             <!-- TODO: Variant Navs -->
             <div v-for="variant in variantIDs" :key="variant">
-                <a @click="dispatchQuery({ index: 'variant', queryString: `${variant}`})">{{ variant }}</a><br>
+                <button @click="dispatchQuery({ index: 'variant', queryString: `${variant}`})">{{ variant }}</button><br>
             </div>
             <!-- TODO: Gene Navs? -->
             <div v-for="gene in genes" :key="gene">

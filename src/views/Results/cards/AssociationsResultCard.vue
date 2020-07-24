@@ -3,6 +3,7 @@
         <template #sidebar>
             <associations-results-sidebar
                 :associations="associations"
+                @pushQuery="$emit('pushQuery', $event)"
             ></associations-results-sidebar>
         </template>
         <template #content>
