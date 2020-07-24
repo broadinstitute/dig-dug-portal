@@ -18,6 +18,7 @@
          -->
 
         <div class="results-nav-container">
+
             <!-- Region Navs -->
             <results-nav v-for="(regionData, i) in regions"
                         :key="locusFrom(regionData)+i"
@@ -26,15 +27,23 @@
                         :inputValue="locusFrom(regionData)"
                         @pushQuery="$emit('pushQuery', $event)">
             </results-nav>
+
             <!-- TODO: Annotation-Method Navs -->
-            <results-nav v-for="(annotationWithMethod, i) in annotationsWithMethods"
+            <!-- TODO: Method is a filter! do we want to pass filters to pushQuery? -->
+            <!-- <results-nav v-for="(annotationWithMethod, i) in annotationWithMethod"
                         :key="annotationWithMethod+i"
                         :queryKey="'annotated-regions'"
                         :showCompoundIndexes="true"
                         :inputValue="locusFrom(regionData)"
                         @pushQuery="$emit('pushQuery', $event)">
-            </results-nav>
-            <!-- TODO: Tissue Navs? -->
+            </results-nav> -->
+
+            <!-- TODO: making this generic? i.e. a tooltip? -->
+            <!-- TODO: Method is a filter! do we want to pass filters to pushQuery? -->
+            <div v-for="annotation in annotations" :key="annotation">
+                <a @click="$emit('pushQuery', { index: 'annotated-regions', queryString: `${annotation},${metadata.locusOrGene}`})">{{annotation}} for {{metadata.locusOrGene}}</a>
+            </div>
+
         </div>
     </div>
 
@@ -44,10 +53,17 @@
 import Vue from "vue";
 import ResultsNav from "../navs/ResultsNav"
 import Formatters from "@/utils/formatters.js"
+import _ from "lodash";
+
 export default Vue.component("regions-results-sidebar", {
-    props: ["regions"],
+    props: ["regions", "metadata"],
     components: {
         ResultsNav
+    },
+    computed: {
+        annotations() {
+            return _.uniq(this.regions.map(region => region.annotation))
+        },
     },
     methods: {
          locusFrom({ chromosome, start, end}) {

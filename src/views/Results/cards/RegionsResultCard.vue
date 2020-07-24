@@ -9,6 +9,7 @@
         <template #sidebar>
             <regions-results-sidebar
                 :regions="regions"
+                :metadata="{ locusOrGene: title.split('__')[2] }"
                 @pushQuery="$emit('pushQuery', $event)">
             </regions-results-sidebar>
         </template>

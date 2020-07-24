@@ -236,6 +236,8 @@ const decodeHistory = function(historyString) {
 
 }
 
+const HASH_JOINER = "__";
+
 // TODO: use regexp for all this coding/decoding nonsense?
 function provenanceHash(queryObj) {
   // NOTA BENE: we're going to use this under conditions where it's a div ID, so it needs to follow HTML spec
@@ -251,7 +253,7 @@ function provenanceHash(queryObj) {
       index,
       parent,
       query.replace(':', '_').replace(',','--'),
-  ].join('__')  // double underscore since single underscore is now reserved
+  ].join(HASH_JOINER)  // double underscore since single underscore is now reserved
 }
 
 // TODO: refactor to use this in provenanceHash (problem comes from extracting data from hash, may need to reserve different location for parent)
@@ -260,10 +262,46 @@ function contentHash(queryObj) {
   return [
       index,
       query.replace(':', '_').replace(',','--'),
-  ].join('__')  // double underscore since single underscore is now reserved
+  ].join(HASH_JOINER)  // double underscore since single underscore is now reserved
 }
 
+function leftmostArgFromHash(queryHash) {
+    const queryHashTokens = queryHash.split(HASH_JOINER);
+    return queryHashTokens[queryHashTokens.length - 1].split('--')[0];
+}
+function rightmostArgFromHash(queryHash) {
+    const queryHashTokens = queryHash.split(HASH_JOINER);
+    return queryHashTokens[queryHashTokens.length - 1].split('--').pop();
+}
+function centerArgFromHash(queryHash) {
+    return queryHash.split(HASH_JOINER)[1];
+}
+
+function bioIndexFromHash(queryHash) {
+    // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+    return queryHash.split(HASH_JOINER)[0];
+}
+function parentFromHash(queryHash) {
+    // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+    return centerArgFromHash(queryHash)
+}
+function phenotypeFromHash(queryHash) {
+    // NB: doesn't check if the hash actually contains a phenotype
+    // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+    return leftmostArgFromHash(queryHash);
+}
+function locusFromHash(queryHash) {
+    // NB: doesn't check if the hash actually contains a locus or if it's in the right place
+    // TODO: need to refactor use of queryHash if queryHash is not decodable into parts
+    return rightmostArgFromHash(queryHash).replace("_",":")
+}
+
+
 export {
+    bioIndexFromHash,
+    parentFromHash,
+    phenotypeFromHash,
+    locusFromHash,
     provenanceHash,
     contentHash,
     encodeHistory,
@@ -272,22 +310,4 @@ export {
     compoundIndexesForKey,
     compatibleIndexesForKey,
 }
-
-// const regionOrVariant = function (input) {
-//     let locus = await regionUtils.parseRegion(input, true, 50000);
-//     let varID = await variantUtils.parseVariant(input);
-
-//     if (locus) {
-//         if (locus.gene) {
-//             return "gene";
-//         }
-//         else {
-//             return "region";
-//         }
-//     } else if (varID) {
-//         return "variant"
-//     } else {
-//         // TODO: phenotype, credibleSetId, dataset
-//         return null;
-//     }
-// }
+;

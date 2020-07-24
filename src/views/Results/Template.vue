@@ -29,13 +29,12 @@
         </div>
 
         <p v-if="!$store.getters.busy">Not loading anything</p>
-        <p v-if="$store.getters.busy">Loading stuff</p>
-        {{$store.state.busyBodies}}<br>
+        <p v-if="$store.getters.busy">Loading stuff {{$store.state.busyBodies}}<br></p>
 
-        {{$store.getters.encodeHistory.trim()}}<br>
         <input v-model="$parent.decodeString" placeholder="decode string"/>
         <button :value="$parent.decodeString.trim()" @click="$parent.decodeAndLoad($event.target.value)">Decode</button>
-        {{typeof $parent.loadedHistory}}
+        <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Make URL</button>
+
         <b-container fluid>
             <b-row no-gutters>
                 <b-col cols="2" class="reverseorder">
@@ -59,7 +58,6 @@
                         :id="`card-${$parent.provenanceHash(card)}-${card.id}`">
 
                         <div v-if="card.index === 'regions'">
-                            <!-- I'm a {{card}} that is supported ({{card.index}}) -->
                             <regions-result-card
                                 :title="`${$parent.provenanceHash(card)}`"
                                 :regions="$store.state.dataCache[$parent.contentHash(card)]"
@@ -69,7 +67,6 @@
                         </div>
 
                         <div v-else-if="card.index === 'associations'">
-                            <!-- I'm a {{card}} that is supported ({{card.index}}) -->
                             <associations-result-card
                                 :title="`${$parent.provenanceHash(card)}`"
                                 :associations="$store.state.dataCache[$parent.contentHash(card)]"

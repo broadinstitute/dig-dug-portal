@@ -26,7 +26,7 @@
                             :disabled="queryKey === bioIndexQueryKey"/>
                         <!-- TODO: refactor the gnarly code in :value to use a custom directive that can set a default, to initialize the field -->
                         <input  v-if="bioIndexSchema.query.locus"
-                                :value="inputs[[bioIndexSchema.index,'locus',i].join('-')] ? inputs[[bioIndexSchema.index,'locus',i].join('-')] 
+                                :value="inputs[[bioIndexSchema.index,'locus',i].join('-')] ? inputs[[bioIndexSchema.index,'locus',i].join('-')]
                                     : (() => { inputs[[bioIndexSchema.index,'locus',i].join('-')] = inputValue; return inputs[[bioIndexSchema.index,'locus',i].join('-')]})()"
                                 @input="inputs[[bioIndexSchema.index,'locus',i].join('-')] = $event.target.value"
                                 disabled/>
@@ -64,7 +64,6 @@ export default Vue.component("results-nav", {
             console.log('ResultsNav tap', arguments)
         },
         async dispatchToIndex(index, queryString, isCompound=false) {
-            console.log("querying bioindex", index, queryString);
             this.$emit("pushQuery", { index, queryString });
         },
         makeCompoundInputValue(bioIndexSchema, i) {
