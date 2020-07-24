@@ -20,15 +20,15 @@
             </results-nav> -->
             <!-- TODO: Variant Navs -->
             <div v-for="variant in variantIDs" :key="variant">
-                <a @click="$emit('pushQuery', { index: 'variant', queryString: `${variant}`})">{{ variant }}</a><br>
+                <a @click="dispatchQuery({ index: 'variant', queryString: `${variant}`})">{{ variant }}</a><br>
             </div>
             <!-- TODO: Gene Navs? -->
             <div v-for="gene in genes" :key="gene">
-                <a @click="$emit('pushQuery', { index: 'gene', queryString: `${gene}`})">{{ gene }} to gene index</a><br>
-                <a @click="$emit('pushQuery', { index: 'genes', queryString: `${gene}`})">{{ gene }} to genes index</a><br>
-                <a @click="$emit('pushQuery', { index: 'regions', queryString: `${gene}`})">{{ gene }} to regions index</a><br>
-                <a @click="$emit('pushQuery', { index: 'top-associations', queryString: `${gene}`})">{{ gene }} to top-associations index</a><br>
-                <a @click="$emit('pushQuery', { index: 'variants', queryString: `${gene}`})">{{ gene }} to variants index</a><br>
+                <a @click="dispatchQuery({ index: 'gene', queryString: `${gene}`})">{{ gene }} to gene index</a><br>
+                <a @click="dispatchQuery({ index: 'genes', queryString: `${gene}`})">{{ gene }} to genes index</a><br>
+                <a @click="dispatchQuery({ index: 'regions', queryString: `${gene}`})">{{ gene }} to regions index</a><br>
+                <a @click="dispatchQuery({ index: 'top-associations', queryString: `${gene}`})">{{ gene }} to top-associations index</a><br>
+                <a @click="dispatchQuery({ index: 'variants', queryString: `${gene}`})">{{ gene }} to variants index</a><br>
             </div>
         </div>
     </div>
@@ -39,6 +39,7 @@
 import Vue from "vue";
 import ResultsNav from "../navs/ResultsNav"
 import Formatters from "@/utils/formatters.js"
+import _ from "lodash"
 export default Vue.component("associations-results-sidebar", {
     props: ["associations"],
     components: {
@@ -46,18 +47,19 @@ export default Vue.component("associations-results-sidebar", {
     },
     computed: {
         variantIDs() {
-            console.log(this.associations)
-            return this.associations.map(association => association.dbSNP);
+            return _.uniq(this.associations.map(association => association.dbSNP));
         },
         genes() {
-            console.log(this.associations)
-            return this.associations.map(association => association.gene);
+            return _.uniq(this.associations.map(association => association.gene));
         }
     },
     methods: {
-         locusFrom({ chromosome, start, end}) {
+        locusFrom({ chromosome, start, end}) {
             return Formatters.locusFormatter(chromosome, start, end);
-        }
+        },
+        dispatchQuery(queryMessage) {
+            this.$emit("pushQuery", queryMessage);
+        } 
     }
 })
 </script>
