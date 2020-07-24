@@ -13,7 +13,6 @@
                                 :key="i"
                                 href="#"
                                 @click="$parent.index = i">
-                                {{i}}
                             </a>
                     </b-dropdown>
                 </template>
@@ -89,6 +88,11 @@
 
                         <div v-else>
                             I'm a {{card}} that's not yet supported ({{card.index}})
+                            <pre>
+                                <code>
+                                    {{$store.state.dataCache[$parent.contentHash(card)]}}
+                                </code>
+                            </pre>
                         </div>
 
                     </div>

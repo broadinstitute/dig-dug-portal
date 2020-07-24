@@ -22,14 +22,23 @@
             <div v-for="variant in variantIDs" :key="variant">
                 <a @click="dispatchQuery({ index: 'variant', queryString: `${variant}`})">{{ variant }}</a><br>
             </div>
-            <!-- TODO: Gene Navs? -->
+
+            <!-- Equivalent to all the simple indexes which support a locus for an argument -->
             <div v-for="gene in genes" :key="gene">
-                <a @click="dispatchQuery({ index: 'gene', queryString: `${gene}`})">{{ gene }} to gene index</a><br>
-                <a @click="dispatchQuery({ index: 'genes', queryString: `${gene}`})">{{ gene }} to genes index</a><br>
-                <a @click="dispatchQuery({ index: 'regions', queryString: `${gene}`})">{{ gene }} to regions index</a><br>
-                <a @click="dispatchQuery({ index: 'top-associations', queryString: `${gene}`})">{{ gene }} to top-associations index</a><br>
-                <a @click="dispatchQuery({ index: 'variants', queryString: `${gene}`})">{{ gene }} to variants index</a><br>
+                <a @click="dispatchQuery({ index: 'gene', queryString: `${gene}`})">gene {{ gene }}</a><br>
+                <a @click="dispatchQuery({ index: 'genes', queryString: `${gene}`})">genes {{ gene }}</a><br>
+                <a @click="dispatchQuery({ index: 'regions', queryString: `${gene}`})">regions {{ gene }}</a><br>
+                <a @click="dispatchQuery({ index: 'top-associations', queryString: `${gene}`})">top-associations {{ gene }}</a><br>
+                <a @click="dispatchQuery({ index: 'variants', queryString: `${gene}`})">variants {{ gene }}</a><br>
             </div>
+
+            <!-- Equivalent to all the simple indexes which support a locus for an argument -->
+            <div v-for="gene in genes" :key="gene">
+                associations <input/> {{gene}}
+                annotated-regions <input/> {{gene}}
+                credible-sets <input/> {{gene}}
+            </div>
+
         </div>
     </div>
 
@@ -50,7 +59,7 @@ export default Vue.component("associations-results-sidebar", {
             return _.uniq(this.associations.map(association => association.dbSNP));
         },
         genes() {
-            return _.uniq(this.associations.map(association => association.gene));
+            return _.uniq(this.associations.map(association => association.gene).filter(el => typeof el != 'undefined'));
         }
     },
     methods: {
@@ -59,7 +68,7 @@ export default Vue.component("associations-results-sidebar", {
         },
         dispatchQuery(queryMessage) {
             this.$emit("pushQuery", queryMessage);
-        } 
+        }
     }
 })
 </script>

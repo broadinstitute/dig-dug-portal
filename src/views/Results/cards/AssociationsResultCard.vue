@@ -1,10 +1,10 @@
 <template>
     <result-card-template :title="title" :parent="parent">
         <template #sidebar>
-            <associations-results-sidebar
+            <!-- <associations-results-sidebar
                 :associations="associations"
                 @pushQuery="$emit('pushQuery', $event)"
-            ></associations-results-sidebar>
+            ></associations-results-sidebar> -->
         </template>
         <template #content>
             <locuszoom

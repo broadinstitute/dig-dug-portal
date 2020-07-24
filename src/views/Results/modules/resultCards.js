@@ -12,9 +12,19 @@ export default {
             // `child`: `parent` since keys must be unique by values
             parenthood: {},
             edges: [],
+
         };
     },
     getters: {
+        // CONTEXT GETTERS
+            // continually stream out both type x recency
+                // branchouts are PAIRS: index X schema output?
+                    // index IS what we want
+                    // schema IS what we give
+                        // equivalence between chrom:position | gene => locus
+                        // varId|dbSNP => variant
+                        // annotation => annotations
+
         cardIdsByQuery(state) {
             // card.query x card.timestamp -> card.id === position of card in cards?
         },

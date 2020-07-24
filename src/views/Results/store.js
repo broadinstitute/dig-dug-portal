@@ -22,6 +22,9 @@ export default new Vuex.Store({
         indexes,
         dataCache: {},
         busyBodies: [],
+
+        
+
     },
     getters: {
         busy(state) {

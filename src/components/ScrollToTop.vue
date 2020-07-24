@@ -1,8 +1,6 @@
 <template>
-    <div>
-        <div :class="'scroll-to-arrow'+this.toWhere">
-            <a href="javascript:;" v-on:click="scrollToPoint(this.toWhere)">arrow</a>
-        </div>
+    <div :class="'scroll-to-arrow'+toWhere">
+        <a v-on:click="scrollToPoint(toWhere)"><slot>↑</slot></a>
     </div>
 </template>
 
