@@ -37,12 +37,10 @@
 
 <script>
 import Vue from "vue";
-import AsyncComputed from "vue-async-computed";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import EffectorGenesFeatures from "@/components/eg/EffectorGenesFeatures";
 import EffectorGenesFilters from "@/components/eg/EffectorGenesFilters";
 
-//Vue.use(AsyncComputed);
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-mccarthy", {
