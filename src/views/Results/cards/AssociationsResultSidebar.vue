@@ -20,9 +20,16 @@
             </results-nav> -->
             <!-- TODO: Variant Navs -->
             <div v-for="variant in variantIDs" :key="variant">
-                <a @click="$emit('pushQuery', { index: 'variant', queryString: `${variant}`})">{{ variant }}</a>
+                <a @click="$emit('pushQuery', { index: 'variant', queryString: `${variant}`})">{{ variant }}</a><br>
             </div>
             <!-- TODO: Gene Navs? -->
+            <div v-for="gene in genes" :key="gene">
+                <a @click="$emit('pushQuery', { index: 'gene', queryString: `${gene}`})">{{ gene }} to gene index</a><br>
+                <a @click="$emit('pushQuery', { index: 'genes', queryString: `${gene}`})">{{ gene }} to genes index</a><br>
+                <a @click="$emit('pushQuery', { index: 'regions', queryString: `${gene}`})">{{ gene }} to regions index</a><br>
+                <a @click="$emit('pushQuery', { index: 'top-associations', queryString: `${gene}`})">{{ gene }} to top-associations index</a><br>
+                <a @click="$emit('pushQuery', { index: 'variants', queryString: `${gene}`})">{{ gene }} to variants index</a><br>
+            </div>
         </div>
     </div>
 
@@ -40,7 +47,7 @@ export default Vue.component("associations-results-sidebar", {
     computed: {
         variantIDs() {
             console.log(this.associations)
-            return this.associations.map(association => association.varId);
+            return this.associations.map(association => association.dbSNP);
         },
         genes() {
             console.log(this.associations)
