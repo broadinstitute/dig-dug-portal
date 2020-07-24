@@ -22,17 +22,45 @@ export default new Vuex.Store({
         effectorGenes
     },
     state: {
-        geneName: ""
+        geneName: "",
+        tableData: "",
+        filteredData: "",
+        config: ""
     },
     mutations: {
         setGene(state, gene) {
             state.geneName = gene;
+        },
+        setTableData(state, data) {
+            state.tableData = data;
+        },
+        setFilteredData(state, data) {
+            state.filteredData = data;
+        },
+        setConfig(state, config) {
+            state.config = config;
         }
     },
     getters: {},
     actions: {
         selectGene(context, gene) {
             context.commit("setGene", gene);
+        },
+        async fetchConfig(context, config) {
+            let json = await fetch(`/data/${config}_config.json`).then(resp =>
+                resp.json()
+            );
+            context.commit("setConfig", json);
+        },
+        async fetchData(context, dataset) {
+            let json = await fetch(`/data/${dataset}_data.json`).then(resp =>
+                resp.json()
+            );
+            context.commit("setTableData", json.data);
+            context.commit("setFilteredData", json.data);
+        },
+        filteredData(context, filtered) {
+            context.commit("setFilteredData", filtered);
         }
     }
 });

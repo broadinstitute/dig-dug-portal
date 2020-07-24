@@ -1,22 +1,28 @@
 <template>
     <div class="EGL-table-wrapper" :id="dataset">
-        <b-container fluid v-if="!!configData && !!tableGeneData" class="filtering-ui-wrapper">
+        <b-container fluid v-if="!!config && !!tableData" class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
-                <b-col v-for="filter in configData[dataset]['filters']">
+                <b-col v-for="filter in config[dataset]['filters']">
                     <div class="label">{{filter.label}}</div>
                     <template v-if="filter.type == 'search'">
-                        <b-form-input type="text"></b-form-input>
+                        <b-form-input
+                            type="text"
+                            @change="filterData($event, filter.field, filter.type)"
+                        ></b-form-input>
                     </template>
                     <template v-else-if="filter.type == 'dropdown'">
-                        <b-form-select :options="buildOptions(filter.field, tableGeneData.data)"></b-form-select>
+                        <b-form-select
+                            :options="buildOptions(filter.field)"
+                            @change="filterData($event, filter.field, filter.type)"
+                        ></b-form-select>
                     </template>
                     <template v-else>Default filter</template>
                 </b-col>
             </b-row>
         </b-container>
-        <b-container fluid v-if="!!configData && !!tableGeneData">
-            <b-row v-for="row in tableGeneData.data">
-                <template v-for="(col, i) in configData[dataset]['render']">
+        <b-container fluid v-if="!!config && !!filteredData">
+            <b-row v-for="row in filteredData">
+                <template v-for="(col, i) in config[dataset]['render']">
                     <b-col :class="i" :key="i">{{row[i]}}</b-col>
                 </template>
 
@@ -33,55 +39,72 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 import EffectorGenesFeatures from "@/components/eg/EffectorGenesFeatures";
 import EffectorGenesFilters from "@/components/eg/EffectorGenesFilters";
 
-Vue.use(AsyncComputed);
+//Vue.use(AsyncComputed);
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-mccarthy", {
-    props: ["tableData"], //ignore for now, data comes from static file
+    //props: ["tableData"], //ignore for now, data comes from static file
     data() {
         return {
-            staticTableData: null,
-            config: null,
+            // staticTableData: null,
+            // config: null,
             dataset: "mccarthy",
+            optionData: [],
         };
     },
     components: { EffectorGenesFeatures, EffectorGenesFilters },
     created() {
-        this.fetchData();
-        this.fetchConfig();
+        this.$store.dispatch("fetchConfig", this.dataset);
+        this.$store.dispatch("fetchData", this.dataset);
     },
-    mounted() {},
-    asyncComputed: {
-        tableGeneData() {
-            return this.staticTableData;
+    beforeMount() {},
+    computed: {
+        tableData() {
+            return this.$store.state.tableData;
         },
-        graphData() {
-            return this.staticTableData;
+        filteredData() {
+            return this.$store.state.filteredData;
         },
-        configData() {
-            return this.config;
+        config() {
+            return this.$store.state.config;
+        },
+    },
+    watch: {
+        filterData(value) {
+            console.log("new value", value);
         },
     },
     methods: {
-        async fetchData() {
-            return await fetch("/data/mccarthy_data.json").then(
-                (resp) => (this.staticTableData = resp.json())
-            );
-        },
-        async fetchConfig() {
-            return await fetch("/data/mccarthy_config.json").then(
-                (resp) => (this.config = resp.json())
-            );
-        },
-        buildOptions(field, data) {
-            return data
+        buildOptions(field) {
+            return this.tableData
                 .map((v) => v[field])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
         },
+        filterData(search, field, type) {
+            console.log("event", search);
+            console.log("field", field);
+            console.log("type", type);
+            //if (!search || !field) return this.tableData;
+            if (!!field && !!type) {
+                let filtered = [];
+                if (type == "dropdown") {
+                    filtered = this.tableData.filter((row) => {
+                        return search === row[field];
+                    });
+                } else if (type == "search") {
+                    console.log("here");
+                    filtered = this.tableData.filter((row) => {
+                        return row[field]
+                            .toLowerCase()
+                            .includes(search.toLowerCase());
+                    });
+                }
+
+                //console.log("new data", filtered);
+                this.$store.dispatch("filteredData", filtered);
+            }
+        },
     },
 });
 </script>
-
-<style>
-</style>
