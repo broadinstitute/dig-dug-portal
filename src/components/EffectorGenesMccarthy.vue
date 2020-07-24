@@ -52,7 +52,7 @@ export default Vue.component("effector-genes-mccarthy", {
             optionData: [],
         };
     },
-    components: { EffectorGenesFeatures, EffectorGenesFilters },
+    components: { EffectorGenesFeatures },
     created() {
         this.$store.dispatch("fetchConfig", this.dataset);
         this.$store.dispatch("fetchData", this.dataset);
