@@ -26,7 +26,6 @@
     "string-replace-loader": "^2.3.0",
     "url-parse": "^1.4.7",
     "vue": "^2.6.11",
-    "vue-async-computed": "^3.8.2",
     "vue-cookies": "^1.7.0",
     "vue-select": "^3.7.1",
     "vue-typeahead-bootstrap": "^2.5.0",
