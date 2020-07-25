@@ -41,6 +41,8 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
+        this.$store.dispatch("kp4cd/getEglConfig", { dataset: keyParams.dataset, trait: keyParams.trait });
+        this.$store.dispatch("kp4cd/getEglData", { dataset: keyParams.dataset, trait: keyParams.trait });
         this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait);
         this.$store.dispatch("effectorGenes/getEffectorGenes", {
             trait: keyParams.trait,
@@ -60,8 +62,6 @@ new Vue({
         closeAlert,
         showElement(ELEMENT) {
             uiUtils.showElement(ELEMENT);
-            //this.$store.state.geneName = "AEBP1";
-            //this.$forceUpdate();
         }
     },
 
@@ -87,6 +87,24 @@ new Vue({
             }
             return contents;
         },
+        eglData() {
+            let contents = this.$store.state.kp4cd.eglData;
+
+            if (contents.length === 0) {
+                return null;
+            }
+            return contents;
+        },
+
+
+        eglConfig() {
+            let contents = this.$store.state.kp4cd.eglConfig;
+
+            if (contents.length === 0) {
+                return null;
+            }
+            return contents;
+        },
 
         datasets() {
             let contents = this.$store.state.effectorGenes.datasets;
@@ -106,12 +124,9 @@ new Vue({
         effectorGenesTable() {
             let contents = {
                 richards: EffectorGenesRichards,
-                manning: EffectorGenesManning,
+                manning: EffectorGenesMccarthy,
                 mccarthy: EffectorGenesMccarthy
             };
-
-            //let datasetName = 'EffectorGenes' + keyParams.dataset[0].toUpperCase() + keyParams.dataset.substr(1);
-            //contents = eval(datasetName);
 
             //return contents;
             return contents[keyParams.dataset];
@@ -120,9 +135,6 @@ new Vue({
             let contents = {
                 richards: EffectorGenesGraphRichards
             };
-
-            //let datasetName = 'EffectorGenes' + keyParams.dataset[0].toUpperCase() + keyParams.dataset.substr(1);
-            //contents = eval(datasetName);
 
             //return contents;
             return contents[keyParams.dataset];

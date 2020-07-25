@@ -13,6 +13,7 @@
                 </div>
             </div>
             <div class="card mdkp-card">
+                <div v-if="$parent.researchMethod != null">{{$parent.eglData}}</div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">

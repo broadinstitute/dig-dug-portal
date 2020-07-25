@@ -17,6 +17,8 @@ export default {
             newFeatures: [],
             resources: [],
             researchMethod: [],
+            eglData: [],
+            eglConfig: []
         };
     },
 
@@ -45,6 +47,12 @@ export default {
         },
         setResearchMethod(state, researchMethod) {
             state.researchMethod = researchMethod;
+        },
+        setEglData(state, data) {
+            state.eglData = data;
+        },
+        setEglConfig(state, config) {
+            state.eglConfig = config;
         },
     },
 
@@ -117,6 +125,20 @@ export default {
                 .then(resp => resp.json());
             // set the data
             context.commit('setResearchMethod', json)
+        },
+        async getEglData(context, targetData) {
+
+            let json = await fetch('http://kp4cd.org/egldata/dataset?dataset=' + targetData.dataset + '&trait=' + targetData.trait)
+                .then(resp => resp.json());
+
+            context.commit('setEglData', json)
+        },
+        async getEglConfig(context, targetData) {
+
+            let json = await fetch('http://kp4cd.org/egldata/config?dataset=' + targetData.dataset + '&trait=' + targetData.trait)
+                .then(resp => resp.json());
+
+            context.commit('setEglConfig', json)
         },
     },
 }
