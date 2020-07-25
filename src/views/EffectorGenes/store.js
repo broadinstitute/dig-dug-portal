@@ -45,7 +45,7 @@ export default new Vuex.Store({
     actions: {
         selectGene(context, gene) {
             context.commit("setGene", gene);
-        },
+        },/*
         async fetchConfig(context, config) {
             let json = await fetch(
                 `http://kp4cd.org/sites/default/files/vueportal/egl_data/${config}/${config}_config.json`
@@ -58,7 +58,7 @@ export default new Vuex.Store({
             ).then(resp => resp.json());
             context.commit("setTableData", json.data);
             context.commit("setFilteredData", json.data);
-        },
+        },*/
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
         }

@@ -17,6 +17,7 @@ export default {
             newFeatures: [],
             resources: [],
             researchMethod: [],
+            eglData: [],
         };
     },
 
@@ -45,6 +46,9 @@ export default {
         },
         setResearchMethod(state, researchMethod) {
             state.researchMethod = researchMethod;
+        },
+        setEglData(state, eglData) {
+            state.eglData = eglData;
         },
     },
 
@@ -118,5 +122,13 @@ export default {
             // set the data
             context.commit('setResearchMethod', json)
         },
+        async getEglData(context, targetData) {
+
+            let json = await fetch('http://kp4cd.org/sites/default/files/vueportal/egl_data/' + targetData.dataset + '/' + targetData.dataset + '_' + targetData.trait + '.json')
+                .then(resp => resp.json());
+            // set the data
+            context.commit('setEglData', json)
+        },
     },
 }
+

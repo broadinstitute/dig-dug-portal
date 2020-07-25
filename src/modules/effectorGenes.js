@@ -29,9 +29,9 @@ export default {
         async getDatasets(context, trait) {
             let json = await fetch(
                 BIO_INDEX_HOST +
-                    "/api/bio/match/effector-genes?q=" +
-                    trait +
-                    ",_"
+                "/api/bio/match/effector-genes?q=" +
+                trait +
+                ",_"
             ).then(resp => resp.json());
             // set the data
             context.commit("setDatasets", json);
@@ -47,10 +47,10 @@ export default {
 
             let json = await fetch(
                 BIO_INDEX_HOST +
-                    "/api/bio/query/effector-genes?q=" +
-                    trait +
-                    "," +
-                    dataFrom
+                "/api/bio/query/effector-genes?q=" +
+                trait +
+                "," +
+                dataFrom
             ).then(resp => resp.json());
             // set the data
             context.commit("setEffectorGenes", json);
