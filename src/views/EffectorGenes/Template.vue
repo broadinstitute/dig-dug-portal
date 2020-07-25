@@ -17,15 +17,15 @@
                     <div class="row">
                         <div class="col-md-12">
                             <b-tabs content-class="mt-3" align="center">
-                                <b-tab title="Explore genes" active>
+                                <b-tab title="View data" active>
                                     <component
                                         v-bind:is="$parent.effectorGenesGraph"
                                         :graphData="$parent.effectorGenesData"
                                     ></component>
-                                    <component
-                                        v-bind:is="$parent.effectorGenesTable"
-                                        :tableData="$parent.effectorGenesData"
-                                    ></component>
+                                    <effector-genes-table
+                                        :dataset="$parent.dataset"
+                                        :trait="$parent.trait"
+                                    ></effector-genes-table>
                                 </b-tab>
                                 <b-tab title="Research method">
                                     <research-method-section

@@ -1,26 +1,31 @@
 <template>
-    <b-container fluid class="features">
-        <b-row>
-            <b-col>
-                <b-button @click="showFeatures = !showFeatures">Features</b-button>
-            </b-col>
-        </b-row>
-        <div v-for="(row, i) in features" v-show="showFeatures" class="feature-list">
-            <b-row class="feature-name">
-                <h5>{{i}}</h5>
-            </b-row>
-            <template v-for="(col, j) in row">
-                <b-row class="feature-headers" v-if="j === 0">
-                    <b-col v-for="header in Object.keys(col)">
-                        <strong>{{header}}</strong>
-                    </b-col>
-                </b-row>
-                <b-row>
-                    <b-col v-for="item in col" v-html="item"></b-col>
-                </b-row>
-            </template>
-        </div>
-    </b-container>
+    <div class="feature-content-wrapper">
+        <b-button @click="showFeatures = !showFeatures" class="view-features-btn">View Features</b-button>
+        <b-container fluid>
+            <div v-for="(row, i) in features" v-show="showFeatures" class="feature-list">
+                <b-row :class="'feature-name '+i">{{i}}</b-row>
+                <template v-for="(col, j) in row">
+                    <b-row :class="'feature-headers '+i" v-if="j === 0">
+                        <b-col
+                            :class="'feature-header-item '+i"
+                            v-for="header in Object.keys(col)"
+                        >{{header}}</b-col>
+                    </b-row>
+                    <b-row :class="'feature-content '+i">
+                        <b-col
+                            :class="'feature-content-item '+i +' '+item"
+                            v-if="item != '' && item != null "
+                            v-for="item in col"
+                            v-html="item"
+                        ></b-col>
+                        <b-col :class="'feature-content-item '+i +' '+item" v-else>
+                            <span class="col-content-filler">filler</span>
+                        </b-col>
+                    </b-row>
+                </template>
+            </div>
+        </b-container>
+    </div>
 </template>
 
 <script>

@@ -13,10 +13,8 @@ Vue.config.productionTip = false;
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ResearchMethod from "@/components/ResearchMethod.vue";
-import EffectorGenesRichards from "@/components/EffectorGenesRichards.vue";
 import EffectorGenesGraphRichards from "@/components/EffectorGenesGraphRichards.vue";
-import EffectorGenesManning from "@/components/EffectorGenesManning.vue";
-import EffectorGenesMccarthy from "@/components/EffectorGenesMccarthy.vue";
+import EffectorGenesTable from "@/components/EffectorGenesTable.vue";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
 import Alert, {
@@ -33,19 +31,14 @@ new Vue({
         PageFooter,
         Alert,
         ResearchMethod,
-        EffectorGenesRichards,
         EffectorGenesGraphRichards,
-        EffectorGenesManning
+        EffectorGenesTable
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
         this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait);
-        this.$store.dispatch("effectorGenes/getEffectorGenes", {
-            trait: keyParams.trait,
-            dataset: keyParams.dataset
-        });
     },
 
     render(createElement, context) {
@@ -60,12 +53,16 @@ new Vue({
         closeAlert,
         showElement(ELEMENT) {
             uiUtils.showElement(ELEMENT);
-            //this.$store.state.geneName = "AEBP1";
-            //this.$forceUpdate();
         }
     },
 
     computed: {
+        dataset() {
+            return keyParams.dataset
+        },
+        trait() {
+            return keyParams.trait
+        },
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
@@ -102,19 +99,6 @@ new Vue({
                 return null;
             }
             return contents;
-        },
-        effectorGenesTable() {
-            let contents = {
-                richards: EffectorGenesRichards,
-                manning: EffectorGenesManning,
-                mccarthy: EffectorGenesMccarthy
-            };
-
-            //let datasetName = 'EffectorGenes' + keyParams.dataset[0].toUpperCase() + keyParams.dataset.substr(1);
-            //contents = eval(datasetName);
-
-            //return contents;
-            return contents[keyParams.dataset];
         },
         effectorGenesGraph() {
             let contents = {

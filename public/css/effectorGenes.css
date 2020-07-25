@@ -6,533 +6,663 @@
     font-size: 24px;
 }
 /* for table */
-.content.effector-genes-page {
-    width: 140%;
-    margin-left: -20%;
-}
 
-.row.locus_y_0 {
-    border-right: 8px #eee solid;
-}
 
-.row.locus_y_1 {
-    border-right: 8px #fa0 solid;
-}
-div.data .row {
-    margin: 0 !important;
-    border-bottom: solid 1px #fff;
-}
+.cell-weight-0 {
+    background-size: 0% 100% !important;
+  }
 
-div.data .row:hover {
-    background-color: #eee;
-}
+  .cell-weight-1 {
+    background-size: 1% 100% !important;
+  }
 
-div.data div.row-summary > div.sum,
-div.data div.headers > div {
-    display: inline-block;
-    width: 25%;
-    width: 33%;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    padding: 3px 8px;
-    vertical-align: top;
-}
+  .cell-weight-2 {
+    background-size: 2% 100% !important;
+  }
 
-div.data div.row.headers,
-div.data div.eiDetails {
-    border-bottom: solid 1px #bbb;
-    margin-bottom: 5px !important;
-}
+  .cell-weight-3 {
+    background-size: 3% 100% !important;
+  }
 
-.selected {
-    color: blue;
-}
+  .cell-weight-4 {
+    background-size: 4% 100% !important;
+  }
 
-.hidden,
-.start-hidden,
-.end-hidden {
-    display: none;
-}
+  .cell-weight-5 {
+    background-size: 5% 100% !important;
+  }
 
-.headers {
-    font-weight: bold;
-    font-size: 1.2em;
-}
-.probHeaders,
-.eiHeaders {
-    font-size: 1.1em;
-}
-#setButton {
-    text-align: right;
-}
-.prob,
-.ei {
-    cursor: pointer;
-}
-div.filtering-tools {
-    border: solid 1px #ddd;
-    border-radius: 5px;
-    background-color: #efefef;
-    text-align: center;
-    margin-bottom: 40px;
-    padding-top: 8px;
+  .cell-weight-6 {
+    background-size: 6% 100% !important;
+  }
+
+  .cell-weight-7 {
+    background-size: 7% 100% !important;
+  }
+
+  .cell-weight-8 {
+    background-size: 8% 100% !important;
+  }
+
+  .cell-weight-9 {
+    background-size: 9% 100% !important;
+  }
+
+  .cell-weight-10 {
+    background-size: 10% 100% !important;
+  }
+
+  .cell-weight-11 {
+    background-size: 11% 100% !important;
+  }
+
+  .cell-weight-12 {
+    background-size: 12% 100% !important;
+  }
+
+  .cell-weight-13 {
+    background-size: 13% 100% !important;
+  }
+
+  .cell-weight-14 {
+    background-size: 14% 100% !important;
+  }
+
+  .cell-weight-15 {
+    background-size: 15% 100% !important;
+  }
+
+  .cell-weight-16 {
+    background-size: 16% 100% !important;
+  }
+
+  .cell-weight-17 {
+    background-size: 17% 100% !important;
+  }
+
+  .cell-weight-18 {
+    background-size: 18% 100% !important;
+  }
+
+  .cell-weight-19 {
+    background-size: 19% 100% !important;
+  }
+
+  .cell-weight-20 {
+    background-size: 20% 100% !important;
+  }
+
+  .cell-weight-21 {
+    background-size: 21% 100% !important;
+  }
+
+  .cell-weight-22 {
+    background-size: 22% 100% !important;
+  }
+
+  .cell-weight-23 {
+    background-size: 23% 100% !important;
+  }
+
+  .cell-weight-24 {
+    background-size: 24% 100% !important;
+  }
+
+  .cell-weight-25 {
+    background-size: 25% 100% !important;
+  }
+
+  .cell-weight-26 {
+    background-size: 26% 100% !important;
+  }
+
+  .cell-weight-27 {
+    background-size: 27% 100% !important;
+  }
+
+  .cell-weight-28 {
+    background-size: 28% 100% !important;
+  }
+
+  .cell-weight-29 {
+    background-size: 29% 100% !important;
+  }
+
+  .cell-weight-30 {
+    background-size: 30% 100% !important;
+  }
+
+  .cell-weight-31 {
+    background-size: 31% 100% !important;
+  }
+
+  .cell-weight-32 {
+    background-size: 32% 100% !important;
+  }
+
+  .cell-weight-33 {
+    background-size: 33% 100% !important;
+  }
+
+  .cell-weight-34 {
+    background-size: 34% 100% !important;
+  }
+
+  .cell-weight-35 {
+    background-size: 35% 100% !important;
+  }
+
+  .cell-weight-36 {
+    background-size: 36% 100% !important;
+  }
+
+  .cell-weight-37 {
+    background-size: 37% 100% !important;
+  }
+
+  .cell-weight-38 {
+    background-size: 38% 100% !important;
+  }
+
+  .cell-weight-39 {
+    background-size: 39% 100% !important;
+  }
+
+  .cell-weight-40 {
+    background-size: 40% 100% !important;
+  }
+
+  .cell-weight-41 {
+    background-size: 41% 100% !important;
+  }
+
+  .cell-weight-42 {
+    background-size: 42% 100% !important;
+  }
+
+  .cell-weight-43 {
+    background-size: 43% 100% !important;
+  }
+
+  .cell-weight-44 {
+    background-size: 44% 100% !important;
+  }
+
+  .cell-weight-45 {
+    background-size: 45% 100% !important;
+  }
+
+  .cell-weight-46 {
+    background-size: 46% 100% !important;
+  }
+
+  .cell-weight-47 {
+    background-size: 47% 100% !important;
+  }
+
+  .cell-weight-48 {
+    background-size: 48% 100% !important;
+  }
+
+  .cell-weight-49 {
+    background-size: 49% 100% !important;
+  }
+
+  .cell-weight-50 {
+    background-size: 50% 100% !important;
+  }
+
+  .cell-weight-51 {
+    background-size: 51% 100% !important;
+  }
+
+  .cell-weight-52 {
+    background-size: 52% 100% !important;
+  }
+
+  .cell-weight-53 {
+    background-size: 53% 100% !important;
+  }
+
+  .cell-weight-54 {
+    background-size: 54% 100% !important;
+  }
+
+  .cell-weight-55 {
+    background-size: 55% 100% !important;
+  }
+
+  .cell-weight-56 {
+    background-size: 56% 100% !important;
+  }
+
+  .cell-weight-57 {
+    background-size: 57% 100% !important;
+  }
+
+  .cell-weight-58 {
+    background-size: 58% 100% !important;
+  }
+
+  .cell-weight-59 {
+    background-size: 59% 100% !important;
+  }
+
+  .cell-weight-60 {
+    background-size: 60% 100% !important;
+  }
+
+  .cell-weight-61 {
+    background-size: 61% 100% !important;
+  }
+
+  .cell-weight-62 {
+    background-size: 62% 100% !important;
+  }
+
+  .cell-weight-63 {
+    background-size: 63% 100% !important;
+  }
+
+  .cell-weight-64 {
+    background-size: 64% 100% !important;
+  }
+
+  .cell-weight-65 {
+    background-size: 65% 100% !important;
+  }
+
+  .cell-weight-66 {
+    background-size: 66% 100% !important;
+  }
+
+  .cell-weight-67 {
+    background-size: 67% 100% !important;
+  }
+
+  .cell-weight-68 {
+    background-size: 68% 100% !important;
+  }
+
+  .cell-weight-69 {
+    background-size: 69% 100% !important;
+  }
+
+  .cell-weight-70 {
+    background-size: 70% 100% !important;
+  }
+
+  .cell-weight-71 {
+    background-size: 71% 100% !important;
+  }
+
+  .cell-weight-72 {
+    background-size: 72% 100% !important;
+  }
+
+  .cell-weight-73 {
+    background-size: 73% 100% !important;
+  }
+
+  .cell-weight-74 {
+    background-size: 74% 100% !important;
+  }
+
+  .cell-weight-75 {
+    background-size: 75% 100% !important;
+  }
+
+  .cell-weight-76 {
+    background-size: 76% 100% !important;
+  }
+
+  .cell-weight-77 {
+    background-size: 77% 100% !important;
+  }
+
+  .cell-weight-78 {
+    background-size: 78% 100% !important;
+  }
+
+  .cell-weight-79 {
+    background-size: 79% 100% !important;
+  }
+
+  .cell-weight-80 {
+    background-size: 80% 100% !important;
+  }
+
+  .cell-weight-81 {
+    background-size: 81% 100% !important;
+  }
+
+  .cell-weight-82 {
+    background-size: 82% 100% !important;
+  }
+
+  .cell-weight-83 {
+    background-size: 83% 100% !important;
+  }
+
+  .cell-weight-84 {
+    background-size: 84% 100% !important;
+  }
+
+  .cell-weight-85 {
+    background-size: 85% 100% !important;
+  }
+
+  .cell-weight-86 {
+    background-size: 86% 100% !important;
+  }
+
+  .cell-weight-87 {
+    background-size: 87% 100% !important;
+  }
+
+  .cell-weight-88 {
+    background-size: 88% 100% !important;
+  }
+
+  .cell-weight-89 {
+    background-size: 89% 100% !important;
+  }
+
+  .cell-weight-90 {
+    background-size: 90% 100% !important;
+  }
+
+  .cell-weight-91 {
+    background-size: 91% 100% !important;
+  }
+
+  .cell-weight-92 {
+    background-size: 92% 100% !important;
+  }
+
+  .cell-weight-93 {
+    background-size: 93% 100% !important;
+  }
+
+  .cell-weight-94 {
+    background-size: 94% 100% !important;
+  }
+
+  .cell-weight-95 {
+    background-size: 95% 100% !important;
+  }
+
+  .cell-weight-96 {
+    background-size: 96% 100% !important;
+  }
+
+  .cell-weight-97 {
+    background-size: 97% 100% !important;
+  }
+
+  .cell-weight-98 {
+    background-size: 98% 100% !important;
+  }
+
+  .cell-weight-99 {
+    background-size: 99% 100% !important;
+  }
+
+  .cell-weight-100 {
+    background-size: 100% 100% !important;
+  }
+
+  .EGLT-table {
     font-size: 14px;
-}
-
-#traits,
-#regionFilter {
-    display: inline-block;
-}
-
-.table-filter,
-#traits {
-    display: inline-block;
-    padding-right: 5px;
-    padding-left: 5px;
-    border-right: solid 1px #fff;
-}
-
-#traits {
-    border-right: solid 1px #fff;
-}
-
-.table-filter:last-child {
-    border-right: none;
-}
-
-.table-filter label {
-    display: block;
-}
-
-#selectTrait {
-    width: auto;
-    font-size: 14px;
-}
-
-div.legends1,
-div.legends2 {
-    text-align: left;
-    border-bottom: solid 1px #ddd;
-    padding-bottom: 10px;
-}
-
-div.legends1 {
-    margin-bottom: 0px;
-}
-
-div.legends2 {
-    padding: 0;
-    text-align: left;
-}
-
-div.legends span {
-    display: inline-block;
-    padding: 0px 5px;
-    margin-left: 5px;
-}
-
-div.legends span.legend {
-    display: inline-block;
-    padding: 0px 5px;
-    margin-left: 5px;
-    font-size: 12px;
-}
-
-div.legends span > b {
-    font-size: 14px;
-}
-
-div.prob.prob_score_1,
-div.legends span.legend.prob_1 {
-    background-color: rgba(91, 203, 245, 0);
-}
-
-div.prob.prob_score_2,
-div.legends span.legend.prob_2 {
-    background-color: rgba(91, 203, 245, 0.15);
-}
-
-div.prob.prob_score_3,
-div.legends span.legend.prob_3 {
-    background-color: rgba(91, 203, 245, 0.35);
-}
-
-div.prob.prob_score_4,
-div.legends span.legend.prob_4 {
-    background-color: rgba(91, 203, 245, 0.55);
-}
-
-div.prob.prob_score_5,
-div.legends span.legend.prob_5 {
-    background-color: rgba(91, 203, 245, 1);
-}
-
-.snp_eff_4,
-.snp_eff_3,
-.snp_eff_2,
-.snp_eff_1,
-.snp_eff_0 {
-    color: #fff;
-}
-
-.snp_eff_4 {
-    background-color: rgba(255, 50, 0, 1) !important;
-}
-
-.snp_eff_3 {
-    background-color: rgba(100, 100, 255, 1) !important;
-}
-
-.snp_eff_2 {
-    background-color: rgba(0, 150, 200, 1) !important;
-}
-
-.snp_eff_1 {
-    background-color: rgba(0, 180, 0, 1) !important;
-}
-
-.snp_eff_0 {
-    background-color: rgba(255, 150, 0, 1) !important;
-}
-
-div.geneName,
-div.chromLocation {
-    position: relative;
-    color: #337ab7;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-div.geneName div.geneInfo,
-div.chromLocation span.viewLocus {
-    width: 0px;
-    height: 0px;
-    padding: 0px;
-    top: -10px;
-    left: 25%;
-    background-color: #fff;
-    -webkit-transition: all 0.3s ease-out;
-    -moz-transition: all 0.3s ease-out;
-    -o-transition: all 0.3s ease-out;
-    transition: all 0.3s ease-out;
-    position: absolute;
-    z-index: 100;
-    border: none;
-    border-radius: 5px;
-}
-
-div.chromLocation span.viewLocus {
-    left: 70%;
-}
-
-div.geneName:hover div.geneInfo,
-div.chromLocation:hover span.viewLocus {
-    width: auto;
-    height: auto;
-    padding: 10px;
-    border: solid 1px #ddd;
-    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
-}
-div.geneName:hover div.geneInfo span,
-div.chromLocation:hover span.viewLocus .btn {
-    display: block;
-    text-align: left;
-}
-
-div.geneName div.geneInfo span,
-div.chromLocation span.viewLocus .btn {
-    display: none;
-    color: #000;
-    font-weight: 400;
-}
-
-div.chromLocation span.viewLocus .btn {
-    color: #0a6eb4;
-}
-
-div.legends .legend.locus_y_0 {
-    background-color: #eee;
-}
-
-div.legends .legend.locus_y_1 {
-    background-color: #fa0;
-}
-
-#colOptions {
-    position: fixed;
-    background-color: #fff;
-    text-align: left;
-    z-index: 100000;
-    border: solid 1px #ddd;
-    padding: 30px;
-    padding-right: 15px;
-    width: 600px;
-    border-radius: 15px;
-    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
-    height: 650px;
-}
-
-#colOptions h3 {
-    margin-top: 0;
-}
-
-.colOptionClose {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    color: #aaa;
-}
-
-#colOptions .tab-pane {
-    overflow-y: auto;
-    height: 480px;
-}
-
-#colOptions .colInfo {
-    padding-left: 1.25em;
-    font-size: 12px;
-    color: #888;
-}
-
-#colOptions .colInfo span {
-    display: block;
-}
-
-#colOptions .column-option {
-    display: block;
-}
-
-div.probInfo,
-div.eiInfo {
-    position: relative;
-    border-top: 1px solid #000;
-    border-bottom: 1px solid #000;
-    background-color: #fff;
-    display: block;
     width: 100%;
-    overflow-x: auto;
-}
-
-div.probHeaders,
-div.eiHeaders {
-    width: auto;
-    display: block;
-    white-space: nowrap;
-}
-
-div.probHeaders > div,
-div.eiHeaders > div {
-    display: inline-block;
-    width: 9%;
-    max-width: 9%;
-    white-space: pre-line;
     text-align: center;
-    padding: 3px 8px;
-    background-color: #fff;
-    font-size: 13px;
-    vertical-align: bottom;
-    line-height: 16px;
+    border-right: solid 1px #ccc;
+    border-top: solid 1px #ccc;
+    position: relative;
+  }
+
+  .top-level-header {
+    width: 100%;
+    font-weight: 600;
+  }
+
+  .top-level-value {
+    width: 100%;
+  }
+
+  .top-level-header-item,
+  .top-level-value-item,
+  .feature-content-header-item,
+  .feature-content-value-item {
+    display: inline-block;
+    border-left: solid 1px #ccc;
+    padding: 3px 0;
+  }
+
+  .top-level-header-item {
+    position: sticky;
+    top: 0;
+  }
+
+  .top-level-header-item, .top-level-value-item {
     border-bottom: solid 1px #ccc;
-    /*
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    */
-}
+  }
 
-div.probDetails,
-div.eiDetails {
+
+  .feature-content-wrapper {
+    width: calc(100% - 15px);
+    margin-left: 15px;
     background-color: #fff;
-    display: block;
-    white-space: nowrap;
-    border-bottom: solid 1px #fff;
-    clear: both;
-}
-
-div.probDetails:hover,
-div.eiDetails:hover {
-    background-color: #eee;
-}
-
-div.probDetails div.probDetail,
-div.eiDetails div.eiDetail {
-    display: inline-block;
-    width: 9%;
-    max-width: 9%;
-    padding: 3px 8px;
-    text-align: center;
-    background-color: #eee;
-    font-size: 14px;
-    border-bottom: solid 1px #fff;
-}
-
-.sum.prob {
     position: relative;
-}
+  }
 
-.sum.prob .probBtn {
-    position: absolute;
-    right: 5%;
-    background-color: #eef6ff;
-    color: #0099bb;
-    border: solid 1px #33bbdd;
-    padding: 1px 6px;
-    margin-right: 10px;
-    height: 22px;
+  .feature-name {
     font-size: 12px;
+    padding-left: 10px;
+    color: #666;
+    display: none !important;
+  }
+
+  .feature-header-item {
+    border-right: solid 1px #aaa;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-.sum.prob .probBtn:hover {
-    background-color: #ffffff;
+  .feature-content-item {
+      padding: 3px 0;
+      border-right: solid 1px #ddd;
+      border-bottom: solid 1px #ccc;
+      overflow: hidden;
+      background-color: #f9f9f9;
+  }
+
+  .view-features-btn {
+    position: absolute;
+    font-size: 10px !important;
+    padding: 3px 10px !important;
+    right: -100px;
+    top: -24px;
 }
 
-.filtering-tools input[type="text"] {
-    height: 34px;
-    border: solid 1px #ccc;
-    padding: 5px;
-    width: 150px !important;
-}
+  .feature-content {
+    background-color: #fff;
+  }
 
-div.data div.row > div.locusName {
-    white-space: normal;
-}
+  .col-content-filler {
+      color: #f9f9f9;
+  }
 
-#setColumn {
-    margin-bottom: -35px;
-}
-
-.effector_genes_page_title {
-    font-family: "Oswald";
-    font-size: 55px;
-    padding-bottom: 20px;
-    border-bottom: solid 2px #dddddd;
-    margin-bottom: 30px;
-    text-align: center;
-}
-
-#effector-genes-table-switch {
+  [class*="cell-weight"] {
+    display: block;
     width: 100%;
-    text-align: center;
-    border-bottom: solid 1px #ddd;
-    margin-bottom: 30px;
-    font-size: 16px;
-}
+    height: 100%;
+    background-image: url("images/green_block.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: left;
+  }
 
-#effector-genes-table-switch > a.switch {
-    display: inline-block;
-    color: #999;
-    padding: 5px 15px;
-    border: solid 1px #ddd;
-    margin: 5px;
-    margin-bottom: -1px;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-}
 
-#effector-genes-table-switch > a.switch.active {
-    color: #000;
-    border-bottom: solid 1px #fff;
-}
 
-.btn.eiButton,
-.btn.eiPlot {
-    padding: 1px 6px;
-    margin-right: 10px;
-    height: 22px;
-    font-size: 12px;
-}
+  /* for Miriam */
+  .EGLT-table-miriam .top-level-header-item,
+  .EGLT-table-miriam .top-level-value-item {
+    width: calc(100% / 3);
+  }
 
-.EGL-method-wrapper {
-    font-size: 16px;
-}
+  .EGLT-table-miriam .feature-content-header-item.loci,
+  .EGLT-table-miriam .feature-content-value-item.loci {
+    width: calc(100% / 9);
+  }
 
-.EGL-method-wrapper .lg-text {
-    font-size: 18px;
-}
+  .EGLT-table-miriam .feature-content-header-item.traits,
+  .EGLT-table-miriam .feature-content-value-item.traits {
+    width: calc(100% / 6);
+  }
 
-/* loading animation */
+  .EGLT-table-miriam .feature-content-value-item-wrapper.traits [class*="cell-weight"] {
+    background-image: url("images/blue_block.png");
+  }
 
-#load_spinner {
-    position: fixed;
-    width: 160px;
-    height: 160px;
-    padding-top: 10px;
-    color: #fff;
-    background-color: rgba(0, 0, 0, 0.75);
-    top: 200px;
-    text-align: center;
-    border-radius: 10px;
-}
+  .EGLT-table-miriam .feature-content-value-item-wrapper.traits.positive [class*="cell-weight"] {
+    background-image: url("images/red_block.png");
+  }
 
-.lds-grid {
-    position: absolute;
-    top: 40px;
-    left: 40px;
-    width: 80px;
-    height: 80px;
-}
-.lds-grid div {
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: rgb(91, 203, 245);
-    animation: lds-grid 1.2s linear infinite;
-}
-.lds-grid div:nth-child(1) {
-    top: 8px;
-    left: 8px;
-    animation-delay: 0s;
-}
-.lds-grid div:nth-child(2) {
-    top: 8px;
-    left: 32px;
-    animation-delay: -0.4s;
-}
-.lds-grid div:nth-child(3) {
-    top: 8px;
-    left: 56px;
-    animation-delay: -0.8s;
-}
-.lds-grid div:nth-child(4) {
-    top: 32px;
-    left: 8px;
-    animation-delay: -0.4s;
-}
-.lds-grid div:nth-child(5) {
-    top: 32px;
-    left: 32px;
-    animation-delay: -0.8s;
-}
-.lds-grid div:nth-child(6) {
-    top: 32px;
-    left: 56px;
-    animation-delay: -1.2s;
-}
-.lds-grid div:nth-child(7) {
-    top: 56px;
-    left: 8px;
-    animation-delay: -0.8s;
-}
-.lds-grid div:nth-child(8) {
-    top: 56px;
-    left: 32px;
-    animation-delay: -1.2s;
-}
-.lds-grid div:nth-child(9) {
-    top: 56px;
-    left: 56px;
-    animation-delay: -1.6s;
-}
-@keyframes lds-grid {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-}
+  /* for Mccarthy */
+  .EGLT-table.mccarthy .top-level-header-item,
+  .EGLT-table.mccarthy .top-level-value-item {
+    width: calc(100% / 5);
+  }
+
+  .EGLT-table.mccarthy .top-level-header-item.Gene {
+    background-color: #75def8;
+  }
+
+  .EGLT-table.mccarthy .top-level-value-item.Gene {
+    background-color: #75def8;
+  }
+
+  .EGLT-table.mccarthy .top-level-header-item.Combined.genetic.evidence {
+    background-color: #ffd62e;
+  }
+
+  .EGLT-table.mccarthy .top-level-header-item.Combined.regulatory.evidence  {
+    background-color: #bfd730;
+  }
+
+  .EGLT-table.mccarthy .top-level-header-item.Combined.perturbation.evidence {
+    background-color: #add3f0;
+  }
+
+  .EGLT-table.mccarthy .feature-header-item.gene {
+    background-color: #75def850;
+  }
+
+  .EGLT-table.mccarthy .feature-header-item.genetic {
+    background-color: #ffd62e50;
+  }
+
+  .EGLT-table.mccarthy .top-level-value-item.genetic-1C {
+    background-color: #ffd62e;
+  }
+
+  .EGLT-table.mccarthy .top-level-value-item.genetic-2C {
+    background-color: #ffd62e75;
+  }
+
+  .EGLT-table.mccarthy .feature-header-item.genomic  {
+    background-color: #bfd73050;
+  }
+
+  .EGLT-table.mccarthy .top-level-value-item.genomic-2R  {
+    background-color: #bfd73075;
+  }
+  .EGLT-table.mccarthy .top-level-value-item.genomic-3R  {
+    background-color: #bfd73050;
+  }
+
+  .EGLT-table.mccarthy .feature-header-item.perturbational {
+    background-color: #add3f050;
+  }
+
+  .EGLT-table.mccarthy .top-level-value-item.perturbational-2P {
+    background-color: #add3f075;
+  }
+
+  .EGLT-table.mccarthy .top-level-value-item.perturbational-3P {
+    background-color: #add3f050;
+  }
+
+  .EGLT-table.mccarthy .feature-name.gene, .EGLT-table.mccarthy .feature-headers.gene, .EGLT-table.mccarthy .feature-content.gene {
+    border-left: solid 4px #75def8;
+  }
+
+  .EGLT-table.mccarthy .feature-name.genetic, .EGLT-table.mccarthy .feature-headers.genetic, .EGLT-table.mccarthy .feature-content.genetic {
+    border-left: solid 4px#ffd62e;
+  }
+
+  .EGLT-table.mccarthy .feature-name.genomic, .EGLT-table.mccarthy .feature-headers.genomic, .EGLT-table.mccarthy .feature-content.genomic  {
+    border-left: solid 4px#bfd730;
+  }
+
+  .EGLT-table.mccarthy .feature-name.perturbational, .EGLT-table.mccarthy .feature-headers.perturbational, .EGLT-table.mccarthy .feature-content.perturbational {
+    border-left: solid 4px #add3f0;
+  }
+
+  .EGLT-table.mccarthy .feature-content-header-item.gene,
+  .EGLT-table.mccarthy .feature-content-value-item.gene {
+    width: calc(100% / 2);
+  }
+
+  .EGLT-table.mccarthy .feature-content-header-item.genetic,
+  .EGLT-table.mccarthy .feature-content-value-item.genetic {
+    width: calc(100% / 5);
+  }
+
+  .EGLT-table.mccarthy .feature-content-header-item.genomic,
+  .EGLT-table.mccarthy .feature-content-value-item.genomic {
+    width: calc(100% / 6);
+  }
+
+  .EGLT-table.mccarthy .feature-content-header-item.perturbational,
+  .EGLT-table.mccarthy .feature-content-value-item.perturbational {
+    width: calc(100% / 6);
+  }
+
+  /* for Manning */
+  .EGLT-table-manning .top-level-header-item,
+  .EGLT-table-manning .top-level-value-item {
+    width: calc(100% / 4);
+  }
+
+  .EGLT-table-manning .feature-content-header-item.Annotations,
+  .EGLT-table-manning .feature-content-value-item.Annotations {
+    width: calc(100% / 4);
+  }
+
+  /* for Richards */
+  .EGLT-table-richards .top-level-header-item,
+  .EGLT-table-richards .top-level-value-item {
+    width: calc(100% / 4);
+  }
+
+  .EGLT-table-richards .feature-content-header-item.gene_info,
+  .EGLT-table-richards .feature-content-value-item.gene_info {
+    width: calc(100% / 4);
+  }
+
+  .EGLT-table-richards .feature-content-header-item.variants_features,
+  .EGLT-table-richards .feature-content-value-item.variants_features {
+    width: calc(100% / 21);
+  }
+
+  .EGLT-table-richards .feature-content-header-item.gene_features,
+  .EGLT-table-richards .feature-content-value-item.gene_features {
+    width: calc(100% / 20);
+  }
+
+
 
 /* for plots */
 .feature-scores-wrapper {
