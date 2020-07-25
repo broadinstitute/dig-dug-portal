@@ -18,6 +18,7 @@ export default {
             resources: [],
             researchMethod: [],
             eglData: [],
+            eglConfig: []
         };
     },
 
@@ -47,8 +48,11 @@ export default {
         setResearchMethod(state, researchMethod) {
             state.researchMethod = researchMethod;
         },
-        setEglData(state, eglData) {
-            state.eglData = eglData;
+        setEglData(state, data) {
+            state.eglData = data;
+        },
+        setEglConfig(state, config) {
+            state.eglConfig = config;
         },
     },
 
@@ -124,11 +128,17 @@ export default {
         },
         async getEglData(context, targetData) {
 
-            let json = await fetch('http://kp4cd.org/sites/default/files/vueportal/egl_data/' + targetData.dataset + '/' + targetData.dataset + '_' + targetData.trait + '.json')
+            let json = await fetch('http://kp4cd.org/egldata/dataset?dataset=' + targetData.dataset + '&trait=' + targetData.trait)
                 .then(resp => resp.json());
-            // set the data
+
             context.commit('setEglData', json)
+        },
+        async getEglConfig(context, targetData) {
+
+            let json = await fetch('http://kp4cd.org/egldata/config?dataset=' + targetData.dataset + '&trait=' + targetData.trait)
+                .then(resp => resp.json());
+
+            context.commit('setEglConfig', json)
         },
     },
 }
-

@@ -45,20 +45,20 @@ export default new Vuex.Store({
     actions: {
         selectGene(context, gene) {
             context.commit("setGene", gene);
-        },/*
+        },
         async fetchConfig(context, config) {
             let json = await fetch(
-                `http://kp4cd.org/sites/default/files/vueportal/egl_data/${config}/${config}_config.json`
+                `http://kp4cd.org/egldata/config?dataset=${config.dataset}`
             ).then(resp => resp.json());
             context.commit("setConfig", json);
         },
         async fetchData(context, dataset) {
             let json = await fetch(
-                `http://kp4cd.org/sites/default/files/vueportal/egl_data/${dataset}/${dataset}_t2d.json`
+                `http://kp4cd.org/egldata/dataset?dataset=${dataset.dataset}&trait=${dataset.trait}`
             ).then(resp => resp.json());
             context.commit("setTableData", json.data);
             context.commit("setFilteredData", json.data);
-        },*/
+        },
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
         }

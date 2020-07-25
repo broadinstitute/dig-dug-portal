@@ -49,13 +49,20 @@ export default Vue.component("effector-genes-mccarthy", {
             // staticTableData: null,
             // config: null,
             dataset: "mccarthy",
+            trait: "t2d",
             optionData: [],
         };
     },
     components: { EffectorGenesFeatures },
     created() {
-        this.$store.dispatch("fetchConfig", this.dataset);
-        this.$store.dispatch("fetchData", this.dataset);
+        this.$store.dispatch("fetchConfig", {
+            dataset: this.dataset,
+            trait: this.trait,
+        });
+        this.$store.dispatch("fetchData", {
+            dataset: this.dataset,
+            trait: this.trait,
+        });
     },
     beforeMount() {},
     computed: {
