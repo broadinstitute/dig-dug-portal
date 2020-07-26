@@ -55,13 +55,18 @@
                         <div
                             :class="'top-level-value-item '+i+' '+i+'-'+value[i]"
                             :key="i"
-                        >{{value[i]}}</div>
+                            v-html="formatContent(i,value[i])"
+                        ></div>
                     </template>
                     <div class="top-level-value-item">
                         <b-button @click="showFeatures(index)" class="view-features-btn">Features</b-button>
                     </div>
 
-                    <effector-genes-features :features="value.features" :featureIndex="index"></effector-genes-features>
+                    <effector-genes-features
+                        :featureConfig="config"
+                        :features="value.features"
+                        :featureIndex="index"
+                    ></effector-genes-features>
                 </b-row>
             </b-container>
         </div>
@@ -185,7 +190,35 @@ export default Vue.component("effector-genes-table", {
             this.applyFilters();
         },
         showFeatures(INDEX) {
-            uiUtils.showHideByClass("feature-content-wrapper-" + INDEX);
+            uiUtils.showHideElement("feature-content-wrapper-" + INDEX);
+        },
+        formatContent(COLUMN, VALUE) {
+            console.log();
+            let formatting = this.config[this.dataset].formatting;
+            if (formatting[COLUMN] != undefined) {
+                let type = formatting[COLUMN]["type"];
+
+                switch (type) {
+                    case "link":
+                        let linkPage = formatting[COLUMN]["link_to"];
+                        switch (linkPage) {
+                            case "gene":
+                                let contentLink =
+                                    '<a href="/gene.html?gene=' +
+                                    VALUE +
+                                    '">' +
+                                    VALUE +
+                                    "</a>";
+                                return contentLink;
+
+                                break;
+                        }
+                        break;
+                }
+            } else {
+                return VALUE;
+            }
+            return VALUE;
         },
     },
 });

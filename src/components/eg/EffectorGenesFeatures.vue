@@ -31,7 +31,7 @@
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("effector-genes-features", {
-    props: ["features", "featureIndex"],
+    props: ["features", "featureIndex", "featureConfig"],
     data() {
         return {};
     },

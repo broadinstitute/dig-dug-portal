@@ -27,7 +27,7 @@
                                         :trait="$parent.trait"
                                     ></effector-genes-table>
                                 </b-tab>
-                                <b-tab title="Research method">
+                                <b-tab title="View research method">
                                     <research-method-section
                                         v-if="$parent.researchMethod != null"
                                         :researchMethod="$parent.researchMethod"

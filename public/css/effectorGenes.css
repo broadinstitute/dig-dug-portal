@@ -699,9 +699,9 @@
 }
 
 /* for Manning */
-.EGLT-table-manning .top-level-header-item,
-.EGLT-table-manning .top-level-value-item {
-    width: calc(100% / 4);
+.EGLT-table.manning .top-level-header-item,
+.EGLT-table.manning .top-level-value-item {
+    width: calc(100% / 5);
 }
 
 .EGLT-table-manning .feature-content-header-item.Annotations,
