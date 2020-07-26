@@ -412,6 +412,16 @@
     background-size: 100% 100% !important;
   }
 
+  .legend-wrapper {
+    padding-top: 20px;
+    padding-bottom: 10px;
+  }
+
+  .legend-wrapper .each-legend {
+    border-top: solid 1px #ddd;
+    font-size: 14px;
+}
+
   .EGLT-table {
     font-size: 14px;
     width: 100%;

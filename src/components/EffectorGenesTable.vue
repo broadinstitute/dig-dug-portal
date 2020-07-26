@@ -23,6 +23,9 @@
                 </b-col>
             </b-row>
         </b-container>
+        <b-container fluid v-if="!!config && !!tableData" class="legend-wrapper">
+            <b-row class="each-legend" v-for="legend in config[dataset]['legend']">{{legend}}</b-row>
+        </b-container>
         <div :class="'EGLT-table '+this.dataset">
             <b-container fluid v-if="!!config && !!filteredData" class>
                 <b-row fixed class="top-level-header">
