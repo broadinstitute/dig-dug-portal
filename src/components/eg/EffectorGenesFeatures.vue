@@ -1,8 +1,7 @@
 <template>
-    <div class="feature-content-wrapper">
-        <b-button @click="showFeatures = !showFeatures" class="view-features-btn">View Features</b-button>
+    <div :class="'feature-content-wrapper hidden feature-content-wrapper-'+this.featureIndex">
         <b-container fluid>
-            <div v-for="(row, i) in features" v-show="showFeatures" class="feature-list">
+            <div v-for="(row, i) in features" class="feature-list">
                 <b-row :class="'feature-name '+i">{{i}}</b-row>
                 <template v-for="(col, j) in row">
                     <b-row :class="'feature-headers '+i" v-if="j === 0">
@@ -32,11 +31,9 @@
 import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("effector-genes-features", {
-    props: ["features"],
+    props: ["features", "featureIndex"],
     data() {
-        return {
-            showFeatures: false,
-        };
+        return {};
     },
 });
 </script>

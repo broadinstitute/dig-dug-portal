@@ -43,21 +43,25 @@
         </b-container>
         <div :class="'EGLT-table '+this.dataset">
             <b-container fluid v-if="!!config && !!filteredData" class>
-                <b-row fixed class="top-level-header">
-                    <b-col
+                <b-row class="top-level-header">
+                    <div
                         v-for="name in config[dataset]['topLevelRender']"
                         :class="'top-level-header-item ' + name"
-                    >{{name}}</b-col>
+                    >{{name}}</div>
+                    <div class="top-level-header-item">View</div>
                 </b-row>
-                <b-row v-for="row in filteredData" class="top-level-value">
+                <b-row v-for="(value,index) in filteredData" class="top-level-value">
                     <template v-for="(col, i) in config[dataset]['topLevelRender']">
-                        <b-col
-                            :class="'top-level-value-item '+i+' '+i+'-'+row[i]"
+                        <div
+                            :class="'top-level-value-item '+i+' '+i+'-'+value[i]"
                             :key="i"
-                        >{{row[i]}}</b-col>
+                        >{{value[i]}}</div>
                     </template>
+                    <div class="top-level-value-item">
+                        <b-button @click="showFeatures(index)" class="view-features-btn">Features</b-button>
+                    </div>
 
-                    <effector-genes-features :features="row.features"></effector-genes-features>
+                    <effector-genes-features :features="value.features" :featureIndex="index"></effector-genes-features>
                 </b-row>
             </b-container>
         </div>
@@ -68,6 +72,7 @@
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import EffectorGenesFeatures from "@/components/eg/EffectorGenesFeatures";
+import uiUtils from "@/utils/uiUtils";
 
 Vue.use(BootstrapVueIcons);
 
@@ -78,6 +83,9 @@ export default Vue.component("effector-genes-table", {
             optionData: [],
             filtersIndex: {},
         };
+    },
+    modules: {
+        uiUtils,
     },
     components: { EffectorGenesFeatures },
     created() {
@@ -175,6 +183,9 @@ export default Vue.component("effector-genes-table", {
             this.filtersIndex[FIELD].search.splice(ITEM, 1);
 
             this.applyFilters();
+        },
+        showFeatures(INDEX) {
+            uiUtils.showHideByClass("feature-content-wrapper-" + INDEX);
         },
     },
 });
