@@ -55,7 +55,7 @@
                         <div
                             :class="'top-level-value-item '+i+' '+i+'-'+value[i]"
                             :key="i"
-                            v-html="formatContent(i,value[i])"
+                            v-html="formatContent(i,value[i],'top')"
                         ></div>
                     </template>
                     <div class="top-level-value-item">
@@ -87,6 +87,7 @@ export default Vue.component("effector-genes-table", {
         return {
             optionData: [],
             filtersIndex: {},
+            highestScores: {},
         };
     },
     modules: {
@@ -192,18 +193,21 @@ export default Vue.component("effector-genes-table", {
         showFeatures(INDEX) {
             uiUtils.showHideElement("feature-content-wrapper-" + INDEX);
         },
-        formatContent(COLUMN, VALUE) {
-            console.log();
+        formatContent(COLUMN, VALUE, LEVEL) {
             let formatting = this.config[this.dataset].formatting;
             if (formatting[COLUMN] != undefined) {
-                let type = formatting[COLUMN]["type"];
+                let type =
+                    LEVEL == "top"
+                        ? formatting[COLUMN]["type"]
+                        : formatting.features[COLUMN]["type"];
 
                 switch (type) {
                     case "link":
                         let linkPage = formatting[COLUMN]["link_to"];
+                        let contentLink = "";
                         switch (linkPage) {
                             case "gene":
-                                let contentLink =
+                                contentLink =
                                     '<a href="/gene.html?gene=' +
                                     VALUE +
                                     '">' +
@@ -212,7 +216,78 @@ export default Vue.component("effector-genes-table", {
                                 return contentLink;
 
                                 break;
+                            case "variant":
+                                contentLink =
+                                    '<a href="variant.html?variant=' +
+                                    VALUE +
+                                    '">' +
+                                    VALUE +
+                                    "</a>";
+                                return contentLink;
+
+                                break;
+                            case "regin":
+                                contentLink = VALUE;
+                                return contentLink;
+
+                                break;
+                            case "phenotype":
+                                contentLink =
+                                    '<a href="/phenotype.html?phenotype=' +
+                                    VALUE +
+                                    '">' +
+                                    VALUE +
+                                    "</a>";
+                                return contentLink;
+
+                                break;
                         }
+                        break;
+                    case "render_bg_percent":
+                        let highScore;
+
+                        let highestScoreLocation =
+                            LEVEL == "top"
+                                ? this.highestScores[COLUMN]
+                                : this.highestScores.features[COLUMN];
+
+                        if (highestScoreLocation != undefined) {
+                            highScore = highestScoreLocation;
+                        } else {
+                            let tempArr = [];
+
+                            this.tableData.map((r) => {
+                                tempArr.push(r[COLUMN]);
+                            });
+                            tempArr.sort();
+
+                            if (LEVEL == "top") {
+                                this.highestScores[COLUMN] = tempArr.pop();
+                            } else {
+                                if (
+                                    this.highestScores["features"] != undefined
+                                ) {
+                                    this.highestScores["features"][COLUMN] = 1; //teset number
+                                } else {
+                                    this.highestScores["features"] = {};
+                                    this.highestScores["features"][COLUMN] = 1; //teset number
+                                }
+                            }
+
+                            highScore = highestScoreLocation;
+                        }
+
+                        let percentileValue = Math.floor(
+                            (VALUE / highScore) * 100
+                        );
+
+                        return (
+                            "<span class='cell-weight-" +
+                            percentileValue +
+                            "'>" +
+                            VALUE +
+                            "</span>"
+                        );
                         break;
                 }
             } else {

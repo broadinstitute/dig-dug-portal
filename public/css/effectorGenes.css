@@ -428,37 +428,37 @@
     color: #FFF !important;
 }
 
-.search-field.f-1 .search-bubble { background-color: #048845; }
-.search-field.f-2 .search-bubble { background-color: #8490C8; }
-.search-field.f-3 .search-bubble  { background-color: #BF61A5; }
-.search-field.f-4 .search-bubble  { background-color: #EE3124; }
-.search-field.f-5 .search-bubble  { background-color: #FCD700; }
-.search-field.f-6 .search-bubble  { background-color: #5555FF; }
-.search-field.f-7 .search-bubble  { background-color: #7aaa1c; }
-.search-field.f-8 .search-bubble  { background-color: #9F78AC; }
-.search-field.f-9 .search-bubble  { background-color: #F88084; }
-.search-field.f-10 .search-bubble  { background-color: #F5A4C7; }
-.search-field.f-11 .search-bubble  { background-color: #CEE6C1; }
-.search-field.f-12 .search-bubble  { background-color: #cccc00; }
-.search-field.f-13 .search-bubble  { background-color: #6FC7B6; }
-.search-field.f-14 .search-bubble  { background-color: #D5A768; }
-.search-field.f-15 .search-bubble  { background-color: #D4D4D4; }
+.search-field.f-0 .search-bubble { background-color: #048845; }
+.search-field.f-1 .search-bubble { background-color: #8490C8; }
+.search-field.f-2 .search-bubble  { background-color: #BF61A5; }
+.search-field.f-3 .search-bubble  { background-color: #EE3124; }
+.search-field.f-4 .search-bubble  { background-color: #FCD700; }
+.search-field.f-5 .search-bubble  { background-color: #5555FF; }
+.search-field.f-6 .search-bubble  { background-color: #7aaa1c; }
+.search-field.f-7 .search-bubble  { background-color: #9F78AC; }
+.search-field.f-8 .search-bubble  { background-color: #F88084; }
+.search-field.f-9 .search-bubble  { background-color: #F5A4C7; }
+.search-field.f-10 .search-bubble  { background-color: #CEE6C1; }
+.search-field.f-11 .search-bubble  { background-color: #cccc00; }
+.search-field.f-12 .search-bubble  { background-color: #6FC7B6; }
+.search-field.f-13 .search-bubble  { background-color: #D5A768; }
+.search-field.f-14 .search-bubble  { background-color: #D4D4D4; }
 
-.search-field.f-1 .search-bubble:hover { background-color: #04884550; }
-.search-field.f-2 .search-bubble:hover { background-color: #8490C850; }
-.search-field.f-3 .search-bubble:hover  { background-color: #BF61A550; }
-.search-field.f-4 .search-bubble:hover  { background-color: #EE312450; }
-.search-field.f-5 .search-bubble:hover  { background-color: #FCD70050; }
-.search-field.f-6 .search-bubble:hover  { background-color: #5555FF50; }
-.search-field.f-7 .search-bubble:hover  { background-color: #7aaa1c50; }
-.search-field.f-8 .search-bubble:hover  { background-color: #9F78AC50; }
-.search-field.f-9 .search-bubble:hover  { background-color: #F8808450; }
-.search-field.f-10 .search-bubble:hover  { background-color: #F5A4C750; }
-.search-field.f-11 .search-bubble:hover  { background-color: #CEE6C150; }
-.search-field.f-12 .search-bubble:hover  { background-color: #cccc0050; }
-.search-field.f-13 .search-bubble:hover  { background-color: #6FC7B650; }
-.search-field.f-14 .search-bubble:hover  { background-color: #D5A76850; }
-.search-field.f-15 .search-bubble:hover  { background-color: #D4D4D450; }
+.search-field.f-0 .search-bubble:hover { background-color: #04884550; }
+.search-field.f-1 .search-bubble:hover { background-color: #8490C850; }
+.search-field.f-2 .search-bubble:hover  { background-color: #BF61A550; }
+.search-field.f-3 .search-bubble:hover  { background-color: #EE312450; }
+.search-field.f-4 .search-bubble:hover  { background-color: #FCD70050; }
+.search-field.f-5 .search-bubble:hover  { background-color: #5555FF50; }
+.search-field.f-6 .search-bubble:hover  { background-color: #7aaa1c50; }
+.search-field.f-7 .search-bubble:hover  { background-color: #9F78AC50; }
+.search-field.f-8 .search-bubble:hover  { background-color: #F8808450; }
+.search-field.f-9 .search-bubble:hover  { background-color: #F5A4C750; }
+.search-field.f-10 .search-bubble:hover  { background-color: #CEE6C150; }
+.search-field.f-11 .search-bubble:hover  { background-color: #cccc0050; }
+.search-field.f-12 .search-bubble:hover  { background-color: #6FC7B650; }
+.search-field.f-13 .search-bubble:hover  { background-color: #D5A76850; }
+.search-field.f-14 .search-bubble:hover  { background-color: #D4D4D450; }
 
 .legend-wrapper {
     padding-top: 20px;
@@ -557,6 +557,15 @@
     background-color: #fff;
 }
 
+.feature-headers {
+    background-color: #eee;
+    border-left: solid 4px #ddd;
+}
+
+.feature-content {
+    border-left: solid 4px #ddd;
+}
+
 .col-content-filler {
       color: #f9f9f9;
 }
@@ -565,7 +574,7 @@
     display: block;
     width: 100%;
     height: 100%;
-    background-image: url("images/green_block.png");
+    background-image: url("../images/green_block.png");
     background-repeat: no-repeat;
     background-size: 100% 100%;
     background-position: left;
@@ -590,11 +599,11 @@
 }
 
 .EGLT-table-miriam .feature-content-value-item-wrapper.traits [class*="cell-weight"] {
-    background-image: url("images/blue_block.png");
+    background-image: url("../images/blue_block.png");
 }
 
 .EGLT-table-miriam .feature-content-value-item-wrapper.traits.positive [class*="cell-weight"] {
-    background-image: url("images/red_block.png");
+    background-image: url("../images/red_block.png");
 }
 
 /* for Mccarthy */

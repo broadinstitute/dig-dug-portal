@@ -10,7 +10,7 @@
                             v-for="header in Object.keys(col)"
                         >{{header}}</b-col>
                     </b-row>
-                    <b-row :class="'feature-content '+i">
+                    <b-row :class="'feature-content '+i+ getColContent(col)">
                         <b-col
                             :class="'feature-content-item '+i +' '+item"
                             v-if="item != '' && item != null "
@@ -34,6 +34,16 @@ export default Vue.component("effector-genes-features", {
     props: ["features", "featureIndex", "featureConfig"],
     data() {
         return {};
+    },
+    methods: {
+        getColContent(COL) {
+            /*let colClass = " ";
+            COL.map((x) => {
+                colClass += "colvalue";
+            });*/
+            let colClass = " test";
+            return colClass;
+        },
     },
 });
 </script>
