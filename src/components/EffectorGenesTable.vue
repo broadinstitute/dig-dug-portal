@@ -23,6 +23,21 @@
                 </b-col>
             </b-row>
         </b-container>
+        <b-container class="search-fields-wrapper">
+            <div v-for="(value,name,index) in this.filtersIndex" :class="'search-field f-'+index">
+                <b-badge
+                    pill
+                    v-if="value.search.length > 0"
+                    v-for="(v,i) in value.search"
+                    :key="v"
+                    :class="'btn search-bubble '+i"
+                    @click="removeFilter(value.field,i)"
+                >
+                    {{value.field+': '+v}}
+                    <span class="remove">X</span>
+                </b-badge>
+            </div>
+        </b-container>
         <b-container fluid v-if="!!config && !!tableData" class="legend-wrapper">
             <b-row class="each-legend" v-for="legend in config[dataset]['legend']">{{legend}}</b-row>
         </b-container>
@@ -61,6 +76,7 @@ export default Vue.component("effector-genes-table", {
     data() {
         return {
             optionData: [],
+            filtersIndex: {},
         };
     },
     components: { EffectorGenesFeatures },
@@ -87,8 +103,18 @@ export default Vue.component("effector-genes-table", {
         },
     },
     watch: {
-        filterData(value) {
-            console.log("new value", value);
+        config(value) {
+            let configFilterFields = value[this.dataset]["filters"];
+
+            if (configFilterFields != undefined) {
+                configFilterFields.map((f) => {
+                    let tempObj = {};
+                    tempObj["type"] = f.type;
+                    tempObj["field"] = f.field;
+                    tempObj["search"] = [];
+                    this.filtersIndex[f.field] = tempObj;
+                });
+            }
         },
     },
     methods: {
@@ -97,39 +123,58 @@ export default Vue.component("effector-genes-table", {
                 .map((v) => v[field])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
-
-            options.unshift("Show all");
             return options;
         },
         filterData(search, field, type) {
-            console.log("event", search);
-            console.log("field", field);
-            console.log("type", type);
-            //if (!search || !field) return this.tableData;
-            if (!!field && !!type) {
-                let filtered = [];
-                if (type == "dropdown") {
-                    if (search == "Show all") {
-                        filtered = this.tableData.filter((row) => {
-                            return row[field];
-                        });
-                    } else {
-                        filtered = this.tableData.filter((row) => {
-                            return search === row[field];
-                        });
-                    }
-                } else if (type == "search") {
-                    console.log("here");
-                    filtered = this.tableData.filter((row) => {
-                        return row[field]
-                            .toLowerCase()
-                            .includes(search.toLowerCase());
-                    });
-                }
+            this.filtersIndex[field]["search"].push(search);
 
-                //console.log("new data", filtered);
-                this.$store.dispatch("filteredData", filtered);
+            //console.log(this.filtersIndex);
+
+            this.applyFilters();
+        },
+        applyFilters() {
+            let filtered = this.tableData;
+            let tempFiltered = [];
+            let i = 0;
+            for (var f in this.filtersIndex) {
+                let searchIndex = this.filtersIndex[f];
+
+                if (searchIndex.search.length > 0) {
+                    searchIndex.search.map((s) => {
+                        let targetData = filtered;
+                        let search = s;
+
+                        if (searchIndex.type == "dropdown") {
+                            targetData.filter((row) => {
+                                if (search === row[searchIndex.field]) {
+                                    tempFiltered.push(row);
+                                }
+                            });
+                        } else if (searchIndex.type == "search") {
+                            targetData.filter((row) => {
+                                if (
+                                    row[searchIndex.field]
+                                        .toLowerCase()
+                                        .includes(search.toLowerCase())
+                                ) {
+                                    tempFiltered.push(row);
+                                }
+                            });
+                        }
+                    });
+
+                    filtered = tempFiltered;
+                    tempFiltered = [];
+                    i++;
+                }
             }
+
+            this.$store.dispatch("filteredData", filtered);
+        },
+        removeFilter(FIELD, ITEM) {
+            this.filtersIndex[FIELD].search.splice(ITEM, 1);
+
+            this.applyFilters();
         },
     },
 });
