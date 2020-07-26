@@ -93,10 +93,13 @@ export default Vue.component("effector-genes-table", {
     },
     methods: {
         buildOptions(field) {
-            return this.tableData
+            let options = this.tableData
                 .map((v) => v[field])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
+
+            options.unshift("Show all");
+            return options;
         },
         filterData(search, field, type) {
             console.log("event", search);
@@ -106,9 +109,15 @@ export default Vue.component("effector-genes-table", {
             if (!!field && !!type) {
                 let filtered = [];
                 if (type == "dropdown") {
-                    filtered = this.tableData.filter((row) => {
-                        return search === row[field];
-                    });
+                    if (search == "Show all") {
+                        filtered = this.tableData.filter((row) => {
+                            return row[field];
+                        });
+                    } else {
+                        filtered = this.tableData.filter((row) => {
+                            return search === row[field];
+                        });
+                    }
                 } else if (type == "search") {
                     console.log("here");
                     filtered = this.tableData.filter((row) => {
