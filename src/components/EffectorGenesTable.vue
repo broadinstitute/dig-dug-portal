@@ -201,7 +201,7 @@ export default Vue.component("effector-genes-table", {
         },
         showVisualizer(ITEM) {
             this.$store.dispatch("selectGene", ITEM);
-            uiUtils.showHideElement("feature-scores-wrapper");
+            uiUtils.showElement("feature-scores-wrapper");
         },
         formatContent(COLUMN, VALUE, LEVEL) {
             let formatting = this.config[this.dataset].formatting;
