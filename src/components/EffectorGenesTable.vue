@@ -63,6 +63,7 @@
                         <template v-if="config[dataset]['visualizer'][0] == true">
                             <b-button
                                 @click="showVisualizer(value[config[dataset]['visualizer'][1]])"
+                                class="view-visualizer-btn"
                             >{{config[dataset]['visualizer'][2]}}</b-button>
                         </template>
                     </div>
@@ -199,8 +200,8 @@ export default Vue.component("effector-genes-table", {
             uiUtils.showHideElement("feature-content-wrapper-" + INDEX);
         },
         showVisualizer(ITEM) {
-            console.log("show index: ", ITEM);
-            this.$store.dispatch();
+            this.$store.dispatch("selectGene", ITEM);
+            uiUtils.showHideElement("feature-scores-wrapper");
         },
         formatContent(COLUMN, VALUE, LEVEL) {
             let formatting = this.config[this.dataset].formatting;
