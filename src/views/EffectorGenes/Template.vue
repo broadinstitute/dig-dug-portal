@@ -8,7 +8,7 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h2>Predicted Effector Genes</h2>
+                        <h2>{{$store.state.pageTitle}}</h2>
                     </div>
                 </div>
             </div>

@@ -35,11 +35,10 @@ export default Vue.component("effector-genes-features", {
     },
     methods: {
         getColContent(COL) {
-            /*let colClass = " ";
-            COL.map((x) => {
-                colClass += "colvalue";
-            });*/
-            let colClass = " test";
+            let colClass = " ";
+            for (const [key, value] of Object.entries(COL)) {
+                colClass += " " + value;
+            }
             return colClass;
         },
     },

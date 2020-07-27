@@ -536,7 +536,7 @@
 }
 
 .feature-content-item {
-    padding: 3px 0;
+    padding: 3px 0 !important;
     border-right: solid 1px #ddd;
     border-bottom: solid 1px #ccc;
     overflow: hidden;
@@ -580,6 +580,18 @@
     background-position: left;
 }
 
+span.weight-red {
+    background-color: #ff000050;
+    padding: 0 5px;
+    margin: 0 5px;
+}
+
+span.weight-blue {
+    background-color: #00b7ff50;
+    padding: 0 5px;
+    margin: 0 5px;
+}
+
 
 
   /* for Miriam */
@@ -613,11 +625,11 @@
     border-left: solid 4px#ffd62e;
 }
 
-.EGLT-table-miriam .feature-content-value-item-wrapper.traits [class*="cell-weight"] {
+.EGLT-table.miriam .feature-content.traits [class*="cell-weight"] {
     background-image: url("../images/blue_block.png");
 }
 
-.EGLT-table-miriam .feature-content-value-item-wrapper.traits.positive [class*="cell-weight"] {
+.EGLT-table.miriam .feature-content.traits.positive [class*="cell-weight"] {
     background-image: url("../images/red_block.png");
 }
 

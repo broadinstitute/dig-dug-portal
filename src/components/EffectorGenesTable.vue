@@ -1,6 +1,10 @@
 <template>
     <div class="eglt-table-wrapper" :id="dataset">
-        <b-container fluid v-if="!!config && !!tableData" class="filtering-ui-wrapper">
+        <b-container
+            fluid
+            v-if="!!config && !!tableData && config[dataset].filters != undefined"
+            class="filtering-ui-wrapper"
+        >
             <b-row class="filtering-ui-content">
                 <b-col
                     v-if="config[dataset]['filters'].length > 0"
@@ -39,7 +43,7 @@
             </div>
         </b-container>
         <b-container fluid v-if="!!config && !!tableData" class="legend-wrapper">
-            <b-row class="each-legend" v-for="legend in config[dataset]['legend']">{{legend}}</b-row>
+            <b-row class="each-legend" v-for="legend in config[dataset]['legend']" v-html="legend"></b-row>
         </b-container>
         <div :class="'EGLT-table '+this.dataset">
             <b-container fluid v-if="!!config && !!filteredData" class>

@@ -104,11 +104,6 @@ new Vue({
             let contents = {
                 richards: EffectorGenesGraphRichards
             };
-
-            //let datasetName = 'EffectorGenes' + keyParams.dataset[0].toUpperCase() + keyParams.dataset.substr(1);
-            //contents = eval(datasetName);
-
-            //return contents;
             return contents[keyParams.dataset];
         }
     },
