@@ -501,7 +501,7 @@
 .feature-content-header-item,
 .feature-content-value-item {
     display: inline-block;
-    border-left: solid 1px #ccc;
+    border-left: solid 1px #eee;
     padding: 3px 0;
 }
 
@@ -512,7 +512,7 @@
 
 .top-level-header-item,
 .top-level-value-item {
-    border-bottom: solid 1px #ccc;
+    border-bottom: solid 1px #eee;
 }
 
 .feature-content-wrapper {
@@ -530,15 +530,15 @@
 }
 
 .feature-header-item {
-    border-right: solid 1px #aaa;
+    border-right: solid 1px #eee;
     font-size: 12px;
     font-weight: 600;
 }
 
 .feature-content-item {
     padding: 3px 0 !important;
-    border-right: solid 1px #ddd;
-    border-bottom: solid 1px #ccc;
+    border-right: solid 1px #eee;
+    border-bottom: solid 1px #eee;
     overflow: hidden;
     background-color: #f9f9f9;
 }
@@ -548,11 +548,19 @@
     background-color: #55aaee !important;
     font-size: 12px !important;
     padding: 1px 10px !important;
+    margin-right: 5px;
 }
 
-.view-features-btn:hover,
-.view-visualizer-btn:hover {
+.view-visualizer-btn {
+    background-color: #7aaa1c !important;
+}
+
+.view-features-btn:hover {
     background-color: #55aaee50 !important;
+}
+
+.view-visualizer-btn:hover {
+    background-color: #7aaa1c50 !important;
 }
 
 .feature-content {
@@ -733,7 +741,11 @@ span.weight-blue {
   /* for Richards */
 .EGLT-table.richards .top-level-header-item,
 .EGLT-table.richards .top-level-value-item {
-    width: calc(100% / 5);
+    width: calc(100% / 4);
+}
+
+.EGLT-table.richards .feature-content-wrapper .container-fluid {
+    overflow: auto;
 }
 
 .EGLT-table.richards .feature-list.variants_features, .EGLT-table.richards .feature-list.gene_features {
@@ -788,6 +800,48 @@ span.weight-blue {
 
 .EGLT-table.richards .feature-header-item.gene_features {
     background-color: #bfd73050;
+}
+
+.EGLT-table.richards [class*="y-0"], .EGLT-table.richards [class*="y-1"], .top-level-header-item.y {
+    position: absolute;
+    width: 8px!important;
+    left: 0;
+}
+
+.EGLT-table.richards [class*="y-0"], .top-level-header-item.y {
+    background-color : #EEE;
+    border: solid 1px #eee;
+    color: #eee;
+}
+
+.EGLT-table.richards [class*="y-1"] {
+    background-color : #FA0;
+    border: solid 1px #FA0;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features.HIGH {
+    background-color: rgba(255, 50, 0, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features.MODERATE {
+    background-color: rgba(100, 100, 255, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features.LOW {
+    background-color: rgba(0, 150, 200, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features.MODIFIER {
+    background-color: rgba(0, 180, 0, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features.NONE {
+    background-color: rgba(255, 150, 0, 1) !important;
+    color: #fff;
 }
 
 /* for plots */

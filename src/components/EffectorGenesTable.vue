@@ -11,7 +11,7 @@
                     v-for="filter in config[dataset]['filters']"
                 >
                     <div class="label">{{filter.label}}</div>
-                    <template v-if="filter.type == 'search'">
+                    <template v-if="filter.type.includes('search')">
                         <b-form-input
                             type="text"
                             @change="filterData($event, filter.field, filter.type)"
@@ -180,6 +180,18 @@ export default Vue.component("effector-genes-table", {
                                     tempFiltered.push(row);
                                 }
                             });
+                        } else if (searchIndex.type == "search_gt") {
+                            targetData.filter((row) => {
+                                if (row[searchIndex.field] >= search) {
+                                    tempFiltered.push(row);
+                                }
+                            });
+                        } else if (searchIndex.type == "search_lt") {
+                            targetData.filter((row) => {
+                                if (row[searchIndex.field] <= search) {
+                                    tempFiltered.push(row);
+                                }
+                            });
                         }
                     });
 
@@ -255,6 +267,15 @@ export default Vue.component("effector-genes-table", {
 
                                 break;
                         }
+                        break;
+                    case "render_bg_boolean":
+                        let booleanVal =
+                            VALUE == false || VALUE == "0" ? "false" : "true";
+                        return (
+                            "<span class='boolean-" +
+                            booleanVal +
+                            "'>&nbsp;</span>"
+                        );
                         break;
                     case "render_bg_percent":
                         let highScore, columnHighestScore;
