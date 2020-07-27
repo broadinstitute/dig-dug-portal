@@ -62,11 +62,7 @@
                         <b-button @click="showFeatures(index)" class="view-features-btn">Features</b-button>
                     </div>
 
-                    <effector-genes-features
-                        :featureConfig="config"
-                        :features="value.features"
-                        :featureIndex="index"
-                    ></effector-genes-features>
+                    <effector-genes-features :features="value.features" :featureIndex="index"></effector-genes-features>
                 </b-row>
             </b-container>
         </div>
@@ -87,7 +83,7 @@ export default Vue.component("effector-genes-table", {
         return {
             optionData: [],
             filtersIndex: {},
-            highestScores: {},
+            highestScores: { features: {} },
         };
     },
     modules: {
@@ -194,16 +190,19 @@ export default Vue.component("effector-genes-table", {
             uiUtils.showHideElement("feature-content-wrapper-" + INDEX);
         },
         formatContent(COLUMN, VALUE, LEVEL) {
-            let formatting = this.config[this.dataset].formatting;
-            if (formatting[COLUMN] != undefined) {
-                let type =
-                    LEVEL == "top"
-                        ? formatting[COLUMN]["type"]
-                        : formatting.features[COLUMN]["type"];
+            let formatting =
+                LEVEL == "top"
+                    ? this.config[this.dataset].formatting[COLUMN]
+                    : this.config[this.dataset].formatting.features[COLUMN[0]][
+                          COLUMN[1]
+                      ];
+
+            if (formatting != undefined) {
+                let type = formatting["type"];
 
                 switch (type) {
                     case "link":
-                        let linkPage = formatting[COLUMN]["link_to"];
+                        let linkPage = formatting["link_to"];
                         let contentLink = "";
                         switch (linkPage) {
                             case "gene":
@@ -244,50 +243,74 @@ export default Vue.component("effector-genes-table", {
                         }
                         break;
                     case "render_bg_percent":
-                        let highScore;
+                        let highScore, columnHighestScore;
 
-                        let highestScoreLocation =
-                            LEVEL == "top"
-                                ? this.highestScores[COLUMN]
-                                : this.highestScores.features[COLUMN];
-
-                        if (highestScoreLocation != undefined) {
-                            highScore = highestScoreLocation;
-                        } else {
-                            let tempArr = [];
-
-                            this.tableData.map((r) => {
-                                tempArr.push(r[COLUMN]);
-                            });
-                            tempArr.sort();
-
-                            if (LEVEL == "top") {
-                                this.highestScores[COLUMN] = tempArr.pop();
-                            } else {
-                                if (
-                                    this.highestScores["features"] != undefined
-                                ) {
-                                    this.highestScores["features"][COLUMN] = 1; //teset number
-                                } else {
-                                    this.highestScores["features"] = {};
-                                    this.highestScores["features"][COLUMN] = 1; //teset number
-                                }
+                        if (LEVEL == "top") {
+                            columnHighestScore = this.highestScores[COLUMN];
+                        } else if (LEVEL == "feature") {
+                            if (
+                                this.highestScores.features[COLUMN[0]] ==
+                                undefined
+                            ) {
+                                this.highestScores.features[COLUMN[0]] = {};
                             }
 
-                            highScore = highestScoreLocation;
+                            columnHighestScore = this.highestScores.features[
+                                COLUMN[0]
+                            ][COLUMN[1]];
                         }
 
-                        let percentileValue = Math.floor(
-                            (VALUE / highScore) * 100
-                        );
+                        if (columnHighestScore == undefined) {
+                            if (LEVEL == "top") {
+                                let tempArr = [];
+                                this.tableData.map((r) => {
+                                    tempArr.push(r[COLUMN]);
+                                });
+                                tempArr.sort();
+                                this.highestScores[COLUMN] = tempArr.pop();
+                                columnHighestScore = this.highestScores[COLUMN];
+                            } else if (LEVEL == "feature") {
+                                let tempArr = [];
+                                this.tableData.map((r) => {
+                                    let tempData = r.features[COLUMN[0]];
 
-                        return (
-                            "<span class='cell-weight-" +
-                            percentileValue +
-                            "'>" +
-                            VALUE +
-                            "</span>"
-                        );
+                                    tempData.map((t) => {
+                                        tempArr.push(t[COLUMN[1]]);
+                                    });
+                                });
+                                tempArr.sort();
+                                this.highestScores.features[COLUMN[0]][
+                                    COLUMN[1]
+                                ] = tempArr.pop();
+                                columnHighestScore = this.highestScores
+                                    .features[COLUMN[0]][COLUMN[1]];
+                            }
+
+                            let percentileValue = Math.floor(
+                                (VALUE / columnHighestScore) * 100
+                            );
+
+                            return (
+                                "<span class='cell-weight-" +
+                                percentileValue +
+                                "'>" +
+                                VALUE +
+                                "</span>"
+                            );
+                        } else {
+                            let percentileValue = Math.floor(
+                                (VALUE / columnHighestScore) * 100
+                            );
+
+                            return (
+                                "<span class='cell-weight-" +
+                                percentileValue +
+                                "'>" +
+                                VALUE +
+                                "</span>"
+                            );
+                        }
+
                         break;
                 }
             } else {
