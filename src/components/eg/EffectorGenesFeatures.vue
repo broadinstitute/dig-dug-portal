@@ -1,7 +1,7 @@
 <template>
     <div :class="'feature-content-wrapper hidden feature-content-wrapper-'+this.featureIndex">
         <b-container fluid>
-            <div v-for="(row, i) in features" class="feature-list">
+            <div v-for="(row, i) in features" :class="'feature-list '+i">
                 <b-row :class="'feature-name '+i">{{i}}</b-row>
                 <template v-for="(col, j) in row">
                     <b-row :class="'feature-headers '+i" v-if="j === 0" :title="i">

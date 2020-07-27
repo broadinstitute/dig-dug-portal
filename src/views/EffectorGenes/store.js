@@ -42,8 +42,6 @@ export default new Vuex.Store({
             state.config = config;
         },
         setPageTitle(state, configData) {
-            //console.log(configData["config"][configData["dataset"]]["title"]);
-
             let newTitle = configData["config"][configData["dataset"]]["title"];
             state.pageTitle = newTitle;
         },

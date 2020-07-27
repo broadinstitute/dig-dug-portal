@@ -709,27 +709,6 @@ span.weight-blue {
 .EGLT-table.mccarthy .feature-name.perturbational, .EGLT-table.mccarthy .feature-headers.perturbational, .EGLT-table.mccarthy .feature-content.perturbational {
     border-left: solid 4px #add3f0;
 }
-
-.EGLT-table.mccarthy .feature-content-header-item.gene,
-.EGLT-table.mccarthy .feature-content-value-item.gene {
-    width: calc(100% / 2);
-}
-
-.EGLT-table.mccarthy .feature-content-header-item.genetic,
-.EGLT-table.mccarthy .feature-content-value-item.genetic {
-    width: calc(100% / 5);
-}
-
-.EGLT-table.mccarthy .feature-content-header-item.genomic,
-.EGLT-table.mccarthy .feature-content-value-item.genomic {
-    width: calc(100% / 6);
-}
-
-.EGLT-table.mccarthy .feature-content-header-item.perturbational,
-.EGLT-table.mccarthy .feature-content-value-item.perturbational {
-    width: calc(100% / 6);
-}
-
 /* for Manning */
 .EGLT-table.manning .top-level-header-item,
 .EGLT-table.manning .top-level-value-item {
@@ -742,24 +721,63 @@ span.weight-blue {
 }
 
   /* for Richards */
-.EGLT-table-richards .top-level-header-item,
-.EGLT-table-richards .top-level-value-item {
-    width: calc(100% / 4);
+.EGLT-table.richards .top-level-header-item,
+.EGLT-table.richards .top-level-value-item {
+    width: calc(100% / 5);
 }
 
-.EGLT-table-richards .feature-content-header-item.gene_info,
-.EGLT-table-richards .feature-content-value-item.gene_info {
-    width: calc(100% / 4);
+.EGLT-table.richards .feature-list.variants_features, .EGLT-table.richards .feature-list.gene_features {
+    display: table !important;
 }
 
-.EGLT-table-richards .feature-content-header-item.variants_features,
-.EGLT-table-richards .feature-content-value-item.variants_features {
-    width: calc(100% / 21);
+.EGLT-table.richards .feature-list.variants_features {
+    border-left: solid 4px#ffd62e !important;
 }
 
-.EGLT-table-richards .feature-content-header-item.gene_features,
-.EGLT-table-richards .feature-content-value-item.gene_features {
-    width: calc(100% / 20);
+.EGLT-table.richards .feature-list.gene_features {
+    border-left: solid 4px#bfd730 !important;
+}
+
+.EGLT-table.richards .feature-headers.variants_features, .EGLT-table.richards .feature-headers.gene_features {
+    display: table-row !important;
+}
+
+.EGLT-table.richards .feature-content.variants_features, .EGLT-table.richards .feature-content.gene_features {
+    display: table-row !important;
+}
+
+.EGLT-table.richards .feature-name.gene_info, .EGLT-table.richards .feature-headers.gene_info, .EGLT-table.richards .feature-content.gene_info {
+    border-left: solid 4px #75def8 !important;
+}
+
+.EGLT-table.richards .feature-header-item.gene_info {
+    background-color: #75def850;
+}
+
+.EGLT-table.richards .feature-header-item.variants_features,
+.EGLT-table.richards .feature-content-item.variants_features {
+    min-width: 100px !important;
+    max-width: 100px !important;
+    white-space: pre-line;
+    display: table-cell !important;
+    vertical-align: bottom;
+}
+
+.EGLT-table.richards .feature-header-item.variants_features {
+    background-color: #ffd62e50;
+}
+
+.EGLT-table.richards .feature-header-item.gene_features,
+.EGLT-table.richards .feature-content-item.gene_features {
+    min-width: 100px !important;
+    max-width: 100px !important;
+    white-space: pre-line;
+    display: table-cell !important;
+    vertical-align: bottom;
+}
+
+.EGLT-table.richards .feature-header-item.gene_features {
+    background-color: #bfd73050;
 }
 
 
