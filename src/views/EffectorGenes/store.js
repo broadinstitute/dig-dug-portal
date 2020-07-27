@@ -25,7 +25,8 @@ export default new Vuex.Store({
         geneName: "",
         tableData: "",
         filteredData: "",
-        config: ""
+        config: "",
+        pageTitle: ""
     },
     mutations: {
         setGene(state, gene) {
@@ -39,6 +40,9 @@ export default new Vuex.Store({
         },
         setConfig(state, config) {
             state.config = config;
+        },
+        setTitle(state, title) {
+            state.pageTitle = title;
         }
     },
     getters: {},
@@ -51,6 +55,8 @@ export default new Vuex.Store({
                 `http://kp4cd.org/egldata/config?dataset=${config.dataset}`
             ).then(resp => resp.json());
             context.commit("setConfig", json);
+            context.commit("setTitle", json[config.dataset].title);
+            console.log(json[config.dataset].title);
         },
         async fetchData(context, dataset) {
             let json = await fetch(
