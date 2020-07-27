@@ -38,7 +38,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
-        this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait);
+        //this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait); //for now, data from kp4cd
     },
 
     render(createElement, context) {
@@ -58,10 +58,10 @@ new Vue({
 
     computed: {
         dataset() {
-            return keyParams.dataset
+            return keyParams.dataset;
         },
         trait() {
-            return keyParams.trait
+            return keyParams.trait;
         },
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
@@ -105,6 +105,9 @@ new Vue({
                 richards: EffectorGenesGraphRichards
             };
             return contents[keyParams.dataset];
+        },
+        pageTitle() {
+            return this.$store.state.pageTitle;
         }
     },
 

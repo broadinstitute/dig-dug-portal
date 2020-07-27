@@ -20,7 +20,7 @@
                                 <b-tab title="View data" active>
                                     <component
                                         v-bind:is="$parent.effectorGenesGraph"
-                                        :graphData="$parent.effectorGenesData"
+                                        :graphData="$store.state.tableData"
                                     ></component>
                                     <effector-genes-table
                                         :dataset="$parent.dataset"
