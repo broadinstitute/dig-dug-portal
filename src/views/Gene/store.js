@@ -70,7 +70,19 @@ export default new Vuex.Store({
                     return data[i].name;
                 }
             }
-        }
+        },
+        // phenotype(state) {
+        //     for (let i in state.bioPortal.phenotypes) {
+        //         let phenotype = state.bioPortal.phenotypes[i];
+
+        //         // if (phenotype.name === keyParams.phenotype) {
+        //         //     return phenotype;
+        //         // }
+        //     }
+
+        //     // not set or not found
+        //     return null;
+        // },
     },
 
     actions: {
@@ -97,13 +109,10 @@ export default new Vuex.Store({
                 context.dispatch('uniprot/getUniprotGeneInfo', name);
             }
         },
-        async lookupEffectorGenesPhenotypes(context, input) {
-            let matches = await match('effector-genes', "_", { limit: null })
-            context.commit('setMatchingEffectorGenesPhenotypes', matches);
-        },
 
 
-        async onPhenotypeChange(context, phenotype) {
+
+        async onEffectorGenesPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);
         },
     },

@@ -1,5 +1,5 @@
 <template>
-    <vue-typeahead-bootstrap
+    <!-- <vue-typeahead-bootstrap
         v-model="userText"
         ref="phenotypeSelect"
         placeholder="Type in a phenotype ..."
@@ -11,7 +11,14 @@
             <span v-html="htmlText"></span>&nbsp;
             <small class="text-secondary">{{ data.group }}</small>
         </template>
-    </vue-typeahead-bootstrap>
+    </vue-typeahead-bootstrap>-->
+    <autocomplete
+        :placeholder="'Phenotype'"
+        :matches="matchingPhenotypes"
+        :matchkey="'description'"
+    
+        @item-select="onPhenotypeSelected($event)"
+    ></autocomplete>
 </template>
 
 <script>
@@ -20,11 +27,13 @@ import _ from "lodash";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
+import Autocomplete from "@/components/Autocomplete.vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
+Vue.component("autocomplete", Autocomplete);
 
 export default Vue.component("phenotype-selectpicker", {
     props: ["phenotypes", "clearOnSelected", "defaultPhenotype"],
@@ -35,7 +44,7 @@ export default Vue.component("phenotype-selectpicker", {
         };
     },
     computed: {
-        phenotypeOptions() {
+        matchingPhenotypes() {
             if (!this.phenotypes) {
                 return [];
             }
@@ -52,18 +61,13 @@ export default Vue.component("phenotype-selectpicker", {
         }
     },
     methods: {
-        onPhenotypeSelected(event) {
-            this.$store.dispatch("onPhenotypeChange", event);
-
-            if (this.clearOnSelected) {
-                this.userText = null;
-            }
-        },
-
         setFocus() {
             this.$nextTick(() => {
                 this.$refs.phenotypeSelect.$refs.input.focus();
             });
+        },
+        onPhenotypeSelected(event) {
+            console.log(event);
         }
     }
 });

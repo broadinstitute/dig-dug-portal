@@ -120,19 +120,16 @@
                         @item-select="$store.dispatch('onEffectorGenesPhenotypeChange', $event)"
                     ></autocomplete>-->
 
-                    <phenotype-selectpicker
-                        v-if="$store.state.phenotype"
-                        :phenotypes="$store.state.bioPortal.phenotypes"
-                        :default-phenotype="$store.state.phenotype.description"
-                    ></phenotype-selectpicker>
                     <huge-calculator
                         v-if="$store.state.phenotype && $parent.region"
                         :chromosome="$parent.region.chromosome"
                         :start="$parent.region.start"
                         :end="$parent.region.end"
-                        :phenotype="$store.state.phenotype.name"
+                        :selectedphenotype="$store.state.phenotype.name"
+                        :dropdownphenotypes="$store.state.bioPortal.phenotypes"
                         :phenotypes="$parent.phenotypes"
                         :associations="$store.state.associations.data"
+                        @onPhenotypeChange="$store.dispatch('onEffectorGenesPhenotypeChange', $event)"
                     ></huge-calculator>
                 </div>
             </div>

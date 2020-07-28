@@ -94,6 +94,7 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
+
         region() {
             return this.$store.getters.region;
         },
