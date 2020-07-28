@@ -274,7 +274,7 @@ export default Vue.component("effector-genes-table", {
                                 break;
                             case "variant":
                                 contentLink =
-                                    '<a href="variant.html?variant=' +
+                                    '<a href="/variant.html?variant=' +
                                     VALUE +
                                     '">' +
                                     VALUE +
@@ -282,8 +282,24 @@ export default Vue.component("effector-genes-table", {
                                 return contentLink;
 
                                 break;
-                            case "regin":
-                                contentLink = VALUE;
+                            case "region":
+                                let chr = VALUE.split(":")[0];
+                                let start = VALUE.split(":")[1]
+                                    .split("-")[0]
+                                    .trim();
+                                let end = VALUE.split(":")[1]
+                                    .split("-")[1]
+                                    .trim();
+                                contentLink =
+                                    '<a href="/region.html?chr=' +
+                                    chr +
+                                    "&start=" +
+                                    start +
+                                    "&end=" +
+                                    end +
+                                    '">' +
+                                    VALUE +
+                                    "</a>";
                                 return contentLink;
 
                                 break;
