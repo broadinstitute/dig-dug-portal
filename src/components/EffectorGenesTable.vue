@@ -1,8 +1,16 @@
 <template>
-    <div class="eglt-table-wrapper" v-if="!!config && !!tableData" :id="dataset">
+    <div class="eglt-table-wrapper" :id="dataset">
+        <div id="igv-div" v-show="igvBrowser">
+            <div style="height:40px;">
+                <b-btn-close @click="igvBrowser = false">
+                    <b-icon-x-circle></b-icon-x-circle>
+                </b-btn-close>
+            </div>
+            <div id="igv-content"></div>
+        </div>
         <b-container
             fluid
-            v-if="config[dataset].filters != undefined && config[dataset]['filters'].length > 0"
+            v-if="!!config && !!tableData && config[dataset].filters != undefined"
             class="filtering-ui-wrapper"
         >
             <b-row class="filtering-ui-content">
@@ -36,7 +44,7 @@
                 ></b-badge>
             </div>
         </b-container>
-        <b-container fluid class="legend-wrapper">
+        <b-container fluid v-if="!!config && !!tableData" class="legend-wrapper">
             <b-row class="each-legend" v-for="legend in config[dataset]['legend']" v-html="legend"></b-row>
         </b-container>
         <div :class="'EGLT-table '+this.dataset">
@@ -63,8 +71,13 @@
                             <b-button
                                 @click="showVisualizer(value[config[dataset]['visualizer'][1]])"
                                 class="view-visualizer-btn"
-                                v-html="config[dataset]['visualizer'][2]"
-                            ></b-button>
+                            >{{config[dataset]['visualizer'][2]}}</b-button>
+                        </template>
+                        <template v-if="config[dataset]['browser']">
+                            <b-button
+                                @click="showIGV(value.location, value.gene)"
+                                class="view-igv-btn"
+                            >IGV Browser</b-button>
                         </template>
                     </div>
 
@@ -78,6 +91,7 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eg/EffectorGenesFeatures";
 import uiUtils from "@/utils/uiUtils";
 
@@ -90,6 +104,7 @@ export default Vue.component("effector-genes-table", {
             optionData: [],
             filtersIndex: {},
             highestScores: { features: {} },
+            igvBrowser: false,
         };
     },
     modules: {
@@ -210,6 +225,22 @@ export default Vue.component("effector-genes-table", {
         showVisualizer(ITEM) {
             this.$store.dispatch("selectGene", ITEM);
             uiUtils.showElement("feature-scores-wrapper");
+        },
+        showIGV(LOCATION, GENE) {
+            console.log(GENE);
+            this.igvBrowser = true;
+
+            let locus = "chr" + LOCATION.replace(/\s/g, "");
+            let igvDiv = document.getElementById("igv-content");
+            let options = {
+                genome: "hg19",
+                name: "IGV",
+                locus: locus,
+            };
+            [].slice
+                .call(igvDiv.children)
+                .forEach((child) => igvDiv.removeChild(child));
+            igv.createBrowser(igvDiv, options, GENE);
         },
         formatContent(COLUMN, VALUE, LEVEL) {
             let formatting =

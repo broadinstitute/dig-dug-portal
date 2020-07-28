@@ -189,7 +189,7 @@ export default Vue.component("effector-genes-richards-item", {
         return {
             decimals: 3,
             showVariants: false,
-            showFeatures: false
+            showFeatures: false,
         };
     },
     computed: {
@@ -213,7 +213,7 @@ export default Vue.component("effector-genes-richards-item", {
                     lvl = "1";
             }
             return `prob_score_${lvl}`;
-        }
+        },
     },
     methods: {
         plotGene() {
@@ -223,8 +223,8 @@ export default Vue.component("effector-genes-richards-item", {
         classImpact(variant, column) {
             if (column != "snpeff.impact") return column;
             else return `${column} snp_eff_${variant.features["snpeff.rank"]}`;
-        }
-    }
+        },
+    },
 });
 </script>
 
