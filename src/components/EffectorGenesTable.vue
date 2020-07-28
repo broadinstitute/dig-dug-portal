@@ -1,13 +1,13 @@
 <template>
     <div class="eglt-table-wrapper" :id="dataset">
-        <div id="igv-div" v-show="igvBrowser">
+        <!--<div id="igv-div" v-show="igvBrowser">
             <div style="height:40px;">
                 <b-btn-close @click="igvBrowser = false">
                     <b-icon-x-circle></b-icon-x-circle>
                 </b-btn-close>
             </div>
             <div id="igv-content"></div>
-        </div>
+        </div>-->
         <b-container
             fluid
             v-if="!!config && !!tableData && config[dataset].filters != undefined"
@@ -75,14 +75,15 @@
                             <b-button
                                 @click="showVisualizer(value[config[dataset]['visualizer'][1]])"
                                 class="view-visualizer-btn"
-                            >{{config[dataset]['visualizer'][2]}}</b-button>
+                                v-html="config[dataset]['visualizer'][2]"
+                            ></b-button>
                         </template>
-                        <template v-if="config[dataset]['browser']">
+                        <!--<template v-if="config[dataset]['browser']">
                             <b-button
                                 @click="showIGV(value.location, value.gene)"
                                 class="view-igv-btn"
                             >IGV Browser</b-button>
-                        </template>
+                        </template>-->
                     </div>
 
                     <effector-genes-features :features="value.features" :featureIndex="index"></effector-genes-features>
