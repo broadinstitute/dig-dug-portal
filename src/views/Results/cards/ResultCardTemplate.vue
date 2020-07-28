@@ -1,12 +1,14 @@
 <template>
     <div>
-        <h4>{{title}} <scroll-to-arrow></scroll-to-arrow></h4>
+        <slot name="header">
+            <h4>{{title}} <scroll-to-arrow></scroll-to-arrow></h4>
+        </slot>
         <b-row>
-            <b-col cols="3">
-                <slot name="sidebar">
+            <slot name="sidebar">
+                <!-- <b-col cols="3">
                     TODO: Sidebar for card type compatible with {{ title }}
-                </slot>
-            </b-col>
+                </b-col> -->
+            </slot>
             <b-col>
                 <slot name="content"></slot>
             </b-col>
@@ -23,7 +25,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 Vue.use(BootstrapVue);
 export default Vue.component('result-card-template', {
-    props: ["title"],
+    props: ["title", "card"],
     components: {
         ScrollToTop,
     }

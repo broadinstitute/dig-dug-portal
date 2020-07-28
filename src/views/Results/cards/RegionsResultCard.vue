@@ -28,8 +28,5 @@ export default Vue.component('regions-result-card', {
         RegionsTable,
         RegionsResultsSidebar,
     },
-    mounted() {
-        console.log(this.title, this.parent)
-    }
 })
 </script>

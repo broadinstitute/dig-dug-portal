@@ -97,6 +97,7 @@ export default {
     actions: {
         //this returns gene information using exact gene name in tab separated file
         async getUniprotGeneInfo(context, gene) {
+            console.log('getting uniprot info in module')
             let format = 'xml'
             let organism = 9606; // homosapein
             let query = 'gene_exact';

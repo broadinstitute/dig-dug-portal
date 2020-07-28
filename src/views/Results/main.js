@@ -5,6 +5,8 @@ import store from "./store.js";
 import RegionsResultCard from "./cards/RegionsResultCard.vue"
 import AssociationsResultCard from "./cards/AssociationsResultCard.vue"
 import VariantResultCard from "./cards/VariantResultCard.vue"
+import PhenotypeSignalCard from "./cards/PhenotypeSignalCard.vue"
+import GeneResultCard from "./cards/GeneResultCard.vue"
 
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
@@ -16,7 +18,6 @@ import _ from "lodash";
 import keyParams from "@/utils/keyParams";
 
 
-// import PheWASTable from "@/components/PheWASTable.vue";
 
 Vue.use(BootstrapVue);
 new Vue({
@@ -25,6 +26,7 @@ new Vue({
         RegionsResultCard,
         AssociationsResultCard,
         VariantResultCard,
+        PhenotypeSignalCard,
     },
     data() {
         return {
@@ -40,12 +42,24 @@ new Vue({
         }
     },
     created() {
+        window.addEventListener('mouseover', function (event) {
+            // console.log('global handler firing', event.target.dataset)
+            // TODO: track on data attributes
+            if (event.target.dataset.hasOwnProperty('tooltip')) {
+                console.log('matched value')
+            }
+        })
+
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+
         // neither an empty string nor undefined
         // NOTE: assumes loadedHistory is valid!
         // Will pass out if there's not loadedHistory attempted to be provided
         if (!!this.loadedHistory) {
             this.decodeAndLoad(this.loadedHistory);
         }
+
     },
     computed: {
         placeholder: function() {

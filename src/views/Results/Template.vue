@@ -13,11 +13,13 @@
                                 :key="i"
                                 href="#"
                                 @click="$parent.index = i">
+                                {{i}}
                             </a>
                     </b-dropdown>
                 </template>
 
                 <b-form-input
+                    data-tooltip="test"
                     v-model="$parent.query"
                     :placeholder="$parent.placeholder"
                 ></b-form-input>
@@ -84,6 +86,21 @@
                                 :parent="card.parent"
                                 @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
                             ></variant-result-card>
+                        </div>
+
+                        <div v-else-if="card.index === 'top-associations'">
+                            <phenotype-signal-card
+                                :topAssociations="$store.state.dataCache[$parent.contentHash(card)]"
+                                :phenotypeMap="$store.state.bioPortal.phenotypeMap">
+                            </phenotype-signal-card>
+                        </div>
+
+                        <div v-else-if="card.index === 'gene'">
+                            <gene-result-card
+                                :title="`${$parent.provenanceHash(card)}`"
+                                :geneData="$store.state.dataCache[$parent.contentHash(card)]"
+                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
+                            ></gene-result-card>
                         </div>
 
                         <div v-else>
