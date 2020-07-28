@@ -23,140 +23,147 @@ export default Vue.component("effector-genes-graph-richards", {
     data() {
         return {
             featureHeaders: {
-                "fn.locus.no.genes": {
+                Ei: {
+                    header: "Ei",
+                    name: "",
+                    class: "",
+                    checked: "checked",
+                    decimal: null,
+                },
+                Genes: {
                     header: "Genes",
                     name: "# genes at locus",
                     class: "",
                     checked: "checked",
                     decimal: null,
                 },
-                "fn.snpeff.rank": {
+                "avg. SNPEff": {
                     header: "avg. SNPEff",
                     name: "Mean SNPEff rank",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.locus.no.SNPs": {
+                SNPs: {
                     header: "SNPs",
                     name: "# SNVs at locus",
                     class: "",
                     checked: "checked",
                     decimal: null,
                 },
-                "fn.sum.nearest.gene.from.DHS": {
+                "DHS SNPs": {
                     header: "DHS SNPs",
                     name: "# SNVs in DHS",
                     class: "",
                     checked: "checked",
                     decimal: null,
                 },
-                "fn.min.snp.tss.dist": {
+                "SNP dist.": {
                     header: "SNP dist.",
                     name: "Minimum SNV-gene distance (&#x394g)",
                     class: "",
                     checked: "checked",
                     decimal: null,
                 },
-                "fn.max.locus.z": {
+                "Locus z-score": {
                     header: "Locus z-score",
                     name: "Best GWAS z-score at locus",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.sum.overlap.bf": {
+                "log10(BF)": {
                     header: "log10(BF)",
                     name: "Sum of log10(BF) for genic SNVs",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.max.length": {
+                GeneLen: {
                     header: "GeneLen",
                     name: "Gene length",
                     class: "",
                     checked: "checked",
                     decimal: null,
                 },
-                "fn.mean.dist.prob": {
+                "PostPr/dist": {
                     header: "PostPr/dist",
                     name: "Mean (SNV probability / &#x394g)",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.max.overlap.1m.snpeff.one": {
+                "Gene SNPEff": {
                     header: "Gene SNPEff",
                     name: "Genic SNV with SNPEff Impact",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.max.beta.overlap": {
+                "Gene z-score": {
                     header: "Gene z-score",
                     name: "Best GWAS effect for genic SNV",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.max.maf": {
+                MAF: {
                     header: "MAF",
                     name: "Highest effect allele frequency",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.mean.dist.prob.square": {
+                "PostPr/dist^2": {
                     header: "PostPr/dist^2",
                     name: "Mean (SNV probability / &#x394g²)",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.sum.snp.in.DHS.count.beta": {
+                "Beta in DHS": {
                     header: "Beta in DHS",
                     name: "&#x2211; (GWAS beta for SNV in DHS)",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.max.1m.snpeff.impact.none": {
+                "Any SNPEff": {
                     header: "Any SNPEff",
                     name: "Any SNV with SNPEff Impact",
                     class: "",
                     checked: "checked",
                     decimal: null,
                 },
-                "fn.sum.nearest.nearest.DHS.from.gene.snp.in.DHS": {
+                "SNV in DHS": {
                     header: "SNV in DHS",
                     name: "Count of nearest SNV in DHS",
                     class: "",
                     checked: "checked",
                     decimal: null,
                 },
-                "fn.max.z": {
+                "Gene z-score": {
                     header: "Gene z-score",
                     name: "Max GWAS z-score",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.mean.locus.prob": {
+                "avg. PostPr": {
                     header: "avg. PostPr",
                     name: "Mean SNV probability",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.mean.beta.overlap": {
+                "Beta in Gene": {
                     header: "Beta in Gene",
                     name: "Mean GWAS beta for genic SNVs",
                     class: "",
                     checked: "checked",
                     decimal: 3,
                 },
-                "fn.nearest.trait.DHS.from.gene.dist.inv": {
+                "dhsSNP/dist": {
                     header: "dhsSNP/dist",
                     name: "Nearest SNP in DHS / &#x394g",
                     class: "",
@@ -179,24 +186,28 @@ export default Vue.component("effector-genes-graph-richards", {
 
                 DATA.forEach((element) => {
                     massagedData.GENES[element.gene] =
-                        element.features.predictor;
+                        element.features.gene_features;
                 });
 
-                Object.keys(DATA[0].features.gene_features).map(function (KEY) {
-                    if (KEY.indexOf("fn.") >= 0) {
-                        features[KEY] = [];
-                    }
+                //console.log("massagedData", massagedData);
+
+                Object.keys(DATA[0].features.gene_features[0]).map(function (
+                    KEY
+                ) {
+                    features[KEY] = [];
                 });
 
                 DATA.map(function (VALUE) {
                     let eachData = VALUE.features.gene_features;
-                    $.each(eachData, function (KEY, FEATURE_VALUE) {
-                        if (KEY.indexOf("fn.") >= 0) {
+                    eachData.map((eD) => {
+                        $.each(eD, function (KEY, FEATURE_VALUE) {
                             let FV = FEATURE_VALUE;
                             features[KEY].push(FV);
-                        }
+                        });
                     });
                 });
+
+                //console.log("features", features);
 
                 let frequencyData = {};
 
@@ -250,19 +261,18 @@ export default Vue.component("effector-genes-graph-richards", {
 
                 massagedData["DATA"] = frequencyData;
 
+                //console.log("massagedData", massagedData);
+
                 return massagedData;
             }
         },
     },
     watch: {
-        // tableGraphData(DATA) {
-        //     this.renderCharts(DATA);
-        // },
-        // "this.selectedGeneName"() {
-        //     console.log("foo");
-        // }
+        tableGraphData(DATA) {
+            this.renderCharts(DATA);
+        },
         selectedGeneName(GENE) {
-            this.renderCharts(GENE);
+            this.renderCharts(this.$store.state.geneName);
         },
     },
     methods: {
@@ -273,7 +283,7 @@ export default Vue.component("effector-genes-graph-richards", {
         renderCharts(GENE) {
             let featureHeaders = this.featureHeaders;
             let DATA = this.tableGraphData;
-            //let GENE = this.selectedGeneName;
+            let tempGeneName = this.selectedGeneName;
 
             $(".feature-scores").empty(); //remove previous chart, if any
 
@@ -360,66 +370,77 @@ export default Vue.component("effector-genes-graph-richards", {
                     .attr("d", line);
 
                 /* selected gene info */
-                let SCORE = DATA.GENES[GENE][FEATURE[0].feature_name];
-                let DECIMAL = featureHeaders[FEATURE[0].feature_name].decimal;
-                let SHORTSCORE =
-                    DECIMAL == null ? SCORE : SCORE.toFixed(DECIMAL);
-                let MINV =
-                    DECIMAL == null
-                        ? FEATURE[0].min
-                        : FEATURE[0].min.toFixed(DECIMAL);
 
-                let MAXV =
-                    DECIMAL == null
-                        ? FEATURE[0].max
-                        : FEATURE[0].max.toFixed(DECIMAL);
+                if (
+                    tempGeneName != undefined &&
+                    tempGeneName != null &&
+                    tempGeneName != ""
+                ) {
+                    /*console.log("gene", tempGeneName);
+                    console.log(DATA.GENES[GENE][0]);*/
 
-                let scoreLabel = "Value: " + SHORTSCORE + "<br />";
-                scoreLabel += "Range: " + MINV + " - " + MAXV;
+                    let SCORE = DATA.GENES[GENE][0][FEATURE[0].feature_name];
+                    let DECIMAL =
+                        featureHeaders[FEATURE[0].feature_name].decimal;
+                    let SHORTSCORE =
+                        DECIMAL == null ? SCORE : SCORE.toFixed(DECIMAL);
+                    let MINV =
+                        DECIMAL == null
+                            ? FEATURE[0].min
+                            : FEATURE[0].min.toFixed(DECIMAL);
 
-                let pointData = [SCORE];
+                    let MAXV =
+                        DECIMAL == null
+                            ? FEATURE[0].max
+                            : FEATURE[0].max.toFixed(DECIMAL);
 
-                svg.selectAll(".dot")
-                    .data(pointData)
-                    .enter()
-                    .append("line")
-                    .attr("class", "data-line")
-                    .attr("x1", function (d) {
-                        return xScale(d) + 1;
-                    })
-                    .attr("y1", 0)
-                    .attr("x2", function (d) {
-                        return xScale(d) + 1;
-                    })
-                    .attr("y2", height);
+                    let scoreLabel = "Value: " + SHORTSCORE + "<br />";
+                    scoreLabel += "Range: " + MINV + " - " + MAXV;
 
-                svg.selectAll(".dot")
-                    .data(pointData)
-                    .enter()
-                    .append("text")
-                    .attr("x", function (d) {
-                        if (width - xScale(d) > 30) {
-                            return xScale(d) + 5;
-                        } else {
-                            return xScale(d) - 5;
-                        }
-                    })
-                    .attr("y", 10)
-                    .attr("style", "fill: #F00; font-size: 12px;")
-                    .attr("class", function (d) {
-                        if (width - xScale(d) > 30) {
-                            return "start-anchor";
-                        } else {
-                            return "end-anchor";
-                        }
-                    })
-                    .text(GENE);
+                    let pointData = [SCORE];
 
-                $(chartWrapper).append(
-                    "<div style='font-size:13px; width: 100%; text-align:center;'>" +
-                        scoreLabel +
-                        "</div>"
-                );
+                    svg.selectAll(".dot")
+                        .data(pointData)
+                        .enter()
+                        .append("line")
+                        .attr("class", "data-line")
+                        .attr("x1", function (d) {
+                            return xScale(d) + 1;
+                        })
+                        .attr("y1", 0)
+                        .attr("x2", function (d) {
+                            return xScale(d) + 1;
+                        })
+                        .attr("y2", height);
+
+                    svg.selectAll(".dot")
+                        .data(pointData)
+                        .enter()
+                        .append("text")
+                        .attr("x", function (d) {
+                            if (width - xScale(d) > 30) {
+                                return xScale(d) + 5;
+                            } else {
+                                return xScale(d) - 5;
+                            }
+                        })
+                        .attr("y", 10)
+                        .attr("style", "fill: #F00; font-size: 12px;")
+                        .attr("class", function (d) {
+                            if (width - xScale(d) > 30) {
+                                return "start-anchor";
+                            } else {
+                                return "end-anchor";
+                            }
+                        })
+                        .text(tempGeneName);
+
+                    $(chartWrapper).append(
+                        "<div style='font-size:13px; width: 100%; text-align:center;'>" +
+                            scoreLabel +
+                            "</div>"
+                    );
+                }
 
                 // rendering chart end
             });

@@ -7,7 +7,7 @@
         >
             <b-row class="filtering-ui-content">
                 <b-col v-for="filter in config[dataset]['filters']">
-                    <div class="label">{{filter.label}}</div>
+                    <div class="label" v-html="filter.label"></div>
                     <template v-if="filter.type.includes('search')">
                         <b-form-input
                             type="text"
