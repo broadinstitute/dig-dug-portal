@@ -10,15 +10,12 @@
         </div>
         <b-container
             fluid
-            v-if="!!config && !!tableData && config[dataset].filters != undefined"
+            v-if="config[dataset].filters != undefined && config[dataset]['filters'].length > 0"
             class="filtering-ui-wrapper"
         >
             <b-row class="filtering-ui-content">
-                <b-col
-                    v-if="config[dataset]['filters'].length > 0"
-                    v-for="filter in config[dataset]['filters']"
-                >
-                    <div class="label">{{filter.label}}</div>
+                <b-col v-for="filter in config[dataset]['filters']">
+                    <div class="label" v-html="filter.label"></div>
                     <template v-if="filter.type.includes('search')">
                         <b-form-input
                             type="text"
@@ -31,7 +28,6 @@
                             @change="filterData($event, filter.field, filter.type)"
                         ></b-form-select>
                     </template>
-                    <template v-else>Default filter</template>
                 </b-col>
             </b-row>
         </b-container>
@@ -44,13 +40,11 @@
                     :key="v"
                     :class="'btn search-bubble '+i"
                     @click="removeFilter(value.field,i)"
-                >
-                    {{value.field+': '+v}}
-                    <span class="remove">X</span>
-                </b-badge>
+                    v-html="v+'&nbsp;<span class=\'remove\'>X</span>'"
+                ></b-badge>
             </div>
         </b-container>
-        <b-container fluid v-if="!!config && !!tableData" class="legend-wrapper">
+        <b-container fluid class="legend-wrapper">
             <b-row class="each-legend" v-for="legend in config[dataset]['legend']" v-html="legend"></b-row>
         </b-container>
         <div :class="'EGLT-table '+this.dataset">
@@ -59,7 +53,8 @@
                     <div
                         v-for="name in config[dataset]['topLevelRender']"
                         :class="'top-level-header-item ' + name"
-                    >{{name}}</div>
+                        v-html="name"
+                    ></div>
                     <div class="top-level-header-item">View</div>
                 </b-row>
                 <b-row v-for="(value,index) in filteredData" class="top-level-value">
@@ -76,7 +71,8 @@
                             <b-button
                                 @click="showVisualizer(value[config[dataset]['visualizer'][1]])"
                                 class="view-visualizer-btn"
-                            >{{config[dataset]['visualizer'][2]}}</b-button>
+                                v-html="config[dataset]['visualizer'][2]"
+                            ></b-button>
                         </template>
                         <template>
                             <b-button
