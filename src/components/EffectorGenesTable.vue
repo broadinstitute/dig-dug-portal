@@ -10,7 +10,7 @@
         </div>
         <b-container
             fluid
-            v-if="config[dataset].filters != undefined && config[dataset]['filters'].length > 0"
+            v-if="!!config && !!tableData && config[dataset].filters != undefined"
             class="filtering-ui-wrapper"
         >
             <b-row class="filtering-ui-content">
@@ -44,7 +44,7 @@
                 ></b-badge>
             </div>
         </b-container>
-        <b-container fluid class="legend-wrapper">
+        <b-container fluid v-if="!!config && !!tableData" class="legend-wrapper">
             <b-row class="each-legend" v-for="legend in config[dataset]['legend']" v-html="legend"></b-row>
         </b-container>
         <div :class="'EGLT-table '+this.dataset">
@@ -71,14 +71,13 @@
                             <b-button
                                 @click="showVisualizer(value[config[dataset]['visualizer'][1]])"
                                 class="view-visualizer-btn"
-                                v-html="config[dataset]['visualizer'][2]"
-                            ></b-button>
+                            >{{config[dataset]['visualizer'][2]}}</b-button>
                         </template>
-                        <template>
+                        <template v-if="config[dataset]['browser']">
                             <b-button
                                 @click="showIGV(value.location, value.gene)"
                                 class="view-igv-btn"
-                            >IGV Browser</b-button>
+                            >IGV Browser OK</b-button>
                         </template>
                     </div>
 
