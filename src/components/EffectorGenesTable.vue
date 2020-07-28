@@ -77,7 +77,7 @@
                             <b-button
                                 @click="showIGV(value.location, value.gene)"
                                 class="view-igv-btn"
-                            >IGV Browser OK</b-button>
+                            >IGV Browser</b-button>
                         </template>
                     </div>
 
@@ -229,6 +229,7 @@ export default Vue.component("effector-genes-table", {
         showIGV(LOCATION, GENE) {
             console.log(GENE);
             this.igvBrowser = true;
+
             let locus = "chr" + LOCATION.replace(/\s/g, "");
             let igvDiv = document.getElementById("igv-content");
             let options = {
@@ -236,7 +237,9 @@ export default Vue.component("effector-genes-table", {
                 name: "IGV",
                 locus: locus,
             };
-
+            [].slice
+                .call(igvDiv.children)
+                .forEach((child) => igvDiv.removeChild(child));
             igv.createBrowser(igvDiv, options, GENE);
         },
         formatContent(COLUMN, VALUE, LEVEL) {
