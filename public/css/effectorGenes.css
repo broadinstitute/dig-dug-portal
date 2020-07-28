@@ -522,11 +522,20 @@
     position: relative;
 }
 
-.feature-name {
-    font-size: 12px;
-    padding-left: 10px;
-    color: #666;
+.feature-list .feature-name {
+    position: absolute;
+    background-color: #000;
+    display: block !important;
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 3px;
+    z-index: 10000;
+    left: -20px;
     display: none !important;
+}
+
+.feature-list:hover .feature-name {
+    display: block !important;
 }
 
 .feature-header-item {
