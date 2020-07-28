@@ -66,7 +66,11 @@
                         ></div>
                     </template>
                     <div class="top-level-value-item">
-                        <b-button @click="showFeatures(index)" class="view-features-btn">Features</b-button>
+                        <b-button
+                            @click="showFeatures(index)"
+                            class="view-features-btn"
+                            v-html="config[dataset]['feature_btn_name']? config[dataset]['feature_btn_name']:'Features'"
+                        ></b-button>
                         <template v-if="config[dataset]['visualizer'][0] == true">
                             <b-button
                                 @click="showVisualizer(value[config[dataset]['visualizer'][1]])"
