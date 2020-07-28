@@ -14,15 +14,15 @@
 
                     <b-row :class="'feature-content '+i+ getColContent(col)">
                         <b-col
-                            :class="($parent.config[$parent.dataset].featureRenderNot.includes(name))? 'hidden feature-content-item '+i +' '+item : 'feature-content-item '+i +' '+item"
                             v-for="(item,name) in col"
-                            v-if="item != '' && item != null"
-                            v-html="$parent.formatContent([i,name],item,'feature')"
+                            v-if="item == '' && item == null"
+                            :class="($parent.config[$parent.dataset].featureRenderNot.includes(name))? 'hidden feature-content-item '+i +' '+item : 'feature-content-item '+i +' '+item"
+                            v-html="'<span class=\'col-content-filler\'>filler</span>'"
                         ></b-col>
                         <b-col
                             v-else
                             :class="($parent.config[$parent.dataset].featureRenderNot.includes(name))? 'hidden feature-content-item '+i +' '+item : 'feature-content-item '+i +' '+item"
-                            v-html="'<span class=\'col-content-filler\'>filler</span>'"
+                            v-html="$parent.formatContent([i,name],item,'feature')"
                         ></b-col>
                     </b-row>
                 </template>
