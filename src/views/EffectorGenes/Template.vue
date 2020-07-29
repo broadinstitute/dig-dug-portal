@@ -8,7 +8,7 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h2>{{$store.state.pageTitle}}</h2>
+                        <h2>{{ $parent.pageInfo[0].title[0].value }}</h2>
                     </div>
                 </div>
             </div>
@@ -16,25 +16,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <b-tabs content-class="mt-3" align="center">
-                                <b-tab title="View data" active>
-                                    <component
-                                        v-bind:is="$parent.effectorGenesGraph"
-                                        :dataset="$parent.dataset"
-                                        :graphData="$store.state.tableData"
-                                    ></component>
-                                    <effector-genes-table
-                                        :dataset="$parent.dataset"
-                                        :trait="$parent.trait"
-                                    ></effector-genes-table>
-                                </b-tab>
-                                <b-tab title="View research method">
-                                    <research-method-section
-                                        v-if="$parent.researchMethod != null"
-                                        :researchMethod="$parent.researchMethod"
-                                    ></research-method-section>
-                                </b-tab>
-                            </b-tabs>
+                            <static-page-info-section :pageInfo="$parent.pageInfo"></static-page-info-section>
                         </div>
                     </div>
                 </div>
@@ -45,7 +27,3 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
-
-<style>
-@import url("/css/effectorGenes.css");
-</style>

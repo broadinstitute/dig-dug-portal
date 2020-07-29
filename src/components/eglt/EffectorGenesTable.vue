@@ -96,8 +96,8 @@
 <script>
 import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
-import igv from "../../node_modules/igv/dist/igv.esm";
-import EffectorGenesFeatures from "@/components/eg/EffectorGenesFeatures";
+//import igv from "../../node_modules/igv/dist/igv.esm";
+import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
 import uiUtils from "@/utils/uiUtils";
 
 Vue.use(BootstrapVueIcons);
@@ -109,7 +109,7 @@ export default Vue.component("effector-genes-table", {
             optionData: [],
             filtersIndex: {},
             highestScores: { features: {} },
-            igvBrowser: false,
+            /*igvBrowser: false,*/
         };
     },
     modules: {
@@ -127,6 +127,10 @@ export default Vue.component("effector-genes-table", {
         });
     },
     beforeMount() {},
+
+    mounted() {
+        uiUtils.showHideElement("data-rendering-indicator");
+    },
     computed: {
         tableData() {
             return this.$store.state.tableData;
@@ -151,6 +155,9 @@ export default Vue.component("effector-genes-table", {
                     this.filtersIndex[f.field] = tempObj;
                 });
             }
+        },
+        tableData(data) {
+            uiUtils.showHideElement("data-loading-indicator");
         },
     },
     methods: {
@@ -229,7 +236,7 @@ export default Vue.component("effector-genes-table", {
             this.$store.dispatch("selectGene", ITEM);
             uiUtils.showElement("feature-scores-wrapper");
         },
-        showIGV(LOCATION, GENE) {
+        /*showIGV(LOCATION, GENE) {
             this.igvBrowser = true;
 
             let locus = "chr" + LOCATION.replace(/\s/g, "");
@@ -243,7 +250,7 @@ export default Vue.component("effector-genes-table", {
                 .call(igvDiv.children)
                 .forEach((child) => igvDiv.removeChild(child));
             igv.createBrowser(igvDiv, options, GENE);
-        },
+        },*/
         formatContent(COLUMN, VALUE, LEVEL) {
             let formatting =
                 LEVEL == "top"

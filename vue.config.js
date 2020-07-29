@@ -165,8 +165,15 @@ module.exports = {
             entry: "src/views/EffectorGenes/main.js",
             template: "public/index.html",
             filename: "effectorgenes.html",
-            title: "Predicted effector genes",
+            title: "Predicted effector genes research methods",
             chunks: ["chunk-vendors", "chunk-common", "effectorgenes"]
+        },
+        eglmethod: {
+            entry: "src/views/EglMethod/main.js",
+            template: "public/index.html",
+            filename: "method.html",
+            title: "Research method",
+            chunks: ["chunk-vendors", "chunk-common", "eglmethod"]
         },
 
     }

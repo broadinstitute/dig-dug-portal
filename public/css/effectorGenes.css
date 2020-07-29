@@ -5,6 +5,22 @@
 .research-method-wrapper h3 {
     font-size: 24px;
 }
+
+.data-loading-indicator, .data-rendering-indicator {
+    position: fixed;
+    z-index: 10000;
+    bottom: 30px;
+    right: 30px;
+    width: 300px;
+    padding: 20px 20px;
+    background-color: #fff;
+    border: solid 1px #ccc;
+    border-radius: 5px;
+}
+
+.data-loading-indicator {
+    z-index: 10001;
+}
 /* for table */
 
 .cell-weight-0 {
@@ -682,11 +698,11 @@ span.weight-blue {
     width: calc(100% / 4);
 }
 
-.EGLT-table.miriam .top-level-header-item.Loci.weight.range {
+.EGLT-table.miriam .top-level-header-item.Highest.loci.weight.score {
     background-color: #75def8;
 }
 
-.EGLT-table.miriam .top-level-header-item.Traits.weight.range {
+.EGLT-table.miriam .top-level-header-item.Highest.traits.weight.score {
     background-color: #ffd62e;
 }
 
@@ -902,28 +918,28 @@ span.weight-blue {
     border: solid 1px #fa0;
 }
 
-.EGLT-table.richards .feature-content-item.variants_features.HIGH {
-    background-color: rgba(255, 50, 0, 1) !important;
+.EGLT-table.richards .feature-content-item.variants_features[class*="NONE"] {
+    background-color: rgba(255, 150, 0, 1) !important;
     color: #fff;
 }
 
-.EGLT-table.richards .feature-content-item.variants_features.MODERATE {
-    background-color: rgba(100, 100, 255, 1) !important;
-    color: #fff;
-}
-
-.EGLT-table.richards .feature-content-item.variants_features.LOW {
-    background-color: rgba(0, 150, 200, 1) !important;
-    color: #fff;
-}
-
-.EGLT-table.richards .feature-content-item.variants_features.MODIFIER {
+.EGLT-table.richards .feature-content-item.variants_features[class*="MODIFIER"] {
     background-color: rgba(0, 180, 0, 1) !important;
     color: #fff;
 }
 
-.EGLT-table.richards .feature-content-item.variants_features.NONE {
-    background-color: rgba(255, 150, 0, 1) !important;
+.EGLT-table.richards .feature-content-item.variants_features[class*="LOW"] {
+    background-color: rgba(0, 150, 200, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features[class*="MODERATE"] {
+    background-color: rgba(100, 100, 255, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features[class*="HIGH"] {
+    background-color: rgba(255, 50, 0, 1) !important;
     color: #fff;
 }
 
