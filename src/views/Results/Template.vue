@@ -1,13 +1,16 @@
 <template>
     <div>
+
         <results-global-tooltip>
             <template v-slot:default="slotProps">
                 <results-nav
                     :queryKey="slotProps.currentData.split(':')[0]"
                     :inputValue="slotProps.currentData.split(':')[1]"
+                    @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: -2 })"
                 ></results-nav>
             </template>
         </results-global-tooltip>
+
         <div>
 
             <b-input-group>
@@ -41,7 +44,7 @@
 
         </div>
 
-        <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Make URL</button>
+        <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Save Session</button>
         <p v-if="$store.getters.busy">Loading</p>
 
 

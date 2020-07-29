@@ -18,13 +18,12 @@ export default Vue.component('results-global-tooltip', {
     mounted() {
         const self = this;
         window.addEventListener('mouseover', function (event) {
-            console.log()
             if (event.target.dataset.hasOwnProperty('globalTooltip')) {
                 self.currentData = event.target.dataset.globalTooltip;
 
                 const tooltipTargetCoords = event.target.getBoundingClientRect();
-                console.log(tooltipTargetCoords)
-                console.log(event.target.offsetTop, document.getElementById('results-global-tooltip').offsetTop )
+                // console.log(tooltipTargetCoords)
+                // console.log(event.target.offsetTop, document.getElementById('results-global-tooltip').offsetTop )
                 document.getElementById('results-global-tooltip').style.left = (tooltipTargetCoords.x + tooltipTargetCoords.width)+'px';
                 document.getElementById('results-global-tooltip').style.top = (tooltipTargetCoords.y + tooltipTargetCoords.height)+'px';
                 document.getElementById('results-global-tooltip').style.display = 'block';
