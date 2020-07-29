@@ -158,6 +158,14 @@ module.exports = {
             title: "Epigenetic Datasets",
             chunks: ["chunk-vendors", "chunk-common", "epigeneticdatasets"]
         },
+        hugecalculator: {
+            entry: "src/views/HuGeCalculator/main.js",
+            template: "public/index.html",
+            filename: "hugecalculator.html",
+            title: "HuGe Calculator",
+            chunks: ["chunk-vendors", "chunk-common", "hugecalculator"]
+
+        },
 
     }
 };

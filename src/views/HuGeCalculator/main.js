@@ -8,7 +8,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
+
 import Documentation from "@/components/Documentation.vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
@@ -35,27 +35,18 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
-        UniprotReferencesTable,
         Documentation,
         Autocomplete,
         LocusZoom,
         LocusZoomAssociationsPanel,
-        HuGeCalculator,
+
         PhenotypeSelectPicker
     },
 
     data() {
         return {
             counter: 0,
-            externalResources: {
-                ensembl:
-                    "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
-                hgnc:
-                    "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
-                mgd: "http://www.informatics.jax.org/marker/",
-                rgd: "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=",
-                ucsc: "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
-            }
+
         };
     },
 
@@ -77,7 +68,25 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        addAssociationsPanel(event) {
+            const { phenotype } = event;
+            let finishHandler = this.updateAssociationsTable;
+            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
+                phenotype,
+                finishHandler
+            );
+            return newAssociationsPanelId;
+        },
 
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, data);
+        },
+        updateAssociationsPanel(phenotype) {
+            if (this.currentAssociationsPanel) {
+                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
+            }
+            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
+        },
 
     },
 
@@ -103,37 +112,8 @@ new Vue({
             return this.$store.getters.canonicalSymbol;
         },
 
-        aliasNames() {
-            return this.$store.state.genes.data.filter(
-                g => g.source === "alias"
-            );
-        },
 
-        alternateNames() {
-            return this.$store.state.genes.data
-                .filter(g => g.source !== "symbol")
-                .sort((a, b) => {
-                    if (a.source < b.source) return -1;
-                    if (a.source > b.source) return 1;
-                    return 0;
-                });
-        },
 
-        dbReference() {
-            return this.$store.getters["uniprot/dbReference"];
-        },
-
-        accession() {
-            return this.$store.getters["uniprot/accession"];
-        },
-
-        geneFunction() {
-            return this.$store.getters["uniprot/geneFunction"];
-        },
-
-        geneNames() {
-            return this.$store.getters["uniprot/geneNames"];
-        },
 
         gene() {
             let data = this.$store.state.gene;
@@ -142,9 +122,7 @@ new Vue({
             }
             return {};
         },
-        matchingEffectorGenesPhenotypes() {
-            return this.$store.state.matchingEffectorGenesPhenotypes;
-        },
+
         phenotypes() {
             return [this.$store.state.phenotype];
         }
@@ -161,11 +139,7 @@ new Vue({
         region(region) {
             this.hideElement("variantSearchHolder");
             this.$store.dispatch("queryGeneRegion", region);
-        },
-
-        // the canonical symbol was found
-        symbolName(symbol) {
-            this.$store.dispatch("queryUniprot", symbol);
+            
         },
 
 

@@ -7,10 +7,6 @@ import bioPortal from "@/modules/bioPortal";
 import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
-import uniprot from "@/modules/uniprot";
-import { match } from "@/utils/bioIndexUtils";
-
-
 
 Vue.use(Vuex);
 
@@ -20,13 +16,13 @@ export default new Vuex.Store({
         kp4cd,
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
-        uniprot,
+
         associations: bioIndex("associations"),
 
     },
     state: {
         geneName: keyParams.gene,
-        matchingEffectorGenesPhenotypes: null,
+
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
     },
 
@@ -34,14 +30,14 @@ export default new Vuex.Store({
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
+
+
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
             state.geneRegion = `${chromosome}:${start}-${end}`;
         },
-        setMatchingEffectorGenesPhenotypes(state, phenotypes) {
-            state.matchingEffectorGenesPhenotypes = phenotypes;
-        },
+
         setSelectedPhenotype(state, phenotype) {
             state.phenotype = phenotype;
         },
@@ -102,13 +98,7 @@ export default new Vuex.Store({
             context.dispatch('genes/query', { q });
         },
 
-        async queryUniprot(context, symbol) {
-            let name = symbol || context.getters.canonicalSymbol;
 
-            if (!!symbol) {
-                context.dispatch('uniprot/getUniprotGeneInfo', name);
-            }
-        },
 
 
 

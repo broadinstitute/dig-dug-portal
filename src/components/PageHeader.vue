@@ -76,6 +76,14 @@
                         </li>
                         <li class="am-menu">
                             <a href>Tools</a>
+                            <ul class="am-submenu">
+                                <!-- <li page="hugecalculator">
+                                    <a href="/hugecalculator.html">HuGe Calculator</a>
+                                </li>-->
+                                <li page="hugecalculator">
+                                    <a href="/hugecalculator.html">HuGe Calculator</a>
+                                </li>
+                            </ul>
                         </li>
                         <li class="am-menu">
                             <a href>Information</a>
