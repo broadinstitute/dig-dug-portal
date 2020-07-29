@@ -8,6 +8,7 @@ import resultCards from "./modules/resultCards"
 import bioIndexUtils from "@/utils/bioIndexUtils";
 import { BIOINDEX_SCHEMA, provenanceHash, contentHash, decodeHistory } from "./utils/resultsUtils"
 
+
 Vue.use(Vuex);
 
 const indexes = BIOINDEX_SCHEMA.data.map(schema => schema.index);

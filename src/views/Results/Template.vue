@@ -19,6 +19,7 @@
                 </template>
 
                 <b-form-input
+                    data-tooltip="test"
                     v-model="$parent.query"
                     :placeholder="$parent.placeholder"
                 ></b-form-input>
@@ -84,9 +85,17 @@
                             ></variant-result-card>
                         </div>
 
+                        <div v-else-if="card.index === 'top-associations'">
+                            <phenotype-signal-card
+                                :topAssociations="$store.state.dataCache[$parent.contentHash(card)]"
+                                :phenotypeMap="$store.state.bioPortal.phenotypeMap">
+                            </phenotype-signal-card>
+                        </div>
+
                         <div v-else-if="card.index === 'gene'">
                             <gene-result-card
-                                :card="card"
+                                :title="`${$parent.provenanceHash(card)}`"
+                                :geneData="$store.state.dataCache[$parent.contentHash(card)]"
                                 @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
                             ></gene-result-card>
                         </div>

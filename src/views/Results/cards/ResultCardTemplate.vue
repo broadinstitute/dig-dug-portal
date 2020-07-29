@@ -7,11 +7,10 @@
             <span v-else-if="!!title">
                 <h4>{{title}} <scroll-to-arrow></scroll-to-arrow></h4>
             </span>
-
-            {{schemas}}
-
+            <slot name="subheader"></slot>
         </slot>
         <b-row>
+            <slot name="sidebar">
             <b-col cols="3">
                 <slot name="sidebar">
                     <span v-if="typeof card != 'undefined'">
@@ -19,6 +18,8 @@
                     </span>
                 </slot>
             </b-col>
+            <h4>{{title}} <scroll-to-arrow></scroll-to-arrow></h4>
+            </slot>
             <b-col>
                 <slot name="content">
                     <span v-if="typeof card != 'undefined'">

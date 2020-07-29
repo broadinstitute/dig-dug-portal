@@ -9,9 +9,6 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 
-
-
-
 Vue.use(Vuex);
 
 export default new Vuex.Store({
