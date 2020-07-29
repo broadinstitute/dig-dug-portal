@@ -6,7 +6,8 @@
         :data="phenotypeOptions"
         :serializer="s => s.description"
         :maxMatches="30"
-        @hit="onPhenotypeSelected($event)">
+        @hit="onPhenotypeSelected($event)"
+    >
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small class="text-secondary">{{ data.group }}</small>
@@ -31,7 +32,7 @@ export default Vue.component("phenotype-selectpicker", {
 
     data() {
         return {
-            userText: this.defaultPhenotype || null
+            userText: this.defaultPhenotype || null,
         };
     },
     computed: {
@@ -49,7 +50,7 @@ export default Vue.component("phenotype-selectpicker", {
 
                 return 0;
             });
-        }
+        },
     },
     methods: {
         onPhenotypeSelected(event) {
@@ -64,7 +65,7 @@ export default Vue.component("phenotype-selectpicker", {
             this.$nextTick(() => {
                 this.$refs.phenotypeSelect.$refs.input.focus();
             });
-        }
-    }
+        },
+    },
 });
 </script>

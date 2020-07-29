@@ -26,7 +26,8 @@ export default new Vuex.Store({
         tableData: "",
         filteredData: "",
         config: "",
-        pageTitle: ""
+        pageTitle: "",
+        plotsConfig: "",
     },
     mutations: {
         setGene(state, gene) {
@@ -45,6 +46,10 @@ export default new Vuex.Store({
             let newTitle = configData["config"][configData["dataset"]]["title"];
             state.pageTitle = newTitle;
         },
+        setPlotsConfig(state, configData) {
+            let plotsConfig = configData["config"][configData["dataset"]]["plots"];
+            state.plotsConfig = plotsConfig;
+        },
     },
     getters: {},
     actions: {
@@ -57,6 +62,7 @@ export default new Vuex.Store({
             ).then(resp => resp.json());
             context.commit("setConfig", json);
             context.commit("setPageTitle", { config: json, dataset: config.dataset });
+            context.commit("setPlotsConfig", { config: json, dataset: config.dataset });
         },
         async fetchData(context, dataset) {
             let json = await fetch(

@@ -13,7 +13,7 @@ Vue.config.productionTip = false;
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ResearchMethod from "@/components/ResearchMethod.vue";
-import EffectorGenesGraphRichards from "@/components/EffectorGenesGraphRichards.vue";
+import EffectorGenesPlotsLine from "@/components/EffectorGenesPlotsLine.vue";
 import EffectorGenesTable from "@/components/EffectorGenesTable.vue";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
@@ -31,7 +31,7 @@ new Vue({
         PageFooter,
         Alert,
         ResearchMethod,
-        EffectorGenesGraphRichards,
+        EffectorGenesPlotsLine,
         EffectorGenesTable
     },
 
@@ -102,9 +102,10 @@ new Vue({
         },
         effectorGenesGraph() {
             let contents = {
-                richards: EffectorGenesGraphRichards
+                line: EffectorGenesPlotsLine
             };
-            return contents[keyParams.dataset];
+
+            return contents[this.$store.state.plotsConfig["type"]];
         },
         pageTitle() {
             return this.$store.state.pageTitle;

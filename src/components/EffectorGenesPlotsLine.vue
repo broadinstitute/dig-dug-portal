@@ -19,7 +19,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-plots-line", {
-    props: ["graphData"],
+    props: ["dataset", "graphData"],
     data() {
         return {};
     },
@@ -45,8 +45,6 @@ export default Vue.component("effector-genes-plots-line", {
                             : element[featurePath[0]];
                 });
 
-                //console.log("massagedData", massagedData);
-
                 Object.keys(DATA[0][featurePath[0]][featurePath[1]][0]).map(
                     function (KEY) {
                         features[KEY] = [];
@@ -63,8 +61,6 @@ export default Vue.component("effector-genes-plots-line", {
                     });
                 });
 
-                //console.log("features", features);
-
                 let frequencyData = {};
 
                 var groupCount = 1;
@@ -79,8 +75,6 @@ export default Vue.component("effector-genes-plots-line", {
                     features[KEY].sort(function (a, b) {
                         return a - b;
                     });
-
-                    //console.log(featuresData[KEY]);
 
                     let segment =
                         (features[KEY][features[KEY].length - 1] -
@@ -117,8 +111,6 @@ export default Vue.component("effector-genes-plots-line", {
 
                 massagedData["DATA"] = frequencyData;
 
-                //console.log("massagedData", massagedData);
-
                 return massagedData;
             }
         },
@@ -139,6 +131,14 @@ export default Vue.component("effector-genes-plots-line", {
         renderCharts(GENE) {
             let DATA = this.tableGraphData;
             let tempGeneName = this.selectedGeneName;
+            let decimalPath = this.$store.state.plotsConfig["data"].split("/");
+
+            let formattingConfig =
+                decimalPath.length > 1
+                    ? this.$store.state.config[this.dataset]["formatting"][
+                          decimalPath[0]
+                      ][decimalPath[1]]
+                    : this.$store.state.config[this.dataset]["formatting"];
 
             $(".feature-scores").empty(); //remove previous chart, if any
 
@@ -230,11 +230,19 @@ export default Vue.component("effector-genes-plots-line", {
                     tempGeneName != null &&
                     tempGeneName != ""
                 ) {
-                    /*console.log("gene", tempGeneName);
-                    console.log(DATA.GENES[GENE][0]);*/
-
                     let SCORE = DATA.GENES[GENE][0][FEATURE[0].feature_name];
-                    let DECIMAL = null;
+
+                    let DECIMAL =
+                        formattingConfig[FEATURE[0].feature_name] != undefined
+                            ? formattingConfig[FEATURE[0].feature_name][
+                                  "type"
+                              ] == "decimal"
+                                ? formattingConfig[FEATURE[0].feature_name][
+                                      "fixed"
+                                  ]
+                                : null
+                            : null;
+
                     let SHORTSCORE =
                         DECIMAL == null ? SCORE : SCORE.toFixed(DECIMAL);
                     let MINV =

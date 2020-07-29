@@ -71,11 +71,11 @@
                             class="view-features-btn"
                             v-html="config[dataset]['feature_btn_name']? config[dataset]['feature_btn_name']:'Features'"
                         ></b-button>
-                        <template v-if="config[dataset]['visualizer'][0] == true">
+                        <template v-if="config[dataset]['plots']['render'] == true">
                             <b-button
-                                @click="showVisualizer(value[config[dataset]['visualizer'][1]])"
+                                @click="showVisualizer(value[config[dataset]['plots']['openerField']])"
                                 class="view-visualizer-btn"
-                                v-html="config[dataset]['visualizer'][2]"
+                                v-html="config[dataset]['plots']['btnName']"
                             ></b-button>
                         </template>
                         <!--<template v-if="config[dataset]['browser']">
@@ -164,8 +164,6 @@ export default Vue.component("effector-genes-table", {
         filterData(search, field, type) {
             this.filtersIndex[field]["search"].push(search);
 
-            //console.log(this.filtersIndex);
-
             this.applyFilters();
         },
         applyFilters() {
@@ -232,7 +230,6 @@ export default Vue.component("effector-genes-table", {
             uiUtils.showElement("feature-scores-wrapper");
         },
         showIGV(LOCATION, GENE) {
-            console.log(GENE);
             this.igvBrowser = true;
 
             let locus = "chr" + LOCATION.replace(/\s/g, "");
@@ -394,6 +391,11 @@ export default Vue.component("effector-genes-table", {
                             );
                         }
 
+                        break;
+
+                    case "decimal":
+                        let fixedBy = formatting["fixed"];
+                        return VALUE.toFixed(fixedBy);
                         break;
                 }
             } else {
