@@ -4,7 +4,6 @@
             v-model="userInput"
             :data="lookupOptions"
             :placeholder="placeholder"
-            :serializer="s => s.serializer"
             @hit="onAutoCompleteItemSelected($event)"
             @keyup.enter="onUserEnterNonAutoCompleteItem"
         >
@@ -35,11 +34,11 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["matches", "placeholder", "initialText", "matchkey", "ifGroup"],
+    props: ["matches", "placeholder"],
 
     data() {
         return {
-            userInput: this.initialText || null,
+            userInput: null,
             selectedItem: null
         };
     },
@@ -48,33 +47,13 @@ export default Vue.component("autocomplete", {
         lookupOptions() {
             if (!this.matches) {
                 return [];
-            } else {
-                return this.matches;
             }
-
-            // if (!this.matchkey) {
-            //     return this.matches;
-            // } else {
-            //     var matchesWithKey = [];
-            //     this.matches.forEach(function(element, i) {
-            //         matchesWithKey.push(element.description);
-            //     });
-            //     return matchesWithKey;
-            // }
+            return this.matches;
         }
     },
 
     methods: {
-        serializer(item) {
-            if (!this.matchkey) {
-                return item;
-            } else {
-                return this.matchkey;
-            }
-        },
         onAutoCompleteItemSelected(item) {
-            //return object if phenotype?
-
             this.selectedItem = item;
             this.userText = null;
 

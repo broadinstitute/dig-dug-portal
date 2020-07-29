@@ -8,7 +8,7 @@ import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
-
+import { match } from "@/utils/bioIndexUtils";
 
 
 
@@ -21,22 +21,30 @@ export default new Vuex.Store({
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
         uniprot,
+        associations: bioIndex("associations"),
 
     },
     state: {
         geneName: keyParams.gene,
+        matchingEffectorGenesPhenotypes: null,
+        phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
     },
 
     mutations: {
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
-
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
             state.geneRegion = `${chromosome}:${start}-${end}`;
-        }
+        },
+        setMatchingEffectorGenesPhenotypes(state, phenotypes) {
+            state.matchingEffectorGenesPhenotypes = phenotypes;
+        },
+        setSelectedPhenotype(state, phenotype) {
+            state.phenotype = phenotype;
+        },
     },
 
     getters: {
@@ -62,7 +70,19 @@ export default new Vuex.Store({
                     return data[i].name;
                 }
             }
-        }
+        },
+        // phenotype(state) {
+        //     for (let i in state.bioPortal.phenotypes) {
+        //         let phenotype = state.bioPortal.phenotypes[i];
+
+        //         // if (phenotype.name === keyParams.phenotype) {
+        //         //     return phenotype;
+        //         // }
+        //     }
+
+        //     // not set or not found
+        //     return null;
+        // },
     },
 
     actions: {
@@ -88,6 +108,12 @@ export default new Vuex.Store({
             if (!!symbol) {
                 context.dispatch('uniprot/getUniprotGeneInfo', name);
             }
-        }
+        },
+
+
+
+        async onEffectorGenesPhenotypeChange(context, phenotype) {
+            context.commit('setSelectedPhenotype', phenotype);
+        },
     },
 });

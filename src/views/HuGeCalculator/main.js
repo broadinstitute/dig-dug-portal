@@ -10,8 +10,12 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import Documentation from "@/components/Documentation.vue";
-import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
+import LocusZoom from "@/components/lz/LocusZoom";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
+import HuGeCalculator from "@/components/HuGeCalculator.vue";
+import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
     postAlert,
@@ -34,6 +38,10 @@ new Vue({
         UniprotReferencesTable,
         Documentation,
         Autocomplete,
+        LocusZoom,
+        LocusZoomAssociationsPanel,
+        HuGeCalculator,
+        PhenotypeSelectPicker
     },
 
     data() {
@@ -68,7 +76,9 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+
+
     },
 
     computed: {
@@ -83,6 +93,7 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
+
 
         region() {
             return this.$store.getters.region;
@@ -130,6 +141,12 @@ new Vue({
                 return data[0];
             }
             return {};
+        },
+        matchingEffectorGenesPhenotypes() {
+            return this.$store.state.matchingEffectorGenesPhenotypes;
+        },
+        phenotypes() {
+            return [this.$store.state.phenotype];
         }
     },
 
@@ -149,6 +166,8 @@ new Vue({
         // the canonical symbol was found
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
-        }
+        },
+
+
     }
 }).$mount("#app");
