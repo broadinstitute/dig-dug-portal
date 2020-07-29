@@ -14,7 +14,7 @@
             class="filtering-ui-wrapper"
         >
             <b-row class="filtering-ui-content">
-                <b-col v-for="filter in config[dataset]['filters']">
+                <b-col v-for="filter in config[dataset]['filters']" :key="filter.field">
                     <div class="label" v-html="filter.label"></div>
                     <template v-if="filter.type.includes('search')">
                         <b-form-input
@@ -45,7 +45,12 @@
             </div>
         </b-container>
         <b-container fluid v-if="!!config && !!tableData" class="legend-wrapper">
-            <b-row class="each-legend" v-for="legend in config[dataset]['legend']" v-html="legend"></b-row>
+            <b-row
+                class="each-legend"
+                v-for="(legend, i) in config[dataset]['legend']"
+                v-html="legend"
+                :key="i"
+            ></b-row>
         </b-container>
         <div :class="'EGLT-table '+this.dataset">
             <b-container fluid v-if="!!config && !!filteredData" class>
@@ -57,7 +62,7 @@
                     ></div>
                     <div class="top-level-header-item">View</div>
                 </b-row>
-                <b-row v-for="(value,index) in filteredData" class="top-level-value">
+                <b-row v-for="(value,index) in filteredData" class="top-level-value" :key="index">
                     <template v-for="(col, i) in config[dataset]['topLevelRender']">
                         <div
                             :class="'top-level-value-item '+i+' '+i+'-'+value[i]"
