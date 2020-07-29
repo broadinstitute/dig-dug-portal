@@ -22,6 +22,14 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Footer-->
