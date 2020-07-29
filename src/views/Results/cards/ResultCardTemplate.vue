@@ -2,6 +2,7 @@
     <div>
         <slot name="header">
             <h4>{{title}} <scroll-to-arrow></scroll-to-arrow></h4>
+            <slot name="subheader"></slot>
         </slot>
         <b-row>
             <slot name="sidebar">
