@@ -230,6 +230,20 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         }
+    },
+    computed: {
+        region() {
+            return {
+                chr: this.chr,
+                start: this.start,
+                end: this.end,
+            }
+        }
+    },
+    watch: {
+        region(newRegion) {
+            this.plot.applyState({ chr: newRegion.chr, start: newRegion.start, end: newRegion.end })
+        }
     }
 });
 </script>
