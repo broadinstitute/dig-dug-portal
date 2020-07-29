@@ -1,7 +1,7 @@
 <template>
     <result-card-template :title="title">
-        <!-- <template #header>
-        </template> -->
+        <template #header>
+        </template>
         <template #content>
 
             <div class="col-md-8">

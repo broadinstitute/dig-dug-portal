@@ -11,14 +11,11 @@
         </slot>
         <b-row>
             <slot name="sidebar">
-            <b-col cols="3">
-                <slot name="sidebar">
+                <b-col cols="3">
                     <span v-if="typeof card != 'undefined'">
 
                     </span>
-                </slot>
-            </b-col>
-            <h4>{{title}} <scroll-to-arrow></scroll-to-arrow></h4>
+                </b-col>
             </slot>
             <b-col>
                 <slot name="content">
