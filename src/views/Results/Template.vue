@@ -11,55 +11,61 @@
             </template>
         </results-global-tooltip>
 
-        <div>
 
-            <b-input-group>
-                <template v-slot:prepend>
-
-                    <b-dropdown
-                        v-model="$parent.index"
-                        :text="$parent.index"
-                        variant="info">
-                            <a  class="dropdown-item"
-                                v-for="i in $store.state.indexes"
-                                :key="i"
-                                href="#"
-                                @click="$parent.index = i">
-                                {{i}}
-                            </a>
-                    </b-dropdown>
-                </template>
-
-                <!-- TODO: Refactor as a function of the split of the schema -->
-                <b-form-input
-                    v-model="$parent.query"
-                    :placeholder="$parent.placeholder"
-                ></b-form-input>
-
-                <template v-slot:append>
-                    <b-button v-on:click="$store.dispatch('queryBioIndexForResults', { index: $parent.index, query: $parent.query })" variant="outline-secondary">Run</b-button>
-                </template>
-            </b-input-group>
-
-
-        </div>
-
-        <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Save Session</button>
-        <p v-if="$store.getters.busy">Loading</p>
 
 
         <b-container fluid>
             <b-row no-gutters>
-                <b-col cols="2" class="reverseorder">
+                <b-col cols="2">
 
-                    <a  v-for="card in $store.getters.cardsById"
-                        :key="`link-${$parent.provenanceHash(card)}-${card.id}`"
-                        :id="`link-${$parent.provenanceHash(card)}-${card.id}`"
-                        @click="$parent.jumpToElementBy(`#card-${$parent.provenanceHash(card)}-${card.id}`)">
+                    <div>
 
-                        {{$parent.bioIndexFromHash($parent.provenanceHash(card))}} for {{$parent.queryFromHash($parent.provenanceHash(card))}}<br>
+                        <b-input-group>
+                            <template v-slot:prepend>
 
-                    </a>
+                                <b-dropdown
+                                    v-model="$parent.index"
+                                    :text="$parent.index"
+                                    variant="info">
+                                        <a  class="dropdown-item"
+                                            v-for="i in $store.state.indexes"
+                                            :key="i"
+                                            href="#"
+                                            @click="$parent.index = i">
+                                            {{i}}
+                                        </a>
+                                </b-dropdown>
+                            </template>
+
+                            <!-- TODO: Refactor as a function of the split of the schema -->
+                            <b-form-input
+                                v-model="$parent.query"
+                                :placeholder="$parent.placeholder"
+                            ></b-form-input>
+
+                            <template v-slot:append>
+                                <b-button v-on:click="$store.dispatch('queryBioIndexForResults', { index: $parent.index, query: $parent.query })" variant="outline-secondary">Run</b-button>
+                            </template>
+                        </b-input-group>
+
+
+                    </div>
+
+                    <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Save Session</button>
+                    <p v-if="$store.getters.busy">Loading</p>
+
+
+                    <div class="reverseorder">
+                        <a  v-for="card in $store.getters.cardsById"
+                            :key="`link-${$parent.provenanceHash(card)}-${card.id}`"
+                            :id="`link-${$parent.provenanceHash(card)}-${card.id}`"
+                            @click="$parent.jumpToElementBy(`#card-${$parent.provenanceHash(card)}-${card.id}`)">
+
+                            {{$parent.bioIndexFromHash($parent.provenanceHash(card))}} for {{$parent.queryFromHash($parent.provenanceHash(card))}}<br>
+
+                        </a>
+                    </div>
+
 
                 </b-col>
                 <b-col class="reverseorder">
