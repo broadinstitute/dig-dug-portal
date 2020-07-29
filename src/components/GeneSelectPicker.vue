@@ -16,7 +16,6 @@
         :placeholder="'Phenotype'"
         :matches="matchingPhenotypes"
         :matchkey="'description'"
-    
         @item-select="onPhenotypeSelected($event)"
     ></autocomplete>
 </template>
@@ -35,7 +34,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("phenotype-selectpicker", {
+export default Vue.component("gene-selectpicker", {
     props: ["phenotypes", "clearOnSelected", "defaultPhenotype"],
 
     data() {
