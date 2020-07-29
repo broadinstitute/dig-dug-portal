@@ -1,54 +1,50 @@
 <template>
-    <result-card-template :title="title">
+    <result-card-template :card="card">
         <template #subheader>
-            <a @click="dispatchQuery('top-associations', locusFormatter(region))">
-                Find Phenotypes Associations for {{gene.name}}
-            </a>
+            <!-- <b-badge pill variant="info" @click="dispatchQuery('top-associations', locusFormatter(region))" class="btn"> -->
+                <div class="gene-with-signal none">
+                    <a @click="dispatchQuery('top-associations', locusFormatter(region.chromosome, region.start, region.end))">
+                        Find Phenotypes for {{gene.name}}
+                    </a>
+                </div>
+            <!-- </b-badge> -->
         </template>
         <template #content>
 
-            <div class="col-md-8">
-
-                <div v-if="geneFunction">
-                    <h4>
-                        Function
-                        <tooltip-documentation
-                            name="gene.function.tooltip.hover"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation>
-                    </h4>
-                    <div>{{geneFunction}}</div>
-                </div>
-                <div v-else>
-                    <h5>Gene function not found</h5>
-                </div>
-
+            <div v-if="geneFunction">
+                <h4>
+                    Function
+                    <tooltip-documentation
+                        name="gene.function.tooltip.hover"
+                        :isHover="true"
+                        :noIcon="false"
+                    ></tooltip-documentation>
+                </h4>
+                <div>{{geneFunction}}</div>
+            </div>
+            <div v-else>
+                <h5>Gene function not found</h5>
             </div>
 
-            <div class="col-md-4">
-
-                <h4>Info</h4>
-                <div v-if="geneNames" class="alternative-names">
-                    <strong>Alternative names:&nbsp;</strong>
-                    <span
-                        v-for="gene in alternateNames"
-                        v-if="gene.source == 'alias'"
-                        :key="gene.name"
-                    >{{gene.name}}</span>&nbsp;
-                </div>
-                <div v-if="region">
-                    <strong>Length:</strong>
-                    {{" "+(region.end - region.start).toLocaleString()}} bp
-                </div>
-                <div>
-                    <strong>Assembly:</strong> GRCh37
-                </div>
-                <div>
-                    <strong>Gene sources:</strong>
-                    <span>&nbsp;Ensembl, HGNC, UCSC, RGD, MGD</span>
-                </div>
-
+            <h4>Info</h4>
+            <div v-if="geneNames" class="alternative-names">
+                <strong>Alternative names:&nbsp;</strong>
+                <span
+                    v-for="gene in alternateNames"
+                    v-if="gene.source == 'alias'"
+                    :key="gene.name"
+                >{{gene.name}}</span>&nbsp;
+            </div>
+            <div v-if="region">
+                <strong>Length:</strong>
+                {{" "+(region.end - region.start).toLocaleString()}} bp
+            </div>
+            <div>
+                <strong>Assembly:</strong> GRCh37
+            </div>
+            <div>
+                <strong>Gene sources:</strong>
+                <span>&nbsp;Ensembl, HGNC, UCSC, RGD, MGD</span>
             </div>
 
             <div v-if="dbReference">
@@ -156,7 +152,7 @@ const store = new Vuex.Store({
 
 export default Vue.component('gene-result-card', {
     store,
-    props: ["title", "geneData"],
+    props: ["title", "geneData", "card"],
     components: {
         ResultCardTemplate,
     },
@@ -167,8 +163,9 @@ export default Vue.component('gene-result-card', {
     },
     methods: {
         locusFormatter: Formatters.locusFormatter,
-        dispatchQuery(index, query) {
-            this.$emit('pushQuery', { index, query })
+        dispatchQuery(index, queryString) {
+            console.log(Formatters.locusFormatter(this.region.chromosome, this.region.start, this.region.end))
+            this.$emit('pushQuery', { index, queryString })
         }
     },
     computed: {

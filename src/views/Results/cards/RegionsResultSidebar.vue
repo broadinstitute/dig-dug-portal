@@ -23,8 +23,8 @@
             <results-nav v-for="(regionData, i) in regions"
                         :key="locusFrom(regionData)+i"
                         :queryKey="'regions'"
-                        :showCompoundIndexes="true"
                         :inputValue="locusFrom(regionData)"
+                        :showCompoundIndexes="true"
                         @pushQuery="$emit('pushQuery', $event)">
             </results-nav>
 

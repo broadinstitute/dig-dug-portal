@@ -8,6 +8,9 @@ import VariantResultCard from "./cards/VariantResultCard.vue"
 import PhenotypeSignalCard from "./cards/PhenotypeSignalCard.vue"
 import GeneResultCard from "./cards/GeneResultCard.vue"
 
+import ResultsGlobalTooltip from "./navs/ResultsGlobalTooltip.vue"
+import ResultsNav from "./navs/ResultsNav"
+
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
@@ -23,17 +26,19 @@ Vue.use(BootstrapVue);
 new Vue({
     store,
     components: {
+        ResultsGlobalTooltip,
         RegionsResultCard,
         AssociationsResultCard,
         VariantResultCard,
         GeneResultCard,
         PhenotypeSignalCard,
+
     },
     data() {
         return {
 
             index: 'gene',
-            query: 'psck9',
+            query: 'pcsk9',
 
             decodeString: '',
 
@@ -43,13 +48,6 @@ new Vue({
         }
     },
     created() {
-        window.addEventListener('mouseover', function (event) {
-            // console.log('global handler firing', event.target.dataset)
-            // TODO: track on data attributes
-            if (event.target.dataset.hasOwnProperty('tooltip')) {
-                console.log('matched value')
-            }
-        })
 
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");

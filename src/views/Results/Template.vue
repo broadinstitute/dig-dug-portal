@@ -1,9 +1,18 @@
 <template>
     <div>
-
+        <results-global-tooltip>
+            <template v-slot:default="slotProps">
+                <results-nav
+                    :queryKey="slotProps.currentData.split(':')[0]"
+                    :inputValue="slotProps.currentData.split(':')[1]"
+                ></results-nav>
+            </template>
+        </results-global-tooltip>
         <div>
+
             <b-input-group>
                 <template v-slot:prepend>
+
                     <b-dropdown
                         v-model="$parent.index"
                         :text="$parent.index"
@@ -18,15 +27,18 @@
                     </b-dropdown>
                 </template>
 
+                <!-- TODO: Refactor as a function of the split of the schema -->
                 <b-form-input
-                    data-tooltip="test"
                     v-model="$parent.query"
                     :placeholder="$parent.placeholder"
                 ></b-form-input>
+
                 <template v-slot:append>
                     <b-button v-on:click="$store.dispatch('queryBioIndexForResults', { index: $parent.index, query: $parent.query })" variant="outline-secondary">Run</b-button>
                 </template>
             </b-input-group>
+
+
         </div>
 
         <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Make URL</button>
@@ -94,7 +106,7 @@
 
                         <div v-else-if="card.index === 'gene'">
                             <gene-result-card
-                                :title="`${$parent.provenanceHash(card)}`"
+                                :card="card"
                                 :geneData="$store.state.dataCache[$parent.contentHash(card)]"
                                 @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
                             ></gene-result-card>

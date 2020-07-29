@@ -27,11 +27,13 @@
                             >0</div>
                         </div>
                         <div class="pws-top-each-phenotype">
-                            <div 
+                            <div
                                 class="btn btn-sm btn-link pws-top-each-phenotype-name"
                                 :style="{'top': (80 - log2css(row.pValue))+'%' }"
                             >
-                                <div class="name-wrapper">{{row.description}}</div>
+                                <div class="name-wrapper"
+                                    :data-global-tooltip="`phenotype:${row.phenotype}`"
+                                >{{row.description}}</div>
                                 <!-- <div class="options-4-actions">
                                     <div
                                         @click="$store.commit('setPhenotypeByName', row.phenotype)"
@@ -128,6 +130,7 @@
                             <template v-if="i != 0">
                                 <div
                                     v-if="item.pValue <= 5e-3"
+
                                     class="pws-phenotype-summary-row"
                                     :style="{'width': +log2css(item.pValue)+'%'}"
                                     @click="showHideByClass('pws-phenotype-row '+key2id(key))"
@@ -171,7 +174,7 @@
         </div>
     </div>
 </template>
- 
+
 <script>
 import Vue from "vue";
 import groupBy from "lodash/groupBy";

@@ -11,11 +11,11 @@
         </slot>
         <b-row>
             <slot name="sidebar">
-                <b-col cols="3">
+                <!-- <b-col cols="3"> -->
                     <span v-if="typeof card != 'undefined'">
 
                     </span>
-                </b-col>
+                <!-- </b-col> -->
             </slot>
             <b-col>
                 <slot name="content">
