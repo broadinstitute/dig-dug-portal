@@ -7,8 +7,11 @@
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <h2>{{$store.state.pageTitle}}</h2>
+                    </div>
+                    <div class="col-md-6 egl-page-header-phenotype">
+                        <h4>Phenotype: {{$parent.trait}}</h4>
                     </div>
                 </div>
             </div>
