@@ -1,0 +1,1050 @@
+.egl-page-header-phenotype {
+    text-align: right;
+}
+.research-method-wrapper {
+    font-size: 14px;
+}
+
+.research-method-wrapper h3 {
+    font-size: 24px;
+}
+
+.data-loading-indicator, .data-rendering-indicator {
+    position: fixed;
+    z-index: 10000;
+    bottom: 30px;
+    right: 30px;
+    width: 300px;
+    padding: 20px 20px;
+    background-color: #fff;
+    border: solid 1px #ccc;
+    border-radius: 5px;
+}
+
+.data-loading-indicator {
+    z-index: 10001;
+}
+/* for table */
+
+.cell-weight-0 {
+    background-size: 0% 100% !important;
+}
+
+.cell-weight-1 {
+    background-size: 1% 100% !important;
+}
+
+.cell-weight-2 {
+    background-size: 2% 100% !important;
+}
+
+.cell-weight-3 {
+    background-size: 3% 100% !important;
+}
+
+.cell-weight-4 {
+    background-size: 4% 100% !important;
+}
+
+.cell-weight-5 {
+    background-size: 5% 100% !important;
+}
+
+.cell-weight-6 {
+    background-size: 6% 100% !important;
+}
+
+.cell-weight-7 {
+    background-size: 7% 100% !important;
+}
+
+.cell-weight-8 {
+    background-size: 8% 100% !important;
+}
+
+.cell-weight-9 {
+    background-size: 9% 100% !important;
+}
+
+.cell-weight-10 {
+    background-size: 10% 100% !important;
+}
+
+.cell-weight-11 {
+    background-size: 11% 100% !important;
+}
+
+.cell-weight-12 {
+    background-size: 12% 100% !important;
+}
+
+.cell-weight-13 {
+    background-size: 13% 100% !important;
+}
+
+.cell-weight-14 {
+    background-size: 14% 100% !important;
+}
+
+.cell-weight-15 {
+    background-size: 15% 100% !important;
+}
+
+.cell-weight-16 {
+    background-size: 16% 100% !important;
+}
+
+.cell-weight-17 {
+    background-size: 17% 100% !important;
+}
+
+.cell-weight-18 {
+    background-size: 18% 100% !important;
+}
+
+.cell-weight-19 {
+    background-size: 19% 100% !important;
+}
+
+.cell-weight-20 {
+    background-size: 20% 100% !important;
+}
+
+.cell-weight-21 {
+    background-size: 21% 100% !important;
+}
+
+.cell-weight-22 {
+    background-size: 22% 100% !important;
+}
+
+.cell-weight-23 {
+    background-size: 23% 100% !important;
+}
+
+.cell-weight-24 {
+    background-size: 24% 100% !important;
+}
+
+.cell-weight-25 {
+    background-size: 25% 100% !important;
+}
+
+.cell-weight-26 {
+    background-size: 26% 100% !important;
+}
+
+.cell-weight-27 {
+    background-size: 27% 100% !important;
+}
+
+.cell-weight-28 {
+    background-size: 28% 100% !important;
+}
+
+.cell-weight-29 {
+    background-size: 29% 100% !important;
+}
+
+.cell-weight-30 {
+    background-size: 30% 100% !important;
+}
+
+.cell-weight-31 {
+    background-size: 31% 100% !important;
+}
+
+.cell-weight-32 {
+    background-size: 32% 100% !important;
+}
+
+.cell-weight-33 {
+    background-size: 33% 100% !important;
+}
+
+.cell-weight-34 {
+    background-size: 34% 100% !important;
+}
+
+.cell-weight-35 {
+    background-size: 35% 100% !important;
+}
+
+.cell-weight-36 {
+    background-size: 36% 100% !important;
+}
+
+.cell-weight-37 {
+    background-size: 37% 100% !important;
+}
+
+.cell-weight-38 {
+    background-size: 38% 100% !important;
+}
+
+.cell-weight-39 {
+    background-size: 39% 100% !important;
+}
+
+.cell-weight-40 {
+    background-size: 40% 100% !important;
+}
+
+.cell-weight-41 {
+    background-size: 41% 100% !important;
+}
+
+.cell-weight-42 {
+    background-size: 42% 100% !important;
+}
+
+.cell-weight-43 {
+    background-size: 43% 100% !important;
+}
+
+.cell-weight-44 {
+    background-size: 44% 100% !important;
+}
+
+.cell-weight-45 {
+    background-size: 45% 100% !important;
+}
+
+.cell-weight-46 {
+    background-size: 46% 100% !important;
+}
+
+.cell-weight-47 {
+    background-size: 47% 100% !important;
+}
+
+.cell-weight-48 {
+    background-size: 48% 100% !important;
+}
+
+.cell-weight-49 {
+    background-size: 49% 100% !important;
+}
+
+.cell-weight-50 {
+    background-size: 50% 100% !important;
+}
+
+.cell-weight-51 {
+    background-size: 51% 100% !important;
+}
+
+.cell-weight-52 {
+    background-size: 52% 100% !important;
+}
+
+.cell-weight-53 {
+    background-size: 53% 100% !important;
+}
+
+.cell-weight-54 {
+    background-size: 54% 100% !important;
+}
+
+.cell-weight-55 {
+    background-size: 55% 100% !important;
+}
+
+.cell-weight-56 {
+    background-size: 56% 100% !important;
+}
+
+.cell-weight-57 {
+    background-size: 57% 100% !important;
+}
+
+.cell-weight-58 {
+    background-size: 58% 100% !important;
+}
+
+.cell-weight-59 {
+    background-size: 59% 100% !important;
+}
+
+.cell-weight-60 {
+    background-size: 60% 100% !important;
+}
+
+.cell-weight-61 {
+    background-size: 61% 100% !important;
+}
+
+.cell-weight-62 {
+    background-size: 62% 100% !important;
+}
+
+.cell-weight-63 {
+    background-size: 63% 100% !important;
+}
+
+.cell-weight-64 {
+    background-size: 64% 100% !important;
+}
+
+.cell-weight-65 {
+    background-size: 65% 100% !important;
+}
+
+.cell-weight-66 {
+    background-size: 66% 100% !important;
+}
+
+.cell-weight-67 {
+    background-size: 67% 100% !important;
+}
+
+.cell-weight-68 {
+    background-size: 68% 100% !important;
+}
+
+.cell-weight-69 {
+    background-size: 69% 100% !important;
+}
+
+.cell-weight-70 {
+    background-size: 70% 100% !important;
+}
+
+.cell-weight-71 {
+    background-size: 71% 100% !important;
+}
+
+.cell-weight-72 {
+    background-size: 72% 100% !important;
+}
+
+.cell-weight-73 {
+    background-size: 73% 100% !important;
+}
+
+.cell-weight-74 {
+    background-size: 74% 100% !important;
+}
+
+.cell-weight-75 {
+    background-size: 75% 100% !important;
+}
+
+.cell-weight-76 {
+    background-size: 76% 100% !important;
+}
+
+.cell-weight-77 {
+    background-size: 77% 100% !important;
+}
+
+.cell-weight-78 {
+    background-size: 78% 100% !important;
+}
+
+.cell-weight-79 {
+    background-size: 79% 100% !important;
+}
+
+.cell-weight-80 {
+    background-size: 80% 100% !important;
+}
+
+.cell-weight-81 {
+    background-size: 81% 100% !important;
+}
+
+.cell-weight-82 {
+    background-size: 82% 100% !important;
+}
+
+.cell-weight-83 {
+    background-size: 83% 100% !important;
+}
+
+.cell-weight-84 {
+    background-size: 84% 100% !important;
+}
+
+.cell-weight-85 {
+    background-size: 85% 100% !important;
+}
+
+.cell-weight-86 {
+    background-size: 86% 100% !important;
+}
+
+.cell-weight-87 {
+    background-size: 87% 100% !important;
+}
+
+.cell-weight-88 {
+    background-size: 88% 100% !important;
+}
+
+.cell-weight-89 {
+    background-size: 89% 100% !important;
+}
+
+.cell-weight-90 {
+    background-size: 90% 100% !important;
+}
+
+.cell-weight-91 {
+    background-size: 91% 100% !important;
+}
+
+.cell-weight-92 {
+    background-size: 92% 100% !important;
+}
+
+.cell-weight-93 {
+    background-size: 93% 100% !important;
+}
+
+.cell-weight-94 {
+    background-size: 94% 100% !important;
+}
+
+.cell-weight-95 {
+    background-size: 95% 100% !important;
+}
+
+.cell-weight-96 {
+    background-size: 96% 100% !important;
+}
+
+.cell-weight-97 {
+    background-size: 97% 100% !important;
+}
+
+.cell-weight-98 {
+    background-size: 98% 100% !important;
+}
+
+.cell-weight-99 {
+    background-size: 99% 100% !important;
+}
+
+.cell-weight-100 {
+    background-size: 100% 100% !important;
+}
+
+.search-fields-wrapper {
+    text-align: center;
+}
+
+.search-field {
+    display: inline-block;
+}
+
+.search-bubble {
+    display: inline-block !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    margin-right: 5px !important;
+    color: #fff !important;
+}
+
+.search-field.f-0 .search-bubble {
+    background-color: #048845;
+}
+.search-field.f-1 .search-bubble {
+    background-color: #8490c8;
+}
+.search-field.f-2 .search-bubble {
+    background-color: #bf61a5;
+}
+.search-field.f-3 .search-bubble {
+    background-color: #ee3124;
+}
+.search-field.f-4 .search-bubble {
+    background-color: #5555ff;
+}
+.search-field.f-5 .search-bubble {
+    background-color: #7aaa1c;
+}
+.search-field.f-6 .search-bubble {
+    background-color: #fcd700;
+}
+.search-field.f-7 .search-bubble {
+    background-color: #9f78ac;
+}
+.search-field.f-8 .search-bubble {
+    background-color: #f88084;
+}
+.search-field.f-9 .search-bubble {
+    background-color: #f5a4c7;
+}
+.search-field.f-10 .search-bubble {
+    background-color: #cee6c1;
+}
+.search-field.f-11 .search-bubble {
+    background-color: #cccc00;
+}
+.search-field.f-12 .search-bubble {
+    background-color: #6fc7b6;
+}
+.search-field.f-13 .search-bubble {
+    background-color: #d5a768;
+}
+.search-field.f-14 .search-bubble {
+    background-color: #d4d4d4;
+}
+
+.search-field.f-0 .search-bubble:hover {
+    background-color: #04884550;
+}
+.search-field.f-1 .search-bubble:hover {
+    background-color: #8490c850;
+}
+.search-field.f-2 .search-bubble:hover {
+    background-color: #bf61a550;
+}
+.search-field.f-3 .search-bubble:hover {
+    background-color: #ee312450;
+}
+.search-field.f-4 .search-bubble:hover {
+    background-color: #5555ff50;
+}
+.search-field.f-5 .search-bubble:hover {
+    background-color: #7aaa1c50;
+}
+.search-field.f-6 .search-bubble:hover {
+    background-color: #fcd70050;
+}
+.search-field.f-7 .search-bubble:hover {
+    background-color: #9f78ac50;
+}
+.search-field.f-8 .search-bubble:hover {
+    background-color: #f8808450;
+}
+.search-field.f-9 .search-bubble:hover {
+    background-color: #f5a4c750;
+}
+.search-field.f-10 .search-bubble:hover {
+    background-color: #cee6c150;
+}
+.search-field.f-11 .search-bubble:hover {
+    background-color: #cccc0050;
+}
+.search-field.f-12 .search-bubble:hover {
+    background-color: #6fc7b650;
+}
+.search-field.f-13 .search-bubble:hover {
+    background-color: #d5a76850;
+}
+.search-field.f-14 .search-bubble:hover {
+    background-color: #d4d4d450;
+}
+
+.legend-wrapper {
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+.legend-wrapper .each-legend {
+    border-top: solid 1px #ddd;
+    font-size: 14px;
+}
+
+.EGLT-table {
+    font-size: 14px;
+    width: 100%;
+    text-align: center;
+    border-right: solid 1px #ccc;
+    border-top: solid 1px #ccc;
+    position: relative;
+}
+
+.EGLT-table .container-fluid {
+    padding: 0 !important;
+}
+
+.EGLT-table .row {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+}
+
+.top-level-value {
+    width: calc(100%);
+}
+
+.top-level-header {
+    width: calc(100%);
+    font-weight: 600;
+}
+
+.top-level-header-item,
+.top-level-value-item,
+.feature-content-header-item,
+.feature-content-value-item {
+    display: inline-block;
+    border-left: solid 1px #eee;
+    padding: 3px 0;
+}
+
+.top-level-header-item {
+    position: sticky;
+    top: 0;
+}
+
+.top-level-header-item,
+.top-level-value-item {
+    border-bottom: solid 1px #eee;
+}
+
+.feature-content-wrapper {
+    width: calc(100% - 15px);
+    margin-left: 15px;
+    background-color: #fff;
+    position: relative;
+}
+
+.feature-list .feature-name {
+    position: absolute;
+    background-color: #000;
+    display: block !important;
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 3px;
+    z-index: 10000;
+    left: -20px;
+    display: none !important;
+}
+
+.feature-list:hover .feature-name {
+    display: block !important;
+}
+
+.feature-header-item {
+    border-right: solid 1px #eee;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.feature-content-item {
+    padding: 3px 0 !important;
+    border-right: solid 1px #eee;
+    border-bottom: solid 1px #eee;
+    overflow: hidden;
+    background-color: #f9f9f9;
+}
+
+.view-features-btn,
+.view-visualizer-btn,
+.view-igv-btn {
+    background-color: #55aaee !important;
+    font-size: 12px !important;
+    padding: 1px 10px !important;
+    margin-right: 5px;
+}
+.view-igv-btn {
+    background-color: #aa901c !important;
+}
+
+.view-visualizer-btn {
+    background-color: #7aaa1c !important;
+}
+
+.view-features-btn:hover {
+    background-color: #55aaee50 !important;
+}
+
+.view-visualizer-btn:hover {
+    background-color: #7aaa1c50 !important;
+}
+
+.feature-content {
+    background-color: #fff;
+}
+
+.feature-headers {
+    background-color: #eee;
+    border-left: solid 4px #ddd;
+}
+
+.feature-content {
+    border-left: solid 4px #ddd;
+}
+
+.col-content-filler {
+    color: #f9f9f9;
+}
+
+[class*="cell-weight"] {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-image: url("../images/green_block.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: left;
+}
+
+span.weight-red {
+    background-color: #ff000050;
+    padding: 0 5px;
+    margin: 0 5px;
+}
+
+span.weight-blue {
+    background-color: #00b7ff50;
+    padding: 0 5px;
+    margin: 0 5px;
+}
+
+/* for Miriam */
+
+.EGLT-table.miriam .top-level-header-item,
+.EGLT-table.miriam .top-level-value-item {
+    width: calc(100% / 4);
+}
+
+.EGLT-table.miriam .top-level-header-item.Highest.loci.weight.score {
+    background-color: #75def8;
+}
+
+.EGLT-table.miriam .top-level-header-item.Highest.traits.weight.score {
+    background-color: #ffd62e;
+}
+
+.EGLT-table.miriam .feature-header-item.loci {
+    background-color: #75def850;
+}
+
+.EGLT-table.miriam .feature-header-item.traits {
+    background-color: #ffd62e50;
+}
+
+.EGLT-table.miriam .feature-name.loci,
+.EGLT-table.miriam .feature-headers.loci,
+.EGLT-table.miriam .feature-content.loci {
+    border-left: solid 4px #75def8;
+}
+
+.EGLT-table.miriam .feature-name.traits,
+.EGLT-table.miriam .feature-headers.traits,
+.EGLT-table.miriam .feature-content.traits {
+    border-left: solid 4px#ffd62e;
+}
+
+.EGLT-table.miriam .feature-content.traits [class*="cell-weight"] {
+    background-image: url("../images/blue_block.png");
+}
+
+.EGLT-table.miriam .feature-content.traits.positive [class*="cell-weight"] {
+    background-image: url("../images/red_block.png");
+}
+
+/* for Mccarthy */
+.EGLT-table.mccarthy .top-level-header-item,
+.EGLT-table.mccarthy .top-level-value-item {
+    width: calc(100% / 6);
+}
+
+.EGLT-table.mccarthy .top-level-header-item.Gene {
+    background-color: #75def8;
+}
+
+.EGLT-table.mccarthy .top-level-header-item.Combined.genetic.evidence {
+    background-color: #ffd62e;
+}
+
+.EGLT-table.mccarthy .top-level-header-item.Combined.regulatory.evidence {
+    background-color: #bfd730;
+}
+
+.EGLT-table.mccarthy .top-level-header-item.Combined.perturbation.evidence {
+    background-color: #add3f0;
+}
+
+.EGLT-table.mccarthy .feature-header-item.gene {
+    background-color: #75def850;
+}
+
+.EGLT-table.mccarthy .feature-header-item.genetic {
+    background-color: #ffd62e50;
+}
+
+.EGLT-table.mccarthy .top-level-value-item.genetic-1C {
+    background-color: #ffd62e;
+}
+
+.EGLT-table.mccarthy .top-level-value-item.genetic-2C {
+    background-color: #ffd62e75;
+}
+
+.EGLT-table.mccarthy .feature-header-item.genomic {
+    background-color: #bfd73050;
+}
+
+.EGLT-table.mccarthy .top-level-value-item.genomic-2R {
+    background-color: #bfd73075;
+}
+.EGLT-table.mccarthy .top-level-value-item.genomic-3R {
+    background-color: #bfd73050;
+}
+
+.EGLT-table.mccarthy .feature-header-item.perturbational {
+    background-color: #add3f050;
+}
+
+.EGLT-table.mccarthy .top-level-value-item.perturbational-2P {
+    background-color: #add3f075;
+}
+
+.EGLT-table.mccarthy .top-level-value-item.perturbational-3P {
+    background-color: #add3f050;
+}
+
+.EGLT-table.mccarthy .feature-name.gene,
+.EGLT-table.mccarthy .feature-headers.gene,
+.EGLT-table.mccarthy .feature-content.gene {
+    border-left: solid 4px #75def8;
+}
+
+.EGLT-table.mccarthy .feature-name.genetic,
+.EGLT-table.mccarthy .feature-headers.genetic,
+.EGLT-table.mccarthy .feature-content.genetic {
+    border-left: solid 4px#ffd62e;
+}
+
+.EGLT-table.mccarthy .feature-name.genomic,
+.EGLT-table.mccarthy .feature-headers.genomic,
+.EGLT-table.mccarthy .feature-content.genomic {
+    border-left: solid 4px#bfd730;
+}
+
+.EGLT-table.mccarthy .feature-name.perturbational,
+.EGLT-table.mccarthy .feature-headers.perturbational,
+.EGLT-table.mccarthy .feature-content.perturbational {
+    border-left: solid 4px #add3f0;
+}
+/* for Manning */
+.EGLT-table.manning .top-level-header-item,
+.EGLT-table.manning .top-level-value-item {
+    width: calc(100% / 5);
+}
+
+.EGLT-table-manning .feature-content-header-item.Annotations,
+.EGLT-table-manning .feature-content-value-item.Annotations {
+    width: calc(100% / 4);
+}
+
+/* for Richards */
+.EGLT-table.richards .top-level-header-item,
+.EGLT-table.richards .top-level-value-item {
+    width: calc(100% / 4);
+}
+
+.EGLT-table.richards .feature-content-wrapper .container-fluid {
+    overflow: auto;
+}
+
+.EGLT-table.richards .feature-list.variants_features,
+.EGLT-table.richards .feature-list.gene_features {
+    display: table !important;
+}
+
+.EGLT-table.richards .feature-list.variants_features {
+    border-left: solid 4px#ffd62e !important;
+}
+
+.EGLT-table.richards .feature-list.gene_features {
+    border-left: solid 4px#bfd730 !important;
+}
+
+.EGLT-table.richards .feature-headers.variants_features,
+.EGLT-table.richards .feature-headers.gene_features {
+    display: table-row !important;
+}
+
+.EGLT-table.richards .feature-content.variants_features,
+.EGLT-table.richards .feature-content.gene_features {
+    display: table-row !important;
+}
+
+.EGLT-table.richards .feature-name.gene_info,
+.EGLT-table.richards .feature-headers.gene_info,
+.EGLT-table.richards .feature-content.gene_info {
+    border-left: solid 4px #75def8 !important;
+}
+
+.EGLT-table.richards .feature-header-item.gene_info {
+    background-color: #75def850;
+}
+
+.EGLT-table.richards .feature-header-item.variants_features,
+.EGLT-table.richards .feature-content-item.variants_features {
+    min-width: 100px !important;
+    max-width: 100px !important;
+    white-space: pre-line;
+    display: table-cell !important;
+    vertical-align: bottom;
+}
+
+.EGLT-table.richards .feature-header-item.variants_features {
+    background-color: #ffd62e50;
+}
+
+.EGLT-table.richards .feature-header-item.gene_features,
+.EGLT-table.richards .feature-content-item.gene_features {
+    min-width: 100px !important;
+    max-width: 100px !important;
+    white-space: pre-line;
+    display: table-cell !important;
+    vertical-align: bottom;
+}
+
+.EGLT-table.richards .feature-header-item.gene_features {
+    background-color: #bfd73050;
+}
+
+.EGLT-table.richards [class*="y-0"],
+.EGLT-table.richards [class*="y-1"],
+.top-level-header-item.y {
+    position: absolute;
+    width: 8px !important;
+    left: 0;
+}
+
+.EGLT-table.richards [class*="y-0"],
+.top-level-header-item.y {
+    background-color: #eee;
+    border: solid 1px #eee;
+    color: #eee;
+}
+
+.EGLT-table.richards [class*="y-1"] {
+    background-color: #fa0;
+    border: solid 1px #fa0;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features[class*="NONE"] {
+    background-color: rgba(255, 150, 0, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features[class*="MODIFIER"] {
+    background-color: rgba(0, 180, 0, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features[class*="LOW"] {
+    background-color: rgba(0, 150, 200, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features[class*="MODERATE"] {
+    background-color: rgba(100, 100, 255, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features[class*="HIGH"] {
+    background-color: rgba(255, 50, 0, 1) !important;
+    color: #fff;
+}
+
+/* for plots */
+.feature-scores-wrapper {
+    position: fixed;
+    top: 15%;
+    left: 0;
+    width: 86%;
+    margin-left: 7%;
+    background-color: #fff;
+    z-index: 20000;
+    border: solid 1px #ddd;
+    padding: 10px;
+    padding-bottom: 1px;
+    border-radius: 5px;
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
+    font-size: 14px;
+}
+.feature-scores-wrapper.hidden {
+    display: none;
+}
+.feature-scores-wrapper .gene-name {
+    width: 100%;
+    text-align: center;
+    font-size: 1.25em;
+}
+
+.feature-scores {
+    width: 100%;
+    height: auto;
+    overflow: auto;
+    padding-bottom: 15px;
+    white-space: nowrap;
+}
+
+.feature-scores .chart {
+    display: inline-block;
+    position: relative;
+}
+
+.feature-scores .chart h5 {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 0;
+    word-break: break-word;
+    white-space: normal;
+    font-size: 1em;
+}
+
+.feature-scores .chart svg {
+    margin-top: 25px;
+}
+
+.feature-scores .chart .chart-line {
+    fill: none;
+    stroke: #ffab00;
+    stroke-width: 1;
+    shape-rendering: auto;
+}
+
+.feature-scores .chart .data-line {
+    fill: none;
+    stroke: #55aaee;
+    stroke-width: 1.25;
+}
+
+.feature-plot-close,
+.igv-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #aaa;
+}
+
+.feature-plot-close:hover,
+.igv-close:hover {
+    color: #333;
+}
+
+.start-anchor {
+    text-anchor: start;
+}
+
+.end-anchor {
+    text-anchor: end;
+}
+
+/* IGV */
+
+#igv-div {
+    position: fixed;
+    top: 15%;
+    left: 0;
+    width: 86%;
+    margin-left: 7%;
+    background-color: #fff;
+    z-index: 20000;
+    border: solid 1px #ddd;
+    padding: 10px;
+    padding-top: 35px;
+    border-radius: 5px;
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.25);
+}
