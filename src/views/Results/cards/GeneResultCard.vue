@@ -1,6 +1,9 @@
 <template>
     <result-card-template :title="title">
-        <template #header>
+        <template #subheader>
+            <a @click="dispatchQuery('top-associations', locusFormatter(region))">
+                Find Phenotypes Associations for {{gene.name}}
+            </a>
         </template>
         <template #content>
 
@@ -73,6 +76,8 @@ import ResultCardTemplate from "./ResultCardTemplate"
 import uniprot from "@/modules/uniprot";
 import bioIndex from "@/modules/bioIndex";
 import UniprotReferenceTable from "@/components/UniprotReferencesTable"
+
+import Formatters from "@/utils/formatters"
 
 Vue.use(Vuex)
 
@@ -159,6 +164,12 @@ export default Vue.component('gene-result-card', {
         const gene = this.geneData[0];
         // this.$store.dispatch('tapCard', 'hello');
         this.$store.dispatch('queryUniprot', gene.name);
+    },
+    methods: {
+        locusFormatter: Formatters.locusFormatter,
+        dispatchQuery(index, query) {
+            this.$emit('pushQuery', { index, query })
+        }
     },
     computed: {
         gene() {
