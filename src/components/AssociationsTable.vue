@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-container v-if="showFilters" fluid class="filtering-ui-wrapper">
+        <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
                 <b-col>
                     <div class="label">Consequence</div>
@@ -11,7 +11,7 @@
                         ref="select_consequence"
                     ></b-form-select>
                 </b-col>
-                <b-col>
+                <b-col v-if="showFilters">
                     <div class="label">Gene</div>
                     <b-form-input
                         id="filter-gene"
@@ -20,7 +20,7 @@
                         @change="addCompound($event, 'select_gene','filter-gene')"
                     ></b-form-input>
                 </b-col>
-                <b-col class="filter-col-sm">
+                <b-col v-if="showFilters" class="filter-col-sm">
                     <div class="label">pValue (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
@@ -30,7 +30,7 @@
                         ref="select_pValue"
                     ></b-form-input>
                 </b-col>
-                <b-col class="filter-col-sm">
+                <b-col v-if="showFilters" class="filter-col-sm">
                     <div class="label">Effect</div>
                     <b-form-select
                         id="filter-beta"
