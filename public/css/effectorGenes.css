@@ -708,7 +708,7 @@ span.weight-blue {
 .EGLT-table.miriam .top-level-header-item.Highest.traits.weight.score {
     background-color: #ffd62e;
 }
-
+/*
 .EGLT-table.miriam .feature-header-item.loci {
     background-color: #75def850;
 }
@@ -728,7 +728,7 @@ span.weight-blue {
 .EGLT-table.miriam .feature-content.traits {
     border-left: solid 4px#ffd62e;
 }
-
+*/
 .EGLT-table.miriam .feature-content.traits.negative [class*="cell-weight"] {
     background-image: url("../images/red_block.png");
     background-position: right;
