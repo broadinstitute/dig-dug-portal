@@ -6,6 +6,7 @@
         :data="phenotypeOptions"
         :serializer="s => s.description"
         :maxMatches="30"
+        :minMatchingChars="!!showAll ? 0 : 2"
         @hit="onPhenotypeSelected($event)"
     >
         <template slot="suggestion" slot-scope="{ data, htmlText }">
@@ -28,7 +29,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("phenotype-selectpicker", {
-    props: ["phenotypes", "clearOnSelected", "defaultPhenotype"],
+    props: ["phenotypes", "clearOnSelected", "defaultPhenotype", "showAll"],
 
     data() {
         return {
