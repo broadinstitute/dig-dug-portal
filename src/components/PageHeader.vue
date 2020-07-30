@@ -83,6 +83,12 @@
                                 <li page="hugecalculator">
                                     <a href="/hugecalculator.html?gene=cdkn2b">HuGe Calculator</a>
                                 </li>
+                                <li
+                                    page="tools"
+                                    v-if="diseaseGroup.name == 'md' || diseaseGroup.name == 't2d'"
+                                >
+                                    <a href="/effectorgenes.html">Predicted Effector Genes</a>
+                                </li>
                             </ul>
                         </li>
                         <li class="am-menu">

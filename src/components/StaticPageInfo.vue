@@ -1,5 +1,9 @@
 <template>
-    <div class="page-info-wrapper row" v-html="this.pageInfo[0].body[0].value"></div>
+    <div
+        class="page-info-wrapper row"
+        v-if="this.pageInfo[0]"
+        v-html="this.pageInfo[0].body[0].value"
+    ></div>
 </template>
 
 <script>
@@ -10,7 +14,7 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("static-page-info-section", {
     props: ["pageInfo"],
-    mounted: function() {}
+    mounted: function () {},
 });
 </script>
 
