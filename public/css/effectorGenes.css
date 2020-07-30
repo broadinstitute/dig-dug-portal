@@ -698,7 +698,7 @@ span.weight-blue {
 
 .EGLT-table.miriam .top-level-header-item,
 .EGLT-table.miriam .top-level-value-item {
-    width: calc(100% / 4);
+    width: calc(100% / 2);
 }
 
 .EGLT-table.miriam .top-level-header-item.Highest.loci.weight.score {

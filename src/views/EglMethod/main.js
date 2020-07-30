@@ -37,6 +37,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
         //this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait); //for now, data from kp4cd
     },
@@ -65,6 +66,9 @@ new Vue({
         },
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        phenotypes() {
+            return this.$store.bioportal;
         },
 
         frontContents() {
@@ -115,6 +119,10 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+
+        },
+        phenotypes(phenotypes) {
+            console.log("phenotypes", phenotypes);
         }
     }
 }).$mount("#app");
