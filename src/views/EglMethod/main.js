@@ -62,7 +62,23 @@ new Vue({
             return keyParams.dataset;
         },
         trait() {
-            return keyParams.trait;
+
+            let phenotypeName = null;
+
+            this.$store.state.bioPortal.phenotypes.map(
+                (x) => {
+                    if (
+                        x.name.toLowerCase() ==
+                        keyParams.trait.toLowerCase()
+                    ) {
+                        phenotypeName = x.description;
+                    }
+                }
+            );
+
+            let prettyName = (phenotypeName != null) ? phenotypeName : keyParams.trait;
+
+            return prettyName;
         },
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
