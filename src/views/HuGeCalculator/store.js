@@ -44,6 +44,7 @@ export default new Vuex.Store({
     },
 
     getters: {
+       
         region(state) {
             let data = state.gene.data;
 
@@ -97,10 +98,6 @@ export default new Vuex.Store({
 
             context.dispatch('genes/query', { q });
         },
-
-
-
-
 
         async onEffectorGenesPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);

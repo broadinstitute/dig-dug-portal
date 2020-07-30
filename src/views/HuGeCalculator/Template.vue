@@ -53,7 +53,7 @@
                     <h4
                         v-if="$store.state.phenotype"
                         class="card-title"
-                    >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}} updated start {{$parent.region.start}}</h4>
+                    >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
 
                     <locuszoom
                         v-if="$parent.region"
@@ -70,7 +70,8 @@
                     </locuszoom>
                     <associations-table
                         :phenotypes="$parent.phenotypes"
-                        :associations="$store.state.associations.data"
+                        :associations="$parent.associationsData"
+                        :showFilters="false"
                     ></associations-table>
                 </div>
             </div>

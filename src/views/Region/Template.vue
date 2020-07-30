@@ -165,6 +165,7 @@
                         <associations-table
                             :phenotypes="$parent.phenotypes"
                             :associations="$store.state.associations.data"
+                            :showFilters="true"
                         ></associations-table>
                     </div>
                 </div>

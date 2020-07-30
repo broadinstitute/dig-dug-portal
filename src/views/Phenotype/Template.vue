@@ -65,6 +65,7 @@
                             :phenotypes="[$store.state.phenotype]"
                             :associations="$store.state.associations.data"
                             :per-page="10"
+                            :showFilters="true"
                         ></associations-table>
                     </div>
                 </div>

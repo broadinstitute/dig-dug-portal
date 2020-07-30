@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-container fluid class="filtering-ui-wrapper">
+        <b-container v-if="showFilters" fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
                 <b-col>
                     <div class="label">Consequence</div>
@@ -180,7 +180,7 @@ import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
 export default Vue.component("associations-table", {
-    props: ["associations", "phenotypes"],
+    props: ["associations", "phenotypes", "showFilters"],
     components: {
         Documentation,
         TooltipDocumentation

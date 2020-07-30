@@ -68,25 +68,25 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        addAssociationsPanel(event) {
-            const { phenotype } = event;
-            let finishHandler = this.updateAssociationsTable;
-            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
-                phenotype,
-                finishHandler
-            );
-            return newAssociationsPanelId;
-        },
+        // addAssociationsPanel(event) {
+        //     const { phenotype } = event;
+        //     let finishHandler = this.updateAssociationsTable;
+        //     const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
+        //         phenotype,
+        //         finishHandler
+        //     );
+        //     return newAssociationsPanelId;
+        // },
 
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, data);
         },
-        updateAssociationsPanel(phenotype) {
-            if (this.currentAssociationsPanel) {
-                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
-            }
-            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
-        },
+        // updateAssociationsPanel(phenotype) {
+        //     if (this.currentAssociationsPanel) {
+        //         this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
+        //     }
+        //     this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
+        // },
 
     },
 
@@ -112,9 +112,6 @@ new Vue({
             return this.$store.getters.canonicalSymbol;
         },
 
-
-
-
         gene() {
             let data = this.$store.state.gene;
             if (data.length > 0) {
@@ -125,7 +122,21 @@ new Vue({
 
         phenotypes() {
             return [this.$store.state.phenotype];
-        }
+        },
+        associationsData(state) {
+            let data = this.$store.state.associations.data;
+            let filteredData = [];
+            data.forEach(function (row) {
+                if (!!row.consequence) {
+                    if (row.consequence == "missense_variant") {
+                        filteredData.push(row);
+                    }
+                }
+
+            })
+            return filteredData;
+        },
+
     },
 
 
@@ -139,7 +150,7 @@ new Vue({
         region(region) {
             this.hideElement("variantSearchHolder");
             this.$store.dispatch("queryGeneRegion", region);
-            
+
         },
 
 

@@ -81,7 +81,7 @@
                                     <a href="/hugecalculator.html">HuGe Calculator</a>
                                 </li>-->
                                 <li page="hugecalculator">
-                                    <a href="/hugecalculator.html">HuGe Calculator</a>
+                                    <a href="/hugecalculator.html?gene=cdkn2b">HuGe Calculator</a>
                                 </li>
                             </ul>
                         </li>
