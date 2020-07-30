@@ -76,6 +76,14 @@
                         </li>
                         <li class="am-menu">
                             <a href>Tools</a>
+                            <ul class="am-submenu">
+                                <li
+                                    page="tools"
+                                    v-if="diseaseGroup.name == 'md' || diseaseGroup.name == 't2d'"
+                                >
+                                    <a href="/effectorgenes.html">Predicted Effector Genes</a>
+                                </li>
+                            </ul>
                         </li>
                         <li class="am-menu">
                             <a href>Information</a>
@@ -144,7 +152,7 @@ export default Vue.component("page-header", {
     props: ["diseaseGroup", "frontContents"],
 
     components: {
-        GoogleAnalytics
+        GoogleAnalytics,
     },
 
     data() {
@@ -159,12 +167,12 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
-        }
+        },
     },
     methods: {
         saveCurrentPage() {
             Vue.$cookies.set("whereAmI", location.href, "", "", host.domain);
-        }
-    }
+        },
+    },
 });
 </script>

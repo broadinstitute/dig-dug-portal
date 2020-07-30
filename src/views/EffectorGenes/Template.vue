@@ -8,7 +8,7 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h2 v-if="$parent.pageInfo[0]">{{ $parent.pageInfo[0].title[0].value }}</h2>
+                        <h2>{{ $parent.pageInfo[0].title[0].value }}</h2>
                     </div>
                 </div>
             </div>
