@@ -81,16 +81,17 @@ new Vue({
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, data);
         },
-        // updateAssociationsPanel(phenotype) {
-        //     if (this.currentAssociationsPanel) {
-        //         this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
-        //     }
-        //     this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
-        // },
+       
+
 
     },
+    mounted() {
+        // this.getEffectorGeneData();
 
+
+    },
     computed: {
+
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {
@@ -102,7 +103,6 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
-
 
         region() {
             return this.$store.getters.region;
@@ -123,19 +123,21 @@ new Vue({
         phenotypes() {
             return [this.$store.state.phenotype];
         },
+
         associationsData(state) {
             let data = this.$store.state.associations.data;
             let filteredData = [];
             data.forEach(function (row) {
                 if (!!row.consequence) {
-                    if (row.consequence == "missense_variant") {
+                    if (row.consequence == "missense_variant" && row.pValue >= 0.00000005) {
                         filteredData.push(row);
                     }
                 }
-
             })
             return filteredData;
         },
+
+
 
     },
 

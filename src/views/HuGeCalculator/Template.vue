@@ -50,6 +50,40 @@
             <!-- HuGeCalculator -->
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <div class="col-md-10">
+                        <h4
+                            v-if="$store.state.effectorGeneData.category"
+                        >{{$store.state.effectorGeneData.category}}</h4>
+                        <div v-if="$store.state.effectorGeneData" class="alternative-names">
+                            <strong>Coding Evidence: &nbsp;</strong>
+                            <span
+                                v-if="$store.state.effectorGeneData.genetic"
+                            >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
+                        </div>
+                        <div v-if="$parent.region">
+                            <strong>Regulatory Evidence:</strong>
+                            <span
+                                v-if="$store.state.effectorGeneData.regulatory"
+                            >{{$store.state.effectorGeneData.regulatory}}</span>
+                        </div>
+                        <div>
+                            <strong>Perturbation Evidence:</strong>
+                            <span
+                                v-if="$store.state.effectorGeneData.perturbational"
+                            >{{$store.state.effectorGeneData.perturbational}}</span>
+                        </div>
+                        <!-- <div>
+                            <strong>Gene sources:</strong>
+                            <span>&nbsp;Ensembl, HGNC, UCSC, RGD, MGD</span>
+                        </div>-->
+                    </div>
+                </div>
+            </div>
+            <div class="collapsible">
+                <h4>hello</h4>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <h4
                         v-if="$store.state.phenotype"
                         class="card-title"
