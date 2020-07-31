@@ -79,36 +79,39 @@
                     </div>
                 </div>
             </div>
-            <div class="collapsible">
-                <h4>hello</h4>
-            </div>
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4
-                        v-if="$store.state.phenotype"
-                        class="card-title"
-                    >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
+            <div>
+                <b-button v-b-toggle.collapse-1 variant="primary">GWAS Associations</b-button>
+                <b-collapse id="collapse-1" class="card mdkp-card">
+                    <div class="card mdkp-card">
+                        <div class="card-body">
+                            <h4
+                                v-if="$store.state.phenotype"
+                                class="card-title"
+                            >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
 
-                    <locuszoom
-                        v-if="$parent.region"
-                        ref="locuszoom"
-                        :chr="$parent.region.chromosome"
-                        :start="$parent.region.start"
-                        :end="$parent.region.end"
-                        :refSeq="true"
-                    >
-                        <lz-associations-panel
-                            :phenotype="$store.state.phenotype.name"
-                            :finishHandler="$parent.updateAssociationsTable"
-                        ></lz-associations-panel>
-                    </locuszoom>
-                    <associations-table
-                        :phenotypes="$parent.phenotypes"
-                        :associations="$parent.associationsData"
-                        :showFilters="false"
-                    ></associations-table>
-                </div>
+                            <locuszoom
+                                v-if="$parent.region"
+                                ref="locuszoom"
+                                :chr="$parent.region.chromosome"
+                                :start="$parent.region.start"
+                                :end="$parent.region.end"
+                                :refSeq="true"
+                            >
+                                <lz-associations-panel
+                                    :phenotype="$store.state.phenotype.name"
+                                    :finishHandler="$parent.updateAssociationsTable"
+                                ></lz-associations-panel>
+                            </locuszoom>
+                            <associations-table
+                                :phenotypes="$parent.phenotypes"
+                                :associations="$parent.associationsData"
+                                :showFilters="false"
+                            ></associations-table>
+                        </div>
+                    </div>
+                </b-collapse>
             </div>
+            <div class="card mdkp-card"></div>
         </div>
 
         <!-- Footer-->
