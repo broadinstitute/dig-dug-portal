@@ -698,7 +698,7 @@ span.weight-blue {
 
 .EGLT-table.miriam .top-level-header-item,
 .EGLT-table.miriam .top-level-value-item {
-    width: calc(100% / 4);
+    width: calc(100% / 2);
 }
 
 .EGLT-table.miriam .top-level-header-item.Highest.loci.weight.score {
@@ -708,7 +708,7 @@ span.weight-blue {
 .EGLT-table.miriam .top-level-header-item.Highest.traits.weight.score {
     background-color: #ffd62e;
 }
-
+/*
 .EGLT-table.miriam .feature-header-item.loci {
     background-color: #75def850;
 }
@@ -728,13 +728,19 @@ span.weight-blue {
 .EGLT-table.miriam .feature-content.traits {
     border-left: solid 4px#ffd62e;
 }
+*/
+.EGLT-table.miriam .feature-content.traits.negative [class*="cell-weight"] {
+    background-image: url("../images/red_block.png");
+    background-position: right;
+}
+
+.EGLT-table.miriam .feature-content.traits.negative [class*="cell-weight"]::before {
+    content: "-";
+}
 
 .EGLT-table.miriam .feature-content.traits [class*="cell-weight"] {
     background-image: url("../images/blue_block.png");
-}
-
-.EGLT-table.miriam .feature-content.traits.positive [class*="cell-weight"] {
-    background-image: url("../images/red_block.png");
+    background-position: left;
 }
 
 /* for Mccarthy */
@@ -921,27 +927,40 @@ span.weight-blue {
     border: solid 1px #fa0;
 }
 
-.EGLT-table.richards .feature-content-item.variants_features[class*="NONE"] {
+.legend.snp_eff_5, .legend.snp_eff_4, .legend.snp_eff_3, .legend.snp_eff_2, .legend.snp_eff_1, .legend.locus_y_0, .legend.locus_y_1 {
+    display: inline-block;
+    margin-left: 3px;
+    padding: 0 2px;
+}
+
+.legend.locus_y_0 {
+    background-color: #eee;
+}
+.legend.locus_y_1 {
+    background-color: #fa0;
+}
+
+.EGLT-table.richards .feature-content-item.variants_features[class*="NONE"], .legend.snp_eff_5 {
     background-color: rgba(255, 150, 0, 1) !important;
     color: #fff;
 }
 
-.EGLT-table.richards .feature-content-item.variants_features[class*="MODIFIER"] {
+.EGLT-table.richards .feature-content-item.variants_features[class*="MODIFIER"], .legend.snp_eff_1 {
     background-color: rgba(0, 180, 0, 1) !important;
     color: #fff;
 }
 
-.EGLT-table.richards .feature-content-item.variants_features[class*="LOW"] {
+.EGLT-table.richards .feature-content-item.variants_features[class*="LOW"], .legend.snp_eff_2 {
     background-color: rgba(0, 150, 200, 1) !important;
     color: #fff;
 }
 
-.EGLT-table.richards .feature-content-item.variants_features[class*="MODERATE"] {
+.EGLT-table.richards .feature-content-item.variants_features[class*="MODERATE"], .legend.snp_eff_3 {
     background-color: rgba(100, 100, 255, 1) !important;
     color: #fff;
 }
 
-.EGLT-table.richards .feature-content-item.variants_features[class*="HIGH"] {
+.EGLT-table.richards .feature-content-item.variants_features[class*="HIGH"], .legend.snp_eff_4 {
     background-color: rgba(255, 50, 0, 1) !important;
     color: #fff;
 }
