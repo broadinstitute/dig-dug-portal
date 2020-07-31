@@ -127,18 +127,21 @@
                     </b-th>
                 </template>
                 <template v-slot:cell(locus)="r">
-                    <a
+                    <a  :data-global-tooltip-collection="`phenotype:${phenotypes[0].name};region:${r.item.chromosome}:${r.item.position-50000}-${r.item.position+50000}`"
                         :href="`/region.html?phenotype=${phenotypes[0].name}&chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
                     >{{locusFormatter(r.item)}}</a>
                 </template>
                 <template v-slot:cell(allele)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{alleleFormatter(r.item)}}</a>
+                    <a :data-global-tooltip-collection="`variant:${r.item.varId}`"
+                       :href="`/variant.html?variant=${r.item.varId}`">{{alleleFormatter(r.item)}}</a>
                 </template>
                 <template v-slot:cell(dbSNP)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
+                    <a :data-global-tooltip-collection="`variant:${r.item.varId}`"
+                       :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
                 </template>
                 <template v-slot:cell(symbol)="r">
-                    <a :href="`/gene.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
+                    <a :data-global-tooltip-collection="`gene:${r.item.gene}`"
+                       :href="`/gene.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
                 </template>
                 <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
                     <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}_beta`]) : r.item[`${p.name}_beta`])}}</span>
@@ -147,7 +150,6 @@
                         style="float:right"
                     >{{r.item[`${p.name}_beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
                 </template>
-                <template v-slot:cell()
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"

@@ -24,6 +24,7 @@ export default new Vuex.Store({
         indexes,
         dataCache: {},
         busyBodies: [],
+        collection: [],
     },
     getters: {
         busy(state) {
@@ -93,10 +94,15 @@ export default new Vuex.Store({
                         data
             );
 
+            // TODO: What should be the parent of a joinedCard -> what behavior of the card requires parent information?
             const joinedCard = { id: newId, index: 'set', query: joinQuery, parent: -3 }
             context.state.dataCache[joinedCard.id] = data;
             context.dispatch('addCard', joinedCard);
 
+        },
+        collectItem(context, item) {
+            console.log('collecting item for store')
+            context.state.collection.push(item);
         }
     }
 });

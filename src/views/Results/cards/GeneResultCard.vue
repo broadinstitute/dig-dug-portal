@@ -9,6 +9,9 @@
                 </div>
             <!-- </b-badge> -->
         </template>
+        <template #sidebar>
+            Tools should go here
+        </template>
         <template #content>
 
             <div v-if="geneFunction">

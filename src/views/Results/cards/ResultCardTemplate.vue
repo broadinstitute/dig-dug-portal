@@ -11,17 +11,17 @@
         </slot>
         <b-row>
             <slot name="sidebar">
-                <!-- <b-col cols="3"> -->
-                    <span v-if="typeof card != 'undefined'">
-
-                    </span>
-                <!-- </b-col> -->
+                Tools should go here
+                e.g. Manhattan Plot
+                
             </slot>
             <b-col>
                 <slot name="content">
                     <span v-if="typeof card != 'undefined' && !!cardData">
-                        {{ cardData.length }} items
-                        <!-- <table>
+
+                        <h4>Top 10 items</h4>
+                        out of {{ cardData.length }} items
+                        <table>
                             <thead>
                                 <tr>
                                     <th v-for="prop in dataProperties" :key="JSON.stringify(prop)">
@@ -30,13 +30,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="objectElement in cardData" :key="JSON.stringify(objectElement)">
+                                <tr v-for="objectElement in dataValues" :key="JSON.stringify(objectElement)">
                                     <td v-for="value in Object.values(objectElement)" :key="JSON.stringify(value)">
                                         {{value}}
                                     </td>
                                 </tr>
                             </tbody>
-                        </table> -->
+                        </table>
                     </span>
                 </slot>
             </b-col>
@@ -75,7 +75,9 @@ export default Vue.component('result-card-template', {
             }
         },
         dataValues() {
-
+            if(!!this.cardData) {
+                return this.cardData.slice(0, 10);
+            }
         },
         simpleXsForYs() {
             function isCompasableWithIndex(index, schema) {

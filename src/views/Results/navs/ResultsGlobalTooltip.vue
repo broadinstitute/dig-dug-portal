@@ -1,5 +1,7 @@
 <template>
-    <div id="results-global-tooltip">
+    <div :id="`${tooltipProperty}-results-global-tooltip`">
+        <h6><slot name="header"></slot></h6>
+        <slot name="subheader"></slot>
         <slot v-bind:currentData="currentData">
             <p>
                 {{ currentData }}
@@ -12,9 +14,28 @@ import Vue from "vue"
 import $ from "jquery"
 
 export default Vue.component('results-global-tooltip', {
+    props: ['identifier'],
     data() {
         return {
             currentData: 'hello'
+        }
+    },
+    computed: {
+        // hyphenated properties are referenced as camel-case in the DOM
+        // so appending a string onto another camel-case string must imply that it is capitalized
+        formattedIdentifier() {
+            const capitalize = (s) => {
+                // get the first character, capitalize, concatenate it with the rest
+                return s.charAt(0).toUpperCase() + s.slice(1)
+            }
+            // if it's neither undefined nor empty, can capitalize it
+            if (!(typeof this.identifier === 'undefined' || this.identifier === '')) {
+                return capitalize(this.identifier)
+            }
+            return '';
+        },
+        tooltipProperty() {
+            return `globalTooltip${this.formattedIdentifier}`
         }
     },
     mounted() {
@@ -22,31 +43,32 @@ export default Vue.component('results-global-tooltip', {
 
         // add and remove global tooltip, if hovering on or exiting, tooltip compatible item
         window.addEventListener('mouseover', function (event) {
-            if (event.target.dataset.hasOwnProperty('globalTooltip')) {
-                self.currentData = event.target.dataset.globalTooltip;
+            if (event.target.dataset.hasOwnProperty(self.tooltipProperty)) {
+                console.log('tooltip property',self.tooltipProperty)
+                self.currentData = event.target.dataset[self.tooltipProperty];
 
                 const tooltipTargetCoords = event.target.getBoundingClientRect();
-                // console.log(tooltipTargetCoords)
-                // console.log(event.target.offsetTop, document.getElementById('results-global-tooltip').offsetTop )
-                document.getElementById('results-global-tooltip').style.left = (tooltipTargetCoords.x + window.scrollX + tooltipTargetCoords.width)+'px';
-                document.getElementById('results-global-tooltip').style.top = (tooltipTargetCoords.y + + window.scrollY + tooltipTargetCoords.height)+'px';
-                document.getElementById('results-global-tooltip').style.display = 'block';
+                document.getElementById(`${self.tooltipProperty}-results-global-tooltip`).style.left = (tooltipTargetCoords.x + window.scrollX + tooltipTargetCoords.width)+'px';
+                document.getElementById(`${self.tooltipProperty}-results-global-tooltip`).style.top = (tooltipTargetCoords.y + + window.scrollY + tooltipTargetCoords.height)+'px';
+                document.getElementById(`${self.tooltipProperty}-results-global-tooltip`).style.display = 'block';
 
             }
         })
         window.addEventListener('mouseout', function (event) {
-            if (event.target.dataset.hasOwnProperty('globalTooltip') && event.target.dataset.globalTooltip === self.currentData) {
-                document.getElementById('results-global-tooltip').style.display = 'none';
+            if (event.target.dataset.hasOwnProperty(self.tooltipProperty) && event.target.dataset[self.tooltipProperty] === self.currentData) {
+                document.getElementById(`${self.tooltipProperty}-results-global-tooltip`).style.display = 'none';
             }
         })
 
-        // add and remove global tooltip, if hovering on or exiting, global tooltip itself
-        $("#results-global-tooltip").hover(
+        // add and remove global tooltip, if hovering on or exiting the global tooltip itself
+        // this is required to allow the user to hover into the tooltip, and turn it off when the user's cursor exits its boundaries
+        // jQuery is used because 'document' is not a concept in vue scope (is there an alternative?)
+        $(`#${self.tooltipProperty}-results-global-tooltip`).hover(
             () => {
-                document.getElementById('results-global-tooltip').style.display = 'block';
+                document.getElementById(`${self.tooltipProperty}-results-global-tooltip`).style.display = 'block';
             },
             () => {
-                document.getElementById('results-global-tooltip').style.display = 'none';
+                document.getElementById(`${self.tooltipProperty}-results-global-tooltip`).style.display = 'none';
             }
         );
 
@@ -54,7 +76,7 @@ export default Vue.component('results-global-tooltip', {
 })
 </script>
 <style scoped>
-#results-global-tooltip {
+[id*=-results-global-tooltip] {
     min-width:200px;
     /*max-width:400px;*/
     top:40px;
@@ -72,7 +94,7 @@ export default Vue.component('results-global-tooltip', {
     box-shadow:0 1px 8px rgba(0,0,0,0.5);
     display:none;
 }
-#results-global-tooltip:hover {
+[id*=-results-global-tooltip]:hover {
     display: block;
 }
 .results-global-tooltip-default {

@@ -32,7 +32,7 @@
                                 :style="{'top': (80 - log2css(row.pValue))+'%' }"
                             >
                                 <div class="name-wrapper"
-                                    :data-global-tooltip="`phenotype:${row.phenotype}`"
+                                    :data-global-tooltip-bioindex="`phenotype:${row.phenotype}`"
                                 >{{row.description}}</div>
                                 <!-- <div class="options-4-actions">
                                     <div
@@ -62,7 +62,7 @@
                     v-if="row.pValue > 5e-8 && i <= 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                    :data-global-tooltip="`phenotype:${row.phenotype}`"
+                    :data-global-tooltip-bioindex="`phenotype:${row.phenotype}`"
                 >{{row.description}}</div>
                 <small>
                     <a
@@ -81,7 +81,7 @@
                     v-if="row.pValue > 5e-8 && i > 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                    :data-global-tooltip="`phenotype:${row.phenotype}`"
+                    :data-global-tooltip-bioindex="`phenotype:${row.phenotype}`"
                 >{{row.description}}</div>
             </div>
         </div>

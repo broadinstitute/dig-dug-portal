@@ -1,23 +1,70 @@
 <template>
     <div>
 
-        <results-global-tooltip>
+        <!-- TODO: Way to have multiple of these? -->
+        <results-global-tooltip :identifier="'bioindex'">
+            <template #header>
+                Actions
+            </template>
+            <template #subheader>
+                <!-- Make a new card using this information -->
+            </template>
             <template v-slot:default="slotProps">
-                <results-nav
+                <!-- <results-nav
                     :queryKey="slotProps.currentData.split(':')[0]"
                     :inputValue="slotProps.currentData.split(':')[1]"
                     :showCompoundIndexes="true"
                     @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: -2 })"
-                ></results-nav>
+                ></results-nav> -->
+                <div v-if="slotProps.currentData.split(':')[0] === 'phenotype'">
+                    I'm a phenotype component
+                </div>
+                <div v-else>
+                    I'm supposed to be a {{slotProps.currentData.split(':')[0]}}
+                </div>
+            </template>
+        </results-global-tooltip>
+
+        <results-global-tooltip :identifier="'collection'">
+            <template #header>
+                Collect
+            </template>
+            <template v-slot:default="slotProps">
+                <!-- <button @click="$store.dispatch('collectItem', slotProps.currentData)">
+                    Collect {{slotProps.currentData}}
+                </button> -->
+                <!-- TODO: Actions can be here because currently the payload lets it be here, i.e. it turns out <BioIndexInputType>:value is used for both Actions and Collections
+                     HOWEVER: We want to be able to compose cards in a way which isn't nested, i.e. content slots should be inside the scoped slot for currentProps,
+                     and the content itself can potentially have its own components.
+                     This will allow us to take more concretions out of the page/Template.vue itself.
+                -->
+                <!-- <h6>Actions</h6>
+                <results-nav
+                    :queryKey="slotProps.currentData.split(':')[0]"
+                    :inputValue="slotProps.currentData.split(':')[1]"
+                    :showCompoundIndexes="false"
+                    @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: -2 })"
+                ></results-nav> -->
+                <!-- <results-nav
+                    :queryKey="slotProps.currentData.split(':')[0]"
+                    :inputValue="slotProps.currentData.split(':')[1]"
+                    :showCompoundIndexes="false"
+                    @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: -2 })"
+                ></results-nav> -->
+                <div v-if="slotProps.currentData.split(':')[0] === 'phenotype'">
+                    I'm a phenotype component
+                </div>
+                <div v-else>
+                    I'm supposed to be a {{slotProps.currentData.split(':')[0]}}
+                </div>
             </template>
         </results-global-tooltip>
 
 
 
-
         <b-container fluid>
             <b-row no-gutters>
-                <b-col cols="4">
+                <b-col cols="3">
 
                     <div>
 
@@ -55,10 +102,11 @@
                             <multiselect
                                 v-model="$parent.cardsForOperation"
                                 :options="$store.getters.cardsById.map(card => $parent.provenanceHash(card))"
+                                :placeholder="'select cards'"
                                 :multiple="true"
                             ></multiselect >
 
-
+                            <!-- TODO: If we can get this to work with tags, we can minimize the number of libraries in play -->
                             <!-- <b-form-tags v-model="$parent.cardsForOperation" size="lg" add-on-change no-outer-focus class="mb-2">
                                 <template v-slot="{ tags, inputAttrs, inputHandlers, disabled, removeTag }">
                                 <ul v-if="tags.length > 0" class="list-inline d-inline-block mb-2">
@@ -106,7 +154,11 @@
                     <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Save Session</button>
                     <p v-if="$store.getters.busy">Loading</p>
 
+                    <br>                    <br>
 
+                    <div v-if="$store.getters.cardsById.length > 0">
+
+                    <h5>Cards</h5> Reverse Chronological Order
                     <div class="reverseorder">
                         <a  v-for="card in $store.getters.cardsById"
                             :key="`link-${$parent.provenanceHash(card)}-${card.id}`"
@@ -118,7 +170,14 @@
 
                         </a>
                     </div>
+                    </div>
+                    <br>                    <br>
 
+
+                    <div v-if="$store.state.collection.length > 0">
+                        <h5>Collection</h5>
+                        <div v-for="el in $store.state.collection" :key="el"> {{el}} </div>
+                    </div>
 
                 </b-col>
                 <b-col class="reverseorder">
