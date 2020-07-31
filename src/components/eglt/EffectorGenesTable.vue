@@ -314,12 +314,28 @@ export default Vue.component("effector-genes-table", {
 
                                 break;
                             case "phenotype":
+                                let valueName = null;
+
+                                this.$store.state.bioPortal.phenotypes.map(
+                                    (x) => {
+                                        if (
+                                            x.name.toLowerCase() ==
+                                            VALUE.toLowerCase()
+                                        ) {
+                                            valueName = x.description;
+                                        }
+                                    }
+                                );
+
                                 contentLink =
-                                    '<a href="/phenotype.html?phenotype=' +
-                                    VALUE +
-                                    '">' +
-                                    VALUE +
-                                    "</a>";
+                                    valueName != null
+                                        ? '<a href="/phenotype.html?phenotype=' +
+                                          VALUE +
+                                          '">' +
+                                          valueName +
+                                          "</a>"
+                                        : VALUE;
+
                                 return contentLink;
 
                                 break;

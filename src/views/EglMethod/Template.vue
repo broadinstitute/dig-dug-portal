@@ -5,12 +5,14 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <div class="card mdkp-card dataset-page-header">
+            <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
-                    <div class="col-md-6">
+                    <div class="col-md-8 gene-page-header-title"></div>
+                    <div class="col-md-4 gene-page-header-title">Phenotype</div>
+                    <div class="col-md-8 gene-page-header-body">
                         <h2>{{$store.state.pageTitle}}</h2>
                     </div>
-                    <div class="col-md-6 egl-page-header-phenotype">
+                    <div class="col-md-4 gene-page-header-body">
                         <h4>Phenotype: {{$parent.trait}}</h4>
                     </div>
                 </div>
