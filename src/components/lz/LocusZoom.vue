@@ -185,7 +185,6 @@ export default Vue.component("locuszoom", {
                     { finishHandler, resolveHandler, errHandler }
                 )
             );
-            console.log(this.plot.panels)
             return panelId;
         }
     },

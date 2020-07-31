@@ -1,13 +1,20 @@
 <template>
     <div>
-        <phenotype-signal-mixed :phenotypes="phenotypes"></phenotype-signal-mixed>
+        <result-card-template :title="title" :parent="parent">
+            <template #content>
+                <phenotype-signal-mixed :phenotypes="phenotypes"></phenotype-signal-mixed>
+            </template>
+        </result-card-template>
     </div>
 </template>
 <script>
 import Vue from "vue";
+
 import PhenotypeSignalMixed from "../components/PhenotypeSignalMixed.vue"
+import ResultCardTemplate from "./ResultCardTemplate"
+
 export default Vue.component('phenotype-signal-card', {
-    props: ['topAssociations', 'phenotypeMap'],
+    props: ['title','parent','topAssociations', 'phenotypeMap'],
     components: {
         PhenotypeSignalMixed,
     },
@@ -36,6 +43,6 @@ export default Vue.component('phenotype-signal-card', {
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
-    } 
+    }
 })
 </script>

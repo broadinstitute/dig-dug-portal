@@ -63,6 +63,7 @@ export default Vue.component('associations-result-card', {
         Promise.resolve(fetch(BIO_INDEX_HOST+'/api/portal/phenotypes').then(response => response.json()).then(json => {
             self.phenotypesLookup = json.data.filter(phenotypeInfo => phenotypeInfo.name === this.phenotype)[0];
         }));
+        console.log(this.locus)
         this.region = await parseRegionAsync(this.locus, true);
     },
     components: {

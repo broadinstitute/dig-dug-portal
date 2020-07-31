@@ -1,5 +1,7 @@
+import _ from "lodash"
 // Local copy of http://<BIOINDEX>/api/bio/indexes on July 13 2020
 // TODO: convert into an API call that loads on startup
+// TODO: can schemas provide their own property shapoes?
 export const BIOINDEX_SCHEMA = {
     "count": 14,
     "data": [
@@ -181,19 +183,13 @@ const basicIndexesForKey = function(queryKey) {
         return compatibleIndexesForKey(queryKey).filter(scheme => scheme.query.keys.length === 0);
     } else {
         // all indexes where there is only one key presenting, and it's the queryKey
-        return compatibleIndexesForKey(queryKey).filter(scheme => scheme.query.keys.length === 1);
+        return compatibleIndexesForKey(queryKey).filter(scheme => scheme.query.keys.length === 1 && !scheme.query.locus);
     }
 }
 
 const compoundIndexesForKey = function(queryKey) {
     // all non-basic indexes
-    if (queryKey === "regions" || queryKey === "gene") {
-        // all indexes where locus is true, and query.keys is more than 0
-        return compatibleIndexesForKey(queryKey).filter(scheme => scheme.query.keys.length > 0);
-    } else {
-        // all indexes where there is more than one key
-        return compatibleIndexesForKey(queryKey).filter(scheme => scheme.query.keys.length > 1);
-    }
+    return compatibleIndexesForKey(queryKey).filter(scheme => scheme.query.keys.length > 0 && scheme.query.locus === true ||  scheme.query.keys.length > 1);
 }
 
 const JOIN_HISTORY='!'
@@ -298,6 +294,48 @@ function locusFromHash(queryHash) {
     return rightmostArgFromHash(queryHash).replace("_",":")
 }
 
+// https://stackoverflow.com/a/32922084/1991892
+function deepEqual(x, y) {
+    // Compares:
+    // Any two not-undefined valid objects
+    // where they have equal numbers of keys
+    // and if for each key in `x`,
+        // it is the case that the value given the key in `x` is equal to the value with the same key in `y`, return true
+        // else return false
+    // else if x and y are not objects, use `===` comparison
+    // if the values of x[key] and y[key] are objects, '
+    // deepEqual will recursively apply itself to the objects inside
+    const ok = Object.keys, tx = typeof x, ty = typeof y;
+    return x && y && tx === 'object' && tx === ty ? (
+      ok(x).length === ok(y).length &&
+        ok(x).every(key => deepEqual(x[key], y[key]))
+    ) : (x === y);
+  }
+
+function intersectCards(cardList) {
+    // produce a list of elements that satisfies on pred for all
+    return _.intersectionWith(...cardList, deepEqual)
+}
+function unionCards(cardList) {
+    // produce a list of elements that satisfies on pred for all
+    return _.unionWith(...cardList, deepEqual)
+}
+// TODO: not performant
+// function differenceCards(cardList) {
+//     // produce a list of elements that satisfies on pred for all
+//     return _.differenceWith(...cardList, deepEqual)
+// }
+function dispatchSetOperation(operation) {
+    switch(operation) {
+        case 'intersect': return intersectCards
+        case 'union': return unionCards
+        // case 'difference': return differenceCards
+        default: return id => {
+            console.warn('operation', operation, 'not supported for cards')
+            return id
+        }
+    }
+}
 
 export {
     bioIndexFromHash,
@@ -312,4 +350,8 @@ export {
     basicIndexesForKey,
     compoundIndexesForKey,
     compatibleIndexesForKey,
+
+    dispatchSetOperation,
+    intersectCards,
+
 };

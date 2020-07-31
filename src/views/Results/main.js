@@ -11,15 +11,19 @@ import GeneResultCard from "./cards/GeneResultCard.vue"
 import ResultsGlobalTooltip from "./navs/ResultsGlobalTooltip.vue"
 import ResultsNav from "./navs/ResultsNav"
 
+import Multiselect from "vue-multiselect"
+import "vue-multiselect/dist/vue-multiselect.min.css"
+
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
-import { BIOINDEX_SCHEMA, decodeHistory, provenanceHash, contentHash, encodeHistory, bioIndexFromHash, parentFromHash, phenotypeFromHash, locusFromHash, queryFromHash } from "./utils/resultsUtils"
+import { BIOINDEX_SCHEMA, decodeHistory, provenanceHash, contentHash, encodeHistory, bioIndexFromHash, parentFromHash, phenotypeFromHash, locusFromHash, queryFromHash, dispatchSetOperation } from "./utils/resultsUtils"
 import _ from "lodash";
 
 import keyParams from "@/utils/keyParams";
 
+Vue.component('multiselect', Multiselect)
 
 
 Vue.use(BootstrapVue);
@@ -32,7 +36,7 @@ new Vue({
         VariantResultCard,
         GeneResultCard,
         PhenotypeSignalCard,
-
+        ResultsNav,
     },
     data() {
         return {
@@ -45,6 +49,15 @@ new Vue({
             loadedHistory: keyParams.q,
 
             loading: false,
+
+            operation: 'intersect',
+            operations: [
+                'intersect',
+                'union',
+                // 'difference'
+            ],
+            cardsForOperation: ''
+
         }
     },
     created() {
@@ -79,6 +92,7 @@ new Vue({
         phenotypeFromHash,
         locusFromHash,
         queryFromHash,
+        dispatchSetOperation,
 
         jumpToElementBy(elementSelector) {
             console.log('jumping to element', this.$el.querySelector(elementSelector))

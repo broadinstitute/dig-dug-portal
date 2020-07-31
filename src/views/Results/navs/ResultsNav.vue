@@ -1,40 +1,35 @@
 <template>
     <div class="results-link-wrapper" >
-        <a class="results-link">
-            <slot>
-                {{ inputValue }}
-            </slot>
-            <div class="options-4-actions">
-                <div v-for="bioIndexSchema in basicIndexes" :key="bioIndexSchema.index">
-                    <a @click="dispatchToIndex(bioIndexSchema.index, inputValue)">
-                        {{ bioIndexSchema.index }} {{ inputValue }}
-                    </a>
-                </div>
-                <div v-if="showCompoundIndexes">
-                    <div v-for="(bioIndexSchema, i) in compoundIndexes" :key="bioIndexSchema.index">
-                        <a @click="dispatchToIndex(bioIndexSchema.index, makeCompoundInputValue(bioIndexSchema, i), true)">
-                            {{ bioIndexSchema.index }}
-                        </a>
-                        <!-- Dynamic v-model symbols within v-for: https://stackoverflow.com/a/49902508/1991892 -->
-                        <!-- Replace v-model with v-bind:value and v-on:input since we wouldn't be able to assign an initial value
-                             for the input if the reference was also defined here https://stackoverflow.com/a/55023171/1991892 -->
-                        <!-- Initialize a default value with v-on:click.once -->
-                        <input v-for="bioIndexQueryKey in bioIndexSchema.query.keys"
-                            :key="bioIndexQueryKey"
-                            :placeholder="bioIndexSchema.query.keys"
-                            v-model="inputs[[bioIndexSchema.index,bioIndexQueryKey,i].join('-')]"
-                            :disabled="queryKey === bioIndexQueryKey"/>
-                        <!-- TODO: refactor the gnarly code in :value to use a custom directive that can set a default, to initialize the field -->
-                        <input  v-if="bioIndexSchema.query.locus"
-                                :value="inputs[[bioIndexSchema.index,'locus',i].join('-')] ? inputs[[bioIndexSchema.index,'locus',i].join('-')]
-                                    : (() => { inputs[[bioIndexSchema.index,'locus',i].join('-')] = inputValue; return inputs[[bioIndexSchema.index,'locus',i].join('-')]})()"
-                                @input="inputs[[bioIndexSchema.index,'locus',i].join('-')] = $event.target.value"
-                                disabled/>
-                    </div>
-                </div>
+        <!-- abstract these links into their own component (as a content) -->
+        <div v-for="bioIndexSchema in basicIndexes" :key="bioIndexSchema.index">
+            <a @click="dispatchToIndex(bioIndexSchema.index, inputValue)">
+                {{ bioIndexSchema.index }} {{ inputValue }}
+            </a>
+        </div>
+        <div v-if="showCompoundIndexes">
 
+            <div v-for="(bioIndexSchema, i) in compoundIndexes" :key="bioIndexSchema.index">
+                <a @click="dispatchToIndex(bioIndexSchema.index, makeCompoundInputValue(bioIndexSchema, i), true)">
+                    {{ bioIndexSchema.index }}
+                </a>
+                <!-- Dynamic v-model symbols within v-for: https://stackoverflow.com/a/49902508/1991892 -->
+                <!-- Replace v-model with v-bind:value and v-on:input since we wouldn't be able to assign an initial value
+                        for the input if the reference was also defined here https://stackoverflow.com/a/55023171/1991892 -->
+                <!-- Initialize a default value with v-on:click.once -->
+                <input v-for="bioIndexQueryKey in bioIndexSchema.query.keys"
+                    :key="bioIndexQueryKey"
+                    :placeholder="bioIndexSchema.query.keys"
+                    v-model="inputs[[bioIndexSchema.index,bioIndexQueryKey,i].join('-')]"
+                    :disabled="queryKey === bioIndexQueryKey"/>
+                <!-- TODO: refactor the gnarly code in :value to use a custom directive that can set a default, to initialize the field -->
+                <input  v-if="bioIndexSchema.query.locus"
+                        :value="inputs[[bioIndexSchema.index,'locus',i].join('-')] ? inputs[[bioIndexSchema.index,'locus',i].join('-')]
+                            : (() => { inputs[[bioIndexSchema.index,'locus',i].join('-')] = inputValue; return inputs[[bioIndexSchema.index,'locus',i].join('-')]})()"
+                        @input="inputs[[bioIndexSchema.index,'locus',i].join('-')] = $event.target.value"
+                        disabled/>
             </div>
-        </a>
+            
+        </div>
     </div>
 </template>
 <script>

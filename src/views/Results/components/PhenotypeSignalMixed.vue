@@ -62,6 +62,7 @@
                     v-if="row.pValue > 5e-8 && i <= 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
+                    :data-global-tooltip="`phenotype:${row.phenotype}`"
                 >{{row.description}}</div>
                 <small>
                     <a
@@ -80,6 +81,7 @@
                     v-if="row.pValue > 5e-8 && i > 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
+                    :data-global-tooltip="`phenotype:${row.phenotype}`"
                 >{{row.description}}</div>
             </div>
         </div>

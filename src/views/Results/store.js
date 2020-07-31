@@ -6,7 +6,8 @@ import kp4cd from "@/modules/kp4cd";
 import resultCards from "./modules/resultCards"
 
 import bioIndexUtils from "@/utils/bioIndexUtils";
-import { BIOINDEX_SCHEMA, provenanceHash, contentHash, decodeHistory } from "./utils/resultsUtils"
+import idCounter from "@/utils/idCounter";
+import { BIOINDEX_SCHEMA, provenanceHash, contentHash, decodeHistory, dispatchSetOperation } from "./utils/resultsUtils"
 
 
 Vue.use(Vuex);
@@ -23,9 +24,6 @@ export default new Vuex.Store({
         indexes,
         dataCache: {},
         busyBodies: [],
-
-        
-
     },
     getters: {
         busy(state) {
@@ -78,7 +76,27 @@ export default new Vuex.Store({
                 console.warn('TODO: need to guarantee that cache is /content addressed/, not addressed by ID')
                 context.dispatch('addCard', card);
             }
-
         },
+        joinCardsTogether(context, { operation, cardIds }) {  // TODO: how do we get parents here properly?
+
+            const targetCards = context.state.resultCards.cards.filter(card => cardIds.includes(provenanceHash(card)));
+            const targetData = targetCards.map(card => context.state.dataCache[contentHash(card)])
+            const data = dispatchSetOperation(operation)(targetData);
+            const joinQuery = `${operation}__${cardIds}`; // TODO: a join of identities on cards plus operation
+            const newId = idCounter.getUniqueId(joinQuery);  // TODO: a join of idenities on cards
+
+            console.log(
+                        context.state.resultCards.cards,
+                        cardIds,
+                        joinQuery,
+                        newId,
+                        data
+            );
+
+            const joinedCard = { id: newId, index: 'set', query: joinQuery, parent: -3 }
+            context.state.dataCache[joinedCard.id] = data;
+            context.dispatch('addCard', joinedCard);
+
+        }
     }
 });

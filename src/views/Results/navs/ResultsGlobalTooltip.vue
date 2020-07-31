@@ -9,6 +9,8 @@
 </template>
 <script>
 import Vue from "vue"
+import $ from "jquery"
+
 export default Vue.component('results-global-tooltip', {
     data() {
         return {
@@ -17,6 +19,8 @@ export default Vue.component('results-global-tooltip', {
     },
     mounted() {
         const self = this;
+
+        // add and remove global tooltip, if hovering on or exiting, tooltip compatible item
         window.addEventListener('mouseover', function (event) {
             if (event.target.dataset.hasOwnProperty('globalTooltip')) {
                 self.currentData = event.target.dataset.globalTooltip;
@@ -24,18 +28,28 @@ export default Vue.component('results-global-tooltip', {
                 const tooltipTargetCoords = event.target.getBoundingClientRect();
                 // console.log(tooltipTargetCoords)
                 // console.log(event.target.offsetTop, document.getElementById('results-global-tooltip').offsetTop )
-                document.getElementById('results-global-tooltip').style.left = (tooltipTargetCoords.x + tooltipTargetCoords.width)+'px';
-                document.getElementById('results-global-tooltip').style.top = (tooltipTargetCoords.y + tooltipTargetCoords.height)+'px';
+                document.getElementById('results-global-tooltip').style.left = (tooltipTargetCoords.x + window.scrollX + tooltipTargetCoords.width)+'px';
+                document.getElementById('results-global-tooltip').style.top = (tooltipTargetCoords.y + + window.scrollY + tooltipTargetCoords.height)+'px';
                 document.getElementById('results-global-tooltip').style.display = 'block';
+
             }
         })
         window.addEventListener('mouseout', function (event) {
-            // if (event.target.dataset.hasOwnProperty('globalTooltip') && event.target.dataset.globalTooltip === self.currentData) {
-            //     if (document.getElementById('results-global-tooltip').style.display === 'block') {
-            //         document.getElementById('results-global-tooltip').style.display = 'none';
-            //     }
-            // }
+            if (event.target.dataset.hasOwnProperty('globalTooltip') && event.target.dataset.globalTooltip === self.currentData) {
+                document.getElementById('results-global-tooltip').style.display = 'none';
+            }
         })
+
+        // add and remove global tooltip, if hovering on or exiting, global tooltip itself
+        $("#results-global-tooltip").hover(
+            () => {
+                document.getElementById('results-global-tooltip').style.display = 'block';
+            },
+            () => {
+                document.getElementById('results-global-tooltip').style.display = 'none';
+            }
+        );
+
     }
 })
 </script>
@@ -57,6 +71,9 @@ export default Vue.component('results-global-tooltip', {
     box-sizing:border-box;
     box-shadow:0 1px 8px rgba(0,0,0,0.5);
     display:none;
+}
+#results-global-tooltip:hover {
+    display: block;
 }
 .results-global-tooltip-default {
     min-width:200px;

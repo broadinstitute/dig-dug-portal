@@ -19,8 +19,24 @@
             </slot>
             <b-col>
                 <slot name="content">
-                    <span v-if="typeof card != 'undefined'">
-
+                    <span v-if="typeof card != 'undefined' && !!cardData">
+                        {{ cardData.length }} items
+                        <!-- <table>
+                            <thead>
+                                <tr>
+                                    <th v-for="prop in dataProperties" :key="JSON.stringify(prop)">
+                                        {{prop}}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="objectElement in cardData" :key="JSON.stringify(objectElement)">
+                                    <td v-for="value in Object.values(objectElement)" :key="JSON.stringify(value)">
+                                        {{value}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table> -->
                     </span>
                 </slot>
             </b-col>
@@ -38,9 +54,12 @@ import { BIOINDEX_SCHEMA } from "../utils/resultsUtils"
 import { BootstrapVue } from "bootstrap-vue";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
+
+import _ from "lodash"
+
 Vue.use(BootstrapVue);
 export default Vue.component('result-card-template', {
-    props: ["title", "card"],
+    props: ["title", "card", "cardData"],
     components: {
         ScrollToTop,
     },
@@ -50,6 +69,14 @@ export default Vue.component('result-card-template', {
         }
     },
     computed: {
+        dataProperties() {
+            if(!!this.cardData) {
+                return _.uniq(this.cardData.reduce((acc, datum) => acc.concat(Object.keys(datum)), []))
+            }
+        },
+        dataValues() {
+
+        },
         simpleXsForYs() {
             function isCompasableWithIndex(index, schema) {
 
