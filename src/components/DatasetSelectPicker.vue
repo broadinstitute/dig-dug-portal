@@ -5,7 +5,9 @@
         placeholder="Type in a dataset name ..."
         :data="datasetOptions"
         :serializer="s => s.description"
-        :maxMatches="30"
+        :maxMatches="1000"
+        :minMatchingChars="0"
+        :showOnFocus="true"
         @hit="onDatasetSelected($event)"
     ></vue-typeahead-bootstrap>
 </template>

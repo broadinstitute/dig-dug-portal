@@ -48,6 +48,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("queryVariant");
     },
 
     render(createElement, context) {
@@ -64,20 +65,14 @@ new Vue({
 
     computed: {
         documentationMap() {
-            let map = {};
+            let varId = this.$store.state.varId;
+            let dbSNP = this.$store.state.dbSNP;
 
-            if (this.variantData) {
-                let varId = this.variantData.varId;
-                let dbSNP = this.variantData.dbSNP;
-
-                if (dbSNP) {
-                    map['variant'] = `${varId} / ${dbSNP}`
-                } else {
-                    map['variant'] = varId;
-                }
+            if (dbSNP) {
+                return { variant: `${varId} / ${dbSNP}` };
             }
 
-            return map;
+            return { variant: varId || '' };
         },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -93,29 +88,16 @@ new Vue({
         },
 
         variantData() {
-            let data = this.$store.state.variant.data;
-
-            // there should only be one variant returned
-            if (data.length > 0) {
-                this.hideElement('variantSearchHolder');
-
-                return data[0];
-            }
+            return null;
         },
 
         variantName() {
-            let data = this.variantData;
-
-            if (!!data && data.dbSNP) {
-                return data.dbSNP;
-            }
-
             return this.$store.state.variantID;
         },
 
         lzAssociations() {
             let phenotypes = this.$store.state.bioPortal.phenotypeMap;
-            let associations = this.variantData.associations;
+            let associations = this.$store.state.phewas.data;
 
             // filter associations w/ no phenotype data (not in portal!)
             let portalAssociations = associations.filter(a => {
@@ -137,19 +119,9 @@ new Vue({
             return phewas;
         },
 
-        consequence() {
-            if (!!this.variantData) {
-                return Formatters.consequenceFormatter(
-                    this.variantData.consequence
-                );
-            }
-        },
-
-        consequenceMeaning() {
-            if (!!this.variantData) {
-                return Formatters.consequenceMeaning(
-                    this.variantData.consequence
-                );
+        pickedConsequence() {
+            if (!!this.$store.state.transcriptConsequences.data) {
+                return this.$store.state.transcriptConsequences.data.find(cqs => !!cqs.pick);
             }
         },
 
@@ -160,10 +132,6 @@ new Vue({
 
 
     watch: {
-        "$store.state.bioPortal.phenotypes": function (phenotypes) {
-            this.$store.dispatch("queryVariant");
-        },
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },

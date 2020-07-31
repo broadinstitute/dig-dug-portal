@@ -4,7 +4,7 @@
             hover
             small
             responsive="sm"
-            :items="transcriptConsequences"
+            :items="sortedTranscriptConsequences"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -13,7 +13,7 @@
                 v-slot:cell(consequence)="v"
             >{{consequenceFormatter(v.item.consequence_terms[0])}}</template>
             <template v-slot:cell(gene)="v">
-                <a :href="'/gene.html?gene=' + v.item.gene_id">{{v.item.gene_id}}</a>
+                <a :href="'/gene.html?gene=' + v.item.gene_symbol">{{v.item.gene_symbol}}</a>
             </template>
         </b-table>
         <b-pagination
@@ -42,47 +42,57 @@ export default Vue.component("transcript-consequence-table", {
             fields: [
                 {
                     key: "consequence",
-                    label: "Consequence"
+                    label: "Consequence",
                 },
                 {
                     key: "gene",
-                    label: "Gene"
+                    label: "Gene",
                 },
                 {
                     key: "transcript_id",
-                    label: "Transcript"
+                    label: "Transcript",
                 },
                 {
                     key: "biotype",
                     label: "Biotype",
-                    formatter: Formatters.bioTypeFormatter
+                    formatter: Formatters.bioTypeFormatter,
                 },
                 {
                     key: "distance",
                     label: "Distance",
-                    formatter: Formatters.intFormatter
+                    formatter: Formatters.intFormatter,
                 },
                 {
                     key: "impact",
-                    label: "Impact"
+                    label: "Impact",
                 },
                 {
                     key: "amino_acids",
-                    label: "Amino Acids"
-                }
+                    label: "Amino Acids",
+                },
             ],
             perPage: 5,
-            currentPage: 1
+            currentPage: 1,
         };
     },
 
     computed: {
         rows() {
             return this.transcriptConsequences.length;
-        }
+        },
+        sortedTranscriptConsequences() {
+            return this.transcriptConsequences
+                .sort((a, b) => a.pick === 1)
+                .map((cqs) => {
+                    return {
+                        _rowVariant: cqs.pick === 1 ? "success" : null,
+                        ...cqs,
+                    };
+                });
+        },
     },
     methods: {
-        consequenceFormatter: Formatters.consequenceFormatter
-    }
+        consequenceFormatter: Formatters.consequenceFormatter,
+    },
 });
 </script>

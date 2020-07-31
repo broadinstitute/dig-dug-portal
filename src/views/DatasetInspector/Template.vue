@@ -41,7 +41,6 @@
                         >
                             <phenotype-selectpicker
                                 v-if="$store.state.bioPortal.phenotypeMap"
-                                :showAll="true"
                                 :phenotypes="$parent.datasetPhenotypes"
                             ></phenotype-selectpicker>
                         </div>
@@ -54,7 +53,9 @@
 
             <div v-if="$store.state.selectedPhenotype" class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Dataset Association Plots</h4>
+                    <h4
+                        class="card-title"
+                    >{{$store.state.selectedPhenotype.description}} association plots</h4>
                     <!-- TODO: phenotype select -->
                     <div class="row">
                         <div class="col-md-6">
@@ -109,7 +110,7 @@
             </div>
             <div v-else class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Select phenotype</h4>
+                    <h4 class="card-title">Select phenotype for associations</h4>
                 </div>
             </div>
 

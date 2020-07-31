@@ -13,12 +13,16 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        variant: bioIndex("variant"),
+        phewas: bioIndex("phewas-associations"),
+        transcriptConsequences: bioIndex('transcript-consequences'),
+        transcriptionFactors: bioIndex('transcription-factors'),
         regions: bioIndex("regions"),
     },
 
     state: {
         variantID: keyParams.variant,
+        varId: null,
+        dbSNP: null,
         newVariantID: null,
         currentTissue: '',
     },
@@ -37,7 +41,11 @@ export default new Vuex.Store({
 
             if (!!varID) {
                 context.commit('setVariantID', varID);
-                context.dispatch('variant/query', { q: varID });
+
+                // download async data
+                context.dispatch('phewas/query', { q: varID });
+                context.dispatch('transcriptConsequences/query', { q: varID });
+                context.dispatch('transcriptionFactors/query', { q: varID });
             }
         },
 

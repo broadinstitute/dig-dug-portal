@@ -560,7 +560,7 @@ div.filtering-tools table th {
     color: #fff;
 }
 
-#phenotypeSearchHolder input.form-control {
+#phenotypeSearchHolder input.form-control, #datasetSearchHolder input.form-control {
     border-radius: 0;
     border: solid 1px #ddd;
     height: 65px;

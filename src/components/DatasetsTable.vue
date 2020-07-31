@@ -49,7 +49,9 @@
                 <span :class="'community-icon ' + r.item.community"></span>
             </template>
             <template v-slot:cell(link)="r">
-                <a :href="`/dinspector.html?dataset=${r.item.name}`">{{r.item.description}}</a>
+                <a
+                    :href="`/dinspector.html?dataset=${r.item.name}&phenotype=${phenotype.name}`"
+                >{{r.item.description}}</a>
             </template>
         </b-table>
         <b-pagination
@@ -80,34 +82,34 @@ export default Vue.component("datasets-table", {
             fields: [
                 {
                     key: "link",
-                    label: "Name"
+                    label: "Name",
                 },
                 {
                     key: "tech",
-                    label: "Technology"
+                    label: "Technology",
                 },
                 {
                     key: "ancestry",
                     label: "Ancestry",
-                    formatter: Formatters.ancestryFormatter
+                    formatter: Formatters.ancestryFormatter,
                 },
 
                 {
                     key: "subjects",
                     label: "Subjects",
-                    formatter: Formatters.intFormatter
+                    formatter: Formatters.intFormatter,
                 },
                 {
                     key: "image",
-                    label: "Community"
-                }
+                    label: "Community",
+                },
             ],
             perPage: 5,
             currentPage: 1,
             sortName: "subjects",
             sortOrder: "desc",
             tech: "",
-            ancestry: ""
+            ancestry: "",
         };
     },
     computed: {
@@ -119,7 +121,7 @@ export default Vue.component("datasets-table", {
 
             // filter by phenotype if set
             if (this.phenotype) {
-                rawDatasets = rawDatasets.filter(d =>
+                rawDatasets = rawDatasets.filter((d) =>
                     d.phenotypes.includes(this.phenotype.name)
                 );
             }
@@ -129,12 +131,12 @@ export default Vue.component("datasets-table", {
         },
         filter_tech() {
             return this.sortedDatasets
-                .map(v => v.tech)
+                .map((v) => v.tech)
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         filter_ancestry() {
             return this.sortedDatasets
-                .map(v => Formatters.ancestryFormatter(v.ancestry))
+                .map((v) => Formatters.ancestryFormatter(v.ancestry))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         tableData() {
@@ -161,13 +163,13 @@ export default Vue.component("datasets-table", {
             } else {
                 return this.sortedDatasets;
             }
-        }
+        },
     },
     methods: {
         clearFilter(obj) {
             this[obj] = "";
-        }
-    }
+        },
+    },
 });
 </script>
 
