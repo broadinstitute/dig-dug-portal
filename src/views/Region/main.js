@@ -1,4 +1,6 @@
 import Vue from "vue";
+import * as d3 from "d3";
+
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -31,7 +33,6 @@ import Alert, {
 } from "@/components/Alert";
 
 import Formatters from "@/utils/formatters"
-import * as d3 from "d3";
 
 Vue.config.productionTip = false;
 Vue.component('b-button', BButton)
@@ -103,25 +104,28 @@ new Vue({
         closeAlert,
 
         // LocusZoom has "Panels"
-        addAssociationsPanel(event) {
-            const { phenotype } = event;
-            let finishHandler = this.updateAssociationsTable;
-            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
-                phenotype,
-                finishHandler
-            );
-            return newAssociationsPanelId;
+        tap(event) {
+            console.log(event)
         },
-        updateAssociationsTable(data) {
-            this.$store.commit(`associations/setResponse`, data);
-        },
-        // TODO: refactor to closure for extra programmer points
-        // TODO: does the idea of using components handle this problem?
-        updateAssociationsPanel(phenotype) {
-            if (this.currentAssociationsPanel) {
-                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
+        requestCredibleSets(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
+                this.$store.dispatch('credibleSets/query', { q: queryString });
             }
-            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
+        },
+        addCredibleVariantsPanel(event) {
+            const { phenotype, credibleSetId } = event;
+            this.$children[0].$refs.locuszoom2.addCredibleVariantsPanel(phenotype, credibleSetId,
+                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    // TODO: callbacks for creating a new table column for credible sets might go here
+                }
+            )
+        },
+        addAnnotationIntervalsPanel(event) {
+            const { annotation, method } = event;
+            this.$children[0].$refs.locuszoom2.addAnnotationIntervalsPanel(annotation, method);
         },
 
         // IGV has "Tracks"

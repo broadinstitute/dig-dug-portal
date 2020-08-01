@@ -185,25 +185,25 @@
                                     <div class="label">Annotation Method Track</div>
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
-                                        @annotation="$parent.addAnnotationTrack($event)"
+                                        @annotation="$parent.addAnnotationIntervalsPanel($event)"
                                     />
                                 </div>
 
-                                <div class="col filter-col-sm">
+                                <!-- <div class="col filter-col-sm">
                                     <div class="label">pValue (&le;)</div>
                                     <input v-model.number="$parent.pValue" class="form-control" />
                                 </div>
                                 <div class="col filter-col-sm">
                                     <div class="label">Fold (&ge;)</div>
                                     <input v-model.number="$parent.fold" class="form-control" />
-                                </div>
+                                </div> -->
 
                                 <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-lg">
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
-                                        @credibleset="$parent.addCredibleVariantTrack($event)"
+                                        @credibleset="$parent.addCredibleVariantsPanel($event)"
                                     />
                                 </div>
 
@@ -221,7 +221,7 @@
 
                         <div v-if="!!$store.state.phenotype">
                             <!-- TODO: Refactor p-value, fold, colorscheme, scoring to providers? -->
-                            <igv
+                            <!-- <igv
                                 ref="igv"
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
@@ -229,7 +229,15 @@
                                 :p-value="$parent.pValue"
                                 :fold="$parent.fold"
                                 :scoring="$parent.tissueScoring"
-                            />
+                            /> -->
+                            <locuszoom
+                                ref="locuszoom2"
+                                v-if="$store.state.phenotype"
+                                :chr="$store.state.chr"
+                                :start="$store.state.start"
+                                :end="$store.state.end"
+                                :refSeq="true">
+                            </locuszoom>
                         </div>
                     </div>
                 </div>

@@ -7,11 +7,13 @@
 
 <script>
 import Vue from "vue";
-import LocusZoom from "locuszoom";
 
-import LZDataSources from "@/utils/lz/lzDataSources";
+import LocusZoom from "locuszoom";
+// import "locuszoom/dist/ext/lz-intervals-track.min.js";
+
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
-import "locuszoom/dist/ext/lz-intervals-track.min.js";
+import LZDataSources from "@/utils/lz/lzDataSources";
+
 import idCounter from "@/utils/idCounter"
 import LocusZoomAssociationsPanel from "./panels/LocusZoomAssociationsPanel.vue";
 
@@ -67,7 +69,7 @@ export default Vue.component("locuszoom", {
             }
         });
 
-        this.plot = LocusZoom.populate(`#lz_${salt}`, this.dataSources, {
+        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "width_only",
             state: Object.assign({}, {
                 chr: this.chr,

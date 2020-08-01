@@ -1,4 +1,5 @@
-import LocusZoom from "locuszoom";
+// import LocusZoom from "locuszoom";
+import {BaseAdapter} from "locuszoom/esm/data/adapters"
 
 import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
@@ -53,7 +54,7 @@ export class LZAssociationsPanel {
     }
 
     get bioIndexToLZReader() {
-        return new _LZBioIndexSource({
+        const reader = new _LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
@@ -61,6 +62,7 @@ export class LZAssociationsPanel {
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
         });
+        return reader;
     }
 
     get panel() {
@@ -129,7 +131,7 @@ export class LZAnnotationIntervalsPanel {
     }
 
     get bioIndexToLZReader() {
-        return new _LZBioIndexSource({
+        const reader = new _LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
@@ -137,6 +139,7 @@ export class LZAnnotationIntervalsPanel {
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
         });
+        return reader;
     }
 
     get panel() {
@@ -239,7 +242,7 @@ export class LZCredibleVariantsPanel {
     }
 
     get bioIndexToLZReader() {
-        return new _LZBioIndexSource({
+        const reader = new _LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
@@ -247,6 +250,7 @@ export class LZCredibleVariantsPanel {
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
         });
+        return reader;
     }
 
     get panel() {
@@ -340,36 +344,43 @@ export class LZPhewasPanel {
 }
 
 
-const _LZBioIndexSource = LocusZoom.Data.Source.extend(function(init) {
-    this.parseInit(init);
-});
-_LZBioIndexSource.prototype.parseInit = function (params) {
-    const { index, queryStringMaker, translator, finishHandler, resolveHandler, errHandler } = params;
-    this.params = params;
-    this.queryStringMaker = queryStringMaker;
-    this.index = index;
-    this.translator = translator;
-    this.reader = readOnCoords(index, queryStringMaker, {
-        finishHandler,
-        resolveHandler,
-        errHandler,
-    });
-};
-_LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
-    const self = this;
-    return new Promise((resolve, reject) => {
-        const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
-        self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
-            if (err) {
-                closeAlert(alertID);
-                postAlertError(err.detail);
-                reject(new Error(err));
-            }
-            closeAlert(alertID);
-            resolve(self.translator(data));
+// const _LZBioIndexSource = LocusZoom.Data.Source.extend(function(init) {
+//     this.parseInit(init);
+// });
+
+
+class _LZBioIndexSource extends BaseAdapter {
+    constructor(params) {
+        super(params)
+    }
+    parseInit(params) {
+        const { index, queryStringMaker, translator, finishHandler, resolveHandler, errHandler } = params;
+        this.params = params;
+        this.queryStringMaker = queryStringMaker;
+        this.index = index;
+        this.translator = translator;
+        this.reader = readOnCoords(index, queryStringMaker, {
+            finishHandler,
+            resolveHandler,
+            errHandler,
         });
-    });
-};
+    };
+    getRequest(state, chain, fields) {
+        const self = this;
+        return new Promise((resolve, reject) => {
+            const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
+            self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
+                if (err) {
+                    closeAlert(alertID);
+                    postAlertError(err.detail);
+                    reject(new Error(err));
+                }
+                closeAlert(alertID);
+                resolve(self.translator(data));
+            });
+        });
+    };
+}
 
 // TODO: Can we eliminate this function completely in favor of just using bioIndexUtils.query?
 function readOnCoords(index, queryStringMaker, {
@@ -389,3 +400,6 @@ function readOnCoords(index, queryStringMaker, {
         }
     }
 }
+
+
+
