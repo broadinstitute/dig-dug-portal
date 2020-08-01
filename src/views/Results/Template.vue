@@ -1,271 +1,299 @@
 <template>
     <div>
+        <h2>Card Prototype</h2>
 
-        <!-- TODO: Way to have multiple of these? -->
-        <results-global-tooltip :identifier="'bioindex'">
-            <template #header>
-                Actions
-            </template>
-            <template #subheader>
-                <!-- Make a new card using this information -->
-            </template>
-            <template v-slot:default="slotProps">
-                <!-- <results-nav
-                    :queryKey="slotProps.currentData.split(':')[0]"
-                    :inputValue="slotProps.currentData.split(':')[1]"
-                    :showCompoundIndexes="true"
-                    @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: -2 })"
-                ></results-nav> -->
-                <div v-if="slotProps.currentData.split(':')[0] === 'phenotype'">
-                    I'm a phenotype component
+        <!-- Visualization/Tool Cards Take Arbitrary BioIndex Data and give arbitrary objects (BioIndex or otherwise) -->
+        <h6><em>Visualization/Tool Card</em></h6>
+        <div class="list-group-item">
+            <h3>Visualization/Tool Name</h3>
+                <template>
+                    <b>Input Types </b>
+                    <div class="bioindex-concept-pellet phenotype">
+                        Phenotype
+                    </div>
+                    <div class="bioindex-concept-pellet gene">
+                        Gene/Region
+                    </div>
+                </template>
+                <template>
+                    <b>Output Types </b>
+                    <div class="bioindex-concept-pellet phenotype">
+                        Phenotype
+                    </div>
+                    <div class="bioindex-concept-pellet gene">
+                        Gene/Region
+                    </div>
+                </template>
+                <br>
+                <div v-if="true">
+                    <template>
+                        Fill with Content
+                    </template>
                 </div>
-                <div v-else>
-                    I'm supposed to be a {{slotProps.currentData.split(':')[0]}}
+                <div v-else-if="!true">
+                    <!-- TODO -->
+                    <template>
+                        <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
+                        <div>
+                            <label for="card-input-phenotype">
+                                Phenotype
+                            </label>&nbsp;
+                            <input id="card-input-phenotype"/>&nbsp;
+                            <label for="card-input-gene">
+                                Gene
+                            </label>&nbsp;
+                            <input id="card-input-gene"/>
+                        </div>
+                        <draggable
+                            class="dragArea list-group"
+                            :group="{ name:'cards', put: ['data', 'viz'] }"
+                            :list="nullList"
+                            @change="tap">
+                            <div
+                                slot="header"
+                                class="btn-group list-group-item"
+                                role="group"
+                                aria-label="Basic example">
+                                Drag Here
+                            </div>
+                        </draggable>
+                    </template>
+                </div>
+        </div>
+        <br>
+        <!-- Data Cards have 1:1 correspondence with BioIndex -->
+        <h6><em>Data Card</em></h6>
+        <div class="list-group-item">
+            <h3>Data Table Name</h3>
+            <template>
+                <b>Input Types </b>
+                <div class="bioindex-concept-pellet phenotype">
+                    Phenotype
+                </div>
+                <div class="bioindex-concept-pellet gene">
+                    Gene/Region
                 </div>
             </template>
-        </results-global-tooltip>
-
-        <results-global-tooltip :identifier="'collection'">
-            <template #header>
-                Collect
-            </template>
-            <template v-slot:default="slotProps">
-                <!-- <button @click="$store.dispatch('collectItem', slotProps.currentData)">
-                    Collect {{slotProps.currentData}}
-                </button> -->
-                <!-- TODO: Actions can be here because currently the payload lets it be here, i.e. it turns out <BioIndexInputType>:value is used for both Actions and Collections
-                     HOWEVER: We want to be able to compose cards in a way which isn't nested, i.e. content slots should be inside the scoped slot for currentProps,
-                     and the content itself can potentially have its own components.
-                     This will allow us to take more concretions out of the page/Template.vue itself.
-                -->
-                <!-- <h6>Actions</h6>
-                <results-nav
-                    :queryKey="slotProps.currentData.split(':')[0]"
-                    :inputValue="slotProps.currentData.split(':')[1]"
-                    :showCompoundIndexes="false"
-                    @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: -2 })"
-                ></results-nav> -->
-                <!-- <results-nav
-                    :queryKey="slotProps.currentData.split(':')[0]"
-                    :inputValue="slotProps.currentData.split(':')[1]"
-                    :showCompoundIndexes="false"
-                    @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: -2 })"
-                ></results-nav> -->
-                <div v-if="slotProps.currentData.split(':')[0] === 'phenotype'">
-                    I'm a phenotype component
-                </div>
-                <div v-else>
-                    I'm supposed to be a {{slotProps.currentData.split(':')[0]}}
+            <template>
+                <b>Output Type </b>
+                <div class="bioindex-concept-pellet none">
+                    Variant
                 </div>
             </template>
-        </results-global-tooltip>
-
-
-
-        <b-container fluid>
-            <b-row no-gutters>
-                <b-col cols="3">
-
-                    <div>
-
-                        <b-input-group>
-                            <template v-slot:prepend>
-
-                                <b-dropdown
-                                    v-model="$parent.index"
-                                    :text="$parent.index"
-                                    variant="info">
-                                        <a  class="dropdown-item"
-                                            v-for="i in $store.state.indexes"
-                                            :key="i"
-                                            @click="$parent.index = i">
-                                            {{i}}
-                                        </a>
-                                </b-dropdown>
-                            </template>
-
-                            <!-- TODO: Refactor as a function of the split of the schema -->
-                            <b-form-input
-                                v-model="$parent.query"
-                                :placeholder="$parent.placeholder"
-                            ></b-form-input>
-
-                            <template v-slot:append>
-                                <b-button v-on:click="$store.dispatch('queryBioIndexForResults', { index: $parent.index, query: $parent.query })" variant="outline-secondary">
-                                    Make Card
-                                </b-button>
-                            </template>
-                        </b-input-group>
-
-                        <b-input-group>
-
-                            <multiselect
-                                v-model="$parent.cardsForOperation"
-                                :options="$store.getters.cardsById.map(card => $parent.provenanceHash(card))"
-                                :placeholder="'select cards'"
-                                :multiple="true"
-                            ></multiselect >
-
-                            <!-- TODO: If we can get this to work with tags, we can minimize the number of libraries in play -->
-                            <!-- <b-form-tags v-model="$parent.cardsForOperation" size="lg" add-on-change no-outer-focus class="mb-2">
-                                <template v-slot="{ tags, inputAttrs, inputHandlers, disabled, removeTag }">
-                                <ul v-if="tags.length > 0" class="list-inline d-inline-block mb-2">
-                                    <li v-for="tag in tags" :key="tag" class="list-inline-item">
-                                    <b-form-tag
-                                        @remove="removeTag(tag)"
-                                        :title="tag"
-                                        :disabled="disabled"
-                                        variant="info"
-                                    >{{ tag }}</b-form-tag>
-                                    </li>
-                                </ul>
-                                <b-form-select
-                                    v-model="$parent.cardsForOperation"
-                                    :options="$store.getters.cardsById.map(card => $parent.provenanceHash(card))">
-                                    <template v-slot:first>
-                                    <!-- This is required to prevent bugs with Safari -->
-                                    <!-- <option disabled value="">Choose a tag...</option>
-                                    </template>
-                                </b-form-select>
-                                </template>
-                            </b-form-tags> -->
-
-                            <template v-slot:append>
-                                <b-dropdown
-                                    v-model="$parent.operation"
-                                    :text="$parent.operation"
-                                    variant="info">
-                                        <a  class="dropdown-item"
-                                            v-for="i in $parent.operations"
-                                            :key="i"
-                                            @click="$parent.operation = i">
-                                            {{i}}
-                                        </a>
-                                </b-dropdown>
-                                <b-button v-on:click="$store.dispatch('joinCardsTogether', { operation: $parent.operation, cardIds: $parent.cardsForOperation })" variant="outline-secondary">
-                                    {{$parent.operation}} cards
-                                </b-button>
-                            </template>
-
-                        </b-input-group>
-
-                    </div>
-
-                    <button @click="$parent.makeURLWithEncodeHistory" :disabled="!$store.state.resultCards.cards.length > 0">Save Session</button>
-                    <p v-if="$store.getters.busy">Loading</p>
-
-                    <br>                    <br>
-
-                    <div v-if="$store.getters.cardsById.length > 0">
-
-                    <h5>Cards</h5> Reverse Chronological Order
-                    <div class="reverseorder">
-                        <a  v-for="card in $store.getters.cardsById"
-                            :key="`link-${$parent.provenanceHash(card)}-${card.id}`"
-                            :id="`link-${$parent.provenanceHash(card)}-${card.id}`"
-                            :href="`#card-${$parent.provenanceHash(card)}-${card.id}`"
-                            @click="$parent.jumpToElementBy(`#card-${$parent.provenanceHash(card)}-${card.id}`)">
-
-                            {{$parent.bioIndexFromHash($parent.provenanceHash(card))}} for {{$parent.queryFromHash($parent.provenanceHash(card))}}<br>
-
-                        </a>
-                    </div>
-                    </div>
-                    <br>                    <br>
-
-
-                    <div v-if="$store.state.collection.length > 0">
-                        <h5>Collection</h5>
-                        <div v-for="el in $store.state.collection" :key="el"> {{el}} </div>
-                    </div>
-
-                </b-col>
-                <b-col class="reverseorder">
-                <!-- <b-col> -->
-                    <!-- TODO: content addressing id vs timestamp id? right now list index serves role of relative timestamp. don't like that -->
-                    <div class="card"
-                        v-for="card in $store.getters.cardsById"
-                        :key="`card-${$parent.provenanceHash(card)}-${card.id}`"
-                        :id="`card-${$parent.provenanceHash(card)}-${card.id}`">
-
-                        <div v-if="card.index === 'regions'">
-                            <regions-result-card
-                                :title="`${$parent.bioIndexFromHash($parent.provenanceHash(card))} for ${$parent.queryFromHash($parent.provenanceHash(card))}`"
-                                :regions="$store.state.dataCache[$parent.contentHash(card)]"
-                                :parent="card.parent"
-                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
-                            ></regions-result-card>
+            <br>
+            <div v-if="true">
+                <template>
+                    Fill Content here
+                    <!-- <associations-table
+                        v-if="dataCardData"
+                        :associations="dataCardData"
+                        :phenotypes="phenotypes[0]"
+                        :per-page="10"
+                    ></associations-table> -->
+                </template>
+            </div>
+            <div v-else-if="!true">
+                    <!-- TODO -->
+                    <template>
+                        <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
+                        <div>
+                            <label for="card-input-phenotype">
+                                Phenotype
+                            </label>&nbsp;
+                            <input id="card-input-phenotype"/>&nbsp;
+                            <label for="card-input-gene">
+                                Gene
+                            </label>&nbsp;
+                            <input id="card-input-gene"/>
                         </div>
+                        <draggable
+                            class="dragArea list-group"
+                            :group="{ name:'cards', put: ['data', 'viz'] }"
+                            :list="nullList"
+                            @change="tap">
+                            <div
+                                slot="header"
+                                class="btn-group list-group-item"
+                                role="group"
+                                aria-label="Basic example">
+                                Drag Here
+                            </div>
+                        </draggable>
+                    </template>
+                </div>
+        </div>
 
-                        <div v-else-if="card.index === 'associations'">
-                            <associations-result-card
-                                :title="`${$parent.bioIndexFromHash($parent.provenanceHash(card))} for ${$parent.queryFromHash($parent.provenanceHash(card))}`"
-                                :associations="$store.state.dataCache[$parent.contentHash(card)]"
+        <br>
 
-                                :phenotype="$parent.phenotypeFromHash($parent.provenanceHash(card))"
-                                :locus="$parent.locusFromHash($parent.provenanceHash(card))"
+        <h2>Dragging Prototype</h2>
 
-                                :parent="card.parent"
-                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
-                            ></associations-result-card>
+        <div class="row">
+            <div class="col-3">
+            <h5>Draggable Data</h5>
+            <draggable
+                class="dragArea list-group"
+                :list="list1"
+                :group="{ name: 'data', pull: 'clone', put: false }"
+                :clone="cloneDog"
+                @change="log"
+            >
+                <div class="list-group-item" v-for="element in list1" :key="element.id">
+                {{ element.name }}
+                </div>
+            </draggable>
+            </div>
+
+            <div class="col-3">
+            <h5>Draggable Workspace</h5>
+            <draggable
+                class="dragArea list-group"
+                :list="list3"
+                :group="{ put: ['viz'] }"
+                @change="log">
+                <div class="list-group-item" v-for="element in list3" :key="element.id">
+                    {{ element.name }}
+                    <draggable
+                        class="dragArea list-group"
+                        :group="{ name:'cards', put: ['data'] }"
+                        :list="nullList"
+                        @change="tap">
+                        <div slot="header"
+                             class="btn-group list-group-item"
+                             role="group"
+                             aria-label="Basic example">
+                             Drag Here
                         </div>
+                    </draggable>
+                    <!-- <div v-else>
+                        {{nullList[0]}}
+                    </div> -->
+                </div>
+                <div v-if="list3.length === 0"
+                     slot="header"
+                     class="btn-group list-group-item"
+                     role="group"
+                     aria-label="Basic example">
+                     Drag Here
+                </div>
+            </draggable>
+            </div>
 
-                        <div v-else-if="card.index === 'variant'">
-                            <variant-result-card
-                                :title="`${$parent.bioIndexFromHash($parent.provenanceHash(card))} for ${$parent.queryFromHash($parent.provenanceHash(card))}`"
-                                :variant="$store.state.dataCache[$parent.contentHash(card)]"
-                                :parent="card.parent"
-                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
-                            ></variant-result-card>
-                        </div>
-
-                        <div v-else-if="card.index === 'top-associations'">
-                            <phenotype-signal-card
-                                :title="`${$parent.bioIndexFromHash($parent.provenanceHash(card))} for ${$parent.queryFromHash($parent.provenanceHash(card))}`"
-                                :parent="card.parent"
-                                :topAssociations="$store.state.dataCache[$parent.contentHash(card)]"
-                                :phenotypeMap="$store.state.bioPortal.phenotypeMap">
-                            </phenotype-signal-card>
-                        </div>
-
-                        <div v-else-if="card.index === 'gene'">
-                            <gene-result-card
-                                :card="card"
-                                :geneData="$store.state.dataCache[$parent.contentHash(card)]"
-                                @pushQuery="$store.dispatch('queryBioIndexForResults', { index: $event.index, query: $event.queryString, parent: card.id })"
-                            ></gene-result-card>
-                        </div>
-
-                        <div v-else-if="card.index === 'set'">
-                            <!-- {{$store.state.dataCache[card.id]}} -->
-                            <result-card-template
-                                :card="card"
-                                :cardData="$store.state.dataCache[card.id]"
-                            ></result-card-template>
-                        </div>
-
-                        <div v-else>
-                            <result-card-template
-                                :card="card"
-                                :cardData="$store.state.dataCache[$parent.contentHash(card)]"
-                            ></result-card-template>
-                        </div>
-
-                    </div>
-
-                </b-col>
-            </b-row>
-        </b-container>
-
-
+            <div class="col-3">
+            <h5>Draggable Viz</h5>
+            <draggable
+                class="dragArea list-group"
+                :list="list2"
+                :group="{ name: 'viz', pull: 'clone', put: false }"
+                :clone="cloneDog"
+                @change="log">
+                <draggable class="list-group-item" v-for="element in list2" :key="element.id">
+                {{ element.name }}
+                </draggable>
+            </draggable>
+            </div>
+        </div>
 
     </div>
+
 </template>
-<style scoped>
-    /* that's the good stuff https://stackoverflow.com/a/60413254/1991892 */
-    .reverseorder {
-        display: flex;
-        flex-direction: column-reverse;
-        align-self: flex-start;
+
+<script>
+import draggable from "vuedraggable";
+import { query } from "../../utils/bioIndexUtils";
+let idGlobal = 8;
+export default {
+  name: "custom-clone",
+  display: "Custom Clone",
+  order: 3,
+  components: {
+    draggable
+  },
+  data() {
+    return {
+    list2: [
+        { name: "visualization 1", id: 1 },
+        { name: "visualization 2", id: 2 },
+        { name: "visualization 3", id: 3 },
+        { name: "visualization 4", id: 4 }
+      ],
+     list1: [
+        { name: "data 1", id: 1 },
+        { name: "data 2", id: 2 },
+        { name: "data 3", id: 3 },
+        { name: "data 4", id: 4 }
+      ],
+      list3: [],
+      nullList: [],
+      dataCardData: null,
+      visualizationCard: {},
+    };
+  },
+  async created() {
+    const dataCardData = await query('top-associations', 'slc30a8', { limit: null });
+    this.dataCardData = dataCardData;
+    // console.log()
+  },
+  computed: {
+      phenotypes() {
+          return Object.values(this.$store.state.bioPortal.phenotypeMap);
+      }
+  },
+  methods: {
+    removeAt(idx) {
+      this.list2.splice(idx, 1);
+    },
+    log: function(evt) {
+      window.console.log(evt);
+    },
+    tap: function(evt) {
+      window.console.log('tapping',evt);
+    },
+    cloneDog({ id, name }) {
+        const newId = idGlobal++;
+        if (!this.nullList[newId]) {
+            this.nullList[newId] = [];
+        };
+        return {
+            id: newId,
+            name: name
+        };
     }
+  }
+};
+</script>
+<style scoped>
+
+
+.bioindex-concept-pellet {
+    cursor: pointer;
+    display: inline-block;
+    margin: 0px 10px 10px 0;
+    padding: 2px 20px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.bioindex-concept-pellet.phenotype {
+    background-color: #a0d7ff;
+    border: solid 1px #30b7f6;
+}
+
+.bioindex-concept-pellet.gene {
+    background-color: #b7eab7;
+    border: solid 1px #72ce49;
+}
+
+.bioindex-concept-pellet.antisense {
+    background-color: #b7eab7;
+    border: solid 1px #72ce49;
+}
+
+
+.bioindex-concept-pellet.none {
+    background-color: #eee;
+    border: solid 1px #ccc;
+}
+
 </style>
