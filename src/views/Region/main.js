@@ -101,27 +101,27 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
-        // LocusZoom has "Panels"
-        addAssociationsPanel(event) {
-            const { phenotype } = event;
-            let finishHandler = this.updateAssociationsTable;
-            const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
-                phenotype,
-                finishHandler
-            );
-            return newAssociationsPanelId;
-        },
-        updateAssociationsTable(data) {
-            this.$store.commit(`associations/setResponse`, data);
-        },
-        // TODO: refactor to closure for extra programmer points
-        // TODO: does the idea of using components handle this problem?
-        updateAssociationsPanel(phenotype) {
-            if (this.currentAssociationsPanel) {
-                this.$children[0].$refs.locuszoom.plot.removePanel(this.currentAssociationsPanel);
+        requestCredibleSets(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
+                this.$store.dispatch('credibleSets/query', { q: queryString });
             }
-            this.currentAssociationsPanel = this.addAssociationsPanel({ phenotype });
+        },
+        // LocusZoom has "Panels"
+        // For LocusZoom2
+        addCredibleVariantsPanel(event) {
+            const { phenotype, credibleSetId } = event;
+            this.$children[0].$refs.locuszoom2.addCredibleVariantsPanel(phenotype, credibleSetId,
+                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    // TODO: callbacks for creating a new table column for credible sets might go here
+                }
+            )
+        },
+        addAnnotationIntervalsPanel(event) {
+            const { annotation, method } = event;
+            this.$children[0].$refs.locuszoom2.addAnnotationIntervalsPanel(annotation, method);
         },
 
         // IGV has "Tracks"

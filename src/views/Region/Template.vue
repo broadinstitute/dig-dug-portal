@@ -182,28 +182,28 @@
                         <div class="filtering-ui-wrapper">
                             <div class="row filtering-ui-content">
                                 <div class="col filter-col-lg">
-                                    <div class="label">Annotation Method Track</div>
+                                    <div class="label">Annotation Method Panel</div>
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
-                                        @annotation="$parent.addAnnotationTrack($event)"
+                                        @annotation="$parent.addAnnotationIntervalsPanel($event)"
                                     />
                                 </div>
 
-                                <div class="col filter-col-sm">
+                                <!-- <div class="col filter-col-sm">
                                     <div class="label">pValue (&le;)</div>
                                     <input v-model.number="$parent.pValue" class="form-control" />
                                 </div>
                                 <div class="col filter-col-sm">
                                     <div class="label">Fold (&ge;)</div>
                                     <input v-model.number="$parent.fold" class="form-control" />
-                                </div>
+                                </div> -->
 
                                 <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-lg">
-                                    <div class="label">Credible Sets Track</div>
+                                    <div class="label">Credible Sets Panel</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
-                                        @credibleset="$parent.addCredibleVariantTrack($event)"
+                                        @credibleset="$parent.addCredibleVariantsPanel($event)"
                                     />
                                 </div>
 
@@ -220,16 +220,17 @@
                         </div>
 
                         <div v-if="!!$store.state.phenotype">
-                            <!-- TODO: Refactor p-value, fold, colorscheme, scoring to providers? -->
-                            <igv
-                                ref="igv"
+                            <locuszoom
+                                ref="locuszoom2"
+                                v-if="$store.state.phenotype"
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
-                                :p-value="$parent.pValue"
-                                :fold="$parent.fold"
-                                :scoring="$parent.tissueScoring"
-                            />
+                                :colorScheme="$parent.tissueColorScheme"
+                                @panelremoved="()=>{}"
+                                @regionchanged="$parent.requestCredibleSets($event.data)"
+                                :refSeq="true">
+                            </locuszoom>
                         </div>
                     </div>
                 </div>

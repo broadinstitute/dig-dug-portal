@@ -12,6 +12,7 @@ import LocusZoom from "locuszoom";
 import LZDataSources from "@/utils/lz/lzDataSources";
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 import "locuszoom/dist/ext/lz-intervals-track.min.js";
+
 import idCounter from "@/utils/idCounter"
 import LocusZoomAssociationsPanel from "./panels/LocusZoomAssociationsPanel.vue";
 
@@ -50,6 +51,7 @@ export default Vue.component("locuszoom", {
     data() {
         return {
             locuszoommounted: false,
+            yIndex: 0,
             salt: Math.floor(Math.random() * 10000).toString()
         }
     },
@@ -67,7 +69,7 @@ export default Vue.component("locuszoom", {
             }
         });
 
-        this.plot = LocusZoom.populate(`#lz_${salt}`, this.dataSources, {
+        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "width_only",
             state: Object.assign({}, {
                 chr: this.chr,
@@ -80,7 +82,7 @@ export default Vue.component("locuszoom", {
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
-                y_index: 9001
+                y_index: 1
             }));
         }
 
@@ -124,6 +126,7 @@ export default Vue.component("locuszoom", {
                 namespace: { [panel.forDataSourceType]: panel.takingDataSourceName },
                 id: panel.id,
                 ...panel.locusZoomLayoutOptions,                // other locuszoom configuration required for the panel, including overrides(?)
+                y_index: 0,
             })).addBasicLoader();
 
             // so we can figure out how to remove it later

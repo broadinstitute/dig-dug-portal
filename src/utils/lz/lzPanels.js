@@ -42,7 +42,7 @@ export class LZAssociationsPanel {
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
             "id": this.panel_id,
-            y_index: -9001,
+            y_index: 0,
         };
         this.handlers = {
             finishHandler,
