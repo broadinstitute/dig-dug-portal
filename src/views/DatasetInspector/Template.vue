@@ -104,7 +104,7 @@
                     >Top Variants for {{$store.state.selectedDataset.description}}</h4>
                     <associations-table
                         :phenotypes="[$store.state.selectedPhenotype]"
-                        :associations="$parent.associations"
+                        :associations="$store.state.datasetAssociations.data"
                     ></associations-table>
                 </div>
             </div>

@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
+import bioIndex from "@/modules/bioIndex";
 
 Vue.use(Vuex);
 
@@ -11,6 +12,7 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
+        datasetAssociations: bioIndex('dataset-associations'),
     },
     state() {
         return {
@@ -42,8 +44,15 @@ export default new Vuex.Store({
     },
     actions: {
         async onPhenotypeChange(context, phenotype) {
-            if (phenotype) {
+            let dataset = context.state.selectedDataset;
+
+            if (dataset && phenotype) {
+                let q = `${dataset.name},${phenotype.name}`;
+
                 context.commit('setSelectedPhenotype', phenotype.name);
+                context.dispatch('datasetAssociations/query', { q });
+            } else {
+                context.dispatch('datasetAssociations/clearData');
             }
         },
         async onDatasetChange(context, dataset) {
