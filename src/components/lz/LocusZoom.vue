@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div id="lz"></div>
+        <div :id="`lz_${salt}`"></div>
         <slot v-if="locuszoommounted"></slot>
     </div>
 </template>
@@ -50,6 +50,7 @@ export default Vue.component("locuszoom", {
     data() {
         return {
             locuszoommounted: false,
+            salt: Math.floor(Math.random() * 10000).toString()
         }
     },
     mounted() {
@@ -66,7 +67,7 @@ export default Vue.component("locuszoom", {
             }
         });
 
-        this.plot = LocusZoom.populate("#lz", this.dataSources, {
+        this.plot = LocusZoom.populate(`#lz_${salt}`, this.dataSources, {
             responsive_resize: "width_only",
             state: Object.assign({}, {
                 chr: this.chr,
