@@ -127,11 +127,13 @@ new Vue({
             if (!!keyParams.dataset) {
                 this.$store.commit('setSelectedDataset', keyParams.dataset);
                 this.$store.dispatch("kp4cd/getDatasetInfo", keyParams.dataset);
+                this.$store.dispatch('queryAssociations');
             }
         },
-        "$store.state.bioPortal.phenotypeMap": function () {
+        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             if (!!keyParams.phenotype) {
                 this.$store.commit('setSelectedPhenotype', keyParams.phenotype);
+                this.$store.dispatch('queryAssociations');
             }
         },
         diseaseGroup(group) {

@@ -44,22 +44,30 @@ export default new Vuex.Store({
     },
     actions: {
         async onPhenotypeChange(context, phenotype) {
-            let dataset = context.state.selectedDataset;
-
-            if (dataset && phenotype) {
-                let q = `${dataset.name},${phenotype.name}`;
-
+            if (phenotype) {
                 context.commit('setSelectedPhenotype', phenotype.name);
-                context.dispatch('datasetAssociations/query', { q });
-            } else {
-                context.dispatch('datasetAssociations/clearData');
             }
+
+            context.dispatch('queryAssociations');
         },
         async onDatasetChange(context, dataset) {
             if (dataset) {
                 context.commit('setSelectedDataset', dataset.name);
                 context.dispatch("kp4cd/getDatasetInfo", dataset.name);
             }
+
+            context.dispatch('queryAssociations');
         },
-    }
+        async queryAssociations(context) {
+            let dataset = context.state.selectedDataset;
+            let phenotype = context.state.selectedPhenotype;
+
+            if (dataset && phenotype) {
+                let q = `${dataset.name},${phenotype.name}`;
+                context.dispatch('datasetAssociations/query', { q });
+            } else {
+                context.dispatch('datasetAssociations/clearData');
+            }
+        }
+    },
 });
