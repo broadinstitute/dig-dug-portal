@@ -1,20 +1,23 @@
 <template>
     <div>
-        <b-table
-            hover
-            small
-            responsive="sm"
-            :items="transcriptionFactors"
-            :fields="fields"
-            :per-page="perPage"
-            :current-page="currentPage"
-        ></b-table>
-        <b-pagination
-            class="pagination-sm justify-content-center"
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-        ></b-pagination>
+        <div v-if="rows > 0">
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :items="transcriptionFactors"
+                :fields="fields"
+                :per-page="perPage"
+                :current-page="currentPage"
+            ></b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
+        </div>
+        <div v-else>No transcription factors found.</div>
     </div>
 </template>
 
@@ -36,42 +39,42 @@ export default Vue.component("transcription-factors-table", {
             fields: [
                 {
                     key: "positionWeightMatrix",
-                    label: "Position Weight Matrix"
+                    label: "Position Weight Matrix",
                 },
                 {
                     key: "delta",
                     label: "Delta",
-                    formatter: Formatters.floatFormatter
+                    formatter: Formatters.floatFormatter,
                 },
                 {
                     key: "position",
                     label: "Position",
-                    formatter: Formatters.intFormatter
+                    formatter: Formatters.intFormatter,
                 },
                 {
                     key: "strand",
-                    label: "Strand"
+                    label: "Strand",
                 },
                 {
                     key: "refScore",
                     label: "Reference Score",
-                    formatter: Formatters.floatFormatter
+                    formatter: Formatters.floatFormatter,
                 },
                 {
                     key: "altScore",
                     label: "Alt Score",
-                    formatter: Formatters.floatFormatter
-                }
+                    formatter: Formatters.floatFormatter,
+                },
             ],
             perPage: 5,
-            currentPage: 1
+            currentPage: 1,
         };
     },
 
     computed: {
         rows() {
             return this.transcriptionFactors.length;
-        }
-    }
+        },
+    },
 });
 </script>

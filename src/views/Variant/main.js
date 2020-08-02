@@ -13,11 +13,10 @@ import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
 import RegionsTable from "@/components/RegionsTable.vue";
-
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
-
+import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -48,7 +47,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("queryVariant");
+        this.$store.dispatch("queryVariant", keyParams.variant);
     },
 
     render(createElement, context) {
@@ -61,12 +60,30 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        consequenceFormatter: Formatters.consequenceFormatter,
+        consequenceMeaning: Formatters.consequenceMeaning,
     },
 
     computed: {
+        variantData() {
+            return this.$store.state.variantData.data;
+        },
+
+        varId() {
+            return this.$store.state.variant && this.$store.state.variant.varId;
+        },
+
+        dbSNP() {
+            return this.$store.state.variant && this.$store.state.variant.dbSNP;
+        },
+
+        variantName() {
+            return this.dbSNP || this.varId || '';
+        },
+
         documentationMap() {
-            let varId = this.$store.state.varId;
-            let dbSNP = this.$store.state.dbSNP;
+            let varId = this.varId;
+            let dbSNP = this.dbSNP;
 
             if (dbSNP) {
                 return { variant: `${varId} / ${dbSNP}` };
@@ -74,6 +91,7 @@ new Vue({
 
             return { variant: varId || '' };
         },
+
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -85,14 +103,6 @@ new Vue({
 
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-
-        variantData() {
-            return null;
-        },
-
-        variantName() {
-            return this.$store.state.variantID;
         },
 
         lzAssociations() {
@@ -119,15 +129,9 @@ new Vue({
             return phewas;
         },
 
-        pickedConsequence() {
-            if (!!this.$store.state.transcriptConsequences.data) {
-                return this.$store.state.transcriptConsequences.data.find(cqs => !!cqs.pick);
-            }
-        },
-
         regions() {
             return this.$store.state.regions.data;
-        }
+        },
     },
 
 
@@ -138,7 +142,14 @@ new Vue({
 
         variantData(data) {
             if (!!data) {
-                this.$store.dispatch('queryRegions', data);
+                this.$store.commit('setVariant', data[0]);  // only ever 1 result
+            }
+        },
+
+        "$store.state.variant"(variant) {
+            if (variant) {
+                this.$store.dispatch('transcriptConsequences/query', { q: variant.varId });
+                this.$store.dispatch('transcriptionFactors/query', { q: variant.varId });
             }
         }
     }

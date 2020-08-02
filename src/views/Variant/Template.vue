@@ -20,7 +20,7 @@
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-5">
                                 <input
-                                    v-model="$store.state.newVariantID"
+                                    v-model="$store.state.newVariantId"
                                     type="text"
                                     class="form-control input-default"
                                     placeholder="Search Variant"
@@ -32,7 +32,7 @@
                                     id="variantSearchGo"
                                     class="btn btn-primary"
                                     type="button"
-                                    @click="$store.dispatch('queryVariant', $store.state.newVariantID)"
+                                    @click="$store.dispatch('queryVariant', $store.state.newVariantId)"
                                 >GO</button>
                             </div>
                             <div class="col-md-6 search-example">
@@ -41,10 +41,10 @@
                             </div>
                         </div>
                         <span>
-                            {{$store.state.varId}}
-                            <span v-if="$store.state.dbSNP">
+                            {{$parent.varId}}
+                            <span v-if="$parent.dbSNP">
                                 <span style="color: gray">/</span>
-                                {{$store.state.dbSNP}}
+                                {{$parent.dbSNP}}
                             </span>
                         </span>
                     </div>
@@ -53,22 +53,42 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Variant Effect Predictions</h4>
+                    <h4 class="card-title">Closests Genes</h4>
                     <documentation
-                        name="variant.effect.subheader"
+                        name="variant.genes.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
+                    <div v-if="$store.state.variant && $store.state.variant.nearest">
+                        <div
+                            v-for="gene in $store.state.variant.nearest"
+                            class="gene-with-signal protein_coding"
+                        >
+                            <a :href="`/gene.html?gene=${gene}`">{{gene}}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                    <div v-if="$store.state.transcriptConsequences.data">
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div v-if="$store.state.transcriptConsequences.data.length > 0">
+                        <h4 class="card-title">Predicted Transcript Consequences</h4>
+                        <documentation
+                            name="variant.effect.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
+
                         <transcript-consequence-table
                             v-bind:transcriptConsequences="$store.state.transcriptConsequences.data"
                         ></transcript-consequence-table>
                     </div>
-                    <div v-else class="card-body">
-                        <h4>No predictions</h4>
+                    <div v-else-if="$store.state.variant">
+                        <h4 class="card-title">Most Severe Consequence</h4>
+                        {{$parent.consequenceFormatter($store.state.variant.consequence)}} &mdash; {{$parent.consequenceMeaning($store.state.variant.consequence)}}
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">PheWAS Visualization</h4>
@@ -81,7 +101,8 @@
                         :refSeq="false"
                     >
                         <lz-phewas-panel
-                            :varId="$store.state.variantID"
+                            v-if="$store.state.variant"
+                            :varId="$store.state.variant.varId"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         ></lz-phewas-panel>
                     </locuszoom>
@@ -93,8 +114,9 @@
                         ></documentation>
                     </h4>
                     <phewas-table
+                        v-if="$store.state.phewas.data"
                         :associations="$store.state.phewas.data"
-                        :phenotype-map="$store.state.bioPortal.phenotypeMap"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     ></phewas-table>
                 </div>
             </div>
