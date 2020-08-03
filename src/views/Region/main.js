@@ -90,8 +90,9 @@ new Vue({
             pValue: null,
             fold: null,
 
-            currentAssociationsPanel: null
+            currentAssociationsPanel: null,
 
+            selectedCredibleSets: []
         };
     },
 
@@ -122,6 +123,10 @@ new Vue({
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
+        },
+        searchAndDestroyCorrespondingTable(event) {
+            console.log(event)
+            // const selectedCredibleSets.filter()
         },
 
         // IGV has "Tracks"

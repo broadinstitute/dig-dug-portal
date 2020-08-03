@@ -188,7 +188,7 @@
                         :start="$store.state.start"
                         :end="$store.state.end"
                         :colorScheme="$parent.tissueColorScheme"
-                        @panelremoved="()=>{}"
+                        @panelremoved="$parent.searchAndDestroyCorrespondingTable($event.data)"
                         @regionchanged="$parent.requestCredibleSets($event.data)"
                         :refSeq="true"
                     >
@@ -215,7 +215,16 @@
                 </div>
             </div>
         </div>
-
+            <!-- TODO: collapse tables -->
+            <b-collapse id="collapse-1" class="mt-2">
+                <b-card>
+                <p class="card-text">Collapse contents Here</p>
+                <b-button v-b-toggle.collapse-1-inner size="sm">Toggle Inner Collapse</b-button>
+                <b-collapse id="collapse-1-inner" class="mt-2">
+                    <b-card>Hello!</b-card>
+                </b-collapse>
+                </b-card>
+            </b-collapse>
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
