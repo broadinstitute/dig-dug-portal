@@ -9,7 +9,8 @@
 import Vue from "vue";
 
 import LocusZoom from "locuszoom";
-// import "locuszoom/dist/ext/lz-intervals-track.min.js";
+import intervalTracks from 'locuszoom/esm/ext/lz-intervals-track';
+import toolbar_addons from 'locuszoom/esm/ext/lz-widget-addons';
 
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 import LZDataSources from "@/utils/lz/lzDataSources";
@@ -17,28 +18,31 @@ import LZDataSources from "@/utils/lz/lzDataSources";
 import idCounter from "@/utils/idCounter"
 import LocusZoomAssociationsPanel from "./panels/LocusZoomAssociationsPanel.vue";
 
+LocusZoom.use(intervalTracks);
+LocusZoom.use(toolbar_addons);
+
 const BASE_PANEL_OPTIONS = {
     // proportional_height: 1,
     height: 240,
-    dashboard: {
-        components: [
-            {
-                type: "resize_to_data",
-                position: "right"
-            },
-            {
-                type: "region_scale",
-                position: "left"
-            }
-        ]
-    }
+    // dashboard: {
+    //     components: [
+    //         {
+    //             type: "resize_to_data",
+    //             position: "right"
+    //         },
+    //         {
+    //             type: "region_scale",
+    //             position: "left"
+    //         }
+    //     ]
+    // }
 }
 
 /* panel options by panel type
  */
 const PANEL_OPTIONS = {
-    'association': { min_height: 240, height: 240 },
-    'genes': { min_height: 240, height: 240 },
+    // 'association': { min_height: 240, height: 240 },
+    // 'genes': { min_height: 240, height: 240 },
 };
 
 export default Vue.component("locuszoom", {

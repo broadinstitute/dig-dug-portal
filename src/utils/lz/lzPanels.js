@@ -44,6 +44,19 @@ export class LZAssociationsPanel {
         this.locusZoomLayoutOptions = {
             "id": this.panel_id,
             y_index: -9001,
+            toolbar: {
+                widgets: [
+                    {
+                        type: 'filter_field',
+                        position: 'right',
+                        layer_name: `${this.panel_layout_type}`,
+                        field:  `${this.panel_layout_type}:${'pvalue'}`,
+                        field_display_html: 'p-value',
+                        operator: '>',
+                        data_type: 'number',
+                    },
+                ],
+            },
         };
         this.handlers = {
             finishHandler,
@@ -125,7 +138,20 @@ export class LZAnnotationIntervalsPanel {
         this.locusZoomLayoutOptions = {
             title: {
                 text: `${annotation} ${method ? method : ''}`
-            }
+            },
+            toolbar: {
+                widgets: [
+                    {
+                        type: 'filter_field',
+                        position: 'right',
+                        layer_name: `${this.panel_layout_type}`,
+                        field:  `${this.panel_layout_type}:${'pvalue'}`,
+                        field_display_html: 'p-value',
+                        operator: '>',
+                        data_type: 'number',
+                    },
+                ],
+            },
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
     }
