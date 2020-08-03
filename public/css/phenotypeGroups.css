@@ -62,6 +62,8 @@
     background-color: #cccc00;
 }
 
+.pws-phenotype-group.TYPE.DIABETES div.pws-progress-bar { background-color: #639bc0; }
+
 .pws-box.ANTHROPOMETRIC {
     border-top: solid 5px #048845 !important;
 }
@@ -125,6 +127,8 @@
 .pws-box.STROKE {
     border-top: solid 5px #cccc00 !important;
 }
+
+.pws-box.TYPE.DIABETES { border-top: solid 5px #639bc0 !important; }
 
 /* merged plot */
 .pws-group-legend-wrapper {

@@ -1076,3 +1076,47 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     height: 315px;
     margin: 0 auto;
 }
+
+.egl-research-method-wrapper {
+    display: block;
+    border-top: solid 2px #ccc;
+    margin-top: 35px;
+    padding: 35px 35px 0 35px !important;
+}
+
+.egl-research-trait-bubbles {
+    list-style: none;
+}
+
+.egl-research-trait-bubbles li {
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 7px;
+}
+
+.egl-research-trait-bubbles li a {
+    display: block;
+    background-color: #0097d6;
+    color: #fff !important;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.egl-research-trait-bubbles li a:hover {
+    background-color: #0097d675;
+}
+
+.egl-research-trait-bubbles li a::after {
+    content: "";
+}
+
+.egl-research-trait-bubbles li a:hover::after {
+    content: "  GO >";
+    font-size: 0.75em;
+}
+
+.egl-table-ss {
+    width: 350px;
+    border: solid 1px #ccc;
+    float: right;
+}

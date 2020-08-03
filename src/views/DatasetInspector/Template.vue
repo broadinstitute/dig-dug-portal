@@ -116,6 +116,7 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">Dataset Description</h4>
                     <div class="row">
                         <div class="col-md-12">
                             <dataset-info-section :datasetInfo="$parent.datasetInfo"></dataset-info-section>
