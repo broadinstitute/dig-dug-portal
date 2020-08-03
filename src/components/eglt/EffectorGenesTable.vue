@@ -423,7 +423,7 @@ export default Vue.component("effector-genes-table", {
 
                     case "decimal":
                         let fixedBy = formatting["fixed"];
-                        return VALUE.toFixed(fixedBy);
+                        return parseFloat(VALUE).toFixed(fixedBy);
                         break;
                 }
             } else {
