@@ -82,7 +82,7 @@ export default Vue.component("locuszoom", {
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
-                y_index: 1
+                y_index: 3
             }));
         }
 
@@ -126,7 +126,6 @@ export default Vue.component("locuszoom", {
                 namespace: { [panel.forDataSourceType]: panel.takingDataSourceName },
                 id: panel.id,
                 ...panel.locusZoomLayoutOptions,                // other locuszoom configuration required for the panel, including overrides(?)
-                y_index: 0,
             })).addBasicLoader();
 
             // so we can figure out how to remove it later

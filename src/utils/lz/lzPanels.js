@@ -121,9 +121,10 @@ export class LZAnnotationIntervalsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
+            y_index: 1,
             title: {
                 text: `${annotation} ${method ? method : ''}`
-            }
+            },
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
     }
@@ -190,6 +191,7 @@ export class LZCredibleVariantsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
+            y_index: 1,
             title: {
                 text: `${credibleSetId}`
             },

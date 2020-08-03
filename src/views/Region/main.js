@@ -112,7 +112,7 @@ new Vue({
         // For LocusZoom2
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
-            this.$children[0].$refs.locuszoom2.addCredibleVariantsPanel(phenotype, credibleSetId,
+            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
                 // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
                 function(dataLoadedResponse) {
                     // TODO: callbacks for creating a new table column for credible sets might go here
@@ -121,7 +121,7 @@ new Vue({
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom2.addAnnotationIntervalsPanel(annotation, method);
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
         },
 
         // IGV has "Tracks"

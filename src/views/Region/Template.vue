@@ -131,7 +131,7 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
-                        v-if="$store.state.phenotype"
+                        v-if="!!$store.state.phenotype"
                         class="card-title"
                     >Associations for {{$store.state.phenotype.description}}</h4>
                     <documentation
@@ -139,12 +139,57 @@
                         :content-fill="$parent.documentationMap"
                     ></documentation>
 
+                    <div class="filtering-ui-wrapper">
+                        <div class="row filtering-ui-content">
+                            <div class="col filter-col-lg">
+                                <div class="label">Annotation Method Panel</div>
+                                <annotation-method-selectpicker
+                                    :annotations="$parent.globalEnrichmentAnnotations"
+                                    :clearOnSelected="true"
+                                    @annotation="$parent.addAnnotationIntervalsPanel($event)"
+                                />
+                            </div>
+
+                            <!-- <div class="col filter-col-sm">
+                                <div class="label">pValue (&le;)</div>
+                                <input v-model.number="$parent.pValue" class="form-control" />
+                            </div>
+                            <div class="col filter-col-sm">
+                                <div class="label">Fold (&ge;)</div>
+                                <input v-model.number="$parent.fold" class="form-control" />
+                            </div> -->
+
+                            <div class="col divider">&nbsp;</div>
+                            <div class="col filter-col-lg">
+                                <div class="label">Credible Sets Panel</div>
+                                <credible-sets-selectpicker
+                                    :credibleSets="$parent.credibleSets"
+                                    :clearOnSelected="true"
+                                    @credibleset="$parent.addCredibleVariantsPanel($event)"
+                                />
+                            </div>
+
+                            <div class="col divider">&nbsp;</div>
+                            <div class="col filter-col-lg">
+                                <div class="label">View region in Variant Prioritizer</div>
+                                <b-button
+                                    class="btn btn-sm btn-2-vptz"
+                                    :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
+                                    target="_blank"
+                                >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
+                            </div>
+                        </div>
+                    </div>
+
                     <locuszoom
                         ref="locuszoom"
                         v-if="$store.state.phenotype"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
                         :end="$store.state.end"
+                        :colorScheme="$parent.tissueColorScheme"
+                        @panelremoved="()=>{}"
+                        @regionchanged="$parent.requestCredibleSets($event.data)"
                         :refSeq="true"
                     >
                         <lz-associations-panel
@@ -155,7 +200,7 @@
                 </div>
             </div>
 
-            <div v-if="$store.state.phenotype">
+            <div v-if="!!$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4
@@ -166,72 +211,6 @@
                             :phenotypes="$parent.phenotypes"
                             :associations="$store.state.associations.data"
                         ></associations-table>
-                    </div>
-                </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4
-                            class="card-title"
-                        >Credible Sets and Annotations for {{$store.state.phenotype.description}} in the region: {{$parent.regionString}}</h4>
-
-                        <documentation
-                            name="region.igv.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-
-                        <div class="filtering-ui-wrapper">
-                            <div class="row filtering-ui-content">
-                                <div class="col filter-col-lg">
-                                    <div class="label">Annotation Method Panel</div>
-                                    <annotation-method-selectpicker
-                                        :annotations="$parent.globalEnrichmentAnnotations"
-                                        @annotation="$parent.addAnnotationIntervalsPanel($event)"
-                                    />
-                                </div>
-
-                                <!-- <div class="col filter-col-sm">
-                                    <div class="label">pValue (&le;)</div>
-                                    <input v-model.number="$parent.pValue" class="form-control" />
-                                </div>
-                                <div class="col filter-col-sm">
-                                    <div class="label">Fold (&ge;)</div>
-                                    <input v-model.number="$parent.fold" class="form-control" />
-                                </div> -->
-
-                                <div class="col divider">&nbsp;</div>
-                                <div class="col filter-col-lg">
-                                    <div class="label">Credible Sets Panel</div>
-                                    <credible-sets-selectpicker
-                                        :credibleSets="$parent.credibleSets"
-                                        @credibleset="$parent.addCredibleVariantsPanel($event)"
-                                    />
-                                </div>
-
-                                <div class="col divider">&nbsp;</div>
-                                <div class="col filter-col-lg">
-                                    <div class="label">View region in Variant Prioritizer</div>
-                                    <b-button
-                                        class="btn btn-sm btn-2-vptz"
-                                        :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
-                                        target="_blank"
-                                    >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-if="!!$store.state.phenotype">
-                            <locuszoom
-                                ref="locuszoom2"
-                                v-if="$store.state.phenotype"
-                                :chr="$store.state.chr"
-                                :start="$store.state.start"
-                                :end="$store.state.end"
-                                :colorScheme="$parent.tissueColorScheme"
-                                @panelremoved="()=>{}"
-                                @regionchanged="$parent.requestCredibleSets($event.data)"
-                                :refSeq="true">
-                            </locuszoom>
-                        </div>
                     </div>
                 </div>
             </div>
