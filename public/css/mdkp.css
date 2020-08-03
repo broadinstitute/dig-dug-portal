@@ -648,6 +648,7 @@ div.filtering-tools table th {
 }
 
 .front-gene-search-wrapper,
+.front-dataset-search-wrapper,
 .front-phenotype-search-wrapper {
     width: 50%;
     margin: auto;
