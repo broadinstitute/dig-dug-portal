@@ -144,11 +144,10 @@
                     >{{gene}}</a>
                 </template>
                 <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
-                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}_beta`]) : r.item[`${p.name}_beta`])}}</span>
                     <span
                         :class="`effect ${r.item[`${p.name}_beta`] < 0 ? 'negative' : 'positive'}`"
-                        style="float:right"
                     >{{r.item[`${p.name}_beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
+                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}_beta`]) : r.item[`${p.name}_beta`])}}</span>
                 </template>
                 <template v-slot:cell()
             </b-table>

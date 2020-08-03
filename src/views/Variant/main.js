@@ -148,8 +148,13 @@ new Vue({
 
         "$store.state.variant"(variant) {
             if (variant) {
+                let chrom = variant.varId.split(':')[0];
+                let pos = variant.varId.split(':')[1];
+
+                this.$store.dispatch('phewas/query', { q: variant.varId });
                 this.$store.dispatch('transcriptConsequences/query', { q: variant.varId });
                 this.$store.dispatch('transcriptionFactors/query', { q: variant.varId });
+                this.$store.dispatch('regions/query', { q: `${chrom}:${pos}` });
             }
         }
     }

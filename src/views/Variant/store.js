@@ -44,11 +44,5 @@ export default new Vuex.Store({
                 context.dispatch('variantData/query', { q: newVarId });
             }
         },
-
-        async queryRegions(context, { chromosome, position }) {
-            let q = `${chromosome}:${position}`;
-
-            context.dispatch('regions/query', { q });
-        }
     }
 });

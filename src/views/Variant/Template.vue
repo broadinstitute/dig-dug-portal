@@ -92,6 +92,10 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">PheWAS Visualization</h4>
+                    <documentation
+                        name="variant.phewas.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
 
                     <locuszoom
                         ref="locuszoom"
