@@ -965,6 +965,135 @@ span.weight-blue {
     color: #fff;
 }
 
+
+
+/* for Richards 100*/
+.EGLT-table.richards100 .top-level-header-item,
+.EGLT-table.richards100 .top-level-value-item {
+    width: calc(100% / 4);
+}
+
+.EGLT-table.richards100 .feature-content-wrapper .container-fluid {
+    overflow: auto;
+}
+
+.EGLT-table.richards100 .feature-list.variants_features,
+.EGLT-table.richards100 .feature-list.gene_features {
+    display: table !important;
+}
+
+.EGLT-table.richards100 .feature-list.variants_features {
+    border-left: solid 4px#ffd62e !important;
+}
+
+.EGLT-table.richards100 .feature-list.gene_features {
+    border-left: solid 4px#bfd730 !important;
+}
+
+.EGLT-table.richards100 .feature-headers.variants_features,
+.EGLT-table.richards100 .feature-headers.gene_features {
+    display: table-row !important;
+}
+
+.EGLT-table.richards100 .feature-content.variants_features,
+.EGLT-table.richards100 .feature-content.gene_features {
+    display: table-row !important;
+}
+
+.EGLT-table.richards100 .feature-name.gene_info,
+.EGLT-table.richards100 .feature-headers.gene_info,
+.EGLT-table.richards100 .feature-content.gene_info {
+    border-left: solid 4px #75def8 !important;
+}
+
+.EGLT-table.richards100 .feature-header-item.gene_info {
+    background-color: #75def850;
+}
+
+.EGLT-table.richards100 .feature-header-item.variants_features,
+.EGLT-table.richards100 .feature-content-item.variants_features {
+    min-width: 100px !important;
+    max-width: 100px !important;
+    white-space: pre-line;
+    display: table-cell !important;
+    vertical-align: bottom;
+}
+
+.EGLT-table.richards100 .feature-header-item.variants_features {
+    background-color: #ffd62e50;
+}
+
+.EGLT-table.richards100 .feature-header-item.gene_features,
+.EGLT-table.richards100 .feature-content-item.gene_features {
+    min-width: 100px !important;
+    max-width: 100px !important;
+    white-space: pre-line;
+    display: table-cell !important;
+    vertical-align: bottom;
+}
+
+.EGLT-table.richards100 .feature-header-item.gene_features {
+    background-color: #bfd73050;
+}
+
+.EGLT-table.richards100 [class*="y-0"],
+.EGLT-table.richards100 [class*="y-1"],
+.top-level-header-item.y {
+    position: absolute;
+    width: 8px !important;
+    left: 0;
+}
+
+.EGLT-table.richards100 [class*="y-0"],
+.top-level-header-item.y {
+    background-color: #eee;
+    border: solid 1px #eee;
+    color: #eee;
+}
+
+.EGLT-table.richards100 [class*="y-1"] {
+    background-color: #fa0;
+    border: solid 1px #fa0;
+}
+
+.legend.snp_eff_5, .legend.snp_eff_4, .legend.snp_eff_3, .legend.snp_eff_2, .legend.snp_eff_1, .legend.locus_y_0, .legend.locus_y_1 {
+    display: inline-block;
+    margin-left: 3px;
+    padding: 0 2px;
+}
+
+.legend.locus_y_0 {
+    background-color: #eee;
+}
+.legend.locus_y_1 {
+    background-color: #fa0;
+}
+
+.EGLT-table.richards100 .feature-content-item.variants_features[class*="NONE"], .legend.snp_eff_5 {
+    background-color: rgba(255, 150, 0, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards100 .feature-content-item.variants_features[class*="MODIFIER"], .legend.snp_eff_1 {
+    background-color: rgba(0, 180, 0, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards100 .feature-content-item.variants_features[class*="LOW"], .legend.snp_eff_2 {
+    background-color: rgba(0, 150, 200, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards100 .feature-content-item.variants_features[class*="MODERATE"], .legend.snp_eff_3 {
+    background-color: rgba(100, 100, 255, 1) !important;
+    color: #fff;
+}
+
+.EGLT-table.richards100 .feature-content-item.variants_features[class*="HIGH"], .legend.snp_eff_4 {
+    background-color: rgba(255, 50, 0, 1) !important;
+    color: #fff;
+}
+
 /* for plots */
 .feature-scores-wrapper {
     position: fixed;
