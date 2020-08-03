@@ -60,6 +60,7 @@
                     v-if="row.pValue > 5e-8 && i <= 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
+                    v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
                 >{{row.description}}</div>
                 <small>
                     <a
@@ -78,6 +79,7 @@
                     v-if="row.pValue > 5e-8 && i > 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
+                    v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
                 >{{row.description}}</div>
             </div>
         </div>
@@ -187,28 +189,28 @@ Vue.use(BootstrapVueIcons);
 
 export default Vue.component("phenotype-signal-mixed", {
     modules: {
-        uiUtils
+        uiUtils,
     },
     components: {},
     props: {
-        phenotypes: Array
+        phenotypes: Array,
     },
 
     data() {
         return {
-            isActive: false
+            isActive: false,
         };
     },
 
     computed: {
-        topAssociationsHighest: function() {
+        topAssociationsHighest: function () {
             return this.phenotypes[0]["pValue"];
         },
-        topAssociationsGrouped: function() {
+        topAssociationsGrouped: function () {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
-            data.forEach(element => {
+            data.forEach((element) => {
                 let phenotype = phenotypeMap[element.phenotype];
 
                 element["group"] = phenotype.group;
@@ -217,11 +219,11 @@ export default Vue.component("phenotype-signal-mixed", {
 
             return groupBy(data, "group");
         },
-        topAssociations: function() {
+        topAssociations: function () {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
 
-            data.forEach(element => {
+            data.forEach((element) => {
                 let phenotype = phenotypeMap[element.phenotype];
 
                 element["group"] = phenotype.group.toUpperCase();
@@ -230,12 +232,12 @@ export default Vue.component("phenotype-signal-mixed", {
 
             return data;
         },
-        topAssociations2nd: function() {
+        topAssociations2nd: function () {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let filteredData = [];
 
-            data.forEach(element => {
+            data.forEach((element) => {
                 let phenotype = phenotypeMap[element.phenotype];
 
                 element["group"] = phenotype.group.toUpperCase();
@@ -246,12 +248,12 @@ export default Vue.component("phenotype-signal-mixed", {
 
             return filteredData;
         },
-        topAssociatedGroups: function() {
+        topAssociatedGroups: function () {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let topGroups = [];
 
-            data.forEach(element => {
+            data.forEach((element) => {
                 let phenotype = phenotypeMap[element.phenotype];
 
                 if (element["pValue"] <= 2.5e-6) {
@@ -259,12 +261,12 @@ export default Vue.component("phenotype-signal-mixed", {
                 }
             });
 
-            topGroups = topGroups.filter(function(value, index, self) {
+            topGroups = topGroups.filter(function (value, index, self) {
                 return self.indexOf(value) === index;
             });
 
             return topGroups;
-        }
+        },
     },
     methods: {
         log2css(value) {
@@ -276,10 +278,7 @@ export default Vue.component("phenotype-signal-mixed", {
             return calculated > 100 ? 100 : calculated;
         },
         key2id(key) {
-            return key
-                .toLowerCase()
-                .split(" ")
-                .join("_");
+            return key.toLowerCase().split(" ").join("_");
         },
         getEvalue(number) {
             return -Math.floor(Math.log10(number));
@@ -295,8 +294,8 @@ export default Vue.component("phenotype-signal-mixed", {
         },
         showHideByClass(CLASS) {
             uiUtils.showHideByClass(CLASS);
-        }
-    }
+        },
+    },
 });
 </script>
 
