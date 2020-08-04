@@ -102,12 +102,19 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        filter() {
+            console.log('filter')
+            this.$children[0].$refs.locuszoom.applyFilter({'pValue': 'is this'})
+        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
                 const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
                 this.$store.dispatch('credibleSets/query', { q: queryString });
             }
+        },
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, data);
         },
         // LocusZoom has "Panels"
         // For LocusZoom2

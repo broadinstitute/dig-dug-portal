@@ -199,6 +199,18 @@ export default Vue.component("locuszoom", {
                 )
             );
             return panelId;
+        },
+        applyFilter(filterMessage) {
+            const filters = Object.entries(filterMessage)
+            filters.forEach(filter => {
+                const [filterFieldName, filterFieldValue] = filter;
+                // for all datalayers, look for and apply the filter function
+                console.log(filterFieldName, filterFieldValue, this.plot, this.plot.layout.panels.flatMap(panel => panel.data_layers));
+                this.plot.layout.panels.forEach(panel => panel.data_layers.forEach(data_layer => {
+                    data_layer.setFilter(el => false)
+                }))
+                // this.plot.applyState();
+            })
         }
     },
     computed: {

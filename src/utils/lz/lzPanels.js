@@ -43,6 +43,13 @@ export class LZAssociationsPanel {
         this.locusZoomLayoutOptions = {
             "id": this.panel_id,
             y_index: 0,
+            y_axis: {
+                axis: 1,
+                field: `${this.datasource_namespace_symbol_for_panel}:log_pvalue|log10`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                // floor: 0,
+                upper_buffer: 0.10,
+                // min_extent: [0, 10],
+            }
         };
         this.handlers = {
             finishHandler,

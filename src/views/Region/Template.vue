@@ -139,6 +139,12 @@
                         :content-fill="$parent.documentationMap"
                     ></documentation>
 
+                    <!-- <p style="color:white;background-color:red;width:30px">TODO</p> -->
+                    <documentation
+                            name="region.igv.subheader"
+                            :content-fill="$parent.documentationMap"
+                    ></documentation>
+
                     <div class="filtering-ui-wrapper">
                         <div class="row filtering-ui-content">
                             <div class="col filter-col-lg">
@@ -150,11 +156,12 @@
                                 />
                             </div>
 
-                            <!-- <div class="col filter-col-sm">
-                                <div class="label">pValue (&le;)</div>
-                                <input v-model.number="$parent.pValue" class="form-control" />
-                            </div>
                             <div class="col filter-col-sm">
+                                <div class="label">pValue (&le;)</div>
+                                <input v-model.number="$parent.pValue" class="form-control" @change="$parent.filter"/>
+                                <button @click="$parent.filter">Use a filter</button>
+                            </div>
+                            <!-- <div class="col filter-col-sm">
                                 <div class="label">Fold (&ge;)</div>
                                 <input v-model.number="$parent.fold" class="form-control" />
                             </div> -->
@@ -214,6 +221,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
             <!-- TODO: collapse tables -->
             <b-collapse id="collapse-1" class="mt-2">
