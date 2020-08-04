@@ -42,21 +42,12 @@ export default Vue.component("lz-associations-panel", {
             );
         }
     },
-    // beforeDestroy() {
-    //     this.$parent.plot.removePanel(this.id);
-    // },
     watch: {
         phenotype(newPhenotype) {
-            // This is good enough
             if (!!this.id) {
                 this.$parent.plot.removePanel(this.id);
             }
-
             this.updatePanel();
-
-            // this.$parent.addAssociationsPanelComponent(this, {
-            //     phenotype: newPhenotype
-            // });
         }
     }
 });

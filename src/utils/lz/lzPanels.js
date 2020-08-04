@@ -43,20 +43,14 @@ export class LZAssociationsPanel {
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
             "id": this.panel_id,
-            y_index: -9001,
-            toolbar: {
-                widgets: [
-                    {
-                        type: 'filter_field',
-                        position: 'right',
-                        layer_name: `${this.panel_layout_type}`,
-                        field:  `${this.panel_layout_type}:${'pvalue'}`,
-                        field_display_html: 'p-value',
-                        operator: '>',
-                        data_type: 'number',
-                    },
-                ],
-            },
+            y_index: 0,
+            y_axis: {
+                axis: 1,
+                field: `${this.datasource_namespace_symbol_for_panel}:log_pvalue|log10`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                // floor: 0,
+                upper_buffer: 0.10,
+                // min_extent: [0, 10],
+            }
         };
         this.handlers = {
             finishHandler,
@@ -136,9 +130,11 @@ export class LZAnnotationIntervalsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
+            y_index: 1,
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
+<<<<<<< HEAD
             toolbar: {
                 widgets: [
                     {
@@ -152,6 +148,8 @@ export class LZAnnotationIntervalsPanel {
                     },
                 ],
             },
+=======
+>>>>>>> kb-locuszoom-crediblesets-annotations
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
     }
@@ -219,6 +217,7 @@ export class LZCredibleVariantsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
+            y_index: 1,
             title: {
                 text: `${credibleSetId}`
             },

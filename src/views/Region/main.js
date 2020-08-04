@@ -91,8 +91,9 @@ new Vue({
             pValue: null,
             fold: null,
 
-            currentAssociationsPanel: null
+            currentAssociationsPanel: null,
 
+            selectedCredibleSets: []
         };
     },
 
@@ -102,10 +103,9 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
-        // LocusZoom has "Panels"
-        tap(event) {
-            console.log(event)
+        filter() {
+            console.log('filter')
+            this.$children[0].$refs.locuszoom.applyFilter({'pValue': 'is this'})
         },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
@@ -114,9 +114,14 @@ new Vue({
                 this.$store.dispatch('credibleSets/query', { q: queryString });
             }
         },
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, data);
+        },
+        // LocusZoom has "Panels"
+        // For LocusZoom2
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
-            this.$children[0].$refs.locuszoom2.addCredibleVariantsPanel(phenotype, credibleSetId,
+            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
                 // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
                 function(dataLoadedResponse) {
                     // TODO: callbacks for creating a new table column for credible sets might go here
@@ -125,7 +130,11 @@ new Vue({
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom2.addAnnotationIntervalsPanel(annotation, method);
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
+        },
+        searchAndDestroyCorrespondingTable(event) {
+            console.log(event)
+            // const selectedCredibleSets.filter()
         },
 
         // IGV has "Tracks"

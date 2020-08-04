@@ -14,6 +14,7 @@ import toolbar_addons from 'locuszoom/esm/ext/lz-widget-addons';
 
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 import LZDataSources from "@/utils/lz/lzDataSources";
+import "locuszoom/dist/ext/lz-intervals-track.min.js";
 
 import idCounter from "@/utils/idCounter"
 import LocusZoomAssociationsPanel from "./panels/LocusZoomAssociationsPanel.vue";
@@ -56,6 +57,7 @@ export default Vue.component("locuszoom", {
     data() {
         return {
             locuszoommounted: false,
+            yIndex: 0,
             salt: Math.floor(Math.random() * 10000).toString()
         }
     },
@@ -86,7 +88,7 @@ export default Vue.component("locuszoom", {
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
-                y_index: 9001
+                y_index: 3
             }));
         }
 
@@ -203,6 +205,18 @@ export default Vue.component("locuszoom", {
                 )
             );
             return panelId;
+        },
+        applyFilter(filterMessage) {
+            const filters = Object.entries(filterMessage)
+            filters.forEach(filter => {
+                const [filterFieldName, filterFieldValue] = filter;
+                // for all datalayers, look for and apply the filter function
+                console.log(filterFieldName, filterFieldValue, this.plot, this.plot.layout.panels.flatMap(panel => panel.data_layers));
+                this.plot.layout.panels.forEach(panel => panel.data_layers.forEach(data_layer => {
+                    data_layer.setFilter(el => false)
+                }))
+                // this.plot.applyState();
+            })
         }
     },
     computed: {
