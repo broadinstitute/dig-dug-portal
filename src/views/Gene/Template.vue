@@ -14,7 +14,14 @@
                             @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
                         >Search gene</a>
                     </div>
-                    <div class="col-md-5 gene-page-header-title">Region (click to explore)</div>
+                    <div class="col-md-5 gene-page-header-title">
+                        Region (click to explore)
+                        <tooltip-documentation
+                            name="gene.region.info"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
+                    </div>
 
                     <div class="col-md-7 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
