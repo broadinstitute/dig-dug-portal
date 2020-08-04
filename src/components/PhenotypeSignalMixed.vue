@@ -2,6 +2,7 @@
     <div>
         <div class="pws-merged-view">
             <h6>Traits with p-value &le; 5e-8</h6>
+            <template v-if="topAssociationsHighest <= 5e-8">
             <div class="pws-group-legend-wrapper">
                 <div v-for="row in topAssociatedGroups" class="pws-group-legend">
                     <div class="pws-group-legend-box phenotype-group" :class=" row">&nbsp;</div>
@@ -52,6 +53,12 @@
                     </div>
                 </div>
             </div>
+            </template>
+                    <template v-else>
+                        <b-alert show variant="warning">
+                            <b-icon icon="exclamation-triangle"></b-icon>There is no variant association in this region with p-Value &le; 5e-8
+                        </b-alert>
+                    </template>
 
             <h6>Traits with p-value &gt; 5e-8</h6>
             <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">

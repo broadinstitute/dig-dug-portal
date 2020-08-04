@@ -119,9 +119,7 @@
                         class="card-title"
                     >Variant associations in the region: {{$parent.regionString}}</h4>
                     <documentation name="region.phenos_w_signal.subheader"></documentation>
-
-                    <template v-if="$parent.topAssociations[0]['pValue'] <= 5e-8">
-                        <div style="text-align: right; padding-bottom: 5px;">
+                        <div style="text-align: right; padding-bottom: 5px;" v-if="$parent.topAssociations[0]['pValue'] <= 5e-8">
                             <div
                                 href="javascript:;"
                                 v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
@@ -130,12 +128,7 @@
                         </div>
 
                         <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
-                    </template>
-                    <template v-else>
-                        <b-alert show variant="warning">
-                            <b-icon icon="exclamation-triangle"></b-icon>There is no variant association in this region with p-Value &le; 5e-8
-                        </b-alert>
-                    </template>
+
                 </div>
             </div>
 
