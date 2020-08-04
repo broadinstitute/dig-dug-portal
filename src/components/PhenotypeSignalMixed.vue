@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="pws-merged-view">
-            <h6>Traits with p-value &lt;= 5e-8</h6>
+            <h6>Traits with p-value &le; 5e-8</h6>
             <div class="pws-group-legend-wrapper">
                 <div v-for="row in topAssociatedGroups" class="pws-group-legend">
                     <div class="pws-group-legend-box phenotype-group" :class=" row">&nbsp;</div>
