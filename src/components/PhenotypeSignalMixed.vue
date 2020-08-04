@@ -60,8 +60,17 @@
                     v-if="row.pValue > 5e-8 && i <= 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                    v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                >{{row.description}}</div>
+                >
+                    {{row.description}}
+                    <div class="options-4-actions">
+                        <div
+                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
+                        >Click to set phenotype</div>
+                        <div
+                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
+                        >Go to phenotype page</div>
+                    </div>
+                </div>
                 <small>
                     <a
                         href="javascript:;"
@@ -79,8 +88,17 @@
                     v-if="row.pValue > 5e-8 && i > 30"
                     class="bubble phenotype-with-signal"
                     :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                    v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                >{{row.description}}</div>
+                >
+                    {{row.description}}
+                    <div class="options-4-actions">
+                        <div
+                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
+                        >Click to set phenotype</div>
+                        <div
+                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
+                        >Go to phenotype page</div>
+                    </div>
+                </div>
             </div>
         </div>
 
