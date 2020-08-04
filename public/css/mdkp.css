@@ -1094,23 +1094,31 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     margin-bottom: 7px;
 }
 
-.egl-research-trait-bubbles li a {
+.egl-research-trait-bubbles-multi li  {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.egl-research-trait-bubbles li a, .egl-research-trait-bubbles-multi li a{
     display: block;
     background-color: #0097d6;
     color: #fff !important;
     padding: 5px 10px;
+    height: 34px;
     border-radius: 5px;
+    display: inline-block;
+    font-size: 16px;
 }
 
-.egl-research-trait-bubbles li a:hover {
+.egl-research-trait-bubbles li a:hover, .egl-research-trait-bubbles-multi li a:hover {
     background-color: #0097d675;
 }
 
-.egl-research-trait-bubbles li a::after {
+.egl-research-trait-bubbles li a::after, .egl-research-trait-bubbles-multi li a::after {
     content: "";
 }
 
-.egl-research-trait-bubbles li a:hover::after {
+.egl-research-trait-bubbles li a:hover::after, .egl-research-trait-bubbles-multi li a:hover::after {
     content: "  GO >";
     font-size: 0.75em;
 }

@@ -65,8 +65,11 @@ new Vue({
 
             let phenotypeName = null;
 
+
+
             this.$store.state.bioPortal.phenotypes.map(
                 (x) => {
+
                     if (
                         x.name.toLowerCase() ==
                         keyParams.trait.toLowerCase()
