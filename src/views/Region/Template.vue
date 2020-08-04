@@ -102,13 +102,17 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <documentation name="region.trait.info"></documentation>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <h4 class="card-title">Genes overlapping region</h4>
                     <div v-for="row in $parent.genes" :class="'gene-with-signal '+row.type">
                         <a :href="`/gene.html?gene=${row.name}`">{{row.name}}</a>
                     </div>
                 </div>
             </div>
-
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
