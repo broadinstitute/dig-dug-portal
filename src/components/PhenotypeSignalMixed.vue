@@ -56,7 +56,7 @@
             </template>
             <template v-else>
                 <b-alert show variant="warning">
-                    <b-icon icon="exclamation-triangle"></b-icon>There is no variant association in this region with p-Value &le; 5e-8
+                    <b-icon icon="exclamation-triangle"></b-icon>There is no trait in this region with p-Value &le; 5e-8
                 </b-alert>
             </template>
 
