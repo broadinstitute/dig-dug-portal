@@ -119,16 +119,18 @@
                         class="card-title"
                     >Variant associations in the region: {{$parent.regionString}}</h4>
                     <documentation name="region.phenos_w_signal.subheader"></documentation>
-                        <div style="text-align: right; padding-bottom: 5px;" v-if="$parent.topAssociations[0]['pValue'] <= 5e-8">
-                            <div
-                                href="javascript:;"
-                                v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
-                                class="switch-view btn btn-secondary btn-sm"
-                            >View in phenotype group</div>
-                        </div>
+                    <div
+                        style="text-align: right; padding-bottom: 5px;"
+                        v-if="$parent.topAssociations[0]['pValue'] <= 5e-8"
+                    >
+                        <div
+                            href="javascript:;"
+                            v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
+                            class="switch-view btn btn-secondary btn-sm"
+                        >View in phenotype group</div>
+                    </div>
 
-                        <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
-
+                    <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                 </div>
             </div>
 
