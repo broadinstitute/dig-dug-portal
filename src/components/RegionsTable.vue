@@ -3,7 +3,7 @@
         <b-container fluid class="filtering-ui-wrapper filter-rows">
             <b-row class="filtering-ui-content">
                 <b-col>
-                    <div class="label">Annotations:</div>
+                    <div class="label">Annotations</div>
                     <b-form-select
                         @input="addFilter($event, 'annotations')"
                         :options="filter_annotation"
@@ -11,7 +11,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div class="label">Methods:</div>
+                    <div class="label">Methods</div>
                     <b-form-select
                         @input="addFilter($event, 'methods')"
                         :options="filter_method"
@@ -19,7 +19,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div class="label">Tissues:</div>
+                    <div class="label">Tissues</div>
                     <b-form-select
                         @input="addFilter($event, 'tissues')"
                         :options="filter_tissue"
@@ -130,28 +130,28 @@ export default Vue.component("regions-table", {
             fields: [
                 {
                     key: "region",
-                    label: "Region",
+                    label: "Region"
                 },
                 {
                     key: "annotation",
                     label: "Annotation",
-                    formatter: Formatters.annotationFormatter,
+                    formatter: Formatters.annotationFormatter
                 },
                 {
                     key: "method",
                     label: "Method",
-                    formatter: Formatters.capitalizedFormatter,
+                    formatter: Formatters.capitalizedFormatter
                 },
                 {
                     key: "tissue",
                     label: "Tissue",
-                    formatter: Formatters.tissueFormatter,
-                },
+                    formatter: Formatters.tissueFormatter
+                }
             ],
 
             annotations: [],
             methods: [],
-            tissues: [],
+            tissues: []
         };
     },
 
@@ -163,23 +163,23 @@ export default Vue.component("regions-table", {
         },
         sortedRegions() {
             return this.regions
-                .filter((a) => !!a.tissue)
+                .filter(a => !!a.tissue)
                 .sort((a, b) => a.start - b.start);
         },
         filter_annotation() {
             return this.sortedRegions
-                .map((v) => Formatters.annotationFormatter(v.annotation))
+                .map(v => Formatters.annotationFormatter(v.annotation))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         filter_method() {
             return this.sortedRegions
-                .map((v) => Formatters.capitalizedFormatter(v.method))
+                .map(v => Formatters.capitalizedFormatter(v.method))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined);
         },
         filter_tissue() {
             return this.sortedRegions
-                .map((v) => Formatters.tissueFormatter(v.tissue))
+                .map(v => Formatters.tissueFormatter(v.tissue))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined && v != "-");
         },
@@ -212,7 +212,7 @@ export default Vue.component("regions-table", {
                     : methodsFiltered;
 
             return tissuesFiltered;
-        },
+        }
     },
 
     methods: {
@@ -227,7 +227,7 @@ export default Vue.component("regions-table", {
                 this.annotations === this[option] ? this[option] : [];
             this.methods = this.methods === this[option] ? this[option] : [];
             this.tissues = this.tissues === this[option] ? this[option] : [];
-        },
-    },
+        }
+    }
 });
 </script>

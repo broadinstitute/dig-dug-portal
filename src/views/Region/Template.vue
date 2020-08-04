@@ -113,7 +113,7 @@
                 <div class="card-body">
                     <h4
                         class="card-title"
-                    >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
+                    >Variant associations in the region: {{$parent.regionString}}</h4>
                     <documentation name="region.phenos_w_signal.subheader"></documentation>
 
                     <div style="text-align: right; padding-bottom: 5px;">
@@ -121,7 +121,7 @@
                             href="javascript:;"
                             v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
                             class="switch-view btn btn-secondary btn-sm"
-                        >View in phenotype group</div>
+                        >View associations by phenotype group</div>
                     </div>
 
                     <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
@@ -133,7 +133,7 @@
                     <h4
                         v-if="$store.state.phenotype"
                         class="card-title"
-                    >Associations for {{$store.state.phenotype.description}}</h4>
+                    >Visualize associations for {{$store.state.phenotype.description}}</h4>
                     <documentation
                         name="region.lz.subheader"
                         :content-fill="$parent.documentationMap"
@@ -158,9 +158,15 @@
             <div v-if="$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4
-                            class="card-title"
-                        >Top Associations for {{$store.state.phenotype.description}}</h4>
+                        <h4 class="card-title">
+                            Top Associations for {{$store.state.phenotype.description}}
+                            <tooltip-documentation
+                                name="region.topassoc.tooltip"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+
                         <documentation name="region.variantassociation.subheader"></documentation>
                         <associations-table
                             :phenotypes="$parent.phenotypes"
