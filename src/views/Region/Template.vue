@@ -157,9 +157,8 @@
                             </div>
 
                             <div class="col filter-col-sm">
-                                <div class="label">pValue (&le;)</div>
-                                <input v-model.number="$parent.pValue" class="form-control" @change="$parent.filter"/>
-                                <button @click="$parent.filter">Use a filter</button>
+                                <div class="label">log_pvalue (&le;)</div>
+                                <input v-model.number="$parent.pValue" class="form-control"/>
                             </div>
                             <!-- <div class="col filter-col-sm">
                                 <div class="label">Fold (&ge;)</div>
@@ -180,6 +179,7 @@
                             <div class="col filter-col-lg">
                                 <div class="label">View region in Variant Prioritizer</div>
                                 <b-button
+                                    v-if="!!$store.state.phenotype"
                                     class="btn btn-sm btn-2-vptz"
                                     :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
                                     target="_blank"

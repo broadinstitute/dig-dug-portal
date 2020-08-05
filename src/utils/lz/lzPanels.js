@@ -134,22 +134,6 @@ export class LZAnnotationIntervalsPanel {
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
-<<<<<<< HEAD
-            toolbar: {
-                widgets: [
-                    {
-                        type: 'filter_field',
-                        position: 'right',
-                        layer_name: `${this.panel_layout_type}`,
-                        field:  `${this.panel_layout_type}:${'pvalue'}`,
-                        field_display_html: 'p-value',
-                        operator: '>',
-                        data_type: 'number',
-                    },
-                ],
-            },
-=======
->>>>>>> kb-locuszoom-crediblesets-annotations
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
     }
@@ -390,7 +374,12 @@ class _LZBioIndexSource extends BaseAdapter {
             errHandler,
         });
     };
-    getRequest(state, chain, fields) {
+    getCacheKey(state /*, chain, fields*/) {
+        // In generic form, Tabix queries are based on chr, start, and end. The cache is thus controlled by the query,
+        //  not the URL
+        return [state.chr, state.start, state.end].join('_');
+    }
+    fetchRequest(state, chain, fields) {
         const self = this;
         return new Promise((resolve, reject) => {
             const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);

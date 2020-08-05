@@ -14,10 +14,10 @@ import toolbar_addons from 'locuszoom/esm/ext/lz-widget-addons';
 
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 import LZDataSources from "@/utils/lz/lzDataSources";
-import "locuszoom/dist/ext/lz-intervals-track.min.js";
 
 import idCounter from "@/utils/idCounter"
-import LocusZoomAssociationsPanel from "./panels/LocusZoomAssociationsPanel.vue";
+
+import jsonQuery from "json-query";
 
 LocusZoom.use(intervalTracks);
 LocusZoom.use(toolbar_addons);
@@ -159,13 +159,6 @@ export default Vue.component("locuszoom", {
             }
         },
 
-        // addAssociationsPanelComponent: function(phenotype) {
-        //     console.log('add associations panel component')
-        //     this.addLZComponent(LocusZoomAssociationsPanel, {
-        //         phenotype
-        //     });
-        // },
-
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
         addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler) {
@@ -206,17 +199,30 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        applyFilter(filterMessage) {
-            const filters = Object.entries(filterMessage)
-            filters.forEach(filter => {
-                const [filterFieldName, filterFieldValue] = filter;
-                // for all datalayers, look for and apply the filter function
-                console.log(filterFieldName, filterFieldValue, this.plot, this.plot.layout.panels.flatMap(panel => panel.data_layers));
-                this.plot.layout.panels.forEach(panel => panel.data_layers.forEach(data_layer => {
-                    data_layer.setFilter(el => false)
-                }))
-                // this.plot.applyState();
-            })
+        applyFilter(filter) {
+
+            // TODO: revisit, is there a faster way?
+            // Auxiliary method within our json query for data layers in the LocusZoom plot
+            // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
+            // using flatmap because we need to work across many Object.keys
+            // const forceKeys = el => el.flatMap(data_layer_set => Object.keys(data_layer_set).map(data_layer_name => data_layer_set[data_layer_name]));
+            const forceKeys = el => el.flatMap(data_layer_set => Object.entries(data_layer_set).map(data_layer_pair => data_layer_pair[1]));
+
+            // Do we need to calculate this every time?
+            const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
+
+            data_layers.forEach(data_layer => {
+                const target = /*filter.target ||*/ data_layer.parent.id
+                const filterTargetName = `${target}_src:${filter.name}`;
+                if (data_layer.layout.fields.includes(filterTargetName)) {
+                    data_layer.setFilter(item => filter.op(item[filterTargetName], filter.value));
+                } // else no change in filter for the data_layer
+            });
+
+            // refresh the plot in place
+            // this should generally imply using cached data if possible (making the filter somewhat performant since it doesn't make a new network call to be used)
+            this.plot.applyState();
+
         }
     },
     computed: {

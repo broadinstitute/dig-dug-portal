@@ -11,8 +11,6 @@ import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker"
 
-import * as d3 from "d3";
-
 Vue.config.productionTip = false;
 new Vue({
     store,

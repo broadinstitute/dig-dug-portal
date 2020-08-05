@@ -1,5 +1,6 @@
 import Vue from "vue";
 import * as d3 from "d3";
+import _ from "lodash";
 
 import Template from "./Template.vue";
 import store from "./store.js";
@@ -103,9 +104,8 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        filter() {
-            console.log('filter')
-            this.$children[0].$refs.locuszoom.applyFilter({'pValue': 'is this'})
+        applyFilter(filter) {
+            this.$children[0].$refs.locuszoom.applyFilter(filter)
         },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
@@ -284,6 +284,14 @@ new Vue({
 
     },
     watch: {
+        pValue(pValue) {
+            this.applyFilter({
+                name: 'log_pvalue',  // locuszoom symbol
+                value: pValue,
+                op: _.lte
+            })
+        },
+
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
