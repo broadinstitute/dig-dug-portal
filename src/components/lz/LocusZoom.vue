@@ -210,19 +210,34 @@ export default Vue.component("locuszoom", {
 
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-
-            // Was the original solution without jsonQuery more responsive?
+            console.log(data_layers)
+            // Was the original solution, without jsonQuery, more responsive?
+            // Object.keys(this.plot.panels)
+            //     .forEach(panelKey =>
+            //         Object.keys(this.plot.panels[panelKey].data_layers)
+            //             .forEach(data_layer_key => {
+            //                 const filterTargetName = `${panelKey}_src:${filter.name}`;
+            //                 if (this.plot.panels[panelKey].data_layers[data_layer_key].layout.fields.includes(filterTargetName)) {
+            //                             this.plot.panels[panelKey].data_layers[data_layer_key].setFilter(item => filter.op(item[filterTargetName], filter.value))
+            //                 }
+            //             })
+            // )
 
             data_layers.forEach(data_layer => {
                 const target = /*filter.target ||*/ data_layer.parent.id
                 const filterTargetName = `${target}_src:${filter.name}`;
                 if (data_layer.layout.fields.includes(filterTargetName)) {
-                    data_layer.setFilter(item => filter.op(item[filterTargetName], filter.value));
-                } // else no change in filter for the data_layer
+                    if (filter.value != '') {
+                        data_layer.setFilter(item => filter.op(item[filterTargetName], filter.value));
+                    } else {
+                        // nullify filter if filter has no value (lets everything through)
+                        data_layer.setFilter(item => true);
+                    }
+                } // no change in filter for data layers that don't match on the value
             });
 
             // refresh the plot in place
-            // this should generally imply using cached data if possible (making the filter somewhat performant since it doesn't make a new network call to be used)
+            // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
 
         }

@@ -44,6 +44,16 @@ export class LZAssociationsPanel {
         this.locusZoomLayoutOptions = {
             "id": this.panel_id,
             y_index: 0,
+            fields: [
+                `${this.datasource_namespace_symbol_for_panel}:variant`,
+                `${this.datasource_namespace_symbol_for_panel}:position`,
+                `${this.datasource_namespace_symbol_for_panel}:log_pvalue`,
+                `${this.datasource_namespace_symbol_for_panel}:pvalue`,
+                `${this.datasource_namespace_symbol_for_panel}:log_pvalue|logtoscinotation`,
+                `${this.datasource_namespace_symbol_for_panel}:ref_allele`,
+                "ld:state",
+                "ld:isrefvar",
+            ],
             y_axis: {
                 axis: 1,
                 field: `${this.datasource_namespace_symbol_for_panel}:log_pvalue|log10`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
@@ -112,12 +122,17 @@ export class LZAnnotationIntervalsPanel {
                     const { r, g, b } = rgb(colorScheme(interval.tissue))
                     return {
                         name: interval.tissue || interval.tissueId,
+                        // some data (not displayed by default)
+
+                        // region information
                         chr: interval.chromosome,
                         start: interval.start,
                         end: interval.end,
+
                         state_id: `${interval.tissueId}`,
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                         state_name: `${interval.tissue}`,
+
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
                         itemRgb: [r,g,b].join(), // TODO: color scheme
                     };
@@ -134,6 +149,13 @@ export class LZAnnotationIntervalsPanel {
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
+            fields: [
+                `${this.datasource_namespace_symbol_for_panel}:start`​​​​,
+                `${this.datasource_namespace_symbol_for_panel}:end`​​​,
+                `${this.datasource_namespace_symbol_for_panel}:state_id`,
+                `${this.datasource_namespace_symbol_for_panel}:state_name`,
+                `${this.datasource_namespace_symbol_for_panel}:itemRgb`,
+            ]
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
     }
@@ -351,12 +373,6 @@ export class LZPhewasPanel {
         }
     }
 }
-
-
-// const _LZBioIndexSource = LocusZoom.Data.Source.extend(function(init) {
-//     this.parseInit(init);
-// });
-
 
 class _LZBioIndexSource extends BaseAdapter {
     constructor(params) {
