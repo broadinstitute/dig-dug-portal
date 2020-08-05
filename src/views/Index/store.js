@@ -44,19 +44,13 @@ export default new Vuex.Store({
             let varID = await variantUtils.parseVariant(input);
 
             if (locus) {
-                if (locus.gene) {
-                    window.location.href = `./gene.html?gene=${locus.gene}`;
-                }
-                else {
-                    window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
-                }
+                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
             }
             else if (varID) {
                 window.location.href = `./variant.html?variant=${varID}`;
             } else {
                 postAlertError("Invalid gene, variant, or region");
             }
-
         },
 
         async lookupGenes(context, input) {
