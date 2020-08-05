@@ -7,6 +7,7 @@
         <div class="list-group-item">
             <h3>Visualization/Tool Name</h3>
                 <template>
+                    <!-- TODO: check against these, make dynamic -->
                     <b>Input Types </b>
                     <div class="bioindex-concept-pellet phenotype">
                         Phenotype
@@ -16,6 +17,7 @@
                     </div>
                 </template>
                 <template>
+                    <!-- TODO: check against these, make dynamic -->
                     <b>Output Types </b>
                     <div class="bioindex-concept-pellet phenotype">
                         Phenotype
@@ -27,7 +29,14 @@
                 <br>
                 <div v-if="true">
                     <template>
-                        Fill with Content
+                        <locuszoom
+                            ref="locuszoom"
+                            :refSeq="false">
+                            <lz-phewas-panel
+                                :varId="'rs1260326'"
+                                :phenotypeMap="$store.state.bioPortal.phenotypeMap">
+                            </lz-phewas-panel>
+                        </locuszoom>
                     </template>
                 </div>
                 <div v-else-if="!true">

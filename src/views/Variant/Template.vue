@@ -83,6 +83,7 @@
                             ref="locuszoom"
                             :refSeq="false">
                             <lz-phewas-panel
+                                v-if="$store.state.variant"
                                 :varId="$store.state.variantID"
                                 :phenotypeMap="$store.state.bioPortal.phenotypeMap">
                             </lz-phewas-panel>
@@ -98,7 +99,7 @@
                             :associations="$parent.variantData.associations"
                             :phenotype-map="$store.state.bioPortal.phenotypeMap"
                         ></phewas-table>
-                        
+
                     </div>
                 </div>
                 <!-- <div class="card mdkp-card">
