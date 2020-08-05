@@ -149,13 +149,13 @@ export class LZAnnotationIntervalsPanel {
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
-            fields: [
-                `${this.datasource_namespace_symbol_for_panel}:start`​​​​,
-                `${this.datasource_namespace_symbol_for_panel}:end`​​​,
-                `${this.datasource_namespace_symbol_for_panel}:state_id`,
-                `${this.datasource_namespace_symbol_for_panel}:state_name`,
-                `${this.datasource_namespace_symbol_for_panel}:itemRgb`,
-            ]
+            // fields: [
+            //     `${this.datasource_namespace_symbol_for_panel}:start`​​​​,
+            //     `${this.datasource_namespace_symbol_for_panel}:end`​​​,
+            //     `${this.datasource_namespace_symbol_for_panel}:state_id`,
+            //     `${this.datasource_namespace_symbol_for_panel}:state_name`,
+            //     `${this.datasource_namespace_symbol_for_panel}:itemRgb`,
+            // ]
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
     }
