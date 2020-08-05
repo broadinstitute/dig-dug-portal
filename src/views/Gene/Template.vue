@@ -16,11 +16,7 @@
                     </div>
                     <div class="col-md-5 gene-page-header-title">
                         Region (click to explore)
-                        <tooltip-documentation
-                            name="gene.region.info"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation>
+                        <tooltip-documentation name="gene.region.info" :isHover="true"></tooltip-documentation>
                     </div>
 
                     <div class="col-md-7 gene-page-header-body">
