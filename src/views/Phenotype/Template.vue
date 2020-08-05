@@ -34,7 +34,9 @@
             <div v-if="$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4 class="card-title">Bottom-line Association Plots</h4>
+                        <h4
+                            class="card-title"
+                        >Genome-wide associations for {{$store.state.phenotype.description}}</h4>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="card" style="width:95%; border: 0">

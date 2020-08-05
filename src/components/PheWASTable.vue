@@ -17,7 +17,7 @@
                     <span class="or-text">OR</span>
                 </b-col>
                 <b-col class="filter-col-sm">
-                    <div class="label">pValue (&le;)</div>
+                    <div class="label">p-value (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
                         type="text"
@@ -131,7 +131,7 @@ export default Vue.component("phewas-table", {
     props: ["associations", "phenotypeMap"],
     components: {
         Documentation,
-        TooltipDocumentation,
+        TooltipDocumentation
     },
     data() {
         return {
@@ -141,7 +141,7 @@ export default Vue.component("phewas-table", {
                 {
                     key: "phenotype",
                     label: "Phenotype",
-                    formatter: Formatters.phenotypeFormatter,
+                    formatter: Formatters.phenotypeFormatter
                 },
                 {
                     key: "pValue",
@@ -149,17 +149,17 @@ export default Vue.component("phewas-table", {
                     formatter: Formatters.pValueFormatter,
                     tdClass(x) {
                         return !!x && x < 1e-5 ? "variant-table-cell high" : "";
-                    },
+                    }
                 },
                 {
                     key: "continuousEffect",
                     label: "Beta",
-                    formatter: Formatters.effectFormatter,
+                    formatter: Formatters.effectFormatter
                 },
                 {
                     key: "dichotomousEffect",
                     label: "Odds Ratio",
-                    formatter: Formatters.effectFormatter,
+                    formatter: Formatters.effectFormatter
                 },
                 // {
                 //     key: "zScore",
@@ -169,8 +169,8 @@ export default Vue.component("phewas-table", {
                 {
                     key: "n",
                     label: "Sample Size",
-                    formatter: Formatters.intFormatter,
-                },
+                    formatter: Formatters.intFormatter
+                }
             ],
 
             phenotypeText: "",
@@ -181,8 +181,8 @@ export default Vue.component("phewas-table", {
             betaText: "",
             beta_options: [
                 { value: "p", text: "Positive" },
-                { value: "n", text: "Negative" },
-            ],
+                { value: "n", text: "Negative" }
+            ]
         };
     },
 
@@ -197,12 +197,12 @@ export default Vue.component("phewas-table", {
             }
 
             let phenotypes = this.phenotypeMap;
-            let assocs = this.associations.map((a) => {
+            let assocs = this.associations.map(a => {
                 return { ...a, phenotype: phenotypes[a.phenotype] };
             });
 
             return assocs
-                .filter((a) => !!a.phenotype)
+                .filter(a => !!a.phenotype)
                 .sort((a, b) => a.pValue - b.pValue);
         },
 
@@ -228,7 +228,7 @@ export default Vue.component("phewas-table", {
                     : pValueFiltered;
 
             return betaFiltered;
-        },
+        }
     },
 
     methods: {
@@ -265,7 +265,7 @@ export default Vue.component("phewas-table", {
         },
         unsetBeta() {
             this.beta = "";
-        },
-    },
+        }
+    }
 });
 </script>

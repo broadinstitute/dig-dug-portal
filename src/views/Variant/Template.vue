@@ -119,10 +119,12 @@
                     </locuszoom>
 
                     <h4 class="card-title">
-                        <documentation
-                            name="variant.phewas.table.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
+                        {{$parent.varId}}
+                        <span v-if="$parent.dbSNP">
+                            <span style="color: gray">/</span>
+                            {{$parent.dbSNP}}
+                        </span>
+                        associations
                         <tooltip-documentation
                             name="variant.assoc.tooltip"
                             :isHover="true"
