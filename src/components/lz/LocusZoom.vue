@@ -211,6 +211,8 @@ export default Vue.component("locuszoom", {
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
 
+            // Was the original solution without jsonQuery more responsive?
+
             data_layers.forEach(data_layer => {
                 const target = /*filter.target ||*/ data_layer.parent.id
                 const filterTargetName = `${target}_src:${filter.name}`;
