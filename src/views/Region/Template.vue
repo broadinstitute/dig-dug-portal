@@ -102,21 +102,27 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <documentation name="region.trait.info"></documentation>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <h4 class="card-title">Genes overlapping region</h4>
                     <div v-for="row in $parent.genes" :class="'gene-with-signal '+row.type">
                         <a :href="`/gene.html?gene=${row.name}`">{{row.name}}</a>
                     </div>
                 </div>
             </div>
-
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
                         class="card-title"
                     >Variant associations in the region: {{$parent.regionString}}</h4>
                     <documentation name="region.phenos_w_signal.subheader"></documentation>
-
-                    <div style="text-align: right; padding-bottom: 5px;">
+                    <div
+                        style="text-align: right; padding-bottom: 5px;"
+                        v-if="$parent.topAssociations[0]['pValue'] <= 5e-8"
+                    >
                         <div
                             href="javascript:;"
                             v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
