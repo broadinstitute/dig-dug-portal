@@ -127,7 +127,7 @@
                             href="javascript:;"
                             v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
                             class="switch-view btn btn-secondary btn-sm"
-                        >View in phenotype group</div>
+                        >View associations by phenotype group</div>
                     </div>
 
                     <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
@@ -139,7 +139,7 @@
                     <h4
                         v-if="$store.state.phenotype"
                         class="card-title"
-                    >Associations for {{$store.state.phenotype.description}}</h4>
+                    >Visualize associations for {{$store.state.phenotype.description}}</h4>
                     <documentation
                         name="region.lz.subheader"
                         :content-fill="$parent.documentationMap"
@@ -164,9 +164,15 @@
             <div v-if="$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4
-                            class="card-title"
-                        >Top Associations for {{$store.state.phenotype.description}}</h4>
+                        <h4 class="card-title">
+                            Top Associations for {{$store.state.phenotype.description}}
+                            <tooltip-documentation
+                                name="region.topassoc.tooltip"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+
                         <documentation name="region.variantassociation.subheader"></documentation>
                         <associations-table
                             :phenotypes="$parent.phenotypes"
@@ -196,7 +202,7 @@
                                 </div>
 
                                 <div class="col filter-col-sm">
-                                    <div class="label">pValue (&le;)</div>
+                                    <div class="label">p-value (&le;)</div>
                                     <input v-model.number="$parent.pValue" class="form-control" />
                                 </div>
                                 <div class="col filter-col-sm">
