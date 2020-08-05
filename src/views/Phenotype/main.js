@@ -16,6 +16,7 @@ import Documentation from "@/components/Documentation.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
 import { rawUrl } from "@/utils/bioIndexUtils";
+import Formatters from "@/utils/formatters";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -87,7 +88,9 @@ new Vue({
         }
     },
 
-
+    methods: {
+        intFormatter: Formatters.intFormatter,
+    },
 
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {

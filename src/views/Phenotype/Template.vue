@@ -75,9 +75,10 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            Top 1000 associations for {{$store.state.phenotype.description}}
+                            Top {{$parent.intFormatter($store.state.associations.data.length)}} associations for {{$store.state.phenotype.description}}
                             <tooltip-documentation
                                 name="phenotype.top1000.tooltip"
+                                :content-fill="$parent.documentationMap"
                                 :isHover="true"
                                 :noIcon="false"
                             ></tooltip-documentation>
@@ -112,6 +113,7 @@
                             Globally enriched annotations for {{$store.state.phenotype.description}}
                             <tooltip-documentation
                                 name="phenotype.annot.tooltip"
+                                :content-fill="$parent.documentationMap"
                                 :isHover="true"
                                 :noIcon="false"
                             ></tooltip-documentation>

@@ -76,6 +76,7 @@
                             Predicted variant consequences
                             <tooltip-documentation
                                 name="variant.consequences.tooltip"
+                                :content-fill="$parent.documentationMap"
                                 :isHover="true"
                                 :noIcon="false"
                             ></tooltip-documentation>
@@ -127,6 +128,7 @@
                         associations
                         <tooltip-documentation
                             name="variant.assoc.tooltip"
+                            :content-fill="$parent.documentationMap"
                             :isHover="true"
                             :noIcon="false"
                         ></tooltip-documentation>
@@ -144,6 +146,7 @@
                         Transcription factor binding motifs altered by {{$parent.variantName}}
                         <tooltip-documentation
                             name="variant.tfbinding.tooltip"
+                            :content-fill="$parent.documentationMap"
                             :isHover="true"
                             :noIcon="false"
                         ></tooltip-documentation>
@@ -169,6 +172,7 @@
                         Annotated regions overlapping {{$parent.variantName}}
                         <tooltip-documentation
                             name="variant.annotregions.tooltip"
+                            :content-fill="$parent.documentationMap"
                             :isHover="true"
                             :noIcon="false"
                         ></tooltip-documentation>

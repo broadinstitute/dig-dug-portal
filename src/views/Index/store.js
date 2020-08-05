@@ -66,7 +66,11 @@ export default new Vuex.Store({
 
         //select gene on autocomplete.
         async onGeneChange(context, gene) {
-            window.location.href = "./gene.html?gene=" + gene;
+            let locus = await regionUtils.parseRegion(gene, true, 50000);
+
+            if (locus) {
+                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+            }
         },
 
         //select gene on autocomplete.

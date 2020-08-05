@@ -101,7 +101,7 @@
                     <h4
                         v-if="$store.state.selectedDataset"
                         class="card-title"
-                    >Top Variants for {{$store.state.selectedDataset.description}}</h4>
+                    >Top {{$parent.intFormatter($store.state.datasetAssociations.data.length)}} variants for {{$store.state.selectedDataset.description}}</h4>
                     <associations-table
                         :phenotypes="[$store.state.selectedPhenotype]"
                         :associations="$store.state.datasetAssociations.data"

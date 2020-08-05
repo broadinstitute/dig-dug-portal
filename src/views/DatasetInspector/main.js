@@ -16,6 +16,7 @@ import Documentation from "@/components/Documentation.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
+import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import { rawUrl } from "@/utils/bioIndexUtils";
 import Alert, {
@@ -120,6 +121,10 @@ new Vue({
                 [phenotype.name]: []
             }
         }
+    },
+
+    methods: {
+        intFormatter: Formatters.intFormatter,
     },
 
     watch: {
