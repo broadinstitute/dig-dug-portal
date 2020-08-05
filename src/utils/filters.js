@@ -35,6 +35,10 @@ function filterFormatted(data, value, key) {
     return filtered;
 }
 
+function filterNearest(data, value, key) {
+    return data.filter(r => value.some(gene => r[key].includes(gene)));
+}
+
 function filterBeta(data, value, key) {
     if (value == "n")
         //negative
@@ -96,6 +100,7 @@ export default {
     filterDropdown,
     filterFormatted,
     filterBeta,
+    filterNearest,
     filterPValue,
     filterPhenotype,
     filterExact,

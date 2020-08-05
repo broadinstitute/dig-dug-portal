@@ -77,7 +77,7 @@ function consequenceMeaning(s) {
         "regulatory_region_amplification": "It amplifies a regulatory region.",
         "feature_elongation": "It causes the extension of a genomic feature with regard to the reference sequence.",
         "feature_truncation": "It causes the truncation of a genomic feature with regard to the reference sequence.",
-        "intergenic_variant": "It is located in the intergenic region (between genes).",
+        "intergenic_variant": "It is located in an intergenic region (between genes).",
     };
 
     return consequences[s] || "Unknown";

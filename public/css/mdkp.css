@@ -560,7 +560,7 @@ div.filtering-tools table th {
     color: #fff;
 }
 
-#phenotypeSearchHolder input.form-control {
+#phenotypeSearchHolder input.form-control, #datasetSearchHolder input.form-control {
     border-radius: 0;
     border: solid 1px #ddd;
     height: 65px;
@@ -648,6 +648,7 @@ div.filtering-tools table th {
 }
 
 .front-gene-search-wrapper,
+.front-dataset-search-wrapper,
 .front-phenotype-search-wrapper {
     width: 50%;
     margin: auto;

@@ -25,15 +25,15 @@ export class LZAssociationsPanel {
         this.index = 'associations'
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
         this.translator = associations => associations.map(association => ({
-                id: association.varId,
-                chr: association.chromosome,
-                start: association.position,
-                end: association.position,
-                position: association.position,
-                pvalue: association.pValue,
-                log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
-                variant: association.varId,
-                ref_allele: association.varId,
+            id: association.varId,
+            chr: association.chromosome,
+            start: association.position,
+            end: association.position,
+            position: association.position,
+            pvalue: association.pValue,
+            log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
+            variant: association.varId,
+            ref_allele: association.varId,
         }));
 
         // LocusZoom Layout configuration options
@@ -84,7 +84,7 @@ export class LZAssociationsPanel {
 }
 
 export class LZAnnotationIntervalsPanel {
-    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, colorScheme=id=>'128,128,128') {
+    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, colorScheme = id => '128,128,128') {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -97,7 +97,7 @@ export class LZAnnotationIntervalsPanel {
 
         this.index = 'annotated-regions';
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
-        this.translator = function(intervals) {
+        this.translator = function (intervals) {
             const tissueIntervals = !!intervals ? intervals
                 .map(interval => {
                     const { r, g, b } = rgb(colorScheme(interval.tissue))
@@ -110,9 +110,9 @@ export class LZAnnotationIntervalsPanel {
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                         state_name: `${interval.tissue}`,
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
-                        itemRgb: [r,g,b].join(), // TODO: color scheme
+                        itemRgb: [r, g, b].join(), // TODO: color scheme
                     };
-            }) : [];
+                }) : [];
             return tissueIntervals;
         }
 
@@ -173,16 +173,16 @@ export class LZCredibleVariantsPanel {
         this.index = 'credible-variants';
         this.queryStringMaker = (chr, start, end) => `${phenotype},${credibleSetId}`
         this.translator = associations => associations.map(association => ({
-                id: association.varId,
-                chr: association.chromosome,
-                start: association.position,
-                end: association.position,
-                position: association.position,
-                pvalue: association.pValue,
-                posteriorProbability: association.posteriorProbability,
-                log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
-                variant: association.varId,
-                ref_allele: association.varId,
+            id: association.varId,
+            chr: association.chromosome,
+            start: association.position,
+            end: association.position,
+            position: association.position,
+            pvalue: association.pValue,
+            posteriorProbability: association.posteriorProbability,
+            log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
+            variant: association.varId,
+            ref_allele: association.varId,
         }));
 
         // LocusZoom Layout configuration options
@@ -215,22 +215,22 @@ export class LZCredibleVariantsPanel {
                 // id_field is necessary for the scatter visualization to work (used by the d3 code generating the viz)
                 "id_field": `${this.datasource_namespace_symbol_for_panel}:id`,
                 "fields": [
-                  `${this.datasource_namespace_symbol_for_panel}:id`,
-                  `${this.datasource_namespace_symbol_for_panel}:position`,
-                  `${this.datasource_namespace_symbol_for_panel}:posteriorProbability`
+                    `${this.datasource_namespace_symbol_for_panel}:id`,
+                    `${this.datasource_namespace_symbol_for_panel}:position`,
+                    `${this.datasource_namespace_symbol_for_panel}:posteriorProbability`
                 ],
                 "x_axis": {
-                  "field": `${this.datasource_namespace_symbol_for_panel}:position`
+                    "field": `${this.datasource_namespace_symbol_for_panel}:position`
                 },
                 // this overrides the log-pvalue and recombinant scales of the default associations plot
                 // since y-axes are partitioned into either axis: 1 -> y1 and axis: 2 -> y2, by overriding y_axis
                 // we've removed axis y2 from the associations plot (as we're only defining y1)
                 "y_axis": {
-                  "axis": 1,
-                  "field": `${this.datasource_namespace_symbol_for_panel}:posteriorProbability`,
-                  // normalizing the scale to probability space
-                  "floor": 0,
-                  "ceiling": 1
+                    "axis": 1,
+                    "field": `${this.datasource_namespace_symbol_for_panel}:posteriorProbability`,
+                    // normalizing the scale to probability space
+                    "floor": 0,
+                    "ceiling": 1
                 }
             }]
         }
@@ -269,7 +269,7 @@ export class LZCredibleVariantsPanel {
 }
 
 export class LZPhewasPanel {
-    constructor(varIdDbSNP, phenotypeMap, { finishHandler, resolveHandler, errHandler }) {
+    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -280,10 +280,9 @@ export class LZPhewasPanel {
         this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
-        this.index = 'variant';
-        this.queryStringMaker = (chr, start, end) => `${varIdDbSNP}`
-        this.translator = variantData => {
-            const associations = variantData[0].associations;
+        this.index = 'phewas-associations';
+        this.queryStringMaker = (chr, start, end) => `${varId}`
+        this.translator = associations => {
             const portalAssociations = associations.filter(a => {
                 return !!phenotypeMap[a.phenotype];
             });
@@ -340,7 +339,7 @@ export class LZPhewasPanel {
 }
 
 
-const _LZBioIndexSource = LocusZoom.Data.Source.extend(function(init) {
+const _LZBioIndexSource = LocusZoom.Data.Source.extend(function (init) {
     this.parseInit(init);
 });
 _LZBioIndexSource.prototype.parseInit = function (params) {

@@ -24,7 +24,7 @@
 
                             <div class="col-md-12 portal-front-tabs">
                                 <b-tabs content-class="mt-3" align="center">
-                                    <b-tab title="Gene, regions or variants" active>
+                                    <b-tab title="Gene, region or variant" active>
                                         <div class="front-gene-search-wrapper">
                                             <div class="col-md-12 input-wrapper">
                                                 <autocomplete
@@ -55,6 +55,14 @@
                                             <phenotype-selectpicker
                                                 v-bind:phenotypes="$parent.phenotypes"
                                             ></phenotype-selectpicker>
+                                        </div>
+                                    </b-tab>
+
+                                    <b-tab title="Datasets">
+                                        <div class="front-dataset-search-wrapper">
+                                            <dataset-selectpicker
+                                                v-bind:datasets="$store.state.bioPortal.datasets"
+                                            ></dataset-selectpicker>
                                         </div>
                                     </b-tab>
                                     <b-tab

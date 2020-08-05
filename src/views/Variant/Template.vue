@@ -20,7 +20,7 @@
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-5">
                                 <input
-                                    v-model="$store.state.newVariantID"
+                                    v-model="$store.state.newVariantId"
                                     type="text"
                                     class="form-control input-default"
                                     placeholder="Search Variant"
@@ -32,7 +32,7 @@
                                     id="variantSearchGo"
                                     class="btn btn-primary"
                                     type="button"
-                                    @click="$store.dispatch('queryVariant', $store.state.newVariantID)"
+                                    @click="$store.dispatch('queryVariant', $store.state.newVariantId)"
                                 >GO</button>
                             </div>
                             <div class="col-md-6 search-example">
@@ -40,103 +40,118 @@
                                 <br />rs11716727, chr3:12489012_C_T, 3_12489012:C/T, chr3_12489012-C-T
                             </div>
                         </div>
-                        <span v-if="$parent.variantData">
-                            {{$parent.variantData.varId}}
-                            <span v-if="$parent.variantData.dbSNP">
+                        <span>
+                            {{$parent.varId}}
+                            <span v-if="$parent.dbSNP">
                                 <span style="color: gray">/</span>
-                                {{$parent.variantData.dbSNP}}
+                                {{$parent.dbSNP}}
                             </span>
                         </span>
                     </div>
                 </div>
             </div>
 
-            <div v-if="$parent.variantData">
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">Variant Effect Predictions</h4>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">Closests Genes</h4>
+                    <documentation
+                        name="variant.genes.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
+                    <div v-if="$store.state.variant && $store.state.variant.nearest">
+                        <div
+                            v-for="gene in $store.state.variant.nearest"
+                            class="gene-with-signal protein_coding"
+                        >
+                            <a :href="`/gene.html?gene=${gene}`">{{gene}}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div v-if="$store.state.transcriptConsequences.data.length > 0">
+                        <h4 class="card-title">Predicted Transcript Consequences</h4>
                         <documentation
                             name="variant.effect.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <h6 class="card-title">Most Severe Consequence</h6>
-                        <div>{{$parent.consequence}} &mdash; {{$parent.consequenceMeaning}}</div>
-                        <br />
-                        <h6 class="card-title">Transcript Consequences</h6>
-
-                        <div v-if="$parent.variantData.transcriptConsequences">
-                            <transcript-consequence-table
-                                v-bind:transcriptConsequences="$parent.variantData.transcriptConsequences"
-                            ></transcript-consequence-table>
-                        </div>
-                        <div v-else class="card-body">
-                            <h4>None found</h4>
-                        </div>
+                        <transcript-consequence-table
+                            v-bind:transcriptConsequences="$store.state.transcriptConsequences.data"
+                        ></transcript-consequence-table>
+                    </div>
+                    <div v-else-if="$store.state.variant">
+                        <h4 class="card-title">Most Severe Consequence</h4>
+                        {{$parent.consequenceFormatter($store.state.variant.consequence)}} &mdash; {{$parent.consequenceMeaning($store.state.variant.consequence)}}
                     </div>
                 </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">PheWAS Visualization</h4>
+            </div>
 
-                        <locuszoom
-                            ref="locuszoom"
-                            :chr="$store.state.chr"
-                            :start="$store.state.start"
-                            :end="$store.state.end"
-                            :refSeq="false">
-                            <lz-phewas-panel
-                                :varId="$store.state.variantID"
-                                :phenotypeMap="$store.state.bioPortal.phenotypeMap">
-                            </lz-phewas-panel>
-                        </locuszoom>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">PheWAS Visualization</h4>
+                    <documentation
+                        name="variant.phewas.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
 
-                        <h4 class="card-title">
-                            <documentation
-                                name="variant.phewas.table.subheader"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
-                        </h4>
-                        <phewas-table
-                            :associations="$parent.variantData.associations"
-                            :phenotype-map="$store.state.bioPortal.phenotypeMap"
-                        ></phewas-table>
-                    </div>
-                </div>
-                <!-- <div class="card mdkp-card">
-                    <div class="card-body">
+                    <locuszoom
+                        ref="locuszoom"
+                        :chr="$store.state.chr"
+                        :start="$store.state.start"
+                        :end="$store.state.end"
+                        :refSeq="false"
+                    >
+                        <lz-phewas-panel
+                            v-if="$store.state.variant"
+                            :varId="$store.state.variant.varId"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        ></lz-phewas-panel>
+                    </locuszoom>
 
-                    </div>
-                </div>-->
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4
-                            class="card-title"
-                        >Transcription factor binding motifs altered by {{$parent.variantName}}</h4>
+                    <h4 class="card-title">
                         <documentation
-                            name="variant.tfbinding.subheader"
+                            name="variant.phewas.table.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
+                    </h4>
+                    <phewas-table
+                        v-if="$store.state.phewas.data"
+                        :associations="$store.state.phewas.data"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                    ></phewas-table>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4
+                        class="card-title"
+                    >Transcription factor binding motifs altered by {{$parent.variantName}}</h4>
+                    <documentation
+                        name="variant.tfbinding.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
 
-                        <div v-if="$parent.variantData.transcriptionFactors">
-                            <transcription-factors-table
-                                v-bind:transcriptionFactors="$parent.variantData.transcriptionFactors"
-                            ></transcription-factors-table>
-                        </div>
-                        <div v-else class="card-body">
-                            <h4>None found</h4>
-                        </div>
+                    <div v-if="$store.state.transcriptionFactors.data">
+                        <transcription-factors-table
+                            v-bind:transcriptionFactors="$store.state.transcriptionFactors.data"
+                        ></transcription-factors-table>
+                    </div>
+                    <div v-else class="card-body">
+                        <h4>None found</h4>
                     </div>
                 </div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">Annotated regions overlapping {{$parent.variantName}}</h4>
-                        <documentation
-                            name="variant.annotated.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-                        <regions-table :regions="$parent.regions"></regions-table>
-                    </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">Annotated regions overlapping {{$parent.variantName}}</h4>
+                    <documentation
+                        name="variant.annotated.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
+                    <regions-table :regions="$parent.regions"></regions-table>
                 </div>
             </div>
         </div>

@@ -68,6 +68,11 @@ export default new Vuex.Store({
         async onGeneChange(context, gene) {
             window.location.href = "./gene.html?gene=" + gene;
         },
+
+        //select gene on autocomplete.
+        async onDatasetChange(context, dataset) {
+            window.location.href = "./dinspector.html?dataset=" + dataset.name;
+        },
     },
 
 });
