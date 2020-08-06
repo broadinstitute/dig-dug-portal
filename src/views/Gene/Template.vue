@@ -7,19 +7,16 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-7 gene-page-header-title">
+                    <div class="col-md-8 gene-page-header-title">
                         Gene
                         <a
                             class="edit-btn"
                             @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
-                        >Search gene</a>
+                        >Select gene</a>
                     </div>
-                    <div class="col-md-5 gene-page-header-title">
-                        Region (click to explore)
-                        <tooltip-documentation name="gene.region.info" :isHover="true"></tooltip-documentation>
-                    </div>
+                    <div class="col-md-4 gene-page-header-title">Explore</div>
 
-                    <div class="col-md-7 gene-page-header-body">
+                    <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-10">
                                 <input
@@ -48,20 +45,30 @@
                             </span>
                         </div>
                     </div>
-                    <div class="col-md-5 gene-page-header-body">
-                        <div class="btn-group" v-if="$parent.region">
-                            <a
-                                type="button"
-                                class="btn btn-link btn-lg"
-                                :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start}&end=${$parent.region.end}`"
-                            >{{$parent.region.chromosome}}:{{$parent.region.start.toLocaleString()}}-{{$parent.region.end.toLocaleString()}}</a>
-                            <a
-                                type="button"
-                                class="btn btn-link btn-lg text-nowrap"
-                                :href="`region.html?chr=${$parent.region.chromosome}&start=${$parent.region.start-50000}&end=${$parent.region.end+50000}`"
-                            >Extend &plusmn; 50 kb</a>
+                    <div class="col-md-4 gene-page-header-body">
+                        <div v-if="$parent.symbolName" class="input-group">
+                            <button
+                                class="btn btn-primary input-group-prepend"
+                                style="margin-right: 20px"
+                                :title="$parent.regionText"
+                                @click="$parent.exploreRegion()"
+                            >Explore Region</button>
+                            <button
+                                class="btn btn-primary input-group-append"
+                                :title="$parent.regionTextExpanded"
+                                @click="$parent.exploreRegion(50000)"
+                            >Explore &plusmn; 50 kb</button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <documentation
+                        name="gene.explore.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
                 </div>
             </div>
 
@@ -73,6 +80,7 @@
                                 Function
                                 <tooltip-documentation
                                     name="gene.function.tooltip.hover"
+                                    :content-fill="$parent.documentationMap"
                                     :isHover="true"
                                     :noIcon="false"
                                 ></tooltip-documentation>
@@ -93,6 +101,10 @@
                                 v-if="gene.source == 'alias'"
                                 :key="gene.name"
                             >{{gene.name}}</span>&nbsp;
+                        </div>
+                        <div v-if="$parent.regionText">
+                            <strong>Coding sequence:</strong>
+                            {{$parent.regionText}}
                         </div>
                         <div v-if="$parent.region">
                             <strong>Length:</strong>
@@ -116,6 +128,7 @@
                             UniProt cross-references
                             <tooltip-documentation
                                 name="gene.xref.tooltip.hover"
+                                :content-fill="$parent.documentationMap"
                                 :isHover="true"
                                 :noIcon="false"
                             ></tooltip-documentation>

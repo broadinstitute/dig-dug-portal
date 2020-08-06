@@ -34,6 +34,7 @@ export default new Vuex.Store({
         chr: keyParams.chr,
         start: keyParams.start,
         end: keyParams.end,
+        focusedVariant: keyParams.variant,
         phenotype: null,
 
         // user-entered search fields

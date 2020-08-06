@@ -71,11 +71,11 @@
                             </div>
                         </div>
                         {{$parent.regionString}}
-                        <a
-                            type="button"
-                            class="btn btn-link btn-lg text-nowrap text-right"
-                            :href="`region.html?chr=${$store.state.chr}&start=${$store.state.start-50000}&end=${$store.state.end+50000}`"
-                        >Extend &plusmn; 50 kb</a>
+                        <button
+                            class="btn btn-primary text-nowrap text-right"
+                            style="margin-left: 20px"
+                            @click="$parent.exploreExpanded()"
+                        >Expand &plusmn; 50 kb</button>
                         <lunaris-link
                             :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"

@@ -62,6 +62,14 @@ new Vue({
         closeAlert,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,
+
+        exploreRegion(expanded = 50000) {
+            let pos = this.chromPos;
+
+            if (!!pos) {
+                window.location.href = `./region.html?chr=${pos.chromosome}&start=${pos.position - expanded}&end=${pos.position + expanded}&variant=${this.$store.state.variant.varId}`;
+            }
+        }
     },
 
     computed: {
@@ -79,6 +87,20 @@ new Vue({
 
         variantName() {
             return this.dbSNP || this.varId || '';
+        },
+
+        chromPos() {
+            let variant = this.$store.state.variant;
+
+            if (!!variant) {
+                let chrom = variant.varId.split(':')[0];
+                let pos = variant.varId.split(':')[1];
+
+                return {
+                    chromosome: chrom,
+                    position: parseInt(pos),
+                }
+            }
         },
 
         documentationMap() {
@@ -148,13 +170,12 @@ new Vue({
 
         "$store.state.variant"(variant) {
             if (variant) {
-                let chrom = variant.varId.split(':')[0];
-                let pos = variant.varId.split(':')[1];
+                let p = this.chromPos;
 
                 this.$store.dispatch('phewas/query', { q: variant.varId });
                 this.$store.dispatch('transcriptConsequences/query', { q: variant.varId });
                 this.$store.dispatch('transcriptionFactors/query', { q: variant.varId });
-                this.$store.dispatch('regions/query', { q: `${chrom}:${pos}` });
+                this.$store.dispatch('regions/query', { q: `${p.chromosome}:${p.position}` });
             }
         }
     }
