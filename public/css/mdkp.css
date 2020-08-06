@@ -1112,3 +1112,18 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     border: solid 1px #ccc;
     float: right;
 }
+
+.explore-region-btn {
+    background-color: #66bbff !important;
+    border: solid 1px #3399ff !important;
+}
+
+.explore-region-btn:hover {
+    background-color: #66bbff75 !important;
+}
+
+.temporary-card {
+    background-color: #66bbff30 !important;
+    border: solid 1px #3399ff30 !important;
+    padding-bottom: 0.25em !important;
+}

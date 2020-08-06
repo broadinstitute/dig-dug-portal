@@ -14,7 +14,7 @@
                             @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
                         >Select gene</a>
                     </div>
-                    <div class="col-md-4 gene-page-header-title">Explore</div>
+                    <div class="col-md-4 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
@@ -48,13 +48,13 @@
                     <div class="col-md-4 gene-page-header-body">
                         <div v-if="$parent.symbolName" class="input-group">
                             <button
-                                class="btn btn-primary input-group-prepend"
+                                class="btn btn-primary input-group-prepend explore-region-btn"
                                 style="margin-right: 20px"
                                 :title="$parent.regionText"
                                 @click="$parent.exploreRegion()"
                             >Explore Region</button>
                             <button
-                                class="btn btn-primary input-group-append"
+                                class="btn btn-primary input-group-append explore-region-btn"
                                 :title="$parent.regionTextExpanded"
                                 @click="$parent.exploreRegion(50000)"
                             >Explore &plusmn; 50 kb</button>
@@ -64,7 +64,7 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body">
+                <div class="card-body temporary-card">
                     <documentation
                         name="gene.explore.subheader"
                         :content-fill="$parent.documentationMap"

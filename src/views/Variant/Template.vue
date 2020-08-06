@@ -15,7 +15,7 @@
                             v-on:click="$parent.showHideElement('variantSearchHolder','variant_search_input')"
                         >Set variant</a>
                     </div>
-                    <div class="col-md-3 gene-page-header-title">Explore</div>
+                    <div class="col-md-3 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-9 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
@@ -51,7 +51,7 @@
                     </div>
                     <div class="col-md-3 gene-page-header-body">
                         <button
-                            class="btn btn-primary"
+                            class="btn btn-primary explore-region-btn"
                             @click="$parent.exploreRegion()"
                         >Explore region</button>
                     </div>
@@ -59,7 +59,7 @@
             </div>
 
             <div class="card mdkp-card">
-                <div class="card-body">
+                <div class="card-body temporary-card">
                     <documentation
                         name="variant.explore.subheader"
                         :content-fill="$parent.documentationMap"

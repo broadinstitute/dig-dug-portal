@@ -72,7 +72,7 @@
                         </div>
                         {{$parent.regionString}}
                         <button
-                            class="btn btn-primary text-nowrap text-right"
+                            class="btn btn-primary text-nowrap text-right explore-region-btn"
                             style="margin-left: 20px"
                             @click="$parent.exploreExpanded()"
                         >Expand &plusmn; 50 kb</button>
@@ -101,7 +101,7 @@
                 </div>
             </div>
             <div class="card mdkp-card">
-                <div class="card-body">
+                <div class="card-body temporary-card">
                     <documentation name="region.trait.info"></documentation>
                 </div>
             </div>
