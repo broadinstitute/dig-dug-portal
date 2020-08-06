@@ -19,7 +19,6 @@
         :placeholder="'Phenotype'"
         :matches="matchingPhenotypes"
         :matchkey="'description'"
-    
         @item-select="onPhenotypeSelected($event)"
     ></autocomplete>
 </template>
@@ -43,7 +42,7 @@ export default Vue.component("phenotype-selectpicker", {
 
     data() {
         return {
-            userText: this.defaultPhenotype || null,
+            userText: this.defaultPhenotype || null
         };
     },
     computed: {
@@ -61,14 +60,21 @@ export default Vue.component("phenotype-selectpicker", {
 
                 return 0;
             });
-        },
+        }
     },
     methods: {
+        onPhenotypeSelected(event) {
+            this.$store.dispatch("onPhenotypeChange", event);
+
+            if (this.clearOnSelected) {
+                this.userText = null;
+            }
+        },
         setFocus() {
             this.$nextTick(() => {
                 this.$refs.phenotypeSelect.$refs.input.focus();
             });
-        },
-    },
+        }
+    }
 });
 </script>
