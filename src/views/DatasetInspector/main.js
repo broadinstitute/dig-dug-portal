@@ -56,7 +56,8 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+        intFormatter: Formatters.intFormatter,
     },
 
     computed: {
@@ -121,10 +122,6 @@ new Vue({
                 [phenotype.name]: []
             }
         }
-    },
-
-    methods: {
-        intFormatter: Formatters.intFormatter,
     },
 
     watch: {

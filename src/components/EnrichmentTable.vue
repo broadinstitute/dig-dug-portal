@@ -36,7 +36,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col class="filter-col-sm">
-                    <div class="label">p-value (&le;)</div>
+                    <div class="label">P-Value (&le;)</div>
                     <b-form-input
                         type="text"
                         @change="setFilter($event, 'select_pValue')"
@@ -200,23 +200,23 @@ export default Vue.component("enrichment-table", {
                 {
                     key: "annotation",
                     label: "Annotation",
-                    formatter: Formatters.annotationFormatter
+                    formatter: Formatters.annotationFormatter,
                 },
                 {
                     key: "method",
                     label: "Method",
-                    formatter: Formatters.methodFormatter
+                    formatter: Formatters.methodFormatter,
                 },
                 {
                     key: "tissue",
                     label: "Tissue",
-                    formatter: Formatters.tissueFormatter
+                    formatter: Formatters.tissueFormatter,
                 },
                 {
                     key: "ancestry",
                     label: "Ancestry",
-                    formatter: Formatters.ancestryFormatter
-                }
+                    formatter: Formatters.ancestryFormatter,
+                },
             ],
             select_annotations: [],
             select_annotations_text: "",
@@ -229,7 +229,7 @@ export default Vue.component("enrichment-table", {
             select_pValue: "",
             select_pValue_text: "",
             select_ratio: "",
-            select_ratio_text: ""
+            select_ratio_text: "",
         };
     },
 
@@ -249,13 +249,13 @@ export default Vue.component("enrichment-table", {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
                                 : "";
-                        }
+                        },
                     },
                     {
                         key: `${p.name}_fold`,
                         label: `Fold`,
-                        formatter: Formatters.floatFormatter
-                    }
+                        formatter: Formatters.floatFormatter,
+                    },
                 ]);
             }
 
@@ -289,7 +289,7 @@ export default Vue.component("enrichment-table", {
                         annotation: r.annotation,
                         ancestry: r.ancestry,
                         minP: null,
-                        maxFold: null
+                        maxFold: null,
                     });
                 }
 
@@ -315,7 +315,7 @@ export default Vue.component("enrichment-table", {
             }
 
             // remove non-overlapping enrichment
-            data = data.filter(row => {
+            data = data.filter((row) => {
                 for (let i in this.phenotypes) {
                     let phenotype = this.phenotypes[i];
 
@@ -335,25 +335,25 @@ export default Vue.component("enrichment-table", {
         },
         filter_annotation() {
             return this.groupedAnnotations
-                .map(v => Formatters.annotationFormatter(v.annotation))
+                .map((v) => Formatters.annotationFormatter(v.annotation))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         filter_method() {
             return this.groupedAnnotations
-                .map(v => Formatters.capitalizedFormatter(v.method))
+                .map((v) => Formatters.capitalizedFormatter(v.method))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined);
         },
         filter_tissue() {
             return this.groupedAnnotations
-                .map(v => Formatters.tissueFormatter(v.tissue))
+                .map((v) => Formatters.tissueFormatter(v.tissue))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined)
                 .filter((v, i, arr) => v != "-");
         },
         filter_ancestry() {
             return this.groupedAnnotations
-                .map(v => Formatters.ancestryFormatter(v.ancestry))
+                .map((v) => Formatters.ancestryFormatter(v.ancestry))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         tableData() {
@@ -402,7 +402,7 @@ export default Vue.component("enrichment-table", {
             }
 
             return dataRows;
-        }
+        },
     },
     methods: {
         addFilter(event, obj) {
@@ -419,7 +419,7 @@ export default Vue.component("enrichment-table", {
         },
         unsetFilter(obj) {
             this[obj] = "";
-        }
-    }
+        },
+    },
 });
 </script>

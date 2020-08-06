@@ -66,7 +66,7 @@ export default new Vuex.Store({
                 let q = `${dataset.name},${phenotype.name}`;
                 context.dispatch('datasetAssociations/query', { q });
             } else {
-                context.dispatch('datasetAssociations/clearData');
+                context.dispatch('datasetAssociations/clear');
             }
         }
     },
