@@ -321,7 +321,7 @@ a:hover {
 
 .am-submenu > li {
     width: 100%;
-    background-color: rgba(120, 120, 120, 0.75);
+    background-color: rgba(100, 100, 100, 0.85);
     font-size: 0.8em;
     padding: 5px 15px 5px 15px;
     border-bottom: solid 1px #666;

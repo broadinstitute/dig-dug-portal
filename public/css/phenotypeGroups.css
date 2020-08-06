@@ -134,7 +134,7 @@
 .pws-group-legend-wrapper {
     width: 90%;
     text-align: right;
-    margin-bottom: -30px;
+    /*margin-bottom: -30px;*/
 }
 
 .pws-group-legend {
