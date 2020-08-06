@@ -102,6 +102,15 @@ new Vue({
         postAlertError,
         closeAlert,
 
+        exploreExpanded() {
+            this.$store.commit('setLocus', {
+                chr: this.$store.state.chr,
+                start: this.$store.state.start - 50000,
+                end: this.$store.state.end + 50000,
+            });
+            this.$store.dispatch('queryRegion');
+        },
+
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
@@ -173,7 +182,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function(gene) {
+            return this.$store.state.genes.data.filter(function (gene) {
                 return gene.source == "symbol";
             });
         },
@@ -291,7 +300,7 @@ new Vue({
         }
     },
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function(phenotypeMap) {
+        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
             // if there's a phenotypeParam, then pick that phenotype
@@ -304,7 +313,7 @@ new Vue({
             }
         },
 
-        "$store.state.phenotype": function(phenotype) {
+        "$store.state.phenotype": function (phenotype) {
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement("phenotypeSearchHolder");
 

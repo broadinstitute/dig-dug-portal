@@ -67,7 +67,7 @@ new Vue({
             let pos = this.chromPos;
 
             if (!!pos) {
-                window.location.href = `./region.html?chr=${pos.chromsoome}&start=${pos.position - expanded}&end=${pos.position + expanded}`;
+                window.location.href = `./region.html?chr=${pos.chromosome}&start=${pos.position - expanded}&end=${pos.position + expanded}&variant=${this.$store.state.variant.varId}`;
             }
         }
     },
@@ -98,7 +98,7 @@ new Vue({
 
                 return {
                     chromosome: chrom,
-                    position: pos,
+                    position: parseInt(pos),
                 }
             }
         },
@@ -170,13 +170,12 @@ new Vue({
 
         "$store.state.variant"(variant) {
             if (variant) {
-                let chrom = variant.varId.split(':')[0];
-                let pos = variant.varId.split(':')[1];
+                let p = this.chromPos;
 
                 this.$store.dispatch('phewas/query', { q: variant.varId });
                 this.$store.dispatch('transcriptConsequences/query', { q: variant.varId });
                 this.$store.dispatch('transcriptionFactors/query', { q: variant.varId });
-                this.$store.dispatch('regions/query', { q: `${chrom}:${pos}` });
+                this.$store.dispatch('regions/query', { q: `${p.chromosome}:${p.position}` });
             }
         }
     }

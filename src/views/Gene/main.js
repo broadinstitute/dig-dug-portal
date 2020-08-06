@@ -142,6 +142,26 @@ new Vue({
             return {};
         },
 
+        regionText() {
+            let r = this.region;
+
+            if (!!r) {
+                return `${r.chromosome}:${Formatters.intFormatter(r.start)}-${Formatters.intFormatter(r.end)}`;
+            } else {
+                return '';
+            }
+        },
+
+        regionTextExpanded() {
+            let r = this.region;
+
+            if (!!r) {
+                return `${r.chromosome}:${Formatters.intFormatter(r.start - 50000)}-${Formatters.intFormatter(r.end + 50000)}`;
+            } else {
+                return '';
+            }
+        },
+
         documentationMap() {
             let symbol = this.symbolName;
             let r = this.region;

@@ -7,7 +7,7 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-12 gene-page-header-title">
+                    <div class="col-md-9 gene-page-header-title">
                         Variant
                         <tooltip-documentation name="variant.alleles.tooltip.hover" :isHover="true"></tooltip-documentation>
                         <a
@@ -15,8 +15,9 @@
                             v-on:click="$parent.showHideElement('variantSearchHolder','variant_search_input')"
                         >Set variant</a>
                     </div>
+                    <div class="col-md-3 gene-page-header-title">Explore</div>
 
-                    <div class="col-md-12 gene-page-header-body">
+                    <div class="col-md-9 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-5">
                                 <input
@@ -48,25 +49,21 @@
                             </span>
                         </span>
                     </div>
-                </div>
-            </div>
-
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4>Explore variant region</h4>
-                    <documentation
-                        name="variant.explore.subheader"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>
-                    <div v-if="$store.state.variant">
+                    <div class="col-md-3 gene-page-header-body">
                         <button
                             class="btn btn-primary"
                             @click="$parent.exploreRegion()"
                         >Explore region</button>
                     </div>
-                    <div v-else>
-                        <i>Variant not found</i>
-                    </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <documentation
+                        name="variant.explore.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
                 </div>
             </div>
 

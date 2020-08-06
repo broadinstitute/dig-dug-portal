@@ -7,14 +7,16 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-12 gene-page-header-title">
+                    <div class="col-md-8 gene-page-header-title">
                         Gene
                         <a
                             class="edit-btn"
                             @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
                         >Select gene</a>
                     </div>
-                    <div class="col-md-12 gene-page-header-body">
+                    <div class="col-md-4 gene-page-header-title">Explore</div>
+
+                    <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-10">
                                 <input
@@ -43,30 +45,30 @@
                             </span>
                         </div>
                     </div>
+                    <div class="col-md-4 gene-page-header-body">
+                        <div v-if="$parent.symbolName" class="input-group">
+                            <button
+                                class="btn btn-primary input-group-prepend"
+                                style="margin-right: 20px"
+                                :title="$parent.regionText"
+                                @click="$parent.exploreRegion()"
+                            >Explore Region</button>
+                            <button
+                                class="btn btn-primary input-group-append"
+                                :title="$parent.regionTextExpanded"
+                                @click="$parent.exploreRegion(50000)"
+                            >Explore &plusmn; 50 kb</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4>Explore gene region</h4>
                     <documentation
                         name="gene.explore.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-                    <div v-if="$parent.symbolName">
-                        <button
-                            class="btn btn-primary"
-                            style="margin-right: 20px"
-                            @click="$parent.exploreRegion()"
-                        >Explore region</button>
-                        <button
-                            class="btn btn-primary"
-                            @click="$parent.exploreRegion(50000)"
-                        >Explore region &plusmn; 50 kb</button>
-                    </div>
-                    <div v-else>
-                        <i>Gene not found</i>
-                    </div>
                 </div>
             </div>
 
@@ -99,6 +101,10 @@
                                 v-if="gene.source == 'alias'"
                                 :key="gene.name"
                             >{{gene.name}}</span>&nbsp;
+                        </div>
+                        <div v-if="$parent.regionText">
+                            <strong>Coding sequence:</strong>
+                            {{$parent.regionText}}
                         </div>
                         <div v-if="$parent.region">
                             <strong>Length:</strong>
