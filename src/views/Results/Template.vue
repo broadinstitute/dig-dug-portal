@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h2>Card Prototype</h2>
+        <h2>Bucket Prototype</h2>
 
         <!-- Visualization/Tool Cards [VTC] Take Arbitrary BioIndex Data and give arbitrary objects (BioIndex or otherwise) -->
         <!-- They can be "fulfilled" by a Data Card [DC] in two possible ways:
@@ -11,13 +11,13 @@
             A Visualization/Tool Card starts out unfulfilled. If you try to fulfill a VTC with a Data Card which doesn't share an input nor compose, it is left unfulfilled.
             (It is maybe possible for a VTC to be fulfilled without Data Cards?)
          -->
-        <h6><em>Visualization/Tool Card</em></h6>
+        <h6><em>Visualization/Tool Bucket</em></h6>
         <locuszoom-phewas-plot-card></locuszoom-phewas-plot-card>
 
         <br>
 
         <!-- Data Cards have 1:1 correspondence with BioIndex -->
-        <h6><em>Data Card</em></h6>
+        <h6><em>Data Bucket</em></h6>
         <phewas-associations-card></phewas-associations-card>
 
         <br>
@@ -26,7 +26,7 @@
 
         <div class="row">
             <div class="col-3">
-                <h5>Draggable Data</h5>
+                <h5>Draggable Data Buckets</h5>
                 <draggable
                     class="dragArea list-group"
                     :list="list1"
@@ -51,20 +51,33 @@
                     }"
                     @change="log">
 
-                    <div class="list-group-item" v-for="element in list3" :key="element.id">
+                    <div class="list-group-item" v-for="(element, idx) in list3" :key="element.id">
 
                         <!-- TODO: Element dispatch code goes here -->
                         <div v-if="element.name.split(';')[0] === 'locuszoom-phewas-plot'">
-                            <locuszoom-phewas-plot-card></locuszoom-phewas-plot-card>
+                            <locuszoom-phewas-plot-card
+                                :metadata="element"
+                                @duplicate-self="copy"
+                                @duplicate-type="log"
+                                @remove="removeAt(idx)"
+                            ></locuszoom-phewas-plot-card>
                         </div>
 
                         <div v-if="element.name.split(';')[0] === 'phewas-associations'">
                             <phewas-associations-card
                                 v-if="element.name.split(';')[1] === 'varId' && !!element.name.split(';')[2]"
                                 :varId="element.name.split(';')[2]"
+                                :metadata="element"
+                                @duplicate-self="copy"
+                                @duplicate-type="log"
+                                @remove="removeAt(idx)"
                             ></phewas-associations-card>
                             <phewas-associations-card
                                 v-else
+                                :metadata="element"
+                                @duplicate-self="copy"
+                                @duplicate-type="log"
+                                @remove="removeAt(idx)"
                             ></phewas-associations-card>
                         </div>
 
@@ -81,7 +94,7 @@
             </div>
 
             <div class="col-3">
-                <h5>Draggable Viz</h5>
+                <h5>Draggable Viz Buckets</h5>
                 <draggable
                     class="dragArea list-group"
                     :list="list2"
@@ -126,9 +139,9 @@ export default {
         { name: "locuszoom-phewas-plot", id: 4 },
       ],
      list1: [
-        { name: "data 1", id: 1 },
-        { name: "data 2", id: 2 },
-        { name: "data 3", id: 3 },
+        { name: "phenotype A", id: 1 },
+        { name: "phenotype B", id: 2 },
+        { name: "phenotype C", id: 3 },
         { name: "data 4", id: 4 },
         { name: 'phewas-associations;varId;2:27730940:T:C' , tag: 'hello', id: 4 }
       ],
@@ -150,10 +163,13 @@ export default {
   },
   methods: {
     removeAt(idx) {
-      this.list2.splice(idx, 1);
+      this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))
+    },
+    copy(that) {
+      this.list3 = this.list3.concat({ ...that.metadata, id: idGlobal++ });
     },
     log: function(evt) {
-      window.console.log(evt);
+      window.console.log('logging', evt);
     },
     tap: function(evt) {
       window.console.log('tapping',evt);

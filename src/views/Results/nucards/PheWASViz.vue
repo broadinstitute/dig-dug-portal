@@ -27,10 +27,27 @@
                     Gene/Region
                 </div>
             </template>
-            <button :disabled="!!!filler" @click="filler = null">Clear</button>
+            <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
+            <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
+            <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+            <button @click="$emit('remove', { metadata, filler })">Remove</button>
             <br>
             <div v-if="filler">
                 <template>
+                    <h4 class="card-title">
+                        {{filler.varId}}
+                        <!-- <span v-if="$parent.dbSNP">
+                            <span style="color: gray">/</span>
+                            {{$parent.dbSNP}}
+                        </span>
+                        associations
+                        <tooltip-documentation
+                            name="variant.assoc.tooltip"
+                            :content-fill="$parent.documentationMap"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation> -->
+                    </h4>
                     <div v-if="!!$store.state.bioPortal.phenotypeMap">
                         <locuszoom
                             ref="locuszoom"
@@ -51,14 +68,10 @@
                 <template>
                     <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
                     <div>
-                        <label for="card-input-phenotype">
-                            Phenotype
+                        <label for="card-input-variant">
+                            Variant
                         </label>&nbsp;
-                        <input id="card-input-phenotype"/>&nbsp;
-                        <label for="card-input-gene">
-                            Gene
-                        </label>&nbsp;
-                        <input id="card-input-gene"/>
+                        <input id="card-input-variant"/>
                     </div>
                     <draggable
                         class="dragArea list-group"
@@ -85,6 +98,7 @@ import Vue from "vue"
 import draggable from "vuedraggable";
 
 export default Vue.component('locuszoom-phewas-plot-card', {
+    props: ['metadata'],
     components: {
         draggable
     },

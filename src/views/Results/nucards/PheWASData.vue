@@ -19,7 +19,10 @@
                     Gene/Region
                 </div>
             </template>
-            <button :disabled="!!!filler" @click="filler = null">Clear</button>
+            <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
+            <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
+            <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+            <button @click="$emit('remove', { metadata, filler })">Remove</button>
             <br>
 
             <div v-if="filler">
@@ -81,7 +84,7 @@ import Vue from "vue"
 import draggable from "vuedraggable";
 
 export default Vue.component('phewas-associations-card', {
-    props: ['varId'],
+    props: ['varId', 'metadata'],
     components: {
         draggable
     },
