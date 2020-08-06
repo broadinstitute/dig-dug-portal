@@ -62,6 +62,14 @@ new Vue({
         closeAlert,
         consequenceFormatter: Formatters.consequenceFormatter,
         consequenceMeaning: Formatters.consequenceMeaning,
+
+        exploreRegion(expanded = 50000) {
+            let pos = this.chromPos;
+
+            if (!!pos) {
+                window.location.href = `./region.html?chr=${pos.chromsoome}&start=${pos.position - expanded}&end=${pos.position + expanded}`;
+            }
+        }
     },
 
     computed: {
@@ -79,6 +87,20 @@ new Vue({
 
         variantName() {
             return this.dbSNP || this.varId || '';
+        },
+
+        chromPos() {
+            let variant = this.$store.state.variant;
+
+            if (!!variant) {
+                let chrom = variant.varId.split(':')[0];
+                let pos = variant.varId.split(':')[1];
+
+                return {
+                    chromosome: chrom,
+                    position: pos,
+                }
+            }
         },
 
         documentationMap() {

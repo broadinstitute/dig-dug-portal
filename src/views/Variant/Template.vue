@@ -53,6 +53,25 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4>Explore variant region</h4>
+                    <documentation
+                        name="variant.explore.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
+                    <div v-if="$store.state.variant">
+                        <button
+                            class="btn btn-primary"
+                            @click="$parent.exploreRegion()"
+                        >Explore region</button>
+                    </div>
+                    <div v-else>
+                        <i>Variant not found</i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <h4 class="card-title">Closest genes</h4>
                     <documentation
                         name="variant.genes.subheader"
