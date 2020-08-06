@@ -1,8 +1,6 @@
 # Welcome to DIG Portal - Frontend
 
-This is the shared code base of the front-end-only resources for the new knowledge portals.
-It requires the [back-end server](https://github.com/broadinstitute/dig-dug-server) to be
-installed and started first.
+This is the shared code base of the front-end-only resources for the new knowledge portals. It is served using the [DIG-DUG server](https://github.com/broadinstitute/dig-dug-server) project.
 
 ---
 
@@ -14,16 +12,15 @@ installed and started first.
 
 ### Installing npm
 
-This project is written in Javascript and uses `npm` for managing module dependencies and running the system.
-which needs to be installed. Instructions for installing `npm` are [here](https://www.npmjs.com/get-npm}).
+This project uses Javascript and uses `npm` for managing module dependencies and running the system which needs to be installed. Instructions for installing `npm` are [here](https://www.npmjs.com/get-npm}).
 
 ### Installing Javascript Dependencies
 
 To install the project's Javascript module dependencies, type:
 
 ```
-cd /path/to/your/project/dig-dug-portal
-npm install
+$ cd /path/to/your/project/dig-dug-portal
+$ npm install
 ```
 
 Installations on Microsoft Windows may wish to use the **--no-optional** flag to avoid installation warnings due to the installation of packages targeting MacOSX (i.e. fsevents).
@@ -52,14 +49,14 @@ When building the portal, you need to decide if you'd like to serve data from th
 To choose the development BioIndex, set the `BIOINDEX_DEV` environment variable to any "truthy" NodeJS value before building. For example:
 
 ```
-BIOINDEX_DEV=1 npm run watch
+$ BIOINDEX_DEV=1 npm run watch
 ```
 
 On Windows (PowerShell), it can be done like this:
 
 ```
-$env:BIOINDEX_DEV=1
-npm run watch
+C:\> $env:BIOINDEX_DEV=1
+C:\> npm run watch
 ```
 
 ## Front-end framework

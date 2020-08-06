@@ -1,6 +1,10 @@
 <template>
     <div>
-        <div class="dataset-info-wrapper" v-html="this.datasetInfo[0].body[0].value"></div>
+        <div
+            class="dataset-info-wrapper"
+            v-if="datasetInfo && datasetInfo[0]"
+            v-html="datasetInfo[0].body[0].value"
+        ></div>
     </div>
 </template>
 
@@ -9,7 +13,7 @@ import Vue from "vue";
 
 export default Vue.component("dataset-info-section", {
     props: ["datasetInfo"],
-    mounted: function() {}
+    mounted: function () {},
 });
 </script>
 

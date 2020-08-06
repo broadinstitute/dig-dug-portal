@@ -11,8 +11,10 @@ import GeneResultCard from "./cards/GeneResultCard.vue"
 import ResultsGlobalTooltip from "./navs/ResultsGlobalTooltip.vue"
 import ResultsNav from "./navs/ResultsNav"
 
-import LocusZoom from "@/components/lz/LocusZoom.vue"
-import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel.vue"
+import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
+
+import PheWASTableWrapper from "./components/PheWASTableWrapper";
 
 import Multiselect from "vue-multiselect"
 import "vue-multiselect/dist/vue-multiselect.min.css"
@@ -33,8 +35,7 @@ Vue.use(BootstrapVue);
 new Vue({
     store,
     components: {
-        LocusZoom,
-        LocusZoomPhewasPanel,
+
 
         ResultsGlobalTooltip,
         RegionsResultCard,
@@ -43,6 +44,10 @@ new Vue({
         GeneResultCard,
         PhenotypeSignalCard,
         ResultsNav,
+
+        LocusZoom,
+        LocusZoomPhewasPanel,
+        PheWASTableWrapper
     },
     data() {
         return {

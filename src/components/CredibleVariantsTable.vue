@@ -40,7 +40,7 @@ export default Vue.component("credible-variants-table", {
                 },
                 {
                     key: "pValue",
-                    label: "pValue"
+                    label: "p-value"
                 },
                 {
                     key: "posteriorProbability",
@@ -59,7 +59,7 @@ export default Vue.component("credible-variants-table", {
         },
         sortedCredibleVariants() {
             // TODO
-            return this.crediblevariants
+            return this.crediblevariants;
             // .sort((a, b) => b.subjects - a.subjects);
         }
     }

@@ -22,9 +22,17 @@ export default {
             diseaseGroups: [],
             phenotypes: [],
             datasets: [],
-            phenotypeMap: {},
+            datasetMap: {},
             documentation: {},
-         
+
+            // NOTE: in Vue, if we initialize a reactive variable as an empty object, it becomes a wrapped empty object -> therefore a non-empty object (since Vue equips the object with properties it uses to implement reactivity)
+            // thus we can't check if the object is fully initialized based on whether or not it's empty, because once transformed by Vue it will always be non-empty
+            // this matters because sometimes there are race conditions where e.g. a component will need some kind of data to initialize, but will not be programmed to change if the variable changes,
+            // because the value is not expected to change due to user input (like here, where phenotypeMap is page scoped).
+            // HOWEVER: by initializing it as a null, we can check whether or not the object is initialized in all cases where we would otherwise want to check if it's empty (since initialization is weaker than emptiness)
+            // This particular refactoring might break other code on the portal but should be easily guarded with a v-if or other conditionals
+            // - K y2020-m8-d5 while working with LocusZoom Phewas Plot
+            phenotypeMap: null,
         }
     },
 
@@ -32,7 +40,6 @@ export default {
         setDiseaseGroups(state, data) {
             state.diseaseGroups = data;
         },
-
         setPhenotypes(state, data) {
             state.phenotypes = data;
             state.phenotypeMap = {};
@@ -42,12 +49,15 @@ export default {
                 state.phenotypeMap[state.phenotypes[i].name] = state.phenotypes[i];
             }
         },
-    
-
         setDatasets(state, data) {
             state.datasets = data;
-        },
+            state.datasetMap = {};
 
+            // create a map of the dataset name for fast lookup
+            for (let i in state.datasets) {
+                state.datasetMap[state.datasets[i].name] = state.datasets[i];
+            }
+        },
         setDocumentation(state, data) {
             state.documentation = data;
         },

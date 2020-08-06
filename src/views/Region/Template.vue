@@ -102,29 +102,36 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <documentation name="region.trait.info"></documentation>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <h4 class="card-title">Genes overlapping region</h4>
                     <div v-for="row in $parent.genes" :class="'gene-with-signal '+row.type">
                         <a :href="`/gene.html?gene=${row.name}`">{{row.name}}</a>
                     </div>
                 </div>
             </div>
-
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
                         class="card-title"
-                    >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
+                    >Variant associations in the region: {{$parent.regionString}}</h4>
                     <documentation name="region.phenos_w_signal.subheader"></documentation>
-
-                    <div style="text-align: right; padding-bottom: 5px;">
+                    <div v-if="$parent.topAssociations.length > 0">
                         <div
-                            href="javascript:;"
-                            v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
-                            class="switch-view btn btn-secondary btn-sm"
-                        >View in phenotype group</div>
+                            style="text-align: right; padding-bottom: 5px;"
+                            v-if="$parent.topAssociations[0].pValue <= 5e-8"
+                        >
+                            <div
+                                href="javascript:;"
+                                v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
+                                class="switch-view btn btn-secondary btn-sm"
+                            >View associations by phenotype group</div>
+                        </div>
+                        <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                     </div>
-
-                    <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                 </div>
             </div>
 
@@ -133,7 +140,7 @@
                     <h4
                         v-if="$store.state.phenotype"
                         class="card-title"
-                    >Associations for {{$store.state.phenotype.description}}</h4>
+                    >Visualize associations for {{$store.state.phenotype.description}}</h4>
                     <documentation
                         name="region.lz.subheader"
                         :content-fill="$parent.documentationMap"
@@ -141,24 +148,32 @@
 
                     <locuszoom
                         ref="locuszoom"
+                        v-if="$store.state.phenotype"
                         :chr="$store.state.chr"
                         :start="$store.state.start"
                         :end="$store.state.end"
-                        :refSeq="true">
+                        :refSeq="true"
+                    >
                         <lz-associations-panel
                             :phenotype="$store.state.phenotype.name"
+                            :finishHandler="$parent.updateAssociationsTable"
                         ></lz-associations-panel>
                     </locuszoom>
-
                 </div>
             </div>
 
             <div v-if="$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4
-                            class="card-title"
-                        >Top Associations for {{$store.state.phenotype.description}}</h4>
+                        <h4 class="card-title">
+                            Top Associations for {{$store.state.phenotype.description}}
+                            <tooltip-documentation
+                                name="region.topassoc.tooltip"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+
                         <documentation name="region.variantassociation.subheader"></documentation>
                         <associations-table
                             :phenotypes="$parent.phenotypes"
@@ -183,11 +198,12 @@
                                     <div class="label">Annotation Method Track</div>
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
-                                        @annotation="$parent.addAnnotationTrack($event)"/>
+                                        @annotation="$parent.addAnnotationTrack($event)"
+                                    />
                                 </div>
 
                                 <div class="col filter-col-sm">
-                                    <div class="label">pValue (&le;)</div>
+                                    <div class="label">p-value (&le;)</div>
                                     <input v-model.number="$parent.pValue" class="form-control" />
                                 </div>
                                 <div class="col filter-col-sm">
@@ -200,7 +216,8 @@
                                     <div class="label">Credible Sets Track</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
-                                        @credibleset="$parent.addCredibleVariantTrack($event)"/>
+                                        @credibleset="$parent.addCredibleVariantTrack($event)"
+                                    />
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>
@@ -217,15 +234,16 @@
 
                         <div v-if="!!$store.state.phenotype">
                             <!-- TODO: Refactor p-value, fold, colorscheme, scoring to providers? -->
-                            <igv ref="igv"
+                            <igv
+                                ref="igv"
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
                                 :p-value="$parent.pValue"
                                 :fold="$parent.fold"
-                                :scoring="$parent.tissueScoring"/>
+                                :scoring="$parent.tissueScoring"
+                            />
                         </div>
-
                     </div>
                 </div>
             </div>

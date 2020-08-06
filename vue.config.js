@@ -4,7 +4,11 @@ module.exports = {
     },
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
-        let bioindex_host = !!bioindex_dev ? '18.215.38.136' : '3.221.48.161';
+        let bioindex_host = '3.221.48.161'; // production by default
+
+        if (!!bioindex_dev) {
+            bioindex_host = (bioindex_dev == 'localhost') ? 'localhost' : '18.215.38.136';
+        }
 
         // output which bioindex is being used
         console.log(`BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`);
@@ -165,5 +169,20 @@ module.exports = {
             title: "Results",
             chunks: ["chunk-vendors", "chunk-common", "results"]
         },
+        effectorgenes: {
+            entry: "src/views/EffectorGenes/main.js",
+            template: "public/index.html",
+            filename: "effectorgenes.html",
+            title: "Predicted effector genes research methods",
+            chunks: ["chunk-vendors", "chunk-common", "effectorgenes"]
+        },
+        eglmethod: {
+            entry: "src/views/EglMethod/main.js",
+            template: "public/index.html",
+            filename: "method.html",
+            title: "Research method",
+            chunks: ["chunk-vendors", "chunk-common", "eglmethod"]
+        },
+
     }
 };

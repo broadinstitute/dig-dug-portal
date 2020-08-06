@@ -3,7 +3,7 @@
         <b-container fluid class="filtering-ui-wrapper filter-rows">
             <b-row class="filtering-ui-content">
                 <b-col>
-                    <div class="label">Annotations:</div>
+                    <div class="label">Annotations</div>
                     <b-form-select
                         @input="addFilter($event, 'annotations')"
                         :options="filter_annotation"
@@ -11,7 +11,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div class="label">Methods:</div>
+                    <div class="label">Methods</div>
                     <b-form-select
                         @input="addFilter($event, 'methods')"
                         :options="filter_method"
@@ -19,7 +19,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div class="label">Tissues:</div>
+                    <div class="label">Tissues</div>
                     <b-form-select
                         @input="addFilter($event, 'tissues')"
                         :options="filter_tissue"
@@ -162,7 +162,9 @@ export default Vue.component("regions-table", {
             return this.tableData.length;
         },
         sortedRegions() {
-            return this.regions.sort((a, b) => a.start - b.start);
+            return this.regions
+                .filter(a => !!a.tissue)
+                .sort((a, b) => a.start - b.start);
         },
         filter_annotation() {
             return this.sortedRegions

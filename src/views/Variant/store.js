@@ -13,38 +13,36 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        variant: bioIndex("variant"),
+        variantData: bioIndex('variant'),
+        transcriptConsequences: bioIndex('transcript-consequences'),
+        transcriptionFactors: bioIndex('transcription-factors'),
+        phewas: bioIndex("phewas-associations"),
         regions: bioIndex("regions"),
     },
 
     state: {
-        variantID: keyParams.variant,
-        newVariantID: null,
-        currentTissue: '',
+        variant: null,
+        newVariantId: null,
     },
 
     mutations: {
-        setVariantID(state, variantID) {
-            state.variantID = variantID || state.newVariantID;
-            state.newVariantID = state.variantID
-            keyParams.set({ variant: state.newVariantID });
+        setVariant(state, variant) {
+            let varId = variant.varId;
+
+            state.variant = variant;
+            state.newVariantId = variant.dbSNP || varId;
+
+            keyParams.set({ variant: state.newVariantId });
         },
     },
 
     actions: {
         async queryVariant(context, newVarId) {
-            let varID = variantUtils.parseVariant(newVarId || context.state.variantID);
+            newVarId = await variantUtils.parseVariant(newVarId || context.state.newVariantId);
 
-            if (!!varID) {
-                context.commit('setVariantID', varID);
-                context.dispatch('variant/query', { q: varID });
+            if (!!newVarId) {
+                context.dispatch('variantData/query', { q: newVarId });
             }
         },
-
-        async queryRegions(context, { chromosome, position }) {
-            let q = `${chromosome}:${position}`;
-
-            context.dispatch('regions/query', { q });
-        }
     }
 });

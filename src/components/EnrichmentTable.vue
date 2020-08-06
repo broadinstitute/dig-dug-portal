@@ -27,7 +27,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col class="filter-col-sm">
-                    <div class="label">Ancestry:</div>
+                    <div class="label">Ancestry</div>
                     <b-form-select
                         @input="setFilter($event, 'select_ancestry')"
                         :options="filter_ancestry"
@@ -36,7 +36,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col class="filter-col-sm">
-                    <div class="label">P-Value (&le;)</div>
+                    <div class="label">p-value (&le;)</div>
                     <b-form-input
                         type="text"
                         @change="setFilter($event, 'select_pValue')"

@@ -15,6 +15,8 @@ import DatasetsTable from "@/components/DatasetsTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
+import { rawUrl } from "@/utils/bioIndexUtils";
+import Formatters from "@/utils/formatters";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -73,7 +75,7 @@ new Vue({
             let phenotype = this.$store.state.phenotype;
 
             if (!!phenotype) {
-                return `https://dig-analysis-data.s3.amazonaws.com/out/metaanalysis/plots/${phenotype.name}/manhattan.png`;
+                return rawUrl(`/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`);
             }
         },
 
@@ -81,12 +83,14 @@ new Vue({
             let phenotype = this.$store.state.phenotype;
 
             if (!!phenotype) {
-                return `https://dig-analysis-data.s3.amazonaws.com/out/metaanalysis/plots/${phenotype.name}/qq.png`;
+                return rawUrl(`/api/raw/plot/phenotype/${phenotype.name}/qq.png`);
             }
         }
     },
 
-
+    methods: {
+        intFormatter: Formatters.intFormatter,
+    },
 
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
