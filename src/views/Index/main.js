@@ -7,6 +7,7 @@ Vue.config.productionTip = false;
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import NewsFeedSection from "@/components/frontPage/NewsFeedSection.vue";
 import AboutPortalSection from "@/components/frontPage/AboutPortalSection.vue";
 import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue";
@@ -40,6 +41,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        DatasetSelectPicker,
         NewsFeedSection,
         AboutPortalSection,
         AboutProjectSection,
@@ -53,6 +55,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
     },
 
     render(createElement, context) {

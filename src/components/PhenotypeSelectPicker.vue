@@ -5,8 +5,11 @@
         placeholder="Type in a phenotype ..."
         :data="phenotypeOptions"
         :serializer="s => s.description"
-        :maxMatches="30"
-        @hit="onPhenotypeSelected($event)">
+        :maxMatches="1000"
+        :minMatchingChars="0"
+        :showOnFocus="true"
+        @hit="onPhenotypeSelected($event)"
+    >
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small class="text-secondary">{{ data.group }}</small>
@@ -40,7 +43,7 @@ export default Vue.component("phenotype-selectpicker", {
 
     data() {
         return {
-            userText: this.defaultPhenotype || null
+            userText: this.defaultPhenotype || null,
         };
     },
     computed: {
@@ -58,7 +61,7 @@ export default Vue.component("phenotype-selectpicker", {
 
                 return 0;
             });
-        }
+        },
     },
     methods: {
         setFocus() {
@@ -66,9 +69,6 @@ export default Vue.component("phenotype-selectpicker", {
                 this.$refs.phenotypeSelect.$refs.input.focus();
             });
         },
-        onPhenotypeSelected(event) {
-            console.log(event);
-        }
-    }
+    },
 });
 </script>

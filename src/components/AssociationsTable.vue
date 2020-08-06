@@ -12,16 +12,15 @@
                     ></b-form-select>
                 </b-col>
                 <b-col>
-                    <div class="label">Gene</div>
-                    <b-form-input
+                    <div class="label">Closest Gene</div>
+                    <b-form-select
                         id="filter-gene"
-                        type="text"
-                        v-model="select_gene_text"
+                        :options="filter_closest_gene_options"
                         @change="addCompound($event, 'select_gene','filter-gene')"
-                    ></b-form-input>
+                    ></b-form-select>
                 </b-col>
                 <b-col class="filter-col-sm">
-                    <div class="label">pValue (&le;)</div>
+                    <div class="label">p-value (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
                         type="text"
@@ -126,7 +125,7 @@
                         <span style="color:white">{{phenotype.description}}</span>
                     </b-th>
                 </template>
-                <template v-slot:cell(locus)="r">
+                <template v-slot:cell(position)="r">
                     <a
                         :href="`/region.html?phenotype=${phenotypes[0].name}&chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
                     >{{locusFormatter(r.item)}}</a>
@@ -137,15 +136,18 @@
                 <template v-slot:cell(dbSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
                 </template>
-                <template v-slot:cell(symbol)="r">
-                    <a :href="`/gene.html?gene=${r.item.gene}`">{{r.item.gene}}</a>
+                <template v-slot:cell(genes)="r">
+                    <a
+                        v-for="gene in r.item.nearest"
+                        class="item"
+                        :href="`/gene.html?gene=${gene}`"
+                    >{{gene}}</a>
                 </template>
                 <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
-                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}_beta`]) : r.item[`${p.name}_beta`])}}</span>
                     <span
                         :class="`effect ${r.item[`${p.name}_beta`] < 0 ? 'negative' : 'positive'}`"
-                        style="float:right"
                     >{{r.item[`${p.name}_beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
+                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}_beta`]) : r.item[`${p.name}_beta`])}}</span>
                 </template>
                 <template v-slot:cell()
             </b-table>
@@ -191,8 +193,8 @@ export default Vue.component("associations-table", {
             currentPage: 1,
             baseFields: [
                 {
-                    key: "locus",
-                    label: "Locus"
+                    key: "position",
+                    label: "Position"
                 },
                 {
                     key: "allele",
@@ -208,8 +210,8 @@ export default Vue.component("associations-table", {
                     formatter: Formatters.consequenceFormatter
                 },
                 {
-                    key: "symbol",
-                    label: "Gene"
+                    key: "genes",
+                    label: "Closest Genes"
                 }
             ],
 
@@ -217,7 +219,6 @@ export default Vue.component("associations-table", {
             select_pValue_text: "",
             select_consequence: [],
             select_gene: [],
-            select_gene_text: "",
             select_beta: "",
             select_beta_options: [
                 { value: "p", text: "Positive" },
@@ -277,7 +278,7 @@ export default Vue.component("associations-table", {
                         reference: r.reference,
                         dbSNP: r.dbSNP,
                         consequence: r.consequence,
-                        gene: r.gene,
+                        nearest: r.nearest,
                         alt: r.alt,
                         minP: 1.0
                     });
@@ -319,7 +320,14 @@ export default Vue.component("associations-table", {
             return this.groupedAssociations
                 .map(v => Formatters.consequenceFormatter(v.consequence))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
-                .filter((v, i, arr) => v != undefined);
+                .filter((v, i, arr) => v != undefined)
+                .sort();
+        },
+        filter_closest_gene_options() {
+            let genes = this.associations.flatMap(assoc => assoc.nearest);
+
+            // return sorted, unique genes
+            return [...new Set(genes)].sort();
         },
         tableData() {
             let dataRows = this.groupedAssociations;
@@ -335,10 +343,10 @@ export default Vue.component("associations-table", {
 
             let geneFiltered =
                 this.select_gene.length > 0
-                    ? Filters.filterTable(
+                    ? Filters.filterNearest(
                           consequenceFiltered,
                           this.select_gene,
-                          "gene"
+                          "nearest"
                       )
                     : consequenceFiltered;
 

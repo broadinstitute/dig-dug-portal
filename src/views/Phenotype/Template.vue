@@ -34,23 +34,39 @@
             <div v-if="$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <h4
+                            class="card-title"
+                        >Genome-wide associations for {{$store.state.phenotype.description}}</h4>
                         <div class="row">
                             <div class="col-md-6">
-                                <h4 class="card-title">Association Plots</h4>
-                                <b-tabs content-class="mt-3">
-                                    <b-tab title="Manhattan" active>
-                                        <img style="width: 100%" :src="$parent.manhattanPlot" />
-                                    </b-tab>
-                                    <b-tab title="QQ">
-                                        <img style="width: 100%" :src="$parent.qqPlot" />
-                                    </b-tab>
-                                </b-tabs>
+                                <div class="card" style="width:95%; border: 0">
+                                    <img
+                                        class="card-img-top"
+                                        :src="$parent.manhattanPlot"
+                                        alt="Card image cap"
+                                    />
+                                    <p class="card-text">
+                                        <documentation
+                                            name="phenotype.associationplots.manhattan"
+                                            :content-fill="$store.getters['documentationMap']"
+                                        ></documentation>
+                                    </p>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <documentation
-                                    name="phenotype.associationplots.description"
-                                    :content-fill="$store.getters['documentationMap']"
-                                ></documentation>
+                                <div class="card" style="width:95%; border: 0">
+                                    <img
+                                        class="card-img-top"
+                                        :src="$parent.qqPlot"
+                                        alt="Card image cap"
+                                    />
+                                    <p class="card-text">
+                                        <documentation
+                                            name="phenotype.associationplots.qq"
+                                            :content-fill="$store.getters['documentationMap']"
+                                        ></documentation>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -58,9 +74,15 @@
 
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4
-                            class="card-title"
-                        >Genome-wide, bottom-line associations for {{$store.state.phenotype.description}}</h4>
+                        <h4 class="card-title">
+                            Top {{$parent.intFormatter($store.state.associations.data.length)}} associations for {{$store.state.phenotype.description}}
+                            <tooltip-documentation
+                                name="phenotype.top1000.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
                         <associations-table
                             :phenotypes="[$store.state.phenotype]"
                             :associations="$store.state.associations.data"
@@ -73,7 +95,7 @@
                     <div class="card-body">
                         <h4
                             class="card-title"
-                        >Datasets Associated with {{$store.state.phenotype.description}}</h4>
+                        >Datasets contributing to meta-analysis for {{$store.state.phenotype.description}}</h4>
                         <documentation
                             name="pheno.assocdatasets.subheader"
                             :content-fill="$parent.documentationMap"
@@ -87,9 +109,15 @@
 
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4
-                            class="card-title"
-                        >Globally Enriched Annotations for {{$store.state.phenotype.description}}</h4>
+                        <h4 class="card-title">
+                            Globally enriched annotations for {{$store.state.phenotype.description}}
+                            <tooltip-documentation
+                                name="phenotype.annot.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
                         <documentation
                             name="pheno.globalenrich.subheader"
                             :content-fill="$parent.documentationMap"

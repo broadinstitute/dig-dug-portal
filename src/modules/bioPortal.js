@@ -23,8 +23,8 @@ export default {
             phenotypes: [],
             datasets: [],
             phenotypeMap: {},
+            datasetMap: {},
             documentation: {},
-         
         }
     },
 
@@ -32,7 +32,6 @@ export default {
         setDiseaseGroups(state, data) {
             state.diseaseGroups = data;
         },
-
         setPhenotypes(state, data) {
             state.phenotypes = data;
             state.phenotypeMap = {};
@@ -42,12 +41,15 @@ export default {
                 state.phenotypeMap[state.phenotypes[i].name] = state.phenotypes[i];
             }
         },
-    
-
         setDatasets(state, data) {
             state.datasets = data;
-        },
+            state.datasetMap = {};
 
+            // create a map of the dataset name for fast lookup
+            for (let i in state.datasets) {
+                state.datasetMap[state.datasets[i].name] = state.datasets[i];
+            }
+        },
         setDocumentation(state, data) {
             state.documentation = data;
         },

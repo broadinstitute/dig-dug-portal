@@ -13,11 +13,10 @@ import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.
 import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
 import PheWASTable from "@/components/PheWASTable.vue";
 import RegionsTable from "@/components/RegionsTable.vue";
-
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
-
+import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
@@ -48,6 +47,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("queryVariant", keyParams.variant);
     },
 
     render(createElement, context) {
@@ -60,25 +60,60 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        consequenceFormatter: Formatters.consequenceFormatter,
+        consequenceMeaning: Formatters.consequenceMeaning,
+
+        exploreRegion(expanded = 50000) {
+            let pos = this.chromPos;
+
+            if (!!pos) {
+                window.location.href = `./region.html?chr=${pos.chromosome}&start=${pos.position - expanded}&end=${pos.position + expanded}&variant=${this.$store.state.variant.varId}`;
+            }
+        }
     },
 
     computed: {
-        documentationMap() {
-            let map = {};
+        variantData() {
+            return this.$store.state.variantData.data;
+        },
 
-            if (this.variantData) {
-                let varId = this.variantData.varId;
-                let dbSNP = this.variantData.dbSNP;
+        varId() {
+            return this.$store.state.variant && this.$store.state.variant.varId;
+        },
 
-                if (dbSNP) {
-                    map['variant'] = `${varId} / ${dbSNP}`
-                } else {
-                    map['variant'] = varId;
+        dbSNP() {
+            return this.$store.state.variant && this.$store.state.variant.dbSNP;
+        },
+
+        variantName() {
+            return this.dbSNP || this.varId || '';
+        },
+
+        chromPos() {
+            let variant = this.$store.state.variant;
+
+            if (!!variant) {
+                let chrom = variant.varId.split(':')[0];
+                let pos = variant.varId.split(':')[1];
+
+                return {
+                    chromosome: chrom,
+                    position: parseInt(pos),
                 }
             }
-
-            return map;
         },
+
+        documentationMap() {
+            let varId = this.varId;
+            let dbSNP = this.dbSNP;
+
+            if (dbSNP) {
+                return { variant: `${varId} / ${dbSNP}` };
+            }
+
+            return { variant: varId || '' };
+        },
+
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
 
@@ -92,30 +127,9 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
-        variantData() {
-            let data = this.$store.state.variant.data;
-
-            // there should only be one variant returned
-            if (data.length > 0) {
-                this.hideElement('variantSearchHolder');
-
-                return data[0];
-            }
-        },
-
-        variantName() {
-            let data = this.variantData;
-
-            if (!!data && data.dbSNP) {
-                return data.dbSNP;
-            }
-
-            return this.$store.state.variantID;
-        },
-
         lzAssociations() {
             let phenotypes = this.$store.state.bioPortal.phenotypeMap;
-            let associations = this.variantData.associations;
+            let associations = this.$store.state.phewas.data;
 
             // filter associations w/ no phenotype data (not in portal!)
             let portalAssociations = associations.filter(a => {
@@ -137,40 +151,31 @@ new Vue({
             return phewas;
         },
 
-        consequence() {
-            if (!!this.variantData) {
-                return Formatters.consequenceFormatter(
-                    this.variantData.consequence
-                );
-            }
-        },
-
-        consequenceMeaning() {
-            if (!!this.variantData) {
-                return Formatters.consequenceMeaning(
-                    this.variantData.consequence
-                );
-            }
-        },
-
         regions() {
             return this.$store.state.regions.data;
-        }
+        },
     },
 
 
     watch: {
-        "$store.state.bioPortal.phenotypes": function (phenotypes) {
-            this.$store.dispatch("queryVariant");
-        },
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
 
         variantData(data) {
             if (!!data) {
-                this.$store.dispatch('queryRegions', data);
+                this.$store.commit('setVariant', data[0]);  // only ever 1 result
+            }
+        },
+
+        "$store.state.variant"(variant) {
+            if (variant) {
+                let p = this.chromPos;
+
+                this.$store.dispatch('phewas/query', { q: variant.varId });
+                this.$store.dispatch('transcriptConsequences/query', { q: variant.varId });
+                this.$store.dispatch('transcriptionFactors/query', { q: variant.varId });
+                this.$store.dispatch('regions/query', { q: `${p.chromosome}:${p.position}` });
             }
         }
     }
