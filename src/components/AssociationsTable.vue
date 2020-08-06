@@ -20,7 +20,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col class="filter-col-sm">
-                    <div class="label">p-value (&le;)</div>
+                    <div class="label">P-Value (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
                         type="text"
@@ -185,7 +185,7 @@ export default Vue.component("associations-table", {
     props: ["associations", "phenotypes"],
     components: {
         Documentation,
-        TooltipDocumentation
+        TooltipDocumentation,
     },
     data() {
         return {
@@ -194,25 +194,25 @@ export default Vue.component("associations-table", {
             baseFields: [
                 {
                     key: "position",
-                    label: "Position"
+                    label: "Position",
                 },
                 {
                     key: "allele",
-                    label: "Allele"
+                    label: "Allele",
                 },
                 {
                     key: "dbSNP",
-                    label: "dbSNP"
+                    label: "dbSNP",
                 },
                 {
                     key: "consequence",
                     label: "Consequence",
-                    formatter: Formatters.consequenceFormatter
+                    formatter: Formatters.consequenceFormatter,
                 },
                 {
                     key: "genes",
-                    label: "Closest Genes"
-                }
+                    label: "Closest Genes",
+                },
             ],
 
             select_pValue: "",
@@ -222,8 +222,8 @@ export default Vue.component("associations-table", {
             select_beta: "",
             select_beta_options: [
                 { value: "p", text: "Positive" },
-                { value: "n", text: "Negative" }
-            ]
+                { value: "n", text: "Negative" },
+            ],
         };
     },
     mounted() {},
@@ -243,12 +243,12 @@ export default Vue.component("associations-table", {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
                                 : "";
-                        }
+                        },
                     },
                     {
                         key: `${p.name}_beta`,
-                        label: !!p.dichotomous ? "Odds Ratio" : "Beta"
-                    }
+                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
+                    },
                 ]);
             }
 
@@ -280,7 +280,7 @@ export default Vue.component("associations-table", {
                         consequence: r.consequence,
                         nearest: r.nearest,
                         alt: r.alt,
-                        minP: 1.0
+                        minP: 1.0,
                     });
                 }
 
@@ -298,7 +298,7 @@ export default Vue.component("associations-table", {
             }
 
             // remove non-overlapping associations
-            data = data.filter(row => {
+            data = data.filter((row) => {
                 for (let i in this.phenotypes) {
                     let phenotype = this.phenotypes[i];
 
@@ -318,13 +318,13 @@ export default Vue.component("associations-table", {
         },
         filter_consequence_options() {
             return this.groupedAssociations
-                .map(v => Formatters.consequenceFormatter(v.consequence))
+                .map((v) => Formatters.consequenceFormatter(v.consequence))
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter((v, i, arr) => v != undefined)
                 .sort();
         },
         filter_closest_gene_options() {
-            let genes = this.associations.flatMap(assoc => assoc.nearest);
+            let genes = this.associations.flatMap((assoc) => assoc.nearest);
 
             // return sorted, unique genes
             return [...new Set(genes)].sort();
@@ -368,7 +368,7 @@ export default Vue.component("associations-table", {
                 : pValueFiltered;
 
             return betaFiltered;
-        }
+        },
     },
 
     methods: {
@@ -418,7 +418,7 @@ export default Vue.component("associations-table", {
             this.select_gene = [];
             this.select_pValue = "";
             this.select_beta = "";
-        }
-    }
+        },
+    },
 });
 </script>
