@@ -68,9 +68,6 @@
                             ></phewas-associations-card>
                         </div>
 
-                        <!-- <div v-else>
-                            {{nullList[0]}}
-                        </div> -->
                     </div>
 
                     <div v-if="list3.length === 0"

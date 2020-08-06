@@ -27,6 +27,7 @@
                     Gene/Region
                 </div>
             </template>
+            <button :disabled="!!!filler" @click="filler = null">Clear</button>
             <br>
             <div v-if="filler">
                 <template>
