@@ -1,3 +1,7 @@
+/* We define all the pages first in an object that can be modified BEFORE being
+ * exported so we can add/remove pages based on build type.
+ */
+
 let pages = {
     index: {
         entry: "src/views/Index/main.js",
@@ -5,6 +9,13 @@ let pages = {
         filename: "index.html",
         title: "Home",
         chunks: ["chunk-vendors", "chunk-common", "index"]
+    },
+    debug: {
+        entry: "src/views/Debug/main.js",
+        template: "public/index.html",
+        filename: "debug.html",
+        title: "Debug Page",
+        chunks: ["chunk-vendors", "chunk-common", "debug"]
     },
     phenotype: {
         entry: "src/views/Phenotype/main.js",
@@ -134,15 +145,9 @@ let pages = {
     }
 };
 
-//add debug page for dev
-if (process.env.NODE_ENV !== "production") {
-    pages["debug"] = {
-        entry: "src/views/Debug/main.js",
-        template: "public/index.html",
-        filename: "debug.html",
-        title: "Debug Page",
-        chunks: ["chunk-vendors", "chunk-common", "debug"]
-    };
+// remove the debug page in production
+if (process.env.NODE_ENV === "production") {
+    delete pages.debug;
 }
 
 module.exports = {
@@ -154,8 +159,7 @@ module.exports = {
         let bioindex_host = "3.221.48.161"; // production by default
 
         if (!!bioindex_dev) {
-            bioindex_host =
-                bioindex_dev == "localhost" ? "localhost" : "18.215.38.136";
+            bioindex_host = bioindex_dev == "localhost" ? "localhost" : "18.215.38.136";
         }
 
         // output which bioindex is being used
@@ -180,5 +184,5 @@ module.exports = {
         }
     },
     productionSourceMap: false,
-    pages: pages
+    pages,
 };
