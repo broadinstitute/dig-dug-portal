@@ -18,22 +18,10 @@
 
                     <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
-                            <div class="col-md-10">
-                                <input
-                                    v-model="$store.state.geneName"
-                                    type="text"
-                                    class="form-control input-default"
-                                    placeholder="Search gene"
-                                    id="gene_search_input"
-                                />
-                            </div>
-                            <div class="col-md-2 input-wrapper">
-                                <button
-                                    id="variantSearchGo"
-                                    class="btn btn-primary"
-                                    type="button btn-lg"
-                                    @click="$store.dispatch('queryGeneName')"
-                                >GO</button>
+                            <div class="col-md-10 input-wrapper">
+                                <gene-selectpicker
+                                    @onGeneChange="$store.dispatch('queryGeneName',$event)"
+                                ></gene-selectpicker>
                             </div>
                         </div>
                         <div v-if="$parent.symbolName">

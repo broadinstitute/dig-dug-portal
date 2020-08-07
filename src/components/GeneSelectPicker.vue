@@ -1,22 +1,11 @@
 <template>
-    <!-- <vue-typeahead-bootstrap
-        v-model="userText"
-        ref="phenotypeSelect"
-        placeholder="Type in a phenotype ..."
-        :data="phenotypeOptions"
-        :serializer="s => s.description"
-        :maxMatches="30"
-        @hit="onPhenotypeSelected($event)">
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
-            <span v-html="htmlText"></span>&nbsp;
-            <small class="text-secondary">{{ data.group }}</small>
-        </template>
-    </vue-typeahead-bootstrap>-->
+   
     <autocomplete
-        :placeholder="'Phenotype'"
-        :matches="matchingPhenotypes"
-        :matchkey="'description'"
-        @item-select="onPhenotypeSelected($event)"
+        :placeholder="'Search gene'"
+        :matches="matchingGenes"
+        ref="geneSelect"
+        @input-change="lookupGenes($event)"
+        @item-select="selectGene($event)"
     ></autocomplete>
 </template>
 
@@ -29,44 +18,36 @@ import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import { match } from "@/utils/bioIndexUtils";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 Vue.component("autocomplete", Autocomplete);
 
 export default Vue.component("gene-selectpicker", {
-    props: ["phenotypes", "clearOnSelected", "defaultPhenotype"],
+    props: [],
 
     data() {
         return {
-            userText: this.defaultPhenotype || null
+            matchingGenes: [],
+            selectedGene: null
         };
     },
-    computed: {
-        matchingPhenotypes() {
-            if (!this.phenotypes) {
-                return [];
-            }
-
-            return this.phenotypes.sort((a, b) => {
-                if (a.group < b.group) return -1;
-                if (b.group < a.group) return 1;
-
-                if (a.description < b.description) return -1;
-                if (b.description < a.description) return 1;
-
-                return 0;
-            });
-        }
-    },
+    computed: {},
     methods: {
         setFocus() {
             this.$nextTick(() => {
-                this.$refs.phenotypeSelect.$refs.input.focus();
+                this.$refs.geneSelect.$refs.input.focus();
             });
         },
-        onPhenotypeSelected(event) {
-            console.log(event);
+        async lookupGenes(input) {
+            let matches = await match("gene", input, { limit: 10 });
+            this.matchingGenes = matches;
+           
+        },
+        selectGene(gene){
+            this.selectedGene = gene;
+            this.$emit("onGeneChange",gene);
         }
     }
 });

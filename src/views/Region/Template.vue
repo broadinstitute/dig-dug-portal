@@ -48,18 +48,14 @@
                                         placeholder="End position"
                                     />
                                 </div>
-
                                 <div class="col-md-3 input-wrapper">
-                                    <input
-                                        v-model="$store.state.searchGene"
-                                        type="text"
-                                        class="form-control input-default"
-                                        style="margin-left: 15px;padding-left: 30px;"
-                                        placeholder="Search gene"
-                                        id="region_gene_search"
-                                    />
-                                    <span class="gene-search-or">OR</span>
+                                    <gene-selectpicker
+                                        @onGeneChange="$store.dispatch('queryRegion',$event)"
+                                    ></gene-selectpicker>
                                 </div>
+
+                               
+
                                 <div class="col-md-2 input-wrapper">
                                     <button
                                         id="regionSearchGo"

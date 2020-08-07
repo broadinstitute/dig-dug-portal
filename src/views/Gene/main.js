@@ -12,6 +12,7 @@ import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
+import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import Formatters from "@/utils/formatters";
 
 import Alert, {
@@ -35,6 +36,7 @@ new Vue({
         UniprotReferencesTable,
         Documentation,
         Autocomplete,
+        GeneSelectPicker,
     },
 
     data() {

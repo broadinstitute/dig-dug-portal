@@ -4,7 +4,6 @@
             v-model="userInput"
             :data="lookupOptions"
             :placeholder="placeholder"
-            :serializer="s => s.serializer"
             @hit="onAutoCompleteItemSelected($event)"
             @keyup.enter="onUserEnterNonAutoCompleteItem"
         >
@@ -35,7 +34,7 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["matches", "placeholder", "initialText", "matchkey", "ifGroup"],
+    props: ["matches", "placeholder"],
 
     data() {
         return {
