@@ -34,9 +34,37 @@
                     :clone="cloneDog"
                     @change="log"
                 >
-                    <div class="list-group-item" v-for="element in list1" :key="element.id">
-                    {{ element.name }}
+                    <!-- TODO: Element dispatch code goes here -->
+                    <!-- TODO: This is bad because the template needs to know what cards it gets.
+                                Arguably this could be refactored into a method that adds element to a service component (like we're doing with LZ) -->
+                    <!-- TODO: Serializing the data into strings is a stupid hack that is working around draggable, need to rethink this -->
+                    <div class="list-group-item" v-for="(element, idx) in list1" :key="element.id">
+                        {{element.name}}
+                        <div v-if="element.name.split(';')[0] === 'set'">
+                            <select @change="modifyAt($event, element, idx)">
+                                <option v-for="op in ['intersection', 'union', 'symmetric-difference']" :key="op">
+                                    {{ op }}
+                                </option>
+                            </select>
+                        </div>
+                        <div v-if="element.name.split(';')[0] === 'bioindex-query'">
+                            <select name="bioindex-query-index" @change="modifyAt($event, element, idx)">
+                                <option v-for="ind in ['phewas-associations', 'top-associations', 'gwas-associations']" :key="ind">
+                                    {{ ind }}
+                                </option>
+                            </select>
+                            <input name="bioindex-query-value" @change="modifyAt($event, element, idx)"/>
+                        </div>
+                        <div v-if="element.name.split(';')[0] === 'bioindex-types'">
+                            <select name="bioindex-type-type" @change="modifyAt($event, element, idx)">
+                                <option v-for="type in ['phenotype', 'variant', 'locus']" :key="type">
+                                    {{ type }}
+                                </option>
+                            </select>
+                            <input name="bioindex-type-value" @change="modifyAt($event, element, idx)"/>
+                        </div>
                     </div>
+
                 </draggable>
             </div>
 
@@ -54,11 +82,14 @@
                     <div class="list-group-item" v-for="(element, idx) in list3" :key="element.id">
 
                         <!-- TODO: Element dispatch code goes here -->
+                        <!-- TODO: This is bad because the template needs to know what cards it gets.
+                                   Arguably this could be refactored into a method that adds element to a service component (like we're doing with LZ) -->
+                        <!-- TODO: Serializing the data into strings is a stupid hack that is working around draggable, need to rethink this -->
                         <div v-if="element.name.split(';')[0] === 'locuszoom-phewas-plot'">
                             <locuszoom-phewas-plot-card
                                 :metadata="element"
-                                @duplicate-self="copy"
-                                @duplicate-type="log"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
                                 @remove="removeAt(idx)"
                             ></locuszoom-phewas-plot-card>
                         </div>
@@ -68,17 +99,23 @@
                                 v-if="element.name.split(';')[1] === 'varId' && !!element.name.split(';')[2]"
                                 :varId="element.name.split(';')[2]"
                                 :metadata="element"
-                                @duplicate-self="copy"
-                                @duplicate-type="log"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
                                 @remove="removeAt(idx)"
                             ></phewas-associations-card>
                             <phewas-associations-card
                                 v-else
                                 :metadata="element"
-                                @duplicate-self="copy"
-                                @duplicate-type="log"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
                                 @remove="removeAt(idx)"
                             ></phewas-associations-card>
+                        </div>
+
+                        <div v-if="element.name.split(';')[0] === 'bioindex-query'">
+                            <div class="list-group-item">
+
+                            </div>
                         </div>
 
                     </div>
@@ -116,6 +153,7 @@
 <script>
 import draggable from "vuedraggable";
 import { query } from "../../utils/bioIndexUtils";
+import { BIOINDEX_SCHEMA } from "./utils/resultsUtils"
 
 import PheWASData from "./nucards/PheWASData";
 import PheWASViz from "./nucards/PheWASViz";
@@ -131,24 +169,24 @@ export default {
   },
   data() {
     return {
-    list2: [
-        { name: "visualization 1", id: 1 },
-        { name: "visualization 2", id: 2 },
-        { name: "visualization 3", id: 3 },
-        { name: "visualization 4", id: 4 },
-        { name: "locuszoom-phewas-plot", id: 4 },
-      ],
-     list1: [
-        { name: "phenotype A", id: 1 },
-        { name: "phenotype B", id: 2 },
-        { name: "phenotype C", id: 3 },
-        { name: "data 4", id: 4 },
-        { name: 'phewas-associations;varId;2:27730940:T:C' , tag: 'hello', id: 4 }
-      ],
-      list3: [],
-      nullList: [],
-      dataCardData: null,
-      visualizationCard: {},
+        schema: BIOINDEX_SCHEMA,
+        list2: [
+            { name: "visualization 1", id: 1 },
+            { name: "visualization 2", id: 2 },
+            { name: "visualization 3", id: 3 },
+            { name: "visualization 4", id: 4 },
+            { name: "locuszoom-phewas-plot", id: 4 },
+        ],
+        list1: [
+            { name: "set", id: 1 },
+            { name: "bioindex-query", id: 2 },
+            { name: "bioindex-types", id: 3 },
+            { name: 'phewas-associations;varId;2:27730940:T:C', id: 4 }
+        ],
+        list3: [],
+        nullList: [],
+        dataCardData: null,
+        visualizationCard: {},
     };
   },
   async created() {
@@ -162,10 +200,18 @@ export default {
       }
   },
   methods: {
+    modifyAt() {
+        console.log('modifyAt', arguments)
+    },
     removeAt(idx) {
       this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))
     },
     copy(that) {
+        // refactor to stack
+        this.list3 = this.list3.concat({ ...that.metadata, id: idGlobal++ });
+    },
+    clone(that) {
+    // refactor to stack
       this.list3 = this.list3.concat({ ...that.metadata, id: idGlobal++ });
     },
     log: function(evt) {
@@ -187,3 +233,9 @@ export default {
   }
 };
 </script>
+<style scoped>
+.ghost {
+  opacity: 0.4;
+  background-color: lawngreen;
+}
+</style>
