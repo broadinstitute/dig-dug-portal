@@ -610,7 +610,11 @@ div.filtering-tools table th {
 }
 
 #regionSearchHolder .input-default,
-#variantSearchHolder .input-default {
+#variantSearchHolder .input-default,
+#regionSearchHolder .input-group,
+#variantSearchHolder .input-group,
+#regionSearchHolder input.form-control,
+#variantSearchHolder input.form-control{
     height: 100%;
     width: 100%;
     border: 0;
@@ -620,6 +624,12 @@ div.filtering-tools table th {
     border-left: solid 1px #ddd;
     border-radius: 0;
     font-size: 20px;
+}
+
+#regionSearchHolder .vbt-autcomplete-list,
+#variantSearchHolder .vbt-autcomplete-list {
+    top: 95% !important;
+    height: auto !important;
 }
 
 #variantSearchHolder div {

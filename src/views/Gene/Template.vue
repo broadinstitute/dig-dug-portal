@@ -18,7 +18,7 @@
 
                     <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
-                            <div class="col-md-10 input-wrapper">
+                            <div class="col-md-12 input-wrapper">
                                 <gene-selectpicker
                                     @onGeneChange="$store.dispatch('queryGeneName',$event)"
                                 ></gene-selectpicker>
