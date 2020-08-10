@@ -9,6 +9,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
+import FiftyTwoKTable from "@/components/FiftyTwoKTable";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
@@ -33,8 +34,9 @@ new Vue({
         PageFooter,
         Alert,
         UniprotReferencesTable,
+        FiftyTwoKTable,
         Documentation,
-        Autocomplete,
+        Autocomplete
     },
 
     data() {
@@ -57,7 +59,6 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
     },
 
     render(createElement, context) {
@@ -76,7 +77,9 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                window.location.href = `./region.html?chr=${r.chromosome}&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${
+                    r.chromosome
+                }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         }
     },
@@ -146,9 +149,11 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                return `${r.chromosome}:${Formatters.intFormatter(r.start)}-${Formatters.intFormatter(r.end)}`;
+                return `${r.chromosome}:${Formatters.intFormatter(
+                    r.start
+                )}-${Formatters.intFormatter(r.end)}`;
             } else {
-                return '';
+                return "";
             }
         },
 
@@ -156,9 +161,11 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                return `${r.chromosome}:${Formatters.intFormatter(r.start - 50000)}-${Formatters.intFormatter(r.end + 50000)}`;
+                return `${r.chromosome}:${Formatters.intFormatter(
+                    r.start - 50000
+                )}-${Formatters.intFormatter(r.end + 50000)}`;
             } else {
-                return '';
+                return "";
             }
         },
 
@@ -169,14 +176,15 @@ new Vue({
             if (!!symbol && !!r) {
                 return {
                     gene: symbol,
-                    region: `${r.chromosome}:${Formatters.intFormatter(r.start)}-${Formatters.intFormatter(r.end)}`,
-                }
+                    region: `${r.chromosome}:${Formatters.intFormatter(
+                        r.start
+                    )}-${Formatters.intFormatter(r.end)}`
+                };
             }
-        },
+        }
     },
 
     watch: {
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },

@@ -120,7 +120,14 @@
                     </div>
                 </div>
             </div>
-
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div v-if="$parent.dbReference">
+                        <h4 class="card-title">52K Protein</h4>
+                        <fiftytwok-table show="gene"></fiftytwok-table>
+                    </div>
+                </div>
+            </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
