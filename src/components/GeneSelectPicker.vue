@@ -18,8 +18,10 @@ import Autocomplete from "@/components/Autocomplete.vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
+
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
+
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 Vue.component("autocomplete", Autocomplete);
 
@@ -29,7 +31,7 @@ export default Vue.component("gene-selectpicker", {
     data() {
         return {
             matchingGenes: [],
-            selectedGene: null
+            selectedGene: null,
         };
     },
     computed: {},
@@ -48,7 +50,7 @@ export default Vue.component("gene-selectpicker", {
         selectGene(gene) {
             this.selectedGene = gene;
             this.$emit("onGeneChange", gene);
-        }
-    }
+        },
+    },
 });
 </script>

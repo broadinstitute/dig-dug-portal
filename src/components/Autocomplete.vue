@@ -9,7 +9,7 @@
         >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
-                <small class="text-secondary">{{ data }}</small>
+                <small v-if="secondaryKey" class="text-secondary">{{ data[secondaryKey] }}</small>
             </template>
         </vue-typeahead-bootstrap>
     </div>
@@ -34,12 +34,12 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["matches", "placeholder"],
+    props: ["matches", "placeholder", "secondaryKey"],
 
     data() {
         return {
             userInput: this.initialText || null,
-            selectedItem: null
+            selectedItem: null,
         };
     },
 
@@ -50,17 +50,7 @@ export default Vue.component("autocomplete", {
             } else {
                 return this.matches;
             }
-
-            // if (!this.matchkey) {
-            //     return this.matches;
-            // } else {
-            //     var matchesWithKey = [];
-            //     this.matches.forEach(function(element, i) {
-            //         matchesWithKey.push(element.description);
-            //     });
-            //     return matchesWithKey;
-            // }
-        }
+        },
     },
 
     methods: {
@@ -82,13 +72,13 @@ export default Vue.component("autocomplete", {
 
         onUserEnterNonAutoCompleteItem() {
             this.$emit("keyup-enter", this.userInput);
-        }
+        },
     },
 
     watch: {
         userInput(text) {
             this.$emit("input-change", text);
-        }
-    }
+        },
+    },
 });
 </script>

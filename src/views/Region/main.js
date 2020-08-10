@@ -317,15 +317,14 @@ new Vue({
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement("phenotypeSearchHolder");
 
-            // this.updateAssociationsPanel(phenotype.name);
-
-            // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
-            this.$store.dispatch("globalEnrichment/query", {
-                q: phenotype.name
-            });
-            this.$store.dispatch("credibleSets/query", {
-                q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-            });
+            if (phenotype) {
+                this.$store.dispatch("globalEnrichment/query", {
+                    q: phenotype.name
+                });
+                this.$store.dispatch("credibleSets/query", {
+                    q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+                });
+            }
         },
 
         topAssociations(top) {

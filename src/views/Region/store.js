@@ -93,7 +93,7 @@ export default new Vuex.Store({
         },
     },
     actions: {
-       
+
         async onPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);
         },
@@ -139,25 +139,13 @@ export default new Vuex.Store({
 
             }
         },
-        async exploreRegionOrVariant(context, input) {
-            let locus = await regionUtils.parseRegion(input, true, 50000);
-            let varID = await variantUtils.parseVariant(input);
-
-            if (locus) {
-                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
-            }
-            else if (varID) {
-                window.location.href = `./variant.html?variant=${varID}`;
-            } else {
-                postAlertError("Invalid gene, variant, or region");
-            }
-        },
 
         async onGeneChange(context, gene) {
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
-                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+                context.commit('setLocus', locus);
+                context.dispatch('queryRegion');
             }
         },
 

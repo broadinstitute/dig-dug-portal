@@ -50,11 +50,9 @@
                                 </div>
                                 <div class="col-md-3 input-wrapper">
                                     <gene-selectpicker
-                                        @onGeneChange="$store.dispatch('queryRegion',$event)"
+                                        @onGeneChange="$store.dispatch('onGeneChange',$event)"
                                     ></gene-selectpicker>
                                 </div>
-
-                               
 
                                 <div class="col-md-2 input-wrapper">
                                     <button
