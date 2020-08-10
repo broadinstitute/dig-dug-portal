@@ -2,7 +2,7 @@
     <div class="52k">
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row class="headers">
-                <b-col>{{show}}</b-col>
+                <b-col>{{capitalizedFormatter(show)}}</b-col>
                 <b-col>pValue</b-col>
                 <b-col>Beta</b-col>
                 <b-col>View</b-col>
@@ -13,21 +13,27 @@
                     <b-col class="pValue">{{row.pValue}}</b-col>
                     <b-col class="beta">{{row.beta}}</b-col>
                     <b-col>
-                        <b-button @click="showFeatures(i)" class="view-features-btn">Features</b-button>
+                        <b-button @click="showFeatures(i)" class="view-features-btn btn-sm">Features</b-button>
                     </b-col>
                 </b-row>
-                <template v-for="(key, j) in Object.keys(row)">
-                    <template v-if="typeof row[key] === 'object'">
-                        <b-row v-if="j === 5" class="features-headers">
-                            <b-col>Filters</b-col>
-                            <b-col v-for="fh in Object.keys(row[key])">{{fh}}</b-col>
-                        </b-row>
-                        <b-row class="features" :class="`features_${i}`" :key="`features_${i}`">
-                            <b-col class="key">{{key}}</b-col>
-                            <b-col v-for="item in row[key]">{{item}}</b-col>
-                        </b-row>
+                <div :class="`feature-headers-${i}`" :key="`features_${i}`">
+                    <template v-for="(key, j) in Object.keys(row)">
+                        <template v-if="typeof row[key] === 'object'">
+                            <b-row v-if="j === 5" :key="`row_${i}_${j}`">
+                                <b-col>Filters {{i}}</b-col>
+                                <b-col v-for="fh in Object.keys(row[key])">{{fh}}</b-col>
+                            </b-row>
+                            <b-row
+                                class="features"
+                                :class="`features_${i}_${j}`"
+                                :key="`features_${i}_${j}`"
+                            >
+                                <b-col class="key">{{key}}</b-col>
+                                <b-col v-for="item in row[key]">{{item}}</b-col>
+                            </b-row>
+                        </template>
                     </template>
-                </template>
+                </div>
                 <!-- <b-row
                     class="features"
                     v-if="typeof "
@@ -42,6 +48,8 @@
 
 <script>
 import Vue from "vue";
+import uiUtils from "@/utils/uiUtils";
+import Formatters from "@/utils/formatters";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
@@ -196,8 +204,10 @@ export default Vue.component("fiftytwok-table", {
     },
     mounted() {},
     methods: {
+        capitalizedFormatter: Formatters.capitalizedFormatter,
         showFeatures(index) {
             console.log("index: ", index);
+            uiUtils.showHideElement("feature-headers-" + index);
         },
     },
 });
