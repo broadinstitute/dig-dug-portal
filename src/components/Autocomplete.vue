@@ -38,7 +38,7 @@ export default Vue.component("autocomplete", {
 
     data() {
         return {
-            userInput: null,
+            userInput: this.initialText || null,
             selectedItem: null
         };
     },
@@ -47,13 +47,33 @@ export default Vue.component("autocomplete", {
         lookupOptions() {
             if (!this.matches) {
                 return [];
+            } else {
+                return this.matches;
             }
-            return this.matches;
+
+            // if (!this.matchkey) {
+            //     return this.matches;
+            // } else {
+            //     var matchesWithKey = [];
+            //     this.matches.forEach(function(element, i) {
+            //         matchesWithKey.push(element.description);
+            //     });
+            //     return matchesWithKey;
+            // }
         }
     },
 
     methods: {
+        serializer(item) {
+            if (!this.matchkey) {
+                return item;
+            } else {
+                return this.matchkey;
+            }
+        },
         onAutoCompleteItemSelected(item) {
+            //return object if phenotype?
+
             this.selectedItem = item;
             this.userText = null;
 

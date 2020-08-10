@@ -34,7 +34,7 @@ export default Vue.component("phenotype-selectpicker", {
 
     data() {
         return {
-            userText: this.defaultPhenotype || null,
+            userText: this.defaultPhenotype || null
         };
     },
     computed: {
@@ -52,7 +52,7 @@ export default Vue.component("phenotype-selectpicker", {
 
                 return 0;
             });
-        },
+        }
     },
     methods: {
         onPhenotypeSelected(event) {
@@ -67,7 +67,7 @@ export default Vue.component("phenotype-selectpicker", {
             this.$nextTick(() => {
                 this.$refs.phenotypeSelect.$refs.input.focus();
             });
-        },
-    },
+        }
+    }
 });
 </script>

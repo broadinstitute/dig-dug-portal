@@ -8,17 +8,15 @@ import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
-
 import IGV from "@/components/igv/IGV.vue";
 import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
-
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
-
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker";
-
 import LunarisLink from "@/components/LunarisLink";
+import Autocomplete from "@/components/Autocomplete.vue";
+import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -56,7 +54,9 @@ new Vue({
 
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
-        PhenotypeSelectPicker
+        PhenotypeSelectPicker,
+        Autocomplete,
+        GeneSelectPicker,
     },
 
     created() {
