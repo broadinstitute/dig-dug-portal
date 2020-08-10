@@ -134,6 +134,7 @@ export default Vue.component("locuszoom", {
                 id: panel.id,
                 ...panel.locusZoomLayoutOptions,             // other locuszoom configuration required for the panel, including overrides(?)
             }
+
             if (typeof panelClass.dataLayers !== 'undefined') {
                 overrides = {
                     ...overrides,
