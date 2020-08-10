@@ -1,35 +1,45 @@
 <template>
     <div class="52k">
         <b-container fluid class="selected-filters-ui-wrapper">
-            <b-row class="headers">
-                <b-col>{{capitalizedFormatter(show)}}</b-col>
-                <b-col>pValue</b-col>
-                <b-col>Beta</b-col>
-                <b-col>View</b-col>
+            <b-row class="headers top-level-header">
+                <b-col class="top-level-header-item">{{capitalizedFormatter(show)}}</b-col>
+                <b-col class="top-level-header-item">pValue</b-col>
+                <b-col class="top-level-header-item">Beta</b-col>
+                <b-col class="top-level-header-item">View</b-col>
             </b-row>
             <template v-for="(row, i) in json">
-                <b-row class="data" :key="row[show] + i">
-                    <b-col>{{row[show]}}</b-col>
-                    <b-col class="pValue">{{row.pValue}}</b-col>
-                    <b-col class="beta">{{row.beta}}</b-col>
-                    <b-col>
-                        <b-button @click="showFeatures(i)" class="view-features-btn btn-sm">Features</b-button>
+                <b-row class="data top-level-value" :key="row[show] + i">
+                    <b-col class="feature-content-item">{{row[show]}}</b-col>
+                    <b-col class="feature-content-item pValue">{{row.pValue}}</b-col>
+                    <b-col class="feature-content-item beta">{{row.beta}}</b-col>
+                    <b-col class="feature-content-item">
+                        <b-button @click="showFeatures(i)" class="view-features-btn">Features</b-button>
                     </b-col>
                 </b-row>
-                <div :class="`feature-headers-${i}`" :key="`features_${i}`">
+                <div
+                    :class="`feature-headers-${i}`"
+                    class="feature-content-wrapper"
+                    :key="`features_${i}`"
+                >
                     <template v-for="(key, j) in Object.keys(row)">
                         <template v-if="typeof row[key] === 'object'">
-                            <b-row v-if="j === 5" :key="`row_${i}_${j}`">
-                                <b-col>Filters {{i}}</b-col>
-                                <b-col v-for="fh in Object.keys(row[key])">{{fh}}</b-col>
+                            <b-row class="feature-headers" v-if="j === 5" :key="`row_${i}_${j}`">
+                                <b-col class="feature-header-item">Filters</b-col>
+                                <b-col
+                                    class="feature-header-item"
+                                    v-for="fh in Object.keys(row[key])"
+                                >{{fh}}</b-col>
                             </b-row>
                             <b-row
                                 class="features"
                                 :class="`features_${i}_${j}`"
                                 :key="`features_${i}_${j}`"
                             >
-                                <b-col class="key">{{key}}</b-col>
-                                <b-col v-for="item in row[key]">{{item}}</b-col>
+                                <b-col class="feature-content-item key">{{key}}</b-col>
+                                <b-col
+                                    class="feature-content-item"
+                                    v-for="item in row[key]"
+                                >{{item}}</b-col>
                             </b-row>
                         </template>
                     </template>
@@ -214,4 +224,5 @@ export default Vue.component("fiftytwok-table", {
 </script>
 
 <style>
+@import url("/css/effectorGenes.css");
 </style>

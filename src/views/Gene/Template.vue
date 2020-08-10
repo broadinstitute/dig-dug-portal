@@ -123,8 +123,8 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
-                        <h4 class="card-title">52K Protein</h4>
-                        <fiftytwok-table show="gene"></fiftytwok-table>
+                        <h4 class="card-title">Gene Associations (52K)</h4>
+                        <fiftytwok-table show="phenotype"></fiftytwok-table>
                     </div>
                 </div>
             </div>
