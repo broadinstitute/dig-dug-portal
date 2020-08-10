@@ -1,6 +1,6 @@
 <template>
     <div class="52k">
-        <b-container fluid class="selected-filters-ui-wrapper">
+        <b-container fluid class="EGLT-table">
             <b-row class="headers top-level-header">
                 <b-col class="top-level-header-item">{{capitalizedFormatter(show)}}</b-col>
                 <b-col class="top-level-header-item">pValue</b-col>
@@ -9,10 +9,10 @@
             </b-row>
             <template v-for="(row, i) in json">
                 <b-row class="data top-level-value" :key="row[show] + i">
-                    <b-col class="feature-content-item">{{row[show]}}</b-col>
-                    <b-col class="feature-content-item pValue">{{row.pValue}}</b-col>
-                    <b-col class="feature-content-item beta">{{row.beta}}</b-col>
-                    <b-col class="feature-content-item">
+                    <b-col class="top-level-value-item">{{row[show]}}</b-col>
+                    <b-col class="top-level-value-item pValue">{{row.pValue}}</b-col>
+                    <b-col class="top-level-value-item beta">{{row.beta}}</b-col>
+                    <b-col class="top-level-value-item">
                         <b-button @click="showFeatures(i)" class="view-features-btn">Features</b-button>
                     </b-col>
                 </b-row>
