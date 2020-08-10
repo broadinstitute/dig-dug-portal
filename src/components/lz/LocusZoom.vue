@@ -9,6 +9,7 @@
 import Vue from "vue";
 
 import LocusZoom from "locuszoom";
+import "locuszoom/dist/locuszoom.css"
 import intervalTracks from 'locuszoom/esm/ext/lz-intervals-track';
 import toolbar_addons from 'locuszoom/esm/ext/lz-widget-addons';
 
@@ -128,11 +129,19 @@ export default Vue.component("locuszoom", {
             const { panel, source } = panelClass;
             this.dataSources.add(source.givingDataSourceName, source.withDataSourceReader);
 
-            this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, {
+            let overrides = {
                 namespace: { [panel.forDataSourceType]: panel.takingDataSourceName },
                 id: panel.id,
-                ...panel.locusZoomLayoutOptions,                // other locuszoom configuration required for the panel, including overrides(?)
-            })).addBasicLoader();
+                ...panel.locusZoomLayoutOptions,             // other locuszoom configuration required for the panel, including overrides(?)
+            }
+            if (typeof panelClass.dataLayers !== 'undefined') {
+                overrides = {
+                    ...overrides,
+                    data_layers: panelClass.dataLayers
+                }
+            }
+
+            this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, overrides)).addBasicLoader();
 
             // so we can figure out how to remove it later
             return panel.id;
@@ -210,7 +219,7 @@ export default Vue.component("locuszoom", {
 
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            console.log(data_layers)
+            console.log(this.plot.panels, data_layers)
             // Was the original solution, without jsonQuery, more responsive?
             // Object.keys(this.plot.panels)
             //     .forEach(panelKey =>

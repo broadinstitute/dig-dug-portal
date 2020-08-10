@@ -1,15 +1,17 @@
-// import LocusZoom from "locuszoom";
+import LocusZoom from "locuszoom";
 import {BaseAdapter} from "locuszoom/esm/data/adapters"
 
 import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
 import { rgb } from "d3";
+import _ from "lodash"
 
 import {
     postAlertNotice,
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import JsonQuery from "json-query";
 
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }) {
@@ -37,6 +39,7 @@ export class LZAssociationsPanel {
                 ref_allele: association.varId,
         }));
 
+
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
@@ -45,22 +48,9 @@ export class LZAssociationsPanel {
             "id": this.panel_id,
             y_index: 0,
             fields: [
-                `${this.datasource_namespace_symbol_for_panel}:variant`,
-                `${this.datasource_namespace_symbol_for_panel}:position`,
-                `${this.datasource_namespace_symbol_for_panel}:log_pvalue`,
                 `${this.datasource_namespace_symbol_for_panel}:pvalue`,
-                `${this.datasource_namespace_symbol_for_panel}:log_pvalue|logtoscinotation`,
-                `${this.datasource_namespace_symbol_for_panel}:ref_allele`,
-                "ld:state",
-                "ld:isrefvar",
-            ],
-            y_axis: {
-                axis: 1,
-                field: `${this.datasource_namespace_symbol_for_panel}:log_pvalue|log10`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
-                // floor: 0,
-                upper_buffer: 0.10,
-                // min_extent: [0, 10],
-            }
+                ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { namespace: this.datasource_namespace_symbol_for_panel }).fields
+            ]
         };
         this.handlers = {
             finishHandler,
@@ -98,6 +88,28 @@ export class LZAssociationsPanel {
             givingDataSourceName: this.datasource_namespace_symbol_for_panel,
             withDataSourceReader: this.bioIndexToLZReader,
         }
+    }
+
+    get dataLayers() {
+        // I had to find these out from doing LocusZoom.Layouts.get('panel', 'associations')
+        // need to find a better way of editing data layers that doesn't require:
+        // - having to call all of them, because overriding one overrides them all
+        // - ditto with extending fields
+        // the refactoring will probably have to occur conceptually, didn't think i'd have to be doing this
+        return [
+            // this works
+            LocusZoom.Layouts.merge(
+                {
+                    fields: [
+                        '{{namespace[assoc]}}pvalue',
+                        ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields
+                    ]
+                },
+                LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true })
+            ),
+            LocusZoom.Layouts.get('data_layer', 'recomb_rate', { unnamespaced: true }),
+            LocusZoom.Layouts.get('data_layer', 'significance', { unnamespaced: true })
+        ]
     }
 
 }

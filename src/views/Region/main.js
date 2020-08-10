@@ -286,7 +286,7 @@ new Vue({
     watch: {
         pValue(pValue) {
             this.applyFilter({
-                name: 'log_pvalue',  // locuszoom symbol
+                name: 'pvalue',  // locuszoom symbol
                 value: pValue,
                 op: _.lte
             })

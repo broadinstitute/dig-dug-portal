@@ -157,7 +157,7 @@
                             </div>
 
                             <div class="col filter-col-sm">
-                                <div class="label">log_pvalue (&le;)</div>
+                                <div class="label">pValue (&le;)</div>
                                 <input v-model.number="$parent.pValue" class="form-control"/>
                             </div>
                             <!-- <div class="col filter-col-sm">
