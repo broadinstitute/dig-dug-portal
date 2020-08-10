@@ -5,23 +5,24 @@
                 <b-col>{{show}}</b-col>
                 <b-col>pValue</b-col>
                 <b-col>Beta</b-col>
+                <b-col>View</b-col>
             </b-row>
             <template v-for="(row, i) in json">
                 <b-row class="data" :key="row[show] + i">
-                    <b-col>{{row[show]}} - {{i}}</b-col>
+                    <b-col>{{row[show]}}</b-col>
                     <b-col class="pValue">{{row.pValue}}</b-col>
                     <b-col class="beta">{{row.beta}}</b-col>
-                    <!-- <b-row class="features" >
-                    <b-col v-for="feature in row" :key="Object.keys(feature)">{{feature}}</b-col>
-                    </b-row>-->
+                    <b-col>
+                        <b-button @click="showFeatures(i)" class="view-features-btn">Features</b-button>
+                    </b-col>
                 </b-row>
-                <template v-for="(key) in Object.keys(row)">
+                <template v-for="(key, j) in Object.keys(row)">
                     <template v-if="typeof row[key] === 'object'">
-                        <b-row class="features-headers">
+                        <b-row v-if="j === 5" class="features-headers">
                             <b-col>Filters</b-col>
-                            <b-col v-for="(fh, j) in Object.keys(row[key])">{{fh}} - {{j}}</b-col>
+                            <b-col v-for="fh in Object.keys(row[key])">{{fh}}</b-col>
                         </b-row>
-                        <b-row class="features" :class="`features_${j}`" :key="`features_${j}`">
+                        <b-row class="features" :class="`features_${i}`" :key="`features_${i}`">
                             <b-col class="key">{{key}}</b-col>
                             <b-col v-for="item in row[key]">{{item}}</b-col>
                         </b-row>
@@ -194,6 +195,11 @@ export default Vue.component("fiftytwok-table", {
         };
     },
     mounted() {},
+    methods: {
+        showFeatures(index) {
+            console.log("index: ", index);
+        },
+    },
 });
 </script>
 
