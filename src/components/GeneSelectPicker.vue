@@ -40,8 +40,10 @@ export default Vue.component("gene-selectpicker", {
             });
         },
         async lookupGenes(input) {
-            let matches = await match("gene", input, { limit: 10 });
-            this.matchingGenes = matches;
+            if (!!input) {
+                let matches = await match("gene", input, { limit: 10 });
+                this.matchingGenes = matches;
+            }
         },
         selectGene(gene) {
             this.selectedGene = gene;

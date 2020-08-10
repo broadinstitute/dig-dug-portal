@@ -53,7 +53,8 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+        intFormatter: Formatters.intFormatter,
     },
 
     computed: {
@@ -88,9 +89,7 @@ new Vue({
         }
     },
 
-    methods: {
-        intFormatter: Formatters.intFormatter,
-    },
+
 
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {

@@ -21,6 +21,7 @@
                             <div class="col-md-12 input-wrapper">
                                 <gene-selectpicker
                                     @onGeneChange="$store.dispatch('queryGeneName',$event)"
+                                    :id="gene_search_input"
                                 ></gene-selectpicker>
                             </div>
                         </div>
