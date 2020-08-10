@@ -11,19 +11,16 @@
                         Gene
                         <a
                             class="edit-btn"
-                            @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
+                            v-on:click="$parent.showHideElement('variantSearchHolder')"
                         >Select gene</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
-                            <div class="col-md-12 input-wrapper">
-                                <gene-selectpicker
-                                    @onGeneChange="$store.dispatch('queryGeneName',$event)"
-                                    :id="gene_search_input"
-                                ></gene-selectpicker>
-                            </div>
+                            <gene-selectpicker
+                                @onGeneChange="$store.dispatch('queryGeneName',$event)"
+                            ></gene-selectpicker>
                         </div>
                         <div v-if="$parent.symbolName">
                             <span>
