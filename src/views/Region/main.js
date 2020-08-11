@@ -281,17 +281,16 @@ new Vue({
 
             return groups;
         },
-
     },
     watch: {
-        pValue(pValue) {
+        pValue(newP) {
+            // the filter is left-associating (e.g. 'x <= filter.value')
             this.applyFilter({
-                name: 'pvalue',  // locuszoom symbol
-                value: pValue,
-                op: _.lte
+                field: 'pvalue',
+                value: newP,
+                op: _.lte,
             })
         },
-
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

@@ -195,6 +195,7 @@
                         :start="$store.state.start"
                         :end="$store.state.end"
                         :colorScheme="$parent.tissueColorScheme"
+                        :scoring="$parent.tissueScoring"
                         @panelremoved="$parent.searchAndDestroyCorrespondingTable($event.data)"
                         @regionchanged="$parent.requestCredibleSets($event.data)"
                         :refSeq="true"

@@ -53,6 +53,7 @@ export default Vue.component("locuszoom", {
         "start",
         "end",
         "colorScheme",
+        "scoring",
         "refSeq",
     ],
     data() {
@@ -185,7 +186,8 @@ export default Vue.component("locuszoom", {
                 new LZAnnotationIntervalsPanel(
                     annotation, method,
                     { finishHandler, resolveHandler, errHandler },
-                    this.colorScheme  // this constructor has a default function if this.colorScheme is undefined
+                    this.colorScheme,  // this constructor has a default function if this.colorScheme is undefined
+                    this.scoring,
                 )
             );
             return panelId;
@@ -210,7 +212,7 @@ export default Vue.component("locuszoom", {
             return panelId;
         },
         applyFilter(filter) {
-
+            console.group('applying filter')
             // TODO: revisit, is there a faster way?
             // Auxiliary method within our json query for data layers in the LocusZoom plot
             // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
@@ -220,7 +222,7 @@ export default Vue.component("locuszoom", {
 
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            console.log(this.plot.panels, data_layers)
+            console.log('data', this.plot.panels, data_layers)
             // Was the original solution, without jsonQuery, more responsive?
             // Object.keys(this.plot.panels)
             //     .forEach(panelKey =>
@@ -235,10 +237,10 @@ export default Vue.component("locuszoom", {
 
             data_layers.forEach(data_layer => {
                 const target = /*filter.target ||*/ data_layer.parent.id
-                const filterTargetName = `${target}_src:${filter.name}`;
+                const filterTargetName = `${target}_src:${filter.field}`;
                 if (data_layer.layout.fields.includes(filterTargetName)) {
                     if (filter.value != '') {
-                        data_layer.setFilter(item => filter.op(item[filterTargetName], filter.value));
+                        data_layer.setFilter(val => filter.op(val, filter.value));
                     } else {
                         // nullify filter if filter has no value (lets everything through)
                         data_layer.setFilter(item => true);
@@ -249,6 +251,8 @@ export default Vue.component("locuszoom", {
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
+
+            console.groupEnd();
 
         }
     },

@@ -11,7 +11,6 @@ import {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
-import JsonQuery from "json-query";
 
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }) {
@@ -47,10 +46,6 @@ export class LZAssociationsPanel {
         this.locusZoomLayoutOptions = {
             "id": this.panel_id,
             y_index: 0,
-            // fields: [
-            //     `${this.datasource_namespace_symbol_for_panel}:pvalue`,
-            //     ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { namespace: this.datasource_namespace_symbol_for_panel }).fields
-            // ]
         };
         this.handlers = {
             finishHandler,
@@ -90,40 +85,16 @@ export class LZAssociationsPanel {
         }
     }
 
-    // get dataLayers() {
-    //     // I had to find these data_layers out from doing LocusZoom.Layouts.get('panel', 'associations') <= LocusZoom.Layouts.get('panel', this.panel_layout_type)
-
-    //     // need to find a better way of editing data layers that doesn't require:
-    //     // - having to call all of them, because overriding one overrides them all
-    //     // - ditto with extending fields
-    //     // the refactoring will probably have to occur conceptually, didn't think i'd have to be doing this
-    //     return [
-    //         // this works
-    //         LocusZoom.Layouts.merge(
-    //             {
-    //                 fields: [
-    //                     `{{namespace[${this.datasource_type}]}}pvalue`,
-    //                     ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields
-    //                 ]
-    //             },
-    //             LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true })
-    //         ),
-    //         LocusZoom.Layouts.get('data_layer', 'recomb_rate', { unnamespaced: true }),
-    //         LocusZoom.Layouts.get('data_layer', 'significance', { unnamespaced: true })
-    //     ]
-    // }
-
 }
 
 export class LZAnnotationIntervalsPanel {
-    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, colorScheme=id=>'128,128,128') {
+    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, colorScheme=id=>'128,128,128', scoring) {
+        console.log(scoring)
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
         this.panel_layout_type = 'intervals';
         this.datasource_type = 'intervals';
-
-        console.log(LocusZoom.Layouts.get('panel', this.panel_layout_type))
 
         // this is arbitrary, but we want to base it on the ID
         this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
@@ -133,38 +104,49 @@ export class LZAnnotationIntervalsPanel {
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
         this.translator = function(intervals) {
             const tissueIntervals = !!intervals ? intervals
+                // .filter(interval => {
+                //     let t = interval.tissueId || "NA";
+                //     let m = interval.method || "NA";
+                //     let key = `${t}_${m}_${interval.annotation}`;
+                //     return typeof scoring[key] !== 'undefined';
+                // })
                 .map(interval => {
-                    const { r, g, b } = rgb(colorScheme(interval.tissue))
-                    return {
+                    const { r, g, b } = rgb(colorScheme(interval.tissue));
+                    let t = interval.tissueId || "NA";
+                    let m = interval.method || "NA";
+                    let key = `${t}_${m}_${interval.annotation}`;
+                    return !!scoring[key] ? {
                         name: interval.tissue || interval.tissueId,
                         // some data (not displayed by default)
-
                         // region information
                         chr: interval.chromosome,
                         start: interval.start,
                         end: interval.end,
-
+                        pvalue: scoring[key].minP,
+                        fold: scoring[key].maxFold,
                         state_id: `${interval.tissueId}`,
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                         state_name: `${interval.tissue}`,
-                        pvalue: interval.pValue,
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
                         itemRgb: [r,g,b].join(), // TODO: color scheme
-                    };
-            }) : [];
+                    } : null;
+            // filter nulls (which represent elements we can't score)
+            }).filter(el => !!el) : [];
             return tissueIntervals;
         }
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
-        // If there's not a lot in here it's because we're overriding defaults
+        // If there's not a lot in here it's because we're overriding defaults.
+        console.log(LocusZoom.Layouts.get('data_layer', 'intervals', { namespace: this.datasource_namespace_symbol_for_panel }).fields)
         this.locusZoomLayoutOptions = {
             y_index: 1,
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
             fields: [
+                `${this.datasource_namespace_symbol_for_panel}:pvalue`,
                 `${this.datasource_namespace_symbol_for_panel}:pvalue`,
                 ...LocusZoom.Layouts.get('data_layer', 'intervals', { namespace: this.datasource_namespace_symbol_for_panel }).fields
             ]
@@ -209,12 +191,23 @@ export class LZAnnotationIntervalsPanel {
         // - having to call all of them, because overriding one overrides them all
         // - ditto with extending fields
         // the refactoring will probably have to occur conceptually, didn't think i'd have to be doing this
+        // console.log(LocusZoom.Layouts.merge(
+        //     {
+        //         fields: [
+        //             `{{namespace[${this.datasource_type}]}}pvalue`,
+        //             `{{namespace[${this.datasource_type}]}}fold`,
+        //             ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
+        //         ]
+        //     },
+        //     LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true })
+        // ))
         return [
             // this works
             LocusZoom.Layouts.merge(
                 {
                     fields: [
-                        `{{namespace[${this.datasource_type}]}}pvalue`,
+                        '{{namespace[intervals]}}pvalue',
+                        '{{namespace[intervals]}}fold',
                         ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
                     ]
                 },
