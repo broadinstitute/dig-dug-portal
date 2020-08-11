@@ -160,10 +160,10 @@
                                 <div class="label">pValue (&le;)</div>
                                 <input v-model.number="$parent.pValue" class="form-control"/>
                             </div>
-                            <!-- <div class="col filter-col-sm">
+                            <div class="col filter-col-sm">
                                 <div class="label">Fold (&ge;)</div>
                                 <input v-model.number="$parent.fold" class="form-control" />
-                            </div> -->
+                            </div>
 
                             <div class="col divider">&nbsp;</div>
                             <div class="col filter-col-lg">

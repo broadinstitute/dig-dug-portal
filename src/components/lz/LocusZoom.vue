@@ -240,7 +240,10 @@ export default Vue.component("locuszoom", {
                 const filterTargetName = `${target}_src:${filter.field}`;
                 if (data_layer.layout.fields.includes(filterTargetName)) {
                     if (filter.value != '') {
-                        data_layer.setFilter(val => filter.op(val, filter.value));
+                        data_layer.setFilter(val => {
+                            console.log('filtering', val[filterTargetName], filter.value, filter.op(val, filter.value))
+                            return filter.op(val[filterTargetName], filter.value);
+                        });
                     } else {
                         // nullify filter if filter has no value (lets everything through)
                         data_layer.setFilter(item => true);

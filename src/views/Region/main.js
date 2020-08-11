@@ -283,11 +283,19 @@ new Vue({
         },
     },
     watch: {
-        pValue(newP) {
-            // the filter is left-associating (e.g. 'x <= filter.value')
+        pValue(minP) {
+            // the filter op takes input on the left arg (e.g. 'minP := filter.value, x >= minP')
             this.applyFilter({
                 field: 'pvalue',
-                value: newP,
+                value: minP,
+                op: _.gte,
+            })
+        },
+        fold(maxF) {
+            // the filter op takes input on the left arg (e.g. 'maxF := filter.value, x <= maxF')
+            this.applyFilter({
+                field: 'pvalue',
+                value: maxF,
                 op: _.lte,
             })
         },

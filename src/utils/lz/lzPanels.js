@@ -139,7 +139,6 @@ export class LZAnnotationIntervalsPanel {
         // See the LocusZoom docs for how this works
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults.
-        console.log(LocusZoom.Layouts.get('data_layer', 'intervals', { namespace: this.datasource_namespace_symbol_for_panel }).fields)
         this.locusZoomLayoutOptions = {
             y_index: 1,
             title: {
@@ -147,7 +146,7 @@ export class LZAnnotationIntervalsPanel {
             },
             fields: [
                 `${this.datasource_namespace_symbol_for_panel}:pvalue`,
-                `${this.datasource_namespace_symbol_for_panel}:pvalue`,
+                `${this.datasource_namespace_symbol_for_panel}:fold`,
                 ...LocusZoom.Layouts.get('data_layer', 'intervals', { namespace: this.datasource_namespace_symbol_for_panel }).fields
             ]
         };
@@ -191,16 +190,6 @@ export class LZAnnotationIntervalsPanel {
         // - having to call all of them, because overriding one overrides them all
         // - ditto with extending fields
         // the refactoring will probably have to occur conceptually, didn't think i'd have to be doing this
-        // console.log(LocusZoom.Layouts.merge(
-        //     {
-        //         fields: [
-        //             `{{namespace[${this.datasource_type}]}}pvalue`,
-        //             `{{namespace[${this.datasource_type}]}}fold`,
-        //             ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
-        //         ]
-        //     },
-        //     LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true })
-        // ))
         return [
             // this works
             LocusZoom.Layouts.merge(
