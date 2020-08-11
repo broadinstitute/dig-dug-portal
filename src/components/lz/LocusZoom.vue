@@ -212,7 +212,6 @@ export default Vue.component("locuszoom", {
             return panelId;
         },
         applyFilter(filter) {
-            console.group('applying filter')
             // TODO: revisit, is there a faster way?
             // Auxiliary method within our json query for data layers in the LocusZoom plot
             // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
@@ -222,7 +221,6 @@ export default Vue.component("locuszoom", {
 
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            console.log('data', this.plot.panels, data_layers)
             // Was the original solution, without jsonQuery, more responsive?
             // Object.keys(this.plot.panels)
             //     .forEach(panelKey =>
@@ -237,12 +235,12 @@ export default Vue.component("locuszoom", {
 
             data_layers.forEach(data_layer => {
                 const target = /*filter.target ||*/ data_layer.parent.id
-                const filterTargetName = `${target}_src:${filter.field}`;
-                if (data_layer.layout.fields.includes(filterTargetName)) {
+                const filterTargetNames = Array.isArray(filter.fields) ? filter.fields.map(field => `${target}_src:${field}`) : [`${target}_src:${filter.fields}`];
+                console.log(filterTargetNames)
+                if (filterTargetNames.every(fieldTarget => data_layer.layout.fields.includes(fieldTarget))) {
                     if (filter.value != '') {
-                        data_layer.setFilter(val => {
-                            console.log('filtering', val[filterTargetName], filter.value, filter.op(val, filter.value))
-                            return filter.op(val[filterTargetName], filter.value);
+                        data_layer.setFilter(vals => {
+                            return filter.op(vals, filter.value);
                         });
                     } else {
                         // nullify filter if filter has no value (lets everything through)

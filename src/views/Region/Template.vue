@@ -196,10 +196,8 @@
                         :end="$store.state.end"
                         :colorScheme="$parent.tissueColorScheme"
                         :scoring="$parent.tissueScoring"
-                        @panelremoved="$parent.searchAndDestroyCorrespondingTable($event.data)"
                         @regionchanged="$parent.requestCredibleSets($event.data)"
-                        :refSeq="true"
-                    >
+                        :refSeq="true">
                         <lz-associations-panel
                             :phenotype="$store.state.phenotype.name"
                             :finishHandler="$parent.updateAssociationsTable"

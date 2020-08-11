@@ -118,7 +118,6 @@ new Vue({
             this.$store.commit(`associations/setResponse`, data);
         },
         // LocusZoom has "Panels"
-        // For LocusZoom2
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
             this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
@@ -131,10 +130,6 @@ new Vue({
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
-        },
-        searchAndDestroyCorrespondingTable(event) {
-            console.log(event)
-            // const selectedCredibleSets.filter()
         },
 
         // IGV has "Tracks"
@@ -152,6 +147,19 @@ new Vue({
                 colorScheme: this.tissueColorScheme,
                 // dataLoaded: event => console.log(event),
             });
+        },
+        filterOnPValueAndFold(vals, filterValue) {
+            let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
+                const [preKey, fieldValue] = items;
+                const fieldKey = preKey.split(':')[1];  // remove the namespacing information from the key to get the field leftover
+                acc[fieldKey] = fieldValue;
+                return acc;
+            }, {});
+
+            let pValuePred = !!filterValue.pValue ? _.gte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
+            let foldPred = !!filterValue.fold ? _.lte(extractedItemVals.fold, filterValue.fold) : true;
+
+            return pValuePred && foldPred;
         }
     },
 
@@ -281,24 +289,38 @@ new Vue({
 
             return groups;
         },
+        jointFilters() {
+            return {
+                pValue: this.pValue,
+                fold: this.fold,
+            }
+        }
     },
     watch: {
-        pValue(minP) {
-            // the filter op takes input on the left arg (e.g. 'minP := filter.value, x >= minP')
+        jointFilters(newFilterThresholds) {
+            console.log('joint filters reacting')
             this.applyFilter({
-                field: 'pvalue',
-                value: minP,
-                op: _.gte,
+                fields: ['pvalue', 'fold'],
+                value: newFilterThresholds,
+                op: this.filterOnPValueAndFold
             })
         },
-        fold(maxF) {
-            // the filter op takes input on the left arg (e.g. 'maxF := filter.value, x <= maxF')
-            this.applyFilter({
-                field: 'pvalue',
-                value: maxF,
-                op: _.lte,
-            })
-        },
+        // pValue(minP) {
+        //     // the filter op takes input on the left arg (e.g. 'minP := filter.value, x >= minP')
+        //     this.applyFilter({
+        //         field: 'pvalue',
+        //         value: minP,
+        //         op: _.gte,
+        //     })
+        // },
+        // fold(maxF) {
+        //     // the filter op takes input on the left arg (e.g. 'maxF := filter.value, x <= maxF')
+        //     this.applyFilter({
+        //         field: 'fold',
+        //         value: maxF,
+        //         op: _.lte,
+        //     })
+        // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
