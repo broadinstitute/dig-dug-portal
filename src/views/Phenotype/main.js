@@ -16,6 +16,7 @@ import Documentation from "@/components/Documentation.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
 import { rawUrl } from "@/utils/bioIndexUtils";
+import Formatters from "@/utils/formatters";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -52,7 +53,8 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+        intFormatter: Formatters.intFormatter,
     },
 
     computed: {

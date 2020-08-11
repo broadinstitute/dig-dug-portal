@@ -9,6 +9,7 @@ import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
 
 
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -34,6 +35,7 @@ export default new Vuex.Store({
         chr: keyParams.chr,
         start: keyParams.start,
         end: keyParams.end,
+        focusedVariant: keyParams.variant,
         phenotype: null,
 
         // user-entered search fields
@@ -41,6 +43,7 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
+        matchingGenes: null,
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
@@ -66,6 +69,9 @@ export default new Vuex.Store({
                 end: state.end,
             });
         },
+        setMatchingGenes(state, genes) {
+            state.matchingGenes = genes;
+        },
     },
     getters: {
         // The phenotype is a getter because it depends on the bioPortal
@@ -87,6 +93,7 @@ export default new Vuex.Store({
         },
     },
     actions: {
+
         async onPhenotypeChange(context, phenotype) {
             context.commit('setSelectedPhenotype', phenotype);
         },
@@ -130,6 +137,15 @@ export default new Vuex.Store({
                 // for variant prioritizer?
                 // context.dispatch('regions/query', { q: newRegion });
 
+            }
+        },
+
+        async onGeneChange(context, gene) {
+            let locus = await regionUtils.parseRegion(gene, true, 50000);
+
+            if (locus) {
+                context.commit('setLocus', locus);
+                context.dispatch('queryRegion');
             }
         },
 

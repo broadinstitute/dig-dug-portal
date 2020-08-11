@@ -83,6 +83,7 @@ span.help-content-caller {
     font-size: 14px;
     font-weight: 300;
     color: #000;
+    overflow-y: auto;
 }
 
 .help-hover-content-modal.no-icon-true {

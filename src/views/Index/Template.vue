@@ -58,13 +58,6 @@
                                         </div>
                                     </b-tab>
 
-                                    <b-tab title="Datasets">
-                                        <div class="front-dataset-search-wrapper">
-                                            <dataset-selectpicker
-                                                v-bind:datasets="$store.state.bioPortal.datasets"
-                                            ></dataset-selectpicker>
-                                        </div>
-                                    </b-tab>
                                     <b-tab
                                         title="Disease-specific portals"
                                         v-if="$parent.diseaseGroup.default"

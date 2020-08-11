@@ -36,21 +36,21 @@ export default Vue.component("credible-variants-table", {
             fields: [
                 {
                     key: "varId",
-                    label: "varId"
+                    label: "Variant",
                 },
                 {
                     key: "pValue",
-                    label: "pValue"
+                    label: "P-Value",
                 },
                 {
                     key: "posteriorProbability",
-                    label: "Posterior Probability"
-                }
+                    label: "Posterior Probability",
+                },
             ],
             perPage: 5,
             currentPage: 1,
             sortName: "subjects",
-            sortOrder: "desc"
+            sortOrder: "desc",
         };
     },
     computed: {
@@ -59,9 +59,9 @@ export default Vue.component("credible-variants-table", {
         },
         sortedCredibleVariants() {
             // TODO
-            return this.crediblevariants
+            return this.crediblevariants;
             // .sort((a, b) => b.subjects - a.subjects);
-        }
-    }
+        },
+    },
 });
 </script>

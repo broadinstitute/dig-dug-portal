@@ -35,16 +35,18 @@
             </div>
             <div :class="'row '+diseaseGroup.name+'kp-header'">
                 <div :class="diseaseGroup.name+'kp-logo-wrapper col-md-4'">
-                    <img
-                        v-if="frontContents.field_banner_logo"
-                        :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
-                        :class="diseaseGroup.name+'kp-logo'"
-                    />
-                    <img
-                        v-else
-                        src="http://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
-                        class="mdkp-logo"
-                    />
+                    <a href="/">
+                        <img
+                            v-if="frontContents.field_banner_logo"
+                            :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
+                            :class="diseaseGroup.name+'kp-logo'"
+                        />
+                        <img
+                            v-else
+                            src="http://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
+                            class="mdkp-logo"
+                        />
+                    </a>
                 </div>
                 <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
                     <ul :class="diseaseGroup.name+'kp-menu kp-menu'">
@@ -61,14 +63,14 @@
                                     <a :href="'/epigeneticdatasets.html'">Epigenetic Datasets</a>
                                 </li>
                                 <li page="data">
-                                    <a :href="'/datasets.html'">Datasets</a>
+                                    <a :href="'/datasets.html'">Genetic association datasets</a>
                                 </li>
                                 <li page="data">
                                     <a :href="'/downloads.html'">Downloads</a>
                                 </li>
                                 <li
                                     page="data"
-                                    v-if="diseaseGroup.name && diseaseGroup.name == 't2d'"
+                                    v-if="diseaseGroup.name && (diseaseGroup.name == 't2d' || diseaseGroup.name == 'md')"
                                 >
                                     <a :href="'/apis.html'">APIs</a>
                                 </li>
@@ -118,13 +120,13 @@
                                 <li page="information">
                                     <a href="/news.html">News</a>
                                 </li>
-                                <li page="information">
+                                <!--<li page="information">
                                     <a href="/contacts.html">Contacts</a>
-                                </li>
+                                </li>-->
                             </ul>
                         </li>
                         <li class="am-menu">
-                            <a href="http://kp4cd.org/contact">Help</a>
+                            <a href="http://kp4cd.org/contact">Contact</a>
                         </li>
                         <li v-if="user">
                             <a href="/logout" :class="diseaseGroup.name+'kp-login'">Logout</a>

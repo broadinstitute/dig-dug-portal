@@ -7,7 +7,7 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-12 gene-page-header-title">
+                    <div class="col-md-9 gene-page-header-title">
                         Variant
                         <tooltip-documentation name="variant.alleles.tooltip.hover" :isHover="true"></tooltip-documentation>
                         <a
@@ -15,8 +15,9 @@
                             v-on:click="$parent.showHideElement('variantSearchHolder','variant_search_input')"
                         >Set variant</a>
                     </div>
+                    <div class="col-md-3 gene-page-header-title">Navigate</div>
 
-                    <div class="col-md-12 gene-page-header-body">
+                    <div class="col-md-9 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-5">
                                 <input
@@ -48,12 +49,27 @@
                             </span>
                         </span>
                     </div>
+                    <div class="col-md-3 gene-page-header-body">
+                        <button
+                            class="btn btn-primary explore-region-btn"
+                            @click="$parent.exploreRegion()"
+                        >Explore region</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <documentation
+                        name="variant.explore.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
                 </div>
             </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Closests Genes</h4>
+                    <h4 class="card-title">Closest genes</h4>
                     <documentation
                         name="variant.genes.subheader"
                         :content-fill="$parent.documentationMap"
@@ -72,7 +88,15 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$store.state.transcriptConsequences.data.length > 0">
-                        <h4 class="card-title">Predicted Transcript Consequences</h4>
+                        <h4 class="card-title">
+                            Predicted variant consequences
+                            <tooltip-documentation
+                                name="variant.consequences.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
                         <documentation
                             name="variant.effect.subheader"
                             :content-fill="$parent.documentationMap"
@@ -83,7 +107,7 @@
                         ></transcript-consequence-table>
                     </div>
                     <div v-else-if="$store.state.variant">
-                        <h4 class="card-title">Most Severe Consequence</h4>
+                        <h4 class="card-title">Most severe variant consequence</h4>
                         {{$parent.consequenceFormatter($store.state.variant.consequence)}} &mdash; {{$parent.consequenceMeaning($store.state.variant.consequence)}}
                     </div>
                 </div>
@@ -91,7 +115,7 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">PheWAS Visualization</h4>
+                    <h4 class="card-title">PheWAS visualization</h4>
                     <documentation
                         name="variant.phewas.subheader"
                         :content-fill="$parent.documentationMap"
@@ -112,10 +136,18 @@
                     </locuszoom>
 
                     <h4 class="card-title">
-                        <documentation
-                            name="variant.phewas.table.subheader"
+                        {{$parent.varId}}
+                        <span v-if="$parent.dbSNP">
+                            <span style="color: gray">/</span>
+                            {{$parent.dbSNP}}
+                        </span>
+                        associations
+                        <tooltip-documentation
+                            name="variant.assoc.tooltip"
                             :content-fill="$parent.documentationMap"
-                        ></documentation>
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
                     </h4>
                     <phewas-table
                         v-if="$store.state.phewas.data"
@@ -126,9 +158,15 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >Transcription factor binding motifs altered by {{$parent.variantName}}</h4>
+                    <h4 class="card-title">
+                        Transcription factor binding motifs altered by {{$parent.variantName}}
+                        <tooltip-documentation
+                            name="variant.tfbinding.tooltip"
+                            :content-fill="$parent.documentationMap"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
+                    </h4>
                     <documentation
                         name="variant.tfbinding.subheader"
                         :content-fill="$parent.documentationMap"
@@ -146,7 +184,15 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Annotated regions overlapping {{$parent.variantName}}</h4>
+                    <h4 class="card-title">
+                        Annotated regions overlapping {{$parent.variantName}}
+                        <tooltip-documentation
+                            name="variant.annotregions.tooltip"
+                            :content-fill="$parent.documentationMap"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
+                    </h4>
                     <documentation
                         name="variant.annotated.subheader"
                         :content-fill="$parent.documentationMap"

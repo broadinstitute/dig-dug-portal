@@ -12,6 +12,8 @@ import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
+import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import Formatters from "@/utils/formatters";
 
 import Alert, {
     postAlert,
@@ -34,6 +36,7 @@ new Vue({
         UniprotReferencesTable,
         Documentation,
         Autocomplete,
+        GeneSelectPicker,
     },
 
     data() {
@@ -68,7 +71,16 @@ new Vue({
         postAlert,
         postAlertNotice,
         postAlertError,
-        closeAlert
+        closeAlert,
+
+        // go to region page
+        exploreRegion(expanded = 0) {
+            let r = this.region;
+
+            if (!!r) {
+                window.location.href = `./region.html?chr=${r.chromosome}&start=${r.start - expanded}&end=${r.end + expanded}`;
+            }
+        }
     },
 
     computed: {
@@ -125,14 +137,45 @@ new Vue({
         },
 
         gene() {
-            let data = this.$store.state.gene;
+            let data = this.$store.state.gene.data;
             if (data.length > 0) {
                 return data[0];
             }
             return {};
-        }
-    },
+        },
 
+        regionText() {
+            let r = this.region;
+
+            if (!!r) {
+                return `${r.chromosome}:${Formatters.intFormatter(r.start)}-${Formatters.intFormatter(r.end)}`;
+            } else {
+                return '';
+            }
+        },
+
+        regionTextExpanded() {
+            let r = this.region;
+
+            if (!!r) {
+                return `${r.chromosome}:${Formatters.intFormatter(r.start - 50000)}-${Formatters.intFormatter(r.end + 50000)}`;
+            } else {
+                return '';
+            }
+        },
+
+        documentationMap() {
+            let symbol = this.symbolName;
+            let r = this.region;
+
+            if (!!symbol && !!r) {
+                return {
+                    gene: symbol,
+                    region: `${r.chromosome}:${Formatters.intFormatter(r.start)}-${Formatters.intFormatter(r.end)}`,
+                }
+            }
+        },
+    },
 
     watch: {
 
@@ -142,7 +185,7 @@ new Vue({
 
         // the region for the gene was found
         region(region) {
-            this.hideElement("variantSearchHolder");
+            this.hideElement("variangeneSearchHolder");
             this.$store.dispatch("queryGeneRegion", region);
         },
 

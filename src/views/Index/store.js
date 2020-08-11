@@ -44,19 +44,13 @@ export default new Vuex.Store({
             let varID = await variantUtils.parseVariant(input);
 
             if (locus) {
-                if (locus.gene) {
-                    window.location.href = `./gene.html?gene=${locus.gene}`;
-                }
-                else {
-                    window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
-                }
+                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
             }
             else if (varID) {
                 window.location.href = `./variant.html?variant=${varID}`;
             } else {
                 postAlertError("Invalid gene, variant, or region");
             }
-
         },
 
         async lookupGenes(context, input) {
@@ -66,7 +60,11 @@ export default new Vuex.Store({
 
         //select gene on autocomplete.
         async onGeneChange(context, gene) {
-            window.location.href = "./gene.html?gene=" + gene;
+            let locus = await regionUtils.parseRegion(gene, true, 50000);
+
+            if (locus) {
+                window.location.href = `./region.html?chr=${locus.chr}&start=${locus.start}&end=${locus.end}`;
+            }
         },
 
         //select gene on autocomplete.

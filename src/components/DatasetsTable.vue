@@ -3,7 +3,7 @@
         <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
                 <b-col>
-                    <div class="label">Tech:</div>
+                    <div class="label">Technology</div>
                     <b-form-select v-model="tech" :options="filter_tech"></b-form-select>
                 </b-col>
                 <b-col>
@@ -82,34 +82,34 @@ export default Vue.component("datasets-table", {
             fields: [
                 {
                     key: "link",
-                    label: "Name",
+                    label: "Name"
                 },
                 {
                     key: "tech",
-                    label: "Technology",
+                    label: "Technology"
                 },
                 {
                     key: "ancestry",
                     label: "Ancestry",
-                    formatter: Formatters.ancestryFormatter,
+                    formatter: Formatters.ancestryFormatter
                 },
 
                 {
                     key: "subjects",
                     label: "Subjects",
-                    formatter: Formatters.intFormatter,
+                    formatter: Formatters.intFormatter
                 },
                 {
                     key: "image",
-                    label: "Community",
-                },
+                    label: "Community"
+                }
             ],
             perPage: 5,
             currentPage: 1,
             sortName: "subjects",
             sortOrder: "desc",
             tech: "",
-            ancestry: "",
+            ancestry: ""
         };
     },
     computed: {
@@ -121,7 +121,7 @@ export default Vue.component("datasets-table", {
 
             // filter by phenotype if set
             if (this.phenotype) {
-                rawDatasets = rawDatasets.filter((d) =>
+                rawDatasets = rawDatasets.filter(d =>
                     d.phenotypes.includes(this.phenotype.name)
                 );
             }
@@ -131,12 +131,12 @@ export default Vue.component("datasets-table", {
         },
         filter_tech() {
             return this.sortedDatasets
-                .map((v) => v.tech)
+                .map(v => v.tech)
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         filter_ancestry() {
             return this.sortedDatasets
-                .map((v) => Formatters.ancestryFormatter(v.ancestry))
+                .map(v => Formatters.ancestryFormatter(v.ancestry))
                 .filter((v, i, arr) => arr.indexOf(v) == i);
         },
         tableData() {
@@ -163,13 +163,13 @@ export default Vue.component("datasets-table", {
             } else {
                 return this.sortedDatasets;
             }
-        },
+        }
     },
     methods: {
         clearFilter(obj) {
             this[obj] = "";
-        },
-    },
+        }
+    }
 });
 </script>
 

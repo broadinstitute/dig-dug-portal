@@ -321,7 +321,7 @@ a:hover {
 
 .am-submenu > li {
     width: 100%;
-    background-color: rgba(120, 120, 120, 0.75);
+    background-color: rgba(100, 100, 100, 0.85);
     font-size: 0.8em;
     padding: 5px 15px 5px 15px;
     border-bottom: solid 1px #666;
@@ -610,7 +610,11 @@ div.filtering-tools table th {
 }
 
 #regionSearchHolder .input-default,
-#variantSearchHolder .input-default {
+#variantSearchHolder .input-default,
+#regionSearchHolder .input-group,
+#variantSearchHolder .input-group,
+#regionSearchHolder input.form-control,
+#variantSearchHolder input.form-control{
     height: 100%;
     width: 100%;
     border: 0;
@@ -620,6 +624,12 @@ div.filtering-tools table th {
     border-left: solid 1px #ddd;
     border-radius: 0;
     font-size: 20px;
+}
+
+#regionSearchHolder .vbt-autcomplete-list,
+#variantSearchHolder .vbt-autcomplete-list {
+    top: 95% !important;
+    height: auto !important;
 }
 
 #variantSearchHolder div {
@@ -677,22 +687,6 @@ div.filtering-tools table th {
     text-align: center;
     color: #666;
     margin-left: 10px;
-}
-
-.phenotypes-with-signal-wrapper {
-    height: 310px;
-    overflow-y: auto;
-}
-
-.phenotype-with-signal {
-    cursor: pointer;
-    display: inline-block;
-    margin: 0px 5px 5px 0;
-    padding: 2px 10px;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    font-size: 12px;
 }
 
 .gene-with-signal {
@@ -1075,4 +1069,71 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     width: 560px;
     height: 315px;
     margin: 0 auto;
+}
+
+.egl-research-method-wrapper {
+    display: block;
+    border-top: solid 2px #ccc;
+    margin-top: 35px;
+    padding: 35px 35px 0 35px !important;
+}
+
+.egl-research-trait-bubbles {
+    list-style: none;
+}
+
+.egl-research-trait-bubbles li {
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 7px;
+}
+
+.egl-research-trait-bubbles-multi li  {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.egl-research-trait-bubbles li a, .egl-research-trait-bubbles-multi li a{
+    display: block;
+    background-color: #0097d6;
+    color: #fff !important;
+    padding: 5px 10px;
+    height: 34px;
+    border-radius: 5px;
+    display: inline-block;
+    font-size: 16px;
+}
+
+.egl-research-trait-bubbles li a:hover, .egl-research-trait-bubbles-multi li a:hover {
+    background-color: #0097d675;
+}
+
+.egl-research-trait-bubbles li a::after, .egl-research-trait-bubbles-multi li a::after {
+    content: "";
+}
+
+.egl-research-trait-bubbles li a:hover::after, .egl-research-trait-bubbles-multi li a:hover::after {
+    content: "  GO >";
+    font-size: 0.75em;
+}
+
+.egl-table-ss {
+    width: 350px;
+    border: solid 1px #ccc;
+    float: right;
+}
+
+.explore-region-btn {
+    background-color: #66bbff !important;
+    border: solid 1px #3399ff !important;
+}
+
+.explore-region-btn:hover {
+    background-color: #66bbff75 !important;
+}
+
+.temporary-card {
+    background-color: #66bbff30 !important;
+    border: solid 1px #3399ff30 !important;
+    padding-bottom: 0.25em !important;
 }

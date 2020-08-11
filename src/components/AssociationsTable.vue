@@ -20,7 +20,7 @@
                     ></b-form-select>
                 </b-col>
                 <b-col class="filter-col-sm">
-                    <div class="label">pValue (&le;)</div>
+                    <div class="label">P-Value (&le;)</div>
                     <b-form-input
                         id="filter-pValue"
                         type="text"
