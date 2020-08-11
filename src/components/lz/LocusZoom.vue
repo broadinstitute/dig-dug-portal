@@ -23,30 +23,6 @@ import jsonQuery from "json-query";
 LocusZoom.use(intervalTracks);
 LocusZoom.use(toolbar_addons);
 
-const BASE_PANEL_OPTIONS = {
-    // proportional_height: 1,
-    height: 240,
-    // dashboard: {
-    //     components: [
-    //         {
-    //             type: "resize_to_data",
-    //             position: "right"
-    //         },
-    //         {
-    //             type: "region_scale",
-    //             position: "left"
-    //         }
-    //     ]
-    // }
-}
-
-/* panel options by panel type
- */
-const PANEL_OPTIONS = {
-    // 'association': { min_height: 240, height: 240 },
-    // 'genes': { min_height: 240, height: 240 },
-};
-
 export default Vue.component("locuszoom", {
     props: [
         "chr",
@@ -78,7 +54,7 @@ export default Vue.component("locuszoom", {
         });
 
         this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
-            responsive_resize: "width_only",
+            responsive_resize: "both",
             state: Object.assign({}, {
                 chr: this.chr,
                 start: this.start,
@@ -90,6 +66,8 @@ export default Vue.component("locuszoom", {
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
+                min_height: 240,
+                height: 240,
                 y_index: 3
             }));
         }
@@ -130,20 +108,20 @@ export default Vue.component("locuszoom", {
             const { panel, source } = panelClass;
             this.dataSources.add(source.givingDataSourceName, source.withDataSourceReader);
 
-            let overrides = {
+            let panelOptions = {
                 namespace: { [panel.forDataSourceType]: panel.takingDataSourceName },
                 id: panel.id,
                 ...panel.locusZoomLayoutOptions,             // other locuszoom configuration required for the panel, including overrides(?)
             }
 
             if (typeof panelClass.dataLayers !== 'undefined') {
-                overrides = {
-                    ...overrides,
+                panelOptions = {
+                    ...panelOptions,
                     data_layers: panelClass.dataLayers
                 }
             }
 
-            this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, overrides)).addBasicLoader();
+            this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, panelOptions)).addBasicLoader();
 
             // so we can figure out how to remove it later
             return panel.id;

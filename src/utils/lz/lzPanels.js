@@ -12,6 +12,9 @@ import {
     closeAlert
 } from "@/components/Alert";
 
+const BASE_PANEL_OPTIONS = {
+    height: 240,
+}
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }) {
 
@@ -44,7 +47,8 @@ export class LZAssociationsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
-            "id": this.panel_id,
+            ...BASE_PANEL_OPTIONS,
+            id: this.panel_id,
             y_index: 0,
         };
         this.handlers = {
@@ -140,10 +144,12 @@ export class LZAnnotationIntervalsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults.
         this.locusZoomLayoutOptions = {
+            ...BASE_PANEL_OPTIONS,
             y_index: 1,
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
+            proportional_height: 0.2,
             fields: [
                 `${this.datasource_namespace_symbol_for_panel}:pvalue`,
                 `${this.datasource_namespace_symbol_for_panel}:fold`,
@@ -238,6 +244,7 @@ export class LZCredibleVariantsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomLayoutOptions = {
+            ...BASE_PANEL_OPTIONS,
             y_index: 1,
             title: {
                 text: `${credibleSetId}`
@@ -354,7 +361,9 @@ export class LZPhewasPanel {
         // See the LocusZoom docs for how this works
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
-        this.locusZoomLayoutOptions = {};
+        this.locusZoomLayoutOptions = {
+            // ...BASE_PANEL_OPTIONS,
+        };
         this.handlers = { finishHandler, resolveHandler, errHandler };
 
     }
