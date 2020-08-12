@@ -731,7 +731,7 @@ span.weight-blue {
 */
 .EGLT-table.miriam .feature-content.traits.negative [class*="cell-weight"] {
     background-image: url("../images/red_block.png");
-    background-position: right;
+    background-position: left;
 }
 
 .EGLT-table.miriam .feature-content.traits.negative [class*="cell-weight"]::before {
