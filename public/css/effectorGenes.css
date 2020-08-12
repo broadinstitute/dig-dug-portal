@@ -731,11 +731,11 @@ span.weight-blue {
 */
 .EGLT-table.miriam .feature-content.traits.negative [class*="cell-weight"] {
     background-image: url("../images/red_block.png");
-    background-position: left;
+    background-position: right;
 }
 
 .EGLT-table.miriam .feature-content.traits.negative [class*="cell-weight"]::before {
-    content: "-";
+    /*content: "-";*/
 }
 
 .EGLT-table.miriam .feature-content.traits [class*="cell-weight"] {
@@ -833,9 +833,14 @@ span.weight-blue {
     width: calc(100% / 5);
 }
 
-.EGLT-table-manning .feature-content-header-item.Annotations,
-.EGLT-table-manning .feature-content-value-item.Annotations {
+.EGLT-table.manning .feature-content-header-item.Annotations,
+.EGLT-table.manning .feature-content-value-item.Annotations {
     width: calc(100% / 4);
+}
+
+.EGLT-table.manning .feature-content  [class*="cell-weight"] {
+    background-image: url("../images/red_block.png");
+    background-position: left;
 }
 
 /* for Richards */

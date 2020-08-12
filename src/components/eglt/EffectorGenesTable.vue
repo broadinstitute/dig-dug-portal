@@ -114,6 +114,7 @@ export default Vue.component("effector-genes-table", {
             optionData: [],
             filtersIndex: {},
             highestScores: { features: {} },
+            lowestScores: { features: {} },
             /*igvBrowser: false,*/
         };
     },
@@ -351,19 +352,25 @@ export default Vue.component("effector-genes-table", {
                         );
                         break;
                     case "render_bg_percent":
-                        let highScore, columnHighestScore;
+                        let highScore, columnHighestScore, columnLowestScore;
 
                         if (LEVEL == "top") {
                             columnHighestScore = this.highestScores[COLUMN];
+                            columnLowestScore = this.lowestScores[COLUMN];
                         } else if (LEVEL == "feature") {
                             if (
                                 this.highestScores.features[COLUMN[0]] ==
                                 undefined
                             ) {
                                 this.highestScores.features[COLUMN[0]] = {};
+                                this.lowestScores.features[COLUMN[0]] = {};
                             }
 
                             columnHighestScore = this.highestScores.features[
+                                COLUMN[0]
+                            ][COLUMN[1]];
+
+                            columnLowestScore = this.lowestScores.features[
                                 COLUMN[0]
                             ][COLUMN[1]];
                         }
@@ -372,30 +379,61 @@ export default Vue.component("effector-genes-table", {
                             if (LEVEL == "top") {
                                 let tempArr = [];
                                 this.tableData.map((r) => {
-                                    tempArr.push(r[COLUMN]);
+                                    if (r[COLUMN]) {
+                                        tempArr.push(Number(r[COLUMN]));
+                                    }
                                 });
-                                tempArr.sort();
-                                this.highestScores[COLUMN] = tempArr.pop();
+
+                                tempArr.sort(function (a, b) {
+                                    return a - b;
+                                });
+
+                                this.highestScores[COLUMN] =
+                                    tempArr[tempArr.length - 1];
+
+                                this.lowestScores[COLUMN] = tempArr[0];
+
                                 columnHighestScore = this.highestScores[COLUMN];
+                                columnLowestScore = this.lowestScores[COLUMN];
                             } else if (LEVEL == "feature") {
                                 let tempArr = [];
                                 this.tableData.map((r) => {
                                     let tempData = r.features[COLUMN[0]];
 
                                     tempData.map((t) => {
-                                        tempArr.push(t[COLUMN[1]]);
+                                        if (t[COLUMN[1]]) {
+                                            tempArr.push(Number(t[COLUMN[1]]));
+                                        }
                                     });
                                 });
-                                tempArr.sort();
+
+                                tempArr.sort(function (a, b) {
+                                    return a - b;
+                                });
+
                                 this.highestScores.features[COLUMN[0]][
                                     COLUMN[1]
-                                ] = tempArr.pop();
+                                ] = tempArr[tempArr.length - 1];
+
+                                this.lowestScores.features[COLUMN[0]][
+                                    COLUMN[1]
+                                ] = tempArr[0];
+
                                 columnHighestScore = this.highestScores
                                     .features[COLUMN[0]][COLUMN[1]];
+
+                                columnLowestScore = this.lowestScores.features[
+                                    COLUMN[0]
+                                ][COLUMN[1]];
                             }
 
-                            let percentileValue = Math.floor(
-                                (VALUE / columnHighestScore) * 100
+                            let percentileValue = Math.abs(
+                                Math.floor(
+                                    ((Number(VALUE) - columnLowestScore) /
+                                        (columnHighestScore -
+                                            columnLowestScore)) *
+                                        100
+                                )
                             );
 
                             return (
@@ -406,9 +444,16 @@ export default Vue.component("effector-genes-table", {
                                 "</span>"
                             );
                         } else {
-                            let percentileValue = Math.floor(
-                                (VALUE / columnHighestScore) * 100
+                            let percentileValue = Math.abs(
+                                Math.floor(
+                                    ((Number(VALUE) - columnLowestScore) /
+                                        (columnHighestScore -
+                                            columnLowestScore)) *
+                                        100
+                                )
                             );
+
+                            console.log(percentileValue);
 
                             return (
                                 "<span class='cell-weight-" +
