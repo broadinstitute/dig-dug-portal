@@ -56,10 +56,17 @@ export default Vue.component("effector-genes-plots-line", {
                     eachData.map((eD) => {
                         $.each(eD, function (KEY, FEATURE_VALUE) {
                             let FV = FEATURE_VALUE;
-                            features[KEY].push(FV);
+                            if (features[KEY]) {
+                                features[KEY].push(FV);
+                            } else {
+                                features[KEY] = [];
+                                features[KEY].push(FV);
+                            }
                         });
                     });
                 });
+
+                console.log(features);
 
                 let frequencyData = {};
 
