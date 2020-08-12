@@ -35,15 +35,15 @@
 
             <!-- HuGeCalculator -->
             <div class="card mdkp-card">
-                <div class="card-body">
-                    <div class="col-md-10">
+                <div v-if="$parent.inGWAS" class="card-body" >
+                    <div class="col-md-10" >
                         <!-- <h4
                             v-if="$store.state.effectorGeneData.category"
                         >{{$store.state.effectorGeneData.category}}</h4>-->
 
-                        <h4 v-if="$parent.inGWAS">{{$store.state.effectorGeneData.category}}</h4>
-                        <h4 v-else>{{$store.state.category}}</h4>
-
+                        <h4 v-if="$store.state.effectorGeneData.category">{{$store.state.effectorGeneData.category}}</h4>
+                        
+                       
                         <div v-if="$store.state.effectorGeneData" class="alternative-names">
                             <strong>Coding Evidence: &nbsp;</strong>
                             <span
@@ -57,16 +57,15 @@
                             >{{$store.state.effectorGeneData.regulatory}}</span>
                         </div>
                         <div>
-                            <strong>Perturbation Evidence:</strong>
+                            <strong>Perturbational Evidence:</strong>
                             <span
                                 v-if="$store.state.effectorGeneData.perturbational"
                             >{{$store.state.effectorGeneData.perturbational}}</span>
                         </div>
-                        <!-- <div>
-                            <strong>Gene sources:</strong>
-                            <span>&nbsp;Ensembl, HGNC, UCSC, RGD, MGD</span>
-                        </div>-->
                     </div>
+                </div>
+                <div v-else class="card-body" >
+                    <h4>{{$store.state.category}}</h4>
                 </div>
             </div>
             <div>

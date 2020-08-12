@@ -103,7 +103,7 @@ export default new Vuex.Store({
                                 break;
                             }
                             else {
-                                effectorGeneData = { "perturbational": "3P", "category": "get this from state whether in GWAS or not" }
+                                effectorGeneData = { "perturbational": "3P", "category": "In GWAS but no evidence" }
                             }
 
 
