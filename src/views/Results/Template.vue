@@ -48,21 +48,30 @@
                             </select>
                         </div>
                         <div v-if="element.name.split(';')[0] === 'bioindex-query'">
-                            <select name="bioindex-query-index" @change="modifyAt($event, element, idx)">
+                            <select name="bioindex-query-type" @input="modifyAt($event, element, idx)">
                                 <option v-for="ind in ['phewas-associations', 'top-associations', 'gwas-associations']" :key="ind">
                                     {{ ind }}
                                 </option>
                             </select>
-                            <input name="bioindex-query-value" @change="modifyAt($event, element, idx)"/>
+                            <input name="bioindex-query-value" @input="modifyAt($event, element, idx)"/>
                         </div>
-                        <div v-if="element.name.split(';')[0] === 'bioindex-types'">
-                            <select name="bioindex-type-type" @change="modifyAt($event, element, idx)">
+                        <div v-if="element.name.split(';')[0] === 'bioindex-input'">
+                            <div class="list-group-item">
+                                <bioindex-data-picker
+                                    :name="element.name.split(';')[0]"
+                                    :options="['variant','phenotype','locus']"
+                                    @modify="modifyAt($event, element, idx)"
+                                />
+                            </div>
+                        </div>
+                        <!-- <div v-if="element.name.split(';')[0] === 'bioindex-input'">
+                            <select name="bioindex-input-type" @input="modifyAt($event, element, idx)">
                                 <option v-for="type in ['phenotype', 'variant', 'locus']" :key="type">
                                     {{ type }}
                                 </option>
                             </select>
-                            <input name="bioindex-type-value" @change="modifyAt($event, element, idx)"/>
-                        </div>
+                            <input name="bioindex-input-value" @input="modifyAt($event, element, idx)"/>
+                        </div> -->
                     </div>
 
                 </draggable>
@@ -112,12 +121,6 @@
                             ></phewas-associations-card>
                         </div>
 
-                        <div v-if="element.name.split(';')[0] === 'bioindex-query'">
-                            <div class="list-group-item">
-
-                            </div>
-                        </div>
-
                     </div>
 
                     <div v-if="list3.length === 0"
@@ -157,7 +160,7 @@ import { BIOINDEX_SCHEMA } from "./utils/resultsUtils"
 
 import PheWASData from "./nucards/PheWASData";
 import PheWASViz from "./nucards/PheWASViz";
-
+import BioIndexInputDataPicker from "./nucards/BioIndexInputDataPicker";
 
 let idGlobal = 8;
 export default {
@@ -180,7 +183,7 @@ export default {
         list1: [
             { name: "set", id: 1 },
             { name: "bioindex-query", id: 2 },
-            { name: "bioindex-types", id: 3 },
+            { name: "bioindex-input", id: 3 },
             { name: 'phewas-associations;varId;2:27730940:T:C', id: 4 }
         ],
         list3: [],
@@ -200,8 +203,9 @@ export default {
       }
   },
   methods: {
-    modifyAt() {
-        console.log('modifyAt', arguments)
+    modifyAt($event, element, idx) {
+        console.log('modifyAt', $event, element, idx, );
+        this.list1[idx].name = $event;
     },
     removeAt(idx) {
       this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))

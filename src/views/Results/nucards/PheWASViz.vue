@@ -36,17 +36,6 @@
                 <template>
                     <h4 class="card-title">
                         {{filler.varId}}
-                        <!-- <span v-if="$parent.dbSNP">
-                            <span style="color: gray">/</span>
-                            {{$parent.dbSNP}}
-                        </span>
-                        associations
-                        <tooltip-documentation
-                            name="variant.assoc.tooltip"
-                            :content-fill="$parent.documentationMap"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation> -->
                     </h4>
                     <div v-if="!!$store.state.bioPortal.phenotypeMap">
                         <locuszoom
@@ -113,18 +102,24 @@ export default Vue.component('locuszoom-phewas-plot-card', {
           window.console.log('log', evt);
         },
         fill(event) {
-            console.log('fill', event, arguments)
             const { added } = event;
             const i = added.element.name.split(';');
             const [_, prefix, value] = i;
+
+            // typecheck
+                // apply if pass
+                // bounce if fail
             if (!!added && prefix === 'varId') {
                 this.filler = {
                     [prefix]: value,
                 };
             }
-            // typecheck
-                // apply if pass
-                // bounce if fail
+
+        }
+    },
+    computed: {
+        full() {
+            return !!this.filler.varId // && !!this.filler[prefix_n]... (etc, TODO)
         }
     }
 })
