@@ -23,6 +23,7 @@ export default new Vuex.Store({
         geneName: keyParams.gene,
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
         effectorGeneData: [],
+        category: "Not in GWAS region",
     },
 
     mutations: {
@@ -40,6 +41,9 @@ export default new Vuex.Store({
         },
         setEffectorGeneData(state, effectorGeneData) {
             state.effectorGeneData = effectorGeneData
+        },
+        setInGWAS(state, inGWAS) {
+            state.inGWAS = inGWAS;
         }
     },
 
@@ -94,11 +98,12 @@ export default new Vuex.Store({
 
                             if (json.data[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
                                 effectorGeneData = json.data[i];
-                                console.log(effectorGeneData);
+                                let p = effectorGeneData.perturbational.split("")[0] - 1;
+                                effectorGeneData.perturbational = p.toString() + "P";
                                 break;
                             }
                             else {
-                                effectorGeneData = { "category": "This gene is in a GWAS region, but there are no common coding variants associated with T2D" }
+                                effectorGeneData = { "perturbational": "3P", "category": "get this from state whether in GWAS or not" }
                             }
 
 

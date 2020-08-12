@@ -15,25 +15,11 @@
                         >Search gene</a>
                     </div>
 
-                    <div class="col-md-7 gene-page-header-body">
+                    <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
-                            <div class="col-md-10">
-                                <input
-                                    v-model="$store.state.geneName"
-                                    type="text"
-                                    class="form-control input-default"
-                                    placeholder="Search gene"
-                                    id="gene_search_input"
-                                />
-                            </div>
-                            <div class="col-md-2 input-wrapper">
-                                <button
-                                    id="variantSearchGo"
-                                    class="btn btn-primary"
-                                    type="button btn-lg"
-                                    @click="$store.dispatch('queryGeneName')"
-                                >GO</button>
-                            </div>
+                            <gene-selectpicker
+                                @onGeneChange="$store.dispatch('queryGeneName',$event)"
+                            ></gene-selectpicker>
                         </div>
                         <div v-if="$parent.symbolName">
                             <span>
@@ -51,9 +37,13 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div class="col-md-10">
-                        <h4
+                        <!-- <h4
                             v-if="$store.state.effectorGeneData.category"
-                        >{{$store.state.effectorGeneData.category}}</h4>
+                        >{{$store.state.effectorGeneData.category}}</h4>-->
+
+                        <h4 v-if="$parent.inGWAS">{{$store.state.effectorGeneData.category}}</h4>
+                        <h4 v-else>{{$store.state.category}}</h4>
+
                         <div v-if="$store.state.effectorGeneData" class="alternative-names">
                             <strong>Coding Evidence: &nbsp;</strong>
                             <span
@@ -103,9 +93,9 @@
                                 ></lz-associations-panel>
                             </locuszoom>
                             <associations-table
+                                v-if="$parent.inGWAS"
                                 :phenotypes="$parent.phenotypes"
                                 :associations="$parent.associationsData"
-                                :showFilters="false"
                             ></associations-table>
                         </div>
                     </div>

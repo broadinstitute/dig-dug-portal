@@ -14,7 +14,8 @@ import Autocomplete from "@/components/Autocomplete.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
-import HuGeCalculator from "@/components/HuGeCalculator.vue";
+import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import AssociationsTable from "@/components/AssociationsTable.vue";
 import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
@@ -39,8 +40,9 @@ new Vue({
         Autocomplete,
         LocusZoom,
         LocusZoomAssociationsPanel,
-
-        PhenotypeSelectPicker
+        GeneSelectPicker,
+        PhenotypeSelectPicker,
+        AssociationsTable
     },
 
     data() {
@@ -68,26 +70,16 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        // addAssociationsPanel(event) {
-        //     const { phenotype } = event;
-        //     let finishHandler = this.updateAssociationsTable;
-        //     const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
-        //         phenotype,
-        //         finishHandler
-        //     );
-        //     return newAssociationsPanelId;
-        // },
+
 
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, data);
         },
-       
+
 
 
     },
     mounted() {
-        // this.getEffectorGeneData();
-
 
     },
     computed: {
@@ -124,18 +116,26 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
-        associationsData(state) {
+        associationsData() {
             let data = this.$store.state.associations.data;
             let filteredData = [];
             data.forEach(function (row) {
                 if (!!row.consequence) {
-                    if (row.consequence == "missense_variant" && row.pValue >= 0.00000005) {
+                    if (row.consequence == "missense_variant") {
                         filteredData.push(row);
                     }
                 }
             })
             return filteredData;
         },
+        inGWAS() {
+            let data = this.$store.state.associations.data;
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].pValue <= 0.00000005) {
+                    return true;
+                }
+            }
+        }
 
 
 
