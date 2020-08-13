@@ -35,22 +35,19 @@
 
             <!-- HuGeCalculator -->
             <div class="card mdkp-card">
-                <div v-if="$parent.inGWAS" class="card-body" >
-                    <div class="col-md-10" >
-                        <!-- <h4
+                <div v-if="$parent.inGWAS" class="card-body">
+                    <div class="col-md-10">
+                        <h4
                             v-if="$store.state.effectorGeneData.category"
-                        >{{$store.state.effectorGeneData.category}}</h4>-->
+                        >{{$store.state.effectorGeneData.category}}</h4>
 
-                        <h4 v-if="$store.state.effectorGeneData.category">{{$store.state.effectorGeneData.category}}</h4>
-                        
-                       
-                        <div v-if="$store.state.effectorGeneData" class="alternative-names">
+                        <div v-if="$store.state.effectorGeneData.genetic" class="alternative-names">
                             <strong>Coding Evidence: &nbsp;</strong>
                             <span
                                 v-if="$store.state.effectorGeneData.genetic"
                             >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
                         </div>
-                        <div v-if="$parent.region">
+                        <div v-if="$store.state.effectorGeneData.regulatory">
                             <strong>Regulatory Evidence:</strong>
                             <span
                                 v-if="$store.state.effectorGeneData.regulatory"
@@ -64,7 +61,7 @@
                         </div>
                     </div>
                 </div>
-                <div v-else class="card-body" >
+                <div v-else class="card-body">
                     <h4>{{$store.state.category}}</h4>
                 </div>
             </div>
@@ -100,7 +97,11 @@
                     </div>
                 </b-collapse>
             </div>
-            <div class="card mdkp-card"></div>
+            <!-- <div v-if="$parent.inGWAS != true" class="card mdkp-card"> -->
+            <div class="card mdkp-card">
+                <h4>Stage 2</h4>
+                <h4 v-if="$store.state.stage2Category">{{$store.state.stage2Category}}</h4>
+            </div>
         </div>
 
         <!-- Footer-->

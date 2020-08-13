@@ -24,6 +24,7 @@ export default new Vuex.Store({
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
         effectorGeneData: [],
         category: "Not in GWAS region",
+        stage2Category: null,
     },
 
     mutations: {
@@ -40,10 +41,11 @@ export default new Vuex.Store({
             state.phenotype = phenotype;
         },
         setEffectorGeneData(state, effectorGeneData) {
-            state.effectorGeneData = effectorGeneData
+            state.effectorGeneData = effectorGeneData;
         },
-        setInGWAS(state, inGWAS) {
-            state.inGWAS = inGWAS;
+
+        setStage2Category(state, stage2Category) {
+            state.stage2Category = stage2Category;
         }
     },
 
@@ -100,17 +102,14 @@ export default new Vuex.Store({
                                 effectorGeneData = json.data[i];
                                 let p = effectorGeneData.perturbational.split("")[0] - 1;
                                 effectorGeneData.perturbational = p.toString() + "P";
+
                                 break;
                             }
                             else {
-                                effectorGeneData = { "perturbational": "3P", "category": "In GWAS but no evidence" }
+                                effectorGeneData = { "perturbational": "3P", "category": "In GWAS but only one line of perturbation evidence" }
                             }
-
-
                         }
-
                         context.commit('setEffectorGeneData', effectorGeneData);
-
                     } else {
                         throw new Error(
                             "No content returned for given gene "
@@ -118,12 +117,128 @@ export default new Vuex.Store({
                     }
                 });
         },
+        async get52KGeneAssociationsData(context, gene) {
+            //eventually you will make api call to bioindex to get 52k data
+            let json = [{
+                "dataset": "52k",
+                "phenotype": "T2D",
+                "gene": "PCSK9",
+                "pValue": 2.74e-10,
+                "oddsRatio": 2.0667968637762106,
+                "masks": [
+                    {
+                        "mask": "LofTee",
+                        "n": 43125,
+                        "pValue": 0.31708000000000003,
+                        "combinedAF": 0.00032464,
+                        "passingVariants": 4,
+                        "singleVariants": 1,
+                        "stdErr": 0.56563,
+                        "oddsRatio": 1.7221783980987881
+                    },
+                    {
+                        "mask": "5/5",
+                        "n": 43125,
+                        "pValue": 1.5689e-10,
+                        "combinedAF": 0.0079072,
+                        "passingVariants": 40,
+                        "singleVariants": 19,
+                        "stdErr": 0.11544000000000001,
+                        "oddsRatio": 2.0491396046485235
+                    },
+                    {
+                        "mask": "16/16",
+                        "n": 43125,
+                        "pValue": 0.31708000000000003,
+                        "combinedAF": 0.00032464,
+                        "passingVariants": 4,
+                        "singleVariants": 1,
+                        "stdErr": 0.56563,
+                        "oddsRatio": 1.7221783980987881
+                    },
+                    {
+                        "mask": "5/5 + LofTee LC",
+                        "n": 43125,
+                        "pValue": 8.459799999999999e-11,
+                        "combinedAF": 0.0079536,
+                        "passingVariants": 41,
+                        "singleVariants": 19,
+                        "stdErr": 0.11525999999999999,
+                        "oddsRatio": 2.0674376701238337
+                    },
+                    {
+                        "mask": "5/5 + 0/5 1%",
+                        "n": 43125,
+                        "pValue": 4.1692e-06,
+                        "combinedAF": 0.017345,
+                        "passingVariants": 105,
+                        "singleVariants": 52,
+                        "stdErr": 0.07486,
+                        "oddsRatio": 1.4084361846568465
+                    },
+                    {
+                        "mask": "5/5 + 1/5 1%",
+                        "n": 43125,
+                        "pValue": 2.7276999999999997e-06,
+                        "combinedAF": 0.015606,
+                        "passingVariants": 94,
+                        "singleVariants": 47,
+                        "stdErr": 0.079828,
+                        "oddsRatio": 1.4500673447367525
+                    },
+                    {
+                        "mask": "11/11",
+                        "n": 43125,
+                        "pValue": 0.26282,
+                        "combinedAF": 0.00037101,
+                        "passingVariants": 5,
+                        "singleVariants": 1,
+                        "stdErr": 0.5315,
+                        "oddsRatio": 1.7769705923637789
+                    }
+                ]
+
+            }]
+
+            for (var i = 0; i < json.length; ++i) {
+                // if (json[i].pValue <= 0.0000025) {
+                if (json[i].pValue == 0.0000025) {
+                    //if Exome wide significant
+                    context.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+                }
+                else {
+                    //show the line plot
+                    //calculate the PPA using Prior and then using component pass this data as props
+                    //find the most significant mask (lowest pvalue and return a map of std err, oddsRatio)
+
+                    json.forEach((row) => {
+
+                        let d = row.masks.sort((a, b) => a.pValue - b.pValue)
+                        console.log(d[0], "most significant mask")
+                        let mostSignificantMask = d[0];
+                        let stdErr = mostSignificantMask.stdErr;
+                        let oddsRatio = mostSignificantMask.oddsRatio;
+                       
+                        
+
+
+
+
+                        // })
+
+                    })
+                }
+
+            }
+
+        },
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
             context.commit('setGeneName', name);
             if (!!name) {
                 context.dispatch('gene/query', { q: name });
                 context.dispatch('getEffectorGeneData', name);
+                context.dispatch('get52KGeneAssociationsData', name);
             }
 
         },
