@@ -18,7 +18,7 @@
     "jquery": "^3.5.1",
     "json-query": "^2.2.2",
     "jsonpath": "^1.0.2",
-    "locuszoom": "statgen/locuszoom#develop",
+    "locuszoom": "^0.12.0-beta.5",
     "lodash": "^4.17.19",
     "lodash.merge": "^4.6.2",
     "query-string": "^6.11.1",
