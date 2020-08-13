@@ -15,7 +15,7 @@ export default Vue.component('bioindex-data-picker', {
     props: ["name", "options"],
     data() {
         return {
-            query: '',
+            query: this.options[0],
             value: '',
         }
     },

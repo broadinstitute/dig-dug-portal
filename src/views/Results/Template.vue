@@ -48,12 +48,13 @@
                             </select>
                         </div>
                         <div v-if="element.name.split(';')[0] === 'bioindex-query'">
-                            <select name="bioindex-query-type" @input="modifyAt($event, element, idx)">
-                                <option v-for="ind in ['phewas-associations', 'top-associations', 'gwas-associations']" :key="ind">
-                                    {{ ind }}
-                                </option>
-                            </select>
-                            <input name="bioindex-query-value" @input="modifyAt($event, element, idx)"/>
+                            <div class="list-group-item">
+                                <bioindex-data-picker
+                                    :name="element.name.split(';')[0]"
+                                    :options="['phewas-associations', 'top-associations', 'gwas-associations']"
+                                    @modify="modifyAt($event, element, idx)"
+                                />
+                            </div>
                         </div>
                         <div v-if="element.name.split(';')[0] === 'bioindex-input'">
                             <div class="list-group-item">
@@ -103,6 +104,15 @@
                             ></locuszoom-phewas-plot-card>
                         </div>
 
+                        <div v-if="element.name.split(';')[0] === 'locuszoom-gwas-plot'">
+                            <locuszoom-gwas-plot-card
+                                :metadata="element"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            ></locuszoom-gwas-plot-card>
+                        </div>
+
                         <div v-if="element.name.split(';')[0] === 'phewas-associations'">
                             <phewas-associations-card
                                 v-if="element.name.split(';')[1] === 'varId' && !!element.name.split(';')[2]"
@@ -119,6 +129,32 @@
                                 @duplicate-type="copy"
                                 @remove="removeAt(idx)"
                             ></phewas-associations-card>
+                        </div>
+
+                        <div v-if="element.name.split(';')[0] === 'gwas-associations'">
+                            <phenotype-associations-card
+                                v-if="element.name.split(';')[1] === 'phenotype' && !!element.name.split(';')[2]"
+                                :phenotype="element.name.split(';')[2]"
+                                :metadata="element"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            ></phenotype-associations-card>
+                            <phenotype-associations-card
+                                v-else
+                                :metadata="element"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            ></phenotype-associations-card>
+                        </div>
+
+                        <div v-if="element.name.split(';')[0] === 'fill-tester'">
+                            <fill-tester
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            />
                         </div>
 
                     </div>
@@ -159,7 +195,13 @@ import { query } from "../../utils/bioIndexUtils";
 import { BIOINDEX_SCHEMA } from "./utils/resultsUtils"
 
 import PheWASData from "./nucards/PheWASData";
+
+import PhenotypeAssociationsData from "./nucards/PhenotypeAssociationsData";
+import FillTester from "./nucards/FillTester";
+
 import PheWASViz from "./nucards/PheWASViz";
+import GWASViz from "./nucards/GWASViz";
+
 import BioIndexInputDataPicker from "./nucards/BioIndexInputDataPicker";
 
 let idGlobal = 8;
@@ -173,29 +215,26 @@ export default {
   data() {
     return {
         schema: BIOINDEX_SCHEMA,
-        list2: [
-            { name: "visualization 1", id: 1 },
-            { name: "visualization 2", id: 2 },
-            { name: "visualization 3", id: 3 },
-            { name: "visualization 4", id: 4 },
-            { name: "locuszoom-phewas-plot", id: 4 },
-        ],
         list1: [
             { name: "set", id: 1 },
             { name: "bioindex-query", id: 2 },
             { name: "bioindex-input", id: 3 },
-            { name: 'phewas-associations;varId;2:27730940:T:C', id: 4 }
+            { name: 'phewas-associations;varId;2:27730940:T:C', id: 6 },
+            { name: 'gwas-associations;phenotype;T2D', id: 7 }
+        ],
+        list2: [
+            { name: "visualization 1", id: 1 },
+            { name: "visualization 2", id: 2 },
+            { name: "visualization 3", id: 3 },
+            { name: "fill-tester", id: 4 },
+            { name: "locuszoom-phewas-plot", id: 5 },
+            { name: "locuszoom-gwas-plot", id: 6 },
         ],
         list3: [],
         nullList: [],
         dataCardData: null,
         visualizationCard: {},
     };
-  },
-  async created() {
-    const dataCardData = await query('top-associations', 'slc30a8', { limit: null });
-    this.dataCardData = dataCardData;
-    // console.log()
   },
   computed: {
       phenotypes() {

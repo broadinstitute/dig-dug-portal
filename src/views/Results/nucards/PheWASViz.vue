@@ -32,8 +32,11 @@
             <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
             <button @click="$emit('remove', { metadata, filler })">Remove</button>
             <br>
+            
             <div v-if="filler">
+
                 <template>
+
                     <h4 class="card-title">
                         {{filler.varId}}
                     </h4>
@@ -50,11 +53,15 @@
                             ></lz-phewas-panel>
                         </locuszoom>
                     </div>
+
                 </template>
+
             </div>
             <div v-else-if="!filler">
+
                 <!-- TODO -->
                 <template>
+
                     <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
                     <div>
                         <label for="card-input-variant">
@@ -78,7 +85,9 @@
                             Drag Here
                         </div>
                     </draggable>
+
                 </template>
+
             </div>
         </div>
 </template>
@@ -109,19 +118,24 @@ export default Vue.component('locuszoom-phewas-plot-card', {
             // typecheck
                 // apply if pass
                 // bounce if fail
-            if (!!added && prefix === 'varId') {
-                this.filler = {
-                    [prefix]: value,
-                };
+            if (!!added) {
+                this.filler = this.filler || {};
+                if(prefix === 'varId' || prefix === 'variant') {
+                    this.filler = {
+                        ...this.filler,
+                        varId: value,
+                    };
+                }
+                this.$forceUpdate();
             }
 
         }
     },
     computed: {
         full() {
-            return !!this.filler.varId // && !!this.filler[prefix_n]... (etc, TODO)
+            return !!this.filler && !!this.filler.varId;
         }
-    }
+    },
 })
 </script>
 <style>

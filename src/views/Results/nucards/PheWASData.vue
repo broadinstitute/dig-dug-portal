@@ -25,22 +25,11 @@
             <button @click="$emit('remove', { metadata, filler })">Remove</button>
             <br>
 
-            <div v-if="filler">
+            <div v-if="full">
                 <template>
                     <h4 class="card-title">
                         {{filler.varId}}
-                        <!-- <span v-if="$parent.dbSNP">
-                            <span style="color: gray">/</span>
-                            {{$parent.dbSNP}}
-                        </span>
-                        associations
-                        <tooltip-documentation
-                            name="variant.assoc.tooltip"
-                            :content-fill="$parent.documentationMap"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation> -->
-                    </h4>
+                      </h4>
                     <phewas-table-wrapper
                         :varId="filler.varId"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
@@ -48,7 +37,7 @@
                 </template>
             </div>
 
-            <div v-else-if="!filler">
+            <div v-else-if="!full">
                 <!-- TODO -->
                 <template>
                     <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
@@ -82,11 +71,13 @@
 <script>
 import Vue from "vue"
 import draggable from "vuedraggable";
+import PhenotypeAssociationsTableWrapper from "../components/PhenotypeAssociationsTableWrapper";
 
 export default Vue.component('phewas-associations-card', {
     props: ['varId', 'metadata'],
     components: {
-        draggable
+        draggable,
+        PhenotypeAssociationsTableWrapper
     },
     data() {
         return {
@@ -103,21 +94,43 @@ export default Vue.component('phewas-associations-card', {
         }
     },
     methods: {
+        change(value, property) {
+            this.filler = this.filler || {};
+            this.filler = {
+                ...this.filler,
+                [property]: value,
+            };
+            this.$forceUpdate();
+        },
+        log: function(evt) {
+          window.console.log('log', evt);
+        },
         fill(event) {
-            console.log('fill', event, arguments)
             const { added } = event;
             const i = added.element.name.split(';');
             const [_, prefix, value] = i;
-            if (!!added && prefix === 'varId') {
-                this.filler = {
-                    [prefix]: value,
-                };
-            }
+
             // typecheck
                 // apply if pass
                 // bounce if fail
+            if (!!added) {
+                this.filler = this.filler || {};
+                if(prefix === 'varId' || prefix === 'variant') {
+                    this.filler = {
+                        ...this.filler,
+                        varId: value,
+                    };
+                }
+                this.$forceUpdate();
+            }
+
         }
-    }
+    },
+    computed: {
+        full() {
+            return !!this.filler && !!this.filler.varId;
+        }
+    },
 })
 </script>
 <style>
