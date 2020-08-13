@@ -2,13 +2,16 @@
         <div class="list-group-item">
             <template>
                 <!-- <h3>Data Table Name</h3> -->
-                <h3>PheWAS Plot</h3>
+                <h3>GWAS Plot</h3>
             </template>
             <template>
                 <!-- TODO: check against these, make dynamic -->
                 <b>Input Types </b>
-                <div class="bioindex-concept-pellet none">
-                    Variant
+                <div class="bioindex-concept-pellet phenotype">
+                    Phenotype
+                </div>
+                <div class="bioindex-concept-pellet gene">
+                    Gene/Region
                 </div>
                 <!-- <div class="bioindex-concept-pellet phenotype">
                     Phenotype
@@ -20,55 +23,54 @@
             <template>
                 <!-- TODO: check against these, make dynamic -->
                 <b>Output Types </b>
-                <div class="bioindex-concept-pellet phenotype">
-                    Phenotype
-                </div>
-                <div class="bioindex-concept-pellet gene">
-                    Gene/Region
+                <div class="bioindex-concept-pellet none">
+                    Variant
                 </div>
             </template>
+
             <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
             <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
             <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
             <button @click="$emit('remove', { metadata, filler })">Remove</button>
             <br>
 
-            <div v-if="filler">
+            <div v-if="full">
 
                 <template>
-
                     <h4 class="card-title">
-                        {{filler.varId}}
+                        {{filler}}
                     </h4>
-                    <div v-if="!!$store.state.bioPortal.phenotypeMap">
-                        <locuszoom
-                            ref="locuszoom"
-                            :chr="$store.state.chr"
-                            :start="$store.state.start"
-                            :end="$store.state.end"
-                            :refSeq="false">
-                            <lz-phewas-panel
-                                :varId="filler.varId"
-                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            ></lz-phewas-panel>
-                        </locuszoom>
-                    </div>
-
+                    <locuszoom-gwas-wrapper
+                        :phenotype="filler.phenotype"
+                        :locus="filler.locus"
+                    ></locuszoom-gwas-wrapper>
                 </template>
 
             </div>
-            <div v-else-if="!filler">
+            <div v-else-if="!full">
 
                 <!-- TODO -->
                 <template>
 
                     <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
                     <div>
-                        <label for="card-input-variant">
-                            Variant
+
+                        <label for="card-input-phenotype">
+                            Phenotype
                         </label>&nbsp;
-                        <input id="card-input-variant"/>
+                        <input id="card-input-phenotype"
+                            :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
+                            @input="change($event.target.value, 'phenotype')"/><br>
+
+                        <label for="card-input-locus">
+                            Gene/Region
+                        </label>&nbsp;
+                        <input id="card-input-locus"
+                            :value="!!filler && !!filler.locus ? filler.locus : ''"
+                            @input="change($event.target.value, 'locus')"/><br>
+
                     </div>
+
                     <draggable
                         class="dragArea list-group"
                         :group="{ name:'cards',
@@ -94,11 +96,13 @@
 <script>
 import Vue from "vue"
 import draggable from "vuedraggable";
+import GWASLocusZoomWrapper from "../components/GWASLocusZoomWrapper"
 
-export default Vue.component('locuszoom-phewas-plot-card', {
+export default Vue.component('locuszoom-gwas-plot-card', {
     props: ['metadata'],
     components: {
-        draggable
+        draggable,
+        GWASLocusZoomWrapper,
     },
     data() {
         return {
@@ -107,6 +111,14 @@ export default Vue.component('locuszoom-phewas-plot-card', {
         }
     },
     methods: {
+        change(value, property) {
+            this.filler = this.filler || {};
+            this.filler = {
+                ...this.filler,
+                [property]: value,
+            };
+            this.$forceUpdate();
+        },
         log: function(evt) {
           window.console.log('log', evt);
         },
@@ -120,10 +132,16 @@ export default Vue.component('locuszoom-phewas-plot-card', {
                 // bounce if fail
             if (!!added) {
                 this.filler = this.filler || {};
-                if(prefix === 'varId' || prefix === 'variant') {
+                if(prefix === 'phenotype') {
                     this.filler = {
                         ...this.filler,
-                        varId: value,
+                        phenotype: value,
+                    };
+                }
+                if(prefix === 'gene' || prefix === 'region' || prefix === 'locus') {
+                    this.filler = {
+                        ...this.filler,
+                        locus: value,
                     };
                 }
                 this.$forceUpdate();
@@ -133,7 +151,7 @@ export default Vue.component('locuszoom-phewas-plot-card', {
     },
     computed: {
         full() {
-            return !!this.filler && !!this.filler.varId;
+            return !!this.filler && !!this.filler.locus && !!this.filler.phenotype;
         }
     },
 })

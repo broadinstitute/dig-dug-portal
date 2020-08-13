@@ -1,14 +1,15 @@
 import _ from "lodash"
-// Local copy of http://<BIOINDEX>/api/bio/indexes on July 13 2020
+// Local copy of http://<BIOINDEX>/api/bio/indexes on Aug 13 2020
 // TODO: convert into an API call that loads on startup
 // TODO: can schemas provide their own property shapoes?
+// TODO: normalize on _____
 export const BIOINDEX_SCHEMA = {
-    "count": 14,
+    "count": 18,
     "data": [
       {
         "index": "annotated-regions",
+        "built": "2020-07-30T07:40:23",
         "schema": "annotation,chromosome:start-end",
-        "built": true,
         "query": {
           "keys": [
             "annotation"
@@ -18,8 +19,8 @@ export const BIOINDEX_SCHEMA = {
       },
       {
         "index": "associations",
+        "built": "2020-08-01T13:02:50",
         "schema": "phenotype,chromosome:position",
-        "built": true,
         "query": {
           "keys": [
             "phenotype"
@@ -29,8 +30,8 @@ export const BIOINDEX_SCHEMA = {
       },
       {
         "index": "credible-regions",
+        "built": "2020-07-30T00:08:15",
         "schema": "phenotype,credibleSetId",
-        "built": true,
         "query": {
           "keys": [
             "phenotype",
@@ -41,8 +42,8 @@ export const BIOINDEX_SCHEMA = {
       },
       {
         "index": "credible-sets",
+        "built": "2020-07-29T23:03:46",
         "schema": "phenotype,chromosome:start-end",
-        "built": true,
         "query": {
           "keys": [
             "phenotype"
@@ -52,8 +53,8 @@ export const BIOINDEX_SCHEMA = {
       },
       {
         "index": "credible-variants",
+        "built": "2020-07-29T23:06:55",
         "schema": "phenotype,credibleSetId",
-        "built": true,
         "query": {
           "keys": [
             "phenotype",
@@ -63,9 +64,21 @@ export const BIOINDEX_SCHEMA = {
         }
       },
       {
+        "index": "dataset-associations",
+        "built": "2020-08-01T18:39:55",
+        "schema": "dataset,phenotype",
+        "query": {
+          "keys": [
+            "dataset",
+            "phenotype"
+          ],
+          "locus": false
+        }
+      },
+      {
         "index": "effector-genes",
+        "built": null,
         "schema": "phenotype,dataset",
-        "built": true,
         "query": {
           "keys": [
             "phenotype",
@@ -76,8 +89,8 @@ export const BIOINDEX_SCHEMA = {
       },
       {
         "index": "gene",
+        "built": "2020-07-29T23:01:48",
         "schema": "name",
-        "built": true,
         "query": {
           "keys": [
             "name"
@@ -86,9 +99,20 @@ export const BIOINDEX_SCHEMA = {
         }
       },
       {
+        "index": "gene-associations",
+        "built": null,
+        "schema": "gene",
+        "query": {
+          "keys": [
+            "gene"
+          ],
+          "locus": false
+        }
+      },
+      {
         "index": "genes",
+        "built": "2020-07-31T00:39:43",
         "schema": "chromosome:start-end",
-        "built": true,
         "query": {
           "keys": [],
           "locus": true
@@ -96,8 +120,8 @@ export const BIOINDEX_SCHEMA = {
       },
       {
         "index": "global-enrichment",
+        "built": "2020-07-30T01:22:29",
         "schema": "phenotype",
-        "built": true,
         "query": {
           "keys": [
             "phenotype"
@@ -106,20 +130,31 @@ export const BIOINDEX_SCHEMA = {
         }
       },
       {
-        "index": "phenotype-associations",
+        "index": "gwas-associations",
+        "built": "2020-08-02T15:41:18",
         "schema": "phenotype",
-        "built": true,
         "query": {
           "keys": [
             "phenotype"
+          ],
+          "locus": false
+        }
+      },
+      {
+        "index": "phewas-associations",
+        "built": "2020-08-03T15:42:30",
+        "schema": "varId",
+        "query": {
+          "keys": [
+            "varId"
           ],
           "locus": false
         }
       },
       {
         "index": "regions",
+        "built": "2020-08-03T05:00:51",
         "schema": "chromosome:start-end",
-        "built": true,
         "query": {
           "keys": [],
           "locus": true
@@ -127,34 +162,48 @@ export const BIOINDEX_SCHEMA = {
       },
       {
         "index": "top-associations",
+        "built": "2020-07-29T23:30:25",
         "schema": "chromosome:position",
-        "built": true,
         "query": {
           "keys": [],
           "locus": true
         }
       },
       {
+        "index": "transcript-consequences",
+        "built": "2020-07-30T19:21:47",
+        "schema": "varId",
+        "query": {
+          "keys": [
+            "varId"
+          ],
+          "locus": false
+        }
+      },
+      {
+        "index": "transcription-factors",
+        "built": "2020-07-30T03:35:13",
+        "schema": "varId",
+        "query": {
+          "keys": [
+            "varId"
+          ],
+          "locus": false
+        }
+      },
+      {
         "index": "variant",
+        "built": "2020-08-02T05:50:21",
         "schema": "varId|dbSNP",
-        "built": true,
         "query": {
           "keys": [
             "varId|dbSNP"
           ],
           "locus": false
         }
-      },
-      {
-        "index": "variants",
-        "schema": "chromosome:position",
-        "built": true,
-        "query": {
-          "keys": [],
-          "locus": true
-        }
       }
     ],
+    "nonce": "d9INzDiTyqZgVEfOhZOHdTCNUw5weocZQPRCFN1k_yQ"
   }
 
 // NOTE: The following utils are used to map from a given piece of bioIndex data to other bioIndex endpoints

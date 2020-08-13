@@ -47,13 +47,16 @@
                                 </option>
                             </select>
                         </div>
-                        <div v-if="element.name.split(';')[0] === 'bioindex-query'">
+                        <div v-if="element.name.split(';')[0] === 'bioindex-query'" >
                             <div class="list-group-item">
-                                <bioindex-data-picker
-                                    :name="element.name.split(';')[0]"
-                                    :options="['phewas-associations', 'top-associations', 'gwas-associations']"
-                                    @modify="modifyAt($event, element, idx)"
-                                />
+                                <select :name="`${'bioindex-query'}-type`" v-model="bioIndexType">
+                                    <option v-for="type in ['phewas-associations', 'gwas-associations', 'top-associations', 'associations']" :key="type">
+                                        {{ type }}
+                                    </option>
+                                </select>
+                                <input :name="`${'bioindex-query'}-value`"
+                                        v-model="bioIndexValue"
+                                       :placeholder="schema.data.filter(el => el.index === bioIndexType)[0].schema"/>
                             </div>
                         </div>
                         <div v-if="element.name.split(';')[0] === 'bioindex-input'">
@@ -234,6 +237,8 @@ export default {
         nullList: [],
         dataCardData: null,
         visualizationCard: {},
+        bioIndexType: ['phewas-associations', 'gwas-associations', 'top-associations'][0],
+        bioIndexValue: null,
     };
   },
   computed: {
