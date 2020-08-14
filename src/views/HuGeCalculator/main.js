@@ -16,6 +16,7 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
+import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
@@ -42,7 +43,8 @@ new Vue({
         LocusZoomAssociationsPanel,
         GeneSelectPicker,
         PhenotypeSelectPicker,
-        AssociationsTable
+        AssociationsTable,
+        PosteriorProbabilityPlot,
     },
 
     data() {
@@ -57,7 +59,6 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
     },
 
     render(createElement, context) {
@@ -128,6 +129,7 @@ new Vue({
             })
             return filteredData;
         },
+
         inGWAS() {
             let data = this.$store.state.associations.data;
             for (let i = 0; i < data.length; i++) {

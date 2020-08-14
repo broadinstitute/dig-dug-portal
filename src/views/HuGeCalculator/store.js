@@ -25,6 +25,9 @@ export default new Vuex.Store({
         effectorGeneData: [],
         category: "Not in GWAS region",
         stage2Category: null,
+        geneAssociationsData: null,
+        stdErr: null,
+        oddsRatio: null,
     },
 
     mutations: {
@@ -46,7 +49,17 @@ export default new Vuex.Store({
 
         setStage2Category(state, stage2Category) {
             state.stage2Category = stage2Category;
+        },
+        setGeneAssociationsData(state, geneAssociationsData) {
+            state.geneAssociationsData = geneAssociationsData;
+        },
+        setStdErr(state, stdErr) {
+            state.stdErr = stdErr;
+        },
+        setOddsRatio(state, oddsRatio) {
+            state.oddsRatio = oddsRatio;
         }
+
     },
 
     getters: {
@@ -123,7 +136,7 @@ export default new Vuex.Store({
                 "dataset": "52k",
                 "phenotype": "T2D",
                 "gene": "PCSK9",
-                "pValue": 2.74e-10,
+                "pValue": 2.74,
                 "oddsRatio": 2.0667968637762106,
                 "masks": [
                     {
@@ -199,10 +212,12 @@ export default new Vuex.Store({
                 ]
 
             }]
+            //once 52K data is in bioindex there will be async call to bioindex and then commit
+            context.commit('setGeneAssociationsData', json);
 
             for (var i = 0; i < json.length; ++i) {
                 // if (json[i].pValue <= 0.0000025) {
-                if (json[i].pValue == 0.0000025) {
+                if (json[i].pValue <= 0.0000025) {
                     //if Exome wide significant
                     context.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
                 }
@@ -218,13 +233,9 @@ export default new Vuex.Store({
                         let mostSignificantMask = d[0];
                         let stdErr = mostSignificantMask.stdErr;
                         let oddsRatio = mostSignificantMask.oddsRatio;
-                       
-                        
+                        context.commit('setStdErr', stdErr);
+                        context.commit('setOddsRatio', oddsRatio);
 
-
-
-
-                        // })
 
                     })
                 }

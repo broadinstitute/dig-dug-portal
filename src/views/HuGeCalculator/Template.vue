@@ -102,6 +102,14 @@
                 <h4>Stage 2</h4>
                 <h4 v-if="$store.state.stage2Category">{{$store.state.stage2Category}}</h4>
             </div>
+            <div class="card mdkp-card">
+                <posterior-probability-plot
+                    v-if="$store.state.geneAssociationsData"
+                    :geneassociations="$store.state.geneAssociationsData"
+                    :oddsRatio="$store.state.oddsRatio"
+                    :stdErr="$store.state.stdErr"
+                ></posterior-probability-plot>
+            </div>
         </div>
 
         <!-- Footer-->
