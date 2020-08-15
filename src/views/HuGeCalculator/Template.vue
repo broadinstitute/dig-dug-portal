@@ -104,6 +104,7 @@
             </div>
             <div class="card mdkp-card">
                 <posterior-probability-plot
+                    class="mb-3"
                     v-if="$store.state.geneAssociationsData"
                     :geneassociations="$store.state.geneAssociationsData"
                     :oddsRatio="$store.state.oddsRatio"

@@ -58,7 +58,7 @@ new Vue({
             let self = this;
             this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
                 // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
+                function (dataLoadedResponse) {
                     self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
                 }
             );
@@ -67,7 +67,7 @@ new Vue({
             const { phenotype, credibleSetId } = event;
             this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
                 // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
+                function (dataLoadedResponse) {
                     // TODO: callbacks for creating a new table column for credible sets might go here
                 }
             )
@@ -76,7 +76,7 @@ new Vue({
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
         },
-     },
+    },
 
     computed: {
         globalEnrichmentAnnotations() {

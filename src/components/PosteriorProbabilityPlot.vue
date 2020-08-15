@@ -1,12 +1,14 @@
 <template>
     <div>
-        <div id="ppa" style="width:100%; height: 300px"></div>
+        <div id="ppa"></div>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
-import c3 from "c3";
+// import c3 from "c3";
+import * as d3 from "d3";
+
 import Formatters from "@/utils/formatters.js";
 
 export default Vue.component("posterior-probability-plot", {
@@ -28,18 +30,11 @@ export default Vue.component("posterior-probability-plot", {
                 enabled: false
             },
             data: {
-                columns: [
-                    ["data1", 30, 200, 100, 400, 150, 250],
-                    ["data2", 50, 20, 10, 40, 15, 25]
-                ]
+                x: "x",
+                columns: [["x"], ["ppa"]],
+                type: "line"
             },
-            legend: {
-                show: false
-            },
-            zoom: {
-                enabled: false,
-                rescale: false
-            },
+
             axis: {
                 x: {
                     label: "Prior"
@@ -49,7 +44,6 @@ export default Vue.component("posterior-probability-plot", {
                 }
             }
         });
-        
     },
     methods: {
         posteriorProbability(p) {
@@ -79,7 +73,6 @@ export default Vue.component("posterior-probability-plot", {
     computed: {
         columns() {
             let n = prior.length;
-
             let x = new Array(n + 1);
             let y = new Array(n + 1);
 

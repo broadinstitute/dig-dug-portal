@@ -135,7 +135,7 @@ export default new Vuex.Store({
             let json = [{
                 "dataset": "52k",
                 "phenotype": "T2D",
-                "gene": "PCSK9",
+                "gene": "MC4R",
                 "pValue": 2.74,
                 "oddsRatio": 2.0667968637762106,
                 "masks": [
