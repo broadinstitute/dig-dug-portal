@@ -68,7 +68,7 @@
             </div>
 
             <div class="col-6">
-                <h5>Draggable Workspace</h5>
+                <h5>Workspace</h5>
                 <draggable
                     class="dragArea list-group"
                     :list="list3"

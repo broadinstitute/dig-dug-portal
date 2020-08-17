@@ -129,8 +129,7 @@ export default Vue.component('associations-card', {
         },
         fill(event) {
             const { added } = event;
-            const i = added.element.name.split(';');
-            const [_, prefix, value] = i;
+
 
             // TODO: pattern matching core
             // typecheck
@@ -138,19 +137,28 @@ export default Vue.component('associations-card', {
                 // bounce if fail
             if (!!added) {
                 this.filler = this.filler || {};
-                if(prefix === 'phenotype') {
-                    this.filler = {
-                        ...this.filler,
-                        phenotype: value,
-                    };
-                }
-                if(prefix === 'gene' || prefix === 'region' || prefix === 'locus') {
-                    this.filler = {
-                        ...this.filler,
-                        locus: value,
-                    };
-                }
+
+                const [source, query] = added.element.name.split(';');
+                query.split('|').forEach(queryEl => {
+
+                    const [prefix, value] = queryEl.split(',');
+                    
+                    if(prefix === 'phenotype') {
+                        this.filler = {
+                            ...this.filler,
+                            phenotype: value,
+                        };
+                    }
+                    if(prefix === 'gene' || prefix === 'region' || prefix === 'locus') {
+                        this.filler = {
+                            ...this.filler,
+                            locus: value,
+                        };
+                    }
+
+                });
                 this.$forceUpdate();
+
             }
         }
     },
