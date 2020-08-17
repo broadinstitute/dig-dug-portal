@@ -8,6 +8,7 @@
     "deploy": "vue-cli-service build --mode production"
   },
   "dependencies": {
+    "@amcharts/amcharts4": "^4.9.35",
     "@vue/composition-api": "^0.5.0",
     "bootstrap": "^4.4.1",
     "bootstrap-vue": "^2.6.1",
