@@ -12,8 +12,8 @@
             </template>
             <template>
                 <b>Output Type </b>
-                <div class="bioindex-concept-pellet locus">
-                    Gene/Region
+                <div class="bioindex-concept-pellet none">
+                    Variant
                 </div>
             </template>
             <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
@@ -45,14 +45,14 @@
                         </label>&nbsp;
                         <input id="card-input-phenotype"
                             :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
-                            @input="change($event.target.value, 'phenotype')"/><br>
+                            @input="change($event, 'phenotype')"/><br>
 
                     </div>
                     <draggable
                         class="dragArea list-group"
                         :group="{
                             name:'cards',
-                            put: ['data', 'viz']  // NOTE: these are constants shared on the main page!
+                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
                         }"
                         :list="nulllist"
                         @change="fill">
@@ -93,11 +93,11 @@ export default Vue.component('phenotype-associations-card', {
         }
     },
     methods: {
-        change(value, property) {
+        change($event, property) {
             this.filler = this.filler || {};
             this.filler = {
                 ...this.filler,
-                [property]: value,
+                [property]: $event.target.value,
             };
             this.$forceUpdate();
         },

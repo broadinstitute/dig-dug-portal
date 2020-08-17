@@ -72,7 +72,7 @@
                     <draggable
                         class="dragArea list-group"
                         :group="{ name:'cards',
-                                  put: ['data', 'viz']  // NOTE: these are constants shared on the main page!
+                                  put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
                                 }"
                         :list="nulllist"
                         @add="log"
@@ -107,6 +107,14 @@ export default Vue.component('locuszoom-phewas-plot-card', {
         }
     },
     methods: {
+        change($event, property) {
+            this.filler = this.filler || {};
+            this.filler = {
+                ...this.filler,
+                [property]: $event.target.value,
+            };
+            this.$forceUpdate();
+        },
         log: function(evt) {
           window.console.log('log', evt);
         },

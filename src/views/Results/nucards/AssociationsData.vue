@@ -1,24 +1,41 @@
 <template>
         <div class="list-group-item">
+
             <template>
                 <!-- <h3>Data Table Name</h3> -->
-                <h3>Variant Associations</h3>
+                <draggable
+                    class="dragArea list-group"
+                    :group="{
+                        name: 'dash',
+                        pull: 'clone',
+                    }"
+                    :list="[dragPayload]">
+                    <!-- <div slot="header">
+                        <h3>Associations</h3>
+                    </div> -->
+                    <div class="list-group-item" v-for="(element) in [dragPayload]" :key="element.id">
+                        {{element.name}}
+                    </div>
+                </draggable>
+
             </template>
+
             <template>
                 <b>Input Types </b>
-                <div class="bioindex-concept-pellet none">
-                    Variant
+                <div class="bioindex-concept-pellet phenotype">
+                    Phenotype
+                </div>
+                <div class="bioindex-concept-pellet locus">
+                    Gene/Region
                 </div>
             </template>
             <template>
                 <b>Output Type </b>
-                <div class="bioindex-concept-pellet phenotype">
-                    Phenotype
-                </div>
-                <div class="bioindex-concept-pellet gene">
-                    Gene/Region
+                <div class="bioindex-concept-pellet none">
+                    Variant
                 </div>
             </template>
+
             <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
             <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
             <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
@@ -28,12 +45,13 @@
             <div v-if="full">
                 <template>
                     <h4 class="card-title">
-                        {{filler.varId}}
-                      </h4>
-                    <phewas-table-wrapper
-                        :varId="filler.varId"
+                        {{filler}}
+                    </h4>
+                    <associations-table-wrapper
+                        :locus="filler.locus"
+                        :phenotype="filler.phenotype"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                    ></phewas-table-wrapper>
+                    ></associations-table-wrapper>
                 </template>
             </div>
 
@@ -42,10 +60,21 @@
                 <template>
                     <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
                     <div>
-                        <label for="card-input-variant">
-                            Variant
+
+                        <label for="card-input-phenotype">
+                            Phenotype
                         </label>&nbsp;
-                        <input id="card-input-variant"/>&nbsp;
+                        <input id="card-input-phenotype"
+                            :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
+                            @input="change($event, 'phenotype')"/><br>
+
+                        <label for="card-input-locus">
+                            Gene/Region
+                        </label>&nbsp;
+                        <input id="card-input-locus"
+                            :value="!!filler && !!filler.locus ? filler.locus : ''"
+                            @input="change($event, 'locus')"/><br>
+
                     </div>
                     <draggable
                         class="dragArea list-group"
@@ -71,25 +100,28 @@
 <script>
 import Vue from "vue"
 import draggable from "vuedraggable";
-import PhenotypeAssociationsTableWrapper from "../components/PhenotypeAssociationsTableWrapper";
+import AssociationsTableWrapper from "../components/AssociationsTableWrapper.vue"
+import idCounter from "@/utils/idCounter";
 
-export default Vue.component('phewas-associations-card', {
-    props: ['varId', 'metadata'],
+export default Vue.component('associations-card', {
+    props: ['phenotype', 'locus', 'metadata'],
     components: {
         draggable,
-        PhenotypeAssociationsTableWrapper
+        AssociationsTableWrapper
     },
     data() {
         return {
             filler: null,
-            nulllist: []  // necessary evil
+            nulllist: [],  // necessary evil
         }
     },
     created() {
-        if (!!this.varId) {
+        this.filler = this.filler || {};
+        if (!!this.phenotype) {
             // filler should be null before this point
             this.filler = {
-                varId: this.varId,
+                phenotype: this.phenotype,
+                locus: this.locus,
             }
         }
     },
@@ -102,23 +134,27 @@ export default Vue.component('phewas-associations-card', {
             };
             this.$forceUpdate();
         },
-        log: function(evt) {
-          window.console.log('log', evt);
-        },
         fill(event) {
             const { added } = event;
             const i = added.element.name.split(';');
             const [_, prefix, value] = i;
 
+            // TODO: pattern matching core
             // typecheck
                 // apply if pass
                 // bounce if fail
             if (!!added) {
                 this.filler = this.filler || {};
-                if(prefix === 'varId' || prefix === 'variant') {
+                if(prefix === 'phenotype') {
                     this.filler = {
                         ...this.filler,
-                        varId: value,
+                        phenotype: value,
+                    };
+                }
+                if(prefix === 'gene' || prefix === 'region' || prefix === 'locus') {
+                    this.filler = {
+                        ...this.filler,
+                        locus: value,
                     };
                 }
                 this.$forceUpdate();
@@ -128,7 +164,17 @@ export default Vue.component('phewas-associations-card', {
     },
     computed: {
         full() {
-            return !!this.filler && !!this.filler.varId;
+            return !!this.filler && !!this.filler.phenotype && !!this.filler.locus;
+        },
+        dragName() {
+            return `${'associations'};phenotype;${this.filler.phenotype}`
+        },
+        dragPayload() {
+            return {
+                id: idCounter.getUniqueId(),
+                name: this.dragName,
+                someGuddamData: 'data',
+            }
         }
     },
 })
@@ -151,7 +197,7 @@ export default Vue.component('phewas-associations-card', {
     border: solid 1px #30b7f6;
 }
 
-.bioindex-concept-pellet.gene {
+.bioindex-concept-pellet.locus {
     background-color: #b7eab7;
     border: solid 1px #72ce49;
 }

@@ -57,21 +57,21 @@
                         </label>&nbsp;
                         <input id="card-input-variant"
                             :value="!!filler && !!filler.varId ? filler.varId : ''"
-                            @input="change($event.target.value, 'varId')"/><br>
+                            @input="change($event, 'varId')"/><br>
 
                         <label for="card-input-phenotype">
                             Phenotype
                         </label>&nbsp;
                         <input id="card-input-phenotype"
                             :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
-                            @input="change($event.target.value, 'phenotype')"/><br>
+                            @input="change($event, 'phenotype')"/><br>
 
                         <label for="card-input-locus">
                             Gene/Region
                         </label>&nbsp;
                         <input id="card-input-locus"
                             :value="!!filler && !!filler.locus ? filler.locus : ''"
-                            @input="change($event.target.value, 'locus')"/><br>
+                            @input="change($event, 'locus')"/><br>
 
                     </div>
 
@@ -79,7 +79,7 @@
                         class="dragArea list-group"
                         :group="{
                             name:'cards',
-                            put: ['data', 'viz']  // NOTE: these are constants shared on the main page!
+                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
                         }"
                         :list="nulllist"
                         @add="add"
@@ -127,11 +127,11 @@ export default Vue.component('fill-tester', {
         }
     },
     methods: {
-        change(value, property) {
+        change($event, property) {
             this.filler = this.filler || {};
             this.filler = {
                 ...this.filler,
-                [property]: value,
+                [property]: $event.target.value,
             };
             this.$forceUpdate();
         },

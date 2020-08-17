@@ -6,7 +6,7 @@
             </template>
             <template>
                 <!-- TODO: check against these, make dynamic -->
-                <b>Input Types </b>
+                <b>Input </b>
                 <div class="bioindex-concept-pellet phenotype">
                     Phenotype
                 </div>
@@ -22,7 +22,7 @@
             </template>
             <template>
                 <!-- TODO: check against these, make dynamic -->
-                <b>Output Types </b>
+                <b>Output </b>
                 <div class="bioindex-concept-pellet none">
                     Variant
                 </div>
@@ -34,7 +34,7 @@
             <button @click="$emit('remove', { metadata, filler })">Remove</button>
             <br>
 
-            <div v-if="full">
+            <div v-if="submitted">
 
                 <template>
                     <h4 class="card-title">
@@ -47,34 +47,36 @@
                 </template>
 
             </div>
-            <div v-else-if="!full">
+            <div v-else-if="!submitted">
 
                 <!-- TODO -->
                 <template>
 
-                    <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
+                    <!-- <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em> -->
                     <div>
-
                         <label for="card-input-phenotype">
                             Phenotype
                         </label>&nbsp;
                         <input id="card-input-phenotype"
                             :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
-                            @input="change($event.target.value, 'phenotype')"/><br>
+                            @input="change($event, 'phenotype')"/><br>
 
                         <label for="card-input-locus">
                             Gene/Region
                         </label>&nbsp;
                         <input id="card-input-locus"
                             :value="!!filler && !!filler.locus ? filler.locus : ''"
-                            @input="change($event.target.value, 'locus')"/><br>
+                            @input="change($event, 'locus')"/><br>
+
+                        <button :disabled="!full" @click="submitted = true">Fill Card</button>
 
                     </div>
 
                     <draggable
                         class="dragArea list-group"
-                        :group="{ name:'cards',
-                                  put: ['data', 'viz']  // NOTE: these are constants shared on the main page!
+                        :group="{
+                                  name:'cards',
+                                  put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
                                 }"
                         :list="nulllist"
                         @add="log"
@@ -87,6 +89,7 @@
                             Drag Here
                         </div>
                     </draggable>
+
 
                 </template>
 
@@ -107,21 +110,20 @@ export default Vue.component('locuszoom-gwas-plot-card', {
     data() {
         return {
             nulllist: [],  // necessary evil
-            filler: null
+            filler: null,
+            submitted: false,
         }
     },
     methods: {
-        change(value, property) {
+        change($event, property) {
             this.filler = this.filler || {};
             this.filler = {
                 ...this.filler,
-                [property]: value,
+                [property]: $event.target.value,
             };
             this.$forceUpdate();
         },
-        log: function(evt) {
-          window.console.log('log', evt);
-        },
+
         fill(event) {
             const { added } = event;
             const i = added.element.name.split(';');
@@ -130,8 +132,10 @@ export default Vue.component('locuszoom-gwas-plot-card', {
             // typecheck
                 // apply if pass
                 // bounce if fail
-            if (!!added) {
+            if (!!added)
+            {
                 this.filler = this.filler || {};
+
                 if(prefix === 'phenotype') {
                     this.filler = {
                         ...this.filler,
@@ -145,7 +149,14 @@ export default Vue.component('locuszoom-gwas-plot-card', {
                     };
                 }
                 this.$forceUpdate();
+
+                if (!!this.filler.phenotype && !!this.filler.locus) {
+                    this.submitted = true;
+                }
+
             }
+
+
 
         }
     },

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h2>Bucket Prototype</h2>
+        <!-- <h2>Bucket Prototype</h2> -->
 
         <!-- Visualization/Tool Cards [VTC] Take Arbitrary BioIndex Data and give arbitrary objects (BioIndex or otherwise) -->
         <!-- They can be "fulfilled" by a Data Card [DC] in two possible ways:
@@ -11,16 +11,16 @@
             A Visualization/Tool Card starts out unfulfilled. If you try to fulfill a VTC with a Data Card which doesn't share an input nor compose, it is left unfulfilled.
             (It is maybe possible for a VTC to be fulfilled without Data Cards?)
          -->
-        <h6><em>Visualization/Tool Bucket</em></h6>
+        <!-- <h6><em>Visualization/Tool Bucket</em></h6>
         <locuszoom-phewas-plot-card></locuszoom-phewas-plot-card>
 
-        <br>
+        <br> -->
 
         <!-- Data Cards have 1:1 correspondence with BioIndex -->
-        <h6><em>Data Bucket</em></h6>
+        <!-- <h6><em>Data Bucket</em></h6>
         <phewas-associations-card></phewas-associations-card>
 
-        <br>
+        <br> -->
 
         <h2>Dragging Prototype</h2>
 
@@ -40,42 +40,28 @@
                     <!-- TODO: Serializing the data into strings is a stupid hack that is working around draggable, need to rethink this -->
                     <div class="list-group-item" v-for="(element, idx) in list1" :key="element.id">
                         {{element.name}}
-                        <div v-if="element.name.split(';')[0] === 'set'">
-                            <select @change="modifyAt($event, element, idx)">
-                                <option v-for="op in ['intersection', 'union', 'symmetric-difference']" :key="op">
-                                    {{ op }}
-                                </option>
-                            </select>
-                        </div>
-                        <div v-if="element.name.split(';')[0] === 'bioindex-query'" >
-                            <div class="list-group-item">
-                                <select :name="`${'bioindex-query'}-type`" v-model="bioIndexType">
-                                    <option v-for="type in ['phewas-associations', 'gwas-associations', 'top-associations', 'associations']" :key="type">
-                                        {{ type }}
-                                    </option>
-                                </select>
-                                <input :name="`${'bioindex-query'}-value`"
-                                        v-model="bioIndexValue"
-                                       :placeholder="schema.data.filter(el => el.index === bioIndexType)[0].schema"/>
-                            </div>
-                        </div>
-                        <div v-if="element.name.split(';')[0] === 'bioindex-input'">
-                            <div class="list-group-item">
-                                <bioindex-data-picker
-                                    :name="element.name.split(';')[0]"
-                                    :options="['variant','phenotype','locus']"
-                                    @modify="modifyAt($event, element, idx)"
-                                />
-                            </div>
-                        </div>
-                        <!-- <div v-if="element.name.split(';')[0] === 'bioindex-input'">
-                            <select name="bioindex-input-type" @input="modifyAt($event, element, idx)">
-                                <option v-for="type in ['phenotype', 'variant', 'locus']" :key="type">
+                        <select
+                            v-if="element.name.split(';')[0] === 'set'"
+                            @change="modifyAt($event, 'set', idx)">
+                            <option v-for="op in ['intersection', 'union', 'symmetric-difference']" :key="op">
+                                {{ op }}
+                            </option>
+                        </select>
+                        <div class="list-group-item" v-if="element.name.split(';')[0] === 'bioindex-query'">
+                            <select :name="`${'bioindex-query'}-type`" @input="modifyAt($event, 'bioindex-query', idx)">
+                                <option v-for="type in ['associations', 'phewas-associations', 'gwas-associations', 'top-associations']" :key="type">
                                     {{ type }}
                                 </option>
                             </select>
-                            <input name="bioindex-input-value" @input="modifyAt($event, element, idx)"/>
-                        </div> -->
+                            {{schema.data.filter(el => el.index === element.name.split(';')[1])[0].schema}}
+                        </div>
+                        <div class="list-group-item"  v-if="element.name.split(';')[0] === 'bioindex-input'">
+                            <bioindex-data-picker
+                                :name="element.name"
+                                :options="['variant','phenotype','locus']"
+                                @modify="modifyAt($event, 'bioindex-input', idx)"
+                            />
+                        </div>
                     </div>
 
                 </draggable>
@@ -86,35 +72,98 @@
                 <draggable
                     class="dragArea list-group"
                     :list="list3"
+                    drag-class="ghost"
                     :group="{
                         name: 'dash',
                         put: ['data', 'viz'] // TODO: viz only? with data too?
                     }"
                     @change="log">
-
                     <div class="list-group-item" v-for="(element, idx) in list3" :key="element.id">
+                        <div v-if="element.name.split(';')[0] === 'set'">
+                            <!-- <div v-if="element.name.split(';')[1] === 'intersection'">
+                                <draggable
+                                    class="dragArea list-group"
+                                    :group="{
+                                            name:'cards',
+                                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
+                                        }"
+                                    :list="nulllist"
+                                    @add="log"
+                                    @change="fill">
+                                    <div
+                                        slot="header"
+                                        class="btn-group list-group-item"
+                                        role="group"
+                                        aria-label="Basic example">
+                                        Drag For Intersection
+                                    </div>
+                                </draggable>
+                            </div>
+
+                            <div v-if="element.name.split(';')[1] === 'union'">
+                                <draggable
+                                    class="dragArea list-group"
+                                    :group="{
+                                            name:'cards',
+                                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
+                                            }"
+                                    :list="nulllist"
+                                    @add="log"
+                                    @change="fill">
+                                    <div
+                                        slot="header"
+                                        class="btn-group list-group-item"
+                                        role="group"
+                                        aria-label="Basic example">
+                                        Drag For Union
+                                    </div>
+                                </draggable>
+                            </div>
+                            <div v-if="element.name.split(';')[1] === 'symmetric-difference'">
+                                <draggable
+                                    class="dragArea list-group"
+                                    :group="{
+                                            name:'cards',
+                                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
+                                            }"
+                                    :list="nulllist"
+                                    @add="log"
+                                    @change="fill">
+                                    <div
+                                        slot="header"
+                                        class="btn-group list-group-item"
+                                        role="group"
+                                        aria-label="Basic example">
+                                        Drag For Union
+                                    </div>
+                                </draggable>
+                            </div> -->
+
+                            <set-operation
+                                :operation="element.name.split(';')[1]"
+                                :options="[]"
+                            ></set-operation>
+                        </div>
 
                         <!-- TODO: Element dispatch code goes here -->
                         <!-- TODO: This is bad because the template needs to know what cards it gets.
                                    Arguably this could be refactored into a method that adds element to a service component (like we're doing with LZ) -->
                         <!-- TODO: Serializing the data into strings is a stupid hack that is working around draggable, need to rethink this -->
-                        <div v-if="element.name.split(';')[0] === 'locuszoom-phewas-plot'">
-                            <locuszoom-phewas-plot-card
-                                :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
-                                @remove="removeAt(idx)"
-                            ></locuszoom-phewas-plot-card>
-                        </div>
+                        <locuszoom-phewas-plot-card
+                            v-if="element.name.split(';')[0] === 'locuszoom-phewas-plot'"
+                            :metadata="element"
+                            @duplicate-self="clone"
+                            @duplicate-type="copy"
+                            @remove="removeAt(idx)"
+                        ></locuszoom-phewas-plot-card>
 
-                        <div v-if="element.name.split(';')[0] === 'locuszoom-gwas-plot'">
-                            <locuszoom-gwas-plot-card
-                                :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
-                                @remove="removeAt(idx)"
-                            ></locuszoom-gwas-plot-card>
-                        </div>
+                        <locuszoom-gwas-plot-card
+                            v-if="element.name.split(';')[0] === 'locuszoom-gwas-plot'"
+                            :metadata="element"
+                            @duplicate-self="clone"
+                            @duplicate-type="copy"
+                            @remove="removeAt(idx)"
+                        ></locuszoom-gwas-plot-card>
 
                         <div v-if="element.name.split(';')[0] === 'phewas-associations'">
                             <phewas-associations-card
@@ -150,6 +199,42 @@
                                 @duplicate-type="copy"
                                 @remove="removeAt(idx)"
                             ></phenotype-associations-card>
+                        </div>
+
+
+                        <div v-if="element.name.split(';')[0] === 'bioindex-query'">
+                            <associations-card
+                                v-if="element.name.split(';')[1] === 'associations'"
+                                :metadata="element"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            ></associations-card>
+
+                            <phenotype-associations-card
+                                v-if="element.name.split(';')[1] === 'gwas-associations'"
+                                :metadata="element"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            ></phenotype-associations-card>
+
+                            <phewas-associations-card
+                                v-if="element.name.split(';')[1] === 'phewas-associations'"
+                                :metadata="element"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            ></phewas-associations-card>
+
+                        </div>
+
+                        <div v-if="element.name.split(';')[0] === 'bioindex-input'">
+                            <div class="list-group-item">
+                                Bioindex Input<br>
+                                {{element.name.split(';')[1]}} {{element.name.split(';')[2]}}<br>
+                                TODO: show list of actions here
+                            </div>
                         </div>
 
                         <div v-if="element.name.split(';')[0] === 'fill-tester'">
@@ -200,7 +285,9 @@ import { BIOINDEX_SCHEMA } from "./utils/resultsUtils"
 import PheWASData from "./nucards/PheWASData";
 
 import PhenotypeAssociationsData from "./nucards/PhenotypeAssociationsData";
+import AssociationsData from "./nucards/AssociationsData";
 import FillTester from "./nucards/FillTester";
+import SetOp from "./nucards/SetOp";
 
 import PheWASViz from "./nucards/PheWASViz";
 import GWASViz from "./nucards/GWASViz";
@@ -219,16 +306,16 @@ export default {
     return {
         schema: BIOINDEX_SCHEMA,
         list1: [
-            { name: "set", id: 1 },
-            { name: "bioindex-query", id: 2 },
+            { name: `set;${['intersection', 'union', 'symmetric-difference'][0]}`, id: 1 },
+            { name: `bioindex-query;${['associations', 'phewas-associations', 'gwas-associations', 'top-associations'][0]}`, id: 2 },
             { name: "bioindex-input", id: 3 },
             { name: 'phewas-associations;varId;2:27730940:T:C', id: 6 },
             { name: 'gwas-associations;phenotype;T2D', id: 7 }
         ],
         list2: [
-            { name: "visualization 1", id: 1 },
-            { name: "visualization 2", id: 2 },
-            { name: "visualization 3", id: 3 },
+            // { name: "visualization 1", id: 1 },
+            // { name: "visualization 2", id: 2 },
+            // { name: "visualization 3", id: 3 },
             { name: "fill-tester", id: 4 },
             { name: "locuszoom-phewas-plot", id: 5 },
             { name: "locuszoom-gwas-plot", id: 6 },
@@ -237,7 +324,7 @@ export default {
         nullList: [],
         dataCardData: null,
         visualizationCard: {},
-        bioIndexType: ['phewas-associations', 'gwas-associations', 'top-associations'][0],
+        bioIndexType: ['associations', 'phewas-associations', 'gwas-associations', 'top-associations'][0],
         bioIndexValue: null,
     };
   },
@@ -248,19 +335,19 @@ export default {
   },
   methods: {
     modifyAt($event, element, idx) {
-        console.log('modifyAt', $event, element, idx, );
-        this.list1[idx].name = $event;
+        this.list1[idx].name = `${element};${$event.target.value}`;
     },
     removeAt(idx) {
       this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))
     },
+    // TODO: distinguish behavior for `copy` and `clone`
     copy(that) {
         // refactor to stack
         this.list3 = this.list3.concat({ ...that.metadata, id: idGlobal++ });
     },
     clone(that) {
-    // refactor to stack
-      this.list3 = this.list3.concat({ ...that.metadata, id: idGlobal++ });
+        // refactor to stack
+        this.list3 = this.list3.concat({ ...that.metadata, id: idGlobal++ });
     },
     log: function(evt) {
       window.console.log('logging', evt);

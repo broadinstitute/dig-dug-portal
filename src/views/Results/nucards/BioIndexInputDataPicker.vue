@@ -21,12 +21,17 @@ export default Vue.component('bioindex-data-picker', {
     },
     computed: {
         message() {
-            return `${this.name};${this.query};${this.value}`
+            return `${this.query};${this.value}`
         }
     },
     watch: {
         message(newMessage) {
-            this.$emit('modify', newMessage);
+            // I am descending into depravity
+            this.$emit('modify', {
+                target: {
+                    value: `${this.query};${this.value}`
+                }
+            });
         }
     }
 })
