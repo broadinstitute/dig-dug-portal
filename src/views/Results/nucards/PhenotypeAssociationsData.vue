@@ -85,6 +85,7 @@ export default Vue.component('phenotype-associations-card', {
         }
     },
     created() {
+        console.log(this.phenotype)
         if (!!this.phenotype) {
             // filler should be null before this point
             this.filler = {

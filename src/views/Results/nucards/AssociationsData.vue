@@ -1,52 +1,45 @@
 <template>
         <div class="list-group-item">
-
             <template>
-                <!-- <h3>Data Table Name</h3> -->
-                <draggable
-                    class="dragArea list-group"
-                    :group="{
-                        name: 'dash',
-                        pull: 'clone',
-                    }"
-                    :list="[dragPayload]">
-                    <!-- <div slot="header">
-                        <h3>Associations</h3>
-                    </div> -->
-                    <div class="list-group-item" v-for="(element) in [dragPayload]" :key="element.id">
-                        {{element.name}}
-                    </div>
-                </draggable>
-
-            </template>
-
-            <template>
-                <b>Input Types </b>
                 <div class="bioindex-concept-pellet phenotype">
                     Phenotype
                 </div>
                 <div class="bioindex-concept-pellet locus">
                     Gene/Region
                 </div>
-            </template>
-            <template>
-                <b>Output Type </b>
+                <h5 style="display:inline;margin-right:10px;">→</h5>
                 <div class="bioindex-concept-pellet none">
                     Variant
                 </div>
+                <div style="display:block;float:right;">
+                    <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
+                    <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
+                    <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+                    <button @click="$emit('remove', { metadata, filler })">Remove</button>
+                </div>
             </template>
 
-            <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
-            <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-            <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
-            <button @click="$emit('remove', { metadata, filler })">Remove</button>
-            <br>
+            <template>
+                <draggable
+                    class="dragArea list-group"
+                    :group="{
+                        name: 'dash-header',
+                        pull: 'clone',
+                    }"
+                    :list="[dragPayload]">
+                    <template slot="header">
+                        <div class="list-group-item" style="margin-bottom:10px;" v-for="(element) in [dragPayload]" :key="element.id">
+                            <h3 style="display:inline;">Associations</h3>&nbsp;
+                            <h5 style="display:inline;" v-if="full" class="card-title">
+                                {{!!filler ? JSON.stringify(filler): ''}}
+                            </h5>
+                        </div>
+                    </template>
+                </draggable>
+            </template>
 
-            <div v-if="full">
-                <template>
-                    <h4 class="card-title">
-                        {{filler}}
-                    </h4>
+            <div v-if="submitted">
+                <template v-if="filler">
                     <associations-table-wrapper
                         :locus="filler.locus"
                         :phenotype="filler.phenotype"
@@ -55,48 +48,46 @@
                 </template>
             </div>
 
-            <div v-else-if="!full">
+            <div v-else-if="!submitted">
                 <!-- TODO -->
                 <template>
-                    <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
-                    <div>
-
-                        <label for="card-input-phenotype">
-                            Phenotype
-                        </label>&nbsp;
-                        <input id="card-input-phenotype"
-                            :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
-                            @input="change($event, 'phenotype')"/><br>
-
-                        <label for="card-input-locus">
-                            Gene/Region
-                        </label>&nbsp;
-                        <input id="card-input-locus"
-                            :value="!!filler && !!filler.locus ? filler.locus : ''"
-                            @input="change($event, 'locus')"/><br>
-
-                    </div>
                     <draggable
                         class="dragArea list-group"
                         :group="{
                             name:'cards',
-                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
+                            put: ['data', 'dash-header']  // NOTE: these are constants shared on the main page!
                         }"
                         :list="nulllist"
                         @change="fill">
-                        <div
-                            slot="header"
-                            class="btn-group list-group-item"
-                            role="group"
-                            aria-label="Basic example">
-                            Drag Here
+
+                        <div slot="header" class="btn-group list-group-item">
+                            <em>Fill these inputs, or drag cards in from the sidebar or dashboard.</em><br>
+
+                            <label for="card-input-phenotype">
+                                Phenotype
+                            </label>&nbsp;
+                            <input id="card-input-phenotype"
+                                :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
+                                @input="change($event, 'phenotype')"/><br>
+
+                            <label for="card-input-locus">
+                                Gene/Region
+                            </label>&nbsp;
+                            <input id="card-input-locus"
+                                :value="!!filler && !!filler.locus ? filler.locus : ''"
+                                @input="change($event, 'locus')"/><br>
+
+                            <button :disabled="!full" @click="submitted = true">Fill Card</button>
+
                         </div>
+
                     </draggable>
                 </template>
             </div>
 
         </div>
 </template>
+
 <script>
 import Vue from "vue"
 import draggable from "vuedraggable";
@@ -104,7 +95,7 @@ import AssociationsTableWrapper from "../components/AssociationsTableWrapper.vue
 import idCounter from "@/utils/idCounter";
 
 export default Vue.component('associations-card', {
-    props: ['phenotype', 'locus', 'metadata'],
+    props: ['phenotype', 'locus', 'metadata', 'defaultSubmitted'],
     components: {
         draggable,
         AssociationsTableWrapper
@@ -113,16 +104,18 @@ export default Vue.component('associations-card', {
         return {
             filler: null,
             nulllist: [],  // necessary evil
+            submitted: false,  // flag that lets us defer/semaphore when the table ought be rendered (versus always rendering it on any possible combination of strings filling the table, even when user is not finished typing)
         }
     },
     created() {
-        this.filler = this.filler || {};
-        if (!!this.phenotype) {
+        if (!!this.phenotype && !!this.locus) {
             // filler should be null before this point
+            this.filler = {};
             this.filler = {
                 phenotype: this.phenotype,
                 locus: this.locus,
             }
+            this.submitted = this.defaultSubmitted || true;
         }
     },
     methods: {
@@ -159,7 +152,6 @@ export default Vue.component('associations-card', {
                 }
                 this.$forceUpdate();
             }
-
         }
     },
     computed: {
@@ -167,7 +159,7 @@ export default Vue.component('associations-card', {
             return !!this.filler && !!this.filler.phenotype && !!this.filler.locus;
         },
         dragName() {
-            return `${'associations'};phenotype;${this.filler.phenotype}`
+            return !!this.filler ? `${'associations'};phenotype,${this.filler.phenotype}|locus,${this.filler.locus}` : ``;
         },
         dragPayload() {
             return {

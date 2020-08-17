@@ -1,7 +1,9 @@
 <template>
     <div>
+        {{operation}}
         <multiselect
             v-model="cardList"
+            :multiple="true"
             :options="options">
         </multiselect>
         or<br>
@@ -9,7 +11,7 @@
             class="dragArea list-group"
             :group="{
                     name:'cards',
-                    put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
+                    put: ['dash-header', 'data']  // NOTE: these are constants shared on the main page!
                 }"
             :list="nulllist"
             @change="fill">
@@ -18,7 +20,7 @@
                 class="btn-group list-group-item"
                 role="group"
                 aria-label="Basic example">
-                Drag in cards for {{operation}}
+                Drag in cards
             </div>
         </draggable>
         <button>Do the {{operation}}</button>

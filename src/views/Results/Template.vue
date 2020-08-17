@@ -26,7 +26,7 @@
 
         <div class="row">
             <div class="col-3">
-                <h5>Draggable Data Buckets</h5>
+                <h5>Data Buckets</h5>
                 <draggable
                     class="dragArea list-group"
                     :list="list1"
@@ -80,68 +80,9 @@
                     @change="log">
                     <div class="list-group-item" v-for="(element, idx) in list3" :key="element.id">
                         <div v-if="element.name.split(';')[0] === 'set'">
-                            <!-- <div v-if="element.name.split(';')[1] === 'intersection'">
-                                <draggable
-                                    class="dragArea list-group"
-                                    :group="{
-                                            name:'cards',
-                                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
-                                        }"
-                                    :list="nulllist"
-                                    @add="log"
-                                    @change="fill">
-                                    <div
-                                        slot="header"
-                                        class="btn-group list-group-item"
-                                        role="group"
-                                        aria-label="Basic example">
-                                        Drag For Intersection
-                                    </div>
-                                </draggable>
-                            </div>
-
-                            <div v-if="element.name.split(';')[1] === 'union'">
-                                <draggable
-                                    class="dragArea list-group"
-                                    :group="{
-                                            name:'cards',
-                                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
-                                            }"
-                                    :list="nulllist"
-                                    @add="log"
-                                    @change="fill">
-                                    <div
-                                        slot="header"
-                                        class="btn-group list-group-item"
-                                        role="group"
-                                        aria-label="Basic example">
-                                        Drag For Union
-                                    </div>
-                                </draggable>
-                            </div>
-                            <div v-if="element.name.split(';')[1] === 'symmetric-difference'">
-                                <draggable
-                                    class="dragArea list-group"
-                                    :group="{
-                                            name:'cards',
-                                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
-                                            }"
-                                    :list="nulllist"
-                                    @add="log"
-                                    @change="fill">
-                                    <div
-                                        slot="header"
-                                        class="btn-group list-group-item"
-                                        role="group"
-                                        aria-label="Basic example">
-                                        Drag For Union
-                                    </div>
-                                </draggable>
-                            </div> -->
-
                             <set-operation
                                 :operation="element.name.split(';')[1]"
-                                :options="[]"
+                                :options="list3"
                             ></set-operation>
                         </div>
 
@@ -165,10 +106,34 @@
                             @remove="removeAt(idx)"
                         ></locuszoom-gwas-plot-card>
 
+                        <!-- e.g. associations;phenotype,T2D|locus,slc30a8 -->
+                        <div v-if="element.name.split(';')[0] === 'associations'">
+                            <associations-card
+
+                                v-if="element.name.split(';')[1].split('|')[0].split(',')[0] === 'phenotype' && element.name.split(';')[1].split('|')[1].split(',')[0] === 'locus' && !!element.name.split(';')[1].split('|')[0].split(',')[1] && !!element.name.split(';')[1].split('|')[1].split(',')[1]"
+                                :phenotype="element.name.split(';')[1].split('|')[0].split(',')[1]"
+                                :locus="element.name.split(';')[1].split('|')[1].split(',')[1]"
+
+                                :metadata="element"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            ></associations-card>
+                            <associations-card
+                                v-else
+                                :metadata="element"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                            ></associations-card>
+                        </div>
+
                         <div v-if="element.name.split(';')[0] === 'phewas-associations'">
                             <phewas-associations-card
-                                v-if="element.name.split(';')[1] === 'varId' && !!element.name.split(';')[2]"
-                                :varId="element.name.split(';')[2]"
+
+                                v-if="element.name.split(';')[1].split('|')[0].split(',')[0] === 'varId' && !!element.name.split(';')[1].split('|')[0].split(',')[1]"
+                                :varId="element.name.split(';')[1].split('|')[0].split(',')[1]"
+
                                 :metadata="element"
                                 @duplicate-self="clone"
                                 @duplicate-type="copy"
@@ -185,8 +150,10 @@
 
                         <div v-if="element.name.split(';')[0] === 'gwas-associations'">
                             <phenotype-associations-card
-                                v-if="element.name.split(';')[1] === 'phenotype' && !!element.name.split(';')[2]"
-                                :phenotype="element.name.split(';')[2]"
+
+                                v-if="element.name.split(';')[1].split('|')[0].split(',')[0] === 'phenotype' && !!element.name.split(';')[1].split('|')[0].split(',')[1]"
+                                :phenotype="element.name.split(';')[1].split('|')[0].split(',')[1]"
+
                                 :metadata="element"
                                 @duplicate-self="clone"
                                 @duplicate-type="copy"
@@ -232,7 +199,7 @@
                         <div v-if="element.name.split(';')[0] === 'bioindex-input'">
                             <div class="list-group-item">
                                 Bioindex Input<br>
-                                {{element.name.split(';')[1]}} {{element.name.split(';')[2]}}<br>
+                                {{element.name.split(';')[1].split(',')[0]}} {{element.name.split(';')[1].split(',')[1]}}<br>
                                 TODO: show list of actions here
                             </div>
                         </div>
@@ -258,7 +225,7 @@
             </div>
 
             <div class="col-3">
-                <h5>Draggable Viz Buckets</h5>
+                <h5>Viz Buckets</h5>
                 <draggable
                     class="dragArea list-group"
                     :list="list2"
@@ -309,8 +276,9 @@ export default {
             { name: `set;${['intersection', 'union', 'symmetric-difference'][0]}`, id: 1 },
             { name: `bioindex-query;${['associations', 'phewas-associations', 'gwas-associations', 'top-associations'][0]}`, id: 2 },
             { name: "bioindex-input", id: 3 },
-            { name: 'phewas-associations;varId;2:27730940:T:C', id: 6 },
-            { name: 'gwas-associations;phenotype;T2D', id: 7 }
+            { name: 'phewas-associations;varId,2:27730940:T:C', id: 6 },
+            { name: 'gwas-associations;phenotype,T2D', id: 7 },
+            { name: 'associations;phenotype,T2D|locus,slc30a8', id: 8 }
         ],
         list2: [
             // { name: "visualization 1", id: 1 },
@@ -335,7 +303,7 @@ export default {
   },
   methods: {
     modifyAt($event, element, idx) {
-        this.list1[idx].name = `${element};${$event.target.value}`;
+        this.list1[idx].name = `${element},${$event.target.value}`;
     },
     removeAt(idx) {
       this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))
