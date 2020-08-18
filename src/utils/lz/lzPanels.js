@@ -270,7 +270,6 @@ export class LZCredibleVariantsPanel {
 
 export class LZPhewasPanel {
     constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }) {
-        console.log('nuilding phewas panel')
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
         this.panel_layout_type = 'phewas';

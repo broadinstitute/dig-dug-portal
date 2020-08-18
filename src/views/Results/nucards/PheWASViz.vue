@@ -1,45 +1,39 @@
 <template>
         <div class="list-group-item">
             <template>
-                <!-- <h3>Data Table Name</h3> -->
-                <h3>PheWAS Plot</h3>
-            </template>
-            <template>
-                <!-- TODO: check against these, make dynamic -->
-                <b>Input Types </b>
                 <div class="bioindex-concept-pellet none">
                     Variant
                 </div>
-                <!-- <div class="bioindex-concept-pellet phenotype">
-                    Phenotype
-                </div>
-                <div class="bioindex-concept-pellet gene">
-                    Gene/Region
-                </div> -->
-            </template>
-            <template>
-                <!-- TODO: check against these, make dynamic -->
-                <b>Output Types </b>
+                <h5 style="display:inline;margin-right:10px;">→</h5>
                 <div class="bioindex-concept-pellet phenotype">
                     Phenotype
                 </div>
-                <div class="bioindex-concept-pellet gene">
-                    Gene/Region
+
+                <div style="display:block;float:right;">
+                    <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp;
+                    <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
+                    <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+                    <button @click="$emit('remove', { metadata, filler })">Remove</button>
                 </div>
             </template>
-            <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
-            <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-            <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
-            <button @click="$emit('remove', { metadata, filler })">Remove</button>
-            <br>
 
-            <div v-if="filler">
+            <template>
+                <draggable
+                    class="dragArea list-group"
+                    :list="dragList"
+                    :group="{ name: 'data', pull: 'clone', put: false }"
+                    :clone="el => dragPayload">
+                    <div class="list-group-item"
+                        style="margin-bottom:10px;"
+                        v-for="(element) in dragList" :key="element.id">
+                        <h3 style="display:inline;">PheWAS Plot</h3>&nbsp;
+                        <h4 v-if="filler" style="display:inline;">{{filler}}</h4>
+                    </div>
+                </draggable>
+            </template>
 
-                <template>
-
-                    <h4 class="card-title">
-                        {{filler.varId}}
-                    </h4>
+            <div v-if="submitted">
+                <template v-if="filler">
                     <div v-if="!!$store.state.bioPortal.phenotypeMap">
                         <locuszoom
                             ref="locuszoom"
@@ -53,47 +47,45 @@
                             ></lz-phewas-panel>
                         </locuszoom>
                     </div>
-
                 </template>
-
             </div>
-            <div v-else-if="!filler">
 
+            <div v-else-if="!submitted">
                 <!-- TODO -->
                 <template>
-
-                    <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
-                    <div>
-                        <label for="card-input-variant">
-                            Variant
-                        </label>&nbsp;
-                        <input id="card-input-variant"/>
-                    </div>
                     <draggable
                         class="dragArea list-group"
-                        :group="{ name:'cards',
-                                  put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
-                                }"
+                        :group="{
+                            name:'cards',
+                            put: ['data', 'dash-header']  // NOTE: these are constants shared on the main page!
+                        }"
                         :list="nulllist"
-                        @add="log"
                         @change="fill">
-                        <div
-                            slot="header"
-                            class="btn-group list-group-item"
-                            role="group"
-                            aria-label="Basic example">
-                            Drag Here
+
+                        <div slot="header" class="btn-group list-group-item">
+                            <em>Fill these inputs, or drag cards in from the sidebar or dashboard.</em><br>
+
+                            <label for="card-input-varId">
+                                Variant
+                            </label>&nbsp;
+                            <input id="card-input-varId"
+                                :value="!!filler && !!filler.varId ? filler.varId : ''"
+                                @input="change($event, 'varId')"/><br>
+
+                            <button :disabled="!full" @click="submitted = true">Fill Card</button>
+
                         </div>
+
                     </draggable>
-
                 </template>
-
             </div>
+
         </div>
 </template>
 <script>
 import Vue from "vue"
 import draggable from "vuedraggable";
+import idCounter from "@/utils/idCounter";
 
 export default Vue.component('locuszoom-phewas-plot-card', {
     props: ['metadata'],
@@ -103,7 +95,9 @@ export default Vue.component('locuszoom-phewas-plot-card', {
     data() {
         return {
             nulllist: [],  // necessary evil
-            filler: null
+            dragList: [{ id: idCounter.getUniqueId(), name: '' }], // another seemingly necessary evil
+            filler: null,
+            submitted: false,
         }
     },
     methods: {
@@ -115,38 +109,52 @@ export default Vue.component('locuszoom-phewas-plot-card', {
             };
             this.$forceUpdate();
         },
-        log: function(evt) {
-          window.console.log('log', evt);
-        },
         fill(event) {
             const { added } = event;
-            const i = added.element.name.split(';');
-            const [_, prefix, value] = i;
 
-            // typecheck
-                // apply if pass
-                // bounce if fail
             if (!!added) {
                 this.filler = this.filler || {};
-                if(prefix === 'varId' || prefix === 'variant') {
-                    this.filler = {
-                        ...this.filler,
-                        varId: value,
-                    };
-                }
-                this.$forceUpdate();
-            }
 
+                const [source, query] = added.element.name.split(';');
+                query.split('|').forEach(queryEl => {
+
+                    const [prefix, value] = queryEl.split(',');
+
+                    if(prefix === 'varId' || prefix === 'variant' ) {
+                        this.filler = {
+                            ...this.filler,
+                            varId: value,
+                        };
+                    }
+
+                });
+                this.$forceUpdate();
+
+                // submit if last fill left us completely successful (gets rid of an extra step)
+                if (!!this.filler.varId) {
+                    this.submitted = true;
+                }
+
+            }
         }
     },
     computed: {
         full() {
             return !!this.filler && !!this.filler.varId;
-        }
+        },
+        dragName() {
+            return !!this.filler ? `${'locuszoom-phewas-plot'};varId,${this.filler.varId}` : ``;
+        },
+        dragPayload() {
+            return {
+                id: idCounter.getUniqueId(),
+                name: this.dragName,
+            }
+        },
     },
 })
 </script>
-<style>
+<style scoped>
 
 .bioindex-concept-pellet {
     cursor: pointer;
@@ -164,7 +172,7 @@ export default Vue.component('locuszoom-phewas-plot-card', {
     border: solid 1px #30b7f6;
 }
 
-.bioindex-concept-pellet.gene {
+.bioindex-concept-pellet.locus {
     background-color: #b7eab7;
     border: solid 1px #72ce49;
 }
@@ -181,3 +189,4 @@ export default Vue.component('locuszoom-phewas-plot-card', {
 }
 
 </style>
+

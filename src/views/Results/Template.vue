@@ -47,7 +47,7 @@
                                 {{ op }}
                             </option>
                         </select>
-                        <div class="list-group-item" v-if="element.name.split(';')[0] === 'bioindex-query'">
+                        <div v-if="element.name.split(';')[0] === 'bioindex-query'">
                             <select :name="`${'bioindex-query'}-type`" @input="modifyAt($event, 'bioindex-query', idx)">
                                 <option v-for="type in ['associations', 'phewas-associations', 'gwas-associations', 'top-associations']" :key="type">
                                     {{ type }}
@@ -55,7 +55,7 @@
                             </select>
                             {{schema.data.filter(el => el.index === element.name.split(';')[1])[0].schema}}
                         </div>
-                        <div class="list-group-item"  v-if="element.name.split(';')[0] === 'bioindex-input'">
+                        <div v-if="element.name.split(';')[0] === 'bioindex-input'">
                             <bioindex-data-picker
                                 :name="element.name"
                                 :options="['variant','phenotype','locus']"
@@ -303,7 +303,7 @@ export default {
   },
   methods: {
     modifyAt($event, element, idx) {
-        this.list1[idx].name = `${element},${$event.target.value}`;
+        this.list1[idx].name = `${element};${$event.target.value}`;
     },
     removeAt(idx) {
       this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))

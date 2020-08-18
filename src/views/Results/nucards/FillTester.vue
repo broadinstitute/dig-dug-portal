@@ -6,38 +6,34 @@
             </template>
 
             <template>
-                <b>Input Types </b>
-                <div class="bioindex-concept-pellet none">
-                    Variant
-                </div>
                 <div class="bioindex-concept-pellet phenotype">
                     Phenotype
                 </div>
-                <div class="bioindex-concept-pellet gene">
+                <div class="bioindex-concept-pellet locus">
                     Gene/Region
                 </div>
-            </template>
-
-            <template>
-                <b>Output Type </b>
                 <div class="bioindex-concept-pellet none">
                     Variant
                 </div>
+                <h5 style="display:inline;margin-right:10px;">→</h5>
                 <div class="bioindex-concept-pellet phenotype">
                     Phenotype
                 </div>
-                <div class="bioindex-concept-pellet gene">
+                <div class="bioindex-concept-pellet locus">
                     Gene/Region
+                </div>
+                <div class="bioindex-concept-pellet none">
+                    Variant
+                </div>
+                <div style="display:block;float:right;">
+                    <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp;
+                    <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
+                    <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+                    <button @click="$emit('remove', { metadata, filler })">Remove</button>
                 </div>
             </template>
 
-            <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
-            <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-            <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
-            <button @click="$emit('remove', { metadata, filler })">Remove</button>
-            <br>
-
-            <div v-if="full">
+            <div v-if="submitted">
                 <template>
                     <h4 class="card-title">
                         Filled with {{filler}}
@@ -45,54 +41,46 @@
                 </template>
             </div>
 
-            <div v-else-if="!full">
-                <!-- TODO -->
+            <div v-else-if="!submitted">
                 <template>
-                    <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
-                    <div>
-                        <!-- TODO: abstract the -<label> and .<label> -->
-                        <!-- TODO: abstract the :value conditional to method ao computed property-->
-                        <label for="card-input-variant">
-                            Variant
-                        </label>&nbsp;
-                        <input id="card-input-variant"
-                            :value="!!filler && !!filler.varId ? filler.varId : ''"
-                            @input="change($event, 'varId')"/><br>
-
-                        <label for="card-input-phenotype">
-                            Phenotype
-                        </label>&nbsp;
-                        <input id="card-input-phenotype"
-                            :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
-                            @input="change($event, 'phenotype')"/><br>
-
-                        <label for="card-input-locus">
-                            Gene/Region
-                        </label>&nbsp;
-                        <input id="card-input-locus"
-                            :value="!!filler && !!filler.locus ? filler.locus : ''"
-                            @input="change($event, 'locus')"/><br>
-
-                    </div>
-
                     <draggable
                         class="dragArea list-group"
                         :group="{
                             name:'cards',
-                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
+                            put: ['data', 'dash-header']  // NOTE: these are constants shared on the main page!
                         }"
                         :list="nulllist"
-                        @add="add"
                         @change="fill">
-                        <div
-                            slot="header"
-                            class="btn-group list-group-item"
-                            role="group"
-                            aria-label="Basic example">
-                            Drag Here
-                        </div>
-                    </draggable>
 
+                        <div slot="header" class="btn-group list-group-item">
+                            <em>Fill these inputs, or drag cards in from the sidebar or dashboard.</em><br>
+
+                            <label for="card-input-phenotype">
+                                Phenotype
+                            </label>&nbsp;
+                            <input id="card-input-phenotype"
+                                :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
+                                @input="change($event, 'phenotype')"/><br>
+
+                            <label for="card-input-locus">
+                                Gene/Region
+                            </label>&nbsp;
+                            <input id="card-input-locus"
+                                :value="!!filler && !!filler.locus ? filler.locus : ''"
+                                @input="change($event, 'locus')"/><br>
+
+                            <label for="card-input-varId">
+                                Variant
+                            </label>&nbsp;
+                            <input id="card-input-varId"
+                                :value="!!filler && !!filler.varId ? filler.varId : ''"
+                                @input="change($event, 'varId')"/><br>
+
+                            <button :disabled="!full" @click="submitted = true">Fill Card</button>
+
+                        </div>
+
+                    </draggable>
                 </template>
             </div>
 
@@ -105,7 +93,7 @@ import PhenotypeAssociationsTableWrapper from "../components/PhenotypeAssociatio
 import _ from "lodash";
 
 export default Vue.component('fill-tester', {
-    props: ['locus', 'phenotype', 'varId', 'metadata'],
+    props: ['locus', 'phenotype', 'varId', 'metadata', 'defaultSubmitted'],
     components: {
         draggable,
         PhenotypeAssociationsTableWrapper
@@ -113,17 +101,20 @@ export default Vue.component('fill-tester', {
     data() {
         return {
             filler: null,
-            nulllist: []  // necessary evil
+            nulllist: [],  // necessary evil
+            submitted: false,  // flag that lets us defer/semaphore when the table ought be rendered (versus always rendering it on any possible combination of strings filling the table, even when user is not finished typing)
         }
     },
     created() {
-        if (!!this.varId) {
+        if (!!this.varId || !!this.phenotype || !!this.locus) {
             // filler should be null before this point
+            this.filler = {};
             this.filler = {
                 varId: this.varId,
                 phenotype: this.phenotype,
                 locus: this.locus,
             }
+            this.submitted = this.defaultSubmitted || true;
         }
     },
     methods: {
@@ -136,35 +127,44 @@ export default Vue.component('fill-tester', {
             this.$forceUpdate();
         },
         fill(event) {
-
             const { added } = event;
-            const i = added.element.name.split(';');
-            const [_, prefix, value] = i;
 
-            // TODO: typecheck/propcheck method
-                // apply if pass
-                // bounce if fail
             if (!!added) {
                 this.filler = this.filler || {};
-                if(prefix === 'varId' || prefix === 'variant') {
-                    this.filler = {
-                        ...this.filler,
-                        varId: value,
-                    };
-                }
-                if(prefix === 'phenotype') {
-                    this.filler = {
-                        ...this.filler,
-                        phenotype: value,
-                    };
-                }
-                if(prefix === 'gene' || prefix === 'region' || prefix === 'locus') {
-                    this.filler = {
-                        ...this.filler,
-                        locus: value,
-                    };
-                }
+
+                const [source, query] = added.element.name.split(';');
+                query.split('|').forEach(queryEl => {
+
+                    const [prefix, value] = queryEl.split(',');
+
+                    if(prefix === 'phenotype') {
+                        this.filler = {
+                            ...this.filler,
+                            phenotype: value,
+                        };
+                    }
+                    if(prefix === 'gene' || prefix === 'region' || prefix === 'locus') {
+                        this.filler = {
+                            ...this.filler,
+                            locus: value,
+                        };
+                    }
+
+                    if(prefix === 'varId' || prefix === 'variant' ) {
+                        this.filler = {
+                            ...this.filler,
+                            varId: value,
+                        };
+                    }
+
+                });
                 this.$forceUpdate();
+
+                // submit if last fill left us completely successful (gets rid of an extra step)
+                if (!!this.filler.phenotype && !!this.filler.locus && !!this.filler.varId) {
+                    this.submitted = true;
+                }
+
             }
         }
     },
@@ -180,7 +180,7 @@ export default Vue.component('fill-tester', {
     }
 })
 </script>
-<style>
+<style scoped>
 
 .bioindex-concept-pellet {
     cursor: pointer;
@@ -198,7 +198,7 @@ export default Vue.component('fill-tester', {
     border: solid 1px #30b7f6;
 }
 
-.bioindex-concept-pellet.gene {
+.bioindex-concept-pellet.locus {
     background-color: #b7eab7;
     border: solid 1px #72ce49;
 }
@@ -215,3 +215,4 @@ export default Vue.component('fill-tester', {
 }
 
 </style>
+

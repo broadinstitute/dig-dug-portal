@@ -1,98 +1,83 @@
 <template>
         <div class="list-group-item">
             <template>
-                <!-- <h3>Data Table Name</h3> -->
-                <h3>GWAS Plot</h3>
-            </template>
-            <template>
-                <!-- TODO: check against these, make dynamic -->
-                <b>Input </b>
                 <div class="bioindex-concept-pellet phenotype">
                     Phenotype
                 </div>
-                <div class="bioindex-concept-pellet gene">
+                <div class="bioindex-concept-pellet locus">
                     Gene/Region
                 </div>
-                <!-- <div class="bioindex-concept-pellet phenotype">
-                    Phenotype
-                </div>
-                <div class="bioindex-concept-pellet gene">
-                    Gene/Region
-                </div> -->
-            </template>
-            <template>
-                <!-- TODO: check against these, make dynamic -->
-                <b>Output </b>
+                <h5 style="display:inline;margin-right:10px;">→</h5>
                 <div class="bioindex-concept-pellet none">
                     Variant
                 </div>
+                <div style="display:block;float:right;">
+                    <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp;
+                    <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
+                    <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+                    <button @click="$emit('remove', { metadata, filler })">Remove</button>
+                </div>
             </template>
 
-            <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
-            <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-            <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
-            <button @click="$emit('remove', { metadata, filler })">Remove</button>
-            <br>
+            <template>
+                <draggable
+                    class="dragArea list-group"
+                    :list="dragList"
+                    :group="{ name: 'data', pull: 'clone', put: false }"
+                    :clone="el => dragPayload">
+                    <div class="list-group-item"
+                        style="margin-bottom:10px;"
+                        v-for="(element) in dragList" :key="element.id">
+                        <h3 style="display:inline;">GWAS Plot</h3>&nbsp;
+                        <h4 v-if="filler" style="display:inline;">{{filler}}</h4>
+                    </div>
+                </draggable>
+            </template>
 
             <div v-if="submitted">
-
-                <template>
-                    <h4 class="card-title">
-                        {{filler}}
-                    </h4>
+                <template v-if="filler">
                     <locuszoom-gwas-wrapper
                         :phenotype="filler.phenotype"
                         :locus="filler.locus"
                     ></locuszoom-gwas-wrapper>
                 </template>
-
             </div>
-            <div v-else-if="!submitted">
 
+            <div v-else-if="!submitted">
                 <!-- TODO -->
                 <template>
-
-                    <!-- <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em> -->
-                    <div>
-                        <label for="card-input-phenotype">
-                            Phenotype
-                        </label>&nbsp;
-                        <input id="card-input-phenotype"
-                            :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
-                            @input="change($event, 'phenotype')"/><br>
-
-                        <label for="card-input-locus">
-                            Gene/Region
-                        </label>&nbsp;
-                        <input id="card-input-locus"
-                            :value="!!filler && !!filler.locus ? filler.locus : ''"
-                            @input="change($event, 'locus')"/><br>
-
-                        <button :disabled="!full" @click="submitted = true">Fill Card</button>
-
-                    </div>
-
                     <draggable
                         class="dragArea list-group"
                         :group="{
-                                  name:'cards',
-                                  put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
-                                }"
+                            name:'cards',
+                            put: ['data', 'dash-header']  // NOTE: these are constants shared on the main page!
+                        }"
                         :list="nulllist"
-                        @add="log"
                         @change="fill">
-                        <div
-                            slot="header"
-                            class="btn-group list-group-item"
-                            role="group"
-                            aria-label="Basic example">
-                            Drag Here
+
+                        <div slot="header" class="btn-group list-group-item">
+                            <em>Fill these inputs, or drag cards in from the sidebar or dashboard.</em><br>
+
+                            <label for="card-input-phenotype">
+                                Phenotype
+                            </label>&nbsp;
+                            <input id="card-input-phenotype"
+                                :value="!!filler && !!filler.phenotype ? filler.phenotype : ''"
+                                @input="change($event, 'phenotype')"/><br>
+
+                            <label for="card-input-locus">
+                                Gene/Region
+                            </label>&nbsp;
+                            <input id="card-input-locus"
+                                :value="!!filler && !!filler.locus ? filler.locus : ''"
+                                @input="change($event, 'locus')"/><br>
+
+                            <button :disabled="!full" @click="submitted = true">Fill Card</button>
+
                         </div>
+
                     </draggable>
-
-
                 </template>
-
             </div>
         </div>
 </template>
@@ -100,18 +85,31 @@
 import Vue from "vue"
 import draggable from "vuedraggable";
 import GWASLocusZoomWrapper from "../components/GWASLocusZoomWrapper"
+import idCounter from "@/utils/idCounter";
 
 export default Vue.component('locuszoom-gwas-plot-card', {
-    props: ['metadata'],
+    props: ['phenotype', 'locus', 'metadata', 'defaultSubmitted'],
     components: {
         draggable,
         GWASLocusZoomWrapper,
     },
     data() {
         return {
-            nulllist: [],  // necessary evil
             filler: null,
-            submitted: false,
+            nulllist: [],  // necessary evil
+            dragList: [{ id: idCounter.getUniqueId(), name: '' }], // another seemingly necessary evil
+            submitted: false,  // flag that lets us defer/semaphore when the table ought be rendered (versus always rendering it on any possible combination of strings filling the table, even when user is not finished typing)
+        }
+    },
+    created() {
+        if (!!this.phenotype && !!this.locus) {
+            // filler should be null before this point
+            this.filler = {};
+            this.filler = {
+                phenotype: this.phenotype,
+                locus: this.locus,
+            }
+            this.submitted = this.defaultSubmitted || true;
         }
     },
     methods: {
@@ -126,48 +124,56 @@ export default Vue.component('locuszoom-gwas-plot-card', {
 
         fill(event) {
             const { added } = event;
-            const i = added.element.name.split(';');
-            const [_, prefix, value] = i;
 
-            // typecheck
-                // apply if pass
-                // bounce if fail
-            if (!!added)
-            {
+            if (!!added) {
                 this.filler = this.filler || {};
 
-                if(prefix === 'phenotype') {
-                    this.filler = {
-                        ...this.filler,
-                        phenotype: value,
-                    };
-                }
-                if(prefix === 'gene' || prefix === 'region' || prefix === 'locus') {
-                    this.filler = {
-                        ...this.filler,
-                        locus: value,
-                    };
-                }
+                const [source, query] = added.element.name.split(';');
+                query.split('|').forEach(queryEl => {
+
+                    const [prefix, value] = queryEl.split(',');
+
+                    if(prefix === 'phenotype') {
+                        this.filler = {
+                            ...this.filler,
+                            phenotype: value,
+                        };
+                    }
+                    if(prefix === 'gene' || prefix === 'region' || prefix === 'locus') {
+                        this.filler = {
+                            ...this.filler,
+                            locus: value,
+                        };
+                    }
+
+                });
                 this.$forceUpdate();
 
+                // submit if last fill left us completely successful (gets rid of an extra step)
                 if (!!this.filler.phenotype && !!this.filler.locus) {
                     this.submitted = true;
                 }
 
             }
-
-
-
         }
     },
     computed: {
         full() {
-            return !!this.filler && !!this.filler.locus && !!this.filler.phenotype;
-        }
+            return !!this.filler && !!this.filler.phenotype && !!this.filler.locus;
+        },
+        dragName() {
+            return !!this.filler ? `${'locuszoom-gwas-plot'};phenotype,${this.filler.phenotype}|locus,${this.filler.locus}` : ``;
+        },
+        dragPayload() {
+            return {
+                id: idCounter.getUniqueId(),
+                name: this.dragName,
+            }
+        },
     },
 })
 </script>
-<style>
+<style scoped>
 
 .bioindex-concept-pellet {
     cursor: pointer;
@@ -185,7 +191,7 @@ export default Vue.component('locuszoom-gwas-plot-card', {
     border: solid 1px #30b7f6;
 }
 
-.bioindex-concept-pellet.gene {
+.bioindex-concept-pellet.locus {
     background-color: #b7eab7;
     border: solid 1px #72ce49;
 }
@@ -202,3 +208,4 @@ export default Vue.component('locuszoom-gwas-plot-card', {
 }
 
 </style>
+

@@ -1,35 +1,41 @@
 <template>
         <div class="list-group-item">
             <template>
-                <!-- <h3>Data Table Name</h3> -->
-                <h3>Variant Associations</h3>
-            </template>
-            <template>
-                <b>Input Types </b>
                 <div class="bioindex-concept-pellet none">
                     Variant
                 </div>
-            </template>
-            <template>
-                <b>Output Type </b>
-                <div class="bioindex-concept-pellet phenotype">
-                    Phenotype
+                <h5 style="display:inline;margin-right:10px;">→</h5>
+                <div class="bioindex-concept-pellet none">
+                    Variant
                 </div>
-                <div class="bioindex-concept-pellet gene">
-                    Gene/Region
+                <div style="display:block;float:right;">
+                    <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp;
+                    <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
+                    <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+                    <button @click="$emit('remove', { metadata, filler })">Remove</button>
                 </div>
             </template>
-            <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
-            <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-            <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
-            <button @click="$emit('remove', { metadata, filler })">Remove</button>
-            <br>
 
-            <div v-if="full">
-                <template>
-                    <h4 class="card-title">
-                        {{filler.varId}}
-                      </h4>
+            <template>
+                <draggable
+                    class="dragArea list-group"
+                    :list="dragList"
+                    :group="{ name: 'data', pull: 'clone', put: false }"
+                    :clone="el => dragPayload">
+                    <div class="list-group-item"
+                        style="margin-bottom:10px;"
+                        v-for="(element) in dragList" :key="element.id">
+                        <h3 style="display:inline;">
+                            <!-- TODO: documentation tags could use the same symbols as the queries to use these headers -->
+                            PheWAS Associations
+                        </h3>&nbsp;
+                        <h4 v-if="filler" style="display:inline;">{{filler}}</h4>
+                    </div>
+                </draggable>
+            </template>
+
+            <div v-if="submitted">
+                <template v-if="filler">
                     <phewas-table-wrapper
                         :varId="filler.varId"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
@@ -37,31 +43,32 @@
                 </template>
             </div>
 
-            <div v-else-if="!full">
+            <div v-else-if="!submitted">
                 <!-- TODO -->
                 <template>
-                    <em>Drag in Inputs, or fill in Inputs with valid elements from context or collection</em>
-                    <div>
-                        <label for="card-input-variant">
-                            Variant
-                        </label>&nbsp;
-                        <input id="card-input-variant"/>&nbsp;
-                    </div>
                     <draggable
                         class="dragArea list-group"
                         :group="{
                             name:'cards',
-                            put: ['data', 'viz', 'dash']  // NOTE: these are constants shared on the main page!
+                            put: ['data', 'dash-header']  // NOTE: these are constants shared on the main page!
                         }"
                         :list="nulllist"
                         @change="fill">
-                        <div
-                            slot="header"
-                            class="btn-group list-group-item"
-                            role="group"
-                            aria-label="Basic example">
-                            Drag Here
+
+                        <div slot="header" class="btn-group list-group-item">
+                            <em>Fill these inputs, or drag cards in from the sidebar or dashboard.</em><br>
+
+                            <label for="card-input-varId">
+                                Variant
+                            </label>&nbsp;
+                            <input id="card-input-varId"
+                                :value="!!filler && !!filler.varId ? filler.varId : ''"
+                                @input="change($event, 'varId')"/><br>
+
+                            <button :disabled="!full" @click="submitted = true">Fill Card</button>
+
                         </div>
+
                     </draggable>
                 </template>
             </div>
@@ -71,26 +78,31 @@
 <script>
 import Vue from "vue"
 import draggable from "vuedraggable";
-import PhenotypeAssociationsTableWrapper from "../components/PhenotypeAssociationsTableWrapper";
+import PheWASTableWrapper from "../components/PheWASTableWrapper.vue"
+import idCounter from "@/utils/idCounter";
 
 export default Vue.component('phewas-associations-card', {
-    props: ['varId', 'metadata'],
+    props: ['varId', 'metadata', 'defaultSubmitted'],
     components: {
         draggable,
-        PhenotypeAssociationsTableWrapper
+        PheWASTableWrapper
     },
     data() {
         return {
             filler: null,
-            nulllist: []  // necessary evil
+            nulllist: [],  // necessary evil
+            dragList: [{ id: idCounter.getUniqueId(), name: '' }], // another seemingly necessary evil
+            submitted: false,  // flag that lets us defer/semaphore when the table ought be rendered (versus always rendering it on any possible combination of strings filling the table, even when user is not finished typing)
         }
     },
     created() {
         if (!!this.varId) {
             // filler should be null before this point
+            this.filler = {};
             this.filler = {
                 varId: this.varId,
             }
+            this.submitted = this.defaultSubmitted || true;
         }
     },
     methods: {
@@ -102,38 +114,52 @@ export default Vue.component('phewas-associations-card', {
             };
             this.$forceUpdate();
         },
-        log: function(evt) {
-          window.console.log('log', evt);
-        },
         fill(event) {
             const { added } = event;
-            const i = added.element.name.split(';');
-            const [_, prefix, value] = i;
 
-            // typecheck
-                // apply if pass
-                // bounce if fail
             if (!!added) {
                 this.filler = this.filler || {};
-                if(prefix === 'varId' || prefix === 'variant') {
-                    this.filler = {
-                        ...this.filler,
-                        varId: value,
-                    };
-                }
-                this.$forceUpdate();
-            }
 
+                const [source, query] = added.element.name.split(';');
+                query.split('|').forEach(queryEl => {
+
+                    const [prefix, value] = queryEl.split(',');
+
+                    if(prefix === 'varId' || prefix === 'variant' ) {
+                        this.filler = {
+                            ...this.filler,
+                            varId: value,
+                        };
+                    }
+
+                });
+                this.$forceUpdate();
+
+                // submit if last fill left us completely successful (gets rid of an extra step)
+                if (!!this.filler.varId) {
+                    this.submitted = true;
+                }
+
+            }
         }
     },
     computed: {
         full() {
             return !!this.filler && !!this.filler.varId;
-        }
+        },
+        dragName() {
+            return !!this.filler ? `${'phewas-associations'};varId,${this.filler.varId}` : ``;
+        },
+        dragPayload() {
+            return {
+                id: idCounter.getUniqueId(),
+                name: this.dragName,
+            }
+        },
     },
 })
 </script>
-<style>
+<style scoped>
 
 .bioindex-concept-pellet {
     cursor: pointer;
@@ -151,7 +177,7 @@ export default Vue.component('phewas-associations-card', {
     border: solid 1px #30b7f6;
 }
 
-.bioindex-concept-pellet.gene {
+.bioindex-concept-pellet.locus {
     background-color: #b7eab7;
     border: solid 1px #72ce49;
 }
@@ -168,3 +194,5 @@ export default Vue.component('phewas-associations-card', {
 }
 
 </style>
+
+

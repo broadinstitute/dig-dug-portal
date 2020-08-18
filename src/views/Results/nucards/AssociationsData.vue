@@ -12,7 +12,7 @@
                     Variant
                 </div>
                 <div style="display:block;float:right;">
-                    <button :disabled="!!!filler" @click="filler = null">Clear</button>&nbsp;
+                    <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp;
                     <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
                     <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
                     <button @click="$emit('remove', { metadata, filler })">Remove</button>
@@ -22,19 +22,15 @@
             <template>
                 <draggable
                     class="dragArea list-group"
-                    :group="{
-                        name: 'dash-header',
-                        pull: 'clone',
-                    }"
-                    :list="[dragPayload]">
-                    <template slot="header">
-                        <div class="list-group-item" style="margin-bottom:10px;" v-for="(element) in [dragPayload]" :key="element.id">
-                            <h3 style="display:inline;">Associations</h3>&nbsp;
-                            <h5 style="display:inline;" v-if="full" class="card-title">
-                                {{!!filler ? JSON.stringify(filler): ''}}
-                            </h5>
-                        </div>
-                    </template>
+                    :list="dragList"
+                    :group="{ name: 'data', pull: 'clone', put: false }"
+                    :clone="el => dragPayload">
+                    <div class="list-group-item"
+                        style="margin-bottom:10px;"
+                        v-for="(element) in dragList" :key="element.id">
+                        <h3 style="display:inline;">Associations</h3>&nbsp;
+                        <h4 v-if="filler" style="display:inline;">{{filler}}</h4>
+                    </div>
                 </draggable>
             </template>
 
@@ -104,6 +100,7 @@ export default Vue.component('associations-card', {
         return {
             filler: null,
             nulllist: [],  // necessary evil
+            dragList: [{ id: idCounter.getUniqueId(), name: '' }], // another seemingly necessary evil
             submitted: false,  // flag that lets us defer/semaphore when the table ought be rendered (versus always rendering it on any possible combination of strings filling the table, even when user is not finished typing)
         }
     },
@@ -130,11 +127,6 @@ export default Vue.component('associations-card', {
         fill(event) {
             const { added } = event;
 
-
-            // TODO: pattern matching core
-            // typecheck
-                // apply if pass
-                // bounce if fail
             if (!!added) {
                 this.filler = this.filler || {};
 
@@ -142,7 +134,7 @@ export default Vue.component('associations-card', {
                 query.split('|').forEach(queryEl => {
 
                     const [prefix, value] = queryEl.split(',');
-                    
+
                     if(prefix === 'phenotype') {
                         this.filler = {
                             ...this.filler,
@@ -159,6 +151,11 @@ export default Vue.component('associations-card', {
                 });
                 this.$forceUpdate();
 
+                // submit if last fill left us completely successful (gets rid of an extra step)
+                if (!!this.filler.phenotype && !!this.filler.locus) {
+                    this.submitted = true;
+                }
+
             }
         }
     },
@@ -173,13 +170,12 @@ export default Vue.component('associations-card', {
             return {
                 id: idCounter.getUniqueId(),
                 name: this.dragName,
-                someGuddamData: 'data',
             }
-        }
+        },
     },
 })
 </script>
-<style>
+<style scoped>
 
 .bioindex-concept-pellet {
     cursor: pointer;

@@ -29,7 +29,7 @@ export default Vue.component('bioindex-data-picker', {
             // I am descending into depravity
             this.$emit('modify', {
                 target: {
-                    value: `${this.query};${this.value}`
+                    value: `${this.query},${this.value}`
                 }
             });
         }
