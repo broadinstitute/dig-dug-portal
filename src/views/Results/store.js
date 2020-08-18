@@ -25,6 +25,7 @@ export default new Vuex.Store({
         dataCache: {},
         busyBodies: [],
         collection: [],
+        resultsContext: {},
     },
     getters: {
         busy(state) {
@@ -37,6 +38,9 @@ export default new Vuex.Store({
         },
         lessBusy(state, queryHash) {
             state.busyBodies = state.busyBodies.filter(el => el != queryHash)
+        },
+        addResultsToContext(state, key, data) {
+            state.resultsContext[key] = data;
         }
     },
     actions: {
@@ -102,7 +106,16 @@ export default new Vuex.Store({
         },
         collectItem(context, item) {
             console.log('collecting item for store')
+            // TODO: refactor to commit?
             context.state.collection.push(item);
-        }
+        },
+        tap(context, message) {
+            console.log('tap store', message);
+        },
+        saveResultsIntoContext(context, message) {
+            console.log('saving results', message)
+            // TODO: refactor to commit?
+            context.state.resultsContext[message.key.name] = message.data;
+        },
     }
 });

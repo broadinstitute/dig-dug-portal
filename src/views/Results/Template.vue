@@ -30,10 +30,8 @@
                 <draggable
                     class="dragArea list-group"
                     :list="list1"
-                    :group="{ name: 'data', pull: 'clone', put: false }"
-                    :clone="cloneDog"
-                    @change="log"
-                >
+                    :clone="clone"
+                    :group="{ name: 'data', pull: 'clone', put: false }">
                     <!-- TODO: Element dispatch code goes here -->
                     <!-- TODO: This is bad because the template needs to know what cards it gets.
                                 Arguably this could be refactored into a method that adds element to a service component (like we're doing with LZ) -->
@@ -118,6 +116,8 @@
                                 @duplicate-self="clone"
                                 @duplicate-type="copy"
                                 @remove="removeAt(idx)"
+                                @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
+                                @name-change="modifyNameAt($event, idx)"
                             ></associations-card>
                             <associations-card
                                 v-else
@@ -125,6 +125,8 @@
                                 @duplicate-self="clone"
                                 @duplicate-type="copy"
                                 @remove="removeAt(idx)"
+                                @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
+                                @name-change="modifyNameAt($event, idx)"
                             ></associations-card>
                         </div>
 
@@ -176,6 +178,8 @@
                                 @duplicate-self="clone"
                                 @duplicate-type="copy"
                                 @remove="removeAt(idx)"
+                                @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
+                                @name-change="modifyNameAt($event, idx)"
                             ></associations-card>
 
                             <phenotype-associations-card
@@ -229,9 +233,7 @@
                 <draggable
                     class="dragArea list-group"
                     :list="list2"
-                    :group="{ name: 'viz', pull: 'clone', put: false }"
-                    :clone="cloneDog"
-                    @change="log">
+                    :group="{ name: 'viz', pull: 'clone', put: false }">
                     <draggable class="list-group-item" v-for="element in list2" :key="element.id">
                     {{ element.name }}
                     </draggable>
@@ -260,6 +262,7 @@ import PheWASViz from "./nucards/PheWASViz";
 import GWASViz from "./nucards/GWASViz";
 
 import BioIndexInputDataPicker from "./nucards/BioIndexInputDataPicker";
+import store from "./store"
 
 let idGlobal = 8;
 export default {
@@ -269,6 +272,7 @@ export default {
   components: {
     draggable
   },
+  store,
   data() {
     return {
         schema: BIOINDEX_SCHEMA,
@@ -305,17 +309,22 @@ export default {
     modifyAt($event, element, idx) {
         this.list1[idx].name = `${element};${$event.target.value}`;
     },
+    modifyNameAt(name, idx) {
+        console.group('modifyNameAt');
+        console.log('modified name will be', name, 'for', idx, 'on', this.list3[idx]);
+        this.list3[idx].name = name;
+        console.log('it is now', this.list3[idx]);
+        console.groupEnd()
+    },
     removeAt(idx) {
       this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))
     },
     // TODO: distinguish behavior for `copy` and `clone`
     copy(that) {
-        // refactor to stack
-        this.list3 = this.list3.concat({ ...that.metadata, id: idGlobal++ });
+        this.list3.unshift({ name: that.name, id: idGlobal++ });
     },
     clone(that) {
-        // refactor to stack
-        this.list3 = this.list3.concat({ ...that.metadata, id: idGlobal++ });
+        this.list3.unshift({ name: that.name, id: idGlobal++ });
     },
     log: function(evt) {
       window.console.log('logging', evt);

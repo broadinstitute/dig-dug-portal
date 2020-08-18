@@ -162,7 +162,7 @@ export default Vue.component('locuszoom-gwas-plot-card', {
             return !!this.filler && !!this.filler.phenotype && !!this.filler.locus;
         },
         dragName() {
-            return !!this.filler ? `${'locuszoom-gwas-plot'};phenotype,${this.filler.phenotype}|locus,${this.filler.locus}` : ``;
+            return `${'locuszoom-gwas-plot'};${!!this.filler ? `phenotype,${this.filler.phenotype}|locus,${this.filler.locus}` : ``}`
         },
         dragPayload() {
             return {

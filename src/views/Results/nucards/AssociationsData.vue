@@ -29,7 +29,9 @@
                         style="margin-bottom:10px;"
                         v-for="(element) in dragList" :key="element.id">
                         <h3 style="display:inline;">Associations</h3>&nbsp;
-                        <h4 v-if="filler" style="display:inline;">{{filler}}</h4>
+                        <h4 v-if="filler" style="display:inline;">
+                            {{filler}}
+                        </h4>
                     </div>
                 </draggable>
             </template>
@@ -40,6 +42,7 @@
                         :locus="filler.locus"
                         :phenotype="filler.phenotype"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        @broadcast="$emit('broadcast', { key: dragPayload, data: $event })"
                     ></associations-table-wrapper>
                 </template>
             </div>
@@ -164,7 +167,7 @@ export default Vue.component('associations-card', {
             return !!this.filler && !!this.filler.phenotype && !!this.filler.locus;
         },
         dragName() {
-            return !!this.filler ? `${'associations'};phenotype,${this.filler.phenotype}|locus,${this.filler.locus}` : ``;
+            return `${'associations'};${!!this.filler ? `phenotype,${this.filler.phenotype}|locus,${this.filler.locus}` : ``}`
         },
         dragPayload() {
             return {
@@ -173,6 +176,11 @@ export default Vue.component('associations-card', {
             }
         },
     },
+    watch: {
+        dragName(newName) {
+            this.$emit('name-change', newName);
+        }
+    }
 })
 </script>
 <style scoped>

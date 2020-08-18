@@ -148,7 +148,7 @@ export default Vue.component('phewas-associations-card', {
             return !!this.filler && !!this.filler.varId;
         },
         dragName() {
-            return !!this.filler ? `${'phewas-associations'};varId,${this.filler.varId}` : ``;
+            return `${'phewas-associations'};${!!this.filler ? `varId,${this.filler.varId}` : ``}`
         },
         dragPayload() {
             return {

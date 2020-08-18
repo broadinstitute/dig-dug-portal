@@ -143,7 +143,7 @@ export default Vue.component('locuszoom-phewas-plot-card', {
             return !!this.filler && !!this.filler.varId;
         },
         dragName() {
-            return !!this.filler ? `${'locuszoom-phewas-plot'};varId,${this.filler.varId}` : ``;
+           return `${'locuszoom-phewas-plot'};${!!this.filler ? `varId,${this.filler.varId}` : ``}`
         },
         dragPayload() {
             return {

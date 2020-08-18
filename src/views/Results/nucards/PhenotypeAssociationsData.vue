@@ -148,7 +148,7 @@ export default Vue.component('phenotype-associations-card', {
             return !!this.filler && !!this.filler.phenotype;
         },
         dragName() {
-            return !!this.filler ? `${'gwas-associations'};phenotype,${this.filler.phenotype}` : ``;
+            return `${'gwas-associations'};${!!this.filler ? `phenotype,${this.filler.phenotype}` : ``}`
         },
         dragPayload() {
             return {

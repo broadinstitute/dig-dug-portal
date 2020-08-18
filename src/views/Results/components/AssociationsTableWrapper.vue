@@ -28,7 +28,12 @@ export default Vue.component('associations-table-wrapper', {
         AssociationsTable
     },
     async created() {
-        await query('associations', `${this.phenotype},${this.locus}`, { limit: null, finishHandler: results => { this.associations = results.data } })
+        await query('associations', `${this.phenotype},${this.locus}`, { limit: null,
+            finishHandler: results => {
+                this.associations = results.data;
+                this.$emit('broadcast', this.associations);
+            }
+        })
     },
 })
 </script>
