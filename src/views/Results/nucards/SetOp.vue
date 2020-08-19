@@ -73,7 +73,6 @@ export default Vue.component('set-operation', {
             return operationResult;
         },
         fill(event) {
-            console.log('adding to set operation list')
             this.cardList = this.cardList.concat(event.added.element);
         }
     }

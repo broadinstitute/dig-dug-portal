@@ -332,10 +332,10 @@ export default {
     },
     // TODO: distinguish behavior for `copy` and `clone`
     copy(that) {
-        this.list3.unshift({ name: that.name, id: idGlobal++ });
+        this.list3.push({ name: that.name, id: idGlobal++ });
     },
     clone(that) {
-        this.list3.unshift({ name: that.name, id: idGlobal++ });
+        this.list3.push({ name: that.name, id: idGlobal++ });
     },
     log: function(evt) {
       window.console.log('logging', evt);
@@ -361,4 +361,9 @@ export default {
   opacity: 0.4;
   background-color: lawngreen;
 }
+
+.list-group-item {
+    margin-bottom: 5px;
+}
+
 </style>
