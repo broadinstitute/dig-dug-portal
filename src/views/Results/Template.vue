@@ -130,6 +130,18 @@
                             ></associations-card>
                         </div>
 
+                        <div v-if="element.name.split(';')[0] === 'associations-merger'">
+                            <associations-merge-data-card
+                                :options="list3.filter(item => item.name.match(/associations;/g))"
+                                @duplicate-self="clone"
+                                @duplicate-type="copy"
+                                @remove="removeAt(idx)"
+                                @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
+                                @name-change="modifyNameAt($event, idx)"
+                            ></associations-merge-data-card>
+                        </div>
+
+
                         <div v-if="element.name.split(';')[0] === 'phewas-associations'">
                             <phewas-associations-card
 
@@ -254,6 +266,7 @@ import { BIOINDEX_SCHEMA } from "./utils/resultsUtils"
 import PheWASData from "./nucards/PheWASData";
 
 import PhenotypeAssociationsData from "./nucards/PhenotypeAssociationsData";
+import AssociationsMergeData from "./nucards/AssociationsMergeData";
 import AssociationsData from "./nucards/AssociationsData";
 import FillTester from "./nucards/FillTester";
 import SetOp from "./nucards/SetOp";
@@ -280,6 +293,7 @@ export default {
             { name: `set;${['intersection', 'union', 'symmetric-difference'][0]}`, id: 1 },
             { name: `bioindex-query;${['associations', 'phewas-associations', 'gwas-associations', 'top-associations'][0]}`, id: 2 },
             { name: "bioindex-input", id: 3 },
+            { name: `associations-merger`, id: 9 },
             { name: 'phewas-associations;varId,2:27730940:T:C', id: 6 },
             { name: 'gwas-associations;phenotype,T2D', id: 7 },
             { name: 'associations;phenotype,T2D|locus,slc30a8', id: 8 }
@@ -310,11 +324,8 @@ export default {
         this.list1[idx].name = `${element};${$event.target.value}`;
     },
     modifyNameAt(name, idx) {
-        console.group('modifyNameAt');
-        console.log('modified name will be', name, 'for', idx, 'on', this.list3[idx]);
+        // console.log('modified name will be', name, 'for', idx, 'on', this.list3[idx]);
         this.list3[idx].name = name;
-        console.log('it is now', this.list3[idx]);
-        console.groupEnd()
     },
     removeAt(idx) {
       this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))

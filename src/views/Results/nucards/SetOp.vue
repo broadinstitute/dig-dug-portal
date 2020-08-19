@@ -1,6 +1,15 @@
 <template>
     <div>
-        {{operation}}
+        <template>
+            {{operation}}
+            <div style="display:block;float:right;">
+                <button :disabled="cardList.length === 0" @click="cardList = []">Clear</button>&nbsp;
+                <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
+                <button @click="$emit('remove', { metadata, cardList })">Remove</button>
+            </div>
+        </template>
+
+
         <multiselect
             v-model="cardList"
             :multiple="true"
