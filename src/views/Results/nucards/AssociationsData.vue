@@ -40,7 +40,7 @@
                 <template v-if="filler">
                     <associations-table-wrapper
                         :locus="filler.locus"
-                        :phenotype="filler.phenotype"
+                        :overlappingPhenotypes="[filler.phenotype]"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         @broadcast="$emit('broadcast', { key: dragPayload, data: $event })"
                     ></associations-table-wrapper>
@@ -94,7 +94,7 @@ import AssociationsTableWrapper from "../components/AssociationsTableWrapper.vue
 import idCounter from "@/utils/idCounter";
 
 export default Vue.component('associations-card', {
-    props: ['phenotype', 'locus', 'metadata', 'defaultSubmitted'],
+    props: ['phenotypes', 'locus', 'metadata', 'defaultSubmitted'],
     components: {
         draggable,
         AssociationsTableWrapper
@@ -108,11 +108,11 @@ export default Vue.component('associations-card', {
         }
     },
     created() {
-        if (!!this.phenotype && !!this.locus) {
+        if (!!this.phenotypes && !!this.locus) {
             // filler should be null before this point
             this.filler = {};
             this.filler = {
-                phenotype: this.phenotype,
+                phenotype: this.phenotypes,
                 locus: this.locus,
             }
             this.submitted = this.defaultSubmitted || true;

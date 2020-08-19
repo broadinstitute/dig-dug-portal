@@ -109,7 +109,7 @@
                             <associations-card
 
                                 v-if="element.name.split(';')[1].split('|')[0].split(',')[0] === 'phenotype' && element.name.split(';')[1].split('|')[1].split(',')[0] === 'locus' && !!element.name.split(';')[1].split('|')[0].split(',')[1] && !!element.name.split(';')[1].split('|')[1].split(',')[1]"
-                                :phenotype="element.name.split(';')[1].split('|')[0].split(',')[1]"
+                                :phenotypes="element.name.split(';')[1].split('|')[0].split(',')[1]"
                                 :locus="element.name.split(';')[1].split('|')[1].split(',')[1]"
 
                                 :metadata="element"

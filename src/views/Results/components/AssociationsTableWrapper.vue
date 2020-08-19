@@ -3,7 +3,7 @@
         <associations-table
             v-if="associations"
             :associations="associations"
-            :phenotypes="phenotypes"
+            :phenotypes="fullOverlappingPhenotypes"
         ></associations-table>
         <div v-else-if="!associations">
             Loading
@@ -17,23 +17,28 @@ import AssociationsTable from "@/components/AssociationsTable.vue"
 import { query } from "@/utils/bioIndexUtils"
 
 export default Vue.component('associations-table-wrapper', {
-    props: ['phenotype','locus','phenotypeMap'],
+    props: ['overlappingPhenotypes','locus','phenotypeMap'],
     data() {
         return {
             associations: null,
-            phenotypes: [this.phenotypeMap[this.phenotype]]
+            fullOverlappingPhenotypes: this.overlappingPhenotypes.map(phenotype => this.phenotypeMap[phenotype]),
         }
     },
     components: {
         AssociationsTable
     },
     async created() {
-        await query('associations', `${this.phenotype},${this.locus}`, { limit: null,
-            finishHandler: results => {
-                this.associations = results.data;
-                this.$emit('broadcast', this.associations);
-            }
-        })
+
+        const tempPhenotypes = this.overlappingPhenotypes;  // .split(',').map(prePhenotype => prePhenotype.trim()) //.concat('HEIGHT');
+        Promise.all(
+            tempPhenotypes.map(async (phenotype) => {
+                return await query('associations', `${phenotype},${this.locus}`, { limit: null });
+            })
+        ).then(results => {
+            this.associations = results.flatMap(id => id);
+            this.$emit('broadcast', this.associations);
+        });
+
     },
 })
 </script>
