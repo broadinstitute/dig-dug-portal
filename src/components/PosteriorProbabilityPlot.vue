@@ -45,32 +45,8 @@ export default Vue.component("posterior-probability-plot", {
     },
     methods: {
         generateChart() {
-            // var data = [
-            //     {
-            //         sale: "202",
-            //         year: "2000"
-            //     },
-            //     {
-            //         sale: "215",
-            //         year: "2001"
-            //     },
-            //     {
-            //         sale: "179",
-            //         year: "2002"
-            //     },
-            //     {
-            //         sale: "199",
-            //         year: "2003"
-            //     },
-            //     {
-            //         sale: "134",
-            //         year: "2003"
-            //     },
-            //     {
-            //         sale: "176",
-            //         year: "2010"
-            //     }
-            // ];
+           
+           
             var vis = d3.select("#visualisation"),
                 WIDTH = 1000,
                 HEIGHT = 500,
@@ -102,6 +78,10 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("transform", "translate(" + MARGINS.left + ",0)")
                 .call(yAxis);
 
+            var focus = vis.append("svg:g")
+            .style("display", "none"); 
+            
+
             var lineGen = d3
                 .line()
                 .x(function(d) {
@@ -117,6 +97,7 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("stroke", "green")
                 .attr("stroke-width", 2)
                 .attr("fill", "none");
+
         },
 
         posteriorProbability(p) {
@@ -166,9 +147,9 @@ export default Vue.component("posterior-probability-plot", {
     },
 
     watch: {
-        // columns(columns) {
-        //     this.chart.load({ columns });
-        // }
+        columns(columns) {
+            this.generateChart.load({ columns });
+        }
     }
 });
 
