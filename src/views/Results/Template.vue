@@ -151,6 +151,7 @@
 
                                 v-if="element.name.split(';')[1].split('|')[0].split('!')[0] === 'varId' && !!element.name.split(';')[1].split('|')[0].split('!')[1]"
                                 :varId="element.name.split(';')[1].split('|')[0].split('!')[1]"
+                                :defaultSubmitted="false"
 
                                 :metadata="element"
                                 @duplicate-self="copy"
@@ -159,6 +160,8 @@
                             <phewas-associations-card
                                 v-else
                                 :metadata="element"
+                                                                :defaultSubmitted="false"
+
                                 @duplicate-self="copy"
                                 @remove="removeAt(idx, $event)"
                             ></phewas-associations-card>
@@ -169,6 +172,7 @@
 
                                 v-if="element.name.split(';')[1].split('|')[0].split('!')[0] === 'phenotype' && !!element.name.split(';')[1].split('|')[0].split('!')[1]"
                                 :phenotype="element.name.split(';')[1].split('|')[0].split('!')[1]"
+                                :defaultSubmitted="false"
 
                                 :metadata="element"
                                 @duplicate-self="copy"
@@ -177,6 +181,8 @@
                             <phenotype-associations-card
                                 v-else
                                 :metadata="element"
+                                                                :defaultSubmitted="false"
+
                                 @duplicate-self="copy"
                                 @remove="removeAt(idx, $event)"
                             ></phenotype-associations-card>
@@ -197,6 +203,8 @@
                             <phenotype-associations-card
                                 v-if="element.name.split(';')[1] === 'gwas-associations'"
                                 :metadata="element"
+                                                                :defaultSubmitted="false"
+
                                 @duplicate-self="copy"
                                 @remove="removeAt(idx, $event)"
                             ></phenotype-associations-card>
@@ -204,6 +212,8 @@
                             <phewas-associations-card
                                 v-if="element.name.split(';')[1] === 'phewas-associations'"
                                 :metadata="element"
+                                                                :defaultSubmitted="false"
+
                                 @duplicate-self="copy"
                                 @remove="removeAt(idx, $event)"
                             ></phewas-associations-card>
