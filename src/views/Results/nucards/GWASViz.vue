@@ -15,7 +15,7 @@
                     <!-- <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp; -->
                     <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
                     <button @click="$emit('duplicate-self', { name: dragName })">Duplicate</button>&nbsp;
-                    <button @click="$emit('remove')">Remove</button>
+                    <button @click="$emit('remove', { metadata, filler })">Remove</button>
                 </div>
             </template>
 

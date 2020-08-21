@@ -56,7 +56,7 @@
                                 </option>
                             </select><br>
                             <!-- the arrow function representation is fake and just for illustration that the BioIndex should return the complete schema :) -->
-                            {{schema.data.filter(el => el.index === element.name.split(';')[1])[0].schema}} → variant
+                            {{schema.data.filter(el => el.index === element.name.split(';')[1])[0].schema}} <!-- → variant -->
 
                         </div>
                         <div v-if="element.name.split(';')[0] === 'bioindex-input'">
