@@ -306,7 +306,7 @@ export default {
              *
              */
             // { name: `set;${['intersection', 'union', 'symmetric-difference'][0]}`, id: 1 },
-            { name: `bioindex-query;${['associations', 'phewas-associations', 'gwas-associations', 'top-associations'][0]}`, id: 2 },
+            { name: `bioindex-query;${['associations', 'phewas-associations', 'gwas-associations', 'top-associations'][0]}`, id: idCounter.getUniqueId() },
             // { name: "bioindex-input", id: 3 },
             // { name: `associations-merger`, id: 9 },
             // { name: 'phewas-associations;varId!2:27730940:T:C', id: 6 },
@@ -316,8 +316,8 @@ export default {
         ],
         list2: [
             // { name: "fill-tester", id: 4 },
-            { name: "locuszoom-phewas-plot", id: idCounter.getUniqueId() },
             { name: "locuszoom-gwas-plot", id: idCounter.getUniqueId() },
+            { name: "locuszoom-phewas-plot", id: idCounter.getUniqueId() },
         ],
         list3: [],
         nullList: [],
