@@ -367,16 +367,6 @@ export default {
     tap: function(evt) {
       window.console.log('tapping',evt);
     },
-    cloneDog({ id, name }) {
-        const newId = idGlobal++;
-        if (!this.nullList[newId]) {
-            this.nullList[newId] = [];
-        };
-        return {
-            id: newId,
-            name: name
-        };
-    }
   }
 };
 </script>
