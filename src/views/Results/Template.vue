@@ -42,7 +42,6 @@
                                 Arguably this could be refactored into a method that adds element to a service component (like we're doing with LZ) -->
                     <!-- TODO: Serializing the data into strings is a stupid hack that is working around draggable, need to rethink this -->
                     <div class="list-group-item" v-for="(element, idx) in list1" :key="element.id">
-                        {{element.name}}
                         <select
                             v-if="element.name.split(';')[0] === 'set'"
                             @change="modifyAt($event, 'set', idx)">
@@ -55,8 +54,10 @@
                                 <option v-for="type in ['associations', 'phewas-associations', 'gwas-associations', 'top-associations']" :key="type">
                                     {{ type }}
                                 </option>
-                            </select>
-                            {{schema.data.filter(el => el.index === element.name.split(';')[1])[0].schema}}
+                            </select><br>
+                            <!-- the arrow function representation is fake and just for illustration that the BioIndex should return the complete schema :) -->
+                            {{schema.data.filter(el => el.index === element.name.split(';')[1])[0].schema}} → variant
+
                         </div>
                         <div v-if="element.name.split(';')[0] === 'bioindex-input'">
                             <bioindex-data-picker
@@ -81,7 +82,7 @@
                         put: ['data', 'viz'] // TODO: viz only? with data too?
                     }"
                     @change="log">
-                    <div class="list-group-item" v-for="(element, idx) in list3" :key="element.id">
+                    <div class="list-group-item" v-for="(element, idx) in list3" :key="element.id+idx">
                         <div v-if="element.name.split(';')[0] === 'set'">
                             <set-operation
                                 :operation="element.name.split(';')[1]"
@@ -98,7 +99,7 @@
                             :metadata="element"
                             @duplicate-self="copy"
                             @duplicate-type="copy"
-                            @remove="removeAt(idx)"
+                            @remove="removeAt(idx, $event)"
                         ></locuszoom-phewas-plot-card>
 
                         <locuszoom-gwas-plot-card
@@ -106,7 +107,7 @@
                             :metadata="element"
                             @duplicate-self="copy"
                             @duplicate-type="copy"
-                            @remove="removeAt(idx)"
+                            @remove="removeAt(idx, $event)"
                         ></locuszoom-gwas-plot-card>
 
                         <!-- e.g. associations;phenotype,T2D|locus,slc30a8 -->
@@ -119,7 +120,7 @@
                                 :defaultSubmitted="false"
                                 :metadata="element"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                                 @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
                                 @name-change="modifyNameAt($event, idx)"
                             ></associations-card>
@@ -128,7 +129,7 @@
                                 :metadata="element"
                                 :defaultSubmitted="false"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                                 @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
                                 @name-change="modifyNameAt($event, idx)"
                             ></associations-card>
@@ -138,7 +139,7 @@
                             <associations-merge-data-card
                                 :options="list3.filter(item => item.name.match(/associations;/g))"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                                 @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
                                 @name-change="modifyNameAt($event, idx)"
                             ></associations-merge-data-card>
@@ -153,13 +154,13 @@
 
                                 :metadata="element"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                             ></phewas-associations-card>
                             <phewas-associations-card
                                 v-else
                                 :metadata="element"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                             ></phewas-associations-card>
                         </div>
 
@@ -171,13 +172,13 @@
 
                                 :metadata="element"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                             ></phenotype-associations-card>
                             <phenotype-associations-card
                                 v-else
                                 :metadata="element"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                             ></phenotype-associations-card>
                         </div>
 
@@ -188,7 +189,7 @@
                                 :metadata="element"
                                 :defaultSubmitted="false"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                                 @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
                                 @name-change="modifyNameAt($event, idx)"
                             ></associations-card>
@@ -197,14 +198,14 @@
                                 v-if="element.name.split(';')[1] === 'gwas-associations'"
                                 :metadata="element"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                             ></phenotype-associations-card>
 
                             <phewas-associations-card
                                 v-if="element.name.split(';')[1] === 'phewas-associations'"
                                 :metadata="element"
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                             ></phewas-associations-card>
 
                         </div>
@@ -220,7 +221,7 @@
                         <div v-if="element.name.split(';')[0] === 'fill-tester'">
                             <fill-tester
                                 @duplicate-self="copy"
-                                @remove="removeAt(idx)"
+                                @remove="removeAt(idx, $event)"
                             />
                         </div>
 
@@ -274,8 +275,8 @@ import GWASViz from "./nucards/GWASViz";
 
 import BioIndexInputDataPicker from "./nucards/BioIndexInputDataPicker";
 import store from "./store"
-
-let idGlobal = 8;
+import idCounter from "@/utils/idCounter"
+let idGlobal = 9;
 export default {
   name: "custom-clone",
   display: "Custom Clone",
@@ -300,12 +301,13 @@ export default {
             // { name: `associations-merger`, id: 9 },
             // { name: 'phewas-associations;varId!2:27730940:T:C', id: 6 },
             // { name: 'gwas-associations;phenotype!T2D', id: 7 },
-            { name: 'associations;phenotype!T2D|locus!slc30a8', id: 8 }
+            // { name: 'associations;phenotype!T2D|locus!slc30a8', id: idCounter.getUniqueId() },
+            // { name: 'associations;phenotype!HEIGHT|locus!slc30a8', id: idCounter.getUniqueId() }
         ],
         list2: [
             // { name: "fill-tester", id: 4 },
-            { name: "locuszoom-phewas-plot", id: 5 },
-            { name: "locuszoom-gwas-plot", id: 6 },
+            { name: "locuszoom-phewas-plot", id: idCounter.getUniqueId() },
+            { name: "locuszoom-gwas-plot", id: idCounter.getUniqueId() },
         ],
         list3: [],
         nullList: [],
@@ -328,15 +330,22 @@ export default {
         // console.log('modified name will be', name, 'for', idx, 'on', this.list3[idx]);
         this.list3[idx].name = name;
     },
-    removeAt(idx) {
-        this.list3 = this.list3.filter((_, inc) => inc !== idx);
+    removeAt(idx, { targetElement }) {
+        console.log('remove at from', idx, targetElement)
+        // prioritize targetElement (even though it's an optional argument)
+        if (!!targetElement) {
+            console.log('removing with target element')
+            this.list3 = this.list3.filter(element => element.id !== targetElement.id);
+        } else {
+            this.list3 = this.list3.filter((_, inc) => inc !== idx);
+        }
     },
     // TODO: distinguish behavior for `copy` and `clone`
     copy(that) {
-        this.list3.push({ name: that.name, id: idGlobal++ });
+        this.list3.push({ name: that.name, id: idCounter.getUniqueId() });
     },
     clone(that) {
-        const newId = idGlobal++;
+        const newId = idCounter.getUniqueId();
         return {
             id: newId,
             name: that.name

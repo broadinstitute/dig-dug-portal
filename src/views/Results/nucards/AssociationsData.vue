@@ -23,7 +23,12 @@
                 <draggable
                     class="dragArea list-group"
                     :list="dragList"
-                    :group="{ name: 'data', pull: 'clone', put: false }"
+                    :group="{ name: 'data',
+                              pull: function(to, from) {
+                                  // TODO: logic that 
+                                  return 'clone'
+                              },
+                              put: false }"
                     :clone="el => dragPayload">
                     <div class="list-group-item"
                         style="margin-bottom:10px;background-color:#efefef;"
@@ -131,7 +136,7 @@ export default Vue.component('associations-card', {
             cardList: [],
             filler: null,
             nulllist: [],  // necessary evil
-            dragList: [{ id: idCounter.getUniqueId(), name: '' }], // another seemingly necessary evil
+            dragList: [{ id: this.metadata.id, name: '' }], // another seemingly necessary evil
             submitted: false,  // flag that lets us defer/semaphore when the table ought be rendered (versus always rendering it on any possible combination of strings filling the table, even when user is not finished typing)
         }
     },
@@ -163,7 +168,13 @@ export default Vue.component('associations-card', {
                 // TODO: bad and ugly. this whole part of the system of keeping track of combined cards needs to be rewritten
                 this.cardList = this.cardList.concat(event.added.element);
                 this.filler.phenotype = lodash.uniqBy([].concat(this.filler.phenotype).concat(this.cardList.map(card => card.name.split(';')[1].split('|')[0].split('!')[1])));
+
+                // remove the associations table (ONLY MAKES SENSE WHEN THEY'RE BEING MERGED, *NOT* WHEN THEY'RE BEING REPRESENTED BY A VIZ)
+                this.$emit('remove', {
+                    targetElement: event.added.element
+                });
             }
+
         },
         change($event, property) {
             this.filler = this.filler || {};
@@ -224,7 +235,8 @@ export default Vue.component('associations-card', {
         },
         dragPayload() {
             return {
-                id: idCounter.getUniqueId(),
+                // revising all IDs to indexes might help eliminate the need to pass metdata
+                id: this.metadata.id,
                 name: this.dragName,
             }
         },
