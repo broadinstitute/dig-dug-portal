@@ -82,7 +82,7 @@
                         put: ['data', 'viz'] // TODO: viz only? with data too?
                     }"
                     @change="log">
-                    <div class="list-group-item" v-for="(element, idx) in list3" :key="element.id+idx">
+                    <div class="list-group-item" v-for="(element, idx) in list3" :key="element.id">
                         <div v-if="element.name.split(';')[0] === 'set'">
                             <set-operation
                                 :operation="element.name.split(';')[1]"
