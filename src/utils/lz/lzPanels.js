@@ -362,30 +362,28 @@ _LZBioIndexSource.prototype.parseInit = function (params) {
         errHandler,
     });
     this.initialData = initialData;
-    console.log(params)
 };
 _LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;
-    console.log('initialData is', this.initialData)
     return new Promise((resolve, reject) => {
         const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
         if (!!this.initialData) {
 
-            console.log('consuming initialData', self.initialData);
+            // cosuming initialData
+
             // TODO: would be nice if we could guarantee that self.translator is idempotent,
             // e.g. translating BioIndex shape should give LocusZoom shape, but translating LocusZoom shape will be (a) guaranteed to run without error and (b) also produce the same LocusZoom shape
             closeAlert(alertID);
             resolve(self.translator(self.initialData));
 
             // modeling the consumption this.initialData after first use by assigning it to null
-            // thank you senseijean-yves girard-chan
+            // thank you sensei jean-yves girard-chan
             self.initialData = null;  
 
         } else {
-
-            console.log('not consuming initialData – there either wasn\'t any or none left');
+            // not consuming initialData – there either wasn\'t any or none left
             self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
-                console.log('calling data from bioindex')
+                // calling data from BioIndex
                 if (err) {
                     closeAlert(alertID);
                     postAlertError(err.detail);
