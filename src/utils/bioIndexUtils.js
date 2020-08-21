@@ -6,12 +6,12 @@
 import querystring from "query-string";
 
 // updated at compile-time to the dev or production BioIndex server
-export const BIO_INDEX_HOST = "http://SERVER_IP_ADDRESS:5000";
+export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
 
 /* Useful for /api/raw end-points and other requests.
  */
 export function rawUrl(path) {
-    if (path.startsWith('/')) {
+    if (path.startsWith("/")) {
         path = path.substr(1);
     }
 
@@ -21,10 +21,11 @@ export function rawUrl(path) {
 /* Build a generic request to a BioIndex end-point.
  */
 export async function request(path, query_params) {
-    let qs = query_params && querystring.stringify(query_params, { skipNull: true });
+    let qs =
+        query_params && querystring.stringify(query_params, { skipNull: true });
 
     // use the rawUrl to get the location in the BioIndex
-    return fetch(rawUrl(`${path}?${qs || ''}`));
+    return fetch(rawUrl(`${path}?${qs || ""}`));
 }
 
 /* Perform a BioIndex query.
