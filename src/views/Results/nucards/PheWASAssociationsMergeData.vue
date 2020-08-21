@@ -5,7 +5,7 @@
                     Phenotype
                 </div>
                 <div class="bioindex-concept-pellet locus">
-                    Gene/Region
+                    Locus
                 </div>
                 <h5 style="display:inline;margin-right:10px;">→</h5>
                 <div class="bioindex-concept-pellet none">

@@ -5,7 +5,7 @@
                     Phenotype
                 </div>
                 <div class="bioindex-concept-pellet locus">
-                    Gene/Region
+                    Locus
                 </div>
                 <h5 style="display:inline;margin-right:10px;">→</h5>
                 <div class="bioindex-concept-pellet none">
@@ -85,7 +85,7 @@
                                 @input="change($event, 'phenotype')"/><br>
 
                             <label for="card-input-locus">
-                                Gene/Region
+                                Locus
                             </label>&nbsp;
                             <input id="card-input-locus"
                                 :value="!!filler && !!filler.locus ? filler.locus : ''"
