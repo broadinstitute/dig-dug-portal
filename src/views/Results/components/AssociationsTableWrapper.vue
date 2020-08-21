@@ -1,7 +1,7 @@
 <template>
     <div>
         <associations-table
-            v-if="associations"
+            v-if="associations && fullOverlappingPhenotypes"
             :associations="associations"
             :phenotypes="fullOverlappingPhenotypes"
         ></associations-table>
@@ -13,32 +13,44 @@
 <script>
 import Vue from "vue"
 import AssociationsTable from "@/components/AssociationsTable.vue"
-
 import { query } from "@/utils/bioIndexUtils"
+import { isEqual } from "lodash";
 
 export default Vue.component('associations-table-wrapper', {
     props: ['overlappingPhenotypes','locus','phenotypeMap'],
     data() {
         return {
             associations: null,
-            fullOverlappingPhenotypes: this.overlappingPhenotypes.map(phenotype => this.phenotypeMap[phenotype]),
+            fullOverlappingPhenotypes: null,
         }
     },
     components: {
         AssociationsTable
     },
     async created() {
-
-        const tempPhenotypes = this.overlappingPhenotypes;  // .split(',').map(prePhenotype => prePhenotype.trim()) //.concat('HEIGHT');
-        Promise.all(
-            tempPhenotypes.map(async (phenotype) => {
-                return await query('associations', `${phenotype},${this.locus}`, { limit: null });
-            })
-        ).then(results => {
-            this.associations = results.flatMap(id => id);
-            this.$emit('broadcast', this.associations);
-        });
-
+        console.log('created', this.overlappingPhenotypes)
+        this.getAssociationsForPhenotypes(this.overlappingPhenotypes);
     },
+    methods: {
+        getAssociationsForPhenotypes(phenotypes) {
+            Promise.all(
+                phenotypes.map(async (phenotype) => {
+                    return await query('associations', `${phenotype},${this.locus}`, { limit: null });
+                })
+            ).then(results => {
+                this.fullOverlappingPhenotypes = phenotypes.map(phenotype => this.phenotypeMap[phenotype]),
+                this.associations = results.flatMap(id => id);
+                this.$emit('broadcast', this.associations);
+            });
+        }
+    },
+    watch: {
+        overlappingPhenotypes(newOverlappingPhenotypes, oldOverlappingPhenotypes) {
+            if(!isEqual(newOverlappingPhenotypes, oldOverlappingPhenotypes)) {
+                this.associations = null;
+                this.getAssociationsForPhenotypes(newOverlappingPhenotypes);
+            }
+        }
+    }
 })
 </script>

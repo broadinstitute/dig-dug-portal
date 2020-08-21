@@ -1,5 +1,5 @@
 <template>
-    <div v-if="phenotype">
+    <div v-if="phenotypes">
         <locuszoom
             v-if="region"
             :chr="region.chr"
@@ -7,6 +7,8 @@
             :end="region.end"
             :refSeq="true">
             <lz-associations-panel
+                v-for="phenotype in phenotypes"
+                :key="phenotype"
                 :phenotype="phenotype"
             ></lz-associations-panel>
         </locuszoom>
@@ -19,7 +21,7 @@ import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociat
 import { parseRegionAsync } from "@/utils/regionUtils";
 
 export default Vue.component('locuszoom-gwas-wrapper', {
-    props: ['phenotype','locus'],
+    props: ['phenotypes','locus'],
     components: {
         LocusZoom,
         LocusZoomAssociationsPanel,

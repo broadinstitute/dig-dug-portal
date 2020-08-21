@@ -1,5 +1,10 @@
 <template>
     <div>
+        <results-global-tooltip>
+            <template></template>
+            <template></template>
+            <template></template>
+        </results-global-tooltip>
         <!-- <h2>Bucket Prototype</h2> -->
 
         <!-- Visualization/Tool Cards [VTC] Take Arbitrary BioIndex Data and give arbitrary objects (BioIndex or otherwise) -->
@@ -91,7 +96,7 @@
                         <locuszoom-phewas-plot-card
                             v-if="element.name.split(';')[0] === 'locuszoom-phewas-plot'"
                             :metadata="element"
-                            @duplicate-self="clone"
+                            @duplicate-self="copy"
                             @duplicate-type="copy"
                             @remove="removeAt(idx)"
                         ></locuszoom-phewas-plot-card>
@@ -99,7 +104,7 @@
                         <locuszoom-gwas-plot-card
                             v-if="element.name.split(';')[0] === 'locuszoom-gwas-plot'"
                             :metadata="element"
-                            @duplicate-self="clone"
+                            @duplicate-self="copy"
                             @duplicate-type="copy"
                             @remove="removeAt(idx)"
                         ></locuszoom-gwas-plot-card>
@@ -108,13 +113,12 @@
                         <div v-if="element.name.split(';')[0] === 'associations'">
                             <associations-card
 
-                                v-if="element.name.split(';')[1].split('|')[0].split(',')[0] === 'phenotype' && element.name.split(';')[1].split('|')[1].split(',')[0] === 'locus' && !!element.name.split(';')[1].split('|')[0].split(',')[1] && !!element.name.split(';')[1].split('|')[1].split(',')[1]"
-                                :phenotypes="element.name.split(';')[1].split('|')[0].split(',')[1]"
-                                :locus="element.name.split(';')[1].split('|')[1].split(',')[1]"
-
+                                v-if="element.name.split(';')[1].split('|')[0].split('!')[0] === 'phenotype' && element.name.split(';')[1].split('|')[1].split('!')[0] === 'locus' && !!element.name.split(';')[1].split('|')[0].split('!')[1] && !!element.name.split(';')[1].split('|')[1].split('!')[1]"
+                                :phenotypes="element.name.split(';')[1].split('|')[0].split('!')[1]"
+                                :locus="element.name.split(';')[1].split('|')[1].split('!')[1]"
+                                :defaultSubmitted="false"
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                                 @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
                                 @name-change="modifyNameAt($event, idx)"
@@ -122,8 +126,8 @@
                             <associations-card
                                 v-else
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                :defaultSubmitted="false"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                                 @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
                                 @name-change="modifyNameAt($event, idx)"
@@ -133,8 +137,7 @@
                         <div v-if="element.name.split(';')[0] === 'associations-merger'">
                             <associations-merge-data-card
                                 :options="list3.filter(item => item.name.match(/associations;/g))"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                                 @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
                                 @name-change="modifyNameAt($event, idx)"
@@ -145,19 +148,17 @@
                         <div v-if="element.name.split(';')[0] === 'phewas-associations'">
                             <phewas-associations-card
 
-                                v-if="element.name.split(';')[1].split('|')[0].split(',')[0] === 'varId' && !!element.name.split(';')[1].split('|')[0].split(',')[1]"
-                                :varId="element.name.split(';')[1].split('|')[0].split(',')[1]"
+                                v-if="element.name.split(';')[1].split('|')[0].split('!')[0] === 'varId' && !!element.name.split(';')[1].split('|')[0].split('!')[1]"
+                                :varId="element.name.split(';')[1].split('|')[0].split('!')[1]"
 
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                             ></phewas-associations-card>
                             <phewas-associations-card
                                 v-else
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                             ></phewas-associations-card>
                         </div>
@@ -165,19 +166,17 @@
                         <div v-if="element.name.split(';')[0] === 'gwas-associations'">
                             <phenotype-associations-card
 
-                                v-if="element.name.split(';')[1].split('|')[0].split(',')[0] === 'phenotype' && !!element.name.split(';')[1].split('|')[0].split(',')[1]"
-                                :phenotype="element.name.split(';')[1].split('|')[0].split(',')[1]"
+                                v-if="element.name.split(';')[1].split('|')[0].split('!')[0] === 'phenotype' && !!element.name.split(';')[1].split('|')[0].split('!')[1]"
+                                :phenotype="element.name.split(';')[1].split('|')[0].split('!')[1]"
 
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                             ></phenotype-associations-card>
                             <phenotype-associations-card
                                 v-else
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                             ></phenotype-associations-card>
                         </div>
@@ -187,8 +186,8 @@
                             <associations-card
                                 v-if="element.name.split(';')[1] === 'associations'"
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                :defaultSubmitted="false"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                                 @broadcast="$store.dispatch('saveResultsIntoContext', $event)"
                                 @name-change="modifyNameAt($event, idx)"
@@ -197,16 +196,14 @@
                             <phenotype-associations-card
                                 v-if="element.name.split(';')[1] === 'gwas-associations'"
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                             ></phenotype-associations-card>
 
                             <phewas-associations-card
                                 v-if="element.name.split(';')[1] === 'phewas-associations'"
                                 :metadata="element"
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                             ></phewas-associations-card>
 
@@ -215,15 +212,14 @@
                         <div v-if="element.name.split(';')[0] === 'bioindex-input'">
                             <div class="list-group-item">
                                 Bioindex Input<br>
-                                {{element.name.split(';')[1].split(',')[0]}} {{element.name.split(';')[1].split(',')[1]}}<br>
+                                {{element.name.split(';')[1].split('!')[0]}} {{element.name.split(';')[1].split('!')[1]}}<br>
                                 TODO: show list of actions here
                             </div>
                         </div>
 
                         <div v-if="element.name.split(';')[0] === 'fill-tester'">
                             <fill-tester
-                                @duplicate-self="clone"
-                                @duplicate-type="copy"
+                                @duplicate-self="copy"
                                 @remove="removeAt(idx)"
                             />
                         </div>
@@ -265,6 +261,8 @@ import { BIOINDEX_SCHEMA } from "./utils/resultsUtils"
 
 import PheWASData from "./nucards/PheWASData";
 
+import ResultsGlobalTooltip from "./navs/ResultsGlobalTooltip"
+
 import PhenotypeAssociationsData from "./nucards/PhenotypeAssociationsData";
 import AssociationsMergeData from "./nucards/AssociationsMergeData";
 import AssociationsData from "./nucards/AssociationsData";
@@ -283,26 +281,29 @@ export default {
   display: "Custom Clone",
   order: 3,
   components: {
-    draggable
+    draggable,
+    ResultsGlobalTooltip
   },
   store,
   data() {
     return {
         schema: BIOINDEX_SCHEMA,
         list1: [
-            { name: `set;${['intersection', 'union', 'symmetric-difference'][0]}`, id: 1 },
+            // TODO: set intersections
+            /*
+             * Card Navigation Buttons
+             *
+             */
+            // { name: `set;${['intersection', 'union', 'symmetric-difference'][0]}`, id: 1 },
             { name: `bioindex-query;${['associations', 'phewas-associations', 'gwas-associations', 'top-associations'][0]}`, id: 2 },
-            { name: "bioindex-input", id: 3 },
-            { name: `associations-merger`, id: 9 },
-            { name: 'phewas-associations;varId,2:27730940:T:C', id: 6 },
-            { name: 'gwas-associations;phenotype,T2D', id: 7 },
-            { name: 'associations;phenotype,T2D|locus,slc30a8', id: 8 }
+            // { name: "bioindex-input", id: 3 },
+            // { name: `associations-merger`, id: 9 },
+            // { name: 'phewas-associations;varId!2:27730940:T:C', id: 6 },
+            // { name: 'gwas-associations;phenotype!T2D', id: 7 },
+            { name: 'associations;phenotype!T2D|locus!slc30a8', id: 8 }
         ],
         list2: [
-            // { name: "visualization 1", id: 1 },
-            // { name: "visualization 2", id: 2 },
-            // { name: "visualization 3", id: 3 },
-            { name: "fill-tester", id: 4 },
+            // { name: "fill-tester", id: 4 },
             { name: "locuszoom-phewas-plot", id: 5 },
             { name: "locuszoom-gwas-plot", id: 6 },
         ],
@@ -328,14 +329,18 @@ export default {
         this.list3[idx].name = name;
     },
     removeAt(idx) {
-      this.list3 = this.list3.splice(0, idx).concat(this.list3.splice(idx + 1, this.list3.length))
+        this.list3 = this.list3.filter((_, inc) => inc !== idx);
     },
     // TODO: distinguish behavior for `copy` and `clone`
     copy(that) {
         this.list3.push({ name: that.name, id: idGlobal++ });
     },
     clone(that) {
-        this.list3.push({ name: that.name, id: idGlobal++ });
+        const newId = idGlobal++;
+        return {
+            id: newId,
+            name: that.name
+        };
     },
     log: function(evt) {
       window.console.log('logging', evt);

@@ -5,7 +5,7 @@
             <div style="display:block;float:right;">
                 <button :disabled="cardList.length === 0" @click="cardList = []">Clear</button>&nbsp;
                 <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-                <button @click="$emit('remove', { metadata, cardList })">Remove</button>
+                <button @click="$emit('remove')">Remove</button>
             </div>
         </template>
 

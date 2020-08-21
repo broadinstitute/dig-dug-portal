@@ -1,5 +1,5 @@
 <template>
-        <div class="list-group-item">
+        <div>
             <template>
                 <div class="bioindex-concept-pellet none">
                     Variant
@@ -9,9 +9,9 @@
                     Variant
                 </div>
                 <div style="display:block;float:right;">
-                    <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp;
+                    <!-- <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp; -->
                     <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-                    <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+                    <button @click="$emit('duplicate-self', { name: dragName })">Duplicate</button>&nbsp;
                     <button @click="$emit('remove', { metadata, filler })">Remove</button>
                 </div>
             </template>
@@ -23,13 +23,18 @@
                     :group="{ name: 'data', pull: 'clone', put: false }"
                     :clone="el => dragPayload">
                     <div class="list-group-item"
-                        style="margin-bottom:10px;"
+                        style="margin-bottom:10px;background-color:#efefef;"
                         v-for="(element) in dragList" :key="element.id">
-                        <h3 style="display:inline;">
-                            <!-- TODO: documentation tags could use the same symbols as the queries to use these headers -->
-                            PheWAS Associations
-                        </h3>&nbsp;
-                        <h4 v-if="filler" style="display:inline;">{{filler}}</h4>
+                        <div>
+                            <h3 v-if="submitted && filler" style="display:inline;">PheWAS Associations</h3>&nbsp;
+                            <h3 v-else style="display:inline;">PheWAS Associations</h3>&nbsp;
+                            <div style="display:block;float:right;">
+                                Drag and Drop
+                            </div>
+                        </div>
+                        <span v-if="submitted && filler" style="display:inline;">
+                            {{filler | lineOfKeys}}
+                        </span>
                     </div>
                 </draggable>
             </template>
@@ -89,8 +94,10 @@ export default Vue.component('phewas-associations-card', {
     },
     data() {
         return {
-            filler: null,
-            nulllist: [],  // necessary evil
+            filler: {
+                // NOTE: Default value here for demo purposes, otherwise filler should be `null` on initialization
+                varId: '2:27730940:T:C'
+            },            nulllist: [],  // necessary evil
             dragList: [{ id: idCounter.getUniqueId(), name: '' }], // another seemingly necessary evil
             submitted: false,  // flag that lets us defer/semaphore when the table ought be rendered (versus always rendering it on any possible combination of strings filling the table, even when user is not finished typing)
         }
@@ -103,6 +110,16 @@ export default Vue.component('phewas-associations-card', {
                 varId: this.varId,
             }
             this.submitted = this.defaultSubmitted || true;
+        }
+    },
+    filters: {
+        lineOfKeys(object) {
+            let list = [];
+            Object.entries(object).forEach(item => {
+                const [key, value] = item;
+                list.push(`${key}: ${value}`)
+            })
+            return list.join(', ');
         }
     },
     methods: {
@@ -123,7 +140,7 @@ export default Vue.component('phewas-associations-card', {
                 const [source, query] = added.element.name.split(';');
                 query.split('|').forEach(queryEl => {
 
-                    const [prefix, value] = queryEl.split(',');
+                    const [prefix, value] = queryEl.split('!');
 
                     if(prefix === 'varId' || prefix === 'variant' ) {
                         this.filler = {
@@ -148,7 +165,7 @@ export default Vue.component('phewas-associations-card', {
             return !!this.filler && !!this.filler.varId;
         },
         dragName() {
-            return `${'phewas-associations'};${!!this.filler ? `varId,${this.filler.varId}` : ``}`
+            return `${'phewas-associations'};${!!this.filler ? `varId!${this.filler.varId}` : ``}`
         },
         dragPayload() {
             return {

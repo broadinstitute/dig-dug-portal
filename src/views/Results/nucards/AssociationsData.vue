@@ -1,5 +1,5 @@
 <template>
-        <div class="list-group-item">
+        <div>
             <template>
                 <div class="bioindex-concept-pellet phenotype">
                     Phenotype
@@ -12,9 +12,9 @@
                     Variant
                 </div>
                 <div style="display:block;float:right;">
-                    <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp;
+                    <!-- <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp; -->
                     <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-                    <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
+                    <button @click="$emit('duplicate-self', { name: dragName })">Duplicate</button>&nbsp;
                     <button @click="$emit('remove', { metadata, filler })">Remove</button>
                 </div>
             </template>
@@ -26,25 +26,51 @@
                     :group="{ name: 'data', pull: 'clone', put: false }"
                     :clone="el => dragPayload">
                     <div class="list-group-item"
-                        style="margin-bottom:10px;"
+                        style="margin-bottom:10px;background-color:#efefef;"
                         v-for="(element) in dragList" :key="element.id">
-                        <h3 style="display:inline;">Associations</h3>&nbsp;
-                        <h4 v-if="filler" style="display:inline;">
-                            {{filler}}
-                        </h4>
+                        <div>
+                            <h3 v-if="submitted && filler" style="display:inline;">Associations</h3>&nbsp;
+                            <h3 v-else style="display:inline;">Associations</h3>&nbsp;
+                            <div style="display:block;float:right;">
+                                Drag and Drop
+                            </div>
+                        </div>
+                        <span v-if="submitted && filler" style="display:inline;">
+                            {{filler | lineOfKeys}}
+                        </span>
                     </div>
                 </draggable>
             </template>
 
             <div v-if="submitted">
-                <template v-if="filler">
-                    <associations-table-wrapper
-                        :locus="filler.locus"
-                        :overlappingPhenotypes="[filler.phenotype]"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                        @broadcast="$emit('broadcast', { key: dragPayload, data: $event })"
-                    ></associations-table-wrapper>
+                <template>
+                    <draggable
+                        class="dragArea list-group"
+                        :group="{
+                                name:'cards',
+                                put: ['dash-header', 'data']  // NOTE: these are constants shared on the main page!
+                            }"
+                        :list="nulllist"
+                        @change="fillCard">
+
+                        <div
+                            slot="header"
+                            class="btn-group list-group-item"
+                            role="group"
+                            aria-label="Basic example">
+                            <template v-if="filler">
+                                <associations-table-wrapper
+                                    :locus="filler.locus"
+                                    :overlappingPhenotypes="overlappingPhenotypes"
+                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    @broadcast="$emit('broadcast', { key: dragPayload, data: $event })"
+                                ></associations-table-wrapper>
+                            </template>
+                        </div>
+
+                    </draggable>
                 </template>
+
             </div>
 
             <div v-else-if="!submitted">
@@ -92,7 +118,8 @@ import Vue from "vue"
 import draggable from "vuedraggable";
 import AssociationsTableWrapper from "../components/AssociationsTableWrapper.vue"
 import idCounter from "@/utils/idCounter";
-
+import { query } from "../../../utils/bioIndexUtils";
+import lodash from "lodash";
 export default Vue.component('associations-card', {
     props: ['phenotypes', 'locus', 'metadata', 'defaultSubmitted'],
     components: {
@@ -101,6 +128,7 @@ export default Vue.component('associations-card', {
     },
     data() {
         return {
+            cardList: [],
             filler: null,
             nulllist: [],  // necessary evil
             dragList: [{ id: idCounter.getUniqueId(), name: '' }], // another seemingly necessary evil
@@ -115,10 +143,28 @@ export default Vue.component('associations-card', {
                 phenotype: this.phenotypes,
                 locus: this.locus,
             }
-            this.submitted = this.defaultSubmitted || true;
+            this.submitted = typeof this.defaultSubmitted !== 'undefined' ? this.defaultSubmitted : true;
         }
     },
+    filters: {
+        lineOfKeys(object) {
+            let list = [];
+            Object.entries(object).forEach(item => {
+                const [key, value] = item;
+                list.push(`${key}: ${value}`)
+            })
+            return list.join(', ');
+        },
+    },
     methods: {
+        fillCard(event) {
+            // only fill with cards that are actually association cards
+            if (event.added.element.name.match(/^associations;/g)) {
+                // TODO: bad and ugly. this whole part of the system of keeping track of combined cards needs to be rewritten
+                this.cardList = this.cardList.concat(event.added.element);
+                this.filler.phenotype = lodash.uniqBy([].concat(this.filler.phenotype).concat(this.cardList.map(card => card.name.split(';')[1].split('|')[0].split('!')[1])));
+            }
+        },
         change($event, property) {
             this.filler = this.filler || {};
             this.filler = {
@@ -136,7 +182,7 @@ export default Vue.component('associations-card', {
                 const [source, query] = added.element.name.split(';');
                 query.split('|').forEach(queryEl => {
 
-                    const [prefix, value] = queryEl.split(',');
+                    const [prefix, value] = queryEl.split('!');
 
                     if(prefix === 'phenotype') {
                         this.filler = {
@@ -167,7 +213,14 @@ export default Vue.component('associations-card', {
             return !!this.filler && !!this.filler.phenotype && !!this.filler.locus;
         },
         dragName() {
-            return `${'associations'};${!!this.filler ? `phenotype,${this.filler.phenotype}|locus,${this.filler.locus}` : ``}`
+            return `${'associations'};${!!this.filler ? `phenotype!${this.filler.phenotype}|locus!${this.filler.locus}` : ``}`
+        },
+        overlappingPhenotypes() {
+            const phenotypeOrPhenotypes = this.dragName.split(';')[1].split('|')[0].split('!')[1];
+            const maybePhenotypes = phenotypeOrPhenotypes.split(',');
+            // if split is there it tokenizes into a list. if split is not there, it wraps the string in a list.
+            // since we just want a list regardless of the size, return the split
+            return maybePhenotypes;
         },
         dragPayload() {
             return {
@@ -179,7 +232,7 @@ export default Vue.component('associations-card', {
     watch: {
         dragName(newName) {
             this.$emit('name-change', newName);
-        }
+        },
     }
 })
 </script>

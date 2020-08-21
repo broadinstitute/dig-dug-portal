@@ -135,7 +135,7 @@ export default Vue.component('fill-tester', {
                 const [source, query] = added.element.name.split(';');
                 query.split('|').forEach(queryEl => {
 
-                    const [prefix, value] = queryEl.split(',');
+                    const [prefix, value] = queryEl.split('!');
 
                     if(prefix === 'phenotype') {
                         this.filler = {

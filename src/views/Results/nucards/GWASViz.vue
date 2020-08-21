@@ -1,5 +1,5 @@
 <template>
-        <div class="list-group-item">
+        <div>
             <template>
                 <div class="bioindex-concept-pellet phenotype">
                     Phenotype
@@ -12,10 +12,10 @@
                     Variant
                 </div>
                 <div style="display:block;float:right;">
-                    <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp;
+                    <!-- <button :disabled="!!!filler" @click="filler = null; submitted = false;">Clear</button>&nbsp; -->
                     <!-- TODO: refactor to dropdown menu with duplicate card OR duplicate content -->
-                    <button @click="$emit('duplicate-self', { metadata, filler })">Duplicate</button>&nbsp;
-                    <button @click="$emit('remove', { metadata, filler })">Remove</button>
+                    <button @click="$emit('duplicate-self', { name: dragName })">Duplicate</button>&nbsp;
+                    <button @click="$emit('remove')">Remove</button>
                 </div>
             </template>
 
@@ -26,20 +26,39 @@
                     :group="{ name: 'data', pull: 'clone', put: false }"
                     :clone="el => dragPayload">
                     <div class="list-group-item"
-                        style="margin-bottom:10px;"
+                        style="margin-bottom:10px;background-color:#efefef;"
                         v-for="(element) in dragList" :key="element.id">
-                        <h3 style="display:inline;">GWAS Plot</h3>&nbsp;
-                        <h4 v-if="filler" style="display:inline;">{{filler}}</h4>
+                        <div>
+                            <h3 v-if="submitted && filler" style="display:inline;">GWAS Plot</h3>&nbsp;
+                            <h3 v-else style="display:inline;">GWAS Plot</h3>&nbsp;
+                            <div style="display:block;float:right;">
+                                Drag and Drop
+                            </div>
+                        </div>
+                        <span v-if="submitted && filler" style="display:inline;">
+                            {{filler | lineOfKeys}}
+                        </span>
                     </div>
                 </draggable>
             </template>
 
             <div v-if="submitted">
                 <template v-if="filler">
-                    <locuszoom-gwas-wrapper
-                        :phenotype="filler.phenotype"
-                        :locus="filler.locus"
-                    ></locuszoom-gwas-wrapper>
+                    <template>
+                        <draggable
+                            class="dragArea list-group"
+                            :group="{
+                                    name:'cards',
+                                    put: ['dash-header', 'data']  // NOTE: these are constants shared on the main page!
+                                }"
+                            :list="nulllist"
+                            @change="fillCard">
+                            <locuszoom-gwas-wrapper
+                                :phenotypes="overlappingPhenotypes"
+                                :locus="filler.locus"
+                            ></locuszoom-gwas-wrapper>
+                        </draggable>
+                    </template>
                 </template>
             </div>
 
@@ -86,15 +105,17 @@ import Vue from "vue"
 import draggable from "vuedraggable";
 import GWASLocusZoomWrapper from "../components/GWASLocusZoomWrapper"
 import idCounter from "@/utils/idCounter";
+import lodash from "lodash";
 
 export default Vue.component('locuszoom-gwas-plot-card', {
-    props: ['phenotype', 'locus', 'metadata', 'defaultSubmitted'],
+    props: ['phenotypes', 'locus', 'metadata', 'defaultSubmitted'],
     components: {
         draggable,
         GWASLocusZoomWrapper,
     },
     data() {
         return {
+            cardList: [],
             filler: null,
             nulllist: [],  // necessary evil
             dragList: [{ id: idCounter.getUniqueId(), name: '' }], // another seemingly necessary evil
@@ -102,17 +123,35 @@ export default Vue.component('locuszoom-gwas-plot-card', {
         }
     },
     created() {
-        if (!!this.phenotype && !!this.locus) {
+        if (!!this.phenotypes && !!this.locus) {
             // filler should be null before this point
             this.filler = {};
             this.filler = {
-                phenotype: this.phenotype,
+                phenotype: this.phenotypes,
                 locus: this.locus,
             }
             this.submitted = this.defaultSubmitted || true;
         }
     },
+    filters: {
+        lineOfKeys(object) {
+            let list = [];
+            Object.entries(object).forEach(item => {
+                const [key, value] = item;
+                list.push(`${key}: ${value}`)
+            })
+            return list.join(', ');
+        }
+    },
     methods: {
+        fillCard(event) {
+            // only fill with cards that are actually association cards
+            if (event.added.element.name.match(/^associations;/g)) {
+                // TODO: bad and ugly. this whole part of the system of keeping track of combined cards needs to be rewritten
+                this.cardList = this.cardList.concat(event.added.element);
+                this.filler.phenotype = lodash.uniqBy([].concat(this.filler.phenotype).concat(this.cardList.map(card => card.name.split(';')[1].split('|')[0].split('!')[1])));
+            }
+        },
         change($event, property) {
             this.filler = this.filler || {};
             this.filler = {
@@ -131,7 +170,7 @@ export default Vue.component('locuszoom-gwas-plot-card', {
                 const [source, query] = added.element.name.split(';');
                 query.split('|').forEach(queryEl => {
 
-                    const [prefix, value] = queryEl.split(',');
+                    const [prefix, value] = queryEl.split('!');
 
                     if(prefix === 'phenotype') {
                         this.filler = {
@@ -158,11 +197,19 @@ export default Vue.component('locuszoom-gwas-plot-card', {
         }
     },
     computed: {
+        overlappingPhenotypes() {
+            const phenotypeOrPhenotypes = this.dragName.split(';')[1].split('|')[0].split('!')[1];
+            const maybePhenotypes = phenotypeOrPhenotypes.split(',');
+            console.log(phenotypeOrPhenotypes, maybePhenotypes)
+            // if split is there it tokenizes into a list. if split is not there, it wraps the string in a list.
+            // since we just want a list regardless of the size, return the split
+            return maybePhenotypes;
+        },
         full() {
             return !!this.filler && !!this.filler.phenotype && !!this.filler.locus;
         },
         dragName() {
-            return `${'locuszoom-gwas-plot'};${!!this.filler ? `phenotype,${this.filler.phenotype}|locus,${this.filler.locus}` : ``}`
+            return `${'locuszoom-gwas-plot'};${!!this.filler ? `phenotype!${this.filler.phenotype}|locus!${this.filler.locus}` : ``}`
         },
         dragPayload() {
             return {
