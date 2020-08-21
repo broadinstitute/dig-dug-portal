@@ -109,7 +109,7 @@ export default Vue.component('phewas-associations-card', {
             this.filler = {
                 varId: this.varId,
             }
-            this.submitted = this.defaultSubmitted || true;
+            this.submitted = typeof this.defaultSubmitted !== 'undefined' ? this.defaultSubmitted : true;
         }
     },
     filters: {

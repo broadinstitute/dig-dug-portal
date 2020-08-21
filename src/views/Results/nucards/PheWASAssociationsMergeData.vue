@@ -119,7 +119,7 @@ export default Vue.component('associations-merge-data-card', {
                 phenotype: this.phenotype,
                 locus: this.locus,
             }
-            this.submitted = this.defaultSubmitted || true;
+            this.submitted = typeof this.defaultSubmitted !== 'undefined' ? this.defaultSubmitted : true;
         }
     },
     filters: {

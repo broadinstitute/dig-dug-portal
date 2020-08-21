@@ -130,7 +130,7 @@ export default Vue.component('locuszoom-gwas-plot-card', {
                 phenotype: this.phenotypes,
                 locus: this.locus,
             }
-            this.submitted = this.defaultSubmitted || true;
+            this.submitted = typeof this.defaultSubmitted !== 'undefined' ? this.defaultSubmitted : true;
         }
     },
     filters: {

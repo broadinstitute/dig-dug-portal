@@ -107,7 +107,7 @@ export default Vue.component('phenotype-associations-card', {
             this.filler = {
                 phenotype: this.phenotype,
             }
-            this.submitted = this.defaultSubmitted || true;
+            this.submitted = typeof this.defaultSubmitted !== 'undefined' ? this.defaultSubmitted : true;
         }
     },
     filters: {
