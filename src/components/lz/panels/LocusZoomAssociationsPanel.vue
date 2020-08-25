@@ -4,6 +4,7 @@
 
 <script>
 import Vue from "vue";
+import { isEqual, isEmpty } from "lodash";
 
 export default Vue.component("lz-associations-panel", {
     props: {
@@ -41,7 +42,7 @@ export default Vue.component("lz-associations-panel", {
 
             // TODO: what *should* happen when this.finishHandler and this.value are both defined?
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const finishHandler = typeof this.value !== 'undefined' ? 
+            const finishHandler = typeof this.value !== 'undefined' ?
                 result => this.$emit('input', result.data) : this.finishHandler;
 
             this.id = this.$parent.addAssociationsPanel(

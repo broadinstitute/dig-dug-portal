@@ -90,7 +90,6 @@ new Vue({
             // page controls
             pValue: null,
             fold: null,
-
             currentAssociationsPanel: null
         };
     },

@@ -35,7 +35,7 @@ export class LZAssociationsPanel {
             variant: association.varId,
             ref_allele: association.varId,
         }));
-        this.initalData = initialData;
+        this.initialData = initialData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -365,12 +365,13 @@ _LZBioIndexSource.prototype.parseInit = function (params) {
 };
 _LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;
+    console.log('initiating promise', self, self.initialData)
     return new Promise((resolve, reject) => {
         const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
-        if (!!this.initialData) {
+        if (!!self.initialData) {
 
-            // cosuming initialData
-
+            // consuming initialData
+            console.log('consuming initialdata')
             // TODO: would be nice if we could guarantee that self.translator is idempotent,
             // e.g. translating BioIndex shape should give LocusZoom shape, but translating LocusZoom shape will be (a) guaranteed to run without error and (b) also produce the same LocusZoom shape
             closeAlert(alertID);
@@ -378,9 +379,10 @@ _LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
 
             // modeling the consumption this.initialData after first use by assigning it to null
             // thank you sensei jean-yves girard-chan
-            self.initialData = null;  
+            self.initialData = null;
 
         } else {
+            console.log('not consuming initialdata')
             // not consuming initialData – there either wasn\'t any or none left
             self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
                 // calling data from BioIndex
