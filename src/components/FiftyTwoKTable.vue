@@ -27,35 +27,33 @@
                     class="feature-content-wrapper hidden"
                     :key="`features_${i}`"
                 >
-                    <template v-for="(key, j) in Object.keys(row)">
-                        <template v-if="typeof row[key] === 'object'">
-                            <b-row class="feature-header" v-if="j === 5" :key="`row_${i}_${j}`">
-                                <b-col class="feature-header-item">Masks</b-col>
-                                <b-col
-                                    class="feature-header-item"
-                                    :class="fh"
-                                    v-for="fh in Object.keys(row[key])"
-                                >{{fh}}</b-col>
-                            </b-row>
-                            <b-row
-                                class="features"
-                                :class="`features_${i}_${j}`"
-                                :key="`features_${i}_${j}`"
-                            >
-                                <b-col class="feature-content-item key">{{key}}</b-col>
-                                <b-col
-                                    class="feature-content-item"
-                                    :class="k"
-                                    v-for="(item, k) in row[key]"
-                                >
-                                    <span
-                                        v-if="k === 'beta'"
-                                        :class="item < 0 ? 'effect negative' : 'effect positive'"
-                                    >{{ item < 0 ? "&#9660;" : "&#9650;"}}</span>
-                                    {{item}}
-                                </b-col>
-                            </b-row>
-                        </template>
+                    <template v-for="(key, j) in row.masks">
+                        <!-- <template v-if="typeof row[key] === 'object'"> -->
+                        <!-- {{key}} --- {{j}} -->
+                        <b-row class="feature-header" :key="`row_${i}_${j}`" v-if="j === 0">
+                            <!-- <b-col class="feature-header-item">Masks</b-col> -->
+                            <b-col
+                                class="feature-header-item"
+                                :class="fh"
+                                v-for="fh in Object.keys(key)"
+                                :key="fh"
+                            >{{fh}}</b-col>
+                        </b-row>
+                        <b-row
+                            class="features"
+                            :class="`features_${i}_${j}`"
+                            :key="`features_${i}_${j}`"
+                        >
+                            <!-- <b-col class="feature-content-item key">{{key}}</b-col> -->
+                            <b-col class="feature-content-item" :class="k" v-for="(item, k) in key">
+                                <span
+                                    v-if="k === 'beta'"
+                                    :class="item < 0 ? 'effect negative' : 'effect positive'"
+                                >{{ item < 0 ? "&#9660;" : "&#9650;"}}</span>
+                                {{item}}
+                            </b-col>
+                        </b-row>
+                        <!-- </template> -->
                     </template>
                 </div>
                 <!-- <b-row
