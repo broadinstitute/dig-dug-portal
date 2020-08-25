@@ -767,6 +767,53 @@ div.filtering-tools table th {
     padding-top: 50px;
 }
 
+.under-datasets-section-wrapper {
+    margin-top: 40px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.under-datasets-section-wrapper h4.header {
+    font-weight: 400;
+    font-size: 35px;
+    font-family: 'Oswald';
+    margin: 2px 0 0 10px;
+    padding: 0px 5px 2px 5px;
+    border: solid 1px #ddd;
+    border-right: none;
+    border-left: none;
+}
+
+.under-datasets-section-wrapper ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.under-datasets-section-wrapper ul li {
+    display: block;
+    clear: both;
+    font-family: Oswald;
+    font-size: 30px;
+    line-height: 25px;
+    margin-bottom: 30px;
+}
+
+.under-datasets-section-wrapper ul li img {
+    display: block;
+    float: left;
+    margin-right: 15px;
+    width: 80px;
+    height: 80px;
+    margin-top: -15px;
+}
+
+.under-datasets-section-wrapper ul li a {
+    font-size: 20px;
+    font-family: roboto;
+    font-weight: 500;
+}
+
 #news-feed {
     position: relative;
     height: 140px;

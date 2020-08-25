@@ -11,6 +11,7 @@ import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import NewsFeedSection from "@/components/frontPage/NewsFeedSection.vue";
 import AboutPortalSection from "@/components/frontPage/AboutPortalSection.vue";
 import AboutProjectSection from "@/components/frontPage/AboutProjectSection.vue";
+import UnderDatasetsSection from "@/components/frontPage/UnderDatasetsSection.vue";
 import DatasetsSection from "@/components/frontPage/DatasetsSection.vue";
 import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -46,6 +47,7 @@ new Vue({
         AboutPortalSection,
         AboutProjectSection,
         DatasetsSection,
+        UnderDatasetsSection,
         DiseaseGroupSelect,
         TooltipDocumentation,
         Documentation,

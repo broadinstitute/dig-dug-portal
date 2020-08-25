@@ -80,6 +80,7 @@
                             :disease-groups="$store.state.bioPortal.diseaseGroups"
                             :datasets-info="$store.state.kp4cd.datasetsInfo"
                         ></datasets-section>
+                        <under-datasets-section :front-contents="$parent.frontContents"></under-datasets-section>
                     </div>
                     <div class="col-md-5">
                         <news-feed-section
