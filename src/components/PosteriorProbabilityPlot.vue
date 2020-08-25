@@ -53,9 +53,12 @@ export default Vue.component("posterior-probability-plot", {
            
            var margin = { top: 50, right: 50, bottom: 50, left: 50 },
                 width = 600 - margin.left - margin.right,
-                height = 270 - margin.top - margin.bottom;
+                height = 600 - margin.top - margin.bottom;
             
-            var svg = d3.select("#visualisation").append("svg:svg").attr("width",margin.width).attr("height",margin.height);
+            var svg = d3.select("#visualisation")
+            .append("svg:svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom);
             
             var data = this.columns;
 
@@ -129,11 +132,92 @@ export default Vue.component("posterior-probability-plot", {
     //     .attr("cx", x)
     //     .attr("cy", pos.y);
     // });
-                
+              var lineStroke = "2px";
+  
+        let tooltip = d3.select("#visualisation").append("div")
+            .attr('id', 'tooltip')
+            .style('position', 'absolute')
+            .style("background-color", "#D3D3D3")
+            .style('padding', 6)
+            .style('display', 'none')
         
+        var color = d3.scaleOrdinal()
+            .domain([0.0, 1.0])
+            .range(["#2D4057", "#7C8DA4"]);
 
+        let mouseG = svg.append("g")
+            .attr("class", "mouse-over-effects");
 
+            mouseG.append("path") // create vertical line to follow mouse
+            .attr("class", "mouse-line")
+            .style("stroke", "#A9A9A9")
+            .style("stroke-width", lineStroke)
+            .style("opacity", "0");
+
+            var lines = document.getElementsByClassName('line');
             
+            var mousePerLine = mouseG.selectAll('.mouse-per-line')
+            .data(this.columns)
+            .enter()
+            .append("g")
+            .attr("class", "mouse-per-line");
+
+            mousePerLine.append("circle")
+            .attr("r", 4)
+            .style("stroke", function (d) {
+              return color(d.key)
+            })
+            .style("fill", "none")
+            .style("stroke-width", lineStroke)
+            .style("opacity", "0");
+
+             mouseG.append('svg:rect') // append a rect to catch mouse movements on canvas
+            .attr('width', margin.width) 
+            .attr('height', margin.height)
+            .attr('fill', 'none')
+            .attr('pointer-events', 'all')
+            .on('mouseout', function () { // on mouse out hide line, circles and text
+              d3.select(".mouse-line")
+                .style("opacity", "0");
+              d3.selectAll(".mouse-per-line circle")
+                .style("opacity", "0");
+              d3.selectAll(".mouse-per-line text")
+                .style("opacity", "0");
+              d3.selectAll("#tooltip")
+                .style('display', 'none')
+
+            })
+            .on('mouseover', function () { // on mouse in show line, circles and text
+              d3.select(".mouse-line")
+                .style("opacity", "1");
+              d3.selectAll(".mouse-per-line circle")
+                .style("opacity", "1");
+              d3.selectAll("#tooltip")
+                .style('display', 'block')
+            })
+
+            .on('mousemove', function () { // update tooltip content, line, circles and text when mouse moves
+              var mouse = d3.mouse(this)
+
+            d3.selectAll(".mouse-per-line")
+                .attr("transform", function (d, i) {
+                  var xDate = xScale.invert(mouse[0]) // use 'invert' to get date corresponding to distance from mouse position relative to svg
+                  var bisect = d3.bisector(function (d) { return d.date; }).left // retrieve row index of date on parsed csv
+                  var idx = bisect(d.values, xDate);
+
+                  d3.select(".mouse-line")
+                    .attr("d", function () {
+                      var data = "M" + xScale(d[idx].prior) + "," + (margin.height);
+                      data += " " + xScale(d[idx].prior) + "," + 0;
+                      return data;
+                    });
+                  return "translate(" + xScale(d[idx].prior) + "," + yScale(d[idx].ppa) + ")";
+
+                });
+
+              //updateTooltipContent(mouse, this.columns)
+
+            })
 
 
         },
