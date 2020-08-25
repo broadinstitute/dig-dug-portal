@@ -7,7 +7,7 @@
                 <b-col class="top-level-header-item">Beta</b-col>
                 <b-col class="top-level-header-item">View</b-col>
             </b-row>
-            <template v-for="(row, i) in json">
+            <template v-for="(row, i) in associations.data">
                 <b-row class="data top-level-value" :key="row[show] + i">
                     <b-col class="top-level-value-item">{{row[show]}}</b-col>
                     <b-col class="top-level-value-item pValue">{{row.pValue}}</b-col>
@@ -45,7 +45,12 @@
                             :key="`features_${i}_${j}`"
                         >
                             <!-- <b-col class="feature-content-item key">{{key}}</b-col> -->
-                            <b-col class="feature-content-item" :class="k" v-for="(item, k) in key">
+                            <b-col
+                                class="feature-content-item"
+                                :class="k"
+                                v-for="(item, k) in key"
+                                :key="`item_${j}_${k}`"
+                            >
                                 <span
                                     v-if="k === 'beta'"
                                     :class="item < 0 ? 'effect negative' : 'effect positive'"
@@ -256,6 +261,11 @@ export default Vue.component("fiftytwok-table", {
         };
     },
     mounted() {},
+    computed: {
+        associations() {
+            return this.$store.state.associations;
+        },
+    },
     methods: {
         capitalizedFormatter: Formatters.capitalizedFormatter,
         showFeatures(index) {
