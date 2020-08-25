@@ -321,7 +321,6 @@ export default new Vuex.Store({
                 context.dispatch('getEffectorGeneData', name);
                 context.dispatch('get52KGeneAssociationsData', name);
             }
-
         },
 
 

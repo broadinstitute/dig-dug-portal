@@ -1,11 +1,16 @@
 <template>
     <div>
-        <svg id="visualisation" width="1000" height="500" />
+        <div id="visualisation" width="1000" height="1000" />
     </div>
 </template>
 <style type="text/css">
 /* 13. Basic Styling with CSS */
-
+ #line{
+    width: 100%;
+    margin: 20px 0;
+    height: 300px;
+    background: #eee;
+  }
 body {
     font: Arial 18px;
     text-align: center;
@@ -34,7 +39,7 @@ import * as d3 from "d3";
 import Formatters from "@/utils/formatters.js";
 
 export default Vue.component("posterior-probability-plot", {
-    props: ["geneassociations", "oddsRatio", "stdErr", "priorVariance"],
+    props: ["geneassociations", "oddsRatio", "stdErr", "priorVariance", "lofteeOddsRatio","lofteeStdErr"],
 
     data() {
         return {};
@@ -46,41 +51,37 @@ export default Vue.component("posterior-probability-plot", {
     methods: {
         generateChart() {
            
-           
-            var vis = d3.select("#visualisation"),
-                WIDTH = 1000,
-                HEIGHT = 500,
-                MARGINS = {
-                    top: 20,
-                    right: 20,
-                    bottom: 20,
-                    left: 50
-                },
-                xScale = d3
-                    .scaleLinear()
-                    .range([MARGINS.left, WIDTH - MARGINS.right])
-                    .domain([0.0, 1.0]),
-                yScale = d3
-                    .scaleLinear()
-                    .range([HEIGHT - MARGINS.top, MARGINS.bottom])
-                    .domain([0.0, 1]),
-                xAxis = d3.axisBottom().scale(xScale),
-                yAxis = d3.axisLeft().scale(yScale);
+           var margin = { top: 50, right: 50, bottom: 50, left: 50 },
+                width = 600 - margin.left - margin.right,
+                height = 270 - margin.top - margin.bottom;
+            
+            var svg = d3.select("#visualisation").append("svg:svg").attr("width",margin.width).attr("height",margin.height);
+            
+            var data = this.columns;
 
-            vis.append("svg:g")
+            var  xScale = d3
+                    .scaleLinear()
+                    .range([margin.left, width - margin.right])
+                    .domain([0.0, 1.0]);
+            var  yScale = d3
+                    .scaleLinear()
+                    .range([height - margin.top, margin.bottom])
+                    .domain([0.0001, 0.999]);
+            var xAxis = d3.axisBottom().scale(xScale);
+            var yAxis = d3.axisLeft().scale(yScale);
+           
+            
+                                                      
+            svg.append("svg:g")
                 .attr(
                     "transform",
-                    "translate(0," + (HEIGHT - MARGINS.bottom) + ")"
+                    "translate(0," + (height - margin.bottom) + ")"
                 )
                 .call(xAxis);
 
-            vis.append("svg:g")
-                .attr("transform", "translate(" + MARGINS.left + ",0)")
-                .call(yAxis);
-
-            var focus = vis.append("svg:g")
-            .style("display", "none"); 
-            
+            svg.append("svg:g")
+                .attr("transform", "translate(" + margin.left + ",0)")
+                .call(yAxis);       
 
             var lineGen = d3
                 .line()
@@ -92,13 +93,52 @@ export default Vue.component("posterior-probability-plot", {
                 })
                 .curve(d3.curveLinear);
 
-            vis.append("svg:path")
+            var path = svg.append("svg:path")
                 .attr("d", lineGen(this.columns))
                 .attr("stroke", "green")
                 .attr("stroke-width", 2)
                 .attr("fill", "none");
 
+    //         var circle = svg.append("circle")
+    //             .attr("cx", 300)
+    //             .attr("cy", 500)
+    //             .attr("r", 6)
+    //             .attr("fill", "red");
+
+    //         var pathEl = path.node();
+    //         var pathLength = pathEl.getTotalLength();
+    //         var BBox = pathEl.getBBox();
+    //         var scale = pathLength/BBox.width;
+    //         var offsetLeft = document.getElementById("visualisation").offsetLeft;
+
+    //          svg.on("mousemove", function() {
+    //   var x = d3.event.pageX - offsetLeft; 
+    //   var beginning = x, end = pathLength, target;
+    //   while (true) {
+    //     target = Math.floor((beginning + end) / 2);
+    //     var pos = pathEl.getPointAtLength(target);
+    //     if ((target === end || target === beginning) && pos.x !== x) {
+    //         break;
+    //     }
+    //     if (pos.x > x)      end = target;
+    //     else if (pos.x < x) beginning = target;
+    //     else                break; //position found
+    //   }
+    //   circle
+    //     .attr("opacity", 1)
+    //     .attr("cx", x)
+    //     .attr("cy", pos.y);
+    // });
+                
+        
+
+
+            
+
+
         },
+                                         
+
 
         posteriorProbability(p) {
             //w is the prior variance and the user will be able to select it on their own.
@@ -121,7 +161,22 @@ export default Vue.component("posterior-probability-plot", {
             let p0 = bayes_factor * f5;
             let ppa = p0 / (1 + p0);
             return ppa;
-        }
+        },
+
+        // lofteeOddsRatio(masks){
+        //     //check if it has LofTee
+        //     masks.forEach((m)=>{if(m.mask == "LofTee"){
+        //         var centreVal = masks.mask.LofTee.oddsRatio;
+
+        //     }
+        //     })
+            
+        // }
+
+
+
+
+
     },
 
     computed: {
