@@ -66,7 +66,7 @@ export default Vue.component("effector-genes-plots-line", {
                     });
                 });
 
-                console.log(features);
+                //console.log(features);
 
                 let frequencyData = {};
 

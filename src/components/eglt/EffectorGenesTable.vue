@@ -376,6 +376,7 @@ export default Vue.component("effector-genes-table", {
                         }
 
                         if (columnHighestScore == undefined) {
+                            let countingColumns = formatting["count"];
                             if (LEVEL == "top") {
                                 let tempArr = [];
                                 this.tableData.map((r) => {
@@ -401,8 +402,16 @@ export default Vue.component("effector-genes-table", {
                                     let tempData = r.features[COLUMN[0]];
 
                                     tempData.map((t) => {
-                                        if (t[COLUMN[1]]) {
-                                            tempArr.push(Number(t[COLUMN[1]]));
+                                        if (countingColumns != undefined) {
+                                            countingColumns.map((cc) => {
+                                                tempArr.push(Number(t[cc]));
+                                            });
+                                        } else {
+                                            if (t[COLUMN[1]]) {
+                                                tempArr.push(
+                                                    Number(t[COLUMN[1]])
+                                                );
+                                            }
                                         }
                                     });
                                 });
@@ -427,7 +436,7 @@ export default Vue.component("effector-genes-table", {
                                 ][COLUMN[1]];
                             }
 
-                            let percentileValue = Math.abs(
+                            /*let percentileValue = Math.abs(
                                 Math.floor(
                                     ((Number(VALUE) - columnLowestScore) /
                                         (columnHighestScore -
@@ -442,9 +451,9 @@ export default Vue.component("effector-genes-table", {
                                 "'>" +
                                 VALUE +
                                 "</span>"
-                            );
+                            );*/
                         } else {
-                            let percentileValue = Math.abs(
+                            /*let percentileValue = Math.abs(
                                 Math.floor(
                                     ((Number(VALUE) - columnLowestScore) /
                                         (columnHighestScore -
@@ -453,16 +462,30 @@ export default Vue.component("effector-genes-table", {
                                 )
                             );
 
-                            console.log(percentileValue);
-
                             return (
                                 "<span class='cell-weight-" +
                                 percentileValue +
                                 "'>" +
                                 VALUE +
                                 "</span>"
-                            );
+                            );*/
                         }
+
+                        let percentileValue = Math.abs(
+                            Math.floor(
+                                ((Number(VALUE) - columnLowestScore) /
+                                    (columnHighestScore - columnLowestScore)) *
+                                    100
+                            )
+                        );
+
+                        return (
+                            "<span class='cell-weight-" +
+                            percentileValue +
+                            "'>" +
+                            VALUE +
+                            "</span>"
+                        );
 
                         break;
 

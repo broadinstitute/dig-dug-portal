@@ -735,7 +735,7 @@ span.weight-blue {
 }
 
 .EGLT-table.miriam .feature-content.traits.negative [class*="cell-weight"]::before {
-    /*content: "-";*/
+    content: "-";
 }
 
 .EGLT-table.miriam .feature-content.traits [class*="cell-weight"] {
