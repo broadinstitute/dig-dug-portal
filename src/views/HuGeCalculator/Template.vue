@@ -33,38 +33,56 @@
                 </div>
             </div>
 
-            <!-- HuGeCalculator -->
             <div class="card mdkp-card">
-                <div v-if="$parent.inGWAS" class="card-body">
-                    <div class="col-md-10">
-                        <h4
-                            v-if="$store.state.effectorGeneData.category"
-                        >{{$store.state.effectorGeneData.category}}</h4>
+                <div class="card-body">
+                    <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card" style="width:95%; border: 0">
+                                <h4
+                                    v-if="$store.state.effectorGeneData.category"
+                                >{{$store.state.effectorGeneData.category}}</h4>
 
-                        <div v-if="$store.state.effectorGeneData.genetic" class="alternative-names">
-                            <strong>Coding Evidence: &nbsp;</strong>
-                            <span
-                                v-if="$store.state.effectorGeneData.genetic"
-                            >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
+                                <div
+                                    v-if="$store.state.effectorGeneData.genetic"
+                                    class="alternative-names"
+                                >
+                                    <strong>Coding Evidence: &nbsp;</strong>
+                                    <span
+                                        v-if="$store.state.effectorGeneData.genetic"
+                                    >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
+                                </div>
+                                <div v-if="$store.state.effectorGeneData.regulatory">
+                                    <strong>Regulatory Evidence:</strong>
+                                    <span
+                                        v-if="$store.state.effectorGeneData.regulatory"
+                                    >{{$store.state.effectorGeneData.regulatory}}</span>
+                                </div>
+                                <div>
+                                    <strong>Perturbational Evidence:</strong>
+                                    <span
+                                        v-if="$store.state.effectorGeneData.perturbational"
+                                    >{{$store.state.effectorGeneData.perturbational}}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div v-if="$store.state.effectorGeneData.regulatory">
-                            <strong>Regulatory Evidence:</strong>
-                            <span
-                                v-if="$store.state.effectorGeneData.regulatory"
-                            >{{$store.state.effectorGeneData.regulatory}}</span>
-                        </div>
-                        <div>
-                            <strong>Perturbational Evidence:</strong>
-                            <span
-                                v-if="$store.state.effectorGeneData.perturbational"
-                            >{{$store.state.effectorGeneData.perturbational}}</span>
+                        <div class="col-md-6">
+                            <div class="card" style="width:95%; border: 0">
+                                <posterior-probability-plot
+                                    class="mb-3"
+                                    v-if="$store.state.geneAssociationsData"
+                                    :geneassociations="$store.state.geneAssociationsData"
+                                    :oddsRatio="$store.state.oddsRatio"
+                                    :stdErr="$store.state.stdErr"
+                                    :lofTeeStdErr="$store.state.lofTeeStdErr"
+                                    :lofTeeOddsRatio="$store.state.lofTeeOddsRatio"
+                                ></posterior-probability-plot>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div v-else class="card-body">
-                    <h4>{{$store.state.category}}</h4>
-                </div>
             </div>
+
             <div>
                 <b-button v-b-toggle.collapse-1 variant="primary">GWAS Associations</b-button>
                 <b-collapse id="collapse-1" class="card mdkp-card">
@@ -96,20 +114,6 @@
                         </div>
                     </div>
                 </b-collapse>
-            </div>
-            <!-- <div v-if="$parent.inGWAS != true" class="card mdkp-card"> -->
-            <div class="card mdkp-card">
-                <h4>Stage 2</h4>
-                <h4 v-if="$store.state.stage2Category">{{$store.state.stage2Category}}</h4>
-            </div>
-            <div class="card mdkp-card">
-                <posterior-probability-plot
-                    class="mb-3"
-                    v-if="$store.state.geneAssociationsData"
-                    :geneassociations="$store.state.geneAssociationsData"
-                    :oddsRatio="$store.state.oddsRatio"
-                    :stdErr="$store.state.stdErr"
-                ></posterior-probability-plot>
             </div>
         </div>
 

@@ -28,6 +28,8 @@ export default new Vuex.Store({
         geneAssociationsData: null,
         stdErr: null,
         oddsRatio: null,
+        lofTeeStdErr: null,
+        lofTeeOddsRatio:null
     },
 
     mutations: {
@@ -58,6 +60,12 @@ export default new Vuex.Store({
         },
         setOddsRatio(state, oddsRatio) {
             state.oddsRatio = oddsRatio;
+        },
+        setLofTeeOddsRatio(state, lofTeeOddsRatio) {
+            state.lofTeeOddsRatio = lofTeeOddsRatio;
+        },
+        setLofTeeStdErr(state, lofTeeStdErr) {
+            state.lofTeeStdErr = lofTeeStdErr;
         }
 
     },
@@ -297,15 +305,20 @@ export default new Vuex.Store({
                     //find the most significant mask (lowest pvalue and return a map of std err, oddsRatio)
 
                     json.forEach((row) => {
-
-                        let d = row.masks.sort((a, b) => a.pValue - b.pValue)
-                        console.log(d[0], "most significant mask")
-                        let mostSignificantMask = d[0];
-                        let stdErr = mostSignificantMask.stdErr;
-                        let oddsRatio = mostSignificantMask.oddsRatio;
-                        context.commit('setStdErr', stdErr);
-                        context.commit('setOddsRatio', oddsRatio);
-
+                        if (!!row.masks) {
+                            let d = row.masks.sort((a, b) => a.pValue - b.pValue)
+                            console.log(d[0], "most significant mask")
+                            let mostSignificantMask = d[0];
+                            let stdErr = mostSignificantMask.stdErr;
+                            let oddsRatio = mostSignificantMask.oddsRatio;
+                            context.commit('setStdErr', stdErr);
+                            context.commit('setOddsRatio', oddsRatio);
+                            //if it has LofTee mask
+                            if (row.masks.mask == "LofTee") {
+                                context.commit('setLofTeeOddsRatio', row.masks.oddsRatio);
+                                context.commit('setLofTeeStdErr', row.masks.stdErr);
+                            }
+                        }
 
                     })
                 }

@@ -39,7 +39,7 @@ import * as d3 from "d3";
 import Formatters from "@/utils/formatters.js";
 
 export default Vue.component("posterior-probability-plot", {
-    props: ["geneassociations", "oddsRatio", "stdErr", "priorVariance", "lofteeOddsRatio","lofteeStdErr"],
+    props: ["geneassociations", "oddsRatio", "stdErr", "priorVariance", "lofTeeOddsRatio","lofTeeStdErr"],
 
     data() {
         return {};
@@ -132,6 +132,8 @@ export default Vue.component("posterior-probability-plot", {
     //     .attr("cx", x)
     //     .attr("cy", pos.y);
     // });
+
+    //Hover Over and show the tooltip lines across the plot
               var lineStroke = "2px";
   
         let tooltip = d3.select("#visualisation").append("div")
@@ -212,18 +214,11 @@ export default Vue.component("posterior-probability-plot", {
                       return data;
                     });
                   return "translate(" + xScale(d[idx].prior) + "," + yScale(d[idx].ppa) + ")";
-
                 });
-
               //updateTooltipContent(mouse, this.columns)
-
             })
-
-
         },
                                          
-
-
         posteriorProbability(p) {
             //w is the prior variance and the user will be able to select it on their own.
 
@@ -247,15 +242,13 @@ export default Vue.component("posterior-probability-plot", {
             return ppa;
         },
 
-        // lofteeOddsRatio(masks){
-        //     //check if it has LofTee
-        //     masks.forEach((m)=>{if(m.mask == "LofTee"){
-        //         var centreVal = masks.mask.LofTee.oddsRatio;
-
-        //     }
-        //     })
+        confidenceinterval(){
+            let centreInterval = lofTeeOddsRatio;
+            let leftInterval = Math.exp(Math.log(lofTeeOddsRatio) - 1.96 * lofTeeStdErr)
+            let rightInterval = Math.exp(Math.log(lofTeeOddsRatio) + 1.96 * lofTeeStdErr)
             
-        // }
+
+        }
 
 
 
