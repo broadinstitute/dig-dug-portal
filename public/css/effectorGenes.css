@@ -843,6 +843,22 @@ span.weight-blue {
     background-position: left;
 }
 
+/* for Manningexp */
+.EGLT-table.manningexp .top-level-header-item,
+.EGLT-table.manningexp .top-level-value-item {
+    width: calc(100% / 5);
+}
+
+.EGLT-table.manningexp .feature-content-header-item.Annotations,
+.EGLT-table.manningexp .feature-content-value-item.Annotations {
+    width: calc(100% / 4);
+}
+
+.EGLT-table.manningexp .feature-content  [class*="cell-weight"] {
+    background-image: url("../images/red_block.png");
+    background-position: left;
+}
+
 /* for Richards */
 .EGLT-table.richards .top-level-header-item,
 .EGLT-table.richards .top-level-value-item {
