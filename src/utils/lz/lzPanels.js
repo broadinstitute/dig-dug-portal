@@ -402,77 +402,56 @@ _LZCredibleSetSource.prototype.getRequest = function (state, chain, fields) {
         } else {
             // decide whether or not to use a precomputed credset
             // TODO: conditional based on the code below
-            if (true) {
-                const phenoRegionQuery = `${this.phenotype},${state.chr}:${state.start}-${state.end}`;
-                query('credible-sets', phenoRegionQuery).then(async results => {
-                    closeAlert(alertID);
-                    console.log('credible sets bioindex results', results);
-                    if (
-                        false
-                        // results.length > 0
-                    ) {
+            const phenoRegionQuery = `${this.phenotype},${state.chr}:${state.start}-${state.end}`;
+            query('credible-sets', phenoRegionQuery).then(async results => {
+                closeAlert(alertID);
+                console.log('credible sets bioindex results', results);
+                if (
+                    results.length > 0
+                ) {
+                    // TODO: credset combination branch
+                    console.log('there are credible sets - merge and return them');
+                    resolve([]);
+                } else {
+                    console.log('calculate the credible sets')
+                    console.log('get the necessary associations')
+                    query('associations', phenoRegionQuery).then(async results => {
+                        // TODO: what is this?
+                        // const nlogpvals = chain.body.map(function (item) {
+                        //     return item[self.params.fields.log_pvalue];  // this implies that this data is column-indexed?
+                        // });
+                        const translatedResults = self.translator(results);
+                        const nlogpvals = results.map(association => -Math.log10(association.pValue));
+                        const credset_data = [];
+                        try {
+                            const scores = scoring.bayesFactors(nlogpvals);
+                            const posteriorProbabilities = scoring.normalizeProbabilities(scores);
 
-                        console.log('there are credible sets - merge and return them');
-                        resolve([]);
+                            // Use scores to mark the credible set in various ways (depending on your visualization preferences,
+                            //   some of these may not be needed)
+                            const credibleSet = marking.findCredibleSet(scores, 0.95);
+                            const credSetScaled = marking.rescaleCredibleSet(credibleSet);
+                            const credSetBool = marking.markBoolean(credibleSet);
+                            console.log('trying to make credset info', scores, posteriorProbabilities, credibleSet, credSetScaled, credSetBool);
 
-                    } else {
-
-                        console.log('calculate the credible sets')
-                        console.log('get the necessary associations')
-                        query('associations', phenoRegionQuery).then(async results => {
-                            // TODO: what is this?
-                            // const nlogpvals = chain.body.map(function (item) {
-                            //     return item[self.params.fields.log_pvalue];  // this implies that this data is column-indexed?
-                            // });
-                            const translatedResults = self.translator(results);
-                            const nlogpvals = results.map(association => -Math.log10(association.pValue));
-                            const credset_data = [];
-                            try {
-                                const scores = scoring.bayesFactors(nlogpvals);
-                                const posteriorProbabilities = scoring.normalizeProbabilities(scores);
-
-                                // Use scores to mark the credible set in various ways (depending on your visualization preferences,
-                                //   some of these may not be needed)
-                                const credibleSet = marking.findCredibleSet(scores, 0.95);
-                                const credSetScaled = marking.rescaleCredibleSet(credibleSet);
-                                const credSetBool = marking.markBoolean(credibleSet);
-                                console.log('trying to make credset info', scores, posteriorProbabilities, credibleSet, credSetScaled, credSetBool);
-
-                                // Annotate each response record based on credible set membership
-                                for (let i = 0; i < translatedResults.length; i++) {
-                                    credset_data.push({
-                                        ...translatedResults[i],
-                                        posterior_prob: posteriorProbabilities[i],
-                                        contrib_fraction: credSetScaled[i],
-                                        is_member: credSetBool[i],
-                                    });
-                                }
-                            } catch (e) {
-                                // If the calculation cannot be completed, return the data without annotation fields
-                                console.error(e);
+                            // Annotate each response record based on credible set membership
+                            for (let i = 0; i < translatedResults.length; i++) {
+                                credset_data.push({
+                                    ...translatedResults[i],
+                                    posterior_prob: posteriorProbabilities[i],
+                                    contrib_fraction: credSetScaled[i],
+                                    is_member: credSetBool[i],
+                                });
                             }
-                            console.log(credset_data);
-                            resolve(credset_data);
-
-                        });
-                    }
-                });
-
-            } else {
-                query(self.index, self.queryStringMaker(state.chr, state.start, state.end), {
-                    finishHandler: self.finishHandler,
-                    resolveHandler: self.resolveHandler,
-                    errHandler: self.errHandler,
-                })
-                .then(async resultData => {
-                    resolve(self.translator(resultData));
-                })
-                .catch(async error => {
-                    postAlertError(error.detail);
-                    reject(new Error(error));
-                })
-                .finally(closeAlert(alertID));
-            }
+                        } catch (e) {
+                            // If the calculation cannot be completed, return the data without annotation fields
+                            console.error(e);
+                        }
+                        console.log(credset_data);
+                        resolve(credset_data);
+                    });
+                }
+            });
         }
 
     });
