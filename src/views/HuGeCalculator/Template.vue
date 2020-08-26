@@ -37,7 +37,7 @@
                 <div class="card-body">
                     <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="card" style="width:95%; border: 0">
                                 <h4
                                     v-if="$store.state.effectorGeneData.category"
@@ -66,7 +66,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+
+                        <div class="col-md-3">
                             <div class="card" style="width:95%; border: 0">
                                 <posterior-probability-plot
                                     class="mb-3"
@@ -74,9 +75,18 @@
                                     :geneassociations="$store.state.geneAssociationsData"
                                     :oddsRatio="$store.state.oddsRatio"
                                     :stdErr="$store.state.stdErr"
-                                    :lofTeeStdErr="$store.state.lofTeeStdErr"
-                                    :lofTeeOddsRatio="$store.state.lofTeeOddsRatio"
                                 ></posterior-probability-plot>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card" style="width:95%; border: 0">
+                                <confidence-interval-plot
+                                    class="mb-3"
+                                    v-if="$store.state.geneAssociationsData"
+                                    :geneassociations="$store.state.geneAssociationsData"
+                                    :lofTeeOddsRatio="$store.state.lofTeeOddsRatio"
+                                    :lofTeeStdErr="$store.state.lofTeeStdErr"
+                                ></confidence-interval-plot>
                             </div>
                         </div>
                     </div>

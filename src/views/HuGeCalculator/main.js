@@ -17,6 +17,7 @@ import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociat
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
+import ConfidenceIntervalPlot from "@/components/ConfidenceIntervalPlot.vue";
 import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
@@ -45,6 +46,7 @@ new Vue({
         PhenotypeSelectPicker,
         AssociationsTable,
         PosteriorProbabilityPlot,
+        ConfidenceIntervalPlot,
     },
 
     data() {

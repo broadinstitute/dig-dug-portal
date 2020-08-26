@@ -29,7 +29,7 @@ export default new Vuex.Store({
         stdErr: null,
         oddsRatio: null,
         lofTeeStdErr: null,
-        lofTeeOddsRatio:null
+        lofTeeOddsRatio: null
     },
 
     mutations: {
@@ -147,16 +147,7 @@ export default new Vuex.Store({
             //     "pValue": 2.74,
             //     "oddsRatio": 2.0667968637762106,
             //     "masks": [
-            //         {
-            //             "mask": "LofTee",
-            //             "n": 43125,
-            //             "pValue": 0.31708000000000003,
-            //             "combinedAF": 0.00032464,
-            //             "passingVariants": 4,
-            //             "singleVariants": 1,
-            //             "stdErr": 0.56563,
-            //             "oddsRatio": 1.7221783980987881
-            //         },
+
             //         {
             //             "mask": "5/5",
             //             "n": 43125,
@@ -229,6 +220,15 @@ export default new Vuex.Store({
                 "pValue": 0.0376,
                 "oddsRatio": 0.7672059499758557,
                 "masks": [{
+                    "mask": "LofTee",
+                    "n": 43125,
+                    "pValue": 0.31708000000000003,
+                    "combinedAF": 0.00032464,
+                    "passingVariants": 4,
+                    "singleVariants": 1,
+                    "stdErr": 0.56563,
+                    "oddsRatio": 1.7221783980987881
+                }, {
                     "mask": "5/5",
                     "n": 43125,
                     "pValue": 0.39941,

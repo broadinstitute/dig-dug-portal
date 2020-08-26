@@ -39,7 +39,7 @@ import * as d3 from "d3";
 import Formatters from "@/utils/formatters.js";
 
 export default Vue.component("posterior-probability-plot", {
-    props: ["geneassociations", "oddsRatio", "stdErr", "priorVariance", "lofTeeOddsRatio","lofTeeStdErr"],
+    props: ["geneassociations", "oddsRatio", "stdErr", "priorVariance"],
 
     data() {
         return {};
@@ -241,18 +241,6 @@ export default Vue.component("posterior-probability-plot", {
             let ppa = p0 / (1 + p0);
             return ppa;
         },
-
-        confidenceinterval(){
-            let centreInterval = lofTeeOddsRatio;
-            let leftInterval = Math.exp(Math.log(lofTeeOddsRatio) - 1.96 * lofTeeStdErr)
-            let rightInterval = Math.exp(Math.log(lofTeeOddsRatio) + 1.96 * lofTeeStdErr)
-            
-
-        }
-
-
-
-
 
     },
 
