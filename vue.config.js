@@ -160,7 +160,7 @@ module.exports = {
 
         if (!!bioindex_dev) {
             bioindex_host =
-                bioindex_dev == "http://localhost:5000"
+                bioindex_dev == "localhost"
                     ? "http://localhost:5000"
                     : "http://18.215.38.136:5000";
         }
