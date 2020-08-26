@@ -19,7 +19,7 @@
                     </b-col>
                     <b-col class="top-level-value-item">
                         <b-button @click="showFeatures(i)" class="view-features-btn">Masks</b-button>
-                        <b-button @click="showPlot(i)" class="view-visualizer-btn">Plot</b-button>
+                        <b-button @click="showPlot(i, row.masks)" class="view-visualizer-btn">Plot</b-button>
                     </b-col>
                 </b-row>
                 <div
@@ -272,11 +272,12 @@ export default Vue.component("fiftytwok-table", {
             console.log("index: ", index);
             uiUtils.showHideElement("feature-headers-" + index);
         },
-        showPlot(index) {
+        showPlot(index, data) {
             console.log("plot index: ", index);
+            console.log("data:", data);
             let isEmpty =
                 document.getElementById("plot_" + index).innerHTML === "";
-            if (isEmpty) this.createChart(index);
+            if (isEmpty) this.createChart(index, data);
 
             uiUtils.showHideElement("feature-plot-" + index);
         },
@@ -285,77 +286,79 @@ export default Vue.component("fiftytwok-table", {
             let chart = am4core.create("plot_" + index, am4charts.XYChart);
 
             // Add data
-            chart.data = [
-                {
-                    category: "LofTee",
-                    measure: 1.3,
-                    bulletSize: 25,
-                    high: 3.4,
-                    low: 1.0,
-                },
-                {
-                    category: "5/5",
-                    measure: 2.1,
-                    bulletSize: 15,
-                    high: 2.6,
-                    low: 0.5,
-                },
-                {
-                    category: "16/16",
-                    measure: 1.8,
-                    bulletSize: 10,
-                    high: 3.2,
-                    low: 0.9,
-                },
-                {
-                    category: "5/5 + LofTee LC",
-                    measure: 2.3,
-                    bulletSize: 30,
-                    high: 2.7,
-                    low: 1.9,
-                },
-                {
-                    category: "5/5 + 0/5 1%",
-                    measure: 2.1,
-                    bulletSize: 35,
-                    high: 2.5,
-                    low: 1.8,
-                },
-                {
-                    category: "5/5 + 1/5 1%",
-                    measure: 2.3,
-                    bulletSize: 20,
-                    high: 2.7,
-                    low: 1.9,
-                },
-                {
-                    category: "11/11",
-                    measure: 1.1,
-                    bulletSize: 25,
-                    high: 2.5,
-                    low: 0.8,
-                },
-                {
-                    category: "Summary measure",
-                    measure: 2.2,
-                    bulletSize: 55,
-                    high: 2.4,
-                    low: 1.9,
-                    rotation: 45,
-                    fill: am4core.color("#fff"),
-                    label: "{valueX}",
-                },
-            ];
+            // chart.data = [
+            //     {
+            //         category: "LofTee",
+            //         measure: 1.3,
+            //         bulletSize: 25,
+            //         high: 3.4,
+            //         low: 1.0,
+            //     },
+            //     {
+            //         category: "5/5",
+            //         measure: 2.1,
+            //         bulletSize: 15,
+            //         high: 2.6,
+            //         low: 0.5,
+            //     },
+            //     {
+            //         category: "16/16",
+            //         measure: 1.8,
+            //         bulletSize: 10,
+            //         high: 3.2,
+            //         low: 0.9,
+            //     },
+            //     {
+            //         category: "5/5 + LofTee LC",
+            //         measure: 2.3,
+            //         bulletSize: 30,
+            //         high: 2.7,
+            //         low: 1.9,
+            //     },
+            //     {
+            //         category: "5/5 + 0/5 1%",
+            //         measure: 2.1,
+            //         bulletSize: 35,
+            //         high: 2.5,
+            //         low: 1.8,
+            //     },
+            //     {
+            //         category: "5/5 + 1/5 1%",
+            //         measure: 2.3,
+            //         bulletSize: 20,
+            //         high: 2.7,
+            //         low: 1.9,
+            //     },
+            //     {
+            //         category: "11/11",
+            //         measure: 1.1,
+            //         bulletSize: 25,
+            //         high: 2.5,
+            //         low: 0.8,
+            //     },
+            //     {
+            //         category: "Summary measure",
+            //         measure: 2.2,
+            //         bulletSize: 55,
+            //         high: 2.4,
+            //         low: 1.9,
+            //         rotation: 45,
+            //         fill: am4core.color("#fff"),
+            //         label: "{valueX}",
+            //     },
+            // ];
+
+            chart.data = data;
 
             // Create axes
             let yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-            yAxis.dataFields.category = "category";
+            yAxis.dataFields.category = "mask";
             yAxis.renderer.grid.template.location = 0;
             //yAxis.renderer.minGridDistance = 30;
             yAxis.renderer.inversed = true;
 
             let yAxis2 = chart.yAxes.push(new am4charts.CategoryAxis());
-            yAxis2.dataFields.category = "category";
+            yAxis2.dataFields.category = "mask";
             yAxis2.renderer.grid.template.location = 0;
             //yAxis.renderer.minGridDistance = 30;
             yAxis2.renderer.inversed = true;
@@ -363,7 +366,7 @@ export default Vue.component("fiftytwok-table", {
                 text,
                 target
             ) {
-                return "[bold]{measure}[/] ({low}-{high})";
+                return "[bold]{stdErr}[/] ({low}-{high})";
             });
             yAxis2.renderer.opposite = true;
 
@@ -373,7 +376,7 @@ export default Vue.component("fiftytwok-table", {
             let series = chart.series.push(new am4charts.ColumnSeries());
             series.dataFields.openValueX = "low";
             series.dataFields.valueX = "high";
-            series.dataFields.categoryY = "category";
+            series.dataFields.categoryY = "mask";
             series.columns.template.height = 2;
             series.columns.template.strokeWidth = 0;
             series.columns.template.fill = chart.colors.getIndex(0);
@@ -381,8 +384,8 @@ export default Vue.component("fiftytwok-table", {
             // Create series for markers
             let series2 = chart.series.push(new am4charts.LineSeries());
             series2.dataFields.customValue = "bulletSize";
-            series2.dataFields.valueX = "measure";
-            series2.dataFields.categoryY = "category";
+            series2.dataFields.valueX = "stdErr";
+            series2.dataFields.categoryY = "mask";
             series2.strokeWidth = 0;
 
             let marker = series2.bullets.push(new am4core.Rectangle());
