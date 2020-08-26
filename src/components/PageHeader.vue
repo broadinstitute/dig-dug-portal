@@ -26,7 +26,7 @@
                             style="padding: 5px; text-align: center;height: 50px;"
                         >
                             <img
-                                :src="'http://kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
+                                :src="'https://kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
                                 :class="'portals-2-mdkp-logo'"
                             />
                         </div>
@@ -38,12 +38,12 @@
                     <a href="/">
                         <img
                             v-if="frontContents.field_banner_logo"
-                            :src="'http://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
+                            :src="'https://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
                             :class="diseaseGroup.name+'kp-logo'"
                         />
                         <img
                             v-else
-                            src="http://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
+                            src="https://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
                             class="mdkp-logo"
                         />
                     </a>
@@ -120,7 +120,7 @@
                             </ul>
                         </li>
                         <li class="am-menu">
-                            <a href="http://kp4cd.org/contact">Contact</a>
+                            <a href="https://kp4cd.org/contact">Contact</a>
                         </li>
                         <li v-if="user">
                             <a href="/logout" :class="diseaseGroup.name+'kp-login'">Logout</a>
