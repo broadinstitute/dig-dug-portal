@@ -11,7 +11,7 @@ import {
 } from "@/components/Alert";
 
 export class LZAssociationsPanel {
-    constructor(phenotype, { finishHandler, resolveHandler, errHandler }) {
+    constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -35,6 +35,7 @@ export class LZAssociationsPanel {
             variant: association.varId,
             ref_allele: association.varId,
         }));
+        this.initialData = initialData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -60,6 +61,7 @@ export class LZAssociationsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initialData,
         });
     }
 
@@ -84,7 +86,7 @@ export class LZAssociationsPanel {
 }
 
 export class LZAnnotationIntervalsPanel {
-    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, colorScheme = id => '128,128,128') {
+    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, initialData, colorScheme = id => '128,128,128') {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -115,6 +117,7 @@ export class LZAnnotationIntervalsPanel {
                 }) : [];
             return tissueIntervals;
         }
+        this.initialData = initalData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -136,6 +139,7 @@ export class LZAnnotationIntervalsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initalData,
         });
     }
 
@@ -159,7 +163,7 @@ export class LZAnnotationIntervalsPanel {
 
 }
 export class LZCredibleVariantsPanel {
-    constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }) {
+    constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -184,6 +188,7 @@ export class LZCredibleVariantsPanel {
             variant: association.varId,
             ref_allele: association.varId,
         }));
+        this.initialData = initialData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -246,6 +251,7 @@ export class LZCredibleVariantsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initalData,
         });
     }
 
@@ -269,7 +275,7 @@ export class LZCredibleVariantsPanel {
 }
 
 export class LZPhewasPanel {
-    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }) {
+    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -298,6 +304,7 @@ export class LZPhewasPanel {
             });
             return phewas;
         }
+        this.initialData = initialData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -316,6 +323,7 @@ export class LZPhewasPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initialData,
         });
     }
 
@@ -343,7 +351,7 @@ const _LZBioIndexSource = LocusZoom.Data.Source.extend(function (init) {
     this.parseInit(init);
 });
 _LZBioIndexSource.prototype.parseInit = function (params) {
-    const { index, queryStringMaker, translator, finishHandler, resolveHandler, errHandler } = params;
+    const { index, queryStringMaker, translator, finishHandler, resolveHandler, errHandler, initialData } = params;
     this.params = params;
     this.queryStringMaker = queryStringMaker;
     this.index = index;
@@ -353,20 +361,41 @@ _LZBioIndexSource.prototype.parseInit = function (params) {
         resolveHandler,
         errHandler,
     });
+    this.initialData = initialData;
 };
 _LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;
+    console.log('initiating promise', self, self.initialData)
     return new Promise((resolve, reject) => {
         const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
-        self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
-            if (err) {
-                closeAlert(alertID);
-                postAlertError(err.detail);
-                reject(new Error(err));
-            }
+        if (!!self.initialData) {
+
+            // consuming initialData
+            console.log('consuming initialdata')
+            // TODO: would be nice if we could guarantee that self.translator is idempotent,
+            // e.g. translating BioIndex shape should give LocusZoom shape, but translating LocusZoom shape will be (a) guaranteed to run without error and (b) also produce the same LocusZoom shape
             closeAlert(alertID);
-            resolve(self.translator(data));
-        });
+            resolve(self.translator(self.initialData));
+
+            // modeling the consumption this.initialData after first use by assigning it to null
+            // thank you sensei jean-yves girard-chan
+            self.initialData = null;
+
+        } else {
+            console.log('not consuming initialdata')
+            // not consuming initialData – there either wasn\'t any or none left
+            self.reader.fetch(state.chr, state.start, state.end, (data, err) => {
+                // calling data from BioIndex
+                if (err) {
+                    closeAlert(alertID);
+                    postAlertError(err.detail);
+                    reject(new Error(err));
+                }
+                closeAlert(alertID);
+                resolve(self.translator(data));
+            });
+
+        }
     });
 };
 
