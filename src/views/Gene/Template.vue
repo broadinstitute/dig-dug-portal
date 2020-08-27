@@ -124,7 +124,7 @@
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">Gene Associations (52K)</h4>
-                        <fiftytwok-table show="phenotype"></fiftytwok-table>
+                        <gene-associations-table show="phenotype"></gene-associations-table>
                     </div>
                 </div>
             </div>

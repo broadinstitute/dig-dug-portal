@@ -9,7 +9,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
-import FiftyTwoKTable from "@/components/FiftyTwoKTable";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
@@ -34,7 +34,7 @@ new Vue({
         PageFooter,
         Alert,
         UniprotReferencesTable,
-        FiftyTwoKTable,
+        GeneAssociationsTable,
         Documentation,
         Autocomplete
     },
