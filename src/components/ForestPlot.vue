@@ -62,7 +62,7 @@ export default Vue.component("forest-plot", {
                 text,
                 target
             ) {
-                return "[bold]{measure}[/] ({low}-{high})";
+                return "[bold]{measure}[/] ({low} - {high})";
             });
             yAxis2.renderer.opposite = true;
 
@@ -95,8 +95,7 @@ export default Vue.component("forest-plot", {
             marker.nonScalingStroke = true;
             marker.verticalCenter = "middle";
             marker.horizontalCenter = "middle";
-            marker.tooltipText =
-                "[bold]" + labelName + " {valueX}[/] ({low}-{high})";
+            marker.tooltipText = "[bold]" + labelName + "[/] {valueX}";
 
             let label = series2.bullets.push(new am4core.Label());
             label.propertyFields.text = "label";

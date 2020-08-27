@@ -1,5 +1,6 @@
 <template>
     <div class="EGLT-table 52k">
+        <forest-plot :data="json[0].masks"></forest-plot>
         <b-container fluid>
             <b-row class="top-level-header">
                 <b-col class="top-level-header-item">{{capitalizedFormatter(show)}}</b-col>
