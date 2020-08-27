@@ -5,6 +5,10 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+            <a
+                href="/effectorgenes.html"
+                class="btn to-previous-page"
+            >&#60;&#60; Predicted effector genes methods</a>
             <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title"></div>

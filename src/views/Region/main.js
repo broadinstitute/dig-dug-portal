@@ -8,17 +8,15 @@ import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
-
 import IGV from "@/components/igv/IGV.vue";
 import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
-
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
-
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker";
-
 import LunarisLink from "@/components/LunarisLink";
+import Autocomplete from "@/components/Autocomplete.vue";
+import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -56,7 +54,9 @@ new Vue({
 
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
-        PhenotypeSelectPicker
+        PhenotypeSelectPicker,
+        Autocomplete,
+        GeneSelectPicker,
     },
 
     created() {
@@ -90,7 +90,6 @@ new Vue({
             // page controls
             pValue: null,
             fold: null,
-
             currentAssociationsPanel: null
         };
     },
@@ -317,15 +316,14 @@ new Vue({
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement("phenotypeSearchHolder");
 
-            // this.updateAssociationsPanel(phenotype.name);
-
-            // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
-            this.$store.dispatch("globalEnrichment/query", {
-                q: phenotype.name
-            });
-            this.$store.dispatch("credibleSets/query", {
-                q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-            });
+            if (phenotype) {
+                this.$store.dispatch("globalEnrichment/query", {
+                    q: phenotype.name
+                });
+                this.$store.dispatch("credibleSets/query", {
+                    q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+                });
+            }
         },
 
         topAssociations(top) {
