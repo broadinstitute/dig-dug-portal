@@ -88,6 +88,7 @@ import Formatters from "@/utils/formatters";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import ForestPlot from "@/components/ForestPlot";
 
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
@@ -96,6 +97,7 @@ am4core.useTheme(am4themes_animated);
 
 export default Vue.component("fiftytwok-table", {
     props: ["show"],
+    component: ForestPlot,
     data() {
         return {
             json: [
