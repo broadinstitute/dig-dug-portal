@@ -265,6 +265,13 @@ export default Vue.component("fiftytwok-table", {
         associations() {
             return this.$store.state.associations;
         },
+        tableData() {
+            let associations = this.$store.state.associations;
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            let colNames = {};
+            let colOrder = [];
+            let rowOrder = [];
+        },
     },
     methods: {
         capitalizedFormatter: Formatters.capitalizedFormatter,
@@ -272,16 +279,16 @@ export default Vue.component("fiftytwok-table", {
             console.log("index: ", index);
             uiUtils.showHideElement("feature-headers-" + index);
         },
-        showPlot(index, data) {
+        showPlot(index, data, dichotomous = false) {
             console.log("plot index: ", index);
             console.log("data:", data);
             let isEmpty =
                 document.getElementById("plot_" + index).innerHTML === "";
-            if (isEmpty) this.createChart(index, data);
+            if (isEmpty) this.createChart(index, data, dichotomous);
 
             uiUtils.showHideElement("feature-plot-" + index);
         },
-        createChart(index, data) {
+        createChart(index, data, dichotomous) {
             // Create chart instance
             let chart = am4core.create("plot_" + index, am4charts.XYChart);
 
@@ -347,18 +354,32 @@ export default Vue.component("fiftytwok-table", {
             //         label: "{valueX}",
             //     },
             // ];
+            let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
-            chart.data = data;
+            let mapped = data.map((item) => {
+                let value = dichotomous ? Math.exp(item.beta) : item.beta;
+                return {
+                    category: item.mask,
+                    high: value + item.stdErr * 1.96,
+                    low: value - item.stdErr * 1.96,
+                    measure: item.beta,
+                    bulletSize: 20,
+                };
+            });
+
+            console.log("chart data", mapped);
+
+            chart.data = mapped;
 
             // Create axes
             let yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
-            yAxis.dataFields.category = "mask";
+            yAxis.dataFields.category = "category";
             yAxis.renderer.grid.template.location = 0;
             //yAxis.renderer.minGridDistance = 30;
             yAxis.renderer.inversed = true;
 
             let yAxis2 = chart.yAxes.push(new am4charts.CategoryAxis());
-            yAxis2.dataFields.category = "mask";
+            yAxis2.dataFields.category = "category";
             yAxis2.renderer.grid.template.location = 0;
             //yAxis.renderer.minGridDistance = 30;
             yAxis2.renderer.inversed = true;
@@ -366,7 +387,7 @@ export default Vue.component("fiftytwok-table", {
                 text,
                 target
             ) {
-                return "[bold]{stdErr}[/] ({low}-{high})";
+                return "[bold]{measure}[/] ({low}-{high})";
             });
             yAxis2.renderer.opposite = true;
 
@@ -376,7 +397,7 @@ export default Vue.component("fiftytwok-table", {
             let series = chart.series.push(new am4charts.ColumnSeries());
             series.dataFields.openValueX = "low";
             series.dataFields.valueX = "high";
-            series.dataFields.categoryY = "mask";
+            series.dataFields.categoryY = "category";
             series.columns.template.height = 2;
             series.columns.template.strokeWidth = 0;
             series.columns.template.fill = chart.colors.getIndex(0);
@@ -384,8 +405,8 @@ export default Vue.component("fiftytwok-table", {
             // Create series for markers
             let series2 = chart.series.push(new am4charts.LineSeries());
             series2.dataFields.customValue = "bulletSize";
-            series2.dataFields.valueX = "stdErr";
-            series2.dataFields.categoryY = "mask";
+            series2.dataFields.valueX = "measure";
+            series2.dataFields.categoryY = "category";
             series2.strokeWidth = 0;
 
             let marker = series2.bullets.push(new am4core.Rectangle());
@@ -399,7 +420,8 @@ export default Vue.component("fiftytwok-table", {
             marker.nonScalingStroke = true;
             marker.verticalCenter = "middle";
             marker.horizontalCenter = "middle";
-            marker.tooltipText = "[bold]{valueX}[/] ({low}-{high})";
+            marker.tooltipText =
+                "[bold]" + labelName + " {valueX}[/] ({low}-{high})";
 
             let label = series2.bullets.push(new am4core.Label());
             label.propertyFields.text = "label";
@@ -418,9 +440,9 @@ export default Vue.component("fiftytwok-table", {
 
             // Add summary line
             let range = xAxis.axisRanges.create();
-            range.value = 2.2;
-            range.grid.strokeWidth = 2;
-            range.grid.strokeDasharray = "3,3";
+            range.value = 0;
+            range.grid.strokeWidth = 5;
+            range.grid.strokeDasharray = "7,7";
         },
     },
 });
