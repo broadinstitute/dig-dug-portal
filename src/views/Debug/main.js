@@ -1,4 +1,6 @@
 import Vue from "vue";
+import * as d3 from "d3";
+
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -10,8 +12,6 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker"
-
-import * as d3 from "d3";
 
 Vue.config.productionTip = false;
 new Vue({

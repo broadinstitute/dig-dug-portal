@@ -47,9 +47,6 @@ export default Vue.component("lz-phewas-panel", {
             );
         }
     },
-    // beforeDestroy() {
-    //     this.$parent.plot.removePanel(this.id);
-    // },
     watch: {
         varId(newVarId) {
             // this is good enough
