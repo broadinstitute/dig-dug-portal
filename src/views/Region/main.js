@@ -156,8 +156,8 @@ new Vue({
                 return acc;
             }, {});
 
-            let pValuePred = !!filterValue.pValue ? _.gte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
-            let foldPred = !!filterValue.fold ? _.lte(extractedItemVals.fold, filterValue.fold) : true;
+            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
+            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
 
             return pValuePred && foldPred;
         }
