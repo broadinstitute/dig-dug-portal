@@ -43,12 +43,12 @@ export default {
                 build: HUMAN_GENOME_BUILD_VERSION,
             }
         }],
-    [LZ_TYPE.intervals]: ["IntervalLZ",
-        {
-            url: 'https://portaldev.sph.umich.edu/api/v1/annotation/intervals/results/',
-            params: {
-                source: 19,
-                build: HUMAN_GENOME_BUILD_VERSION,
-            }
-        }],
+    // [LZ_TYPE.intervals]: ["IntervalLZ",
+    //     {
+    //         url: 'https://portaldev.sph.umich.edu/api/v1/annotation/intervals/results/',
+    //         params: {
+    //             source: 19,
+    //             build: HUMAN_GENOME_BUILD_VERSION,
+    //         }
+    //     }],
 }

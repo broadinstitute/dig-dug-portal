@@ -1,4 +1,7 @@
 import Vue from "vue";
+import * as d3 from "d3";
+import _ from "lodash";
+
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -28,8 +31,7 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import Formatters from "@/utils/formatters";
-import * as d3 from "d3";
+import Formatters from "@/utils/formatters"
 
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
@@ -90,7 +92,10 @@ new Vue({
             // page controls
             pValue: null,
             fold: null,
-            currentAssociationsPanel: null
+
+            currentAssociationsPanel: null,
+
+            selectedCredibleSets: []
         };
     },
 
@@ -100,7 +105,16 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
+        applyFilter(filter) {
+            this.$children[0].$refs.locuszoom.applyFilter(filter)
+        },
+        requestCredibleSets(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
+                this.$store.dispatch('credibleSets/query', { q: queryString });
+            }
+        },
         exploreExpanded() {
             this.$store.commit('setLocus', {
                 chr: this.$store.state.chr,
@@ -123,6 +137,20 @@ new Vue({
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, data);
         },
+        // LocusZoom has "Panels"
+        addCredibleVariantsPanel(event) {
+            const { phenotype, credibleSetId } = event;
+            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
+                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
+                function(dataLoadedResponse) {
+                    // TODO: callbacks for creating a new table column for credible sets might go here
+                }
+            )
+        },
+        addAnnotationIntervalsPanel(event) {
+            const { annotation, method } = event;
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
+        },
         // TODO: refactor to closure for extra programmer points
         // TODO: does the idea of using components handle this problem?
         updateAssociationsPanel(phenotype) {
@@ -135,27 +163,18 @@ new Vue({
                 phenotype
             });
         },
+        filterOnPValueAndFold(vals, filterValue) {
+            let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
+                const [preKey, fieldValue] = items;
+                const fieldKey = preKey.split(':')[1];  // remove the namespacing information from the key to get the field leftover
+                acc[fieldKey] = fieldValue;
+                return acc;
+            }, {});
 
-        // IGV has "Tracks"
-        addCredibleVariantTrack(credibleSet) {
-            // you can update the store here if you really need to. but you don't need to.
-            // instead use a computed property with custom getters and setters plus v-model if at all possible.
-            const { phenotype, credibleSetId } = credibleSet;
-            this.$children[0].$refs.igv.addCredibleVariantsTrack(
-                phenotype,
-                credibleSetId,
-                true,
-                {
-                    // dataLoaded: event => console.log(event),
-                }
-            );
-        },
-        addAnnotationTrack(enrichment) {
-            const { annotation, method } = enrichment;
-            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
-                colorScheme: this.tissueColorScheme
-                // dataLoaded: event => console.log(event),
-            });
+            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
+            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
+
+            return pValuePred && foldPred;
         }
     },
 
@@ -296,9 +315,38 @@ new Vue({
             }
 
             return groups;
+        },
+        jointFilters() {
+            return {
+                pValue: this.pValue,
+                fold: this.fold,
+            }
         }
     },
     watch: {
+        jointFilters(newFilterThresholds) {
+            this.applyFilter({
+                fields: ['pvalue', 'fold'],
+                value: newFilterThresholds,
+                op: this.filterOnPValueAndFold
+            })
+        },
+        // pValue(minP) {
+        //     // the filter op takes input on the left arg (e.g. 'minP := filter.value, x >= minP')
+        //     this.applyFilter({
+        //         field: 'pvalue',
+        //         value: minP,
+        //         op: _.gte,
+        //     })
+        // },
+        // fold(maxF) {
+        //     // the filter op takes input on the left arg (e.g. 'maxF := filter.value, x <= maxF')
+        //     this.applyFilter({
+        //         field: 'fold',
+        //         value: maxF,
+        //         op: _.lte,
+        //     })
+        // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

@@ -1,43 +1,27 @@
 <template>
     <div>
-        <div id="lz"></div>
+        <div :id="`lz_${salt}`"></div>
         <slot v-if="locuszoommounted"></slot>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
+
 import LocusZoom from "locuszoom";
+import "locuszoom/dist/locuszoom.css"
+import intervalTracks from 'locuszoom/esm/ext/lz-intervals-track';
+import toolbar_addons from 'locuszoom/esm/ext/lz-widget-addons';
 
-import LZDataSources from "@/utils/lz/lzDataSources";
 import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
-import "locuszoom/dist/ext/lz-intervals-track.min.js";
+import LZDataSources from "@/utils/lz/lzDataSources";
+
 import idCounter from "@/utils/idCounter"
-import LocusZoomAssociationsPanel from "./panels/LocusZoomAssociationsPanel.vue";
 
-const BASE_PANEL_OPTIONS = {
-    // proportional_height: 1,
-    height: 240,
-    dashboard: {
-        components: [
-            {
-                type: "resize_to_data",
-                position: "right"
-            },
-            {
-                type: "region_scale",
-                position: "left"
-            }
-        ]
-    }
-}
+import jsonQuery from "json-query";
 
-/* panel options by panel type
- */
-const PANEL_OPTIONS = {
-    'association': { min_height: 240, height: 240 },
-    'genes': { min_height: 240, height: 240 },
-};
+LocusZoom.use(intervalTracks);
+LocusZoom.use(toolbar_addons);
 
 export default Vue.component("locuszoom", {
     props: [
@@ -45,11 +29,14 @@ export default Vue.component("locuszoom", {
         "start",
         "end",
         "colorScheme",
+        "scoring",
         "refSeq",
     ],
     data() {
         return {
             locuszoommounted: false,
+            yIndex: 0,
+            salt: Math.floor(Math.random() * 10000).toString()
         }
     },
     mounted() {
@@ -66,8 +53,8 @@ export default Vue.component("locuszoom", {
             }
         });
 
-        this.plot = LocusZoom.populate("#lz", this.dataSources, {
-            responsive_resize: "width_only",
+        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
+            responsive_resize: "both",
             state: Object.assign({}, {
                 chr: this.chr,
                 start: this.start,
@@ -79,7 +66,9 @@ export default Vue.component("locuszoom", {
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
-                y_index: 9001
+                min_height: 240,
+                height: 240,
+                y_index: 3
             }));
         }
 
@@ -119,11 +108,20 @@ export default Vue.component("locuszoom", {
             const { panel, source } = panelClass;
             this.dataSources.add(source.givingDataSourceName, source.withDataSourceReader);
 
-            this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, {
+            let panelOptions = {
                 namespace: { [panel.forDataSourceType]: panel.takingDataSourceName },
                 id: panel.id,
-                ...panel.locusZoomLayoutOptions,                // other locuszoom configuration required for the panel, including overrides(?)
-            })).addBasicLoader();
+                ...panel.locusZoomLayoutOptions,             // other locuszoom configuration required for the panel, including overrides(?)
+            }
+
+            if (typeof panelClass.dataLayers !== 'undefined') {
+                panelOptions = {
+                    ...panelOptions,
+                    data_layers: panelClass.dataLayers
+                }
+            }
+
+            this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, panelOptions)).addBasicLoader();
 
             // so we can figure out how to remove it later
             return panel.id;
@@ -166,7 +164,8 @@ export default Vue.component("locuszoom", {
                     annotation, method,
                     { finishHandler, resolveHandler, errHandler },
                     initialData,
-                    this.colorScheme  // this constructor has a default function if this.colorScheme is undefined
+                    this.colorScheme,  // this constructor has a default function if this.colorScheme is undefined
+                    this.scoring,
                 )
             );
             return panelId;
@@ -191,8 +190,66 @@ export default Vue.component("locuszoom", {
                 )
             );
             return panelId;
+        },
+        applyFilter(filter) {
+            // TODO: revisit, is there a faster way?
+            // Auxiliary method within our json query for data layers in the LocusZoom plot
+            // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
+            // using flatmap because we need to work across many Object.keys
+            // const forceKeys = el => el.flatMap(data_layer_set => Object.keys(data_layer_set).map(data_layer_name => data_layer_set[data_layer_name]));
+            const forceKeys = el => el.flatMap(data_layer_set => Object.entries(data_layer_set).map(data_layer_pair => data_layer_pair[1]));
+
+            // Do we need to calculate this every time?
+            const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
+            // Was the original solution, without jsonQuery, more responsive?
+            // Object.keys(this.plot.panels)
+            //     .forEach(panelKey =>
+            //         Object.keys(this.plot.panels[panelKey].data_layers)
+            //             .forEach(data_layer_key => {
+            //                 const filterTargetName = `${panelKey}_src:${filter.name}`;
+            //                 if (this.plot.panels[panelKey].data_layers[data_layer_key].layout.fields.includes(filterTargetName)) {
+            //                             this.plot.panels[panelKey].data_layers[data_layer_key].setFilter(item => filter.op(item[filterTargetName], filter.value))
+            //                 }
+            //             })
+            // )
+
+            data_layers.forEach(data_layer => {
+                const target = /*filter.target ||*/ data_layer.parent.id
+                const filterTargetNames = Array.isArray(filter.fields) ? filter.fields.map(field => `${target}_src:${field}`) : [`${target}_src:${filter.fields}`];
+                if (filterTargetNames.every(fieldTarget => data_layer.layout.fields.includes(fieldTarget))) {
+                    if (filter.value != '') {
+                        data_layer.setFilter(vals => {
+                            return filter.op(vals, filter.value);
+                        });
+                    } else {
+                        // nullify filter if filter has no value (lets everything through)
+                        data_layer.setFilter(item => true);
+                    }
+                } // no change in filter for data layers that don't match on the value
+            });
+
+            // refresh the plot in place
+            // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
+            this.plot.applyState();
+
+            console.groupEnd();
+
         }
     },
+    computed: {
+        region() {
+            return {
+                chr: this.chr,
+                start: this.start,
+                end: this.end,
+            }
+        }
+    },
+    watch: {
+        region(newRegion) {
+            this.plot.applyState({ chr: newRegion.chr, start: newRegion.start, end: newRegion.end })
+        }
+    }
 });
 
 </script>
