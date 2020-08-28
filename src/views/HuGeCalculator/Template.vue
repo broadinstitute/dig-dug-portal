@@ -68,10 +68,15 @@
                         </div>
 
                         <div class="col-xs-6 col-md-4">
-                            <div class="card" style="width:95%; border: 0">
+                            <div
+                                v-if="$parent.geneAssociations"
+                                class="card"
+                                style="width:95%; border: 0"
+                            >
                                 <posterior-probability-plot
-                                    v-if="$store.state.geneAssociationsData"
-                                    :geneassociations="$store.state.geneAssociationsData"
+                                    :geneAssociations="$parent.geneAssociations"
+                                    :priorVariance = 0.0462
+                                    :isDichotomous = "true"
                                 ></posterior-probability-plot>
                             </div>
                         </div>

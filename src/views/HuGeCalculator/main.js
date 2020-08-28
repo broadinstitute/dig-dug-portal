@@ -142,17 +142,21 @@ new Vue({
         },
 
         geneAssociations() {
-            let data = this.$store.state.geneAssociations.data;
+            // let data = this.$store.state.geneAssociations;
             let trait = "T2D";
-            for (let i = 0; i < data.length; i++) {
-                if (data[i].phenotype == trait) {
-                    return data[i];
-                }
-                if (data[i].pValue <= 0.0000025) {
-                    //if Exome wide significant
-                    context.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+            if (!!this.$store.state.geneAssociations.data.length) {
+                let data = this.$store.state.geneAssociations.data;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        return data[i];
+                    }
+                    if (data[i].pValue <= 0.0000025) {
+                        //if Exome wide significant
+                        context.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+                    }
                 }
             }
+
         }
     },
 
