@@ -292,6 +292,30 @@ export default Vue.component("posterior-probability-plot", {
     },
 
     computed: {
+        getData: function() {
+            // if (json[i].pValue <= 0.0000025) {
+
+            //show the line plot
+            //calculate the PPA using Prior and then using component pass this data as props
+            //find the most significant mask (lowest pvalue and return a map of std err, oddsRatio)
+
+            geneAssociations.forEach(row => {
+                if (!!row.masks) {
+                    let d = row.masks.sort((a, b) => a.pValue - b.pValue);
+                    console.log(d[0], "most significant mask");
+                    let mostSignificantMask = d[0];
+                    let stdErr = mostSignificantMask.stdErr;
+                    let oddsRatio = mostSignificantMask.oddsRatio;
+
+                    //if it has LofTee mask
+                    if (row.masks.mask == "LofTee") {
+                        let LofTeeOddsRatio = row.masks.oddsRatio;
+
+                        let lofTeeStdErr = row.masks.stdErr;
+                    }
+                }
+            });
+        },
         columns: function() {
             let n = prior.length;
             let x = new Array(n + 1);

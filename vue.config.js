@@ -170,7 +170,7 @@ module.exports = {
             bioindex_host =
                 bioindex_dev == "localhost"
                     ? "http://localhost:5000"
-                    : "http://18.215.38.136:5000";
+                    : "https://bioindex-dev.hugeamp.org";
         }
 
         // output which bioindex is being used

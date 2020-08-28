@@ -157,76 +157,48 @@ export default Vue.component("locuszoom", {
             }
         },
 
-        // addAssociationsPanelComponent: function(phenotype) {
-        //     console.log('add associations panel component')
-        //     this.addLZComponent(LocusZoomAssociationsPanel, {
-        //         phenotype
-        //     });
-        // },
-
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
-        addAssociationsPanel: function(
-            phenotype,
-            finishHandler,
-            resolveHandler,
-            errHandler
-        ) {
+        addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler, initialData) {
             const panelId = this.addPanelAndDataSource(
-                new LZAssociationsPanel(phenotype, {
-                    finishHandler,
-                    resolveHandler,
-                    errHandler
-                })
+                new LZAssociationsPanel(
+                    phenotype,
+                    { finishHandler, resolveHandler, errHandler },
+                    initialData
+                )
             );
             return panelId;
         },
-        addAnnotationIntervalsPanel: function(
-            annotation,
-            method,
-            finishHandler,
-            resolveHandler,
-            errHandler
-        ) {
+        addAnnotationIntervalsPanel: function(annotation, method, finishHandler, resolveHandler, errHandler, initialData) {
             const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
                     annotation,
                     method,
                     { finishHandler, resolveHandler, errHandler },
-                    this.colorScheme // this constructor has a default function if this.colorScheme is undefined
+                    initialData,
+                    this.colorScheme  // this constructor has a default function if this.colorScheme is undefined
                 )
             );
             return panelId;
         },
-        addCredibleVariantsPanel: function(
-            phenotype,
-            credibleSetId,
-            finishHandler,
-            resolveHandler,
-            errHandler
-        ) {
+        addCredibleVariantsPanel: function(phenotype, credibleSetId, finishHandler, resolveHandler, errHandler, initialData) {
             const panelId = this.addPanelAndDataSource(
-                new LZCredibleVariantsPanel(phenotype, credibleSetId, {
-                    finishHandler,
-                    resolveHandler,
-                    errHandler
-                })
+                new LZCredibleVariantsPanel(
+                    phenotype, credibleSetId,
+                    { finishHandler, resolveHandler, errHandler },
+                    initialData,
+                )
             );
             return panelId;
         },
-        addPhewasPanel: function(
-            varId,
-            phenotypeMap,
-            finishHandler,
-            resolveHandler,
-            errHandler
-        ) {
+        addPhewasPanel: function(varId, phenotypeMap, finishHandler, resolveHandler, errHandler, initialData) {
             const panelId = this.addPanelAndDataSource(
-                new LZPhewasPanel(varId, phenotypeMap, {
-                    finishHandler,
-                    resolveHandler,
-                    errHandler
-                })
+                new LZPhewasPanel(
+                    varId,
+                    phenotypeMap,
+                    { finishHandler, resolveHandler, errHandler },
+                    initialData,
+                )
             );
             return panelId;
         }

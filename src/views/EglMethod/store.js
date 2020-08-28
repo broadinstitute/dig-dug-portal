@@ -27,7 +27,7 @@ export default new Vuex.Store({
         filteredData: "",
         config: "",
         pageTitle: "",
-        plotsConfig: "",
+        plotsConfig: ""
     },
     mutations: {
         setGene(state, gene) {
@@ -47,9 +47,10 @@ export default new Vuex.Store({
             state.pageTitle = newTitle;
         },
         setPlotsConfig(state, configData) {
-            let plotsConfig = configData["config"][configData["dataset"]]["plots"];
+            let plotsConfig =
+                configData["config"][configData["dataset"]]["plots"];
             state.plotsConfig = plotsConfig;
-        },
+        }
     },
     getters: {},
     actions: {
@@ -58,15 +59,21 @@ export default new Vuex.Store({
         },
         async fetchConfig(context, config) {
             let json = await fetch(
-                `http://kp4cd.org/egldata/config?dataset=${config.dataset}`
+                `https://kp4cd.org/egldata/config?dataset=${config.dataset}`
             ).then(resp => resp.json());
             context.commit("setConfig", json);
-            context.commit("setPageTitle", { config: json, dataset: config.dataset });
-            context.commit("setPlotsConfig", { config: json, dataset: config.dataset });
+            context.commit("setPageTitle", {
+                config: json,
+                dataset: config.dataset
+            });
+            context.commit("setPlotsConfig", {
+                config: json,
+                dataset: config.dataset
+            });
         },
         async fetchData(context, dataset) {
             let json = await fetch(
-                `http://kp4cd.org/egldata/dataset?dataset=${dataset.dataset}&trait=${dataset.trait}`
+                `https://kp4cd.org/egldata/dataset?dataset=${dataset.dataset}&trait=${dataset.trait}`
             ).then(resp => resp.json());
             context.commit("setTableData", json.data);
             context.commit("setFilteredData", json.data);

@@ -139,6 +139,20 @@ new Vue({
                     return true;
                 }
             }
+        },
+
+        geneAssociations() {
+            let data = this.$store.state.geneAssociations.data;
+            let trait = "T2D";
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].phenotype == trait) {
+                    return data[i];
+                }
+                if (data[i].pValue <= 0.0000025) {
+                    //if Exome wide significant
+                    context.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+                }
+            }
         }
     },
 

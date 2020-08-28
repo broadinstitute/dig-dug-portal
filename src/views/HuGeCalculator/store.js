@@ -142,45 +142,7 @@ export default new Vuex.Store({
 
             //fetch call to gene-associations: 
 
-            let phenotype = "T2D";
-            let json = context.dispatch('geneAssociations/query', { q: gene });
-
-
-            //once 52K data is in bioindex there will be async call to bioindex and then commit
-            context.commit('setGeneAssociationsData', json);
-
-            for (var i = 0; i < json.length; ++i) {
-                // if (json[i].pValue <= 0.0000025) {
-                if (json[i].pValue <= 0.0000025) {
-                    //if Exome wide significant
-                    context.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
-                }
-                else {
-                    //show the line plot
-                    //calculate the PPA using Prior and then using component pass this data as props
-                    //find the most significant mask (lowest pvalue and return a map of std err, oddsRatio)
-
-                    json.forEach((row) => {
-                        if (!!row.masks) {
-                            let d = row.masks.sort((a, b) => a.pValue - b.pValue)
-                            console.log(d[0], "most significant mask")
-                            let mostSignificantMask = d[0];
-                            let stdErr = mostSignificantMask.stdErr;
-                            let oddsRatio = mostSignificantMask.oddsRatio;
-                            context.commit('setStdErr', stdErr);
-                            context.commit('setOddsRatio', oddsRatio);
-                            //if it has LofTee mask
-                            if (row.masks.mask == "LofTee") {
-                                context.commit('setLofTeeOddsRatio', row.masks.oddsRatio);
-                                context.commit('setLofTeeStdErr', row.masks.stdErr);
-                            }
-                        }
-
-                    })
-                }
-
-            }
-
+            context.dispatch('geneAssociations/query', { q: gene });
         },
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
