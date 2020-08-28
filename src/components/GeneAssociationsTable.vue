@@ -1,6 +1,6 @@
 <template>
     <div class="EGLT-table 52k">
-        <forest-plot :data="json[0].masks"></forest-plot>
+        <forest-plot :data="test" :dichotomous="true"></forest-plot>
         <b-container fluid>
             <b-row class="top-level-header">
                 <b-col class="top-level-header-item">{{capitalizedFormatter(show)}}</b-col>
@@ -101,6 +101,19 @@ export default Vue.component("gene-associations-table", {
     component: ForestPlot,
     data() {
         return {
+            test: [
+                {
+                    mask: "LofTee",
+                    n: 17260,
+                    pValue: 0.24698,
+                    combinedAF: 0.00034762,
+                    passingVariants: 5,
+                    singleVariants: 4,
+                    stdErr: 0.067554,
+                    beta: -0.078211,
+                },
+            ],
+
             json: [
                 {
                     dataset: "52k",
@@ -268,6 +281,9 @@ export default Vue.component("gene-associations-table", {
         associations() {
             return this.$store.state.associations;
         },
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
         tableData() {
             let associations = this.$store.state.associations;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
@@ -278,6 +294,7 @@ export default Vue.component("gene-associations-table", {
     },
     methods: {
         capitalizedFormatter: Formatters.capitalizedFormatter,
+        phenotypeFormatter: Formatters.phenotypeFormatter,
         showFeatures(index) {
             console.log("index: ", index);
             uiUtils.showHideElement("feature-headers-" + index);

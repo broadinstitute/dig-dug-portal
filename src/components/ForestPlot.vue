@@ -20,14 +20,14 @@ export default Vue.component("forest-plot", {
             required: false,
             default: "forest-plot",
         },
-        dichonomous: {
+        dichotomous: {
             type: Boolean,
             required: false,
             default: false,
         },
     },
     mounted() {
-        this.createChart(this.data, this.location, this.dichonomous);
+        this.createChart(this.data, this.location, this.dichotomous);
     },
     methods: {
         createChart(data, location, dichotomous) {
@@ -41,10 +41,12 @@ export default Vue.component("forest-plot", {
                     category: item.mask,
                     high: value + item.stdErr * 1.96,
                     low: value - item.stdErr * 1.96,
-                    measure: item.beta,
+                    measure: value,
                     bulletSize: 20,
                 };
             });
+
+            console.log("chart data:", chart.data);
 
             // Create axes
             let yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
@@ -114,7 +116,7 @@ export default Vue.component("forest-plot", {
 
             // Add summary line
             let range = xAxis.axisRanges.create();
-            range.value = 0;
+            range.value = dichotomous ? 1 : 0;
             range.grid.strokeWidth = 5;
             range.grid.strokeDasharray = "7,7";
         },
