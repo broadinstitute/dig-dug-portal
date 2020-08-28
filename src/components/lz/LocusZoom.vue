@@ -10,8 +10,10 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 
 import LZDataSources from "@/utils/lz/lzDataSources";
-import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
+import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel, LZComputedCredibleVariantsPanel } from "@/utils/lz/lzPanels";
 import "locuszoom/dist/ext/lz-intervals-track.min.js";
+import "locuszoom/dist/ext/lz-credible-sets.min.js";
+
 import idCounter from "@/utils/idCounter"
 import LocusZoomAssociationsPanel from "./panels/LocusZoomAssociationsPanel.vue";
 
@@ -31,13 +33,6 @@ const BASE_PANEL_OPTIONS = {
         ]
     }
 }
-
-/* panel options by panel type
- */
-const PANEL_OPTIONS = {
-    'association': { min_height: 240, height: 240 },
-    'genes': { min_height: 240, height: 240 },
-};
 
 export default Vue.component("locuszoom", {
     props: [
@@ -96,11 +91,6 @@ export default Vue.component("locuszoom", {
             const { start, end } = event; // coordinates are in decimals
             self.$emit('regionchanged', event);
         })
-
-        // this shows what panels updated
-        // this.plot.on('layout_changed', function() {
-        //  console.log('layout_changed', arguments)
-        // })
 
         self.$on("LZ_ADD_PANEL", () => {
             console.log('load panel')
@@ -183,6 +173,14 @@ export default Vue.component("locuszoom", {
                 new LZCredibleVariantsPanel(
                     phenotype, credibleSetId,
                     { finishHandler, resolveHandler, errHandler }
+                )
+            );
+            return panelId;
+        },
+        addComputedCredibleVariantsPanel: function(phenotype) {
+            const panelId = this.addPanelAndDataSource(
+                new LZComputedCredibleVariantsPanel(
+                    phenotype
                 )
             );
             return panelId;

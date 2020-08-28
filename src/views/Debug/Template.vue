@@ -17,6 +17,9 @@
                         :credibleSets="$parent.credibleSets"
                         @credibleset="$parent.addCredibleVariantsPanel($event)"
                     />
+
+                    <button @click="$parent.addComputedCredibleVariantsPanel({ phenotype: 'T2D' })">Add Computed Variants</button>
+
                 </div>
             </div>
         </div>

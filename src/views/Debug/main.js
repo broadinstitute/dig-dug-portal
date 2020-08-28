@@ -72,6 +72,10 @@ new Vue({
                 }
             )
         },
+        addComputedCredibleVariantsPanel(event) {
+            const { phenotype } = event;
+            this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(phenotype);
+        },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);

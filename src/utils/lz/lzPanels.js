@@ -218,6 +218,7 @@ export class LZCredibleVariantsPanel {
                 },
                 "id": this.panel_id,
                 "type": "scatter",
+
                 // id_field is necessary for the scatter visualization to work (used by the d3 code generating the viz)
                 "id_field": `${this.datasource_namespace_symbol_for_panel}:id`,
                 "fields": [
@@ -245,14 +246,122 @@ export class LZCredibleVariantsPanel {
     }
 
     get bioIndexToLZReader() {
-        return new _LZCredibleSetSource({
-            phenotype: this.phenotype,
+        return new _LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+        });
+    }
+
+    get panel() {
+        return {
+            id: this.panel_id,
+            panelLayoutType: this.panel_layout_type,
+            takingDataSourceName: this.datasource_namespace_symbol_for_panel,
+            forDataSourceType: this.datasource_type,
+            locusZoomLayoutOptions: this.locusZoomLayoutOptions,
+        }
+    }
+
+    get source() {
+        return {
+            isDataSourceType: this.datasource_type,
+            givingDataSourceName: this.datasource_namespace_symbol_for_panel,
+            withDataSourceReader: this.bioIndexToLZReader,
+        }
+    }
+}
+
+export class LZComputedCredibleVariantsPanel {
+    constructor(phenotype, initialData) {
+
+        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
+        // however they are also jointly necessary for LocusZoom –
+        this.panel_layout_type = 'association';
+        this.datasource_type = 'cred_vars';
+
+        // this is arbitrary, but we want to base it on the ID
+        this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
+        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+
+        this.translator = associations => associations.map(association => ({
+            id: association.varId,
+            chr: association.chromosome,
+            start: association.position,
+            end: association.position,
+            position: association.position,
+            pvalue: association.pValue,
+            // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
+            posterior_prob: association.posteriorProbability,
+            log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
+            variant: association.varId,
+            ref_allele: association.varId,
+        }));
+
+        // the requirement for this field is required for how we're implementing the `bioIndexToLZReader` getter (below)
+        this.phenotype = phenotype;
+        this.initialData = initialData;
+
+        // LocusZoom Layout configuration options
+        // See the LocusZoom docs for how this works
+        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
+        // If there's not a lot in here it's because we're overriding defaults
+        this.locusZoomLayoutOptions = {
+            title: {
+                text: `${'computed credible set'}`
+            },
+            axes: {
+                y1: {
+                    label: 'Posterior Probability'
+                }
+            },
+            // Data Layers are what actually populate the layout with stuff
+            // They tell you how your data is interpreted and where it's going
+            // First: establish the namespace
+            // Second: declare the fields with respect to the namespace
+            // Third: create axes and register the fields inside of them
+            // Fourth: write down the type of visualization using the data
+            // Fifth: add stylings, and the data layer ID
+            data_layers: [{
+                "namespace": {
+                    // narrowing down data from datasources of <datasource_type> to <datasource_namespace_symbol>
+                    [this.datasource_type]: this.datasource_namespace_symbol_for_panel
+                },
+                "id": this.panel_id,
+                "type": "scatter",
+
+                // id_field is necessary for the scatter visualization to work (used by the d3 code generating the viz)
+                "id_field": `${this.datasource_namespace_symbol_for_panel}:id`,
+                "fields": [
+                    `${this.datasource_namespace_symbol_for_panel}:id`,
+                    `${this.datasource_namespace_symbol_for_panel}:position`,
+                    `${this.datasource_namespace_symbol_for_panel}:posterior_prob`
+                ],
+                "x_axis": {
+                    "field": `${this.datasource_namespace_symbol_for_panel}:position`
+                },
+                // this overrides the log-pvalue and recombinant scales of the default associations plot
+                // since y-axes are partitioned into either axis: 1 -> y1 and axis: 2 -> y2, by overriding y_axis
+                // we've removed axis y2 from the associations plot (as we're only defining y1)
+                "y_axis": {
+                    "axis": 1,
+                    "field": `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
+                    // normalizing the scale to probability space
+                    "floor": 0,
+                    "ceiling": 1
+                }
+            }]
+        }
+    }
+
+    get bioIndexToLZReader() {
+        return new _LZComputedCredibleSetSource({
+            phenotype: this.phenotype,
+            translator: this.translator,
+            initialData: this.initialData,
         });
     }
 
@@ -346,7 +455,7 @@ export class LZPhewasPanel {
 }
 
 // TODO: refactor to use BaseAdapter?
-// NOTE: Ideally we'd use an interface that both _LZBioIndexSource and _LZCredibleSetSource satisfy
+// NOTE: Ideally we'd use an interface that both _LZBioIndexSource and _LZComputedCredibleSetSource satisfy
 // (because otherwise we'd be using concrete inheritance if we were to minimize duplication here, or otherwise enforce structure across duplications)
 const _LZBioIndexSource = LocusZoom.Data.Source.extend(function (init) {
     this.parseInit(init);
@@ -360,101 +469,80 @@ _LZBioIndexSource.prototype.parseInit = function (params) {
 };
 _LZBioIndexSource.prototype.getRequest = function (state, chain, fields) {
     const self = this;
+    const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
     return new Promise((resolve, reject) => {
-        const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
-        query(self.index, self.queryStringMaker(state.chr, state.start, state.end), {
-            finishHandler: self.finishHandler,
-            resolveHandler: self.resolveHandler,
-            errHandler: self.errHandler,
-        })
-        .then(async resultData => {
-            resolve(self.translator(resultData));
-        })
-        .catch(async error => {
-            postAlertError(error.detail);
-            reject(new Error(error));
-        })
-        .finally(closeAlert(alertID));
-    });
+        if (!!self.initialData) {
+            resolve(self.translator(self.initialData));
+            self.initialData = null;
+        } else {
+            query(self.index, self.queryStringMaker(state.chr, state.start, state.end), {
+                finishHandler: self.finishHandler,
+                resolveHandler: self.resolveHandler,
+                errHandler: self.errHandler,
+            })
+            .then(async resultData => {
+                resolve(self.translator(resultData));
+            })
+            .catch(async error => {
+                postAlertError(error.detail);
+                reject(new Error(error));
+            })
+        }
+    }).finally(closeAlert(alertID));
 };
 
-const _LZCredibleSetSource = LocusZoom.Data.Source.extend(function (init) {
+const _LZComputedCredibleSetSource = LocusZoom.Data.Source.extend(function (init) {
     this.parseInit(init);
 });
-_LZCredibleSetSource.prototype.parseInit = function (params) {
-    const { phenotype, index, queryStringMaker, translator, finishHandler, resolveHandler, errHandler, initialData } = params;
+_LZComputedCredibleSetSource.prototype.parseInit = function (params) {
+    const { phenotype, translator, initialData } = params;
     this.params = params;
-    this.queryStringMaker = queryStringMaker;
-    this.index = index;
     this.translator = translator;
     this.initialData = initialData;
     this.phenotype = phenotype;
 };
-_LZCredibleSetSource.prototype.getRequest = function (state, chain, fields) {
+_LZComputedCredibleSetSource.prototype.getRequest = function (state) {
     const self = this;
-    return new Promise((resolve, reject) => {
-
-        const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
+    const alertID = postAlertNotice(`Loading ${this.index}; please wait ...`);
+    return new Promise((resolve) => {
         if (!!self.initialData) {
-            closeAlert(alertID);
             resolve(self.translator(self.initialData));
             self.initialData = null;
         } else {
             // decide whether or not to use a precomputed credset
-            // TODO: conditional based on the code below
-            const phenoRegionQuery = `${this.phenotype},${state.chr}:${state.start}-${state.end}`;
-            query('credible-sets', phenoRegionQuery).then(async results => {
-                closeAlert(alertID);
-                console.log('credible sets bioindex results', results);
-                if (
-                    results.length > 0
-                ) {
-                    // TODO: credset combination branch
-                    console.log('there are credible sets - merge and return them');
-                    resolve([]);
-                } else {
-                    console.log('calculate the credible sets')
-                    console.log('get the necessary associations')
-                    query('associations', phenoRegionQuery).then(async results => {
-                        // TODO: what is this?
-                        // const nlogpvals = chain.body.map(function (item) {
-                        //     return item[self.params.fields.log_pvalue];  // this implies that this data is column-indexed?
-                        // });
-                        const translatedResults = self.translator(results);
-                        const nlogpvals = results.map(association => -Math.log10(association.pValue));
-                        const credset_data = [];
-                        try {
-                            const scores = scoring.bayesFactors(nlogpvals);
-                            const posteriorProbabilities = scoring.normalizeProbabilities(scores);
+            const phenoRegionQuery = `${self.phenotype},${state.chr}:${state.start}-${state.end}`;
+            query('associations', phenoRegionQuery).then(async results => {
+                const translatedResults = self.translator(results);
+                const nlogpvals = results.map(association => -Math.log10(association.pValue));
+                const credset_data = [];
+                try {
+                    const scores = scoring.bayesFactors(nlogpvals);
+                    const posteriorProbabilities = scoring.normalizeProbabilities(scores);
 
-                            // Use scores to mark the credible set in various ways (depending on your visualization preferences,
-                            //   some of these may not be needed)
-                            const credibleSet = marking.findCredibleSet(scores, 0.95);
-                            const credSetScaled = marking.rescaleCredibleSet(credibleSet);
-                            const credSetBool = marking.markBoolean(credibleSet);
-                            console.log('trying to make credset info', scores, posteriorProbabilities, credibleSet, credSetScaled, credSetBool);
+                    // Use scores to mark the credible set in various ways (depending on your visualization preferences,
+                    //   some of these may not be needed)
+                    const credibleSet = marking.findCredibleSet(scores, 0.95);
+                    const credSetScaled = marking.rescaleCredibleSet(credibleSet);
+                    const credSetBool = marking.markBoolean(credibleSet);
+                    console.log('trying to make credset info', scores, posteriorProbabilities, credibleSet, credSetScaled, credSetBool);
 
-                            // Annotate each response record based on credible set membership
-                            for (let i = 0; i < translatedResults.length; i++) {
-                                credset_data.push({
-                                    ...translatedResults[i],
-                                    posterior_prob: posteriorProbabilities[i],
-                                    contrib_fraction: credSetScaled[i],
-                                    is_member: credSetBool[i],
-                                });
-                            }
-                        } catch (e) {
-                            // If the calculation cannot be completed, return the data without annotation fields
-                            console.error(e);
-                        }
-                        console.log(credset_data);
-                        resolve(credset_data);
-                    });
+                    // Annotate each response record based on credible set membership
+                    for (let i = 0; i < translatedResults.length; i++) {
+                        credset_data.push({
+                            ...translatedResults[i],
+                            posterior_prob: posteriorProbabilities[i],
+                            contrib_fraction: credSetScaled[i],
+                            is_member: credSetBool[i],
+                        });
+                    }
+                } catch (e) {
+                    // If the calculation cannot be completed, return the data without annotation fields
+                    console.error(e);
                 }
-            });
+                resolve(credset_data);
+            })
         }
-
-    });
+    }).finally(closeAlert(alertID));
 };
 
 
