@@ -767,6 +767,53 @@ div.filtering-tools table th {
     padding-top: 50px;
 }
 
+.under-datasets-section-wrapper {
+    margin-top: 40px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.under-datasets-section-wrapper h4.header {
+    font-weight: 400;
+    font-size: 35px;
+    font-family: 'Oswald';
+    margin: 2px 0 0 10px;
+    padding: 0px 5px 2px 5px;
+    border: solid 1px #ddd;
+    border-right: none;
+    border-left: none;
+}
+
+.under-datasets-section-wrapper ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.under-datasets-section-wrapper ul li {
+    display: block;
+    clear: both;
+    font-family: Oswald;
+    font-size: 30px;
+    line-height: 25px;
+    margin-bottom: 30px;
+}
+
+.under-datasets-section-wrapper ul li img {
+    display: block;
+    float: left;
+    margin-right: 15px;
+    width: 80px;
+    height: 80px;
+    margin-top: -15px;
+}
+
+.under-datasets-section-wrapper ul li a {
+    font-size: 20px;
+    font-family: roboto;
+    font-weight: 500;
+}
+
 #news-feed {
     position: relative;
     height: 140px;
@@ -1136,4 +1183,16 @@ div.filtering-ui-content div.col.filter-col-lg .form-control, div.filtering-ui-c
     background-color: #66bbff30 !important;
     border: solid 1px #3399ff30 !important;
     padding-bottom: 0.25em !important;
+}
+
+a.to-previous-page {
+    color: #fff !important;
+    font-size: 14px;
+    background-color: #00aaff75;
+    border: solid 1px #00aaff95;
+    padding: 1px 10px;
+}
+
+a.to-previous-page:hover {
+    background-color: #00aaff95;
 }

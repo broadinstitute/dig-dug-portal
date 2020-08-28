@@ -48,15 +48,15 @@ import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("lunaris-link", {
     modules: {
-        uiUtils
+        uiUtils,
     },
     props: ["diseaseGroup", "chr", "begin", "end", "trait", "dataContent"],
     data() {
         return {
-            dataFromLunaris: null
+            dataFromLunaris: null,
         };
     },
-    mounted: function() {},
+    mounted: function () {},
     methods: {
         loadDataFromLunaris(CLASS) {
             uiUtils.showHideElement(CLASS);
@@ -68,21 +68,21 @@ export default Vue.component("lunaris-link", {
                     read: {
                         file:
                             "gs://fc-6fe31e1f-2c36-411c-bf23-60656d621184/data/t2d/associations.tsv.gz",
-                        idField: "varId",
-                        tool: "IndexedRecordReader"
+                        idField: "var_id",
+                        tool: "IndexedRecordReader",
                     },
                     filter: {
                         from: "read",
                         field: "phenotype",
                         stringValue: null,
-                        tool: "RecordsFilter"
+                        tool: "RecordsFilter",
                     },
                     write: {
                         from: "filter",
                         file: "responseFilterTsv.tsv",
-                        tool: "TSVWriter"
-                    }
-                }
+                        tool: "TSVWriter",
+                    },
+                },
             };
 
             let CHR = this.$store.state.chr;
@@ -102,8 +102,8 @@ export default Vue.component("lunaris-link", {
             let copyText = document.getElementById("dataFromLunaris");
             copyText.select();
             document.execCommand("copy");
-        }
-    }
+        },
+    },
 });
 </script>
 

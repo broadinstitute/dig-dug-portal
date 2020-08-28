@@ -60,7 +60,7 @@ export default Vue.component("confidence-interval-plot", {
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom);
 
-            var data = this.columns;
+            var data = this.confidenceinterval;
 
             var xScale = d3
                 .scaleLinear()
@@ -102,12 +102,12 @@ export default Vue.component("confidence-interval-plot", {
 
     computed: {
         confidenceinterval: function() {
-            let centreInterval = lofTeeOddsRatio;
+            let centreInterval = this.lofTeeOddsRatio;
             let leftInterval = Math.exp(
-                Math.log(lofTeeOddsRatio) - 1.96 * lofTeeStdErr
+                Math.log(this.lofTeeOddsRatio) - 1.96 * this.lofTeeStdErr
             );
             let rightInterval = Math.exp(
-                Math.log(lofTeeOddsRatio) + 1.96 * lofTeeStdErr
+                Math.log(this.lofTeeOddsRatio) + 1.96 * this.lofTeeStdErr
             );
             let m = {};
             m["leftInterval"] = leftInterval;
@@ -115,24 +115,7 @@ export default Vue.component("confidence-interval-plot", {
             m["centreInterval"] = centreInterval;
             return m;
         },
-        columns: function() {
-            // let n = prior.length;
-            // let x = new Array(n + 1);
-            // let y = new Array(n + 1);
-            // x[0] = "x";
-            // y[0] = "ppa";
-            // let l = [];
-            // prior.forEach((r, i) => {
-            //     let m = {};
-            //     x[i] = r;
-            //     y[i] = this.posteriorProbability(r);
-            //     m["prior"] = x[i];
-            //     m["ppa"] = y[i];
-            //     l.push(m);
-            // });
-            // //this returns list of maps where [{"prior":0.01,"ppa":0.99},{..}]
-            // return l;
-        }
+        columns: function() {}
     },
 
     watch: {
