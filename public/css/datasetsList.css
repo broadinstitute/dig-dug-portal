@@ -92,6 +92,9 @@
     background-position: center;
     margin: auto;
 }
+.community-icon.t1d {
+    background-image: url(../images/group_t1d.svg);
+}
 
 .community-icon.t2d {
     background-image: url(../images/group_t2d.svg);

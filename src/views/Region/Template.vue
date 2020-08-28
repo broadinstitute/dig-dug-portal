@@ -48,18 +48,12 @@
                                         placeholder="End position"
                                     />
                                 </div>
-
                                 <div class="col-md-3 input-wrapper">
-                                    <input
-                                        v-model="$store.state.searchGene"
-                                        type="text"
-                                        class="form-control input-default"
-                                        style="margin-left: 15px;padding-left: 30px;"
-                                        placeholder="Search gene"
-                                        id="region_gene_search"
-                                    />
-                                    <span class="gene-search-or">OR</span>
+                                    <gene-selectpicker
+                                        @onGeneChange="$store.dispatch('onGeneChange',$event)"
+                                    ></gene-selectpicker>
                                 </div>
+
                                 <div class="col-md-2 input-wrapper">
                                     <button
                                         id="regionSearchGo"
@@ -71,11 +65,11 @@
                             </div>
                         </div>
                         {{$parent.regionString}}
-                        <a
-                            type="button"
-                            class="btn btn-link btn-lg text-nowrap text-right"
-                            :href="`region.html?chr=${$store.state.chr}&start=${$store.state.start-50000}&end=${$store.state.end+50000}`"
-                        >Extend &plusmn; 50 kb</a>
+                        <button
+                            class="btn btn-primary text-nowrap text-right explore-region-btn"
+                            style="margin-left: 20px"
+                            @click="$parent.exploreExpanded()"
+                        >Expand &plusmn; 50 kb</button>
                         <lunaris-link
                             :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
@@ -101,6 +95,11 @@
                 </div>
             </div>
             <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <documentation name="region.trait.info"></documentation>
+                </div>
+            </div>
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">Genes overlapping region</h4>
                     <div v-for="row in $parent.genes" :class="'gene-with-signal '+row.type">
@@ -108,23 +107,25 @@
                     </div>
                 </div>
             </div>
-
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4
                         class="card-title"
-                    >Variant associations with p-value &lt;= 5e-8 in the region: {{$parent.regionString}}</h4>
+                    >Variant associations in the region: {{$parent.regionString}}</h4>
                     <documentation name="region.phenos_w_signal.subheader"></documentation>
-
-                    <div style="text-align: right; padding-bottom: 5px;">
+                    <div v-if="$parent.topAssociations.length > 0">
                         <div
-                            href="javascript:;"
-                            v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
-                            class="switch-view btn btn-secondary btn-sm"
-                        >View in phenotype group</div>
+                            style="text-align: right; padding-bottom: 5px;"
+                            v-if="$parent.topAssociations[0].pValue <= 5e-8"
+                        >
+                            <div
+                                href="javascript:;"
+                                v-on:click="$parent.switchViews(['pws-merged-view','pws-bar-view']);"
+                                class="switch-view btn btn-secondary btn-sm"
+                            >View associations by phenotype group</div>
+                        </div>
+                        <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                     </div>
-
-                    <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                 </div>
             </div>
 
@@ -133,7 +134,7 @@
                     <h4
                         v-if="!!$store.state.phenotype"
                         class="card-title"
-                    >Associations for {{$store.state.phenotype.description}}</h4>
+                    >Visualize associations for {{$store.state.phenotype.description}}</h4>
                     <documentation
                         name="region.lz.subheader"
                         :content-fill="$parent.documentationMap"
@@ -209,9 +210,15 @@
             <div v-if="!!$store.state.phenotype">
                 <div class="card mdkp-card">
                     <div class="card-body">
-                        <h4
-                            class="card-title"
-                        >Top Associations for {{$store.state.phenotype.description}}</h4>
+                        <h4 class="card-title">
+                            Top Associations for {{$store.state.phenotype.description}}
+                            <tooltip-documentation
+                                name="region.topassoc.tooltip"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+
                         <documentation name="region.variantassociation.subheader"></documentation>
                         <associations-table
                             :phenotypes="$parent.phenotypes"

@@ -3,7 +3,7 @@
         <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
                 <b-col>
-                    <div class="label">Tech:</div>
+                    <div class="label">Technology</div>
                     <b-form-select v-model="tech" :options="filter_tech"></b-form-select>
                 </b-col>
                 <b-col>
@@ -49,7 +49,9 @@
                 <span :class="'community-icon ' + r.item.community"></span>
             </template>
             <template v-slot:cell(link)="r">
-                <a :href="`/dinspector.html?dataset=${r.item.name}`">{{r.item.description}}</a>
+                <a
+                    :href="`/dinspector.html?dataset=${r.item.name}&phenotype=${phenotype.name}`"
+                >{{r.item.description}}</a>
             </template>
         </b-table>
         <b-pagination

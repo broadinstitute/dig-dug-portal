@@ -5,27 +5,42 @@
 
 import querystring from "query-string";
 
-// Constants
+// updated at compile-time to the dev or production BioIndex server
 export const BIO_INDEX_HOST = "http://SERVER_IP_ADDRESS:5000";
+
+/* Useful for /api/raw end-points and other requests.
+ */
+export function rawUrl(path) {
+    if (path.startsWith('/')) {
+        path = path.substr(1);
+    }
+
+    return `${BIO_INDEX_HOST}/${path}`;
+}
+
+/* Build a generic request to a BioIndex end-point.
+ */
+export async function request(path, query_params) {
+    let qs = query_params && querystring.stringify(query_params, { skipNull: true });
+
+    // use the rawUrl to get the location in the BioIndex
+    return fetch(rawUrl(`${path}?${qs || ''}`));
+}
 
 /* Perform a BioIndex query.
  */
-// NOTE: does pattern matching on the final three args make them necessary/mandatory for function to execute without errors?
-// => it does mean that in order for this code to not throw errors, those final parameters cannot be optional per se,
-//    but require an empty object for errors not to be reported.
-export async function query(index, q, { limit, resolveHandler, errHandler, finishHandler }) {
-    let qs = querystring.stringify({ q, limit }, { skipNull: true });
-    let req = fetch(`${BIO_INDEX_HOST}/api/bio/query/${index}?${qs}`);
+export async function query(index, q, opts = {}) {
+    let { limit, resolveHandler, errHandler, finishHandler } = opts;
+    let req = request(`/api/bio/query/${index}`, { q, limit });
 
-    // perform the fetch, make sure it succeeds
     return await processRequest(req, resolveHandler, errHandler, finishHandler);
 }
 
 /* Perform a BioIndex match.
  */
-export async function match(index, q, { limit, finishHandler, resolveHandler, errHandler  }) {
-    let qs = querystring.stringify({ q, limit }, { skipNull: true });
-    let req = fetch(`${BIO_INDEX_HOST}/api/bio/match/${index}?${qs}`);
+export async function match(index, q, opts = {}) {
+    let { limit, finishHandler, resolveHandler, errHandler } = opts;
+    let req = request(`/api/bio/match/${index}`, { q, limit });
 
     // perform the fetch, make sure it succeeds
     return await processRequest(req, resolveHandler, errHandler, finishHandler);
@@ -48,10 +63,10 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
 
         // this will also fail if resp.status !== 200
         while (!!json.continuation) {
-            let qs = querystring.stringify({ token: json.continuation });
+            let req = request(`/api/bio/cont`, { token: json.continuation });
 
             // follow the continuation
-            resp = await fetch(`${BIO_INDEX_HOST}/api/bio/cont?${qs}`);
+            resp = await req;
             json = await resp.json();
 
             if (resp.status === 200) {

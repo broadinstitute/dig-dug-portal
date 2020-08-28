@@ -1,20 +1,23 @@
 <template>
     <div>
-        <b-table
-            hover
-            small
-            responsive="sm"
-            :items="transcriptionFactors"
-            :fields="fields"
-            :per-page="perPage"
-            :current-page="currentPage"
-        ></b-table>
-        <b-pagination
-            class="pagination-sm justify-content-center"
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-        ></b-pagination>
+        <div v-if="rows > 0">
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :items="transcriptionFactors"
+                :fields="fields"
+                :per-page="perPage"
+                :current-page="currentPage"
+            ></b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
+        </div>
+        <div v-else>No transcription factors found.</div>
     </div>
 </template>
 
@@ -59,7 +62,7 @@ export default Vue.component("transcription-factors-table", {
                 },
                 {
                     key: "altScore",
-                    label: "Alt Score",
+                    label: "Alternate Score",
                     formatter: Formatters.floatFormatter
                 }
             ],
