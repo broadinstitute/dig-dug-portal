@@ -1,22 +1,37 @@
 <template>
     <div class="EGLT-table 52k">
-        <forest-plot :data="test" :dichotomous="true"></forest-plot>
+        <!-- <forest-plot :data="test" :dichotomous="true"></forest-plot> -->
         <b-container fluid>
             <b-row class="top-level-header">
                 <b-col class="top-level-header-item">{{capitalizedFormatter(show)}}</b-col>
                 <b-col class="top-level-header-item">pValue</b-col>
                 <b-col class="top-level-header-item">Beta</b-col>
+                <b-col class="top-level-header-item">Odds Ratio</b-col>
                 <b-col class="top-level-header-item">View</b-col>
             </b-row>
             <template v-for="(row, i) in associations.data">
                 <b-row class="data top-level-value" :key="row[show] + i">
-                    <b-col class="top-level-value-item">{{row[show]}}</b-col>
-                    <b-col class="top-level-value-item pValue">{{row.pValue}}</b-col>
+                    <b-col class="top-level-value-item">
+                        <a
+                            :href="`/phenotype.html?phenotype=${row.phenotype}`"
+                        >{{phenotypeMap[row.phenotype].description}}</a>
+                    </b-col>
+                    <b-col class="top-level-value-item pValue">{{pValueFormatter(row.pValue)}}</b-col>
                     <b-col class="top-level-value-item beta">
-                        <span
-                            :class="row.beta < 0 ? 'effect negative' : 'effect positive'"
-                        >{{ row.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
-                        <span>{{row.beta}}</span>
+                        <template v-if="!phenotypeMap[row.phenotype].dichotomous">
+                            <span
+                                :class="row.beta < 0 ? 'effect negative' : 'effect positive'"
+                            >{{ row.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
+                            <span>{{effectFormatter(row.beta)}}</span>
+                        </template>
+                    </b-col>
+                    <b-col class="top-level-value-item beta">
+                        <template v-if="!!phenotypeMap[row.phenotype].dichotomous">
+                            <span
+                                :class="row.beta < 0 ? 'effect negative' : 'effect positive'"
+                            >{{ row.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
+                            <span>{{effectFormatter(Math.exp(row.beta))}}</span>
+                        </template>
                     </b-col>
                     <b-col class="top-level-value-item">
                         <b-button @click="showFeatures(i)" class="view-features-btn">Masks</b-button>
@@ -29,37 +44,32 @@
                     :key="`features_${i}`"
                 >
                     <template v-for="(key, j) in row.masks">
-                        <!-- <template v-if="typeof row[key] === 'object'"> -->
-                        <!-- {{key}} --- {{j}} -->
                         <b-row class="feature-header" :key="`row_${i}_${j}`" v-if="j === 0">
-                            <!-- <b-col class="feature-header-item">Masks</b-col> -->
                             <b-col
                                 class="feature-header-item"
-                                :class="fh"
-                                v-for="fh in Object.keys(key)"
-                                :key="fh"
-                            >{{fh}}</b-col>
+                                v-for="col in colNames"
+                                :key="col"
+                            >{{col}}</b-col>
                         </b-row>
                         <b-row
                             class="features"
                             :class="`features_${i}_${j}`"
                             :key="`features_${i}_${j}`"
                         >
-                            <!-- <b-col class="feature-content-item key">{{key}}</b-col> -->
                             <b-col
                                 class="feature-content-item"
                                 :class="k"
-                                v-for="(item, k) in key"
+                                v-for="(item, k) in colOrder"
                                 :key="`item_${j}_${k}`"
                             >
                                 <span
-                                    v-if="k === 'beta'"
-                                    :class="item < 0 ? 'effect negative' : 'effect positive'"
-                                >{{ item < 0 ? "&#9660;" : "&#9650;"}}</span>
-                                {{item}}
+                                    v-if="item === 'beta'"
+                                    :class="key[item] < 0 ? 'effect negative' : 'effect positive'"
+                                >{{ key[item] < 0 ? "&#9660;" : "&#9650;"}}</span>
+                                {{key[item]}}
                             </b-col>
+                            <b-col class="feature-content-item">OR</b-col>
                         </b-row>
-                        <!-- </template> -->
                     </template>
                 </div>
                 <!-- <b-row
@@ -101,178 +111,26 @@ export default Vue.component("gene-associations-table", {
     component: ForestPlot,
     data() {
         return {
-            test: [
-                {
-                    mask: "LofTee",
-                    n: 17260,
-                    pValue: 0.24698,
-                    combinedAF: 0.00034762,
-                    passingVariants: 5,
-                    singleVariants: 4,
-                    stdErr: 0.067554,
-                    beta: -0.078211,
-                },
+            colNames: [
+                "Mask",
+                "P-Value",
+                "Combined AF",
+                "Passing Variants",
+                "Single Variants",
+                "Standard Error",
+                "Sample Size",
+                "Beta",
+                "Odds Ratio",
             ],
-
-            json: [
-                {
-                    dataset: "52k",
-                    phenotype: "BMI",
-                    gene: "RNF14",
-                    pValue: 0.795,
-                    beta: -0.0328,
-                    masks: [
-                        {
-                            mask: "LofTee",
-                            n: 17260,
-                            pValue: 0.24698,
-                            combinedAF: 0.00034762,
-                            passingVariants: 5,
-                            singleVariants: 4,
-                            stdErr: 0.067554,
-                            beta: -0.078211,
-                        },
-                        {
-                            mask: "5/5",
-                            n: 32927,
-                            pValue: 0.8093899999999999,
-                            combinedAF: 0.0010022,
-                            passingVariants: 22,
-                            singleVariants: 15,
-                            stdErr: 0.031608,
-                            beta: 0.0076242,
-                        },
-                        {
-                            mask: "16/16",
-                            n: 17260,
-                            pValue: 0.24698,
-                            combinedAF: 0.00034762,
-                            passingVariants: 5,
-                            singleVariants: 4,
-                            stdErr: 0.067554,
-                            beta: -0.078211,
-                        },
-                        {
-                            mask: "5/5 + LofTee LC",
-                            n: 32927,
-                            pValue: 0.8093899999999999,
-                            combinedAF: 0.0010022,
-                            passingVariants: 22,
-                            singleVariants: 15,
-                            stdErr: 0.031608,
-                            beta: 0.0076242,
-                        },
-                        {
-                            mask: "5/5 + 0/5 1%",
-                            n: 41112,
-                            pValue: 0.95237,
-                            combinedAF: 0.0082701,
-                            passingVariants: 89,
-                            singleVariants: 47,
-                            stdErr: 0.023386,
-                            beta: -0.0013968,
-                        },
-                        {
-                            mask: "5/5 + 1/5 1%",
-                            n: 41112,
-                            pValue: 0.9984,
-                            combinedAF: 0.006932300000000001,
-                            passingVariants: 84,
-                            singleVariants: 45,
-                            stdErr: 0.010551000000000001,
-                            beta: 2.122e-5,
-                        },
-                        {
-                            mask: "11/11",
-                            n: 28161,
-                            pValue: 0.38822,
-                            combinedAF: 0.00074571,
-                            passingVariants: 13,
-                            singleVariants: 8,
-                            stdErr: 0.037993,
-                            beta: -0.032783,
-                        },
-                    ],
-                },
-                {
-                    dataset: "52k",
-                    phenotype: "Phenotype*",
-                    gene: "Gene*",
-                    pValue: 0.795,
-                    beta: -0.0328,
-                    masks: [
-                        {
-                            mask: "LofTee",
-                            n: 17260,
-                            pValue: 0.24698,
-                            combinedAF: 0.00034762,
-                            passingVariants: 5,
-                            singleVariants: 4,
-                            stdErr: 0.067554,
-                            beta: -0.078211,
-                        },
-                        {
-                            mask: "5/5",
-                            n: 32927,
-                            pValue: 0.8093899999999999,
-                            combinedAF: 0.0010022,
-                            passingVariants: 22,
-                            singleVariants: 15,
-                            stdErr: 0.031608,
-                            beta: 0.0076242,
-                        },
-                        {
-                            mask: "16/16",
-                            n: 17260,
-                            pValue: 0.24698,
-                            combinedAF: 0.00034762,
-                            passingVariants: 5,
-                            singleVariants: 4,
-                            stdErr: 0.067554,
-                            beta: -0.078211,
-                        },
-                        {
-                            mask: "5/5 + LofTee LC",
-                            n: 32927,
-                            pValue: 0.8093899999999999,
-                            combinedAF: 0.0010022,
-                            passingVariants: 22,
-                            singleVariants: 15,
-                            stdErr: 0.031608,
-                            beta: 0.0076242,
-                        },
-                        {
-                            mask: "5/5 + 0/5 1%",
-                            n: 41112,
-                            pValue: 0.95237,
-                            combinedAF: 0.0082701,
-                            passingVariants: 89,
-                            singleVariants: 47,
-                            stdErr: 0.023386,
-                            beta: -0.0013968,
-                        },
-                        {
-                            mask: "5/5 + 1/5 1%",
-                            n: 41112,
-                            pValue: 0.9984,
-                            combinedAF: 0.006932300000000001,
-                            passingVariants: 84,
-                            singleVariants: 45,
-                            stdErr: 0.010551000000000001,
-                            beta: 2.122e-5,
-                        },
-                        {
-                            mask: "11/11",
-                            n: 28161,
-                            pValue: 0.38822,
-                            combinedAF: 0.00074571,
-                            passingVariants: 13,
-                            singleVariants: 8,
-                            stdErr: 0.037993,
-                            beta: -0.032783,
-                        },
-                    ],
-                },
+            colOrder: [
+                "mask",
+                "pValue",
+                "combinedAF",
+                "passingVariants",
+                "singleVariants",
+                "stdErr",
+                "n",
+                "beta",
             ],
         };
     },
@@ -284,17 +142,16 @@ export default Vue.component("gene-associations-table", {
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
-        tableData() {
-            let associations = this.$store.state.associations;
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-            let colNames = {};
-            let colOrder = [];
-            let rowOrder = [];
-        },
+        // tableData() {
+        //     let associations = this.$store.state.associations;
+        //     let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+        // },
     },
     methods: {
         capitalizedFormatter: Formatters.capitalizedFormatter,
-        phenotypeFormatter: Formatters.phenotypeFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
+        effectFormatter: Formatters.effectFormatter,
+        formatBeta(num) {},
         showFeatures(index) {
             console.log("index: ", index);
             uiUtils.showHideElement("feature-headers-" + index);
