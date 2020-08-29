@@ -43,42 +43,59 @@
                     class="feature-content-wrapper hidden"
                     :key="`features_${i}`"
                 >
-                    <template v-for="(key, j) in row.masks">
-                        <b-row class="feature-header" :key="`row_${i}_${j}`" v-if="j === 0">
-                            <b-col
-                                class="feature-header-item"
-                                v-for="col in colNames"
-                                :key="col"
-                            >{{col}}</b-col>
-                        </b-row>
+                    <b-row class="feature-header">
+                        <b-col
+                            class="feature-header-item"
+                            v-for="col in colNames"
+                            :key="col"
+                        >{{col}}</b-col>
+                        <b-col
+                            class="feature-header-item"
+                            v-if="!phenotypeMap[row.phenotype].dichotomous"
+                        >Beta</b-col>
+                        <b-col
+                            class="feature-header-item"
+                            v-if="!!phenotypeMap[row.phenotype].dichotomous"
+                        >Odds Ratio</b-col>
+                    </b-row>
+                    <template v-for="(mask, j) in row.masks">
                         <b-row
                             class="features"
                             :class="`features_${i}_${j}`"
                             :key="`features_${i}_${j}`"
                         >
+                            <b-col class="feature-content-item">{{mask.mask}}</b-col>
+                            <b-col class="feature-content-item">{{pValueFormatter(mask.pValue)}}</b-col>
                             <b-col
                                 class="feature-content-item"
-                                :class="k"
-                                v-for="(item, k) in colOrder"
-                                :key="`item_${j}_${k}`"
+                            >{{Number.parseFloat(mask.combinedAF).toFixed(7)}}</b-col>
+                            <b-col class="feature-content-item">{{mask.passingVariants}}</b-col>
+                            <b-col class="feature-content-item">{{mask.singleVariants}}</b-col>
+                            <b-col
+                                class="feature-content-item"
+                            >{{Number.parseFloat(mask.stdErr).toFixed(5)}}</b-col>
+                            <b-col class="feature-content-item">{{intFormatter(mask.n)}}</b-col>
+                            <b-col
+                                class="feature-content-item"
+                                v-if="!phenotypeMap[row.phenotype].dichotomous"
                             >
                                 <span
-                                    v-if="item === 'beta'"
-                                    :class="key[item] < 0 ? 'effect negative' : 'effect positive'"
-                                >{{ key[item] < 0 ? "&#9660;" : "&#9650;"}}</span>
-                                {{key[item]}}
+                                    :class="mask.beta < 0 ? 'effect negative' : 'effect positive'"
+                                >{{ mask.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
+                                {{effectFormatter(mask.beta)}}
                             </b-col>
-                            <b-col class="feature-content-item">OR</b-col>
+                            <b-col
+                                class="feature-content-item"
+                                v-if="!!phenotypeMap[row.phenotype].dichotomous"
+                            >
+                                <span
+                                    :class="Math.exp(mask.beta) < 0 ? 'effect negative' : 'effect positive'"
+                                >{{ Math.exp(mask.beta) < 0 ? "&#9660;" : "&#9650;"}}</span>
+                                {{effectFormatter(Math.exp(mask.beta))}}
+                            </b-col>
                         </b-row>
                     </template>
                 </div>
-                <!-- <b-row
-                    class="features"
-                    v-if="typeof "
-                    :key="row[show] + i"
-                >
-                    <b-col v-for="col in row" :key="col + i">{{typeof col}} - {{col}}</b-col>
-                </b-row>-->
                 <div
                     class="feature-plot-wrapper hidden"
                     :class="`feature-plot-${i}`"
@@ -119,18 +136,6 @@ export default Vue.component("gene-associations-table", {
                 "Single Variants",
                 "Standard Error",
                 "Sample Size",
-                "Beta",
-                "Odds Ratio",
-            ],
-            colOrder: [
-                "mask",
-                "pValue",
-                "combinedAF",
-                "passingVariants",
-                "singleVariants",
-                "stdErr",
-                "n",
-                "beta",
             ],
         };
     },
@@ -142,16 +147,12 @@ export default Vue.component("gene-associations-table", {
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
-        // tableData() {
-        //     let associations = this.$store.state.associations;
-        //     let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-        // },
     },
     methods: {
         capitalizedFormatter: Formatters.capitalizedFormatter,
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
-        formatBeta(num) {},
+        intFormatter: Formatters.intFormatter,
         showFeatures(index) {
             console.log("index: ", index);
             uiUtils.showHideElement("feature-headers-" + index);
