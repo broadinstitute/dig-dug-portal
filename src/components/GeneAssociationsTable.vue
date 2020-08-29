@@ -169,78 +169,14 @@ export default Vue.component("gene-associations-table", {
         createChart(index, data, dichotomous) {
             // Create chart instance
             let chart = am4core.create("plot_" + index, am4charts.XYChart);
-
-            // Add data
-            // chart.data = [
-            //     {
-            //         category: "LofTee",
-            //         measure: 1.3,
-            //         bulletSize: 25,
-            //         high: 3.4,
-            //         low: 1.0,
-            //     },
-            //     {
-            //         category: "5/5",
-            //         measure: 2.1,
-            //         bulletSize: 15,
-            //         high: 2.6,
-            //         low: 0.5,
-            //     },
-            //     {
-            //         category: "16/16",
-            //         measure: 1.8,
-            //         bulletSize: 10,
-            //         high: 3.2,
-            //         low: 0.9,
-            //     },
-            //     {
-            //         category: "5/5 + LofTee LC",
-            //         measure: 2.3,
-            //         bulletSize: 30,
-            //         high: 2.7,
-            //         low: 1.9,
-            //     },
-            //     {
-            //         category: "5/5 + 0/5 1%",
-            //         measure: 2.1,
-            //         bulletSize: 35,
-            //         high: 2.5,
-            //         low: 1.8,
-            //     },
-            //     {
-            //         category: "5/5 + 1/5 1%",
-            //         measure: 2.3,
-            //         bulletSize: 20,
-            //         high: 2.7,
-            //         low: 1.9,
-            //     },
-            //     {
-            //         category: "11/11",
-            //         measure: 1.1,
-            //         bulletSize: 25,
-            //         high: 2.5,
-            //         low: 0.8,
-            //     },
-            //     {
-            //         category: "Summary measure",
-            //         measure: 2.2,
-            //         bulletSize: 55,
-            //         high: 2.4,
-            //         low: 1.9,
-            //         rotation: 45,
-            //         fill: am4core.color("#fff"),
-            //         label: "{valueX}",
-            //     },
-            // ];
             let labelName = dichotomous ? "Odds Ratio" : "Beta";
-
             let mapped = data.map((item) => {
                 let value = dichotomous ? Math.exp(item.beta) : item.beta;
                 return {
                     category: item.mask,
                     high: value + item.stdErr * 1.96,
                     low: value - item.stdErr * 1.96,
-                    measure: item.beta,
+                    measure: value,
                     bulletSize: 20,
                 };
             });
