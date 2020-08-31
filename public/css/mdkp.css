@@ -497,6 +497,7 @@ a.edit-btn:hover {
     width: 100%;
     background-color: #fff;
     font-size: 16px;
+    z-index: 10;
 }
 
 .gene-page-header-body {
