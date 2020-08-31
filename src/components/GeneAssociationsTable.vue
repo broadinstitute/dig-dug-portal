@@ -102,7 +102,13 @@
                     :key="`plot_${i}`"
                 >
                     <h4>Forest Plot</h4>
-                    <div :id="`plot_${i}`" class="plots"></div>
+                    <!-- <div :id="`plot_${i}`" class="plots"></div> -->
+                    <forest-plot
+                        :data="row.masks"
+                        :id="`fplot_${i}`"
+                        :element="`fplot_${i}`"
+                        :dichotomous="phenotypeMap[row.phenotype].dichotomous"
+                    ></forest-plot>
                 </div>
             </template>
         </b-container>
@@ -160,9 +166,9 @@ export default Vue.component("gene-associations-table", {
         showPlot(index, data, dichotomous = false) {
             console.log("plot index: ", index);
             console.log("data:", data);
-            let isEmpty =
-                document.getElementById("plot_" + index).innerHTML === "";
-            if (isEmpty) this.createChart(index, data, dichotomous);
+            // let isEmpty =
+            //     document.getElementById("plot_" + index).innerHTML === "";
+            // if (isEmpty) this.createChart(index, data, dichotomous);
 
             uiUtils.showHideElement("feature-plot-" + index);
         },
