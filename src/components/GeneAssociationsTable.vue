@@ -254,7 +254,7 @@ export default Vue.component("gene-associations-table", {
 
             // Add summary line
             let range = xAxis.axisRanges.create();
-            range.value = 0;
+            range.value = dichotomous ? 1 : 0;
             range.grid.strokeWidth = 5;
             range.grid.strokeDasharray = "7,7";
         },
