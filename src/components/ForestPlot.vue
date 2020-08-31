@@ -1,5 +1,5 @@
 <template>
-    <div class="plots" :id="location"></div>
+    <div class="plots" :id="element"></div>
 </template>
 
 <script>
@@ -15,7 +15,7 @@ export default Vue.component("forest-plot", {
             type: Array,
             required: true,
         },
-        location: {
+        element: {
             type: String,
             required: false,
             default: "forest-plot",
@@ -27,12 +27,12 @@ export default Vue.component("forest-plot", {
         },
     },
     mounted() {
-        this.createChart(this.data, this.location, this.dichotomous);
+        this.createChart(this.data, this.element, this.dichotomous);
     },
     methods: {
-        createChart(data, location, dichotomous) {
+        createChart(data, element, dichotomous) {
             // Create chart instance
-            let chart = am4core.create(location, am4charts.XYChart);
+            let chart = am4core.create(element, am4charts.XYChart);
             let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
             chart.data = data.map((item) => {
