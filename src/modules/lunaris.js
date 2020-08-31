@@ -25,10 +25,13 @@ export default {
     // dispatch methods
     actions: {
         async getDataFromLunaris(context, arg) {
-            let json = await fetch(`//lunaris.hugeamp.org/lunaris/query`, {
-                method: "POST", // or 'PUT'
-                body: JSON.stringify(arg)
-            }).then(resp => resp.text());
+            let json = await fetch(
+                `https://lunaris.hugeamp.org/lunaris/query`,
+                {
+                    method: "POST", // or 'PUT'
+                    body: JSON.stringify(arg)
+                }
+            ).then(resp => resp.text());
             // set the data
             context.commit("setDataFromLunaris", json);
         }
