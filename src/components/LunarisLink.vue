@@ -10,7 +10,7 @@
                 </div>
                 <div>
                     <a
-                        :href="'http://34.71.240.244:8080/lunaris/lunaris.html?chr='+chr+'&begin='+begin+'&end='+end+'&trait='+trait.name"
+                        :href="'//lunaris.hugeamp.org/lunaris/lunaris.html?chr='+chr+'&begin='+begin+'&end='+end+'&trait='+trait.name"
                         target="_blank"
                     >Open Lunaris for more options &nbsp;</a>
                     <!--<tooltip-documentation
