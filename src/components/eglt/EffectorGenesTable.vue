@@ -377,6 +377,7 @@ export default Vue.component("effector-genes-table", {
 
                         if (columnHighestScore == undefined) {
                             let countingColumns = formatting["count"];
+
                             if (LEVEL == "top") {
                                 let tempArr = [];
                                 this.tableData.map((r) => {
@@ -407,7 +408,7 @@ export default Vue.component("effector-genes-table", {
                                                 tempArr.push(Number(t[cc]));
                                             });
                                         } else {
-                                            if (t[COLUMN[1]]) {
+                                            if (t[COLUMN[1]] != undefined) {
                                                 tempArr.push(
                                                     Number(t[COLUMN[1]])
                                                 );
@@ -435,40 +436,7 @@ export default Vue.component("effector-genes-table", {
                                     COLUMN[0]
                                 ][COLUMN[1]];
                             }
-
-                            /*let percentileValue = Math.abs(
-                                Math.floor(
-                                    ((Number(VALUE) - columnLowestScore) /
-                                        (columnHighestScore -
-                                            columnLowestScore)) *
-                                        100
-                                )
-                            );
-
-                            return (
-                                "<span class='cell-weight-" +
-                                percentileValue +
-                                "'>" +
-                                VALUE +
-                                "</span>"
-                            );*/
                         } else {
-                            /*let percentileValue = Math.abs(
-                                Math.floor(
-                                    ((Number(VALUE) - columnLowestScore) /
-                                        (columnHighestScore -
-                                            columnLowestScore)) *
-                                        100
-                                )
-                            );
-
-                            return (
-                                "<span class='cell-weight-" +
-                                percentileValue +
-                                "'>" +
-                                VALUE +
-                                "</span>"
-                            );*/
                         }
 
                         let percentileValue = Math.abs(
