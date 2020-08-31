@@ -9,6 +9,7 @@ import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 am4core.useTheme(am4themes_animated);
 
+let chart = null;
 export default Vue.component("forest-plot", {
     props: {
         data: {
@@ -32,7 +33,7 @@ export default Vue.component("forest-plot", {
     methods: {
         createChart(data, element, dichotomous) {
             // Create chart instance
-            let chart = am4core.create(element, am4charts.XYChart);
+            chart = am4core.create(element, am4charts.XYChart);
             let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
             chart.data = data.map((item) => {
@@ -119,6 +120,9 @@ export default Vue.component("forest-plot", {
             range.value = dichotomous ? 1 : 0;
             range.grid.strokeWidth = 5;
             range.grid.strokeDasharray = "7,7";
+        },
+        updateChart(newData) {
+            chart.data = newData;
         },
     },
 });
