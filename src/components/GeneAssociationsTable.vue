@@ -101,7 +101,7 @@
                     :class="`feature-plot-${i}`"
                     :key="`plot_${i}`"
                 >
-                    <h4>Forest Plot</h4>
+                    <h5>Forest Plot</h5>
                     <!-- <div :id="`plot_${i}`" class="plots"></div> -->
                     <forest-plot
                         :data="row.masks"
@@ -283,11 +283,20 @@ export default Vue.component("gene-associations-table", {
 .feature-content-wrapper {
     border-left: solid 4px #75def8 !important;
 }
-.col.beta {
+/* .col.beta {
     display: inline-block;
     text-align: left;
+} */
+.feature-plot-wrapper {
+    border-left: solid 4px #bfd730 !important;
+    width: calc(100% - 15px);
+    margin-left: 15px;
 }
 .plots {
     min-height: 460px;
+    background-color: #f9f9f9;
+}
+.feature-plot-wrapper > h5 {
+    background-color: #bfd73050;
 }
 </style>

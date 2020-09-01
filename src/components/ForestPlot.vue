@@ -51,6 +51,8 @@ export default Vue.component("forest-plot", {
             });
 
             //console.log("chart data:", chart.data);
+            //support logo
+            chart.logo.disabled = true;
 
             // Create axes
             let yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
