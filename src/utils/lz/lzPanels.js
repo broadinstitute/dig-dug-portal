@@ -3,7 +3,7 @@ import {BaseAdapter} from "locuszoom/esm/data/adapters"
 
 import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
-import { rgb } from "d3";
+import * as d3 from "d3";
 import _ from "lodash"
 
 import { marking, scoring } from 'gwas-credible-sets';
@@ -18,7 +18,7 @@ const BASE_PANEL_OPTIONS = {
     height: 240,
 }
 export class LZAssociationsPanel {
-    constructor(phenotype, { finishHandler, resolveHandler, errHandler }) {
+    constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -42,6 +42,7 @@ export class LZAssociationsPanel {
             variant: association.varId,
             ref_allele: association.varId,
         }));
+        this.initialData = initialData;
 
 
         // LocusZoom Layout configuration options
@@ -74,6 +75,7 @@ export class LZAssociationsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initialData,
         });
         return reader;
     }
@@ -147,7 +149,8 @@ export class LZAnnotationIntervalsPanel {
                 //     return typeof scoring[key] !== 'undefined';
                 // })
                 .map(interval => {
-                    const { r, g, b } = rgb(colorScheme(interval.tissue));
+                    const colorScheme = d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
+                    const { r, g, b } = d3.rgb(colorScheme(interval.tissue));
                     let t = interval.tissueId || "NA";
                     let m = interval.method || "NA";
                     let key = `${t}_${m}_${interval.annotation}`;
@@ -170,6 +173,7 @@ export class LZAnnotationIntervalsPanel {
             }).filter(el => !!el) : [];
             return tissueIntervals;
         }
+        this.initialData = initialData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -199,6 +203,7 @@ export class LZAnnotationIntervalsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initalData,
         });
         return reader;
     }
@@ -245,7 +250,7 @@ export class LZAnnotationIntervalsPanel {
 
 }
 export class LZCredibleVariantsPanel {
-    constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }) {
+    constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -271,6 +276,7 @@ export class LZCredibleVariantsPanel {
             variant: association.varId,
             ref_allele: association.varId,
         }));
+        this.initialData = initialData;
 
         // the requirement for this field is required for how we're implementing the `bioIndexToLZReader` getter (below)
         this.phenotype = phenotype;
@@ -341,6 +347,7 @@ export class LZCredibleVariantsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initalData,
         });
         return reader;
     }
@@ -482,7 +489,7 @@ export class LZComputedCredibleVariantsPanel {
 }
 
 export class LZPhewasPanel {
-    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }) {
+    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -511,6 +518,7 @@ export class LZPhewasPanel {
             });
             return phewas;
         }
+        this.initialData = initialData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -531,6 +539,7 @@ export class LZPhewasPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initialData,
         });
     }
 

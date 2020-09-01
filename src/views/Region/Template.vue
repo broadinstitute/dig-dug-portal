@@ -140,7 +140,6 @@
                         :content-fill="$parent.documentationMap"
                     ></documentation>
 
-                    <!-- <p style="color:white;background-color:red;width:30px">TODO</p> -->
                     <documentation
                             name="region.igv.subheader"
                             :content-fill="$parent.documentationMap"
@@ -195,7 +194,6 @@
                         :chr="$store.state.chr"
                         :start="$store.state.start"
                         :end="$store.state.end"
-                        :colorScheme="$parent.tissueColorScheme"
                         :scoring="$parent.tissueScoring"
                         @regionchanged="$parent.requestCredibleSets($event.data)"
                         :refSeq="true">

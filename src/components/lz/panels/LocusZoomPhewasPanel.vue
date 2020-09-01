@@ -4,6 +4,7 @@
 
 <script>
 import Vue from "vue";
+import { isEqual, isEmpty } from "lodash";
 
 export default Vue.component("lz-phewas-panel", {
     props: {
@@ -26,6 +27,10 @@ export default Vue.component("lz-phewas-panel", {
         errHandler: {
             type: Function,
             required: false
+        },
+        // for use with v-model
+        value: {
+            required: false
         }
     },
     data() {
@@ -38,16 +43,34 @@ export default Vue.component("lz-phewas-panel", {
     },
     methods: {
         updatePanel() {
+
+            // TODO: what *should* happen when this.finishHandler and this.value are both defined?
+            // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
+            const finishHandler = typeof this.value !== 'undefined' ? 
+                result => this.$emit('input', result.data) : this.finishHandler;
+
             this.id = this.$parent.addPhewasPanel(
                 this.varId,
                 this.phenotypeMap,
-                this.finishHandler,
+                finishHandler,
                 this.resolveHandler,
-                this.errHandler
+                this.errHandler,
+                this.value,
             );
+
         }
     },
     watch: {
+        value(newVal, oldVal) {
+            // the first clause prevents infinite loops
+            // the second clause here prevents us from updating the panel twice when locuszoom pushes data to the page
+            if (!isEqual(newVal, oldVal) && !isEmpty(oldVal)) {
+                if (!!this.id) {
+                    this.$parent.plot.removePanel(this.id);
+                };
+                this.updatePanel();
+            }
+        },
         varId(newVarId) {
             // this is good enough
             if (!!this.id) {

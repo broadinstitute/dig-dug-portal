@@ -30,6 +30,8 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import Formatters from "@/utils/formatters"
+
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
 Vue.use(BootstrapVueIcons);
@@ -88,6 +90,17 @@ new Vue({
         postAlertError,
         closeAlert,
 
+        applyFilter(filter) {
+            this.$children[0].$refs.locuszoom.applyFilter(filter)
+        },
+        requestCredibleSets(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
+                this.$store.dispatch('credibleSets/query', { q: queryString });
+            }
+        },
+
         exploreExpanded() {
             this.$store.commit('setLocus', {
                 chr: this.$store.state.chr,
@@ -107,21 +120,19 @@ new Vue({
             );
             return newAssociationsPanelId;
         },
-        applyFilter(filter) {
-            this.$children[0].$refs.locuszoom.applyFilter(filter)
-        },
-        requestCredibleSets(eventData) {
-            const { start, end } = eventData;
-            if (!!start && !!end) {
-                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
-                this.$store.dispatch('credibleSets/query', { q: queryString });
-            }
-        },
+
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, data);
         },
-        // TODO: refactor to closure for extra programmer points
-        // TODO: does the idea of using components handle this problem?
+        // LocusZoom has "Panels"
+        addCredibleVariantsPanel(event) {
+            const { phenotype, credibleSetId } = event;
+            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId)
+        },
+        addAnnotationIntervalsPanel(event) {
+            const { annotation, method } = event;
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
+        },
         updateAssociationsPanel(phenotype) {
             if (this.currentAssociationsPanel) {
                 this.$children[0].$refs.locuszoom.plot.removePanel(
@@ -132,20 +143,6 @@ new Vue({
                 phenotype
             });
         },
-        // LocusZoom has "Panels"
-        addCredibleVariantsPanel(event) {
-            const { phenotype, credibleSetId } = event;
-            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
-                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
-                    // TODO: callbacks for creating a new table column for credible sets might go here
-                }
-            )
-        },
-        addAnnotationIntervalsPanel(event) {
-            const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
-        },
         filterOnPValueAndFold(vals, filterValue) {
             let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
                 const [preKey, fieldValue] = items;
@@ -154,8 +151,8 @@ new Vue({
                 return acc;
             }, {});
 
-            let pValuePred = !!filterValue.pValue ? _.gte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
-            let foldPred = !!filterValue.fold ? _.lte(extractedItemVals.fold, filterValue.fold) : true;
+            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
+            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
 
             return pValuePred && foldPred;
         }
@@ -230,24 +227,6 @@ new Vue({
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
 
-        // the associations in LZ format
-        lzAssociations() {
-            let data = this.$store.state.associations.data;
-            let threshold = 1000 / data.length;
-            let assocs = this.$store.state.associations.data
-                .filter(v => v.pValue < 1e-5 || Math.random() < threshold)
-                .map(v => {
-                    return {
-                        id: v.varId,
-                        variant: v.varId,
-                        position: v.position,
-                        log_pvalue: -Math.log10(v.pValue),
-                        ref_allele: v.reference
-                    };
-                });
-            return assocs;
-        },
-
         globalEnrichmentAnnotations() {
             // an array of annotations
             return _.uniqBy(this.$store.state.globalEnrichment.data, el =>
@@ -264,13 +243,6 @@ new Vue({
                     .filter(interval => !!interval.tissue)
                     .map(interval => interval.tissue)
             );
-        },
-
-        tissueColorScheme() {
-            return d3
-                .scaleOrdinal()
-                .domain(this.tissues)
-                .range(d3.schemeSet1);
         },
 
         tissueScoring() {
@@ -307,29 +279,12 @@ new Vue({
     },
     watch: {
         jointFilters(newFilterThresholds) {
-            console.log('joint filters reacting')
             this.applyFilter({
                 fields: ['pvalue', 'fold'],
                 value: newFilterThresholds,
                 op: this.filterOnPValueAndFold
             })
         },
-        // pValue(minP) {
-        //     // the filter op takes input on the left arg (e.g. 'minP := filter.value, x >= minP')
-        //     this.applyFilter({
-        //         field: 'pvalue',
-        //         value: minP,
-        //         op: _.gte,
-        //     })
-        // },
-        // fold(maxF) {
-        //     // the filter op takes input on the left arg (e.g. 'maxF := filter.value, x <= maxF')
-        //     this.applyFilter({
-        //         field: 'fold',
-        //         value: maxF,
-        //         op: _.lte,
-        //     })
-        // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

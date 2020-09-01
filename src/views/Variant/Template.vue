@@ -120,7 +120,6 @@
                         name="variant.phewas.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-
                     <locuszoom
                         ref="locuszoom"
                         :chr="$store.state.chr"

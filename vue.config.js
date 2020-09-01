@@ -156,10 +156,13 @@ module.exports = {
     },
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
-        let bioindex_host = "3.221.48.161"; // production by default
+        let bioindex_host = "https://bioindex.hugeamp.org"; // production by default
 
         if (!!bioindex_dev) {
-            bioindex_host = bioindex_dev == "localhost" ? "localhost" : "18.215.38.136";
+            bioindex_host =
+                bioindex_dev == "localhost"
+                    ? "http://localhost:5000"
+                    : "https://bioindex-dev.hugeamp.org";
         }
 
         // output which bioindex is being used
@@ -184,5 +187,5 @@ module.exports = {
         }
     },
     productionSourceMap: false,
-    pages,
+    pages
 };

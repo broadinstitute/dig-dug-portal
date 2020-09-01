@@ -28,16 +28,12 @@ export default Vue.component("datasets-section", {
         return {
             datasets_chart: null,
             phenotypes_chart: null,
-            data: [500, 1000]
+            data: [500, 1000],
         };
     },
     methods: {
-        renderCharts: function(DATASETS) {
-            //console.log(DATASETS);
-
-            var randerPie = function(PIEDATA, SVGID, COLORSET, WIDTH, HEIGHT) {
-                //console.log(PIEDATA);
-
+        renderCharts: function (DATASETS) {
+            var renderPie = function (PIEDATA, SVGID, COLORSET, WIDTH, HEIGHT) {
                 var width = WIDTH,
                     height = HEIGHT,
                     radius = Math.min(width, height) / 2;
@@ -57,11 +53,11 @@ export default Vue.component("datasets-section", {
                 var pie = d3
                     .pie()
                     .sort(null)
-                    .value(function(d) {
+                    .value(function (d) {
                         return d.value;
                     });
 
-                var key = function(d) {
+                var key = function (d) {
                     return d.data.label;
                 };
 
@@ -87,7 +83,7 @@ export default Vue.component("datasets-section", {
                 g.append("path")
                     .attr("d", arc)
                     .attr("stroke", "#fffff")
-                    .style("fill", function(d) {
+                    .style("fill", function (d) {
                         return color(d.value);
                     });
 
@@ -98,24 +94,24 @@ export default Vue.component("datasets-section", {
                     .enter();
 
                 g.append("text")
-                    .attr("transform", function(d) {
+                    .attr("transform", function (d) {
                         return "translate(" + labelArc.centroid(d) + ")";
                     })
                     .attr("dy", ".2em")
                     .attr("text-anchor", "middle")
                     .attr("class", "slice-value")
-                    .text(function(d) {
+                    .text(function (d) {
                         return d.value;
                     });
 
                 g.append("text")
-                    .attr("transform", function(d) {
+                    .attr("transform", function (d) {
                         return "translate(" + labelArc.centroid(d) + ")";
                     })
                     .attr("dy", "1.6em")
                     .attr("text-anchor", "middle")
                     .attr("class", "slice-label")
-                    .text(function(d) {
+                    .text(function (d) {
                         return d.data.label;
                     });
             };
@@ -126,130 +122,108 @@ export default Vue.component("datasets-section", {
             $("#datasets-chart").append(
                 "<svg id='phenotypes-svg' style='width:300px; height:250px;'></svg>"
             );
-            /*$("#datasets-chart").append(
-                "<svg id='data-types-svg' style='width:600px; height:250px;'></svg>"
-            );*/
 
-            let datasetsData = [
-                { label: "Type 2 Diabetes", value: DATASETS.t2dDatasetsNum },
-                {
-                    label: "Cardiovascular Disease",
-                    value: DATASETS.cvdDatasetsNum
-                },
-                {
-                    label: "Cerebrovascular Disease",
-                    value: DATASETS.cdDatasetsNum
-                },
-                { label: "Sleep Disorder", value: DATASETS.sleepDatasetsNum }
-            ];
-            let datasetsColors = ["#00b9f2", "#6dcff6", "#9ddcf9", "#c7eafb"];
+            let portals = [];
 
-            let phenotypesData = [
-                { label: "Type 2 Diabetes", value: DATASETS.t2dPhenotypesNum },
-                {
-                    label: "Cardiovascular Disease",
-                    value: DATASETS.cvdPhenotypesNum
-                },
-                {
-                    label: "Cerebrovascular Disease",
-                    value: DATASETS.cdPhenotypesNum
-                },
-                { label: "Sleep Disorder", value: DATASETS.sleepPhenotypesNum }
-            ];
-            let phenotypesColors = ["#80c342", "#a3cf62", "#c6de89", "#e6f0cb"];
+            this.diseaseGroups.map((x) => {
+                if (x.memberCMD && x.default != true) portals.push(x);
+            });
 
-            let dataTypesData = [
-                { label: "GWAS", value: DATASETS["GWASNum"] },
-                {
-                    label: "Exome chip",
-                    value: DATASETS["Exome chipNum"]
-                },
-                {
-                    label: "Exome sequence analysis",
-                    value: DATASETS["Exome sequence analysisNum"]
-                },
-                {
-                    label: "Whole genome sequencing",
-                    value: DATASETS["Whole genome sequencingNum"]
-                }
+            let datasetsData = [];
+            let phenotypesData = [];
+
+            portals.map((p) => {
+                let tempDatasetObj = {
+                    label: p.description,
+                    value: DATASETS[p.name + "DatasetsNum"],
+                };
+                datasetsData.push(tempDatasetObj);
+
+                let tempPhenotypesObj = {
+                    label: p.description,
+                    value: DATASETS[p.name + "PhenotypesNum"],
+                };
+                phenotypesData.push(tempPhenotypesObj);
+            });
+
+            let datasetsColors = [
+                "#00b9f2ff",
+                "#00b9f2dd",
+                "#00b9f2bb",
+                "#00b9f299",
+                "#00b9f277",
+                "#00b9f255",
+                "#00b9f233",
+                "#00b9f211",
             ];
 
-            randerPie(datasetsData, "datasets-svg", datasetsColors, 300, 250);
-            randerPie(
+            let phenotypesColors = [
+                "#80c342ff",
+                "#80c342dd",
+                "#80c342bb",
+                "#80c34299",
+                "#80c34277",
+                "#80c34255",
+                "#80c34233",
+                "#80c34211",
+            ];
+
+            renderPie(datasetsData, "datasets-svg", datasetsColors, 300, 250);
+            renderPie(
                 phenotypesData,
                 "phenotypes-svg",
                 phenotypesColors,
                 300,
                 250
             );
-        }
+        },
     },
-    mounted: function() {},
+    mounted: function () {},
     computed: {
         processedDatasetsInfo() {
-            var onlyUnique = function(value, index, self) {
+            var onlyUnique = function (value, index, self) {
                 return self.indexOf(value) === index;
             };
 
             let datasets = this.datasetsInfo;
             let datasetsMap = {};
-            /*let t2dDatasets = 0,
-                strokeDatasets = 0,
-                miDatasets = 0,
-                sleepDatasets = 0,
-                totalDatasets = 0;*/
 
-            let portals = ["t2d", "cd", "cvd", "sleep"];
-            let dataTypes = [
-                "GWAS",
-                "Exome chip",
-                "Exome sequence analysis",
-                "Whole genome sequencing"
-            ];
+            let portals = [];
+
+            this.diseaseGroups.map((x) => {
+                if (x.memberCMD && x.default != true) portals.push(x.name);
+            });
 
             datasetsMap["totalDatasetsNum"] = 0;
             datasetsMap["totalPhenotypes"] = [];
 
-            portals.forEach(function(d) {
+            portals.forEach(function (d) {
                 datasetsMap[d + "DatasetsNum"] = 0;
                 datasetsMap[d + "Phenotypes"] = [];
             });
 
-            dataTypes.forEach(function(d) {
-                datasetsMap[d + "Num"] = 0;
-            });
-
-            $.each(datasets, function(i, v) {
+            $.each(datasets, function (i, v) {
                 let tempPheotypes = v.field_phenotypes.split("\r\n");
 
-                portals.forEach(function(d) {
+                let memberDataset = false;
+
+                portals.forEach(function (d) {
                     if (
                         v.field_portals.indexOf(d) >= 0 ||
                         v.field_portals.indexOf("all") >= 0
                     ) {
+                        memberDataset = true;
                         datasetsMap[d + "DatasetsNum"]++;
-                        tempPheotypes.forEach(function(phenotype) {
+                        tempPheotypes.forEach(function (phenotype) {
                             datasetsMap[d + "Phenotypes"].push(phenotype);
                             datasetsMap["totalPhenotypes"].push(phenotype);
                         });
                     }
                 });
 
-                if (
-                    v.field_portals.indexOf("t2d") >= 0 ||
-                    v.field_portals.indexOf("cd") >= 0 ||
-                    v.field_portals.indexOf("cvd") >= 0 ||
-                    v.field_portals.indexOf("sleep") >= 0 ||
-                    v.field_portals.indexOf("all") >= 0
-                ) {
+                if (memberDataset == true) {
                     datasetsMap["totalDatasetsNum"]++;
                 }
-
-                dataTypes.forEach(function(d) {
-                    if (v.field_data_type.indexOf(d) >= 0) {
-                        datasetsMap[d + "Num"]++;
-                    }
-                });
             });
 
             datasetsMap["totalPhenotypes"] = datasetsMap[
@@ -259,7 +233,7 @@ export default Vue.component("datasets-section", {
             datasetsMap["totalPhenotypesNum"] =
                 datasetsMap["totalPhenotypes"].length;
 
-            $.each(portals, function(e, d) {
+            $.each(portals, function (e, d) {
                 datasetsMap[d + "Phenotypes"] = datasetsMap[
                     d + "Phenotypes"
                 ].filter(onlyUnique);
@@ -269,14 +243,14 @@ export default Vue.component("datasets-section", {
             });
 
             return datasetsMap;
-        }
+        },
     },
     watch: {
         processedDatasetsInfo(datasetsInfo) {
             if (this.diseaseGroup.default) {
                 this.renderCharts(datasetsInfo);
             }
-        }
-    }
+        },
+    },
 });
 </script>

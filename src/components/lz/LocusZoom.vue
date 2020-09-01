@@ -126,8 +126,6 @@ export default Vue.component("locuszoom", {
         // TODO: component system for LocusZoom
         addLZComponent: function(PanelComponentType, panelConfig) {
             if (this.plot != null) {
-                console.log('mounting', PanelComponentType)
-
                 let LZPanelConstructor = Vue.extend(PanelComponentType);
 
                 let vueContainer = document.createElement('div');
@@ -145,34 +143,42 @@ export default Vue.component("locuszoom", {
 
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
-        addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler) {
+        addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler, initialData) {
             const panelId = this.addPanelAndDataSource(
                 new LZAssociationsPanel(
                     phenotype,
-                    { finishHandler, resolveHandler, errHandler }
+                    { finishHandler, resolveHandler, errHandler },
+                    initialData
                 )
             );
             return panelId;
         },
-        addAnnotationIntervalsPanel: function(annotation, method, finishHandler, resolveHandler, errHandler) {
+        addAnnotationIntervalsPanel: function(annotation, method, finishHandler, resolveHandler, errHandler, initialData) {
             const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
                     annotation, method,
                     { finishHandler, resolveHandler, errHandler },
+<<<<<<< HEAD
+=======
+                    initialData,
+                    this.colorScheme,  // this constructor has a default function if this.colorScheme is undefined
+>>>>>>> master
                     this.scoring,
                 )
             );
             return panelId;
         },
-        addCredibleVariantsPanel: function(phenotype, credibleSetId, finishHandler, resolveHandler, errHandler) {
+        addCredibleVariantsPanel: function(phenotype, credibleSetId, finishHandler, resolveHandler, errHandler, initialData) {
             const panelId = this.addPanelAndDataSource(
                 new LZCredibleVariantsPanel(
                     phenotype, credibleSetId,
-                    { finishHandler, resolveHandler, errHandler }
+                    { finishHandler, resolveHandler, errHandler },
+                    initialData,
                 )
             );
             return panelId;
         },
+<<<<<<< HEAD
         addComputedCredibleVariantsPanel: function(phenotype) {
             const panelId = this.addPanelAndDataSource(
                 new LZComputedCredibleVariantsPanel(
@@ -182,11 +188,15 @@ export default Vue.component("locuszoom", {
             return panelId;
         },
         addPhewasPanel: function(varId, phenotypeMap, finishHandler, resolveHandler, errHandler) {
+=======
+        addPhewasPanel: function(varId, phenotypeMap, finishHandler, resolveHandler, errHandler, initialData) {
+>>>>>>> master
             const panelId = this.addPanelAndDataSource(
                 new LZPhewasPanel(
                     varId,
                     phenotypeMap,
-                    { finishHandler, resolveHandler, errHandler }
+                    { finishHandler, resolveHandler, errHandler },
+                    initialData,
                 )
             );
             return panelId;
@@ -205,7 +215,6 @@ export default Vue.component("locuszoom", {
             data_layers.forEach(data_layer => {
                 const target = /*filter.target ||*/ data_layer.parent.id
                 const filterTargetNames = Array.isArray(filter.fields) ? filter.fields.map(field => `${target}_src:${field}`) : [`${target}_src:${filter.fields}`];
-                console.log(filterTargetNames)
                 if (filterTargetNames.every(fieldTarget => data_layer.layout.fields.includes(fieldTarget))) {
                     if (filter.value != '') {
                         data_layer.setFilter(vals => {
