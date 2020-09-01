@@ -38,7 +38,7 @@ export class LZAssociationsPanel {
             end: association.position,
             position: association.position,
             pvalue: association.pValue,
-            log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
+            log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
             variant: association.varId,
             ref_allele: association.varId,
         }));
@@ -615,23 +615,29 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
             } else {
                 // decide whether or not to use a precomputed credset
                 const phenoRegionQuery = `${self.phenotype},${state.chr}:${state.start}-${state.end}`;
+                // TODO: CAN THIS QUERY CALL BE ELIMINATED WITH CHAINING TO GET DATA ALREADY LOADED BY ANOTHER DATA SOURCE?
                 query('associations', phenoRegionQuery).then(async results => {
+                    // method documentation 
+                    // https://statgen.github.io/gwas-credible-sets/method/locuszoom-credible-sets.pdf
+
                     const translatedResults = self.translator(results);
-                    const nlogpvals = results.map(association => -Math.log10(association.pValue));
+                    const nlogpvals = translatedResults.map(association => association.log_pvalue);
+
                     const credset_data = [];
                     try {
                         const scores = scoring.bayesFactors(nlogpvals);
                         const posteriorProbabilities = scoring.normalizeProbabilities(scores);
+                        const credibleSet = marking.findCredibleSet(scores, 0.95);
 
                         // Use scores to mark the credible set in various ways (depending on your visualization preferences,
                         //   some of these may not be needed)
-                        const credibleSet = marking.findCredibleSet(scores, 0.95);
+                        
                         const credSetScaled = marking.rescaleCredibleSet(credibleSet);
                         const credSetBool = marking.markBoolean(credibleSet);
-                        console.log('trying to make credset info', scores, posteriorProbabilities, credibleSet, credSetScaled, credSetBool);
 
                         // Annotate each response record based on credible set membership
                         for (let i = 0; i < translatedResults.length; i++) {
+                            console.log(nlogpvals[i], scores[i], posteriorProbabilities[i], credSetScaled[i], credSetBool[i])
                             credset_data.push({
                                 ...translatedResults[i],
                                 posterior_prob: posteriorProbabilities[i],
