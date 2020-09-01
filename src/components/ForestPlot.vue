@@ -37,12 +37,15 @@ export default Vue.component("forest-plot", {
             let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
             chart.data = data.map((item) => {
-                let value = dichotomous ? Math.exp(item.beta) : item.beta;
                 return {
                     category: item.mask,
-                    high: value + item.stdErr * 1.96,
-                    low: value - item.stdErr * 1.96,
-                    measure: value,
+                    high: dichotomous
+                        ? Math.exp(item.beta + item.stdErr * 1.96)
+                        : item.beta + item.stdErr * 1.96,
+                    low: dichotomous
+                        ? Math.exp(item.beta - item.stdErr * 1.96)
+                        : item.beta - item.stdErr * 1.96,
+                    measure: dichotomous ? Math.exp(item.beta) : item.beta,
                     bulletSize: 20,
                 };
             });
