@@ -143,42 +143,34 @@ export default Vue.component("locuszoom", {
 
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
-        addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler, initialData) {
+        addAssociationsPanel: function(phenotype, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZAssociationsPanel(
-                    phenotype,
-                    { finishHandler, resolveHandler, errHandler },
+                    phenotype, { finishHandler, resolveHandler, errHandler },
                     initialData
                 )
             );
             return panelId;
         },
-        addAnnotationIntervalsPanel: function(annotation, method, finishHandler, resolveHandler, errHandler, initialData) {
+        addAnnotationIntervalsPanel: function(annotation, method, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
-                    annotation, method,
-                    { finishHandler, resolveHandler, errHandler },
-<<<<<<< HEAD
-=======
+                    annotation, method, { finishHandler, resolveHandler, errHandler },
                     initialData,
-                    this.colorScheme,  // this constructor has a default function if this.colorScheme is undefined
->>>>>>> master
                     this.scoring,
                 )
             );
             return panelId;
         },
-        addCredibleVariantsPanel: function(phenotype, credibleSetId, finishHandler, resolveHandler, errHandler, initialData) {
+        addCredibleVariantsPanel: function(phenotype, credibleSetId, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZCredibleVariantsPanel(
-                    phenotype, credibleSetId,
-                    { finishHandler, resolveHandler, errHandler },
+                    phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler },
                     initialData,
                 )
             );
             return panelId;
         },
-<<<<<<< HEAD
         addComputedCredibleVariantsPanel: function(phenotype) {
             const panelId = this.addPanelAndDataSource(
                 new LZComputedCredibleVariantsPanel(
@@ -187,15 +179,11 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        addPhewasPanel: function(varId, phenotypeMap, finishHandler, resolveHandler, errHandler) {
-=======
-        addPhewasPanel: function(varId, phenotypeMap, finishHandler, resolveHandler, errHandler, initialData) {
->>>>>>> master
+        addPhewasPanel: function(varId, phenotypeMap, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZPhewasPanel(
                     varId,
-                    phenotypeMap,
-                    { finishHandler, resolveHandler, errHandler },
+                    phenotypeMap, { finishHandler, resolveHandler, errHandler },
                     initialData,
                 )
             );
@@ -230,7 +218,7 @@ export default Vue.component("locuszoom", {
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
-            
+
         }
     },
     computed: {

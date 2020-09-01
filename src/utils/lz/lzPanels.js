@@ -127,7 +127,7 @@ export class LZAssociationsPanel {
 }
 
 export class LZAnnotationIntervalsPanel {
-    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, scoring) {
+    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, initialData, scoring) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -141,16 +141,13 @@ export class LZAnnotationIntervalsPanel {
         this.index = 'annotated-regions';
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
         this.translator = function (intervals) {
+            const tissues = _.uniq(intervals.map(interval => interval.tissue));
+            const colorScheme = d3.scaleOrdinal().domain(tissues).range(d3.schemeSet1);
             const tissueIntervals = !!intervals ? intervals
-                // .filter(interval => {
-                //     let t = interval.tissueId || "NA";
-                //     let m = interval.method || "NA";
-                //     let key = `${t}_${m}_${interval.annotation}`;
-                //     return typeof scoring[key] !== 'undefined';
-                // })
-                .map(interval => {
-                    const colorScheme = d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
+                .map((interval) => {
+                    // let colorScheme = d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
                     const { r, g, b } = d3.rgb(colorScheme(interval.tissue));
+
                     let t = interval.tissueId || "NA";
                     let m = interval.method || "NA";
                     let key = `${t}_${m}_${interval.annotation}`;
@@ -167,7 +164,7 @@ export class LZAnnotationIntervalsPanel {
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                         state_name: `${interval.tissue}`,
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
-                        itemRgb: [r,g,b].join(), // TODO: color scheme
+                        itemRgb: [r,g,b].join(),
                     } : null;
             // filter nulls (which represent elements we can't score)
             }).filter(el => !!el) : [];
@@ -636,7 +633,7 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
                     try {
                         const scores = scoring.bayesFactors(nlogpvals);
                         const posteriorProbabilities = scoring.normalizeProbabilities(scores);
-                        const credibleSet = marking.findCredibleSet(scores, 0.95);
+                        const credibleSet = marking.findCredibleSet(posteriorProbabilities, 0.95);
 
                         // Use scores to mark the credible set in various ways (depending on your visualization preferences,
                         //   some of these may not be needed)

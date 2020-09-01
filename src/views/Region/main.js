@@ -30,8 +30,6 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import Formatters from "@/utils/formatters"
-
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
 Vue.use(BootstrapVueIcons);
@@ -93,6 +91,20 @@ new Vue({
         applyFilter(filter) {
             this.$children[0].$refs.locuszoom.applyFilter(filter)
         },
+        filterOnPValueAndFold(vals, filterValue) {
+            let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
+                const [preKey, fieldValue] = items;
+                const fieldKey = preKey.split(':')[1];  // remove the namespacing information from the key to get the field leftover
+                acc[fieldKey] = fieldValue;
+                return acc;
+            }, {});
+
+            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
+            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
+
+            return pValuePred && foldPred;
+        },
+
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -110,6 +122,11 @@ new Vue({
             this.$store.dispatch('queryRegion');
         },
 
+        // TODO: eliminated by v-model binding
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, data);
+        },
+
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
@@ -120,11 +137,6 @@ new Vue({
             );
             return newAssociationsPanelId;
         },
-
-        updateAssociationsTable(data) {
-            this.$store.commit(`associations/setResponse`, data);
-        },
-        // LocusZoom has "Panels"
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
             this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId)
@@ -133,29 +145,6 @@ new Vue({
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
         },
-        updateAssociationsPanel(phenotype) {
-            if (this.currentAssociationsPanel) {
-                this.$children[0].$refs.locuszoom.plot.removePanel(
-                    this.currentAssociationsPanel
-                );
-            }
-            this.currentAssociationsPanel = this.addAssociationsPanel({
-                phenotype
-            });
-        },
-        filterOnPValueAndFold(vals, filterValue) {
-            let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
-                const [preKey, fieldValue] = items;
-                const fieldKey = preKey.split(':')[1];  // remove the namespacing information from the key to get the field leftover
-                acc[fieldKey] = fieldValue;
-                return acc;
-            }, {});
-
-            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
-            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
-
-            return pValuePred && foldPred;
-        }
     },
 
     computed: {
