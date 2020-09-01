@@ -125,7 +125,7 @@ export class LZAssociationsPanel {
 }
 
 export class LZAnnotationIntervalsPanel {
-    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, colorScheme=id=>'128,128,128', scoring) {
+    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, scoring) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –

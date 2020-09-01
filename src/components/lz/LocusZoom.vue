@@ -29,7 +29,6 @@ export default Vue.component("locuszoom", {
         "chr",
         "start",
         "end",
-        "colorScheme",
         "scoring",
         "refSeq",
     ],
@@ -160,7 +159,6 @@ export default Vue.component("locuszoom", {
                 new LZAnnotationIntervalsPanel(
                     annotation, method,
                     { finishHandler, resolveHandler, errHandler },
-                    this.colorScheme,  // this constructor has a default function if this.colorScheme is undefined
                     this.scoring,
                 )
             );
@@ -203,17 +201,6 @@ export default Vue.component("locuszoom", {
 
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            // Was the original solution, without jsonQuery, more responsive?
-            // Object.keys(this.plot.panels)
-            //     .forEach(panelKey =>
-            //         Object.keys(this.plot.panels[panelKey].data_layers)
-            //             .forEach(data_layer_key => {
-            //                 const filterTargetName = `${panelKey}_src:${filter.name}`;
-            //                 if (this.plot.panels[panelKey].data_layers[data_layer_key].layout.fields.includes(filterTargetName)) {
-            //                             this.plot.panels[panelKey].data_layers[data_layer_key].setFilter(item => filter.op(item[filterTargetName], filter.value))
-            //                 }
-            //             })
-            // )
 
             data_layers.forEach(data_layer => {
                 const target = /*filter.target ||*/ data_layer.parent.id
@@ -234,9 +221,7 @@ export default Vue.component("locuszoom", {
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
-
-            console.groupEnd();
-
+            
         }
     },
     computed: {
