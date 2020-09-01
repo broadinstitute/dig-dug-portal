@@ -162,12 +162,12 @@ export default Vue.component("gene-associations-table", {
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
         showFeatures(index) {
-            console.log("index: ", index);
+            //console.log("index: ", index);
             uiUtils.showHideElement("feature-headers-" + index);
         },
         showPlot(index, data, dichotomous = false) {
-            console.log("plot index: ", index);
-            console.log("data:", data);
+            //console.log("plot index: ", index);
+            //console.log("data:", data);
             // let isEmpty =
             //     document.getElementById("plot_" + index).innerHTML === "";
             // if (isEmpty) this.createChart(index, data, dichotomous);
@@ -288,6 +288,6 @@ export default Vue.component("gene-associations-table", {
     text-align: left;
 }
 .plots {
-    min-height: 560px;
+    min-height: 460px;
 }
 </style>
