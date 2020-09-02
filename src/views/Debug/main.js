@@ -43,9 +43,6 @@ new Vue({
         return createElement(Template);
     },
     methods: {
-        tap(event) {
-            console.log(event)
-        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -166,12 +163,7 @@ new Vue({
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
-        globalEnrichmentAnnotations() {
-            console.log('globalEnrichmentAnnotations changed')
-        },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            console.log('phenotypeMap changed')
-
             let param = this.$store.state.phenotypeParam;
 
             // if there's a phenotypeParam, then pick that phenotype
@@ -186,7 +178,6 @@ new Vue({
             }
         },
         "$store.state.phenotype": function (phenotype) {
-            console.log('phenotype change')
             // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
             this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name });
             this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });

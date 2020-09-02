@@ -140,8 +140,5 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
 
         },
-        phenotypes(phenotypes) {
-            console.log("phenotypes", phenotypes);
-        }
     }
 }).$mount("#app");

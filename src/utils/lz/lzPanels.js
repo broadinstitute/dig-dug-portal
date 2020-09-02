@@ -3,7 +3,7 @@ import {BaseAdapter} from "locuszoom/esm/data/adapters"
 
 import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
-import { rgb } from "d3";
+import * as d3 from "d3";
 import _ from "lodash"
 
 import { marking, scoring } from 'gwas-credible-sets';
@@ -18,7 +18,7 @@ const BASE_PANEL_OPTIONS = {
     height: 240,
 }
 export class LZAssociationsPanel {
-    constructor(phenotype, { finishHandler, resolveHandler, errHandler }) {
+    constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -38,10 +38,11 @@ export class LZAssociationsPanel {
             end: association.position,
             position: association.position,
             pvalue: association.pValue,
-            log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
+            log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
             variant: association.varId,
             ref_allele: association.varId,
         }));
+        this.initialData = initialData;
 
 
         // LocusZoom Layout configuration options
@@ -74,6 +75,7 @@ export class LZAssociationsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initialData,
         });
         return reader;
     }
@@ -125,7 +127,7 @@ export class LZAssociationsPanel {
 }
 
 export class LZAnnotationIntervalsPanel {
-    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, colorScheme=id=>'128,128,128', scoring) {
+    constructor(annotation, method, { finishHandler, resolveHandler, errHandler }, initialData, scoring) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -139,15 +141,13 @@ export class LZAnnotationIntervalsPanel {
         this.index = 'annotated-regions';
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
         this.translator = function (intervals) {
+            const tissues = _.uniq(intervals.map(interval => interval.tissue));
+            const colorScheme = d3.scaleOrdinal().domain(tissues).range(d3.schemeSet1);
             const tissueIntervals = !!intervals ? intervals
-                // .filter(interval => {
-                //     let t = interval.tissueId || "NA";
-                //     let m = interval.method || "NA";
-                //     let key = `${t}_${m}_${interval.annotation}`;
-                //     return typeof scoring[key] !== 'undefined';
-                // })
-                .map(interval => {
-                    const { r, g, b } = rgb(colorScheme(interval.tissue));
+                .map((interval) => {
+                    // let colorScheme = d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
+                    const { r, g, b } = d3.rgb(colorScheme(interval.tissue));
+
                     let t = interval.tissueId || "NA";
                     let m = interval.method || "NA";
                     let key = `${t}_${m}_${interval.annotation}`;
@@ -164,12 +164,13 @@ export class LZAnnotationIntervalsPanel {
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                         state_name: `${interval.tissue}`,
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
-                        itemRgb: [r,g,b].join(), // TODO: color scheme
+                        itemRgb: [r,g,b].join(),
                     } : null;
             // filter nulls (which represent elements we can't score)
             }).filter(el => !!el) : [];
             return tissueIntervals;
         }
+        this.initialData = initialData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -181,7 +182,6 @@ export class LZAnnotationIntervalsPanel {
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
-            proportional_height: 0.2,
             fields: [
                 `${this.datasource_namespace_symbol_for_panel}:pvalue`,
                 `${this.datasource_namespace_symbol_for_panel}:fold`,
@@ -199,6 +199,7 @@ export class LZAnnotationIntervalsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initalData,
         });
         return reader;
     }
@@ -245,7 +246,7 @@ export class LZAnnotationIntervalsPanel {
 
 }
 export class LZCredibleVariantsPanel {
-    constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }) {
+    constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -273,6 +274,7 @@ export class LZCredibleVariantsPanel {
             variant: association.varId,
             ref_allele: association.varId,
         }));
+        this.initialData = initialData;
 
         // the requirement for this field is required for how we're implementing the `bioIndexToLZReader` getter (below)
         this.phenotype = phenotype;
@@ -346,6 +348,7 @@ export class LZCredibleVariantsPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initalData,
         });
         return reader;
     }
@@ -487,7 +490,7 @@ export class LZComputedCredibleVariantsPanel {
 }
 
 export class LZPhewasPanel {
-    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }) {
+    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -516,6 +519,7 @@ export class LZPhewasPanel {
             });
             return phewas;
         }
+        this.initialData = initialData;
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -536,6 +540,7 @@ export class LZPhewasPanel {
             finishHandler: this.handlers.finishHandler,
             resolveHandler: this.handlers.resolveHandler,
             errHandler: this.handlers.errHandler,
+            initialData: this.initialData,
         });
     }
 
@@ -621,9 +626,11 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
                 // decide whether or not to use a precomputed credset
                 const phenoRegionQuery = `${self.phenotype},${state.chr}:${state.start}-${state.end}`;
                 query('associations', phenoRegionQuery).then(results => {
-
+                    // method documentation
+                    // https://statgen.github.io/gwas-credible-sets/method/locuszoom-credible-sets.pdf
                     const translatedResults = self.translator(results);
-                    const nlogpvals = results.map(association => -Math.log10(association.pValue));
+                    const nlogpvals = translatedResults.map(association => association.log_pvalue);
+
                     const credset_data = [];
                     try {
                         const scores = scoring.bayesFactors(nlogpvals);

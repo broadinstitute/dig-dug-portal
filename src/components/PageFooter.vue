@@ -2,7 +2,7 @@
     <div v-if="diseaseGroup">
         <div :class="'container-fluid '+diseaseGroup.name+'kp-footer'">
             <div>
-                <a href="http://kp4cd.org/" style="color: #fff !important;">
+                <a href="https://kp4cd.org/" style="color: #fff !important;">
                     Powered by the
                     <span
                         style="font-weight:500; font-size: 1.2em; vertical-align:-.1em;"
@@ -21,6 +21,6 @@ export default Vue.component("page-footer", {
 
     data() {
         return {};
-    }
+    },
 });
 </script>

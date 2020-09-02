@@ -14,7 +14,7 @@
                                     <img
                                         class="front-logo-img"
                                         v-if="$parent.frontContents.field_front_logo"
-                                        :src="'http://kp4cd.org/sites/default/files/vueportal/'+$parent.frontContents.field_front_logo"
+                                        :src="'https://kp4cd.org/sites/default/files/vueportal/'+$parent.frontContents.field_front_logo"
                                     />
                                     <span
                                         :class="'front-logo-tagline front-logo-tagline-'+$parent.diseaseGroup.name+'kp'"
@@ -80,6 +80,7 @@
                             :disease-groups="$store.state.bioPortal.diseaseGroups"
                             :datasets-info="$store.state.kp4cd.datasetsInfo"
                         ></datasets-section>
+                        <under-datasets-section :front-contents="$parent.frontContents"></under-datasets-section>
                     </div>
                     <div class="col-md-5">
                         <news-feed-section

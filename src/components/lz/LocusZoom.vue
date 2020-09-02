@@ -29,7 +29,6 @@ export default Vue.component("locuszoom", {
         "chr",
         "start",
         "end",
-        "colorScheme",
         "scoring",
         "refSeq",
     ],
@@ -127,8 +126,6 @@ export default Vue.component("locuszoom", {
         // TODO: component system for LocusZoom
         addLZComponent: function(PanelComponentType, panelConfig) {
             if (this.plot != null) {
-                console.log('mounting', PanelComponentType)
-
                 let LZPanelConstructor = Vue.extend(PanelComponentType);
 
                 let vueContainer = document.createElement('div');
@@ -146,31 +143,30 @@ export default Vue.component("locuszoom", {
 
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
-        addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler) {
+        addAssociationsPanel: function(phenotype, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZAssociationsPanel(
-                    phenotype,
-                    { finishHandler, resolveHandler, errHandler }
+                    phenotype, { finishHandler, resolveHandler, errHandler },
+                    initialData
                 )
             );
             return panelId;
         },
-        addAnnotationIntervalsPanel: function(annotation, method, finishHandler, resolveHandler, errHandler) {
+        addAnnotationIntervalsPanel: function(annotation, method, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
-                    annotation, method,
-                    { finishHandler, resolveHandler, errHandler },
-                    this.colorScheme,  // this constructor has a default function if this.colorScheme is undefined
+                    annotation, method, { finishHandler, resolveHandler, errHandler },
+                    initialData,
                     this.scoring,
                 )
             );
             return panelId;
         },
-        addCredibleVariantsPanel: function(phenotype, credibleSetId, finishHandler, resolveHandler, errHandler) {
+        addCredibleVariantsPanel: function(phenotype, credibleSetId, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZCredibleVariantsPanel(
-                    phenotype, credibleSetId,
-                    { finishHandler, resolveHandler, errHandler }
+                    phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler },
+                    initialData,
                 )
             );
             return panelId;
@@ -183,12 +179,12 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        addPhewasPanel: function(varId, phenotypeMap, finishHandler, resolveHandler, errHandler) {
+        addPhewasPanel: function(varId, phenotypeMap, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZPhewasPanel(
                     varId,
-                    phenotypeMap,
-                    { finishHandler, resolveHandler, errHandler }
+                    phenotypeMap, { finishHandler, resolveHandler, errHandler },
+                    initialData,
                 )
             );
             return panelId;
@@ -203,22 +199,10 @@ export default Vue.component("locuszoom", {
 
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            // Was the original solution, without jsonQuery, more responsive?
-            // Object.keys(this.plot.panels)
-            //     .forEach(panelKey =>
-            //         Object.keys(this.plot.panels[panelKey].data_layers)
-            //             .forEach(data_layer_key => {
-            //                 const filterTargetName = `${panelKey}_src:${filter.name}`;
-            //                 if (this.plot.panels[panelKey].data_layers[data_layer_key].layout.fields.includes(filterTargetName)) {
-            //                             this.plot.panels[panelKey].data_layers[data_layer_key].setFilter(item => filter.op(item[filterTargetName], filter.value))
-            //                 }
-            //             })
-            // )
 
             data_layers.forEach(data_layer => {
                 const target = /*filter.target ||*/ data_layer.parent.id
                 const filterTargetNames = Array.isArray(filter.fields) ? filter.fields.map(field => `${target}_src:${field}`) : [`${target}_src:${filter.fields}`];
-                console.log(filterTargetNames)
                 if (filterTargetNames.every(fieldTarget => data_layer.layout.fields.includes(fieldTarget))) {
                     if (filter.value != '') {
                         data_layer.setFilter(vals => {
@@ -234,8 +218,6 @@ export default Vue.component("locuszoom", {
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
-
-            console.groupEnd();
 
         }
     },
