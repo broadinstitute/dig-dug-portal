@@ -46,6 +46,13 @@ new Vue({
         return createElement(Template);
     },
 
+    mounted() {
+        window.addEventListener("scroll", this.onScroll)
+    },
+    beforeDestroy() {
+        window.removeEventListener("scroll", this.onScroll)
+    },
+
     methods: {
         ...uiUtils,
         postAlert,
@@ -54,10 +61,35 @@ new Vue({
         closeAlert,
         showElement(ELEMENT) {
             uiUtils.showElement(ELEMENT);
+        },
+        onScroll(e) {
+            let windowTop = window.top.scrollY;
+
+
+            let element = document.getElementsByClassName("top-level-header")[0];
+            if (windowTop > this.tableTop) {
+                if (!element.classList.contains('fixed-header')) {
+                    element.classList.add('fixed-header');
+                }
+            } else {
+                if (element.classList.contains('fixed-header')) {
+                    element.classList.remove('fixed-header');
+                }
+            }
         }
     },
 
     computed: {
+        tableTop() {
+            let eglTable = document.getElementsByClassName("EGLT-table")[0];
+            let rect = eglTable.getBoundingClientRect();
+            let scrollTop = document.documentElement.scrollTop ?
+                document.documentElement.scrollTop : document.body.scrollTop;
+
+            let tableTop = rect.top + scrollTop;
+
+            return tableTop;
+        },
         dataset() {
             return keyParams.dataset;
         },
