@@ -1,4 +1,6 @@
 import Vue from "vue";
+import * as d3 from "d3";
+
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -66,6 +68,10 @@ new Vue({
                     // TODO: callbacks for creating a new table column for credible sets might go here
                 }
             )
+        },
+        addComputedCredibleVariantsPanel(event) {
+            const { phenotype } = event;
+            this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(phenotype);
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;

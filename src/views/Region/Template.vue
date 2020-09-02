@@ -140,7 +140,6 @@
                         :content-fill="$parent.documentationMap"
                     ></documentation>
 
-                    <!-- <p style="color:white;background-color:red;width:30px">TODO</p> -->
                     <documentation
                             name="region.igv.subheader"
                             :content-fill="$parent.documentationMap"
@@ -158,7 +157,7 @@
                             </div>
 
                             <div class="col filter-col-sm">
-                                <div class="label">pValue (&le;)</div>
+                                <div class="label">P-Value (&le;)</div>
                                 <input v-model.number="$parent.pValue" class="form-control"/>
                             </div>
                             <div class="col filter-col-sm">
@@ -195,7 +194,6 @@
                         :chr="$store.state.chr"
                         :start="$store.state.start"
                         :end="$store.state.end"
-                        :colorScheme="$parent.tissueColorScheme"
                         :scoring="$parent.tissueScoring"
                         @regionchanged="$parent.requestCredibleSets($event.data)"
                         :refSeq="true">

@@ -11,16 +11,17 @@ import Vue from "vue";
 import LocusZoom from "locuszoom";
 import "locuszoom/dist/locuszoom.css"
 import intervalTracks from 'locuszoom/esm/ext/lz-intervals-track';
+import credibleSets from 'locuszoom/esm/ext/lz-credible-sets';
 import toolbar_addons from 'locuszoom/esm/ext/lz-widget-addons';
 
-import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 import LZDataSources from "@/utils/lz/lzDataSources";
+import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel, LZComputedCredibleVariantsPanel } from "@/utils/lz/lzPanels";
 
 import idCounter from "@/utils/idCounter"
-
 import jsonQuery from "json-query";
 
 LocusZoom.use(intervalTracks);
+LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
 
 export default Vue.component("locuszoom", {
@@ -28,7 +29,6 @@ export default Vue.component("locuszoom", {
         "chr",
         "start",
         "end",
-        "colorScheme",
         "scoring",
         "refSeq",
     ],
@@ -86,11 +86,6 @@ export default Vue.component("locuszoom", {
             self.$emit('regionchanged', event);
         })
 
-        // this shows what panels updated
-        // this.plot.on('layout_changed', function() {
-        //  console.log('layout_changed', arguments)
-        // })
-
         self.$on("LZ_ADD_PANEL", () => {
             console.log('load panel')
         });
@@ -111,7 +106,7 @@ export default Vue.component("locuszoom", {
             let panelOptions = {
                 namespace: { [panel.forDataSourceType]: panel.takingDataSourceName },
                 id: panel.id,
-                ...panel.locusZoomLayoutOptions,             // other locuszoom configuration required for the panel, including overrides(?)
+                ...panel.locusZoomPanelOptions,             // other locuszoom configuration required for the panel, including overrides(?)
             }
 
             if (typeof panelClass.dataLayers !== 'undefined') {
@@ -148,44 +143,47 @@ export default Vue.component("locuszoom", {
 
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
-        addAssociationsPanel: function(phenotype, finishHandler, resolveHandler, errHandler, initialData) {
+        addAssociationsPanel: function(phenotype, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZAssociationsPanel(
-                    phenotype,
-                    { finishHandler, resolveHandler, errHandler },
+                    phenotype, { finishHandler, resolveHandler, errHandler },
                     initialData
                 )
             );
             return panelId;
         },
-        addAnnotationIntervalsPanel: function(annotation, method, finishHandler, resolveHandler, errHandler, initialData) {
+        addAnnotationIntervalsPanel: function(annotation, method, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
-                    annotation, method,
-                    { finishHandler, resolveHandler, errHandler },
+                    annotation, method, { finishHandler, resolveHandler, errHandler },
                     initialData,
-                    this.colorScheme,  // this constructor has a default function if this.colorScheme is undefined
                     this.scoring,
                 )
             );
             return panelId;
         },
-        addCredibleVariantsPanel: function(phenotype, credibleSetId, finishHandler, resolveHandler, errHandler, initialData) {
+        addCredibleVariantsPanel: function(phenotype, credibleSetId, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZCredibleVariantsPanel(
-                    phenotype, credibleSetId,
-                    { finishHandler, resolveHandler, errHandler },
+                    phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler },
                     initialData,
                 )
             );
             return panelId;
         },
-        addPhewasPanel: function(varId, phenotypeMap, finishHandler, resolveHandler, errHandler, initialData) {
+        addComputedCredibleVariantsPanel: function(phenotype) {
+            const panelId = this.addPanelAndDataSource(
+                new LZComputedCredibleVariantsPanel(
+                    phenotype
+                )
+            );
+            return panelId;
+        },
+        addPhewasPanel: function(varId, phenotypeMap, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZPhewasPanel(
                     varId,
-                    phenotypeMap,
-                    { finishHandler, resolveHandler, errHandler },
+                    phenotypeMap, { finishHandler, resolveHandler, errHandler },
                     initialData,
                 )
             );
@@ -201,17 +199,6 @@ export default Vue.component("locuszoom", {
 
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            // Was the original solution, without jsonQuery, more responsive?
-            // Object.keys(this.plot.panels)
-            //     .forEach(panelKey =>
-            //         Object.keys(this.plot.panels[panelKey].data_layers)
-            //             .forEach(data_layer_key => {
-            //                 const filterTargetName = `${panelKey}_src:${filter.name}`;
-            //                 if (this.plot.panels[panelKey].data_layers[data_layer_key].layout.fields.includes(filterTargetName)) {
-            //                             this.plot.panels[panelKey].data_layers[data_layer_key].setFilter(item => filter.op(item[filterTargetName], filter.value))
-            //                 }
-            //             })
-            // )
 
             data_layers.forEach(data_layer => {
                 const target = /*filter.target ||*/ data_layer.parent.id
@@ -231,8 +218,6 @@ export default Vue.component("locuszoom", {
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
-
-            console.groupEnd();
 
         }
     },

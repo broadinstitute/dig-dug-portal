@@ -39,7 +39,6 @@ export default Vue.component("lz-associations-panel", {
     },
     methods: {
         updatePanel() {
-
             // TODO: what *should* happen when this.finishHandler and this.value are both defined?
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
             const finishHandler = typeof this.value !== 'undefined' ?
@@ -47,10 +46,10 @@ export default Vue.component("lz-associations-panel", {
 
             this.id = this.$parent.addAssociationsPanel(
                 this.phenotype,
+                this.value,
                 finishHandler,
                 this.resolveHandler,
                 this.errHandler,
-                this.value,
             );
 
         }

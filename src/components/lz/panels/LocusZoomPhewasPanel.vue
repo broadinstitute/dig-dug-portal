@@ -46,16 +46,16 @@ export default Vue.component("lz-phewas-panel", {
 
             // TODO: what *should* happen when this.finishHandler and this.value are both defined?
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const finishHandler = typeof this.value !== 'undefined' ? 
+            const finishHandler = typeof this.value !== 'undefined' ?
                 result => this.$emit('input', result.data) : this.finishHandler;
 
             this.id = this.$parent.addPhewasPanel(
                 this.varId,
                 this.phenotypeMap,
+                this.value,
                 finishHandler,
                 this.resolveHandler,
                 this.errHandler,
-                this.value,
             );
 
         }
