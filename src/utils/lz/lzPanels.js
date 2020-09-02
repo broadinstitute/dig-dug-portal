@@ -637,12 +637,15 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
 
                         // Annotate each response record based on credible set membership
                         for (let i = 0; i < translatedResults.length; i++) {
-                            credset_data.push({
-                                ...translatedResults[i],
-                                posterior_prob: posteriorProbabilities[i],
-                                contrib_fraction: credSetScaled[i],
-                                is_member: credSetBool[i],
-                            });
+                            // TODO: filter credsets here
+                            if (credSetBool[i]) {
+                                credset_data.push({
+                                    ...translatedResults[i],
+                                    posterior_prob: posteriorProbabilities[i],
+                                    contrib_fraction: credSetScaled[i],
+                                    is_member: credSetBool[i],
+                                });
+                            }
                         }
 
                     } catch (e) {
