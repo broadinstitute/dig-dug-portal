@@ -122,10 +122,11 @@ new Vue({
             this.$store.dispatch('queryRegion');
         },
 
+        // TODO: refactor this away in favor of v-model
         updateAssociationsTable(data) {
-            console.log('update associations table')
             this.$store.commit(`associations/setResponse`, data);
         },
+
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
@@ -135,16 +136,6 @@ new Vue({
                 finishHandler
             );
             return newAssociationsPanelId;
-        },
-        updateAssociationsPanel(phenotype) {
-            if (this.currentAssociationsPanel) {
-                this.$children[0].$refs.locuszoom.plot.removePanel(
-                    this.currentAssociationsPanel
-                );
-            }
-            this.currentAssociationsPanel = this.addAssociationsPanel({
-                phenotype
-            });
         },
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
@@ -237,15 +228,6 @@ new Vue({
                 JSON.stringify(
                     [el.annotation, !!el.method ? el.method : ""].join()
                 )
-            );
-        },
-
-        tissues() {
-            // an array of tissue
-            return _.uniq(
-                this.$store.state.globalEnrichment.data
-                    .filter(interval => !!interval.tissue)
-                    .map(interval => interval.tissue)
             );
         },
 
