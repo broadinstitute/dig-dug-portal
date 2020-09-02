@@ -267,6 +267,8 @@ export class LZCredibleVariantsPanel {
             pvalue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
             posterior_prob: association.posteriorProbability,
+            contrib_fraction: 0.5,
+            is_member: true,
             log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
             variant: association.varId,
             ref_allele: association.varId,
@@ -298,11 +300,14 @@ export class LZCredibleVariantsPanel {
             // Fourth: write down the type of visualization using the data
             // Fifth: add stylings, and the data layer ID
             data_layers: [
-                {
-                    "namespace": {
-                        // narrowing down data from datasources of <datasource_type> to <datasource_namespace_symbol>
-                        [this.datasource_type]: this.datasource_namespace_symbol_for_panel
+                LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
+                    namespace: {
+                        assoc: this.datasource_namespace_symbol_for_panel,
+                        credset: this.datasource_namespace_symbol_for_panel
                     },
+                }),
+                {
+                    "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,
                     "type": "scatter",
 
@@ -326,8 +331,8 @@ export class LZCredibleVariantsPanel {
                         "floor": 0,
                         "ceiling": 1
                     }
-                }
-        ]
+                },
+            ],
         }
         this.handlers = { finishHandler, resolveHandler, errHandler };
 
@@ -401,10 +406,10 @@ export class LZComputedCredibleVariantsPanel {
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomPanelOptions = {
             title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' } },
-            width: 800,
             height: 240,
             proportional_width: 1,
-            margin: { top: 25, bottom: 32  },
+            y_index: 1,
+            // margin: { top: 25, bottom: 32  },
             axes: {
                 x: {
                     label: 'Chromosome {{chr}} (Mb)',
@@ -615,7 +620,8 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
             } else {
                 // decide whether or not to use a precomputed credset
                 const phenoRegionQuery = `${self.phenotype},${state.chr}:${state.start}-${state.end}`;
-                query('associations', phenoRegionQuery).then(async results => {
+                query('associations', phenoRegionQuery).then(results => {
+
                     const translatedResults = self.translator(results);
                     const nlogpvals = results.map(association => -Math.log10(association.pValue));
                     const credset_data = [];
@@ -625,10 +631,9 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
 
                         // Use scores to mark the credible set in various ways (depending on your visualization preferences,
                         //   some of these may not be needed)
-                        const credibleSet = marking.findCredibleSet(scores, 0.95);
+                        const credibleSet = marking.findCredibleSet(posteriorProbabilities, 0.95);
                         const credSetScaled = marking.rescaleCredibleSet(credibleSet);
                         const credSetBool = marking.markBoolean(credibleSet);
-                        console.log('trying to make credset info', scores, posteriorProbabilities, credibleSet, credSetScaled, credSetBool);
 
                         // Annotate each response record based on credible set membership
                         for (let i = 0; i < translatedResults.length; i++) {
@@ -639,6 +644,7 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
                                 is_member: credSetBool[i],
                             });
                         }
+
                     } catch (e) {
                         // If the calculation cannot be completed, return the data without annotation fields
                         console.error(e);
@@ -649,107 +655,3 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
         }).finally(closeAlert(alertID));
     };
 }
-
-
-
-
-
-
-
-
-
-
-// Adapted Credible Set Data Source
-// Behavior: if there are no credible sets satisfactory on the given region, calculate credible set membership for the points and return that instead
-// From LocusZoom Code
-// https://github.com/statgen/locuszoom/blob/84d979c1fe54b2e3396857d3cef3fc7e581881ef/esm/ext/lz-credible-sets.js
-
-// const BaseAdapter = LocusZoom.Adapters.get('BaseAdapter');
-/**
- * Custom data source that calculates the 95% credible set based on provided data.
- * This source must be requested as the second step in a chain, after a previous step that returns fields required
- *  for the calculation.
- *
- * @param {Object} init.params
- * @param {Object} init.params.fields
- * @param {String} init.params.fields.log_pvalue The name of the field containing pvalue information
- * @param {Number} [init.params.threshold=0.95] The credible set threshold (eg 95%)
- *
- */
-// class CredibleSetLZ extends BaseAdapter {
-//     constructor(config) {
-//         super(...arguments);
-//         this.dependentSource = true; // Don't do calcs for a region with no assoc data
-//     }
-
-//     parseInit(config) {
-//         super.parseInit(...arguments);
-//         if (!(this.params.fields && this.params.fields.log_pvalue)) {
-//             throw new Error(`Source config for ${this.constructor.SOURCE_NAME} must specify how to find 'fields.log_pvalue'`);
-//         }
-//         if (!this.params.threshold) {
-//             this.params.threshold = 0.95;
-//         }
-//     }
-
-//     getCacheKey (state, chain, fields) {
-//         const threshold = state.credible_set_threshold || this.params.threshold;
-//         return [threshold, state.chr, state.start, state.end].join('_');
-//     }
-
-//     // TODO: This is the method to refactor!
-//     fetchRequest(state, chain) {
-//         const self = this;
-
-//         // TODO: !!! can work as a filter function replacement?! - K
-//         // The threshold can be overridden dynamically via `plot.state`, or set when the source is created
-//         const threshold = state.credible_set_threshold || this.params.threshold;
-
-//         // Calculate raw bayes factors and posterior probabilities based on information returned from the API
-//         if (typeof chain.body[0][self.params.fields.log_pvalue] === 'undefined') {
-//             throw new Error('Credible set source could not locate the required fields from a previous request.');
-//         }
-//         const nlogpvals = chain.body.map(function (item) {
-//             return item[self.params.fields.log_pvalue];
-//         });
-        // const credset_data = [];
-        // try {
-        //     const scores = scoring.bayesFactors(nlogpvals);
-        //     const posteriorProbabilities = scoring.normalizeProbabilities(scores);
-
-        //     // Use scores to mark the credible set in various ways (depending on your visualization preferences,
-        //     //   some of these may not be needed)
-        //     const credibleSet = marking.findCredibleSet(scores, threshold);
-        //     const credSetScaled = marking.rescaleCredibleSet(credibleSet);
-        //     const credSetBool = marking.markBoolean(credibleSet);
-
-        //     // Annotate each response record based on credible set membership
-        //     for (let i = 0; i < chain.body.length; i++) {
-        //         credset_data.push({
-        //             posterior_prob: posteriorProbabilities[i],
-        //             contrib_fraction: credSetScaled[i],
-        //             is_member: credSetBool[i],
-        //         });
-        //     }
-        // } catch (e) {
-        //     // If the calculation cannot be completed, return the data without annotation fields
-        //     console.error(e);
-        // }
-        // return Promise.resolve(credset_data);
-//     }
-
-//     combineChainBody(data, chain, fields, outnames, trans) {
-//         // At this point namespacing has been applied; add the calculated fields for this source to the chain
-//         for (let i = 0; i < data.length; i++) {
-//             const src = data[i];
-//             const dest = chain.body[i];
-//             Object.keys(src).forEach(function (attr) {
-//                 dest[attr] = src[attr];
-//             });
-//         }
-//         return chain.body;
-//     }
-// }
-
-
-

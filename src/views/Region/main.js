@@ -132,16 +132,18 @@ new Vue({
                 phenotype
             });
         },
+        
         // LocusZoom has "Panels"
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
-            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
-                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
-                    // TODO: callbacks for creating a new table column for credible sets might go here
-                }
-            )
+            if (credibleSetId !== 'computed') {
+                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId);
+            } else if (credibleSetId === 'computed') {
+                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
+                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(this.$store.state.phenotype.name);
+            }
         },
+
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
