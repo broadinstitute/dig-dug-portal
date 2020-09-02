@@ -35,6 +35,7 @@
                                     <effector-genes-table
                                         :dataset="$parent.dataset"
                                         :trait="$parent.trait"
+                                        v-on:scroll.native="handleScroll"
                                     ></effector-genes-table>
                                 </b-tab>
                                 <b-tab title="View research method">

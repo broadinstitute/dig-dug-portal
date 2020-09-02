@@ -46,6 +46,13 @@ new Vue({
         return createElement(Template);
     },
 
+    mounted() {
+        window.addEventListener("scroll", this.onScroll)
+    },
+    beforeDestroy() {
+        window.removeEventListener("scroll", this.onScroll)
+    },
+
     methods: {
         ...uiUtils,
         postAlert,
@@ -54,6 +61,20 @@ new Vue({
         closeAlert,
         showElement(ELEMENT) {
             uiUtils.showElement(ELEMENT);
+        },
+        onScroll(e) {
+            let windowTop = window.top.scrollY /* or: e.target.documentElement.scrollTop */
+
+            let element = document.getElementsByClassName("top-level-header")[0];
+            if (windowTop > 500) {
+                if (!element.classList.contains('fixed-header')) {
+                    element.classList.add('fixed-header');
+                }
+            } else {
+                if (element.classList.contains('fixed-header')) {
+                    element.classList.remove('fixed-header');
+                }
+            }
         }
     },
 
