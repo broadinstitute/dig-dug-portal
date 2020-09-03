@@ -1,5 +1,5 @@
 <template>
-    <div class="EGLT-table 52k">
+    <div class="EGLT-table fiftytwo">
         <!-- <forest-plot :data="test" :dichotomous="true"></forest-plot> -->
         <b-container fluid>
             <b-row class="top-level-header">
@@ -170,29 +170,4 @@ export default Vue.component("gene-associations-table", {
 
 <style>
 @import url("/css/effectorGenes.css");
-.feature-header-item {
-    background-color: #75def850;
-}
-.feature-content-wrapper {
-    border-left: solid 4px #75def8 !important;
-}
-/* .col.beta {
-    display: inline-block;
-    text-align: left;
-} */
-.feature-plot-wrapper {
-    border-left: solid 4px #bfd730 !important;
-    width: calc(100% - 15px);
-    margin-left: 15px;
-}
-.plots {
-    min-height: 350px;
-    padding-right: 15px;
-    background-color: #f9f9f9;
-}
-.feature-plot-wrapper > .col {
-    background-color: #bfd73050;
-    font-size: 12px;
-    font-weight: 600;
-}
 </style>
