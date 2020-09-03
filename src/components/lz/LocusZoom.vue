@@ -191,6 +191,7 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
+        // TODO: Refactor to use the filter function *directly as a function*
         applyFilter(filter) {
             // TODO: revisit, is there a faster way?
             // Auxiliary method within our json query for data layers in the LocusZoom plot
@@ -201,31 +202,27 @@ export default Vue.component("locuszoom", {
 
             // Do we need to calculate this every time?
             const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            // Was the original solution, without jsonQuery, more responsive?
-            // Object.keys(this.plot.panels)
-            //     .forEach(panelKey =>
-            //         Object.keys(this.plot.panels[panelKey].data_layers)
-            //             .forEach(data_layer_key => {
-            //                 const filterTargetName = `${panelKey}_src:${filter.name}`;
-            //                 if (this.plot.panels[panelKey].data_layers[data_layer_key].layout.fields.includes(filterTargetName)) {
-            //                             this.plot.panels[panelKey].data_layers[data_layer_key].setFilter(item => filter.op(item[filterTargetName], filter.value))
-            //                 }
-            //             })
-            // )
-
+ 
             data_layers.forEach(data_layer => {
+
                 const target = /*filter.target ||*/ data_layer.parent.id
                 const filterTargetNames = Array.isArray(filter.fields) ? filter.fields.map(field => `${target}_src:${field}`) : [`${target}_src:${filter.fields}`];
+                
                 if (filterTargetNames.every(fieldTarget => data_layer.layout.fields.includes(fieldTarget))) {
+
                     if (filter.value != '') {
-                        data_layer.setFilter(vals => {
-                            return filter.op(vals, filter.value);
-                        });
+                        data_layer.setFilter(
+                            vals => {
+                                return filter.op(vals, filter.value);
+                            }
+                        );
                     } else {
                         // nullify filter if filter has no value (lets everything through)
                         data_layer.setFilter(item => true);
                     }
+
                 } // no change in filter for data layers that don't match on the value
+
             });
 
             // refresh the plot in place

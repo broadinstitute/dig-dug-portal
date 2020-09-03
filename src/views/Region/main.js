@@ -105,8 +105,16 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        applyFilter(filter) {
-            this.$children[0].$refs.locuszoom.applyFilter(filter)
+        applyFilter(filterTemplate) {
+            // this.$children[0].$refs.locuszoom.applyFilter(this.makeFilterFunction(filterTemplate))
+            this.$children[0].$refs.locuszoom.applyFilter(filterTemplate)
+        },
+        makeFilterFunction(filterTemplate) {
+            if (filterTemplate.value !== '') {
+                return vals => filterTemplate.op(vals, filterTemplate.value);
+            } else {
+                return item => true;
+            }
         },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
