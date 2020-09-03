@@ -62,7 +62,10 @@
             - Straightfoward (if hacky?)
             Con:
             - Cluttering template with procedural abstractions
+            - Bridges to the page, again
             - No abstraction means no...?
+            - MAJOR CON? Filter can't be defined in the $parent!
+                https://stackoverflow.com/questions/37074392/how-to-share-filters-between-parent-and-child
          -->
         <filter-widget v-model="$parent.filter"></filter-widget>
         <locuszoom
