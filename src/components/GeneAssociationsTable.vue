@@ -3,14 +3,14 @@
         <!-- <forest-plot :data="test" :dichotomous="true"></forest-plot> -->
         <b-container fluid>
             <b-row class="top-level-header">
-                <b-col class="top-level-header-item">{{capitalizedFormatter(show)}}</b-col>
+                <b-col class="top-level-header-item">Phenotype</b-col>
                 <b-col class="top-level-header-item">pValue</b-col>
                 <b-col class="top-level-header-item">Beta</b-col>
                 <b-col class="top-level-header-item">Odds Ratio</b-col>
                 <b-col class="top-level-header-item">View</b-col>
             </b-row>
             <template v-for="(row, i) in associations.data">
-                <b-row class="data top-level-value" :key="row[show] + i">
+                <b-row class="data top-level-value" :key="row.phenotype + i">
                     <b-col class="top-level-value-item">
                         <a
                             :href="`/phenotype.html?phenotype=${row.phenotype}`"
@@ -28,8 +28,8 @@
                     <b-col class="top-level-value-item beta">
                         <template v-if="!!phenotypeMap[row.phenotype].dichotomous">
                             <span
-                                :class="row.beta < 0 ? 'effect negative' : 'effect positive'"
-                            >{{ row.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
+                                :class="Math.exp(row.beta) < 1 ? 'effect negative' : 'effect positive'"
+                            >{{ Math.exp(row.beta) < 1 ? "&#9660;" : "&#9650;"}}</span>
                             <span>{{effectFormatter(Math.exp(row.beta))}}</span>
                         </template>
                     </b-col>
@@ -89,8 +89,8 @@
                                 v-if="!!phenotypeMap[row.phenotype].dichotomous"
                             >
                                 <span
-                                    :class="Math.exp(mask.beta) < 0 ? 'effect negative' : 'effect positive'"
-                                >{{ Math.exp(mask.beta) < 0 ? "&#9660;" : "&#9650;"}}</span>
+                                    :class="Math.exp(mask.beta) < 1 ? 'effect negative' : 'effect positive'"
+                                >{{ Math.exp(mask.beta) < 1 ? "&#9660;" : "&#9650;"}}</span>
                                 {{effectFormatter(Math.exp(mask.beta))}}
                             </b-col>
                         </b-row>
@@ -101,7 +101,7 @@
                     :class="`feature-plot-${i}`"
                     :key="`plot_${i}`"
                 >
-                    <h5>Forest Plot</h5>
+                    <b-col>Forest Plot</b-col>
                     <!-- <div :id="`plot_${i}`" class="plots"></div> -->
                     <forest-plot
                         :data="row.masks"
@@ -131,7 +131,6 @@ import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 am4core.useTheme(am4themes_animated);
 
 export default Vue.component("gene-associations-table", {
-    props: ["show"],
     component: ForestPlot,
     data() {
         return {
@@ -293,10 +292,13 @@ export default Vue.component("gene-associations-table", {
     margin-left: 15px;
 }
 .plots {
-    min-height: 460px;
+    min-height: 350px;
+    padding-right: 15px;
     background-color: #f9f9f9;
 }
-.feature-plot-wrapper > h5 {
+.feature-plot-wrapper > .col {
     background-color: #bfd73050;
+    font-size: 12px;
+    font-weight: 600;
 }
 </style>
