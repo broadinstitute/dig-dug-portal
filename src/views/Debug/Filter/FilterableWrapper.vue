@@ -9,27 +9,39 @@
 <script>
 import Vue from "vue";
 import { Consumer as FilterC } from "./filterContext";
-import Emitter from "./Emitter.vue"
 
-// const Emitter = {
-//     props: ['watchable'],
-//     watch: {
-//         watchable(newWatchValue) {
-//             this.$emit('change', newWatchValue);
-//         }
-//     },
-//     // Template just contains a slot, and a div to make it valid
-//     // Eventually a the filterable-wrapper will have an event bound to it for 
-//     // applying filters, from inside other components - so we need the slots.
-//     // TODO: include runtime compiler in vue.config.js to allow this?
-//     // template: `<div><slot></slot></div>`,
+const Emitter = {
+    /*
+    * This is a dummy component used ONLY by FilterableWrapper.
+    * It just provides a slot for the Emitter, whose job is just to emit an on-change event for its prop.
+    * 
+    * Emitting this event will allow for an easy way for components to use FilterableWrapper (and thus the Consumer of the filterContext)
+    * through binding to the @change event on it (with e.g. an applyFilter function). This wouldn't have been possible otherwise with the Consumer alone.
+    * 
+    * In this way, only the component using the filter has to know what it needs to do with it, and the page can provide a filter to any component
+    * that wants it without having to explicitly pass it on. 
+    * 
+    * It's like a triple-blind study: no one should know why anyone is doing anything.
+    * 
+    */
+    props: ['watchable'],
+    watch: {
+        watchable(newWatchValue) {
+            this.$emit('change', newWatchValue);
+        }
+    },
+    render(createElement) {
+        
+        // Using Vue's createElement API with render functions to eliminate the need to define Emitter in a separate component file.
+        // Without using Vue's runtime compiler (bloat), we can't define scoped slots directly in it, so instead we use an undocumented internal 
+        // feature – of course – to give the element a default slot.
+        // So don't touch this, it works great
+        // https://stackoverflow.com/a/58859267
 
-//     // ALTERNATELY: use createElement API with render functions?
-//     render(createElement) {
-//         return createElement('slot');
-//     }
+        return createElement('div', this.$scopedSlots.default());
+    }
     
-// }
+}
 
 export default Vue.component('filterable-wrapper', {
     components: {
