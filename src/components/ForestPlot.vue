@@ -46,11 +46,10 @@ export default Vue.component("forest-plot", {
                         ? Math.exp(item.beta - item.stdErr * 1.96)
                         : item.beta - item.stdErr * 1.96,
                     measure: dichotomous ? Math.exp(item.beta) : item.beta,
-                    bulletSize: 20,
+                    bulletSize: 5,
                 };
             });
 
-            //console.log("chart data:", chart.data);
             //support logo
             chart.logo.disabled = true;
 
@@ -61,18 +60,18 @@ export default Vue.component("forest-plot", {
             //yAxis.renderer.minGridDistance = 30;
             yAxis.renderer.inversed = true;
 
-            let yAxis2 = chart.yAxes.push(new am4charts.CategoryAxis());
-            yAxis2.dataFields.category = "category";
-            yAxis2.renderer.grid.template.location = 0;
-            //yAxis.renderer.minGridDistance = 30;
-            yAxis2.renderer.inversed = true;
-            yAxis2.renderer.labels.template.adapter.add("text", function (
-                text,
-                target
-            ) {
-                return "[bold]{measure}[/] ({low} - {high})";
-            });
-            yAxis2.renderer.opposite = true;
+            // let yAxis2 = chart.yAxes.push(new am4charts.CategoryAxis());
+            // yAxis2.dataFields.category = "category";
+            // yAxis2.renderer.grid.template.location = 0;
+            // //yAxis.renderer.minGridDistance = 30;
+            // yAxis2.renderer.inversed = true;
+            // yAxis2.renderer.labels.template.adapter.add("text", function (
+            //     text,
+            //     target
+            // ) {
+            //     return "[bold]{measure}[/] ({low} - {high})";
+            // });
+            // yAxis2.renderer.opposite = true;
 
             let xAxis = chart.xAxes.push(new am4charts.ValueAxis());
 
@@ -81,7 +80,7 @@ export default Vue.component("forest-plot", {
             series.dataFields.openValueX = "low";
             series.dataFields.valueX = "high";
             series.dataFields.categoryY = "category";
-            series.columns.template.height = 2;
+            series.columns.template.height = 1;
             series.columns.template.strokeWidth = 0;
             series.columns.template.fill = chart.colors.getIndex(0);
 
@@ -93,9 +92,9 @@ export default Vue.component("forest-plot", {
             series2.strokeWidth = 0;
 
             let marker = series2.bullets.push(new am4core.Rectangle());
-            marker.width = 10;
-            marker.height = 10;
-            marker.strokeWidth = 2;
+            marker.width = 5;
+            marker.height = 5;
+            marker.strokeWidth = 0;
             marker.fill = chart.colors.getIndex(0);
             marker.stroke = chart.colors.getIndex(0);
             marker.propertyFields.rotation = "rotation";
@@ -103,7 +102,7 @@ export default Vue.component("forest-plot", {
             marker.nonScalingStroke = true;
             marker.verticalCenter = "middle";
             marker.horizontalCenter = "middle";
-            marker.tooltipText = "[bold]" + labelName + "[/] {valueX}";
+            // marker.tooltipText = "[bold]" + labelName + "[/] {valueX}";
 
             let label = series2.bullets.push(new am4core.Label());
             label.propertyFields.text = "label";
@@ -120,10 +119,16 @@ export default Vue.component("forest-plot", {
                 dataField: "customValue",
             });
 
+            //Overwrites for 52k table
+            //yAxis2.renderer.grid.template.stroke = "#eee";
+            yAxis.renderer.grid.template.disabled = true;
+            //yAxis2.renderer.grid.template.disabled = true;
+            xAxis.renderer.grid.template.disabled = true;
+
             // Add summary line
             let range = xAxis.axisRanges.create();
             range.value = dichotomous ? 1 : 0;
-            range.grid.strokeWidth = 5;
+            range.grid.strokeWidth = 2;
             range.grid.strokeDasharray = "7,7";
         },
         updateChart(newData) {
