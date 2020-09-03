@@ -435,7 +435,7 @@ export class LZPhewasPanel {
     }
 }
 
-class _LZBioIndexSource extends BaseAdapter {
+export class _LZBioIndexSource extends BaseAdapter {
     constructor(params) {
         super(params)
     }
