@@ -1,10 +1,15 @@
 <template>
     <div>
         
-        <input v-model="$parent.inputs"/>
-        <filter-provider v-model="$parent.inputs">
+        <filter-widget v-model="$parent.inputs" :associations="[]" :phenotypes="[]">
+            <filter-widget-control></filter-widget-control>
+        </filter-widget>
+
+        <!-- Does filter-provider consume a function, or a function spec? -->
+        <filter-context v-model="$parent.inputs">
             <filter-user></filter-user>
-        </filter-provider>
+        </filter-context>
+
 
     </div>
 </template>
