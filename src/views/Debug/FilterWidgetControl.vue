@@ -1,31 +1,21 @@
 <template>
     <div>
 
-        <template slot="control">
+        <template>
             <b-col class="filter-col-sm">
-                <div class="label">P-Value (&le;)</div>
-                <!-- <b-form-input
-                    id="filter-pValue"
+                <div class="label">
+                    <slot>
+                        <!-- P-Value (&le;) -->
+                        {{field}} {{(op)}}
+                    </slot>
+                </div>
+                <b-form-input
+                    :ref="filterDefinition.ref"
+                    :id="filterDefinition.id"
+                    v-model="filterThreshold"
                     type="text"
-                    v-model="select_pValue_text"
-                    @change="addCompound($event, 'select_pValue','filter-pValue', false)"
-                    ref="select_pValue"
-                ></b-form-input> -->
+                ></b-form-input>
             </b-col>
-        </template>
-
-        <template slot="pill">
-            This is a pill
-            <!-- <template v-if="select_pValue.length > 0">
-                <b-badge
-                    pill
-                    variant="danger"
-                    @click="unsetFilter('select_pValue')"
-                    class="btn">
-                    {{select_pValue}}
-                    <span class="remove">X</span>
-                </b-badge>
-            </template> -->
         </template>
 
     </div>
@@ -45,65 +35,40 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("filter-widget-control", {
-    props: ["value"],
+    props: ["value", "field", "op", "threshold", "options", "multiple"],
     data() {
         return {
-            // TODO: These need to be dynamically registered or collected
-            // For collection, use slot scopes for modifying a shared object on event binding?
-            select_pValue: "",
-            select_pValue_text: "",
-            select_beta: "",
-            select_beta_options: [
-                { value: "p", text: "Positive" },
-                { value: "n", text: "Negative" },
-            ],
+            filterDefinition: {
+                id: null,
+                ref: null,
+                field: this.field,
+                op: this.op,
+                multiple: !!this.multiple, // if undefined, default to false
+            },
+            filterThreshold: this.threshold, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
-    computed: {
-        filterString() {
-            return `${this.select_pValue}, ${this.select_beta}`
-        },
+    created() {
+        // TODO: are these eliminable?
+        this.filterDefinition['ref'] = `select_${this.field}`
+        this.filterDefinition['id'] = `filter-${this.field}`
+        // set initial filter value in the widget
+        if (!!this.filterThreshold) {
+            this.updateFilter(this.filterThreshold);
+        }
     },
-
     methods: {
-        addFilter(event, obj) {
-            //console.log("add" + event);
-            this[obj].push(event.trim());
-            this[obj + "_text"] = "";
-        },
-        setFilter(event, obj) {
-            this[obj] = event;
-            this[obj + "_text"] = "";
-        },
-        removeFilter(index, obj) {
-            this[obj].splice(index, 1);
-        },
-        unsetFilter(obj) {
-            this[obj] = "";
-        },
-        addSingle(event, obj) {
-            this.addFilter(event, obj);
-            this.clearCompound();
-        },
-        addCompound(event, obj, id, multiple = true) {
-            if (multiple) this.addFilter(event, obj);
-            else this.setFilter(event, obj);
-
-            let element = document.getElementById(id);
-            element.value = "";
-        },
-
-        clearCompound() {
-            // These need to be made generic
-            this.select_consequence = [];
-            this.select_gene = [];
-            this.select_pValue = "";
-            this.select_beta = "";
-        },
+        updateFilter(newThreshold) {
+            // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
+            // -? Refactor out filterModel watcher in favor for only the computed function being pushed out? 
+            //    OR does the filter widget make the function and we just shunt out the spec?
+            // -? Refactor out addCompound? (is it necessary over addFilter as a single?)
+            this.$parent.$emit('change', 'addCompound', newThreshold, this.filterDefinition.ref, this.filterDefinition.id, !!this.multiple, this.filterDefinition);
+        }
     },
     watch: {
-        filterString(newFilterString) {
-            this.$emit('input', newFilterString)
+        filterThreshold(newThreshold) {
+            this.updateFilter(newThreshold);
         }
     }
 });

@@ -402,10 +402,6 @@ export default Vue.component("associations-table", {
         unsetFilter(obj) {
             this[obj] = "";
         },
-        addSingle(event, obj) {
-            this.addFilter(event, obj);
-            this.clearCompound();
-        },
         addCompound(event, obj, id, multiple = true) {
             if (multiple) this.addFilter(event, obj);
             else this.setFilter(event, obj);

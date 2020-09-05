@@ -4,7 +4,7 @@ import Template from "./Template.vue";
 import FilterUser from "./FilterUser.vue"
 import FilterProvider from "./Filter/FilterProvider.vue"
 import FilterWidget from "./FilterWidget.vue"
-import FilterWidgetControl from "./FilterWidget.vue"
+import FilterWidgetControl from "./FilterWidgetControl.vue"
 
 Vue.config.productionTip = false;
 
