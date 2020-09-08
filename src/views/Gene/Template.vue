@@ -110,7 +110,7 @@
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">Gene Associations (52K)</h4>
-                        <gene-associations-table></gene-associations-table>
+                        <gene-associations-masks></gene-associations-masks>
                     </div>
                 </div>
             </div>
