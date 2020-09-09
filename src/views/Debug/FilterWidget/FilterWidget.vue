@@ -52,12 +52,6 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import { filterFromPredicates, predicateFromSpec } from "../utils/filterHelpers"
 
-// DONE: Define a interface or a service (a filter interaction and creation protocol) that can be used with 
-// filter-widget-controls (as children!) as well as derived/computed pills
-// first thing is that for each filter-wiget-control, it needs a corresponding item in a object so it can be dynamically referenced in the template (as well as the component methods)
-// could define the child component it in here for file cohesion (although that disobeys convention that one component = one file)
-// ditto with the event-listener component on the slot
-
 const EventListener = {
     /*
      * 
@@ -100,9 +94,6 @@ export default Vue.component("filter-widget", {
     computed: {
 
         filterFunction() {
-            // Specs for predicateFromSpec are objects satisfying properties { field, op, threshold } 
-            // where `op` is a string in the `operationMapping` dictionary defined within the predicateFromSpec function
-            // (these strings just look like typical primitive Javascript comparators, e.g. ===, <=, >=, <, > are all valid)
             const predicates = this.filterList.map(predicateFromSpec);
             return filterFromPredicates(predicates, !!this.inclusive);
         }
@@ -111,9 +102,7 @@ export default Vue.component("filter-widget", {
 
     methods: {
 
-        filterControlChange() {
-            
-            const [threshold, filterDefinition] = arguments;
+        filterControlChange(threshold, filterDefinition) {
                         
             // DONE: create filter if not there? (issue in multiples case)
             // could get children to modify registry at runtime during create...
@@ -154,12 +143,6 @@ export default Vue.component("filter-widget", {
             }
             // NOTE: As a result of this.filterList being modified, the computed property for the filterFunction should reactively producing a new version of itself.
 
-            // NOTE: saving this code snippet because i'm pleased with myself and it looks useful
-            // const [filterControl, ...rest] = arguments;
-            // if (!!this[filterControl]) {
-            //     this[filterControl](...rest);
-            // }
-
         },
 
         unsetFilter(obj, idx) {
@@ -168,10 +151,7 @@ export default Vue.component("filter-widget", {
             // this.filterList = this.filterList.filter(filterSpec => filterSpec.field !== obj.field && filterSpec.threshold !== obj.threshold && filterSpec.threshold !== obj.threshold)
             this.filterList = this.filterList.slice(0,idx).concat(this.filterList.slice(idx + 1, this.filterList.length))
         },
-        // clear out entire filter
-        clearCompound() {
-            this.filterList = [];
-        },
+
 
     },
     watch: {

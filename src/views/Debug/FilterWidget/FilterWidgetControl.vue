@@ -50,10 +50,6 @@ export default Vue.component("filter-widget-control", {
         };
     },
     created() {
-        // TODO: are these eliminable?
-        this.filterDefinition['ref'] = `select_${this.field}`
-        this.filterDefinition['id'] = `filter-${this.field}`
-
         // set initial filter value in the widget
         if (!!this.filterThreshold) {
             this.updateFilter(this.filterThreshold);

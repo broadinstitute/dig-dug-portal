@@ -62,9 +62,6 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
             operation = operationMap[op];
         }
     }
-    else if (typeof op === 'function') {
-        operation = op;
-    };
 
     // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
     return datum => match(datum, field) ? operation(datum[field], threshold) : false;
