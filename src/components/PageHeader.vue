@@ -123,7 +123,11 @@
                             <a href="https://kp4cd.org/contact">Contact</a>
                         </li>
                         <li v-if="user">
-                            <a href="/logout" :class="diseaseGroup.name+'kp-login'">Logout</a>
+                            <a
+                                href="/logout"
+                                :class="diseaseGroup.name+'kp-login'"
+                                :title="user"
+                            >Logout</a>
                         </li>
                         <li v-else>
                             <a
@@ -161,7 +165,18 @@ export default Vue.component("page-header", {
         return {};
     },
     created() {
-        this.user = Vue.$cookies.isKey("session") || false;
+        //this.user = Vue.$cookies.isKey("session") || false;
+        // this.user = false;
+
+        // if (Vue.$cookies.isKey("session")) {
+        //     fetch(
+        //         "https://oauth2.googleapis.com/tokeninfo?access_token=" +
+        //             Vue.$cookies.get("session")
+        //     )
+        //         .then((response) => response.json())
+        //         .then((data) => (this.user = data.email));
+        // }
+        this.user = this.verifyToken;
     },
     computed: {
         currentPage() {
@@ -174,6 +189,18 @@ export default Vue.component("page-header", {
     methods: {
         saveCurrentPage() {
             Vue.$cookies.set("whereAmI", location.href, "", "", host.domain);
+        },
+        async verifyToken() {
+            if (Vue.$cookies.isKey("session")) {
+                const response = await fetch(
+                    "https://oauth2.googleapis.com/tokeninfo?access_token=" +
+                        Vue.$cookies.get("session")
+                );
+                const data = await response.json();
+                console.log("data", data);
+                return data.email;
+            }
+            return false;
         },
     },
 });
