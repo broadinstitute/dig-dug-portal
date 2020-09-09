@@ -1,6 +1,6 @@
 <template>
     <div>
-        <forest-plot :data="getLofTeeMask" :dichotomous="true"></forest-plot>
+        <forest-plot :data="geneAssociations" element="plot2"></forest-plot>
     </div>
 </template>
 

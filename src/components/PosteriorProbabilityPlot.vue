@@ -4,33 +4,7 @@
         <div id="visualisation" width="1000" height="1000" />
     </div>
 </template>
-<style type="text/css">
-/* 13. Basic Styling with CSS */
-#line {
-    width: 100%;
-    margin: 20px 0;
-    height: 300px;
-    background: #eee;
-}
-body {
-    font: Arial 18px;
-    text-align: center;
-}
 
-path {
-    stroke: steelblue;
-    fill: none;
-    stroke-width: 4;
-}
-
-.axis path,
-.axis line {
-    fill: none;
-    stroke: grey;
-    stroke-width: 1;
-    shape-rendering: crispEdges;
-}
-</style>
 
 <script>
 import Vue from "vue";

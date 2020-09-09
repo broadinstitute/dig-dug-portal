@@ -18,6 +18,7 @@ import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import ConfidenceIntervalPlot from "@/components/ConfidenceIntervalPlot.vue";
+import ForestPlot from "@/components/ForestPlot.vue";
 import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
@@ -47,11 +48,24 @@ new Vue({
         AssociationsTable,
         PosteriorProbabilityPlot,
         ConfidenceIntervalPlot,
+        ForestPlot
     },
 
     data() {
         return {
             counter: 0,
+            plotData: [
+                {
+                    beta: -60.571000000000005,
+                    combinedAF: 0.0022796999999999995,
+                    mask: "LofTee",
+                    n: 25442,
+                    pValue: 1.0166999999999999e-19,
+                    passingVariants: 11,
+                    singleVariants: 4,
+                    stdErr: 6.6601
+                }
+            ],
 
         };
     },
