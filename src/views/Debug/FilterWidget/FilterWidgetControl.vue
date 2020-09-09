@@ -3,7 +3,7 @@
         <div class="label">
             <slot>
                 <!-- P-Value (&le;) -->
-                {{field}} ({{(op)}})
+                {{field}}
             </slot>
         </div>
         <!-- 
@@ -37,15 +37,15 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("filter-widget-control", {
-    props: ["value", "field", "op", "threshold", "options", "multiple"],
+    props: ["value", "field", "predicate", "default", "options", "multiple", "color", "pillFormatter"],
     data() {
         return {
             filterDefinition: {
                 field: this.field,
-                op: this.op,
+                predicate: this.predicate,
                 multiple: !!this.multiple, // if undefined, default to false
             },
-            filterThreshold: this.threshold, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
     created() {
@@ -58,9 +58,9 @@ export default Vue.component("filter-widget-control", {
         updateFilter(newThreshold) {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
             if (newThreshold !== null) {
-                this.$parent.$emit('change', newThreshold, this.filterDefinition);
+                // double parent since we're only using this component as a template inside of another component
+                this.$parent.$parent.$emit('change', newThreshold, { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } });
             }
-            // TODO: always clear on update?
             this.filterThreshold = null;
         }
     }

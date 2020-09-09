@@ -31,7 +31,7 @@ export function filterFromPredicates(predicates, inclusive=false) {
     }
 }
 
-export function predicateFromSpec({ field, op, threshold }, { match = (datum, field) => !!datum[field] }) {
+export function predicateFromSpec({ field, predicate, threshold }, { match = (datum, field) => !!datum[field] }) {
 
     // Specs for predicateFromSpec are objects satisfying properties { field, op, threshold } 
     // where `op` is a string in the `operationMapping` dictionary defined within the predicateFromSpec function
@@ -41,30 +41,8 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
     // `match` is a function that checks the presence or absence of a field before applying an operation.
     // The predicate itself should always return false when there is no match
 
-    let operation = id => id;
-    if (typeof op === 'string') {
-        const operationMap = {
-            "==": (a, b) => a === b,  // we know what they mean, anyone who means `==` would want javascript operational semantics versus domain-semantics of numbers or lexigraphical information. unlikely for scientists. we could alternately model this case as a hard error/not support it.
-            "===": (a, b) => a === b,
-            ">": (a, b) => a > b,
-            ">=": (a, b) => a >= b,
-            "<": (a, b) => a < b,
-            "<=": (a, b) => a <= b,
-            // NOTE: if we use these abbreviations as keys, they translate directly to HTML char codes after attaching appropriate suffix/prefix
-            // would allow us to compute an adequate label even more extenisvely in other cases where we use the variable use for `op`
-            "eq": (a, b) => a === b,
-            "gt": (a, b) => a > b,
-            "ge": (a, b) => a >= b,
-            "lt": (a, b) => a < b,
-            "le": (a, b) => a <= b,
-        }
-        if (!!operationMap[op]) {
-            operation = operationMap[op];
-        }
-    }
-
     // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
-    return datum => match(datum, field) ? operation(datum[field], threshold) : false;
+    return datum => match(datum, field) ? predicate(datum[field], threshold) : false;
 }
 
 // Example of predicateFromSpec function that would work for LocusZoom?

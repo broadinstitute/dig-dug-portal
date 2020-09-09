@@ -24,12 +24,12 @@
                     <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
                     <b-badge
                         v-for="(filter, idx) in filterList"
-                        :key="filter.field+filter.op+filter.threshold+idx"
+                        :key="filter.field+filter.predicate+filter.threshold+idx"
                         pill
-                        variant="danger"
+                        :variant="filter.pill.color"
                         @click="unsetFilter(filter, idx)"
                         class="btn">
-                        {{filter.field}} {{filter.op}} {{filter.threshold}}
+                        {{filter.pill.label(filter)}}
                         <span class="remove">X</span>
                     </b-badge>
 
