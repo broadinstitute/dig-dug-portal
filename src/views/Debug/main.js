@@ -1,4 +1,6 @@
 import Vue from "vue";
+import * as d3 from "d3";
+
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -10,8 +12,6 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker"
-
-import * as d3 from "d3";
 
 Vue.config.productionTip = false;
 new Vue({
@@ -43,9 +43,6 @@ new Vue({
         return createElement(Template);
     },
     methods: {
-        tap(event) {
-            console.log(event)
-        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -71,6 +68,10 @@ new Vue({
                     // TODO: callbacks for creating a new table column for credible sets might go here
                 }
             )
+        },
+        addComputedCredibleVariantsPanel(event) {
+            const { phenotype } = event;
+            this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(phenotype);
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
@@ -162,12 +163,7 @@ new Vue({
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
-        globalEnrichmentAnnotations() {
-            console.log('globalEnrichmentAnnotations changed')
-        },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            console.log('phenotypeMap changed')
-
             let param = this.$store.state.phenotypeParam;
 
             // if there's a phenotypeParam, then pick that phenotype
@@ -182,7 +178,6 @@ new Vue({
             }
         },
         "$store.state.phenotype": function (phenotype) {
-            console.log('phenotype change')
             // this.$store.dispatch('associations/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
             this.$store.dispatch('globalEnrichment/query', { q: this.$store.state.phenotype.name });
             this.$store.dispatch('credibleSets/query', { q: `${this.$store.state.phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });

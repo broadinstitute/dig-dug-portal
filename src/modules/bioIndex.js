@@ -60,9 +60,6 @@ export default function (index, extend) {
 
         // dispatch methods
         actions: {
-            async tap(context, args) {
-                console.log(args);
-            },
             async clear(context) {
                 context.commit("setResponse", { data: [] });
             },

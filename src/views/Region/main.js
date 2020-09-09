@@ -1,4 +1,7 @@
 import Vue from "vue";
+import * as d3 from "d3";
+import _ from "lodash";
+
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -8,8 +11,6 @@ import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
-import IGV from "@/components/igv/IGV.vue";
-import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
@@ -20,6 +21,7 @@ import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
+import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -27,9 +29,6 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
-
-import Formatters from "@/utils/formatters";
-import * as d3 from "d3";
 
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
@@ -50,8 +49,6 @@ new Vue({
 
         PhenotypeSignalMixed,
 
-        IGV,
-
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
         PhenotypeSelectPicker,
@@ -66,19 +63,6 @@ new Vue({
         this.$store.dispatch("queryRegion");
     },
 
-    mounted() {
-        IGVEvents.$on(IGV_LOCUSCHANGE, locus => {
-            const phenotype = this.$store.state.phenotype.name;
-            const region = Formatters.igvLocusFormatter(locus);
-            // I keep on forgetting this 'q'
-            this.$store.dispatch("credibleSets/query", {
-                q: `${phenotype},${region}`
-            });
-        });
-
-        // this.$children[0].$refs.locuszoom.addAssociationsPanelComponent('T2D')
-    },
-
     render(createElement) {
         return createElement(Template);
     },
@@ -90,7 +74,10 @@ new Vue({
             // page controls
             pValue: null,
             fold: null,
-            currentAssociationsPanel: null
+
+            currentAssociationsPanel: null,
+
+            selectedCredibleSets: []
         };
     },
 
@@ -101,6 +88,31 @@ new Vue({
         postAlertError,
         closeAlert,
 
+        applyFilter(filter) {
+            this.$children[0].$refs.locuszoom.applyFilter(filter)
+        },
+        filterOnPValueAndFold(vals, filterValue) {
+            let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
+                const [preKey, fieldValue] = items;
+                const fieldKey = preKey.split(':')[1];  // remove the namespacing information from the key to get the field leftover
+                acc[fieldKey] = fieldValue;
+                return acc;
+            }, {});
+
+            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
+            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
+
+            return pValuePred && foldPred;
+        },
+
+        requestCredibleSets(eventData) {
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
+                this.$store.dispatch('credibleSets/query', { q: queryString });
+            }
+        },
+
         exploreExpanded() {
             this.$store.commit('setLocus', {
                 chr: this.$store.state.chr,
@@ -108,6 +120,11 @@ new Vue({
                 end: this.$store.state.end + 50000,
             });
             this.$store.dispatch('queryRegion');
+        },
+
+        // TODO: refactor this away in favor of v-model
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, data);
         },
 
         // LocusZoom has "Panels"
@@ -120,43 +137,20 @@ new Vue({
             );
             return newAssociationsPanelId;
         },
-        updateAssociationsTable(data) {
-            this.$store.commit(`associations/setResponse`, data);
-        },
-        // TODO: refactor to closure for extra programmer points
-        // TODO: does the idea of using components handle this problem?
-        updateAssociationsPanel(phenotype) {
-            if (this.currentAssociationsPanel) {
-                this.$children[0].$refs.locuszoom.plot.removePanel(
-                    this.currentAssociationsPanel
-                );
+        addCredibleVariantsPanel(event) {
+            const { phenotype, credibleSetId } = event;
+            if (credibleSetId !== 'computed') {
+                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId);
+            } else if (credibleSetId === 'computed') {
+                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
+                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(this.$store.state.phenotype.name);
             }
-            this.currentAssociationsPanel = this.addAssociationsPanel({
-                phenotype
-            });
+        },
+        addAnnotationIntervalsPanel(event) {
+            const { annotation, method } = event;
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
         },
 
-        // IGV has "Tracks"
-        addCredibleVariantTrack(credibleSet) {
-            // you can update the store here if you really need to. but you don't need to.
-            // instead use a computed property with custom getters and setters plus v-model if at all possible.
-            const { phenotype, credibleSetId } = credibleSet;
-            this.$children[0].$refs.igv.addCredibleVariantsTrack(
-                phenotype,
-                credibleSetId,
-                true,
-                {
-                    // dataLoaded: event => console.log(event),
-                }
-            );
-        },
-        addAnnotationTrack(enrichment) {
-            const { annotation, method } = enrichment;
-            this.$children[0].$refs.igv.addIntervalsTrack(annotation, method, {
-                colorScheme: this.tissueColorScheme
-                // dataLoaded: event => console.log(event),
-            });
-        }
     },
 
     computed: {
@@ -228,24 +222,6 @@ new Vue({
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
 
-        // the associations in LZ format
-        lzAssociations() {
-            let data = this.$store.state.associations.data;
-            let threshold = 1000 / data.length;
-            let assocs = this.$store.state.associations.data
-                .filter(v => v.pValue < 1e-5 || Math.random() < threshold)
-                .map(v => {
-                    return {
-                        id: v.varId,
-                        variant: v.varId,
-                        position: v.position,
-                        log_pvalue: -Math.log10(v.pValue),
-                        ref_allele: v.reference
-                    };
-                });
-            return assocs;
-        },
-
         globalEnrichmentAnnotations() {
             // an array of annotations
             return _.uniqBy(this.$store.state.globalEnrichment.data, el =>
@@ -253,23 +229,6 @@ new Vue({
                     [el.annotation, !!el.method ? el.method : ""].join()
                 )
             );
-        },
-
-        tissues() {
-            // an array of tissue
-            return _.uniq(
-                this.$store.state.globalEnrichment.data
-                    .filter(interval => !!interval.tissue)
-                    .map(interval => interval.tissue)
-            );
-        },
-
-        // TODO: refactor into IGV Utils
-        tissueColorScheme() {
-            return d3
-                .scaleOrdinal()
-                .domain(this.tissues)
-                .range(d3.schemeSet1);
         },
 
         tissueScoring() {
@@ -296,9 +255,22 @@ new Vue({
             }
 
             return groups;
+        },
+        jointFilters() {
+            return {
+                pValue: this.pValue,
+                fold: this.fold,
+            }
         }
     },
     watch: {
+        jointFilters(newFilterThresholds) {
+            this.applyFilter({
+                fields: ['pvalue', 'fold'],
+                value: newFilterThresholds,
+                op: this.filterOnPValueAndFold
+            })
+        },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

@@ -575,6 +575,15 @@
     font-weight: 600;
 }
 
+.top-level-header.fixed-header {
+    position: fixed;
+    top: 0;
+    width: calc(100% - 2.5rem - 33px);
+    background-color: #fff;
+    left: calc(1.25rem + 16px);
+    z-index: 10;
+}
+
 .top-level-header-item,
 .top-level-value-item,
 .feature-content-header-item,
@@ -846,7 +855,7 @@ span.weight-blue {
 /* for Manningexp */
 .EGLT-table.manningexp .top-level-header-item,
 .EGLT-table.manningexp .top-level-value-item {
-    width: calc(100% / 5);
+    width: calc(100% / 4);
 }
 
 .EGLT-table.manningexp .feature-content-header-item.Annotations,
