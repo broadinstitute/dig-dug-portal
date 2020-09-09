@@ -10,12 +10,11 @@
             Go between a select component or a simple text input based on whether or not we have options 
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
-        <!-- TODO: replace with an autocomplete to eliminate this conditional logic? -->
         <b-form-select
             v-if="!!options && options.length > 0"
+            :options="[{ value: null, text: '' }].concat(options)"
             v-model="filterThreshold"
             @input="updateFilter(filterThreshold)"
-            :options="[{ value: null, text: '' }].concat(options)"
         ></b-form-select>
         <b-form-input
             v-else
