@@ -1,5 +1,6 @@
 <template>
     <div>
+        <img v-if="bioindex_dev" src="/images/dev_flag.svg" class="dev-flag" />
         <analytics></analytics>
         <alert></alert>
 
@@ -147,11 +148,9 @@
 <script>
 import Vue from "vue";
 import VueCookies from "vue-cookies";
-
 import host from "@/utils/hostUtils";
-
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
-
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
@@ -162,6 +161,7 @@ export default Vue.component("page-header", {
     data() {
         return {
             user: false,
+            bioindex_dev: false,
         };
     },
     created() {
@@ -173,6 +173,7 @@ export default Vue.component("page-header", {
                 .then((response) => response.json())
                 .then((data) => (this.user = data.email));
         }
+        if (BIO_INDEX_HOST.indexOf("dev") != -1) this.bioindex_dev = true;
     },
     computed: {
         currentPage() {
