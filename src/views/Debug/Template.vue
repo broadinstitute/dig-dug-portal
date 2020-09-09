@@ -11,7 +11,7 @@
                 - 
                 - 
          -->
-        <filter-widget v-model="$parent.filterFunction">
+        <filter-widget v-model="$parent.filterFunction" :inclusive="true">
             <filter-widget-control
                 :field="'pValue'"
                 :op="'<='"

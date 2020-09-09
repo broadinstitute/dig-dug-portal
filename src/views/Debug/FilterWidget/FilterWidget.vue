@@ -89,14 +89,13 @@ const EventListener = {
 }
 
 export default Vue.component("filter-widget", {
-    props: ["value"],
+    props: ["value", "inclusive"],
     components: {
         EventListener,
     },
     data() {
         return {
             filterList: [],
-            filterData: {},
         };
     },
 
@@ -107,7 +106,7 @@ export default Vue.component("filter-widget", {
             // where `op` is a string in the `operationMapping` dictionary defined within the predicateFromSpec function
             // (these strings just look like typical primitive Javascript comparators, e.g. ===, <=, >=, <, > are all valid)
             const predicates = this.filterList.map(predicateFromSpec);
-            return filterFromPredicates(predicates);
+            return filterFromPredicates(predicates, !!this.inclusive);
         }
 
     },
@@ -179,41 +178,38 @@ export default Vue.component("filter-widget", {
         // TODO: what's the distinction between addFilter and setFilter?
         // TODO: what's the distinction between filterData[obj] and filterData[obj+"_text"]?
         // TODO: Refactor each of these functions into filterHelpers.js?
-        addFilter(event, obj) {
-            this.filterData[obj].push(event.trim());
-            this.filterData[obj + "_text"] = "";
-        },
-        setFilter(event, obj) {
-            this.filterData[obj] = event;
-            this.filterData[obj + "_text"] = "";
-        },
+        // addFilter(event, obj) {
+        //     this.filterData[obj].push(event.trim());
+        //     this.filterData[obj + "_text"] = "";
+        // },
+        // setFilter(event, obj) {
+        //     this.filterData[obj] = event;
+        //     this.filterData[obj + "_text"] = "";
+        // },
+        // removeFilter(index, obj) {
+        //     this.filterData[obj].splice(index, 1);
+        // },
+        // addCompound(event, obj, id, multiple) {
 
-        removeFilter(index, obj) {
-            this.filterData[obj].splice(index, 1);
-        },
+        //     // the branch is: are we stacking a new filter constraint, or are we modifying a single filter value?
+        //     if (multiple) this.addFilter(event, obj);
+        //     else this.setFilter(event, obj);
+
+        //     // Clear out filter-widget-control after adding new data
+        //     let element = document.getElementById(id);
+        //     element.value = "";
+
+        // },
+
         unsetFilter(obj, idx) {
             // equiv to setFilter with no data => reduction by alias
             // this.filterData[obj] = "";
             // this.filterList = this.filterList.filter(filterSpec => filterSpec.field !== obj.field && filterSpec.threshold !== obj.threshold && filterSpec.threshold !== obj.threshold)
             this.filterList = this.filterList.slice(0,idx).concat(this.filterList.slice(idx + 1, this.filterList.length))
         },
-
-        addCompound(event, obj, id, multiple) {
-
-            // the branch is: are we stacking a new filter constraint, or are we modifying a single filter value?
-            if (multiple) this.addFilter(event, obj);
-            else this.setFilter(event, obj);
-
-            // Clear out filter-widget-control after adding new data
-            let element = document.getElementById(id);
-            element.value = "";
-
-        },
-
         // clear out entire filter
         clearCompound() {
             this.filterList = [];
-            this.filterData = {};
         },
 
     },

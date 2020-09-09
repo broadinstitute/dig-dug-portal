@@ -17,18 +17,32 @@ We could also use a style-guide for labels and a meeting for getting it implemen
 DONE:Alternately retool label tables
 */
 
-export function filterFromPredicates(predicates) {
-    // TODO: just use `_.overEvery` from Lodash instead?
-        // Possibly: we can define two different function behaviors more easily (overEvery and overSome) based on a flag for logical OR or AND given the predicates.
+export function filterFromPredicates(predicates, inclusive=false) {
     return function filterFunction(object) {
-        // NOTE: Filter policy is innocent until proven guilty. 
         // Guilt is terminal: we break our investigation as soon as
         // we've found evidence that the object isn't innocent.
+        // NOTE: Filter policy by default is innocent until proven guilty. 
+        // so in lieu of any predicates, remain truthy by default
         let innocence = true;
-        if (predicates !== []) {
-            for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
-                innocence = predicates[predicateI](object);
-                if (innocence === false) break;
+        if (predicates.length > 0) {
+            // if we have predicates, the burden of proof may change based on our filtering type
+            if (!inclusive) {
+                // exclusive filter, equivalent to a series of ANDs
+                // break on soonest failure
+                // innocence = true; redundant to set here due to `true` being default value
+                for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
+                    innocence = predicates[predicateI](object);
+                    if (innocence === false) break;
+                }
+            } else {
+                // inclusive filter, equivalent to a series of logical ORs
+                // let by all values that pass true on any of the predicates, exclude those that don't
+                // inverts strategy to guilty until proven innocent so we set innocence to false before continuing
+                innocence = false;
+                for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
+                    innocence = predicates[predicateI](object);
+                    if (innocence === true) break;
+                }
             }
         }
         return innocence;
@@ -40,34 +54,62 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
     // Specs for predicateFromSpec are objects satisfying properties { field, op, threshold } 
     // where `op` is a string in the `operationMapping` dictionary defined within the predicateFromSpec function
     // (these strings just look like typical primitive Javascript comparators, e.g. ===, <=, >=, <, > are all valid)
+    // alternately `op` can be the method itself, but do that kind of thing sparingly please
 
     // `match` is a function that checks the presence or absence of a field before applying an operation.
     // The predicate should always return false
 
     // DONE: lookup/DISPATCH operation function for given `op` (unless `op` is also a function)
-    // TODO: is there an advantage to using Lodash operations instead?
-    const operationMap = {
-        "==": (a, b) => a === b,  // we know what they mean, anyone who means `==` would want javascript operational semantics versus domain-semantics of numbers or lexigraphical information. unlikely for scientists. we could alternately model this case as a hard error.
-        "===": (a, b) => a === b,
-        ">": (a, b) => a > b,
-        ">=": (a, b) => a >= b,
-        "<": (a, b) => a < b,
-        "<=": (a, b) => a <= b,
-        // NOTE: if we use these abbreviations as keys, they translate directly to HTML char codes after attaching appropriate suffix/prefix
-        // would allow us to compute an adequate label even more extenisvely in other cases where we use the variable use for `op`
-        "eq": (a, b) => a === b,
-        "gt": (a, b) => a > b,
-        "gte": (a, b) => a >= b,
-        "lt": (a, b) => a < b,
-        "lte": (a, b) => a <= b,
-    }
-    const operation = operationMap[op];
+    let operation = id => id;
+    if (typeof op === 'string') {
+        // TODO: is there an advantage to using Lodash operations instead?
+        const operationMap = {
+            "==": (a, b) => a === b,  // we know what they mean, anyone who means `==` would want javascript operational semantics versus domain-semantics of numbers or lexigraphical information. unlikely for scientists. we could alternately model this case as a hard error.
+            "===": (a, b) => a === b,
+            ">": (a, b) => a > b,
+            ">=": (a, b) => a >= b,
+            "<": (a, b) => a < b,
+            "<=": (a, b) => a <= b,
+            // NOTE: if we use these abbreviations as keys, they translate directly to HTML char codes after attaching appropriate suffix/prefix
+            // would allow us to compute an adequate label even more extenisvely in other cases where we use the variable use for `op`
+            "eq": (a, b) => a === b,
+            "gt": (a, b) => a > b,
+            "gte": (a, b) => a >= b,
+            "lt": (a, b) => a < b,
+            "lte": (a, b) => a <= b,
+        }
+        operation = operationMap[op];
+    } else if (typeof op === 'function') {
+        operation = op;
+    };
 
     // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (ie lacking properties required). 
     // TODO: replace !!datum.field with loose matcher logic (capitaliation, dashes, prefixes and suffixes)
     return datum => match(datum, field) ? operation(datum[field], threshold) : false;
 }
 
-export function looseMatch() {
+// Example of predicateFromSpec function that would work for LocusZoom?
+// TODO: eliminate _src suffixes from fields to simplify matches on data?
+// predicateFromSpec(obj, { match: (obj, b) => matchLooseProp(obj, b, { suffix: '_src', caps: true, camel: true }) });
 
+// TODO
+function matchLooseProp(obj, b, { ...opts }) {
+    // object contains any key which matches loosely on given match criterion
+    Object.keys(obj).forEach(key => {
+        if (matchLooseString(key, b, { ...opts })) {
+            return true;
+        }
+    });
+    return false;
+}
+
+// TODO
+function matchLooseString(a, b, { suffix='', prefix='', caps=false, camel=false, dash=false}) {
+
+    // I was originally going to build regexes but that was too complicated
+    // Instead we work off the assumption that inside of a complex string is a simple one waiting to arise
+    // This simple string comes from normalizing the complex one to a simpler form
+    // Normalization is done by
+
+    return true;
 }

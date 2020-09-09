@@ -6,7 +6,6 @@
                 {{field}} ({{(op)}})
             </slot>
         </div>
-
         <!-- 
             Go between a select component or a simple text input based on whether or not we have options 
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
@@ -14,16 +13,12 @@
         <!-- TODO: replace with an autocomplete to eliminate this conditional logic? -->
         <b-form-select
             v-if="!!options && options.length > 0"
-            :ref="filterDefinition.ref"
-            :id="filterDefinition.id"
             v-model="filterThreshold"
             @input="updateFilter(filterThreshold)"
             :options="[{ value: null, text: '' }].concat(options)"
         ></b-form-select>
         <b-form-input
             v-else
-            :ref="filterDefinition.ref"
-            :id="filterDefinition.id"
             v-model="filterThreshold"
             @keydown.enter="updateFilter(filterThreshold)"
         ></b-form-input>     
@@ -46,8 +41,6 @@ export default Vue.component("filter-widget-control", {
     data() {
         return {
             filterDefinition: {
-                id: null,
-                ref: null,
                 field: this.field,
                 op: this.op,
                 multiple: !!this.multiple, // if undefined, default to false
@@ -59,6 +52,7 @@ export default Vue.component("filter-widget-control", {
         // TODO: are these eliminable?
         this.filterDefinition['ref'] = `select_${this.field}`
         this.filterDefinition['id'] = `filter-${this.field}`
+
         // set initial filter value in the widget
         if (!!this.filterThreshold) {
             this.updateFilter(this.filterThreshold);
