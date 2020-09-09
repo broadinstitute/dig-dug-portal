@@ -82,7 +82,7 @@ new Vue({
             if (!!r) {
                 window.location.href = `./region.html?chr=${
                     r.chromosome
-                }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         }
     },
@@ -201,6 +201,7 @@ new Vue({
         // the canonical symbol was found
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
+            this.$store.dispatch("queryAssociations");
         }
     }
 }).$mount("#app");

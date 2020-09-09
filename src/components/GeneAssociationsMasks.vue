@@ -9,7 +9,7 @@
                 <b-col class="top-level-header-item">Odds Ratio</b-col>
                 <b-col class="top-level-header-item">View</b-col>
             </b-row>
-            <template v-for="(row, i) in associations.data">
+            <template v-for="(row, i) in associations">
                 <b-row class="data top-level-value" :key="row.phenotype + i">
                     <b-col class="top-level-value-item">
                         <a
@@ -130,6 +130,7 @@ import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 am4core.useTheme(am4themes_animated);
 
 export default Vue.component("gene-associations-masks", {
+    props: ["associations", "phenotypeMap"],
     component: ForestPlot,
     data() {
         return {
@@ -146,14 +147,6 @@ export default Vue.component("gene-associations-masks", {
         };
     },
     mounted() {},
-    computed: {
-        associations() {
-            return this.$store.state.associations;
-        },
-        phenotypeMap() {
-            return this.$store.state.bioPortal.phenotypeMap;
-        },
-    },
     methods: {
         capitalizedFormatter: Formatters.capitalizedFormatter,
         pValueFormatter: Formatters.pValueFormatter,
