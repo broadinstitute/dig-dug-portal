@@ -156,11 +156,9 @@ Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
     props: ["diseaseGroup", "frontContents"],
-
     components: {
         GoogleAnalytics,
     },
-
     data() {
         return {
             user: false,
