@@ -106,7 +106,14 @@
                     </div>
                 </div>
             </div>
-
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div v-if="$parent.dbReference">
+                        <h4 class="card-title">Gene Associations with Masks (52K)</h4>
+                        <gene-associations-masks></gene-associations-masks>
+                    </div>
+                </div>
+            </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
