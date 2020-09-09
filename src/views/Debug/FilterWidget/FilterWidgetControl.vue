@@ -57,9 +57,6 @@ export default Vue.component("filter-widget-control", {
     methods: {
         updateFilter(newThreshold) {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
-            // -? Refactor out filterModel watcher in favor for only the computed function being pushed out? 
-            //    OR does the filter widget make the function and we just shunt out the spec?
-            // -? Refactor out addCompound? (is it necessary over addFilter as a single?)
             if (newThreshold !== null) {
                 this.$parent.$emit('change', newThreshold, this.filterDefinition);
             }
