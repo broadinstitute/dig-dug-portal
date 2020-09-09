@@ -50,7 +50,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import { filterFromPredicates, predicateFromSpec } from "../utils/filterHelpers"
+import { filterFromPredicates, predicateFromSpec, looseMatch } from "../utils/filterHelpers"
 
 const EventListener = {
     /*
@@ -81,7 +81,7 @@ const EventListener = {
 }
 
 export default Vue.component("filter-widget", {
-    props: ["value", "inclusive"],
+    props: ["value", "inclusive", "matchOn"],
     components: {
         EventListener,
     },
@@ -94,7 +94,12 @@ export default Vue.component("filter-widget", {
     computed: {
 
         filterFunction() {
-            const predicates = this.filterList.map(predicateFromSpec);
+            let predicateConversion = predicateFromSpec;
+            // TODO: matchOn to give either (A) logic or (B) configuration for dealing with caps, suffixes, prefixes etc.
+            if (!!this.matchOn) {
+                predicateConversion = filterSpec => predicateFromSpec(filterSpec, { match: (obj, field) => looseMatch(obj, field, this.matchOn) });
+            }
+            const predicates = this.filterList.map(predicateConversion);
             return filterFromPredicates(predicates, !!this.inclusive);
         }
 
@@ -103,10 +108,6 @@ export default Vue.component("filter-widget", {
     methods: {
 
         filterControlChange(threshold, filterDefinition) {
-                        
-            // DONE: create filter if not there? (issue in multiples case)
-            // could get children to modify registry at runtime during create...
-            // or emitted later?
             if (threshold !== null && !this.filterList.map(filter => filter.field).includes(filterDefinition.field)) {
                 
                 this.filterList.push({
@@ -116,7 +117,6 @@ export default Vue.component("filter-widget", {
 
             } else {
                 // if the definition already exists, and it's a multiple, then just push, since we can allow for multiple instances of the same filter
-                // TODO: enforce uniqueness of threshold value?
                 if (filterDefinition.multiple) {
 
                     this.filterList.push({
@@ -142,7 +142,6 @@ export default Vue.component("filter-widget", {
                 }
             }
             // NOTE: As a result of this.filterList being modified, the computed property for the filterFunction should reactively producing a new version of itself.
-
         },
 
         unsetFilter(obj, idx) {

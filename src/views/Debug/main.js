@@ -21,10 +21,7 @@ new Vue({
     data() {
         return {
             filterFunction: id => id,
-            hello: 'goodbye',
-            arrayOfStuff: [
-                'a','b','c',
-            ],
+            inclusive: false,
         }
     },
 }).$mount("#app");

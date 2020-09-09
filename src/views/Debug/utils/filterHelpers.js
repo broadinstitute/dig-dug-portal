@@ -44,7 +44,7 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
     let operation = id => id;
     if (typeof op === 'string') {
         const operationMap = {
-            "==": (a, b) => a === b,  // we know what they mean, anyone who means `==` would want javascript operational semantics versus domain-semantics of numbers or lexigraphical information. unlikely for scientists. we could alternately model this case as a hard error.
+            "==": (a, b) => a === b,  // we know what they mean, anyone who means `==` would want javascript operational semantics versus domain-semantics of numbers or lexigraphical information. unlikely for scientists. we could alternately model this case as a hard error/not support it.
             "===": (a, b) => a === b,
             ">": (a, b) => a > b,
             ">=": (a, b) => a >= b,
@@ -54,9 +54,9 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
             // would allow us to compute an adequate label even more extenisvely in other cases where we use the variable use for `op`
             "eq": (a, b) => a === b,
             "gt": (a, b) => a > b,
-            "gte": (a, b) => a >= b,
+            "ge": (a, b) => a >= b,
             "lt": (a, b) => a < b,
-            "lte": (a, b) => a <= b,
+            "le": (a, b) => a <= b,
         }
         if (!!operationMap[op]) {
             operation = operationMap[op];
@@ -73,14 +73,16 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
 // predicateFromSpec(obj, { match: (obj, b) => matchLooseProp(obj, b, { suffix: '_src', caps: true, camel: true }) });
 
 // TODO
-function matchLooseProp(obj, b, { ...opts }) {
-    // object contains any key which matches loosely on given match criterion
-    Object.keys(obj).forEach(key => {
-        if (matchLooseString(key, b, { ...opts })) {
-            return true;
-        };
-    });
-    return false;
+export function looseMatch(datum, field, { ...opts }) {
+    // // object contains any key which matches loosely on given match criterion
+    // Object.keys(obj).forEach(key => {
+    //     if (matchLooseString(key, b, { ...opts })) {
+    //         return true;
+    //     };
+    // });
+    // return false;
+    // TODO: implement in full
+    return ((datum, field) => !!datum[field])(datum, field)
 }
 
 // TODO

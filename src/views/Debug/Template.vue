@@ -1,14 +1,17 @@
 <template>
     <div>
-        
+        <input type="checkbox" id="checkbox" v-model="$parent.inclusive">
+        <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
+
         <!-- FilterWidget -->
-        <filter-widget v-model="$parent.filterFunction" :inclusive="true">
+        <filter-widget v-model="$parent.filterFunction" :inclusive="$parent.inclusive">
             <filter-widget-control
                 :field="'pValue'"
                 :op="'<='"
                 :threshold="'0.01'"
                 :multiple="false">
                 <!-- e.g. Documentation component can be used here to control and standardize labels -->
+                P-Value (&le;)
             </filter-widget-control>
             <filter-widget-control
                 :field="'beta'"
@@ -31,11 +34,11 @@
             <filter-user 
                 :initialData="[
                     { pValue: 0.01, beta: 3 }, 
-                    {pValue: 0.001, beta: 3 }, 
-                    {pValue: 0.2, beta: 3}, 
-                    {pValue: 0.01, beta: 4}, 
-                    {pValue: 0.01, beta:2}, 
-                    {test: 'no matches'}
+                    { pValue: 0.001, beta: 3 }, 
+                    { pValue: 0.2, beta: 3 }, 
+                    { pValue: 0.01, beta: 4 }, 
+                    { pValue: 0.01, beta:2 }, 
+                    { test: 'no matches' }
                 ]">
             </filter-user>
         </filter-context>
