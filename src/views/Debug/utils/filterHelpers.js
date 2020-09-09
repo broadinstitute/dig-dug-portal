@@ -14,7 +14,7 @@ Also necessary is a filter-function library
   - Loose matching with prefixes (e.g. `_src`)
 
 We could also use a style-guide for labels and a meeting for getting it implemented
-DONE:Alternately retool label tables
+DONE: Alternately retool label tables
 */
 
 export function filterFromPredicates(predicates, inclusive=false) {
@@ -54,7 +54,7 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
     // Specs for predicateFromSpec are objects satisfying properties { field, op, threshold } 
     // where `op` is a string in the `operationMapping` dictionary defined within the predicateFromSpec function
     // (these strings just look like typical primitive Javascript comparators, e.g. ===, <=, >=, <, > are all valid)
-    // alternately `op` can be the method itself, but do that kind of thing sparingly please
+    // TODO alternately `op` can be the method itself, but do that kind of thing sparingly?
 
     // `match` is a function that checks the presence or absence of a field before applying an operation.
     // The predicate should always return false
@@ -79,17 +79,18 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
             "lte": (a, b) => a <= b,
         }
         operation = operationMap[op];
-    } else if (typeof op === 'function') {
-        operation = op;
-    };
+    }
+    // else if (typeof op === 'function') {
+    //     operation = op;
+    // };
 
-    // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (ie lacking properties required). 
-    // TODO: replace !!datum.field with loose matcher logic (capitaliation, dashes, prefixes and suffixes)
+    // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
     return datum => match(datum, field) ? operation(datum[field], threshold) : false;
 }
 
 // Example of predicateFromSpec function that would work for LocusZoom?
-// TODO: eliminate _src suffixes from fields to simplify matches on data?
+// TODO: eliminate _src suffixes from fields to simplify matches on data instead? OR strip namespacing at the point of filtering?
+    // A part of the problem is that this is included when the predicate is built, rather than when the predicate is used...
 // predicateFromSpec(obj, { match: (obj, b) => matchLooseProp(obj, b, { suffix: '_src', caps: true, camel: true }) });
 
 // TODO
@@ -98,7 +99,7 @@ function matchLooseProp(obj, b, { ...opts }) {
     Object.keys(obj).forEach(key => {
         if (matchLooseString(key, b, { ...opts })) {
             return true;
-        }
+        };
     });
     return false;
 }
@@ -106,10 +107,21 @@ function matchLooseProp(obj, b, { ...opts }) {
 // TODO
 function matchLooseString(a, b, { suffix='', prefix='', caps=false, camel=false, dash=false}) {
 
+    /*
+    * Data
+    * pValue === pvalue === pvalue_src !== log_pvalue
+    */
+
     // I was originally going to build regexes but that was too complicated
     // Instead we work off the assumption that inside of a complex string is a simple one waiting to arise
     // This simple string comes from normalizing the complex one to a simpler form
-    // Normalization is done by
+    // Normalization is done by stripping the target string of it
+
+    // OR are regexes the way to go?
+    // TODO: use formatters in here? e.g.
+    // if (caps) Formatters.capitalize(a).match(new RegExp(b))
+    // if (camel) Formatters.camel(a).match(new RegExp(b))
+    // if (dash) Formatters.dashify(a).match(new RegExp(b))
 
     return true;
 }
