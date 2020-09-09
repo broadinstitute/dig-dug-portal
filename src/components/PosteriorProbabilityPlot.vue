@@ -268,16 +268,8 @@ export default Vue.component("posterior-probability-plot", {
         },
 
         posteriorProbability(p, beta, stdErr) {
-            //w is the prior variance and the user will be able to select it on their own.
-
-            //get the data from most significant mask
-
-            // let beta = Math.log(oddsRatio);
-            //let w = this.priorVariance;
-            let w = this.priorVariance; //this is prior variance
-            //and will be a input from user.
+            let w = this.priorVariance; 
             let v = Math.pow(stdErr, 2);
-            // let f1 = v/v+w
             let f1 = v / v + w;
             let sqrt_f1 = Math.sqrt(f1);
             let f2 = w * Math.pow(beta, 2);
@@ -296,7 +288,6 @@ export default Vue.component("posterior-probability-plot", {
             let d = this.geneAssociations.masks.sort(
                 (a, b) => a.pValue - b.pValue
             );
-
             let mostSignificantMask = d[0];
             let stdErr = mostSignificantMask.stdErr;
             let beta;
@@ -305,19 +296,6 @@ export default Vue.component("posterior-probability-plot", {
             } else {
                 beta = Math.log(mostSignificantMask.oddsRatio);
             }
-
-            d.forEach((r) => {
-                if (r.mask == "LofTee") {
-                    if (this.isDichotomous) {
-                        let LofTeeBeta = r.beta;
-                    } else {
-                        let LofTeeBeta = Math.log(r.oddsRatio);
-                    }
-
-                    let lofTeeStdErr = r.stdErr;
-                }
-            });
-
             let n = prior.length;
             let x = new Array(n + 1);
             let y = new Array(n + 1);

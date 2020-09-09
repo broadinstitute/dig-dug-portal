@@ -75,23 +75,20 @@
                             >
                                 <posterior-probability-plot
                                     :geneAssociations="$parent.geneAssociations"
-                                    :priorVariance = 0.0462
-                                    :isDichotomous = "true"
+                                    :priorVariance="0.0462"
+                                    :isDichotomous="true"
                                 ></posterior-probability-plot>
-                            </div>
-                        </div>
-                        <div class="col-xs-6 col-md-4">
-                            <div class="card" style="width:95%; border: 0">
-                                <confidence-interval-plot
-                                    v-if="$store.state.geneAssociationsData"
-                                    :geneassociations="$store.state.geneAssociationsData"
-                                    :lofTeeOddsRatio="$store.state.lofTeeOddsRatio"
-                                    :lofTeeStdErr="$store.state.lofTeeStdErr"
-                                ></confidence-interval-plot>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div v-if="$parent.geneAssociations">
+                <confidence-interval-plot
+                    :geneAssociations="$parent.geneAssociations"
+                    :isDichotomous="true"
+                ></confidence-interval-plot>
             </div>
 
             <div>

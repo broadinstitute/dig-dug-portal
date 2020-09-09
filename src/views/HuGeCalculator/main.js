@@ -152,8 +152,13 @@ new Vue({
                     }
                     if (data[i].pValue <= 0.0000025) {
                         //if Exome wide significant
-                        context.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+                        $store.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
                     }
+                    data[i].masks.forEach(r => {
+                        if (r.mask == "LofTee") {
+                            $store.commit("setHasLofTee", true);
+                        }
+                    })
                 }
             }
 
