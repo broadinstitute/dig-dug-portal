@@ -162,11 +162,11 @@ export default Vue.component("page-header", {
     },
 
     data() {
-        return {};
+        return {
+            user: false,
+        };
     },
     created() {
-        this.user = false;
-
         if (Vue.$cookies.isKey("session")) {
             fetch(
                 "https://oauth2.googleapis.com/tokeninfo?access_token=" +
