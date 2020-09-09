@@ -165,7 +165,6 @@ export default Vue.component("page-header", {
         return {};
     },
     created() {
-        //this.user = Vue.$cookies.isKey("session") || false;
         this.user = false;
 
         if (Vue.$cookies.isKey("session")) {
