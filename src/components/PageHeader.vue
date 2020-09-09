@@ -188,18 +188,6 @@ export default Vue.component("page-header", {
         saveCurrentPage() {
             Vue.$cookies.set("whereAmI", location.href, "", "", host.domain);
         },
-        async verifyToken() {
-            if (Vue.$cookies.isKey("session")) {
-                const response = await fetch(
-                    "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                        Vue.$cookies.get("session")
-                );
-                const data = await response.json();
-                console.log("data", data);
-                return data.email;
-            }
-            return false;
-        },
     },
 });
 </script>
