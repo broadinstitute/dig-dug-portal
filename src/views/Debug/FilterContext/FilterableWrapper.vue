@@ -1,7 +1,6 @@
 <template>
     <FilterC>
         <Emitter slot-scope="value" :watchable="value" @change="$emit('change', value)">
-            {{`the filter value is ${value}`}}
             <slot></slot>
         </Emitter>
     </FilterC>
@@ -9,6 +8,28 @@
 <script>
 import Vue from "vue";
 import { Consumer as FilterC } from "./filterContext";
+
+/**
+ * FilterableWrapper.vue
+ * 
+ * This is a Higher-Order Component (HoC) that can't be used on its own.
+ * Instead, you wrap a concrete component (like LocusZoom, or AssociationsTable) to allow them to consume a filter function from a FilterContext.
+ *
+ * For example:
+ * 
+ * <filter-context :value="element => !!element.pValue && element.pValue < 0.01">
+ *     <!-- $event will be equal to the function `element => !!element.pValue && element.pValue < 0.01`  -->
+ *     <filterable-wrapper @change="$refs.locuszoom.applyFilter($event)">
+ *          <locuszoom
+ *              ref="locuszoom"
+ *           ></locuszoom>
+ *      </filterable-wrapper>
+ * </filter-context>
+ * 
+ * If you are always going to use a component with a filter, you can define use the filterable-wrapper HoC inside of that component's template instead.
+ * This allows you to avoid having to use refs.
+ * 
+ */
 
 const Emitter = {
     /*

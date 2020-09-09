@@ -3,7 +3,7 @@
         <!-- Controls and their labels -->
         <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
-                <EventListener @change="dispatchFilterControlChange">
+                <EventListener @change="filterControlChange">
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
@@ -13,49 +13,25 @@
 
         <!-- Pills for everything -->
         <b-container fluid class="selected-filters-ui-wrapper">
-            <b-row v-if="select_pValue || select_beta">
+            <b-row v-if="filterList.length > 0">
                 <b-col>
 
                     <span>Selected Filters:&nbsp;&nbsp;</span>
-                    <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
-                    <b-badge
-                        v-for="filter in filterList"
-                        :key="filter.field+filter.op+filter.threshold"
-                        pill
-                        variant="danger"
-                        @click="unsetFilter(filter.field)"
-                        class="btn">
-                        {{filter.field}}
-                        <span class="remove">X</span>
-                    </b-badge>
-
-                    <!-- Derive this from current filter state?
+                    <!-- Derive pills from current filter state?
                          Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
                          It would be deterministic upto the compile-time declaration of the FilterWidget controls which would lead to predicatable results at runtime
                      -->
-                    <!-- <template v-if="select_pValue.length > 0">
-                        <b-badge
-                            pill
-                            variant="danger"
-                            @click="unsetFilter('select_pValue')"
-                            class="btn">
-                            {{select_pValue}}
-                            <span class="remove">X</span>
-                        </b-badge>
-                    </template>
-
-                    <template v-if="select_beta">
-                        <b-badge
-                            pill
-                            variant="primary"
-                            @click="unsetFilter('select_beta')"
-                            class="btn">
-                            {{select_beta_options.find(e => e.value === select_beta).text}}
-                            <span
-                                class="remove"
-                            >X</span>
-                        </b-badge>
-                    </template> -->
+                    <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
+                    <b-badge
+                        v-for="(filter, idx) in filterList"
+                        :key="filter.field+filter.op+filter.threshold+idx"
+                        pill
+                        variant="danger"
+                        @click="unsetFilter(filter, idx)"
+                        class="btn">
+                        {{filter.field}} {{filter.op}} {{filter.threshold}}
+                        <span class="remove">X</span>
+                    </b-badge>
 
                 </b-col>
             </b-row>
@@ -76,7 +52,9 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-// TODO: Define a interface or a service (a filter interaction and creation protocol) that can be used with 
+import { filterFromPredicates, predicateFromSpec } from "../utils/filterHelpers"
+
+// DONE: Define a interface or a service (a filter interaction and creation protocol) that can be used with 
 // filter-widget-controls (as children!) as well as derived/computed pills
 // first thing is that for each filter-wiget-control, it needs a corresponding item in a object so it can be dynamically referenced in the template (as well as the component methods)
 // could define the child component it in here for file cohesion (although that disobeys convention that one component = one file)
@@ -117,38 +95,30 @@ export default Vue.component("filter-widget", {
     },
     data() {
         return {
-            // TODO: These need to be dynamically registered or collected
-            // For collection, use slot scopes for modifying a shared object on event binding?
-            select_pValue: "",
-            select_pValue_text: "",
-            select_beta: "",
-            select_beta_options: [
-                { value: "p", text: "Positive" },
-                { value: "n", text: "Negative" },
-            ],
-
             filterList: [],
             filterData: {},
-
         };
     },
 
     computed: {
 
         filterFunction() {
-            const predicates = this.filterList.map(this.predicateFromSpec);
-            return this.filterFromPredicates(predicates);
+            // Specs for predicateFromSpec are objects satisfying properties { field, op, threshold } 
+            // where `op` is a string in the `operationMapping` dictionary defined within the predicateFromSpec function
+            // (these strings just look like typical primitive Javascript comparators, e.g. ===, <=, >=, <, > are all valid)
+            const predicates = this.filterList.map(predicateFromSpec);
+            return filterFromPredicates(predicates);
         }
 
     },
 
     methods: {
 
-        dispatchFilterControlChange() {
+        filterControlChange() {
 
             // todo: refactor down to just threshold and filterDefinition, maybe filterControlFunction dispatch as well?
             // 'addCompound', newThreshold, this.filterDefinition.ref, this.filterDefinition.id, !!this.multiple, this.filterDefinition
-            const [b, threshold, c, d, multiple, filterDefinition] = arguments;
+            const [threshold, filterDefinition] = arguments;
                         
             // DONE: create filter if not there? (issue in multiples case)
             // could get children to modify registry at runtime during create...
@@ -205,45 +175,10 @@ export default Vue.component("filter-widget", {
 
         },
 
-        filterFromPredicates(predicates) {
-            console.log('filterFromPredicates', predicates)
-            // TODO: just use `_.overEvery` from Lodash instead?
-            return function filterFunction(object) {
-                // NOTE: Filter policy is innocent until proven guilty. 
-                // Guilt is terminal: we break our investigation as soon as
-                // we've found evidence that the object isn't innocent.
-                let innocence = true;
-                if (predicates !== []) {
-                    for (predicate in predicates) {
-                        innocence = predicate(object);
-                        if (innocence === false) break;
-                    }
-                }
-                return innocence;
-            }
-        },
-
-        predicateFromSpec({ field, op, threshold }) {
-            console.log('predicateFromSpec', { field, op, threshold })
-            // DONE: lookup/DISPATCH operation function for given `op` (unless `op` is also a function)
-            // TODO: is there an advantage to using Lodash operations instead?
-            const operationMap = {
-                "==": (a, b) => a === b,  // we know what they mean, anyone who means `==` would want javascript operational semantics versus domain-semantics of numbers or lexigraphical information. unlikely for scientists. we could alternately model this case as a hard error.
-                "===": (a, b) => a === b,
-                ">=": (a, b) => a >= b,
-                ">": (a, b) => a > b,
-                "<": (a, b) => a < b,
-                "<=": (a, b) => a <= b,
-            }
-            const operation = operationMap[op];
-
-            // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (ie lacking properties required). 
-            // TODO: replace !!datum.field with loose matcher logic (capitaliation, dashes, prefixes and suffixes)
-            return datum => (!!datum[field]) ? operation(datum[field], threshold) : false;
-        },
-
+        // TODO: Refactor each of these functions to use this.filterList
         // TODO: what's the distinction between addFilter and setFilter?
         // TODO: what's the distinction between filterData[obj] and filterData[obj+"_text"]?
+        // TODO: Refactor each of these functions into filterHelpers.js?
         addFilter(event, obj) {
             this.filterData[obj].push(event.trim());
             this.filterData[obj + "_text"] = "";
@@ -256,9 +191,11 @@ export default Vue.component("filter-widget", {
         removeFilter(index, obj) {
             this.filterData[obj].splice(index, 1);
         },
-        unsetFilter(obj) {
+        unsetFilter(obj, idx) {
             // equiv to setFilter with no data => reduction by alias
-            this.filterData[obj] = "";
+            // this.filterData[obj] = "";
+            // this.filterList = this.filterList.filter(filterSpec => filterSpec.field !== obj.field && filterSpec.threshold !== obj.threshold && filterSpec.threshold !== obj.threshold)
+            this.filterList = this.filterList.slice(0,idx).concat(this.filterList.slice(idx + 1, this.filterList.length))
         },
 
         addCompound(event, obj, id, multiple) {

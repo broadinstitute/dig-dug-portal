@@ -2,16 +2,16 @@ import Vue from "vue";
 import Template from "./Template.vue";
 
 import FilterUser from "./FilterUser.vue"
-import FilterProvider from "./Filter/FilterProvider.vue"
-import FilterWidget from "./FilterWidget.vue"
-import FilterWidgetControl from "./FilterWidgetControl.vue"
+import FilterContext from "./FilterContext/FilterContext.vue"
+import FilterWidget from "./FilterWidget/FilterWidget.vue"
+import FilterWidgetControl from "./FilterWidget/FilterWidgetControl.vue"
 
 Vue.config.productionTip = false;
 
 new Vue({
     components: {
         FilterUser,
-        FilterProvider,
+        FilterContext,
         FilterWidget,
         FilterWidgetControl,
     },
@@ -20,16 +20,11 @@ new Vue({
     },
     data() {
         return {
-            inputs: '',
+            filterFunction: id => id,
             hello: 'goodbye',
             arrayOfStuff: [
                 'a','b','c',
             ],
         }
     },
-    computed: {
-        filterFunction() {
-            return item => item !== 'b';
-        }
-    }
 }).$mount("#app");

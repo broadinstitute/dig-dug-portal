@@ -1,32 +1,25 @@
 <template>
-    <div>
-
-        <template>
-            <b-col class="filter-col-sm">
-                <div class="label">
-                    <slot>
-                        <!-- P-Value (&le;) -->
-                        {{field}} {{(op)}}
-                    </slot>
-                </div>
-                <b-form-input
-                    :ref="filterDefinition.ref"
-                    :id="filterDefinition.id"
-                    v-model="filterThreshold"
-                    type="text"
-                ></b-form-input>
-            </b-col>
-        </template>
-
-    </div>
+    <b-col class="filter-col-sm">
+        <div class="label">
+            <slot>
+                <!-- P-Value (&le;) -->
+                {{field}} ({{(op)}})
+            </slot>
+        </div>
+        <b-form-input
+            :ref="filterDefinition.ref"
+            :id="filterDefinition.id"
+            v-model="filterThreshold"
+            v-on:keydown.enter="updateFilter(filterThreshold)"
+            type="text"
+        ></b-form-input>
+    </b-col>
 </template>
 
 <script>
 import Vue from "vue";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -63,12 +56,13 @@ export default Vue.component("filter-widget-control", {
             // -? Refactor out filterModel watcher in favor for only the computed function being pushed out? 
             //    OR does the filter widget make the function and we just shunt out the spec?
             // -? Refactor out addCompound? (is it necessary over addFilter as a single?)
-            this.$parent.$emit('change', 'addCompound', newThreshold, this.filterDefinition.ref, this.filterDefinition.id, !!this.multiple, this.filterDefinition);
+            this.$parent.$emit('change', newThreshold, this.filterDefinition);
         }
     },
     watch: {
         filterThreshold(newThreshold) {
-            this.updateFilter(newThreshold);
+            // Supercede by v-on:keydown.enter
+            // this.updateFilter(newThreshold);
         }
     }
 });

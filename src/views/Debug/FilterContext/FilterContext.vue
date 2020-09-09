@@ -1,7 +1,7 @@
 <template>
     <!-- `value` is the filter function -->
     <FilterP :value="value">
-        <!-- slotted element must have filter consumer -->
+        <!-- slotted element must have filter consumer (e.g. has a FilterableWrapper) -->
         <slot></slot>
     </FilterP>
 </template>
