@@ -166,17 +166,16 @@ export default Vue.component("page-header", {
     },
     created() {
         //this.user = Vue.$cookies.isKey("session") || false;
-        // this.user = false;
+        this.user = false;
 
-        // if (Vue.$cookies.isKey("session")) {
-        //     fetch(
-        //         "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-        //             Vue.$cookies.get("session")
-        //     )
-        //         .then((response) => response.json())
-        //         .then((data) => (this.user = data.email));
-        // }
-        this.user = this.verifyToken;
+        if (Vue.$cookies.isKey("session")) {
+            fetch(
+                "https://oauth2.googleapis.com/tokeninfo?access_token=" +
+                    Vue.$cookies.get("session")
+            )
+                .then((response) => response.json())
+                .then((data) => (this.user = data.email));
+        }
     },
     computed: {
         currentPage() {
