@@ -19,6 +19,7 @@ DONE:Alternately retool label tables
 
 export function filterFromPredicates(predicates) {
     // TODO: just use `_.overEvery` from Lodash instead?
+        // Possibly: we can define two different function behaviors more easily (overEvery and overSome) based on a flag for logical OR or AND given the predicates.
     return function filterFunction(object) {
         // NOTE: Filter policy is innocent until proven guilty. 
         // Guilt is terminal: we break our investigation as soon as

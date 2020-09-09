@@ -123,7 +123,7 @@ export default Vue.component("filter-widget", {
             // DONE: create filter if not there? (issue in multiples case)
             // could get children to modify registry at runtime during create...
             // or emitted later?
-            if (!this.filterList.map(filter => filter.field).includes(filterDefinition.field)) {
+            if (threshold !== null && !this.filterList.map(filter => filter.field).includes(filterDefinition.field)) {
                 // TODO: Refactor. equiv to addFilter. we need to use this at least once if we're using filters as lists
                 this.filterList.push({
                     ...filterDefinition,

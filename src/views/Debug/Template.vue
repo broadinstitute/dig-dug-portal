@@ -3,7 +3,13 @@
         
         <!-- FilterWidget -->
         <!-- Q: Does filterWidget have to take a filterFunction from its parent?
-             A:
+             A: No.
+
+             Q: Why is filter-widget defined separately from filter-context? Why not wrap components using filter-widget?
+             A: I can give three reasons:
+                - It allows filter-widget to be rendered anywhere on the page, separate from fitler-context.
+                - 
+                - 
          -->
         <filter-widget v-model="$parent.filterFunction">
             <filter-widget-control
@@ -20,6 +26,18 @@
                 :multiple="false">
                 <!-- e.g. Documentation component can be used here to control and standardize labels -->
             </filter-widget-control>
+            <!-- 
+                For the most part, string matching will be done by string equality under '=='/'==='
+                TODO: What happens when we want a conditional to be an inclusive-OR and not an AND? (this is the case for AssociationsTable)
+                TODO: Allow functions as given `op` to allow for more interesting lexical matches?
+             -->
+            <filter-widget-control
+                :field="'test'"
+                :op="'=='"
+                :options="['no matches', 'some matches']"
+                :multiple="true">
+                Test String Match
+            </filter-widget-control>
         </filter-widget>
 
         <!-- FilterContext is required in the page and must wrap around components with a filterable-wrapper -->
@@ -30,7 +48,7 @@
              data defining predicates (which are objects with keys for: /field/, a binary /operation/, and a /threshold/)
              These functions are already defined in filterHelpers.js – see `predicateFromSpec` and `filterFromPredicates`.
         -->
-        <filter-context v-model="$parent.filterFunction">
+        <filter-context :value="$parent.filterFunction">
             <filter-user 
                 :initialData="[
                     { pValue: 0.01, beta: 3 }, 

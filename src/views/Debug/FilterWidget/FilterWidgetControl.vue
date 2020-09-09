@@ -6,13 +6,27 @@
                 {{field}} ({{(op)}})
             </slot>
         </div>
-        <b-form-input
+
+        <!-- 
+            Go between a select component or a simple text input based on whether or not we have options 
+            Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
+        -->
+        <!-- TODO: replace with an autocomplete to eliminate this conditional logic? -->
+        <b-form-select
+            v-if="!!options && options.length > 0"
             :ref="filterDefinition.ref"
             :id="filterDefinition.id"
             v-model="filterThreshold"
-            v-on:keydown.enter="updateFilter(filterThreshold)"
-            type="text"
-        ></b-form-input>
+            @input="updateFilter(filterThreshold)"
+            :options="[{ value: null, text: '' }].concat(options)"
+        ></b-form-select>
+        <b-form-input
+            v-else
+            :ref="filterDefinition.ref"
+            :id="filterDefinition.id"
+            v-model="filterThreshold"
+            @keydown.enter="updateFilter(filterThreshold)"
+        ></b-form-input>     
     </b-col>
 </template>
 
@@ -56,13 +70,10 @@ export default Vue.component("filter-widget-control", {
             // -? Refactor out filterModel watcher in favor for only the computed function being pushed out? 
             //    OR does the filter widget make the function and we just shunt out the spec?
             // -? Refactor out addCompound? (is it necessary over addFilter as a single?)
-            this.$parent.$emit('change', newThreshold, this.filterDefinition);
-        }
-    },
-    watch: {
-        filterThreshold(newThreshold) {
-            // Supercede by v-on:keydown.enter
-            // this.updateFilter(newThreshold);
+            if (newThreshold !== null) {
+                this.$parent.$emit('change', newThreshold, this.filterDefinition);
+            }
+            this.filterThreshold = null;
         }
     }
 });
