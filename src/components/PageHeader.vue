@@ -123,7 +123,7 @@
                         <li class="am-menu">
                             <a href="https://kp4cd.org/contact">Contact</a>
                         </li>
-                        <li v-if="user">
+                        <li v-if="!!user">
                             <a
                                 href="/logout"
                                 :class="diseaseGroup.name+'kp-login'"
@@ -160,7 +160,7 @@ export default Vue.component("page-header", {
     },
     data() {
         return {
-            user: false,
+            user: "",
             bioindex_dev: false,
         };
     },
