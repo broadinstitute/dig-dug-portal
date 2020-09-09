@@ -1,6 +1,7 @@
 import Vue from "vue";
 import * as d3 from "d3";
-import _ from "lodash";
+
+import sortUtils from "@/utils/sortUtils";
 
 import Template from "./Template.vue";
 import store from "./store.js";
@@ -179,8 +180,8 @@ new Vue({
                 return acc;
             }, {});
 
-            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
-            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
+            let pValuePred = !!filterValue.pValue ? extractedItemVals.pvalue <= filterValue.pValue : true;  // these are case sensitive right now, with these being proper casing (should standardize)
+            let foldPred = !!filterValue.fold ? extractedItemVals.fold >= filterValue.fold : true;
 
             return pValuePred && foldPred;
         }
@@ -275,23 +276,24 @@ new Vue({
 
         globalEnrichmentAnnotations() {
             // an array of annotations
-            return _.uniqBy(this.$store.state.globalEnrichment.data, el =>
+            return sortUtils.uniqBy(this.$store.state.globalEnrichment.data, el =>
                 JSON.stringify(
                     [el.annotation, !!el.method ? el.method : ""].join()
                 )
             );
         },
 
+        // TODO: eliminate using colorUtils
         tissues() {
             // an array of tissue
-            return _.uniq(
-                this.$store.state.globalEnrichment.data
+            return this.$store.state.globalEnrichment.data
                     .filter(interval => !!interval.tissue)
                     .map(interval => interval.tissue)
-            );
+                    // unique
+                    .filter(function (value, index, self) { 
+                        return self.indexOf(value) === index;
+                    });
         },
-
-        // TODO: refactor into IGV Utils
         tissueColorScheme() {
             return d3
                 .scaleOrdinal()
@@ -339,22 +341,6 @@ new Vue({
                 op: this.filterOnPValueAndFold
             })
         },
-        // pValue(minP) {
-        //     // the filter op takes input on the left arg (e.g. 'minP := filter.value, x >= minP')
-        //     this.applyFilter({
-        //         field: 'pvalue',
-        //         value: minP,
-        //         op: _.gte,
-        //     })
-        // },
-        // fold(maxF) {
-        //     // the filter op takes input on the left arg (e.g. 'maxF := filter.value, x <= maxF')
-        //     this.applyFilter({
-        //         field: 'fold',
-        //         value: maxF,
-        //         op: _.lte,
-        //     })
-        // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

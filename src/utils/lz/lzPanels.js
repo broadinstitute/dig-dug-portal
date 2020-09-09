@@ -4,7 +4,6 @@ import {BaseAdapter} from "locuszoom/esm/data/adapters"
 import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
 import { rgb } from "d3";
-import _ from "lodash"
 
 import {
     postAlertNotice,

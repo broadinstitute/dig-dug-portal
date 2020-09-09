@@ -36,15 +36,13 @@
                 </b-col>
             </b-row>
         </b-container>
+
     </div>
 </template>
 
 <script>
 import Vue from "vue";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -114,26 +112,24 @@ export default Vue.component("filter-widget", {
     methods: {
 
         filterControlChange() {
-
-            // todo: refactor down to just threshold and filterDefinition, maybe filterControlFunction dispatch as well?
-            // 'addCompound', newThreshold, this.filterDefinition.ref, this.filterDefinition.id, !!this.multiple, this.filterDefinition
+            
             const [threshold, filterDefinition] = arguments;
                         
             // DONE: create filter if not there? (issue in multiples case)
             // could get children to modify registry at runtime during create...
             // or emitted later?
             if (threshold !== null && !this.filterList.map(filter => filter.field).includes(filterDefinition.field)) {
-                // TODO: Refactor. equiv to addFilter. we need to use this at least once if we're using filters as lists
+                
                 this.filterList.push({
                     ...filterDefinition,
                     threshold,
                 });
+
             } else {
                 // if the definition already exists, and it's a multiple, then just push, since we can allow for multiple instances of the same filter
                 // TODO: enforce uniqueness of threshold value?
                 if (filterDefinition.multiple) {
 
-                    // TODO: Refactor. equiv to addFilter in older code
                     this.filterList.push({
                         ...filterDefinition,
                         threshold,
@@ -143,8 +139,6 @@ export default Vue.component("filter-widget", {
                 // TODO: would be faster if we maintain a normalized version of filterList against the filter ID, refactor towards this for performance
                 } else if (!filterDefinition.multiple) {
 
-                    // TODO: Refactor. equiv to setFilter in older code
-                    // if match, then modify, else return through
                     this.filterList = this.filterList.map(filter => {
                         if (filter.field === filterDefinition.field) {
                             const tempFilter = filter;
@@ -161,45 +155,12 @@ export default Vue.component("filter-widget", {
             // NOTE: As a result of this.filterList being modified, the computed property for the filterFunction should reactively producing a new version of itself.
 
             // NOTE: saving this code snippet because i'm pleased with myself and it looks useful
-            // // thanks to how Vue works we can ask the object directly for a method, as it's registered in `this[..]`.
-            // // this looks evil but on the other hand it lets us avoid having to do case-splitting which would be harder to maintain (duplication).
-            
-            // // the filterControl keywords here include: addSingle, addCompound, etc.
-            // // TODO: these are methods which do...?
-
             // const [filterControl, ...rest] = arguments;
             // if (!!this[filterControl]) {
             //     this[filterControl](...rest);
             // }
 
         },
-
-        // TODO: Refactor each of these functions to use this.filterList
-        // TODO: what's the distinction between addFilter and setFilter?
-        // TODO: what's the distinction between filterData[obj] and filterData[obj+"_text"]?
-        // TODO: Refactor each of these functions into filterHelpers.js?
-        // addFilter(event, obj) {
-        //     this.filterData[obj].push(event.trim());
-        //     this.filterData[obj + "_text"] = "";
-        // },
-        // setFilter(event, obj) {
-        //     this.filterData[obj] = event;
-        //     this.filterData[obj + "_text"] = "";
-        // },
-        // removeFilter(index, obj) {
-        //     this.filterData[obj].splice(index, 1);
-        // },
-        // addCompound(event, obj, id, multiple) {
-
-        //     // the branch is: are we stacking a new filter constraint, or are we modifying a single filter value?
-        //     if (multiple) this.addFilter(event, obj);
-        //     else this.setFilter(event, obj);
-
-        //     // Clear out filter-widget-control after adding new data
-        //     let element = document.getElementById(id);
-        //     element.value = "";
-
-        // },
 
         unsetFilter(obj, idx) {
             // equiv to setFilter with no data => reduction by alias

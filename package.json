@@ -8,7 +8,6 @@
     "deploy": "vue-cli-service build --mode production"
   },
   "dependencies": {
-    "@vue/composition-api": "^0.5.0",
     "bootstrap": "^4.4.1",
     "bootstrap-vue": "^2.6.1",
     "c3": "0.7.7",
@@ -18,10 +17,7 @@
     "jquery": "^3.5.1",
     "json-query": "^2.2.2",
     "locuszoom": "^0.12.0-beta.5",
-    "lodash": "^4.17.19",
-    "lodash.merge": "^4.6.2",
     "query-string": "^6.11.1",
-    "reference-pointer": "0.0.2",
     "showdown": "^1.9.1",
     "string-replace-loader": "^2.3.0",
     "url-parse": "^1.4.7",

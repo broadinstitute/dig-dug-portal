@@ -1,21 +1,3 @@
-/* 
-Also necessary is a filter-function library
-- DONE: Assume AoS format: then => pattern match to prop shapes
-    * applyFilter HoF?
-    * Ideally, the filter function will be able to gracefully handle all cases given (fails quietly and always returns something, even if it's the original data)
-        * PROBLEM: The programmer must guarantee the shape of the data is relevant to the filter function! how do we want to preserve this contract?
-            * PO: Force strict option using PropCheck
-                * BUT: baseline pattern matching is loose-goosey
-- TODO: Implement loose token matching for heuristic filtering on prop names?
-    NOTE: camel-case causes an ambiguity here!
-    opts?
-  - Loose matching between lower case, uppercase, and camel-case
-  - Loose matching between _, -, whitespace and camelCase?
-  - Loose matching with prefixes (e.g. `_src`)
-
-We could also use a style-guide for labels and a meeting for getting it implemented
-DONE: Alternately retool label tables
-*/
 
 export function filterFromPredicates(predicates, inclusive=false) {
     return function filterFunction(object) {
@@ -57,12 +39,10 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
     // TODO alternately `op` can be the method itself, but do that kind of thing sparingly?
 
     // `match` is a function that checks the presence or absence of a field before applying an operation.
-    // The predicate should always return false
+    // The predicate itself should always return false when there is no match
 
-    // DONE: lookup/DISPATCH operation function for given `op` (unless `op` is also a function)
     let operation = id => id;
     if (typeof op === 'string') {
-        // TODO: is there an advantage to using Lodash operations instead?
         const operationMap = {
             "==": (a, b) => a === b,  // we know what they mean, anyone who means `==` would want javascript operational semantics versus domain-semantics of numbers or lexigraphical information. unlikely for scientists. we could alternately model this case as a hard error.
             "===": (a, b) => a === b,
@@ -78,11 +58,13 @@ export function predicateFromSpec({ field, op, threshold }, { match = (datum, fi
             "lt": (a, b) => a < b,
             "lte": (a, b) => a <= b,
         }
-        operation = operationMap[op];
+        if (!!operationMap[op]) {
+            operation = operationMap[op];
+        }
     }
-    // else if (typeof op === 'function') {
-    //     operation = op;
-    // };
+    else if (typeof op === 'function') {
+        operation = op;
+    };
 
     // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
     return datum => match(datum, field) ? operation(datum[field], threshold) : false;
@@ -108,8 +90,8 @@ function matchLooseProp(obj, b, { ...opts }) {
 function matchLooseString(a, b, { suffix='', prefix='', caps=false, camel=false, dash=false}) {
 
     /*
-    * Data
-    * pValue === pvalue === pvalue_src !== log_pvalue
+    * Example of equivalencies
+    * pValue === pvalue === ..._src:pvalue !== log_pvalue
     */
 
     // I was originally going to build regexes but that was too complicated
@@ -124,4 +106,4 @@ function matchLooseString(a, b, { suffix='', prefix='', caps=false, camel=false,
     // if (dash) Formatters.dashify(a).match(new RegExp(b))
 
     return true;
-}
+};

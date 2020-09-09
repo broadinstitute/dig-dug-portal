@@ -21,7 +21,8 @@
             v-else
             v-model="filterThreshold"
             @keydown.enter="updateFilter(filterThreshold)"
-        ></b-form-input>     
+        ></b-form-input> 
+
     </b-col>
 </template>
 
@@ -67,6 +68,7 @@ export default Vue.component("filter-widget-control", {
             if (newThreshold !== null) {
                 this.$parent.$emit('change', newThreshold, this.filterDefinition);
             }
+            // TODO: always clear on update?
             this.filterThreshold = null;
         }
     }

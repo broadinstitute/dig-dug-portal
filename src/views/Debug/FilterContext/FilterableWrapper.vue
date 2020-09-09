@@ -5,6 +5,7 @@
         </Emitter>
     </FilterC>
 </template>
+
 <script>
 import Vue from "vue";
 import { Consumer as FilterC } from "./filterContext";
@@ -17,14 +18,15 @@ import { Consumer as FilterC } from "./filterContext";
  *
  * For example:
  * 
- * <filter-context :value="element => !!element.pValue && element.pValue < 0.01">
- *     <!-- $event will be equal to the function `element => !!element.pValue && element.pValue < 0.01`  -->
+ *  <filter-context :value="element => !!element.pValue && element.pValue < 0.01">
+ *     <!-- Different components will have different applyFilter functions, and thus should have different wrappers listening to the same context -->
  *     <filterable-wrapper @change="$refs.locuszoom.applyFilter($event)">
+ *          <!-- $event will be equal to the function `element => !!element.pValue && element.pValue < 0.01`  -->
  *          <locuszoom
  *              ref="locuszoom"
  *           ></locuszoom>
  *      </filterable-wrapper>
- * </filter-context>
+ *  </filter-context>
  * 
  * If you are always going to use a component with a filter, you can define use the filterable-wrapper HoC inside of that component's template instead.
  * This allows you to avoid having to use refs.
