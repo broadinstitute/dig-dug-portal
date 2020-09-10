@@ -566,6 +566,11 @@
     margin-left: 0 !important;
 }
 
+.EGLT-table small, .EGLT-table .small {
+    font-size: 100% !important;
+    font-weight: 400 !important;
+}
+
 .top-level-value {
     width: calc(100%);
 }
@@ -703,12 +708,30 @@ span.weight-blue {
     margin: 0 5px;
 }
 
-.table-ui-options {
+.egl-table-ui-options {
     text-align: right;
     font-size: 14px;
 }
 
-.show-all-features-wrapper, .hide-all-feature-headers-wrapper, .hide-top-level-wrapper {
+.egl-table-ui-options label {
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
+.egl-table-ui-options input[type=checkbox] {
+    border: solid 1px #bbb;
+    border-radius: 5px;
+}
+
+.egl-table-ui-options select {
+    height: 25px;
+    width: 175px;
+    font-size: 14px;
+    border: solid 1px #bbb;
+    border-radius: 5px;
+}
+
+.show-all-features-wrapper, .hide-all-feature-headers-wrapper, .hide-top-level-wrapper, .sort-table-wrapper {
     display: inline-block;
     margin-left: 10px;
 }

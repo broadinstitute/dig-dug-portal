@@ -54,36 +54,47 @@
         </b-container>
         <b-container fluid v-if="!!config && !!tableData" class="table-ui-wrapper">
             <b-row>
-                <div class="col-md-12 table-ui-options">
+                <div class="col-md-12 egl-table-ui-options">
                     <div class="show-all-features-wrapper">
-                        <label>
-                            <input
-                                type="checkbox"
-                                v-model="showAllFeaturesChk"
-                                id="show_all_features"
-                                @change="showAllFeatures()"
-                            /> Show all feature rows
-                        </label>
+                        <label for="show_all_features">Show all feature rows:</label>
+                        <input
+                            type="checkbox"
+                            v-model="showAllFeaturesChk"
+                            id="show_all_features"
+                            @change="showAllFeatures()"
+                        />
                     </div>
                     <div class="hide-all-feature-headers-wrapper">
-                        <label>
-                            <input
-                                type="checkbox"
-                                v-model="hideAllFeatureHeadersChk"
-                                id="hide_all_feature_headers"
-                                @change="hideAllFeatureHeaders()"
-                            /> Hide feature headers
-                        </label>
+                        <label for="hide_all_feature_headers">Hide feature headers:</label>
+                        <input
+                            type="checkbox"
+                            v-model="hideAllFeatureHeadersChk"
+                            id="hide_all_feature_headers"
+                            @change="hideAllFeatureHeaders()"
+                        />
                     </div>
                     <div class="hide-top-level-wrapper">
-                        <label>
-                            <input
-                                type="checkbox"
-                                v-model="hideTopLevelRowsChk"
-                                id="hide_top_level_rows"
-                                @change="hideTopLevelRows()"
-                            /> Hide top level rows
-                        </label>
+                        <label for="hide_top_level_rows">Hide top level rows:</label>
+                        <input
+                            type="checkbox"
+                            v-model="hideTopLevelRowsChk"
+                            id="hide_top_level_rows"
+                            @change="hideTopLevelRows()"
+                        />
+                    </div>
+                    <div class="sort-table-wrapper">
+                        <label for="sort_table_select">Sort table by:</label>
+                        <select
+                            v-model="sortTableSelect"
+                            id="sort_table_select"
+                            @change="applySorting($event)"
+                        >
+                            <option
+                                v-for="(value,key) in config[dataset]['topLevelRender']"
+                                :key="key"
+                                :value="key"
+                            >{{value}}</option>
+                        </select>
                     </div>
                 </div>
             </b-row>
@@ -147,6 +158,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 //import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 
 Vue.use(BootstrapVueIcons);
 
@@ -161,6 +173,7 @@ export default Vue.component("effector-genes-table", {
             showAllFeaturesChk: null,
             hideTopLevelRowsChk: null,
             hideAllFeatureHeadersChk: null,
+            sortTableSelect: null,
             /*igvBrowser: false,*/
         };
     },
@@ -209,7 +222,7 @@ export default Vue.component("effector-genes-table", {
             }
         },
         tableData(data) {
-            uiUtils.showHideElement("data-loading-indicator");
+            uiUtils.hideElement("data-loading-indicator");
         },
     },
     methods: {
@@ -224,6 +237,20 @@ export default Vue.component("effector-genes-table", {
             this.filtersIndex[field]["search"].push(search);
 
             this.applyFilters();
+        },
+        applySorting(event) {
+            let filtered = this.filteredData;
+            let key = event.target.value;
+            console.log(filtered[0]);
+            let keyData = filtered[0][key];
+            console.log("keyData", keyData);
+            console.log(typeof keyData);
+            let isNumeric = typeof keyData != "number" ? false : true;
+
+            console.log(isNumeric);
+
+            sortUtils.sortEGLTableData(filtered, key, isNumeric, true);
+            this.$store.dispatch("filteredData", filtered);
         },
         applyFilters() {
             let filtered = this.tableData;
