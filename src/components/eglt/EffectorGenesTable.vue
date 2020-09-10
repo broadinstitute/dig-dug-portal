@@ -52,6 +52,42 @@
                 :key="i"
             ></b-row>
         </b-container>
+        <b-container fluid v-if="!!config && !!tableData" class="table-ui-wrapper">
+            <b-row>
+                <div class="col-md-12 table-ui-options">
+                    <div class="show-all-features-wrapper">
+                        <label>
+                            <input
+                                type="checkbox"
+                                v-model="showAllFeaturesChk"
+                                id="show_all_features"
+                                @change="showAllFeatures()"
+                            /> Show all feature rows
+                        </label>
+                    </div>
+                    <div class="hide-all-feature-headers-wrapper">
+                        <label>
+                            <input
+                                type="checkbox"
+                                v-model="hideAllFeatureHeadersChk"
+                                id="hide_all_feature_headers"
+                                @change="hideAllFeatureHeaders()"
+                            /> Hide feature headers
+                        </label>
+                    </div>
+                    <div class="hide-top-level-wrapper">
+                        <label>
+                            <input
+                                type="checkbox"
+                                v-model="hideTopLevelRowsChk"
+                                id="hide_top_level_rows"
+                                @change="hideTopLevelRows()"
+                            /> Hide top level rows
+                        </label>
+                    </div>
+                </div>
+            </b-row>
+        </b-container>
         <div :class="'EGLT-table '+this.dataset">
             <b-container fluid v-if="!!config && !!filteredData" class>
                 <b-row class="top-level-header">
@@ -65,6 +101,13 @@
                 <b-row v-for="(value,index) in filteredData" class="top-level-value" :key="index">
                     <template v-for="(col, i) in config[dataset]['topLevelRender']">
                         <div
+                            v-if="i == config[dataset]['topLevelPrime']"
+                            :class="'top-level-value-item prime '+i+' '+i+'-'+value[i]"
+                            :key="i"
+                            v-html="formatContent(i,value[i],'top')"
+                        ></div>
+                        <div
+                            v-else
                             :class="'top-level-value-item '+i+' '+i+'-'+value[i]"
                             :key="i"
                             v-html="formatContent(i,value[i],'top')"
@@ -115,6 +158,9 @@ export default Vue.component("effector-genes-table", {
             filtersIndex: {},
             highestScores: { features: {} },
             lowestScores: { features: {} },
+            showAllFeaturesChk: null,
+            hideTopLevelRowsChk: null,
+            hideAllFeatureHeadersChk: null,
             /*igvBrowser: false,*/
         };
     },
@@ -237,6 +283,103 @@ export default Vue.component("effector-genes-table", {
         },
         showFeatures(INDEX) {
             uiUtils.showHideElement("feature-content-wrapper-" + INDEX);
+        },
+        showAllFeatures(INDEX) {
+            let checked = document.getElementById("show_all_features").checked;
+
+            /*if (checked == true) {
+                document
+                    .getElementsByClassName(
+                        "hide-all-feature-headers-wrapper"
+                    )[0]
+                    .classList.remove("hidden");
+
+                document
+                    .getElementsByClassName("hide-top-level-wrapper")[0]
+                    .classList.remove("hidden");
+            } else {
+                document
+                    .getElementsByClassName(
+                        "hide-all-feature-headers-wrapper"
+                    )[0]
+                    .classList.add("hidden");
+
+                document
+                    .getElementsByClassName("hide-top-level-wrapper")[0]
+                    .classList.add("hidden");
+            }*/
+
+            let featureWrappers = document.querySelectorAll(
+                ".feature-content-wrapper"
+            );
+
+            featureWrappers.forEach(function (featureWrapper) {
+                if (checked == true) {
+                    featureWrapper.classList.remove("hidden");
+                } else {
+                    featureWrapper.classList.add("hidden");
+                }
+            });
+        },
+        hideAllFeatureHeaders() {
+            let checked = document.getElementById("hide_all_feature_headers")
+                .checked;
+
+            let primeFeatureHeadersLength = document
+                .getElementsByClassName("feature-content-wrapper")[0]
+                .querySelectorAll(".feature-headers").length;
+
+            let allFeatureHeaderLength = document.querySelectorAll(
+                ".feature-headers"
+            ).length;
+
+            for (
+                let i = primeFeatureHeadersLength;
+                i < allFeatureHeaderLength;
+                i++
+            ) {
+                checked == true
+                    ? document
+                          .getElementsByClassName("feature-headers")
+                          [i].classList.add("hidden")
+                    : document
+                          .getElementsByClassName("feature-headers")
+                          [i].classList.remove("hidden");
+            }
+        },
+        hideTopLevelRows(INDEX) {
+            let checked = document.getElementById("hide_top_level_rows")
+                .checked;
+
+            checked == true
+                ? document
+                      .getElementsByClassName("top-level-header")[0]
+                      .classList.add("hidden")
+                : document
+                      .getElementsByClassName("top-level-header")[0]
+                      .classList.remove("hidden");
+
+            let topLevelRows = document.querySelectorAll(".top-level-value");
+
+            topLevelRows.forEach(function (topLevelRow) {
+                let topLevelItems = topLevelRow.querySelectorAll(
+                    ".top-level-value-item"
+                );
+
+                for (let i = 0; i < topLevelItems.length; i++) {
+                    if (topLevelItems[i].classList.contains("prime")) {
+                        checked == true
+                            ? topLevelItems[i].classList.add("top-prime-column")
+                            : topLevelItems[i].classList.remove(
+                                  "top-prime-column"
+                              );
+                    } else {
+                        checked == true
+                            ? topLevelItems[i].classList.add("hidden")
+                            : topLevelItems[i].classList.remove("hidden");
+                    }
+                }
+            });
         },
         showVisualizer(ITEM) {
             this.$store.dispatch("selectGene", ITEM);

@@ -703,6 +703,31 @@ span.weight-blue {
     margin: 0 5px;
 }
 
+.table-ui-options {
+    text-align: right;
+    font-size: 14px;
+}
+
+.show-all-features-wrapper, .hide-all-feature-headers-wrapper, .hide-top-level-wrapper {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.top-prime-column {
+    position: absolute;
+    z-index: 10;
+    width: auto !important;
+    background-color: #000;
+    margin-left: -20px;
+    padding: 3px 5px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.top-prime-column a {
+    color: #6bcdfa !important;
+}
+
 /* for Miriam */
 
 .EGLT-table.miriam .top-level-header-item,
@@ -893,7 +918,7 @@ span.weight-blue {
 
 .EGLT-table.richards .feature-headers.variants_features,
 .EGLT-table.richards .feature-headers.gene_features {
-    display: table-row !important;
+    display: table-row;
 }
 
 .EGLT-table.richards .feature-content.variants_features,
@@ -1022,7 +1047,7 @@ span.weight-blue {
 
 .EGLT-table.richards100 .feature-headers.variants_features,
 .EGLT-table.richards100 .feature-headers.gene_features {
-    display: table-row !important;
+    display: table-row ;
 }
 
 .EGLT-table.richards100 .feature-content.variants_features,
