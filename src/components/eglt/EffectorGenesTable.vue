@@ -17,16 +17,24 @@
                 <b-col v-for="filter in config[dataset]['filters']" :key="filter.field">
                     <div class="label" v-html="filter.label"></div>
                     <template v-if="filter.type.includes('search')">
-                        <b-form-input
+                        <input
                             type="text"
+                            :id="'filter_'+filter.field.replace(/ /g,'')"
                             @change="filterData($event, filter.field, filter.type)"
-                        ></b-form-input>
+                        />
                     </template>
                     <template v-else-if="filter.type == 'dropdown'">
-                        <b-form-select
-                            :options="buildOptions(filter.field)"
+                        <select
+                            :id="'filter_'+filter.field"
                             @change="filterData($event, filter.field, filter.type)"
-                        ></b-form-select>
+                        >
+                            <option>Select one</option>
+                            <option
+                                v-for="value in buildOptions(filter.field)"
+                                :key="value"
+                                :value="value"
+                            >{{value}}</option>
+                        </select>
                     </template>
                 </b-col>
             </b-row>
@@ -233,29 +241,36 @@ export default Vue.component("effector-genes-table", {
                 .filter((v, i, arr) => v != ""); //remove blank
             return options;
         },
-        filterData(search, field, type) {
-            this.filtersIndex[field]["search"].push(search);
-
-            this.applyFilters();
-        },
         applySorting(event) {
             let filtered = this.filteredData;
             let key = event.target.value;
-            console.log(filtered[0]);
-            let keyData = filtered[0][key];
-            console.log("keyData", keyData);
-            console.log(typeof keyData);
-            let isNumeric = typeof keyData != "number" ? false : true;
 
-            console.log(isNumeric);
+            let keyData = filtered[0][key];
+
+            let isNumeric = typeof keyData != "number" ? false : true;
 
             sortUtils.sortEGLTableData(filtered, key, isNumeric, true);
             this.$store.dispatch("filteredData", filtered);
+        },
+        filterData(EVENT, FIELD, TYPE) {
+            let searchValue = EVENT.target.value;
+            let id = "#filter_" + FIELD.replace(/ /g, "");
+            let inputField = document.querySelector(id);
+
+            if (TYPE != "dropdown") {
+                inputField.blur();
+                inputField.value = "";
+            }
+
+            this.filtersIndex[FIELD]["search"].push(searchValue);
+
+            this.applyFilters();
         },
         applyFilters() {
             let filtered = this.tableData;
             let tempFiltered = [];
             let i = 0;
+
             for (var f in this.filtersIndex) {
                 let searchIndex = this.filtersIndex[f];
 
