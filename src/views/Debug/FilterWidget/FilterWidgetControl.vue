@@ -37,6 +37,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("filter-widget-control", {
+    // TODO: Checker prop to prevent submission of invalid input? (including blank input)
     props: ["value", "field", "predicate", "default", "options", "multiple", "color", "pillFormatter"],
     data() {
         return {
@@ -57,6 +58,7 @@ export default Vue.component("filter-widget-control", {
     methods: {
         updateFilter(newThreshold) {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
+            // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
                 // double parent since we're only using this component as a template inside of another component
                 this.$parent.$parent.$emit('change', newThreshold, { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } });

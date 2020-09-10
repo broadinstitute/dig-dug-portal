@@ -5,7 +5,7 @@
 
         <!-- FilterWidget -->
         <filter-widget v-model="$parent.filterFunction" :inclusive="$parent.inclusive">
- 
+
             <filter-pvalue-control 
                 :field="'pValue'">
             </filter-pvalue-control>
@@ -21,12 +21,19 @@
 
         </filter-widget>
 
+
         <!-- FilterContext is required in the page and must wrap around components with a filterable-wrapper -->
         <filter-context v-model="$parent.filterFunction">
-            <filter-user 
-                :initialData="$parent.filteredData">
-            </filter-user>
+            <!-- Div is dummy to fit components in slot -->
+            <div>
+                <associations-table
+                    :associations="$parent.associations"
+                    :phenotypes="$parent.phenotypes"
+                ></associations-table>
+                <filter-user></filter-user>
+            </div>
         </filter-context>
+        
 
     </div>
 </template>

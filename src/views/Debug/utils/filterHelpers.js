@@ -1,5 +1,6 @@
-
+/* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(predicates, inclusive=false) {
+    // TODO: what about case of mixed inclusions and exclusions?
     return function filterFunction(object) {
         // Guilt is terminal: we break our investigation as soon as
         // we've found evidence that the object isn't innocent.
@@ -9,6 +10,7 @@ export function filterFromPredicates(predicates, inclusive=false) {
         if (predicates.length > 0) {
             // if we have predicates, the burden of proof may change based on our filtering type
             if (!inclusive) {
+
                 // exclusive filter, equivalent to a series of ANDs
                 // break on soonest failure
                 // innocence = true; redundant to set here due to `true` being default value
@@ -31,7 +33,7 @@ export function filterFromPredicates(predicates, inclusive=false) {
     }
 }
 
-export function predicateFromSpec({ field, predicate, threshold }, { match = (datum, field) => !!datum[field] }) {
+export function predicateFromSpec({ field, predicate, threshold }) {
 
     // Specs for predicateFromSpec are objects satisfying properties { field, op, threshold } 
     // where `op` is a string in the `operationMapping` dictionary defined within the predicateFromSpec function
@@ -40,47 +42,67 @@ export function predicateFromSpec({ field, predicate, threshold }, { match = (da
 
     // `match` is a function that checks the presence or absence of a field before applying an operation.
     // The predicate itself should always return false when there is no match
-
+    
     // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
-    return datum => match(datum, field) ? predicate(datum[field], threshold) : false;
+    return (datum) => !!datum[field] ? predicate(datum[field], threshold) : false;
 }
 
-// Example of predicateFromSpec function that would work for LocusZoom?
-// TODO: eliminate _src suffixes from fields to simplify matches on data instead? OR strip namespacing at the point of filtering?
-    // A part of the problem is that this is included when the predicate is built, rather than when the predicate is used...
-// predicateFromSpec(obj, { match: (obj, b) => matchLooseProp(obj, b, { suffix: '_src', caps: true, camel: true }) });
 
-// TODO
-export function looseMatch(datum, field, { ...opts }) {
-    // // object contains any key which matches loosely on given match criterion
-    // Object.keys(obj).forEach(key => {
-    //     if (matchLooseString(key, b, { ...opts })) {
-    //         return true;
-    //     };
-    // });
-    // return false;
-    // TODO: implement in full
-    return ((datum, field) => !!datum[field])(datum, field)
-}
 
-// TODO
-function matchLooseString(a, b, { suffix='', prefix='', caps=false, camel=false, dash=false}) {
+/* NAMESPACE FUNCTIONS */
+// These two *Namespace functions are used to handle prefixes an suffixes that different components might have in their application-specific representations of the data
+// They are used to...
+//
+// - Reproject the data while filtering it:
+//   this.namespacedData.filter(obj => {
+//        let regularObj = decodeNamespace(obj, { prefix: `<namespace>:` });  // note that we include the delimiter here, but it can be defined separately as well
+//        return this.filterFunction(regularObj); 
+//    });
+//
+//   You would do the above if the namespace didn't apply to all of the component's properties, since running an encode afterwards (which applies to all of the component's properties) 
+//   would add noise to the object and likely break the component.
+//
+// - Pull back the data into a regular-form object, filter it, and push in the object with its namespaces restored:
+//   this.namespacedData
+//        .map(obj => decodeNamespace(obj, { prefix: `<namespace>:` }))
+//        .filter(this.filterFunction)
+//        .map(obj => encodeNamespace(obj, { prefix: `<namespace>:` }));
+//
+//   You could do this if the namespace applied to all properties rather than just some of them, and if you were modifying your component's data by assignment via some previous state.
+//
+export function encodeNamespace(regularObject, { prefix='', suffix='', pDelimiter='', sDelimiter='' }) {
+    // take an object whose keys are "basic fields", (do not have any application-specific prefixes or suffixes), and add a given prefix or suffix to all of its keys
+    // e.g. 'associations_src:pValue' has prefix 'associations_src:' in LocusZoom for the basic field pValue
+    // if we're using encodeNamespace on an object with key `pValue` and give a prefix `associations_src:`, the result will be an object with the key `associations_src:pValue`
+    // we use this function if we're working with a filter that modifies the object property keys before rendering it. 
+    // Both AssociationsTable and LocusZoom do this with different prefixes
 
-    /*
-    * Example of equivalencies
-    * pValue === pvalue === ..._src:pvalue !== log_pvalue
-    */
+    let tempObject = {};
+    Object.entries(regularObject).forEach(entry => {
+        const [key, value] = entry;
+        const newKey = `${prefix}${pDelimiter}${key}${sDelimiter}${suffix}`;
+        tempObject[newKey] = value;
+    })
+    return tempObject;
+};
 
-    // I was originally going to build regexes but that was too complicated
-    // Instead we work off the assumption that inside of a complex string is a simple one waiting to arise
-    // This simple string comes from normalizing the complex one to a simpler form
-    // Normalization is done by stripping the target string of it
+export function decodeNamespace(namespacedObject, { prefix='', suffix='', pDelimiter='', sDelimiter='' }) {
+    // strip prefixes and suffixes from object properties given that they have them,
+    // otherwise strip nothing and just return the object
 
-    // OR are regexes the way to go?
-    // TODO: use formatters in here? e.g.
-    // if (caps) Formatters.capitalize(a).match(new RegExp(b))
-    // if (camel) Formatters.camel(a).match(new RegExp(b))
-    // if (dash) Formatters.dashify(a).match(new RegExp(b))
+    let tempObject = {};
+    Object.entries(namespacedObject).forEach(entry => {
+        const [key, value] = entry;
+        // TODO: replace with disjoint regex?
+        // for fun: regex crosswords https://regexcrossword.com
+        const newKey = key.replace(prefix, '').replace(suffix, '')
+            // TODO: using delimiters redundant/unecessary/confusing?
+            // TODO: remove everything before delimiter
+            .replace(pDelimiter, '')
+            // TODO: remove everything after delimiter
+            .replace(sDelimiter, '');
+        tempObject[newKey] = value;
+    })
+    return tempObject;
 
-    return true;
 };

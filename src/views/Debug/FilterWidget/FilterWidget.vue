@@ -50,7 +50,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import { filterFromPredicates, predicateFromSpec, looseMatch } from "../utils/filterHelpers"
+import { filterFromPredicates, predicateFromSpec } from "../utils/filterHelpers"
 
 const EventListener = {
     /*
@@ -81,7 +81,7 @@ const EventListener = {
 }
 
 export default Vue.component("filter-widget", {
-    props: ["value", "inclusive", "matchOn"],
+    props: ["value", "inclusive"],
     components: {
         EventListener,
     },
@@ -94,12 +94,7 @@ export default Vue.component("filter-widget", {
     computed: {
 
         filterFunction() {
-            let predicateConversion = predicateFromSpec;
-            // TODO: matchOn to give either (A) logic or (B) configuration for dealing with caps, suffixes, prefixes etc.
-            if (!!this.matchOn) {
-                predicateConversion = filterSpec => predicateFromSpec(filterSpec, { match: (obj, field) => looseMatch(obj, field, this.matchOn) });
-            }
-            const predicates = this.filterList.map(predicateConversion);
+            const predicates = this.filterList.map(predicateFromSpec);
             return filterFromPredicates(predicates, !!this.inclusive);
         }
 

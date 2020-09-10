@@ -16,11 +16,23 @@ export default Vue.component('filter-user', {
     components: {
         FilterableWrapper,
     },
-    props: ["initialData"],
     data() {
         return {
-            listOfStructs: this.initialData,
+            initialData: [
+                { pValue: 0.01, beta: 3 }, 
+                { pValue: 0.001, beta: 3 }, 
+                { pValue: 0.2, beta: 3 }, 
+                { pValue: 0.01, beta: 4 }, 
+                { pValue: 0.01, beta:2 }, 
+                { test: 'no matches' },
+                { test: 'some matches' },
+                { test: 'all matches' },
+            ],
+            listOfStructs: [],
         }
+    },
+    created() {
+        this.listOfStructs = this.initialData;
     },
     methods: {
         applyFilter: function(filter) {
