@@ -24,8 +24,19 @@ export async function request(path, query_params) {
     let qs =
         query_params && querystring.stringify(query_params, { skipNull: true });
 
+    let cookie = "";
+    if (document.cookie)
+        cookie = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("session"))
+            .split("=")[1];
+
     // use the rawUrl to get the location in the BioIndex
-    return fetch(rawUrl(`${path}?${qs || ""}`));
+    return fetch(rawUrl(`${path}?${qs || ""}`), {
+        headers: {
+            "x-bioindex-access-token": cookie
+        }
+    });
 }
 
 /* Perform a BioIndex query.
