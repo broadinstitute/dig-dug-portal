@@ -25,79 +25,9 @@ export default new Vuex.Store({
         effectorGeneData: [],
         category: "Not in GWAS region",
         stage2Category: null,
-        geneAssociationsData: null,
-        hasLofTee: false,
-
-        tempmasks: [{
-            "beta": -0.78322,
-            "combinedAF": 0.0011825999999999998,
-            "mask": "LofTee",
-            "n": 43125,
-            "pValue": 0.0072,
-            "passingVariants": 13,
-            "singleVariants": 4,
-            "stdErr": 0.30466
-        },
-        {
-            "beta": -0.74948,
-            "combinedAF": 0.0044754,
-            "mask": "5/5",
-            "n": 43125,
-            "pValue": 0.0000014280000000000001,
-            "passingVariants": 37,
-            "singleVariants": 15,
-            "stdErr": 0.16241
-        },
-        {
-            "beta": -0.78322,
-            "combinedAF": 0.0011825999999999998,
-            "mask": "16/16",
-            "n": 43125,
-            "pValue": 0.0072,
-            "passingVariants": 13,
-            "singleVariants": 4,
-            "stdErr": 0.30466
-        },
-        {
-            "beta": -0.74948,
-            "combinedAF": 0.0044754,
-            "mask": "5/5 + LofTee LC",
-            "n": 43125,
-            "pValue": 0.0000014280000000000001,
-            "passingVariants": 37,
-            "singleVariants": 15,
-            "stdErr": 0.16241
-        },
-        {
-            "beta": -0.47416,
-            "combinedAF": 0.013519,
-            "mask": "5/5 + 0/5 1%",
-            "n": 43125,
-            "pValue": 5.4583000000000006e-8,
-            "passingVariants": 103,
-            "singleVariants": 41,
-            "stdErr": 0.088818
-        },
-        {
-            "beta": -0.51407,
-            "combinedAF": 0.011641,
-            "mask": "5/5 + 1/5 1%",
-            "n": 43125,
-            "pValue": 4.6983e-8,
-            "passingVariants": 86,
-            "singleVariants": 36,
-            "stdErr": 0.09615399999999999
-        },
-        {
-            "beta": -0.68566,
-            "combinedAF": 0.0013217,
-            "mask": "11/11",
-            "n": 43125,
-            "pValue": 0.012681999999999999,
-            "passingVariants": 15,
-            "singleVariants": 4,
-            "stdErr": 0.28485
-        }]
+        geneAssociationsData: [],
+        // hasLofTee: false,
+        lofTeeData: []
     },
 
     mutations: {
@@ -123,8 +53,8 @@ export default new Vuex.Store({
         setGeneAssociationsData(state, geneAssociationsData) {
             state.geneAssociationsData = geneAssociationsData;
         },
-        setHasLofTee(state, hasLofTee) {
-            state.hasLofTee = hasLofTee;
+        setLofTeeData(state, lofTeeData) {
+            state.lofTeeData = lofTeeData;
         }
 
     },
@@ -154,6 +84,11 @@ export default new Vuex.Store({
                 }
             }
         },
+
+        lofTeeData(state) {
+            let data = state.lofTeeData;
+            return data;
+        }
 
 
     },

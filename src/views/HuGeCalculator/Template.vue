@@ -66,7 +66,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="col-xs-6 col-md-4">
                             <div
                                 v-if="$parent.geneAssociations"
@@ -74,7 +73,7 @@
                                 style="width:95%; border: 0"
                             >
                                 <posterior-probability-plot
-                                    :geneAssociations="$parent.geneAssociations"
+                                    :geneAssociationsData="$parent.geneAssociations"
                                     :priorVariance="0.0462"
                                     :isDichotomous="true"
                                 ></posterior-probability-plot>
@@ -83,7 +82,10 @@
                     </div>
                 </div>
             </div>
-            <forest-plot :data="$parent.plotData"></forest-plot>
+            <div v-if="$parent.geneAssociations" class="card" style="width:95%; border: 0">
+                <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
+            </div>
+
             <!-- <div v-if="$parent.geneAssociations">
                 <confidence-interval-plot
                     :geneAssociations="$parent.geneAssociations"

@@ -12,7 +12,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 
 export default Vue.component("posterior-probability-plot", {
-    props: ["geneAssociations", "priorVariance", "isDichotomous"],
+    props: ["geneAssociationsData", "priorVariance", "isDichotomous"],
 
     data() {
         return {};
@@ -259,7 +259,7 @@ export default Vue.component("posterior-probability-plot", {
 
     computed: {
         columns: function() {
-            let d = this.geneAssociations.masks.sort(
+            let d = this.geneAssociationsData.masks.sort(
                 (a, b) => a.pValue - b.pValue
             );
             let mostSignificantMask = d[0];

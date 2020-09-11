@@ -54,18 +54,7 @@ new Vue({
     data() {
         return {
             counter: 0,
-            plotData: [
-                {
-                    beta: -60.571000000000005,
-                    combinedAF: 0.0022796999999999995,
-                    mask: "LofTee",
-                    n: 25442,
-                    pValue: 1.0166999999999999e-19,
-                    passingVariants: 11,
-                    singleVariants: 4,
-                    stdErr: 6.6601
-                }
-            ],
+
 
         };
     },
@@ -162,20 +151,42 @@ new Vue({
                 let data = this.$store.state.geneAssociations.data;
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == trait) {
+                        // if (data[i].pValue <= 0.0000025) {
+                        //     //if Exome wide significant
+                        //     this.$store.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+                        // }
+                        // data[i].masks.forEach(r => {
+                        //     if (r.mask == "LofTee") {
+                        //         this.$store.commit("setLofTeeData", [r]);
+                        //     }
+                        // })
+                        // this.$store.commit('setGeneAssociationsData', data[i])
                         return data[i];
                     }
-                    if (data[i].pValue <= 0.0000025) {
-                        //if Exome wide significant
-                        $store.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
-                    }
-                    data[i].masks.forEach(r => {
-                        if (r.mask == "LofTee") {
-                            $store.commit("setHasLofTee", true);
-                        }
-                    })
+
+
                 }
             }
 
+        },
+
+        geneAssociationsLoftee() {
+            // let data = this.$store.state.geneAssociations;
+            let trait = "T2D";
+            if (!!this.$store.state.geneAssociations.data.length) {
+                let data = this.$store.state.geneAssociations.data;
+                let lofteeData = [];
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        data[i].masks.forEach(r => {
+                            if (r.mask == "LofTee") {
+                                lofteeData.push(r)
+                            }
+                        })
+                    }
+                }
+                return lofteeData;
+            }
         }
     },
 
