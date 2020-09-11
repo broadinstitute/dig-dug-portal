@@ -19,6 +19,7 @@
                     <template v-if="filter.type.includes('search')">
                         <input
                             type="text"
+                            class="form-control"
                             :id="'filter_'+filter.field.replace(/ /g,'')"
                             @change="filterData($event, filter.field, filter.type)"
                         />
@@ -27,8 +28,9 @@
                         <select
                             :id="'filter_'+filter.field"
                             @change="filterData($event, filter.field, filter.type)"
+                            class="custom-select"
                         >
-                            <option>Select one</option>
+                            <option></option>
                             <option
                                 v-for="value in buildOptions(filter.field)"
                                 :key="value"
@@ -95,6 +97,7 @@
                         <select
                             v-model="sortTableSelect"
                             id="sort_table_select"
+                            class="custom-select"
                             @change="applySorting($event)"
                         >
                             <option
@@ -257,10 +260,10 @@ export default Vue.component("effector-genes-table", {
             let id = "#filter_" + FIELD.replace(/ /g, "");
             let inputField = document.querySelector(id);
 
-            if (TYPE != "dropdown") {
-                inputField.blur();
-                inputField.value = "";
-            }
+            //if (TYPE != "dropdown") {
+            inputField.blur();
+            inputField.value = "";
+            //}
 
             this.filtersIndex[FIELD]["search"].push(searchValue);
 
@@ -328,39 +331,20 @@ export default Vue.component("effector-genes-table", {
         },
         showAllFeatures(INDEX) {
             let checked = document.getElementById("show_all_features").checked;
-
-            /*if (checked == true) {
-                document
-                    .getElementsByClassName(
-                        "hide-all-feature-headers-wrapper"
-                    )[0]
-                    .classList.remove("hidden");
-
-                document
-                    .getElementsByClassName("hide-top-level-wrapper")[0]
-                    .classList.remove("hidden");
-            } else {
-                document
-                    .getElementsByClassName(
-                        "hide-all-feature-headers-wrapper"
-                    )[0]
-                    .classList.add("hidden");
-
-                document
-                    .getElementsByClassName("hide-top-level-wrapper")[0]
-                    .classList.add("hidden");
-            }*/
+            let topLevelChecked = document.getElementById("hide_top_level_rows")
+                .checked;
 
             let featureWrappers = document.querySelectorAll(
                 ".feature-content-wrapper"
             );
 
             featureWrappers.forEach(function (featureWrapper) {
-                if (checked == true) {
-                    featureWrapper.classList.remove("hidden");
-                } else {
-                    featureWrapper.classList.add("hidden");
-                }
+                checked == true
+                    ? featureWrapper.classList.remove("hidden")
+                    : featureWrapper.classList.add("hidden");
+                topLevelChecked == true
+                    ? featureWrapper.classList.add("open-all")
+                    : featureWrapper.classList.remove("open-all");
             });
         },
         hideAllFeatureHeaders() {
@@ -421,6 +405,16 @@ export default Vue.component("effector-genes-table", {
                             : topLevelItems[i].classList.remove("hidden");
                     }
                 }
+            });
+
+            let featureWrappers = document.querySelectorAll(
+                ".feature-content-wrapper"
+            );
+
+            featureWrappers.forEach(function (featureWrapper) {
+                checked == true
+                    ? featureWrapper.classList.add("open-all")
+                    : featureWrapper.classList.remove("open-all");
             });
         },
         showVisualizer(ITEM) {

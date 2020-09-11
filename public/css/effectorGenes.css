@@ -571,6 +571,15 @@
     font-weight: 400 !important;
 }
 
+.eglt-table-wrapper .filtering-ui-wrapper input, .eglt-table-wrapper .filtering-ui-wrapper select {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    height: 30px;
+    width: 175px;
+    font-size: 14px;
+    vertical-align: -2px !important;
+}
+
 .top-level-value {
     width: calc(100%);
 }
@@ -613,6 +622,10 @@
     margin-left: 15px;
     background-color: #fff;
     position: relative;
+}
+
+.feature-content-wrapper.open-all {
+    margin-left: 60px;
 }
 
 .feature-list .feature-name {
@@ -719,16 +732,18 @@ span.weight-blue {
 }
 
 .egl-table-ui-options input[type=checkbox] {
-    border: solid 1px #bbb;
-    border-radius: 5px;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
 }
 
 .egl-table-ui-options select {
     height: 25px;
     width: 175px;
-    font-size: 14px;
-    border: solid 1px #bbb;
-    border-radius: 5px;
+    font-size: 13px;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    vertical-align: 2px;
+    padding: 0 15px;
 }
 
 .show-all-features-wrapper, .hide-all-feature-headers-wrapper, .hide-top-level-wrapper, .sort-table-wrapper {
