@@ -102,3 +102,7 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
     }
     return data;
 }
+
+export function getAccessToken() {
+    return "?t=" + cookie;
+}
