@@ -26,8 +26,10 @@ export default new Vuex.Store({
         category: "Not in GWAS region",
         stage2Category: null,
         geneAssociationsData: [],
+        priorVariance: 0.0462,
         // hasLofTee: false,
-        lofTeeData: []
+
+
     },
 
     mutations: {
@@ -53,9 +55,7 @@ export default new Vuex.Store({
         setGeneAssociationsData(state, geneAssociationsData) {
             state.geneAssociationsData = geneAssociationsData;
         },
-        setLofTeeData(state, lofTeeData) {
-            state.lofTeeData = lofTeeData;
-        }
+
 
     },
 
@@ -85,10 +85,7 @@ export default new Vuex.Store({
             }
         },
 
-        lofTeeData(state) {
-            let data = state.lofTeeData;
-            return data;
-        }
+
 
 
     },

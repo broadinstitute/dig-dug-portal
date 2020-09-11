@@ -18,7 +18,7 @@
                         Prior Variance
                         <a
                             class="edit-btn"
-                            @click="$parent.showHideElement('priorVariance','prior_variance_input')"
+                            @click="$parent.showHideElement('priorVarianceHolder','prior_variance_input')"
                         >Enter Prior Variance</a>
                     </div>
                     <div class="col-md-8 gene-page-header-body">
@@ -34,6 +34,16 @@
                                     v-if="$parent.symbolName.toLowerCase() !== $store.state.geneName.toLowerCase()"
                                 >({{$store.state.geneName}})</span>
                             </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 gene-page-header-body">
+                        <div id="priorVarianceHolder" class="gene-page-header-search-holder hidden">
+                            <input
+                                v-model="$store.state.priorVariance"
+                                type="text"
+                                class="form-control input-default"
+                                placeholder="Prior Variance"
+                            />
                         </div>
                     </div>
                 </div>
@@ -80,7 +90,7 @@
                             >
                                 <posterior-probability-plot
                                     :geneAssociationsData="$parent.geneAssociations"
-                                    :priorVariance="0.0462"
+                                    :priorVariance="$store.state.priorVariance"
                                     :isDichotomous="true"
                                 ></posterior-probability-plot>
                             </div>
