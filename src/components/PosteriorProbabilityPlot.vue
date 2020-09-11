@@ -1,7 +1,7 @@
 <template>
     <div>
         <h6>Posterior Probablity vs Prior</h6>
-        <div id="visualisation" width="1000" height="1000" />
+        <div id="visualisation" width="800" height="800" />
     </div>
 </template>
 
@@ -43,8 +43,8 @@ export default Vue.component("posterior-probability-plot", {
         },
         generateChart() {
             var margin = { top: 50, right: 50, bottom: 50, left: 50 },
-                width = 600 - margin.left - margin.right,
-                height = 600 - margin.top - margin.bottom;
+                width = 400 - margin.left - margin.right,
+                height = 400 - margin.top - margin.bottom;
 
             var svg = d3
                 .select("#visualisation")

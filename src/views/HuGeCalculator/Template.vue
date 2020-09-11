@@ -14,7 +14,13 @@
                             @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
                         >Search gene</a>
                     </div>
-
+                    <div class="col-md-4 gene-page-header-title">
+                        Prior Variance
+                        <a
+                            class="edit-btn"
+                            @click="$parent.showHideElement('priorVariance','prior_variance_input')"
+                        >Enter Prior Variance</a>
+                    </div>
                     <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <gene-selectpicker
@@ -79,11 +85,17 @@
                                 ></posterior-probability-plot>
                             </div>
                         </div>
+                        <div class="col-xs-6 col-md-4">
+                            <div
+                                v-if="$parent.geneAssociations"
+                                class="card"
+                                style="width:95%; border: 0"
+                            >
+                                <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div v-if="$parent.geneAssociations" class="card" style="width:95%; border: 0">
-                <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
             </div>
 
             <!-- <div v-if="$parent.geneAssociations">

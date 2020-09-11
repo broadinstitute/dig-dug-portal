@@ -151,20 +151,8 @@ new Vue({
                 let data = this.$store.state.geneAssociations.data;
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == trait) {
-                        // if (data[i].pValue <= 0.0000025) {
-                        //     //if Exome wide significant
-                        //     this.$store.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
-                        // }
-                        // data[i].masks.forEach(r => {
-                        //     if (r.mask == "LofTee") {
-                        //         this.$store.commit("setLofTeeData", [r]);
-                        //     }
-                        // })
-                        // this.$store.commit('setGeneAssociationsData', data[i])
                         return data[i];
                     }
-
-
                 }
             }
 
@@ -186,6 +174,24 @@ new Vue({
                     }
                 }
                 return lofteeData;
+            }
+        },
+
+        //still needs to be fixed
+        category() {
+            let trait = "T2D";
+            if (!!this.$store.state.geneAssociations.data.length) {
+                let data = this.$store.state.geneAssociations.data;
+                let category = [];
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        if (data[i].pValue <= 0.0000025) {
+                            //if Exome wide significant
+                            //this.$store.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+                        }
+                    }
+                }
+                return category;
             }
         }
     },
