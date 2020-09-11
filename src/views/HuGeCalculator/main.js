@@ -210,6 +210,12 @@ new Vue({
 
         },
 
+        // geneAssociations(gene) {
+        //     // this.hideElement("variantSearchHolder");
+        //     this.$store.dispatch("queryGeneName", gene);
+
+        // },
+
 
     }
 }).$mount("#app");

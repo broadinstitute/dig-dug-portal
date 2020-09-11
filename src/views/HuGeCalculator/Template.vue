@@ -58,6 +58,9 @@
                                 <h4
                                     v-if="$store.state.effectorGeneData.category"
                                 >{{$store.state.effectorGeneData.category}}</h4>
+                                <div v-if="$parent.category">
+                                    <h4 v-if="$parent.category.length >1">{{$parent.category}}</h4>
+                                </div>
 
                                 <div
                                     v-if="$store.state.effectorGeneData.genetic"
@@ -101,7 +104,10 @@
                                 class="card"
                                 style="width:95%; border: 0"
                             >
-                                <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
+                                <forest-plot
+                                    v-if="$parent.geneAssociationsLoftee.length >0"
+                                    :data="$parent.geneAssociationsLoftee"
+                                ></forest-plot>
                             </div>
                         </div>
                     </div>
