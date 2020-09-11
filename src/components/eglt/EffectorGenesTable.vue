@@ -260,12 +260,21 @@ export default Vue.component("effector-genes-table", {
             let id = "#filter_" + FIELD.replace(/ /g, "");
             let inputField = document.querySelector(id);
 
-            //if (TYPE != "dropdown") {
             inputField.blur();
             inputField.value = "";
-            //}
 
-            this.filtersIndex[FIELD]["search"].push(searchValue);
+            if (TYPE == "search") {
+                let searchTerms = searchValue.split(",");
+                searchTerms.map((searchTerm) => {
+                    this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
+                });
+            } else if (TYPE == "search_gt" || TYPE == "search_lt") {
+                this.filtersIndex[FIELD]["search"] = [searchValue];
+            } else {
+                this.filtersIndex[FIELD]["search"].push(searchValue);
+            }
+
+            console.log(this.filtersIndex);
 
             this.applyFilters();
         },
