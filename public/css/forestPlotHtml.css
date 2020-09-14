@@ -1,0 +1,70 @@
+.forest-plot-html-wrapper {
+    margin: 30px 40px;
+    padding-bottom: 10px;
+    border: solid 1px #bbb;
+    position: relative;
+}
+
+.ci-start-min, .ci-end-max, .beta-0 {
+    font-size: 14px;
+    position: absolute;
+    top: -20px;
+
+}
+
+.beta-0 {
+    height: calc(100% + 20px);
+    border-left: dashed 2px #ddd;
+}
+
+.ci-start-min {
+    left: 0;
+}
+
+.ci-end-max {
+    right: 0;
+}
+
+.forest-plot-html-row {
+    position: relative;
+    width: 100%;
+    height: 20px;
+}
+
+.forest-plot-html-item {
+    position: absolute;
+    border-top: solid 1px #666;
+    margin-top: 15px;
+}
+
+.forest-plot-html-row .beta-box {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #bbbbbb;
+    top: 9px;
+}
+
+.forest-plot-html-row .beta-box.p-significant {
+    background-color: #ff0000;
+}
+
+.forest-plot-html-row .beta-box.p-insignificant {
+    background-color: #ff9999;
+}
+
+.forest-plot-html-item .phenotype-name {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 13px;
+    top: -12px;
+}
+
+.forest-plot-html-item .phenotype-name.left {
+    right: calc(100% + 5px);
+}
+
+.forest-plot-html-item .phenotype-name.right {
+    left: calc(100% + 5px);
+}
+
