@@ -7,7 +7,7 @@ import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 import idCounter from "@/utils/idCounter";
 import LocusZoom from "locuszoom";
-import {_LZBioIndexSource} from "@/utils/lz/lzPanels"
+import { _LZBioIndexSource, LZAssociationsPanel } from "@/utils/lz/lzPanels"
 
 const BASE_PANEL_OPTIONS = {
     height: 240,
@@ -69,7 +69,7 @@ class LZPanel {
     }
 
 }
-
+/*
 class LZAssociationsPanel extends LZPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
         super(
@@ -119,7 +119,7 @@ class LZAssociationsPanel extends LZPanel {
         )
     }
 }
-
+*/
 export default Vue.component("lz-associations-panel", {
     props: {
         phenotype: {
@@ -159,12 +159,15 @@ export default Vue.component("lz-associations-panel", {
             const finishHandler = typeof this.value !== 'undefined' ?
                 result => this.$emit('input', result.data) : this.finishHandler;
 
+            // TODO!!!: This is ridiculous and comes from using the filter-context. Fix this. Put slot somwhere nice?
             this.id = this.$parent.addPanelAndDataSource(
                 new LZAssociationsPanel(
                     this.phenotype,
-                    finishHandler,
-                    this.resolveHandler,
-                    this.errHandler,
+                    {
+                        finishHandler,
+                        resolveHandler: this.resolveHandler,
+                        errHandler: this.errHandler 
+                    },
                     this.value,
                 )
             )

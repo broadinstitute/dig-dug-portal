@@ -50,7 +50,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import { filterFromPredicates, predicateFromSpec } from "../utils/filterHelpers"
+import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers"
 
 const EventListener = {
     /*
@@ -81,7 +81,7 @@ const EventListener = {
 }
 
 export default Vue.component("filter-widget", {
-    props: ["value", "inclusive"],
+    props: ["value", "inclusive", "strictCase", "looseMatch"],
     components: {
         EventListener,
     },
@@ -94,7 +94,7 @@ export default Vue.component("filter-widget", {
     computed: {
 
         filterFunction() {
-            const predicates = this.filterList.map(predicateFromSpec);
+            const predicates = this.filterList.map(obj => predicateFromSpec({...obj}, { strictCase: this.strictCase, notStrict: this.looseMatch }));
             return filterFromPredicates(predicates, !!this.inclusive);
         }
 

@@ -1,8 +1,9 @@
 <template>
-    <div>
-        <div :id="`lz_${salt}`"></div>
+    <div :id="`lz_${salt}`">
+        <filterable-wrapper @change="applyFilter"><div></div></filterable-wrapper>
         <slot v-if="locuszoommounted"></slot>
     </div>
+
 </template>
 
 <script>
@@ -13,12 +14,13 @@ import "locuszoom/dist/locuszoom.css"
 import intervalTracks from 'locuszoom/esm/ext/lz-intervals-track';
 import toolbar_addons from 'locuszoom/esm/ext/lz-widget-addons';
 
-import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 import LZDataSources from "@/utils/lz/lzDataSources";
-
-import idCounter from "@/utils/idCounter"
+import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPanel, LZPhewasPanel } from "@/utils/lz/lzPanels";
 
 import jsonQuery from "json-query";
+import idCounter from "@/utils/idCounter";
+import FilterableWrapper from "../../views/Debug/FilterContext/FilterableWrapper.vue"
+import { decodeNamespace } from "@/utils/filterHelpers"
 
 LocusZoom.use(intervalTracks);
 LocusZoom.use(toolbar_addons);
@@ -35,7 +37,6 @@ export default Vue.component("locuszoom", {
     data() {
         return {
             locuszoommounted: false,
-            yIndex: 0,
             salt: Math.floor(Math.random() * 10000).toString()
         }
     },
@@ -193,6 +194,8 @@ export default Vue.component("locuszoom", {
         },
         // TODO: Refactor to use the filter function *directly as a function*
         applyFilter(filter) {
+            console.log('filter change in locuszoom')
+
             // TODO: revisit, is there a faster way?
             // Auxiliary method within our json query for data layers in the LocusZoom plot
             // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
@@ -205,9 +208,13 @@ export default Vue.component("locuszoom", {
  
             data_layers.forEach(data_layer => {
 
-                const target = /*filter.target ||*/ data_layer.parent.id
-                const filterTargetNames = Array.isArray(filter.fields) ? filter.fields.map(field => `${target}_src:${field}`) : [`${target}_src:${filter.fields}`];
-                
+                const target = /*filter.target ||*/ data_layer.parent.id;
+                const namespaceTag = `${target}_src`;
+
+                // const filterTargetNames = Array.isArray(filter.fields) ? 
+                //       filter.fields.map(field => `${namespaceTag}:${field}`) 
+                //     : [`${namespaceTag}:${filter.fields}`];
+                /*
                 if (filterTargetNames.every(fieldTarget => data_layer.layout.fields.includes(fieldTarget))) {
 
                     if (filter.value != '') {
@@ -222,6 +229,18 @@ export default Vue.component("locuszoom", {
                     }
 
                 } // no change in filter for data layers that don't match on the value
+                */
+               
+                // NEW MISSION: all can layers get the same function with no loss of information or intent?
+                // The reason is because the filter function doesn't report what it filters on ahead of time
+                // If we're being agnostic to how the filter function is built whatsoever then this will be impossible to hurdle
+                // So we should charitably assume certain conventions, or otherwise force those conventions, to make the filter function work
+                // An example would be making the sure properties are properly cased, and remove prefixes and other component-specific signifiers
+                data_layer.setFilter(obj => {
+                    let regularObject = decodeNamespace(obj, { prefix: `${namespaceTag}:` });
+                    return filter(regularObject);
+                });
+
 
             });
 

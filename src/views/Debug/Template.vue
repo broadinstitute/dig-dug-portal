@@ -4,7 +4,11 @@
         <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
 
         <!-- FilterWidget -->
-        <filter-widget v-model="$parent.filterFunction" :inclusive="$parent.inclusive">
+        <filter-widget 
+            v-model="$parent.filterFunction" 
+            :inclusive="$parent.inclusive" 
+            :strictCase="false" 
+            :looseMatch="false">
 
             <filter-pvalue-control 
                 :field="'pValue'">
@@ -26,11 +30,20 @@
         <filter-context v-model="$parent.filterFunction">
             <!-- Div is dummy to fit components in slot -->
             <div>
+                <locuszoom
+                    ref="locuszoom"
+                    :chr="$parent.chr"
+                    :start="$parent.start"
+                    :end="$parent.end"
+                    :refSeq="true">
+                    <lz-associations-panel
+                        :phenotype="$parent.phenotypes[0].name"
+                    ></lz-associations-panel>
+                </locuszoom>
                 <associations-table
                     :associations="$parent.associations"
                     :phenotypes="$parent.phenotypes"
                 ></associations-table>
-                <filter-user></filter-user>
             </div>
         </filter-context>
         

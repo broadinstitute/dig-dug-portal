@@ -1,3 +1,5 @@
+// TODO: refactor into LocusZoom Panels
+
 import LocusZoom from "locuszoom";
 import {BaseAdapter} from "locuszoom/esm/data/adapters"
 
@@ -55,6 +57,23 @@ export class LZAssociationsPanel {
                     label: 'log10 log_pvalue'
                 }
             },
+            data_layers: [
+                // this works
+                LocusZoom.Layouts.merge(
+                    {
+                        y_axis: {
+                            axis: 1,
+                            field: '{{namespace[assoc]}}log_pvalue|log10', // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                            // floor: 0,
+                            upper_buffer: 0.10,
+                            // min_extent: [0, 10],
+                        }
+                    },
+                    LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }),
+                ),
+                LocusZoom.Layouts.get('data_layer', 'recomb_rate', { unnamespaced: true }),
+                LocusZoom.Layouts.get('data_layer', 'significance', { unnamespaced: true })
+            ]
         };
         this.handlers = {
             finishHandler,
@@ -93,32 +112,6 @@ export class LZAssociationsPanel {
             givingDataSourceName: this.datasource_namespace_symbol_for_panel,
             withDataSourceReader: this.bioIndexToLZReader,
         }
-    }
-
-    get dataLayers() {
-        // I had to find these data_layers out from doing LocusZoom.Layouts.get('panel', 'intervals') <= LocusZoom.Layouts.get('panel', this.panel_layout_type)
-
-        // need to find a better way of editing data layers that doesn't require:
-        // - having to call all of them, because overriding one overrides them all
-        // - ditto with extending fields
-        // the refactoring will probably have to occur conceptually, didn't think i'd have to be doing this
-        return [
-            // this works
-            LocusZoom.Layouts.merge(
-                {
-                    y_axis: {
-                        axis: 1,
-                        field: '{{namespace[assoc]}}log_pvalue|log10', // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
-                        // floor: 0,
-                        upper_buffer: 0.10,
-                        // min_extent: [0, 10],
-                    }
-                },
-                LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }),
-            ),
-            LocusZoom.Layouts.get('data_layer', 'recomb_rate', { unnamespaced: true }),
-            LocusZoom.Layouts.get('data_layer', 'significance', { unnamespaced: true })
-        ]
     }
 
 }

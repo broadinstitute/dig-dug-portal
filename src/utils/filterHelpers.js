@@ -21,7 +21,7 @@ export function filterFromPredicates(predicates, inclusive=false) {
             } else {
                 // inclusive filter, equivalent to a series of logical ORs
                 // let by all values that pass true on any of the predicates, exclude those that don't
-                // inverts strategy to guilty until proven innocent so we set innocence to false before continuing
+                // inverts strategy to guilty until proven innocent so we set innocgit stence to false before continuing
                 innocence = false;
                 for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
                     innocence = predicates[predicateI](object);
@@ -33,18 +33,20 @@ export function filterFromPredicates(predicates, inclusive=false) {
     }
 }
 
-export function predicateFromSpec({ field, predicate, threshold }) {
-
-    // Specs for predicateFromSpec are objects satisfying properties { field, op, threshold } 
-    // where `op` is a string in the `operationMapping` dictionary defined within the predicateFromSpec function
-    // (these strings just look like typical primitive Javascript comparators, e.g. ===, <=, >=, <, > are all valid)
-    // TODO alternately `op` can be the method itself, but do that kind of thing sparingly?
-
-    // `match` is a function that checks the presence or absence of a field before applying an operation.
-    // The predicate itself should always return false when there is no match
+export function predicateFromSpec({ field, predicate, threshold }, { notStrict=false, strictCase=true }) {
     
-    // NOTE: the policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
-    return (datum) => !!datum[field] ? predicate(datum[field], threshold) : false;
+    // Specs for predicateFromSpec are objects satisfying properties { field, predicate, threshold } to return a function Object => Boolean, parameterized on a field
+    // NOTE: the default policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
+    // This can be modified in two ways:
+    //   * "notStrict": if it's important that all objects that the filter is applied to must have the property in question, then `notStrict` should be false. 
+    //      else if e.g. different components have slightly different properties such that a part of the filter applies to one component and not the other, 
+    //   * "strictCase": if the field has similar names but different casings, and we don't want it to fail a match (for instance `pvalue` and `pValue`), then this should be "false". else it is "true" and we take the field as-is.
+
+    return (datum) => {
+        let match = strictCase ? !!datum[field] : !!datum[field] || !!datum[field.toLowerCase()]; // TODO: other ways of doing matches?
+        return match ? predicate(datum[field], threshold) : notStrict;
+    }
+
 }
 
 
@@ -53,7 +55,7 @@ export function predicateFromSpec({ field, predicate, threshold }) {
 // These two *Namespace functions are used to handle prefixes an suffixes that different components might have in their application-specific representations of the data
 // They are used to...
 //
-// - Reproject the data while filtering it:
+// * Reproject the data while filtering it:
 //   this.namespacedData.filter(obj => {
 //        let regularObj = decodeNamespace(obj, { prefix: `<namespace>:` });  // note that we include the delimiter here, but it can be defined separately as well
 //        return this.filterFunction(regularObj); 
@@ -62,7 +64,7 @@ export function predicateFromSpec({ field, predicate, threshold }) {
 //   You would do the above if the namespace didn't apply to all of the component's properties, since running an encode afterwards (which applies to all of the component's properties) 
 //   would add noise to the object and likely break the component.
 //
-// - Pull back the data into a regular-form object, filter it, and push in the object with its namespaces restored:
+// * Pull back the data into a regular-form object, filter it, and push in the object with its namespaces restored:
 //   this.namespacedData
 //        .map(obj => decodeNamespace(obj, { prefix: `<namespace>:` }))
 //        .filter(this.filterFunction)

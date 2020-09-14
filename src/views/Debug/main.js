@@ -11,6 +11,8 @@ import FilterEnumeration from "./FilterWidget/FilterEnumeration.vue"
 import FilterGreaterThan from "./FilterWidget/FilterGreaterThan.vue"
 
 import AssociationsTable from "./AssociationsTable.vue"
+import LocusZoom from "@/components/lz/LocusZoom.vue"
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel.vue"
 
 import { query } from "@/utils/bioIndexUtils"
 
@@ -27,7 +29,9 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
 
-        AssociationsTable
+        AssociationsTable,
+        LocusZoom,
+        LocusZoomAssociationsPanel,
 
     },
     render(createElement, context) {
@@ -55,6 +59,9 @@ new Vue({
                 "group": "GLYCEMIC",
                 "dichotomous": 1
             }],
+            chr: 9,
+            start: 21940000,
+            end: 22190000
 
         }
     },

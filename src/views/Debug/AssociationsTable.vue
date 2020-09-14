@@ -71,7 +71,6 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -82,7 +81,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
-import { decodeNamespace } from "./utils/filterHelpers" 
+import { decodeNamespace } from "@/utils/filterHelpers" 
 
 export default Vue.component("associations-table", {
     props: ["associations", "phenotypes"],
@@ -211,9 +210,10 @@ export default Vue.component("associations-table", {
             let dataRows = this.groupedAssociations;
             return this.groupedAssociations.filter(association => {
                 // decode the namespace of the association to allow the filter function (which shouldn't know about component-specific namespaces) to access all of the association's properties
-                let regularAssociation = decodeNamespace(association, { prefix: `${association.phenotype}:` });
+                const regularAssociation = decodeNamespace(association, { prefix: `${association.phenotype}:` });
                 // now, apply the filter function to the decoded object
                 // NOTE: the decoded object corresponds directly and uniquely to the original object, so any predicate applying to the deocded version should apply to the original
+                // This means that we don't have to reproject the regularAssociation into the original's namespace before returning the tableData
                 return this.filterFunction(regularAssociation);
             });
         },
@@ -222,6 +222,7 @@ export default Vue.component("associations-table", {
     methods: {
 
         applyFilter($event) {
+            // reassigning the filter function will trigger a recomputation of tableData
             this.filterFunction = $event;
         },
 
