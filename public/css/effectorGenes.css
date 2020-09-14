@@ -567,6 +567,20 @@
     margin-left: 0 !important;
 }
 
+.EGLT-table small, .EGLT-table .small {
+    font-size: 100% !important;
+    font-weight: 400 !important;
+}
+
+.eglt-table-wrapper .filtering-ui-wrapper input, .eglt-table-wrapper .filtering-ui-wrapper select {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    height: 30px;
+    width: 175px;
+    font-size: 14px;
+    vertical-align: -2px !important;
+}
+
 .top-level-value {
     width: calc(100%);
 }
@@ -609,6 +623,10 @@
     margin-left: 15px;
     background-color: #fff;
     position: relative;
+}
+
+.feature-content-wrapper.open-all {
+    margin-left: 60px;
 }
 
 .feature-list .feature-name {
@@ -702,6 +720,51 @@ span.weight-blue {
     background-color: #00b7ff50;
     padding: 0 5px;
     margin: 0 5px;
+}
+
+.egl-table-ui-options {
+    text-align: right;
+    font-size: 14px;
+}
+
+.egl-table-ui-options label {
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
+.egl-table-ui-options input[type=checkbox] {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+}
+
+.egl-table-ui-options select {
+    height: 25px;
+    width: 175px;
+    font-size: 13px;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    vertical-align: 2px;
+    padding: 0 15px;
+}
+
+.show-all-features-wrapper, .hide-all-feature-headers-wrapper, .hide-top-level-wrapper, .sort-table-wrapper {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.top-prime-column {
+    position: absolute;
+    z-index: 10;
+    width: auto !important;
+    background-color: #000;
+    margin-left: -20px;
+    padding: 3px 5px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.top-prime-column a {
+    color: #6bcdfa !important;
 }
 
 /* for Miriam */
@@ -896,7 +959,7 @@ span.weight-blue {
 
 .EGLT-table.richards .feature-headers.variants_features,
 .EGLT-table.richards .feature-headers.gene_features {
-    display: table-row !important;
+    display: table-row;
 }
 
 .EGLT-table.richards .feature-content.variants_features,
@@ -1034,7 +1097,7 @@ span.weight-blue {
 
 .EGLT-table.richards100 .feature-headers.variants_features,
 .EGLT-table.richards100 .feature-headers.gene_features {
-    display: table-row !important;
+    display: table-row ;
 }
 
 .EGLT-table.richards100 .feature-content.variants_features,
