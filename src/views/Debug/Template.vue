@@ -4,43 +4,49 @@
         <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
 
         <!-- FilterWidget -->
-        <filter-widget v-model="$parent.filterFunction" :inclusive="$parent.inclusive">
-            <filter-widget-control
-                :field="'pValue'"
-                :op="'<='"
-                :threshold="'0.01'"
-                :multiple="false">
-                <!-- e.g. Documentation component can be used here to control and standardize labels -->
-                P-Value (&le;)
-            </filter-widget-control>
-            <filter-widget-control
-                :field="'beta'"
-                :op="'>='"
-                :threshold="'3'"
-                :multiple="false">
-                <!-- e.g. Documentation component can be used here to control and standardize labels -->
-            </filter-widget-control>
-            <filter-widget-control
+        <!-- "looseMatch=true" means objects that don't have all the properties will pass through by default
+             On the Region page this is necessary
+        -->
+        <filter-widget
+            v-model="$parent.filterFunction"
+            :inclusive="$parent.inclusive"
+            :looseMatch="true">
+
+            <filter-pvalue-control
+                :field="'pValue'">
+            </filter-pvalue-control>
+
+            <filter-effect-direction-control
+                :field="'beta'">
+            </filter-effect-direction-control>
+
+            <filter-enumeration-control
                 :field="'test'"
-                :op="'==='"
-                :options="['no matches', 'some matches']"
-                :multiple="true">
-                Test String Match
-            </filter-widget-control>
+                :options="$parent.matches">
+            </filter-enumeration-control>
+
         </filter-widget>
+
 
         <!-- FilterContext is required in the page and must wrap around components with a filterable-wrapper -->
         <filter-context v-model="$parent.filterFunction">
-            <filter-user
-                :initialData="[
-                    { pValue: 0.01, beta: 3 },
-                    { pValue: 0.001, beta: 3 },
-                    { pValue: 0.2, beta: 3 },
-                    { pValue: 0.01, beta: 4 },
-                    { pValue: 0.01, beta:2 },
-                    { test: 'no matches' }
-                ]">
-            </filter-user>
+            <!-- Div is dummy to fit components in slot -->
+            <div>
+                <locuszoom
+                    ref="locuszoom"
+                    :chr="$parent.chr"
+                    :start="$parent.start"
+                    :end="$parent.end"
+                    :refSeq="true">
+                    <lz-associations-panel
+                        :phenotype="$parent.phenotypes[0].name"
+                    ></lz-associations-panel>
+                </locuszoom>
+                <associations-table
+                    :associations="$parent.associations"
+                    :phenotypes="$parent.phenotypes"
+                ></associations-table>
+            </div>
         </filter-context>
 
 

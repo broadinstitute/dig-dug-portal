@@ -24,12 +24,12 @@
                     <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
                     <b-badge
                         v-for="(filter, idx) in filterList"
-                        :key="filter.field+filter.op+filter.threshold+idx"
+                        :key="filter.field+filter.predicate+filter.threshold+idx"
                         pill
-                        variant="danger"
+                        :variant="filter.pill.color"
                         @click="unsetFilter(filter, idx)"
                         class="btn">
-                        {{filter.field}} {{filter.op}} {{filter.threshold}}
+                        {{filter.pill.label(filter)}}
                         <span class="remove">X</span>
                     </b-badge>
 
@@ -50,38 +50,38 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import { filterFromPredicates, predicateFromSpec, looseMatch } from "../utils/filterHelpers"
+import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers"
 
 const EventListener = {
     /*
-     * 
+     *
      * Dummy component that we use to help pass out and dispatch events for children inside its slot.
      * This way we don't have to bind a listener to all of its children, and keep all the bindings inside this component.
      * (This will be useful in other contexts like the Results Page later)
-     * 
+     *
      * It's used by child components to dispatch an event of whatever type,  using the function `this.$parent.$emit(<event>)`
-     * 
+     *
      * If you want someone to blame for this, it's the Vue devs, for not allowing v-on with slots: https://github.com/vuejs/vue/issues/4781
      * And we're doing this as our response: https://github.com/vuejs/vue/issues/4781#issuecomment-501217642
-     * 
+     *
      * In FilterWidget we'll use 'change' as the event share between EventListener and the child components.
-     * 
+     *
      */
     render(createElement) {
-        
+
         // Using Vue's createElement API with render functions to eliminate the need to define const EventListener in a separate component file.
-        // Without using Vue's runtime compiler (bloat), we can't define scoped slots directly in it, so instead we use an undocumented internal 
+        // Without using Vue's runtime compiler (bloat), we can't define scoped slots directly in it, so instead we use an undocumented internal
         // feature – of course – to give the element a default slot.
         // So don't touch this, it works great
         // https://stackoverflow.com/a/58859267
 
         return createElement("div", this.$scopedSlots.default());
     }
-    
+
 }
 
 export default Vue.component("filter-widget", {
-    props: ["value", "inclusive", "matchOn"],
+    props: ["value", "inclusive", "strictCase", "looseMatch"],
     components: {
         EventListener,
     },
@@ -94,12 +94,8 @@ export default Vue.component("filter-widget", {
     computed: {
 
         filterFunction() {
-            let predicateConversion = predicateFromSpec;
-            // TODO: matchOn to give either (A) logic or (B) configuration for dealing with caps, suffixes, prefixes etc.
-            if (!!this.matchOn) {
-                predicateConversion = filterSpec => predicateFromSpec(filterSpec, { match: (obj, field) => looseMatch(obj, field, this.matchOn) });
-            }
-            const predicates = this.filterList.map(predicateConversion);
+            console.log(this.strictCase, this.looseMatch)
+            const predicates = this.filterList.map(obj => predicateFromSpec({...obj}, { strictCase: this.strictCase, notStrictMatch: this.looseMatch }));
             return filterFromPredicates(predicates, !!this.inclusive);
         }
 
@@ -109,7 +105,7 @@ export default Vue.component("filter-widget", {
 
         filterControlChange(threshold, filterDefinition) {
             if (threshold !== null && !this.filterList.map(filter => filter.field).includes(filterDefinition.field)) {
-                
+
                 this.filterList.push({
                     ...filterDefinition,
                     threshold,

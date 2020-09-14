@@ -1,3 +1,5 @@
+// TODO: refactor into LocusZoom Panels
+
 import LocusZoom from "locuszoom";
 import {BaseAdapter} from "locuszoom/esm/data/adapters"
 
@@ -37,7 +39,7 @@ export class LZAssociationsPanel {
             start: association.position,
             end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
             variant: association.varId,
             ref_allele: association.varId,
@@ -64,11 +66,16 @@ export class LZAssociationsPanel {
                     {
                         y_axis: {
                             axis: 1,
-                            field: '{{namespace[assoc]}}log_pvalue|log10', // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                            field: `{{namespace[${this.datasource_type}]}}log_pvalue|log10`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
                             // floor: 0,
                             upper_buffer: 0.10,
                             // min_extent: [0, 10],
-                        }
+                        },
+                        fields: [
+                            `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            // we need to call out the fields directly since merge algorithm doesn't combine arrays
+                            ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields,
+                        ],
                     },
                     LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }),
                 ),
@@ -148,7 +155,7 @@ export class LZAnnotationIntervalsPanel {
                         chr: interval.chromosome,
                         start: interval.start,
                         end: interval.end,
-                        pvalue: scoring[key].minP,
+                        pValue: scoring[key].minP,
                         fold: scoring[key].maxFold,
                         state_id: `${interval.tissueId}`,
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
@@ -173,9 +180,9 @@ export class LZAnnotationIntervalsPanel {
                 text: `${annotation} ${method ? method : ''}`
             },
             fields: [
-                `${this.datasource_namespace_symbol_for_panel}:pvalue`,
-                `${this.datasource_namespace_symbol_for_panel}:fold`,
-                ...LocusZoom.Layouts.get('data_layer', 'intervals', { namespace: this.datasource_namespace_symbol_for_panel }).fields
+                `{{namespace[${this.datasource_type}]}}pValue`,
+                `{{namespace[${this.datasource_type}]}}fold`,
+                ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
             ]
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
@@ -212,28 +219,6 @@ export class LZAnnotationIntervalsPanel {
         }
     }
 
-    get dataLayers() {
-        // I had to find these data_layers out from doing LocusZoom.Layouts.get('panel', 'intervals') <= LocusZoom.Layouts.get('panel', this.panel_layout_type)
-
-        // need to find a better way of editing data layers that doesn't require:
-        // - having to call all of them, because overriding one overrides them all
-        // - ditto with extending fields
-        // the refactoring will probably have to occur conceptually, didn't think i'd have to be doing this
-        return [
-            // this works
-            LocusZoom.Layouts.merge(
-                {
-                    fields: [
-                        '{{namespace[intervals]}}pvalue',
-                        '{{namespace[intervals]}}fold',
-                        ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
-                    ]
-                },
-                LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true })
-            ),
-        ]
-    }
-
 }
 export class LZCredibleVariantsPanel {
     constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }, initialData) {
@@ -255,7 +240,7 @@ export class LZCredibleVariantsPanel {
             start: association.position,
             end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
             posterior_prob: association.posteriorProbability,
             contrib_fraction: 0.5,
@@ -380,7 +365,7 @@ export class LZComputedCredibleVariantsPanel {
             start: association.position,
             end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
             posterior_prob: association.posteriorProbability,
             log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),

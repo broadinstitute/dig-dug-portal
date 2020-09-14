@@ -2,12 +2,12 @@
     <b-col class="filter-col-sm">
         <div class="label">
             <slot>
-                <!-- P-Value (&le;) -->
-                {{field}} ({{(op)}})
+                <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
+                {{field}}
             </slot>
         </div>
-        <!-- 
-            Go between a select component or a simple text input based on whether or not we have options 
+        <!--
+            Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
         <b-form-select
@@ -20,7 +20,7 @@
             v-else
             v-model="filterThreshold"
             @keydown.enter="updateFilter(filterThreshold)"
-        ></b-form-input> 
+        ></b-form-input>
 
     </b-col>
 </template>
@@ -37,15 +37,16 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("filter-widget-control", {
-    props: ["value", "field", "op", "threshold", "options", "multiple"],
+    // TODO: Checker prop to prevent submission of invalid input? (including blank input)
+    props: ["value", "field", "predicate", "default", "options", "multiple", "color", "pillFormatter"],
     data() {
         return {
             filterDefinition: {
                 field: this.field,
-                op: this.op,
+                predicate: this.predicate,
                 multiple: !!this.multiple, // if undefined, default to false
             },
-            filterThreshold: this.threshold, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
     created() {
@@ -57,10 +58,11 @@ export default Vue.component("filter-widget-control", {
     methods: {
         updateFilter(newThreshold) {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
+            // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                this.$parent.$emit('change', newThreshold, this.filterDefinition);
+                // double parent since we're only using this component as a template inside of another component
+                this.$parent.$parent.$emit('change', newThreshold, { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } });
             }
-            // TODO: always clear on update?
             this.filterThreshold = null;
         }
     }

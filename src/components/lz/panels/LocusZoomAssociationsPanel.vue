@@ -7,7 +7,7 @@ import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 import idCounter from "@/utils/idCounter";
 import LocusZoom from "locuszoom";
-import {_LZBioIndexSource} from "@/utils/lz/lzPanels"
+import { _LZBioIndexSource, LZAssociationsPanel } from "@/utils/lz/lzPanels"
 
 const BASE_PANEL_OPTIONS = {
     height: 240,
@@ -76,7 +76,7 @@ class LZPanel {
     }
 
 }
-
+/*
 class LZAssociationsPanel extends LZPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
         super(
@@ -126,7 +126,7 @@ class LZAssociationsPanel extends LZPanel {
         )
     }
 }
-
+*/
 export default Vue.component("lz-associations-panel", {
     props: {
         phenotype: {
@@ -172,6 +172,18 @@ export default Vue.component("lz-associations-panel", {
                 this.resolveHandler,
                 this.errHandler,
             );
+
+            // this.id = this.$parent.addPanelAndDataSource(
+            //     new LZAssociationsPanel(
+            //         this.phenotype,
+            //         {
+            //             finishHandler,
+            //             resolveHandler: this.resolveHandler,
+            //             errHandler: this.errHandler
+            //         },
+            //         this.value,
+            //     )
+            // )
 
         }
     },
