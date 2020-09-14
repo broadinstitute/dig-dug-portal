@@ -12,6 +12,13 @@ import {_LZBioIndexSource} from "@/utils/lz/lzPanels"
 const BASE_PANEL_OPTIONS = {
     height: 240,
 }
+
+// TODO: refactor lzPanels into their respective Vue components
+// PROBLEM: should not have two ways of adding panels, just done.
+// Current way allows us to evade having to use components.
+// Would be better to stick to the way that uses components.
+// Unfortunately the two aren't equivalent because adding components programatically to another component eliminates reactivity.
+// This would be fixed by using the Composition API to add watchers programatically during the created phase of the object lifecycle, if necessary.
 class LZPanel {
 
     constructor(panel_layout_type, datasource_type, index, queryStringMaker, translator, locusZoomLayoutOptions, { finishHandler, resolveHandler, errHandler }, initialData) {
@@ -28,7 +35,7 @@ class LZPanel {
         this.queryStringMaker = queryStringMaker;
         this.translator = translator;
         this.locusZoomLayoutOptions = Object.assign(locusZoomLayoutOptions, { ...BASE_PANEL_OPTIONS, id: this.panel_id });
-        
+
         this.handlers = {
             finishHandler,
             resolveHandler,
@@ -73,10 +80,10 @@ class LZPanel {
 class LZAssociationsPanel extends LZPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
         super(
-            'association', 
-            'assoc', 
-            'associations', 
-            (chr, start, end) => `${phenotype},${chr}:${start}-${end}`, 
+            'association',
+            'assoc',
+            'associations',
+            (chr, start, end) => `${phenotype},${chr}:${start}-${end}`,
             associations => associations.map(association => ({
                 id: association.varId,
                 chr: association.chromosome,
@@ -153,21 +160,18 @@ export default Vue.component("lz-associations-panel", {
     },
     methods: {
         updatePanel() {
-
             // TODO: what *should* happen when this.finishHandler and this.value are both defined?
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
             const finishHandler = typeof this.value !== 'undefined' ?
                 result => this.$emit('input', result.data) : this.finishHandler;
 
-            this.id = this.$parent.addPanelAndDataSource(
-                new LZAssociationsPanel(
-                    this.phenotype,
-                    finishHandler,
-                    this.resolveHandler,
-                    this.errHandler,
-                    this.value,
-                )
-            )
+            this.id = this.$parent.addAssociationsPanel(
+                this.phenotype,
+                this.value,
+                finishHandler,
+                this.resolveHandler,
+                this.errHandler,
+            );
 
         }
     },

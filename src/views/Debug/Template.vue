@@ -31,13 +31,13 @@
 
         <!-- FilterContext is required in the page and must wrap around components with a filterable-wrapper -->
         <filter-context v-model="$parent.filterFunction">
-            <filter-user 
+            <filter-user
                 :initialData="[
-                    { pValue: 0.01, beta: 3 }, 
-                    { pValue: 0.001, beta: 3 }, 
-                    { pValue: 0.2, beta: 3 }, 
-                    { pValue: 0.01, beta: 4 }, 
-                    { pValue: 0.01, beta:2 }, 
+                    { pValue: 0.01, beta: 3 },
+                    { pValue: 0.001, beta: 3 },
+                    { pValue: 0.2, beta: 3 },
+                    { pValue: 0.01, beta: 4 },
+                    { pValue: 0.01, beta:2 },
                     { test: 'no matches' }
                 ]">
             </filter-user>

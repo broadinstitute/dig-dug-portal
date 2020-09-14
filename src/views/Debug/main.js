@@ -1,4 +1,6 @@
 import Vue from "vue";
+import * as d3 from "d3";
+
 import Template from "./Template.vue";
 
 import FilterUser from "./FilterUser.vue"

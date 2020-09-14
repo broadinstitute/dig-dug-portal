@@ -12,8 +12,6 @@ import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
-import IGV from "@/components/igv/IGV.vue";
-import IGVEvents, { IGV_LOCUSCHANGE } from "@/components/igv/IGVEvents";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
@@ -24,6 +22,7 @@ import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
+import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -31,8 +30,6 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
-
-import Formatters from "@/utils/formatters"
 
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
@@ -53,8 +50,6 @@ new Vue({
 
         PhenotypeSignalMixed,
 
-        IGV,
-
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
         PhenotypeSelectPicker,
@@ -67,19 +62,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("queryRegion");
-    },
-
-    mounted() {
-        IGVEvents.$on(IGV_LOCUSCHANGE, locus => {
-            const phenotype = this.$store.state.phenotype.name;
-            const region = Formatters.igvLocusFormatter(locus);
-            // I keep on forgetting this 'q'
-            this.$store.dispatch("credibleSets/query", {
-                q: `${phenotype},${region}`
-            });
-        });
-
-        // this.$children[0].$refs.locuszoom.addAssociationsPanelComponent('T2D')
     },
 
     render(createElement) {
@@ -106,17 +88,24 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        applyFilter(filterTemplate) {
-            // this.$children[0].$refs.locuszoom.applyFilter(this.makeFilterFunction(filterTemplate))
-            this.$children[0].$refs.locuszoom.applyFilter(filterTemplate)
+
+        applyFilter(filter) {
+            this.$children[0].$refs.locuszoom.applyFilter(filter)
         },
-        makeFilterFunction(filterTemplate) {
-            if (filterTemplate.value !== '') {
-                return vals => filterTemplate.op(vals, filterTemplate.value);
-            } else {
-                return item => true;
-            }
+        filterOnPValueAndFold(vals, filterValue) {
+            let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
+                const [preKey, fieldValue] = items;
+                const fieldKey = preKey.split(':')[1];  // remove the namespacing information from the key to get the field leftover
+                acc[fieldKey] = fieldValue;
+                return acc;
+            }, {});
+
+            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
+            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
+
+            return pValuePred && foldPred;
         },
+
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -124,6 +113,7 @@ new Vue({
                 this.$store.dispatch('credibleSets/query', { q: queryString });
             }
         },
+
         exploreExpanded() {
             this.$store.commit('setLocus', {
                 chr: this.$store.state.chr,
@@ -131,6 +121,11 @@ new Vue({
                 end: this.$store.state.end + 50000,
             });
             this.$store.dispatch('queryRegion');
+        },
+
+        // TODO: refactor this away in favor of v-model
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, data);
         },
 
         // LocusZoom has "Panels"
@@ -143,48 +138,20 @@ new Vue({
             );
             return newAssociationsPanelId;
         },
-        updateAssociationsTable(data) {
-            this.$store.commit(`associations/setResponse`, data);
-        },
-        // LocusZoom has "Panels"
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
-            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
-                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
-                    // TODO: callbacks for creating a new table column for credible sets might go here
-                }
-            )
+            if (credibleSetId !== 'computed') {
+                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId);
+            } else if (credibleSetId === 'computed') {
+                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
+                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(this.$store.state.phenotype.name);
+            }
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
         },
-        // TODO: refactor to closure for extra programmer points
-        // TODO: does the idea of using components handle this problem?
-        updateAssociationsPanel(phenotype) {
-            if (this.currentAssociationsPanel) {
-                this.$children[0].$refs.locuszoom.plot.removePanel(
-                    this.currentAssociationsPanel
-                );
-            }
-            this.currentAssociationsPanel = this.addAssociationsPanel({
-                phenotype
-            });
-        },
-        filterOnPValueAndFold(vals, filterValue) {
-            let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
-                const [preKey, fieldValue] = items;
-                const fieldKey = preKey.split(':')[1];  // remove the namespacing information from the key to get the field leftover
-                acc[fieldKey] = fieldValue;
-                return acc;
-            }, {});
 
-            let pValuePred = !!filterValue.pValue ? extractedItemVals.pvalue <= filterValue.pValue : true;  // these are case sensitive right now, with these being proper casing (should standardize)
-            let foldPred = !!filterValue.fold ? extractedItemVals.fold >= filterValue.fold : true;
-
-            return pValuePred && foldPred;
-        }
     },
 
     computed: {
@@ -256,24 +223,6 @@ new Vue({
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
 
-        // the associations in LZ format
-        lzAssociations() {
-            let data = this.$store.state.associations.data;
-            let threshold = 1000 / data.length;
-            let assocs = this.$store.state.associations.data
-                .filter(v => v.pValue < 1e-5 || Math.random() < threshold)
-                .map(v => {
-                    return {
-                        id: v.varId,
-                        variant: v.varId,
-                        position: v.position,
-                        log_pvalue: -Math.log10(v.pValue),
-                        ref_allele: v.reference
-                    };
-                });
-            return assocs;
-        },
-
         globalEnrichmentAnnotations() {
             // an array of annotations
             return sortUtils.uniqBy(this.$store.state.globalEnrichment.data, el =>
@@ -290,7 +239,7 @@ new Vue({
                     .filter(interval => !!interval.tissue)
                     .map(interval => interval.tissue)
                     // unique
-                    .filter(function (value, index, self) { 
+                    .filter(function (value, index, self) {
                         return self.indexOf(value) === index;
                     });
         },

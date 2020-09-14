@@ -4,6 +4,7 @@ import {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import merge from "lodash.merge";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
