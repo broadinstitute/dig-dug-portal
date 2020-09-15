@@ -66,46 +66,31 @@
             <b-row>
                 <div class="col-md-12 egl-table-ui-options">
                     <div class="show-all-features-wrapper">
-                        <label for="show_all_features">Show all feature rows:</label>
                         <input
                             type="checkbox"
                             v-model="showAllFeaturesChk"
                             id="show_all_features"
                             @change="showAllFeatures()"
                         />
+                        <label for="show_all_features">Show all feature rows</label>
                     </div>
                     <div class="hide-all-feature-headers-wrapper">
-                        <label for="hide_all_feature_headers">Hide feature headers:</label>
                         <input
                             type="checkbox"
                             v-model="hideAllFeatureHeadersChk"
                             id="hide_all_feature_headers"
                             @change="hideAllFeatureHeaders()"
                         />
+                        <label for="hide_all_feature_headers">Hide feature headers</label>
                     </div>
                     <div class="hide-top-level-wrapper">
-                        <label for="hide_top_level_rows">Hide top level rows:</label>
                         <input
                             type="checkbox"
                             v-model="hideTopLevelRowsChk"
                             id="hide_top_level_rows"
                             @change="hideTopLevelRows()"
                         />
-                    </div>
-                    <div class="sort-table-wrapper">
-                        <label for="sort_table_select">Sort table by:</label>
-                        <select
-                            v-model="sortTableSelect"
-                            id="sort_table_select"
-                            class="custom-select"
-                            @change="applySorting($event)"
-                        >
-                            <option
-                                v-for="(value,key) in config[dataset]['topLevelRender']"
-                                :key="key"
-                                :value="key"
-                            >{{value}}</option>
-                        </select>
+                        <label for="hide_top_level_rows">Hide top level rows</label>
                     </div>
                 </div>
             </b-row>
@@ -114,9 +99,11 @@
             <b-container fluid v-if="!!config && !!filteredData" class>
                 <b-row class="top-level-header">
                     <div
-                        v-for="name in config[dataset]['topLevelRender']"
-                        :class="'top-level-header-item ' + name"
-                        v-html="name"
+                        v-for="(value,key) in config[dataset]['topLevelRender']"
+                        :key="key"
+                        :class="'sortable top-level-header-item ' + value"
+                        v-html="value"
+                        @click="applySorting(key)"
                     ></div>
                     <div class="top-level-header-item">View</div>
                 </b-row>
@@ -185,6 +172,7 @@ export default Vue.component("effector-genes-table", {
             hideTopLevelRowsChk: null,
             hideAllFeatureHeadersChk: null,
             sortTableSelect: null,
+            sortDirection: "asc",
             /*igvBrowser: false,*/
         };
     },
@@ -242,17 +230,16 @@ export default Vue.component("effector-genes-table", {
                 .map((v) => v[field])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
-            return options;
+            return options.sort();
         },
-        applySorting(event) {
+        applySorting(key) {
             let filtered = this.filteredData;
-            let key = event.target.value;
-
+            let sortDirection = this.sortDirection == "asc" ? false : true;
+            this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
             let keyData = filtered[0][key];
-
             let isNumeric = typeof keyData != "number" ? false : true;
 
-            sortUtils.sortEGLTableData(filtered, key, isNumeric, true);
+            sortUtils.sortEGLTableData(filtered, key, isNumeric, sortDirection);
             this.$store.dispatch("filteredData", filtered);
         },
         filterData(EVENT, FIELD, TYPE) {
