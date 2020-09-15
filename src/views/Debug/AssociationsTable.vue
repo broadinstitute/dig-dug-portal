@@ -35,6 +35,9 @@
                 <template v-slot:cell(dbSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
                 </template>
+                <template v-slot:cell(consequence)="r">
+                    {{consequenceFormatter(r.item.consequence)}}
+                </template>
                 <template v-slot:cell(genes)="r">
                     <a
                         v-for="gene in r.item.nearest"
@@ -48,7 +51,7 @@
                     >{{r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
                     <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}:beta`]) : r.item[`${p.name}:beta`])}}</span>
                 </template>
-                <template v-slot:cell()>
+                <template v-slot:cell(phenotypes[0].name)>
                 </template>
             </b-table>
             <b-pagination
@@ -110,7 +113,6 @@ export default Vue.component("associations-table", {
                 {
                     key: "consequence",
                     label: "Consequence",
-                    formatter: Formatters.consequenceFormatter,
                 },
                 {
                     key: "genes",
@@ -133,7 +135,6 @@ export default Vue.component("associations-table", {
                     {
                         key: `${p.name}:pValue`,
                         label: `P-Value`,
-                        formatter: Formatters.pValueFormatter,
                         tdClass(x) {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
@@ -242,7 +243,9 @@ export default Vue.component("associations-table", {
         effectFormatter(effect) {
             return Formatters.effectFormatter(effect);
         },
-
+        consequenceFormatter(consequence) {
+            return Formatters.consequenceFormatter(consequence);
+        },
     }
 });
 </script>
