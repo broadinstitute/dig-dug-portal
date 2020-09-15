@@ -4,7 +4,7 @@
         :predicate="(string, selection) => string === selection"
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${filterDefinition.threshold}`"
         :options="uniqify(options)"
-        :color="'warning'"
+        :color="!!this.color ? this.color : '#ffc107'"
         :multiple="true">
         <slot>
             Match
@@ -17,7 +17,7 @@ import FilterWidgetControl from "./FilterWidgetControl"
 import { uniq, uniqBy } from "lodash";
 
 export default Vue.component('filter-unique-control', {
-    props: ['field', 'options'],
+    props: ['field', 'options', 'color'],
     components: {
         FilterWidgetControl,
     },

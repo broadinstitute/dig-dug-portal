@@ -3,7 +3,7 @@
         :field="field"
         :predicate="(pValue, pBound) => pValue <= pBound"
         :pillFormatter="filterDefinition => `${filterDefinition.field} <= ${filterDefinition.threshold}`"
-        :color="'warning'"
+        :color="!!this.color ? this.color : '#ffc107'"
         :multiple="false">
         <slot>
             P-Value (&le;)
@@ -14,7 +14,7 @@
 import Vue from "vue";
 import FilterWidgetControl from "./FilterWidgetControl"
 export default Vue.component('filter-pvalue-control', {
-    props: ['field'],
+    props: ['field', 'color'],
     components: {
         FilterWidgetControl,
     }

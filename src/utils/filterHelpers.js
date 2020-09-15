@@ -45,12 +45,18 @@ export function predicateFromSpec({ field, predicate, threshold }, { notStrictMa
     //   * "strictCase": if the field has similar names but different casings, and we don't want it to fail a match (for instance `pvalue` and `pValue`), then this should be "false". else it is "true" and we take the field as-is.
 
     return (datum) => {
-        // TODO: other ways of doing matches?
+        // TODO: work in matching with lower case fields
         // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
         //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
         //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
         let match = strictCase ? !!datum[field] : !!datum[field.toLowerCase()] || !!datum[field] ;
-        return match ? predicate(datum[field], threshold) : notStrictMatch;
+        return match ?
+            datum[field].constructor.name === 'String' ?
+                predicate(datum[field], threshold)
+        :   datum[field].constructor.name === 'Array' ?
+                datum[field].some(el => predicate(el, threshold))
+        :   notStrictMatch
+        :   notStrictMatch;
     }
 
 }

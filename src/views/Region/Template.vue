@@ -202,6 +202,7 @@
                             :finishHandler="$parent.updateAssociationsTable"
                         ></lz-associations-panel>
                     </locuszoom>
+
                 </div>
             </div>
 

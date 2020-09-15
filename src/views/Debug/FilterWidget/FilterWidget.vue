@@ -26,7 +26,7 @@
                         v-for="(filter, idx) in filterList"
                         :key="filter.field+filter.predicate+filter.threshold+idx"
                         pill
-                        :variant="filter.pill.color"
+                        :style="`background-color:${filter.pill.color};color:#242124;`"
                         @click="unsetFilter(filter, idx)"
                         class="btn">
                         {{filter.pill.label(filter)}}
@@ -94,7 +94,6 @@ export default Vue.component("filter-widget", {
     computed: {
 
         filterFunction() {
-            console.log(this.strictCase, this.looseMatch)
             const predicates = this.filterList.map(obj => predicateFromSpec({...obj}, { strictCase: this.strictCase, notStrictMatch: this.looseMatch }));
             return filterFromPredicates(predicates, !!this.inclusive);
         }

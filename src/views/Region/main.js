@@ -243,12 +243,6 @@ new Vue({
                         return self.indexOf(value) === index;
                     });
         },
-        tissueColorScheme() {
-            return d3
-                .scaleOrdinal()
-                .domain(this.tissues)
-                .range(d3.schemeSet1);
-        },
 
         tissueScoring() {
             let groups = {};
@@ -275,6 +269,7 @@ new Vue({
 
             return groups;
         },
+
         jointFilters() {
             return {
                 pValue: this.pValue,

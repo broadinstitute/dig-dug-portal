@@ -79,7 +79,6 @@ export default Vue.component("locuszoom", {
 
         // event listeners
         let self = this;
-
         this.plot.on('panel_removed', function(event) {
             self.$emit('panelremoved', event);
         })
@@ -91,12 +90,32 @@ export default Vue.component("locuszoom", {
             self.$emit('regionchanged', event);
         })
 
-        self.$on("LZ_ADD_PANEL", () => {
-            console.log('load panel')
-        });
-
     },
     methods: {
+
+        applyFilter(filter) {
+
+            // Auxiliary method within our json query for data layers in the LocusZoom plot
+            // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
+            // using flatmap because we need to work across many Object.keys
+            const forceKeys = el => el.flatMap(data_layer_set => Object.entries(data_layer_set).map(data_layer_pair => data_layer_pair[1]));
+
+            const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
+
+            data_layers.forEach(data_layer => {
+                const target = data_layer.parent.id
+                const namespaceTag = `${target}_src`;
+                data_layer.setFilter(obj => {
+                    let regularObject = decodeNamespace(obj, { prefix: `${namespaceTag}:` });
+                    return filter(regularObject);
+                });
+            });
+
+            // refresh the plot in place
+            // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
+            this.plot.applyState();
+
+        },
 
         addPanelAndDataSource: function(panelClass) {
 
@@ -187,63 +206,7 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        // TODO: Refactor to use the filter function *directly as a function*
-        applyFilter(filter) {
-            console.log('filter change in locuszoom')
 
-            // TODO: revisit, is there a faster way?
-            // Auxiliary method within our json query for data layers in the LocusZoom plot
-            // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
-            // using flatmap because we need to work across many Object.keys
-            // const forceKeys = el => el.flatMap(data_layer_set => Object.keys(data_layer_set).map(data_layer_name => data_layer_set[data_layer_name]));
-            const forceKeys = el => el.flatMap(data_layer_set => Object.entries(data_layer_set).map(data_layer_pair => data_layer_pair[1]));
-
-            // Do we need to calculate this every time?
-            const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            data_layers.forEach(data_layer => {
-
-                const target = data_layer.parent.id
-                const namespaceTag = `${target}_src`;
-
-                // const filterTargetNames = Array.isArray(filter.fields) ?
-                //       filter.fields.map(field => `${namespaceTag}:${field}`)
-                //     : [`${namespaceTag}:${filter.fields}`];
-                /*
-                if (filterTargetNames.every(fieldTarget => data_layer.layout.fields.includes(fieldTarget))) {
-
-                    if (filter.value != '') {
-                        data_layer.setFilter(
-                            vals => {
-                                return filter.op(vals, filter.value);
-                            }
-                        );
-                    } else {
-                        // nullify filter if filter has no value (lets everything through)
-                        data_layer.setFilter(item => true);
-                    }
-
-                } // no change in filter for data layers that don't match on the value
-                */
-
-                // NEW MISSION: all can layers get the same function with no loss of information or intent?
-                // The reason is because the filter function doesn't report what it filters on ahead of time
-                // If we're being agnostic to how the filter function is built whatsoever then this will be impossible to hurdle
-                // So we should charitably assume certain conventions, or otherwise force those conventions, to make the filter function work
-                // An example would be making the sure properties are properly cased, and remove prefixes and other component-specific signifiers
-                data_layer.setFilter(obj => {
-                    let regularObject = decodeNamespace(obj, { prefix: `${namespaceTag}:` });
-                    // _.once(console.log(regularObject))
-                    return filter(regularObject);
-                });
-
-
-            });
-
-            // refresh the plot in place
-            // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
-            this.plot.applyState();
-
-        }
     },
     computed: {
         region() {

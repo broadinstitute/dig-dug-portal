@@ -16,6 +16,8 @@ import AssociationsTable from "./AssociationsTable.vue"
 import LocusZoom from "@/components/lz/LocusZoom.vue"
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel.vue"
 
+import Formatters from "@/utils/formatters";
+
 import { query } from "@/utils/bioIndexUtils"
 
 Vue.config.productionTip = false;
@@ -44,11 +46,11 @@ new Vue({
             filterFunction: id => id,
             inclusive: false,
             initialData: [
-                { pValue: 0.01, beta: 3 }, 
-                { pValue: 0.001, beta: 3 }, 
-                { pValue: 0.2, beta: 3 }, 
-                { pValue: 0.01, beta: 4 }, 
-                { pValue: 0.01, beta:2 }, 
+                { pValue: 0.01, beta: 3 },
+                { pValue: 0.001, beta: 3 },
+                { pValue: 0.2, beta: 3 },
+                { pValue: 0.01, beta: 4 },
+                { pValue: 0.01, beta:2 },
                 { test: 'no matches' },
                 { test: 'some matches' },
                 { test: 'all matches' },
@@ -68,7 +70,7 @@ new Vue({
         }
     },
     mounted() {
-        query('gwas-associations', 'T2D', { limit: 100 }).then(data => { 
+        query('gwas-associations', 'T2D', { limit: 100 }).then(data => {
             this.associations = data;
         })
     },
@@ -79,18 +81,16 @@ new Vue({
         matches() {
             return this.filteredData.filter(obj => !!obj.test).map(obj => obj.test);
         },
-        // filter_consequence_options() {
-        //     return this.groupedAssociations
-        //         .map((v) => Formatters.consequenceFormatter(v.consequence))
-        //         .filter((v, i, arr) => arr.indexOf(v) == i)
-        //         .filter((v, i, arr) => v != undefined)
-        //         .sort();
-        // },
-        // filter_closest_gene_options() {
-        //     let genes = this.associations.flatMap((assoc) => assoc.nearest);
-
-        //     // return sorted, unique genes
-        //     return [...new Set(genes)].sort();
-        // },
+        associationConsequences() {
+            return this.associations
+                .map((v) => v.consequence)
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter(v => v != undefined)
+                .sort();
+        },
+        associationNearestGenes() {
+            let genes = this.associations.flatMap((assoc) => assoc.nearest);
+            return [...new Set(genes)].sort();
+        },
     }
 }).$mount("#app");

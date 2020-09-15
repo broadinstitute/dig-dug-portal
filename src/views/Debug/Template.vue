@@ -4,13 +4,25 @@
         <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
 
         <!-- FilterWidget -->
-        <!-- "looseMatch=true" means objects that don't have all the properties will pass through by default
-             On the Region page this is necessary
-        -->
+        <!-- "looseMatch=true" means objects that don't have all the properties will pass through by default.
+             On the Region page this is necessary since LocusZoom and AssociationsTable don't share data -->
         <filter-widget
             v-model="$parent.filterFunction"
             :inclusive="$parent.inclusive"
             :looseMatch="true">
+
+            <filter-enumeration-control
+                :field="'consequence'"
+                :options="$parent.associationConsequences">
+                Consequence
+            </filter-enumeration-control>
+
+            <!-- Problem: this is a `contains` predicate -->
+            <filter-enumeration-control
+                :field="'nearest'"
+                :options="$parent.associationNearestGenes">
+                Closest Genes
+            </filter-enumeration-control>
 
             <filter-pvalue-control
                 :field="'pValue'">
@@ -19,11 +31,6 @@
             <filter-effect-direction-control
                 :field="'beta'">
             </filter-effect-direction-control>
-
-            <filter-enumeration-control
-                :field="'test'"
-                :options="$parent.matches">
-            </filter-enumeration-control>
 
         </filter-widget>
 
@@ -43,6 +50,7 @@
                     ></lz-associations-panel>
                 </locuszoom>
                 <associations-table
+                    v-if="$parent.associations.length > 0"
                     :associations="$parent.associations"
                     :phenotypes="$parent.phenotypes"
                 ></associations-table>

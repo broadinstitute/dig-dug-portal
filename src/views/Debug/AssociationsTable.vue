@@ -35,6 +35,9 @@
                 <template v-slot:cell(dbSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
                 </template>
+                <template v-slot:cell(consequence)="r">
+                    {{consequenceFormatter(r.item.consequence)}}
+                </template>
                 <template v-slot:cell(genes)="r">
                     <a
                         v-for="gene in r.item.nearest"
@@ -81,7 +84,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
-import { decodeNamespace } from "@/utils/filterHelpers" 
+import { decodeNamespace } from "@/utils/filterHelpers"
 
 export default Vue.component("associations-table", {
     props: ["associations", "phenotypes"],
@@ -109,7 +112,6 @@ export default Vue.component("associations-table", {
                 {
                     key: "consequence",
                     label: "Consequence",
-                    formatter: Formatters.consequenceFormatter,
                 },
                 {
                     key: "genes",
@@ -207,8 +209,7 @@ export default Vue.component("associations-table", {
             return data;
         },
         tableData() {
-            let dataRows = this.groupedAssociations;
-            return this.groupedAssociations.filter(association => {
+            let dataRows = this.groupedAssociations.filter(association => {
                 // decode the namespace of the association to allow the filter function (which shouldn't know about component-specific namespaces) to access all of the association's properties
                 const regularAssociation = decodeNamespace(association, { prefix: `${association.phenotype}:` });
                 // now, apply the filter function to the decoded object
@@ -216,6 +217,7 @@ export default Vue.component("associations-table", {
                 // This means that we don't have to reproject the regularAssociation into the original's namespace before returning the tableData
                 return this.filterFunction(regularAssociation);
             });
+            return dataRows;
         },
     },
 
@@ -241,7 +243,9 @@ export default Vue.component("associations-table", {
         effectFormatter(effect) {
             return Formatters.effectFormatter(effect);
         },
-
+        consequenceFormatter(consequence) {
+            return Formatters.consequenceFormatter(consequence);
+        },
     }
 });
 </script>
