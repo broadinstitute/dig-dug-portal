@@ -3,7 +3,15 @@
         <div class="card mdkp-card">
             <div class="row card-body">
                 <div class="col-md-12">
-                    <forest-plot-html :forestPlotData="$parent.htmlForestPlotData"></forest-plot-html>
+                    <forest-plot-html
+                        v-if="$parent.htmlForestPlotData"
+                        :forestPlotData="$parent.htmlForestPlotData"
+                        :start="'ci_start'"
+                        :end="'ci_end'"
+                        :pvalue="'log_pvalue'"
+                        :beta="'beta'"
+                        :phenotypeid="false"
+                    ></forest-plot-html>
                     <!--
         <div class="filtering-ui-wrapper">
             <div class="row filtering-ui-content">
