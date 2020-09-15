@@ -50,7 +50,17 @@ export function predicateFromSpec({ field, predicate, threshold }, { notStrictMa
         //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
         //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
         let match = strictCase ? !!datum[field] : !!datum[field.toLowerCase()] || !!datum[field] ;
-        return match ? predicate(datum[field], threshold) : notStrictMatch;
+        if (match) {
+            console.log('constructor name', datum[field].constructor.name);
+            if (datum[field].constructor.name === 'String' || datum[field].constructor.name === 'Number') {
+                return predicate(datum[field], threshold)
+            } else if (datum[field].constructor.name === 'Array') {
+                return datum[field].some(el => predicate(el, threshold));
+            }
+        } else {
+            return notStrictMatch;
+        }
+        // return match ? predicate(datum[field], threshold) : notStrictMatch;
     }
 
 }

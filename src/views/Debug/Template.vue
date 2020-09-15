@@ -13,8 +13,15 @@
             :looseMatch="true">
 
             <filter-enumeration-control
-                :field="'test'"
-                :options="$parent.matches">
+                :field="'consequence'"
+                :options="$parent.associationConsequences">
+                Consequence
+            </filter-enumeration-control>
+
+            <filter-enumeration-control
+                :field="'nearest'"
+                :options="$parent.associationNearestGenes">
+                Closest Genes
             </filter-enumeration-control>
 
             <filter-pvalue-control
