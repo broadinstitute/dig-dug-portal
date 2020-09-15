@@ -51,7 +51,8 @@
                     >{{r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
                     <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}:beta`]) : r.item[`${p.name}:beta`])}}</span>
                 </template>
-                <template v-slot:cell(phenotypes[0].name)>
+                <template v-slot:[phenotypePValueColumn(p)]="r" v-for="p in phenotypes">
+                    {{pValueFormatter(r.item[`${p.name}:pValue`])}}
                 </template>
             </b-table>
             <b-pagination
@@ -231,6 +232,9 @@ export default Vue.component("associations-table", {
         phenotypeBetaColumn(phenotype) {
             return `cell(${phenotype.name}:beta)`;
         },
+        phenotypePValueColumn(phenotype) {
+            return `cell(${phenotype.name}:pValue)`;
+        },
         alleleFormatter({ reference, alt }) {
             return Formatters.alleleFormatter(reference, alt);
         },
@@ -242,6 +246,9 @@ export default Vue.component("associations-table", {
         },
         effectFormatter(effect) {
             return Formatters.effectFormatter(effect);
+        },
+        pValueFormatter(pValue) {
+            return Formatters.pValueFormatter(pValue);
         },
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);

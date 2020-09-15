@@ -20,6 +20,14 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
+import FilterContext from "@/components/FilterContext/FilterContext.vue"
+import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
+import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
+import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
+import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
+
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
@@ -55,6 +63,15 @@ new Vue({
         PhenotypeSelectPicker,
         Autocomplete,
         GeneSelectPicker,
+
+        FilterContext,
+        FilterWidget,
+        FilterWidgetControl,
+        FilterPValue,
+        FilterEffectDirection,
+        FilterEnumeration,
+        FilterGreaterThan,
+
     },
 
     created() {
@@ -70,15 +87,7 @@ new Vue({
 
     data() {
         return {
-            counter: 0,
-
-            // page controls
-            pValue: null,
-            fold: null,
-
-            currentAssociationsPanel: null,
-
-            selectedCredibleSets: []
+            filterFunction: id => id
         };
     },
 
@@ -88,23 +97,6 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
-        applyFilter(filter) {
-            this.$children[0].$refs.locuszoom.applyFilter(filter)
-        },
-        filterOnPValueAndFold(vals, filterValue) {
-            let extractedItemVals = Object.entries(vals).reduce((acc, items) => {
-                const [preKey, fieldValue] = items;
-                const fieldKey = preKey.split(':')[1];  // remove the namespacing information from the key to get the field leftover
-                acc[fieldKey] = fieldValue;
-                return acc;
-            }, {});
-
-            let pValuePred = !!filterValue.pValue ? _.lte(extractedItemVals.pvalue, filterValue.pValue) : true;  // these are case sensitive right now, with these being proper casing (should standardize)
-            let foldPred = !!filterValue.fold ? _.gte(extractedItemVals.fold, filterValue.fold) : true;
-
-            return pValuePred && foldPred;
-        },
 
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
@@ -275,21 +267,21 @@ new Vue({
 
             return groups;
         },
-        jointFilters() {
-            return {
-                pValue: this.pValue,
-                fold: this.fold,
-            }
-        }
+        associationConsequences() {
+            return this.$store.state.associations.data
+                .map((v) => v.consequence)
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter(v => v != undefined)
+                .sort();
+        },
+        associationNearestGenes() {
+            let genes = this.$store.state.associations.data.flatMap((assoc) => assoc.nearest);
+            return [...new Set(genes)].sort();
+        },
+
     },
     watch: {
-        jointFilters(newFilterThresholds) {
-            this.applyFilter({
-                fields: ['pvalue', 'fold'],
-                value: newFilterThresholds,
-                op: this.filterOnPValueAndFold
-            })
-        },
+
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
