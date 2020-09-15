@@ -51,11 +51,10 @@ export function predicateFromSpec({ field, predicate, threshold }, { notStrictMa
         //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
         let match = strictCase ? !!datum[field] : !!datum[field.toLowerCase()] || !!datum[field] ;
         if (match) {
-            console.log('constructor name', datum[field].constructor.name);
-            if (datum[field].constructor.name === 'String' || datum[field].constructor.name === 'Number') {
-                return predicate(datum[field], threshold)
-            } else if (datum[field].constructor.name === 'Array') {
+            if (datum[field].constructor.name === 'Array') {
                 return datum[field].some(el => predicate(el, threshold));
+            } else {
+                return predicate(datum[field], threshold);
             }
         } else {
             return notStrictMatch;
