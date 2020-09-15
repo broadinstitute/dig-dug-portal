@@ -613,6 +613,14 @@
     top: 0;
 }
 
+.top-level-header-item.sortable {
+    color: #0067a6 ;
+}
+
+.top-level-header-item.sortable:hover {
+    cursor: pointer;
+}
+
 .top-level-header-item,
 .top-level-value-item {
     border-bottom: solid 1px #eee;
@@ -729,14 +737,14 @@ span.weight-blue {
 
 .egl-table-ui-options label {
     vertical-align: middle;
-    margin-right: 3px;
+    margin-left: 3px;
 }
 
 .egl-table-ui-options input[type=checkbox] {
     border: 1px solid #ced4da;
     border-radius: .25rem;
 }
-
+/*
 .egl-table-ui-options select {
     height: 25px;
     width: 175px;
@@ -746,7 +754,7 @@ span.weight-blue {
     vertical-align: 2px;
     padding: 0 15px;
 }
-
+*/
 .show-all-features-wrapper, .hide-all-feature-headers-wrapper, .hide-top-level-wrapper, .sort-table-wrapper {
     display: inline-block;
     margin-left: 10px;
