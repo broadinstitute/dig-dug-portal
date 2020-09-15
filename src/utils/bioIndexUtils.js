@@ -5,6 +5,14 @@
 
 import querystring from "query-string";
 
+//set cookie for authenticated requests
+let cookie = "";
+if (document.cookie)
+    cookie = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("session"))
+        .split("=")[1];
+
 // updated at compile-time to the dev or production BioIndex server
 export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
 
@@ -25,7 +33,11 @@ export async function request(path, query_params) {
         query_params && querystring.stringify(query_params, { skipNull: true });
 
     // use the rawUrl to get the location in the BioIndex
-    return fetch(rawUrl(`${path}?${qs || ""}`));
+    return fetch(rawUrl(`${path}?${qs || ""}`), {
+        headers: {
+            "x-bioindex-access-token": cookie
+        }
+    });
 }
 
 /* Perform a BioIndex query.
@@ -89,4 +101,8 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler) {
         }
     }
     return data;
+}
+
+export function getAccessToken() {
+    return "?t=" + cookie;
 }

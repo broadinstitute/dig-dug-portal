@@ -42,6 +42,7 @@
                                 <div class="card" style="width:95%; border: 0">
                                     <img
                                         class="card-img-top"
+                                        id="manhattanPlot"
                                         :src="$parent.manhattanPlot"
                                         alt="Card image cap"
                                     />
@@ -57,6 +58,7 @@
                                 <div class="card" style="width:95%; border: 0">
                                     <img
                                         class="card-img-top"
+                                        id="qqPlot"
                                         :src="$parent.qqPlot"
                                         alt="Card image cap"
                                     />
