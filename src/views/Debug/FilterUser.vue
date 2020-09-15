@@ -10,7 +10,7 @@
 </template>
 <script>
 import Vue from "vue";
-import FilterableWrapper from "./FilterContext/FilterableWrapper.vue"
+import FilterableWrapper from "@/components/FilterContext/FilterableWrapper.vue"
 
 export default Vue.component('filter-user', {
     components: {
@@ -19,11 +19,11 @@ export default Vue.component('filter-user', {
     data() {
         return {
             initialData: [
-                { pValue: 0.01, beta: 3 }, 
-                { pValue: 0.001, beta: 3 }, 
-                { pValue: 0.2, beta: 3 }, 
-                { pValue: 0.01, beta: 4 }, 
-                { pValue: 0.01, beta:2 }, 
+                { pValue: 0.01, beta: 3 },
+                { pValue: 0.001, beta: 3 },
+                { pValue: 0.2, beta: 3 },
+                { pValue: 0.01, beta: 4 },
+                { pValue: 0.01, beta:2 },
                 { test: 'no matches' },
                 { test: 'some matches' },
                 { test: 'all matches' },

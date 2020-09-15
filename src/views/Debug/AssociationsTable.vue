@@ -80,14 +80,15 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
-
-import { decodeNamespace } from "@/utils/filterHelpers" 
+import FilterableWrapper from "@/components/FilterContext/FilterableWrapper"
+import { decodeNamespace } from "@/utils/filterHelpers"
 
 export default Vue.component("associations-table", {
     props: ["associations", "phenotypes"],
     components: {
         Documentation,
         TooltipDocumentation,
+        FilterableWrapper,
     },
     data() {
         return {

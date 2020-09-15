@@ -21,7 +21,7 @@ import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPane
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
 
-import FilterableWrapper from "../../views/Debug/FilterContext/FilterableWrapper.vue"
+import FilterableWrapper from "@/components/FilterContext/FilterableWrapper.vue"
 import { decodeNamespace } from "@/utils/filterHelpers"
 
 import _ from "lodash";

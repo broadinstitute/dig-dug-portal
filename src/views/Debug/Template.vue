@@ -12,6 +12,11 @@
             :inclusive="$parent.inclusive"
             :looseMatch="true">
 
+            <filter-enumeration-control
+                :field="'test'"
+                :options="$parent.matches">
+            </filter-enumeration-control>
+
             <filter-pvalue-control
                 :field="'pValue'">
             </filter-pvalue-control>
@@ -19,11 +24,6 @@
             <filter-effect-direction-control
                 :field="'beta'">
             </filter-effect-direction-control>
-
-            <filter-enumeration-control
-                :field="'test'"
-                :options="$parent.matches">
-            </filter-enumeration-control>
 
         </filter-widget>
 

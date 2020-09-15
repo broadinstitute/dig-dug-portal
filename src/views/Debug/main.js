@@ -3,18 +3,21 @@ import * as d3 from "d3";
 
 import Template from "./Template.vue";
 
+import FilterContext from "@/components/FilterContext/FilterContext.vue"
+import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
+import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
+import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
+import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
+
 import FilterUser from "./FilterUser.vue"
-import FilterContext from "./FilterContext/FilterContext.vue"
-import FilterWidget from "./FilterWidget/FilterWidget.vue"
-import FilterWidgetControl from "./FilterWidget/FilterWidgetControl.vue"
-import FilterPValue from "./FilterWidget/FilterPValue.vue"
-import FilterEffectDirection from "./FilterWidget/FilterEffectDirection.vue"
-import FilterEnumeration from "./FilterWidget/FilterEnumeration.vue"
-import FilterGreaterThan from "./FilterWidget/FilterGreaterThan.vue"
 
 import AssociationsTable from "./AssociationsTable.vue"
 import LocusZoom from "@/components/lz/LocusZoom.vue"
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel.vue"
+
+import Formatters from "@/utils/formatters";
 
 import { query } from "@/utils/bioIndexUtils"
 
@@ -41,14 +44,14 @@ new Vue({
     },
     data() {
         return {
-            filterFunction: id => id,
+            filterFunction: id => false,
             inclusive: false,
             initialData: [
-                { pValue: 0.01, beta: 3 }, 
-                { pValue: 0.001, beta: 3 }, 
-                { pValue: 0.2, beta: 3 }, 
-                { pValue: 0.01, beta: 4 }, 
-                { pValue: 0.01, beta:2 }, 
+                { pValue: 0.01, beta: 3 },
+                { pValue: 0.001, beta: 3 },
+                { pValue: 0.2, beta: 3 },
+                { pValue: 0.01, beta: 4 },
+                { pValue: 0.01, beta:2 },
                 { test: 'no matches' },
                 { test: 'some matches' },
                 { test: 'all matches' },
@@ -68,7 +71,7 @@ new Vue({
         }
     },
     mounted() {
-        query('gwas-associations', 'T2D', { limit: 100 }).then(data => { 
+        query('gwas-associations', 'T2D', { limit: 100 }).then(data => {
             this.associations = data;
         })
     },
@@ -79,18 +82,21 @@ new Vue({
         matches() {
             return this.filteredData.filter(obj => !!obj.test).map(obj => obj.test);
         },
-        // filter_consequence_options() {
-        //     return this.groupedAssociations
-        //         .map((v) => Formatters.consequenceFormatter(v.consequence))
-        //         .filter((v, i, arr) => arr.indexOf(v) == i)
-        //         .filter((v, i, arr) => v != undefined)
-        //         .sort();
-        // },
-        // filter_closest_gene_options() {
-        //     let genes = this.associations.flatMap((assoc) => assoc.nearest);
-
-        //     // return sorted, unique genes
-        //     return [...new Set(genes)].sort();
-        // },
+        associationConsequences() {
+            return this.associations
+                .map((v) => v.consequence)
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter(v => v != undefined)
+                .sort();
+        },
+        associationNearestGenes() {
+            let genes = this.associations.flatMap((assoc) => assoc.nearest);
+            return [...new Set(genes)].sort();
+        },
+    },
+    watch: {
+        filterFunction() {
+            console.log('filter function modified in main')
+        }
     }
 }).$mount("#app");
