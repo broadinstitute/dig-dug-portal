@@ -16,6 +16,7 @@ import Documentation from "@/components/Documentation.vue";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import DatasetSelectPicker from "@/components/DatasetSelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
+import RawImage from "@/components/RawImage.vue"
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import { rawUrl } from "@/utils/bioIndexUtils";
@@ -38,7 +39,8 @@ new Vue({
         Documentation,
         PhenotypeSelectPicker,
         DatasetSelectPicker,
-        AssociationsTable
+        AssociationsTable,
+        RawImage
     },
 
     created() {
@@ -104,7 +106,7 @@ new Vue({
             let phenotype = this.$store.state.selectedPhenotype;
 
             if (!!dataset && !!phenotype) {
-                return rawUrl(`/api/raw/plot/dataset/${dataset.name}/${phenotype.name}/manhattan.png`);
+                return `/api/raw/plot/dataset/${dataset.name}/${phenotype.name}/manhattan.png`;
             }
         },
         qqPlot() {
@@ -112,7 +114,7 @@ new Vue({
             let phenotype = this.$store.state.selectedPhenotype;
 
             if (!!dataset && !!phenotype) {
-                return rawUrl(`/api/raw/plot/dataset/${dataset.name}/${phenotype.name}/qq.png`);
+                return `/api/raw/plot/dataset/${dataset.name}/${phenotype.name}/qq.png`;
             }
         },
         associations() {

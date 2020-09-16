@@ -36,7 +36,7 @@ function filterFormatted(data, value, key) {
 }
 
 function filterNearest(data, value, key) {
-    return data.filter(r => value.some(gene => r[key].includes(gene)));
+    return data.filter(r => value.some(gene => r[key] && r[key].includes(gene)));
 }
 
 function filterBeta(data, value, key) {
