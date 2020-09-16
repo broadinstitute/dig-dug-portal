@@ -10,6 +10,7 @@ import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
 import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirection.vue"
 import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
+import FilterMulti from "@/components/FilterWidget/FilterMulti.vue"
 
 import FilterUser from "./FilterUser.vue"
 
@@ -33,6 +34,7 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
+        FilterMulti,
 
         AssociationsTable,
         LocusZoom,

@@ -6,6 +6,7 @@
         <!-- FilterWidget -->
         <!-- "looseMatch=true" means objects that don't have all the properties will pass through by default
              On the Region page this is necessary
+             "inclusive" means that the filter will be inclusive predicates (akin to a series of ORs) by default, unless the child controls override.
         -->
         <filter-widget
             v-model="$parent.filterFunction"
@@ -31,6 +32,10 @@
             <filter-effect-direction-control
                 :field="'beta'">
             </filter-effect-direction-control>
+
+            <filter-multi-control
+                :field="'nearest'">
+            </filter-multi-control>
 
         </filter-widget>
 

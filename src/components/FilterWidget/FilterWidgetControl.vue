@@ -37,8 +37,6 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("filter-widget-control", {
-    // TODO: Checker prop to prevent submission of invalid input? (including blank input)
-    // props: ["value", "field", "predicate", "default", "options", "multiple", "color", "pillFormatter"],
     props: {
         value: [ String, Number ],
         field: String,
@@ -51,13 +49,15 @@ export default Vue.component("filter-widget-control", {
         },
         pillFormatter: Function,
         labelFormatter: Function,
+        split: Boolean,
     },
     data() {
         return {
             filterDefinition: {
                 field: this.field,
                 predicate: this.predicate,
-                multiple: !!this.multiple, // if undefined, default to false
+                multiple: !!this.multiple || !!this.split ? true : false, // if undefined, default to false
+                inclusive: !!this.split || !!this.inclusive , // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
             },
             filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
@@ -73,8 +73,16 @@ export default Vue.component("filter-widget-control", {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                // double parent since we're only using this component as a template inside of another component
-                this.$parent.$parent.$emit('change', newThreshold, { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } });
+                // if the filter is a splitter
+                if (this.split) {
+                    newThreshold.split(',')
+                        .forEach(thresholdElement => 
+                            this.$parent.$parent.$emit('change', thresholdElement.trim(), 
+                                { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } }))
+                } else {
+                    // double parent since we're only using this component as a template inside of another component
+                    this.$parent.$parent.$emit('change', newThreshold, { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } });
+                }
             }
             this.filterThreshold = null;
         }

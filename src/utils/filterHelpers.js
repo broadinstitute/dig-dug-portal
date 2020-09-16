@@ -1,41 +1,69 @@
 import { result } from "lodash";
 
 /* FILTER-MAKING FUNCTIONS */
-export function filterFromPredicates(predicates, inclusive=false) {
+export function filterFromPredicates(predicates, inclusive) {
     // TODO: what about case of mixed inclusions and exclusions?
+    /*
+    // sort predicates into inclusive and exclusive 
+    let exclusivePredicates = predicates.filter(predicate => !predicate.inclusive);
+    let inclusivePredicates = predicates.filter(predicate => predicate.inclusive);
     return function filterFunction(object) {
+        
+        let exclusiveTruth = true;
+        for (let predicateI = 0; predicateI < exclusivePredicates.length; predicateI++) {
+            exclusiveTruth = exclusivePredicates[predicateI].func(object);
+            if (exclusiveTruth === false) break;
+        }
+
+        let inclusiveTruth = false;
+        for (let predicateI = 0; predicateI < inclusivePredicates.length; predicateI++) {
+            inclusiveTruth = inclusivePredicates[predicateI].func(object);
+            if (inclusiveTruth === true) break;
+        }
+        
+        return inclusiveTruth || exclusiveTruth || inclusive;
+    }
+    */
+    
+    return function filterFunction(object) {
+
         // Guilt is terminal: we break our investigation as soon as
         // we've found evidence that the object isn't innocent.
         // NOTE: Filter policy by default is innocent until proven guilty.
         // so in lieu of any predicates, remain truthy by default
+
         let innocence = true;
         if (predicates.length > 0) {
             // if we have predicates, the burden of proof may change based on our filtering type
-            if (!inclusive) {
+            if (!!!inclusive) {
 
                 // exclusive filter, equivalent to a series of ANDs
                 // break on soonest failure
                 // innocence = true; redundant to set here due to `true` being default value
                 for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
-                    innocence = predicates[predicateI](object);
+                    innocence = predicates[predicateI].func(object);
                     if (innocence === false) break;
                 }
+
             } else {
+                
                 // inclusive filter, equivalent to a series of logical ORs
                 // let by all values that pass true on any of the predicates, exclude those that don't
                 // inverts strategy to guilty until proven innocent so we set innocgit stence to false before continuing
                 innocence = false;
                 for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
-                    innocence = predicates[predicateI](object);
+                    innocence = predicates[predicateI].func(object);
                     if (innocence === true) break;
                 }
+
             }
         }
         return innocence;
     }
+    
 }
 
-export function predicateFromSpec({ field, predicate, threshold }, { notStrictMatch=false, strictCase=false }) {
+export function predicateFromSpec({ field, predicate, threshold, inclusive=false }, { notStrictMatch=false, strictCase=false }) {
 
     // Specs for predicateFromSpec are objects satisfying properties { field, predicate, threshold } to return a function Object => Boolean, parameterized on a field
     // NOTE: the default policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
@@ -44,24 +72,26 @@ export function predicateFromSpec({ field, predicate, threshold }, { notStrictMa
     //      else if e.g. different components have slightly different properties such that a part of the filter applies to one component and not the other,
     //   * "strictCase": if the field has similar names but different casings, and we don't want it to fail a match (for instance `pvalue` and `pValue`), then this should be "false". else it is "true" and we take the field as-is.
 
-    return (datum) => {
-        // TODO: other ways of doing matches?
-        // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
-        //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
-        //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
-        let match = strictCase ? !!datum[field] : !!datum[field.toLowerCase()] || !!datum[field] ;
-        if (match) {
-            if (datum[field].constructor.name === 'Array') {
-                return datum[field].some(el => predicate(el, threshold));
+    return {
+        inclusive,
+        func: (datum) => {
+            // TODO: other ways of doing matches?
+            // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
+            //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
+            //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
+            let match = strictCase ? !!datum[field] : !!datum[field.toLowerCase()] || !!datum[field] ;
+            if (match) {
+                if (datum[field].constructor.name === 'Array') {
+                    return datum[field].some(el => predicate(el, threshold));
+                } else {
+                    return predicate(datum[field], threshold);
+                }
             } else {
-                return predicate(datum[field], threshold);
+                return notStrictMatch;
             }
-        } else {
-            return notStrictMatch;
+            // return match ? predicate(datum[field], threshold) : notStrictMatch;
         }
-        // return match ? predicate(datum[field], threshold) : notStrictMatch;
     }
-
 }
 
 
