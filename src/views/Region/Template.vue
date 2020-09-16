@@ -169,7 +169,9 @@
                 </filter-widget>
 
                 <filter-context v-model="$parent.filterFunction">
-                    <div v-if="!!$store.state.phenotype">
+                    <!-- the outermost div is a dummy to collect all the child components into the same slot -->
+                    <div>
+                        <div v-if="!!$store.state.phenotype">
                         <h4
                             class="card-title"
                         >Visualize associations for {{$store.state.phenotype.description}}</h4>
@@ -248,6 +250,7 @@
                                 :associations="$store.state.associations.data"
                             ></associations-table>
 
+                        </div>
                     </div>
                 </filter-context>
             </div>
