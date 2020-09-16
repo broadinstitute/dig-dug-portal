@@ -114,12 +114,7 @@
                 </div>
             </div>
 
-            <!-- <div v-if="$parent.geneAssociations">
-                <confidence-interval-plot
-                    :geneAssociations="$parent.geneAssociations"
-                    :isDichotomous="true"
-                ></confidence-interval-plot>
-            </div>-->
+                                                                     
 
             <div>
                 <b-button v-b-toggle.collapse-1 variant="primary">GWAS Associations</b-button>

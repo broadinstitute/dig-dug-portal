@@ -25,11 +25,7 @@ export default new Vuex.Store({
         effectorGeneData: [],
         category: "Not in GWAS region",
         stage2Category: null,
-        geneAssociationsData: [],
         priorVariance: 0.0462,
-        // hasLofTee: false,
-
-
     },
 
     mutations: {
@@ -52,9 +48,7 @@ export default new Vuex.Store({
         setStage2Category(state, stage2Category) {
             state.stage2Category = stage2Category;
         },
-        setGeneAssociationsData(state, geneAssociationsData) {
-            state.geneAssociationsData = geneAssociationsData;
-        },
+
 
 
     },
