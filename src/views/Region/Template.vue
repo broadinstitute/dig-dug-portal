@@ -134,6 +134,7 @@
 
         <div class="card mdkp-card">
             <div class="card-body">
+
                 <filter-widget
                     v-model="$parent.filterFunction"
                     :inclusive="$parent.inclusive"
@@ -168,9 +169,8 @@
                 </filter-widget>
 
                 <filter-context v-model="$parent.filterFunction">
-                    <div>
+                    <div v-if="!!$store.state.phenotype">
                         <h4
-                            v-if="!!$store.state.phenotype"
                             class="card-title"
                         >Visualize associations for {{$store.state.phenotype.description}}</h4>
                         <documentation
@@ -219,7 +219,6 @@
 
                         <locuszoom
                             ref="locuszoom"
-                            v-if="$store.state.phenotype"
                             :chr="$store.state.chr"
                             :start="$store.state.start"
                             :end="$store.state.end"
@@ -233,7 +232,6 @@
                         </locuszoom>
 
 
-                        <div v-if="!!$store.state.phenotype">
                             <h4 class="card-title">
                                 Top Associations for {{$store.state.phenotype.description}}
                                 <tooltip-documentation
@@ -242,18 +240,19 @@
                                     :noIcon="false"
                                 ></tooltip-documentation>
                             </h4>
-
                             <documentation name="region.variantassociation.subheader"></documentation>
+
                             <associations-table
                                 v-if="$store.state.associations.data.length > 0"
                                 :phenotypes="$parent.phenotypes"
                                 :associations="$store.state.associations.data"
                             ></associations-table>
-                        </div>
+
                     </div>
                 </filter-context>
             </div>
         </div>
+
         </div>
             <!-- TODO: collapse tables -->
             <b-collapse id="collapse-1" class="mt-2">

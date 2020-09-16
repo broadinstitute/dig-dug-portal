@@ -201,37 +201,11 @@ export default Vue.component("locuszoom", {
                 const target = data_layer.parent.id
                 const namespaceTag = `${target}_src`;
 
-                // const filterTargetNames = Array.isArray(filter.fields) ?
-                //       filter.fields.map(field => `${namespaceTag}:${field}`)
-                //     : [`${namespaceTag}:${filter.fields}`];
-                /*
-                if (filterTargetNames.every(fieldTarget => data_layer.layout.fields.includes(fieldTarget))) {
-
-                    if (filter.value != '') {
-                        data_layer.setFilter(
-                            vals => {
-                                return filter.op(vals, filter.value);
-                            }
-                        );
-                    } else {
-                        // nullify filter if filter has no value (lets everything through)
-                        data_layer.setFilter(item => true);
-                    }
-
-                } // no change in filter for data layers that don't match on the value
-                */
-
-                // NEW MISSION: all can layers get the same function with no loss of information or intent?
-                // The reason is because the filter function doesn't report what it filters on ahead of time
-                // If we're being agnostic to how the filter function is built whatsoever then this will be impossible to hurdle
-                // So we should charitably assume certain conventions, or otherwise force those conventions, to make the filter function work
-                // An example would be making the sure properties are properly cased, and remove prefixes and other component-specific signifiers
                 data_layer.setFilter(obj => {
                     let regularObject = decodeNamespace(obj, { prefix: `${namespaceTag}:` });
                     // _.once(console.log(regularObject))
                     return filter(regularObject);
                 });
-
 
             });
 

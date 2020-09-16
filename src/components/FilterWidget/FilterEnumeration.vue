@@ -4,7 +4,7 @@
         :predicate="(string, selection) => string === selection"
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${capitalize(filterDefinition.threshold)}`"
         :labelFormatter="capitalize"
-        :options="options"
+        :options="selectionOptions"
         :color="color"
         :multiple="true">
         <slot>
@@ -23,6 +23,16 @@ export default Vue.component('filter-enumeration-control', {
     },
     methods: {
         capitalize: Formatter.capitalizedFormatter,
+    },
+    computed: {
+        // Make options unique and sorted by default, and always
+        // NOTE: Assumes that they are just strings! change?
+        selectionOptions() {
+            return this.options
+                .filter((v, i, arr) => arr.indexOf(v) == i)
+                .filter(v => v != undefined)
+                .sort()
+        }
     }
 })
 </script>

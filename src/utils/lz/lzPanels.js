@@ -179,10 +179,17 @@ export class LZAnnotationIntervalsPanel {
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
-            fields: [
-                `{{namespace[${this.datasource_type}]}}pValue`,
-                `{{namespace[${this.datasource_type}]}}fold`,
-                ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
+            data_layers: [
+                LocusZoom.Layouts.merge(
+                    {
+                        fields: [
+                            `{{namespace[${this.datasource_type}]}}pValue`,
+                            `{{namespace[${this.datasource_type}]}}fold`,
+                            ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
+                        ]
+                    },
+                    LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }),
+                ),
             ]
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }

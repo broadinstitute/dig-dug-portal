@@ -268,15 +268,10 @@ new Vue({
             return groups;
         },
         associationConsequences() {
-            return this.$store.state.associations.data
-                .map((v) => v.consequence)
-                .filter((v, i, arr) => arr.indexOf(v) == i)
-                .filter(v => v != undefined)
-                .sort();
+            return this.$store.state.associations.data.map((v) => v.consequence);
         },
         associationNearestGenes() {
-            let genes = this.$store.state.associations.data.flatMap((assoc) => assoc.nearest);
-            return [...new Set(genes)].sort();
+            return this.$store.state.associations.data.flatMap((assoc) => assoc.nearest)
         },
 
     },
