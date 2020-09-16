@@ -64,32 +64,22 @@
                                 class="card"
                                 style="width:95%; border: 0"
                             >
-                                <img
-                                    class="card-img-top"
+                                <raw-img
                                     :src="$parent.manhattanPlot"
                                     alt="Card image cap"
+                                    :documentation="'dinspector.associationplots.manhattan'"
+                                    :content-fill="$parent.documentationMap"
                                 />
-                                <p class="card-text">
-                                    <documentation
-                                        name="dinspector.associationplots.manhattan"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div v-if="$parent.qqPlot" class="card" style="width:95%; border: 0">
-                                <img
-                                    class="card-img-top"
+                                <raw-img
                                     :src="$parent.qqPlot"
                                     alt="Card image cap"
+                                    :documentation="'dinspector.associationplots.qq'"
+                                    :content-fill="$parent.documentationMap"
                                 />
-                                <p class="card-text">
-                                    <documentation
-                                        name="dinspector.associationplots.qq"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </p>
                             </div>
                         </div>
                     </div>
@@ -106,6 +96,12 @@
                         :phenotypes="[$store.state.selectedPhenotype]"
                         :associations="$store.state.datasetAssociations.data"
                     ></associations-table>
+                    <div v-show="$store.state.datasetAssociations.restricted > 0">
+                        There were {{$store.state.datasetAssociations.restricted}} records hidden, because you are not authorized to view them. Please
+                        <a
+                            href="/login"
+                        >login</a> with an authorized Google account to see them.
+                    </div>
                 </div>
             </div>
             <div v-else class="card mdkp-card">

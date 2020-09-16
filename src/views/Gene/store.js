@@ -1,5 +1,3 @@
-
-
 import Vue from "vue";
 import Vuex from "vuex";
 
@@ -9,9 +7,6 @@ import kp4cd from "@/modules/kp4cd";
 import keyParams from "@/utils/keyParams";
 import uniprot from "@/modules/uniprot";
 
-
-
-
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -20,18 +15,17 @@ export default new Vuex.Store({
         kp4cd,
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
-        uniprot,
-
+        associations: bioIndex("gene-associations"),
+        uniprot
     },
     state: {
-        geneName: keyParams.gene,
+        geneName: keyParams.gene
     },
 
     mutations: {
         setGeneName(state, geneName) {
             state.geneName = geneName || state.geneName;
             keyParams.set({ gene: state.geneName });
-
         },
         setGene(state, { name, chromosome, start, end }) {
             state.geneName = name;
@@ -49,8 +43,8 @@ export default new Vuex.Store({
                 return {
                     chromosome: gene.chromosome,
                     start: gene.start,
-                    end: gene.end,
-                }
+                    end: gene.end
+                };
             }
         },
 
@@ -58,7 +52,7 @@ export default new Vuex.Store({
             let data = state.genes.data;
 
             for (let i in data) {
-                if (data[i].source === 'symbol') {
+                if (data[i].source === "symbol") {
                     return data[i].name;
                 }
             }
@@ -68,10 +62,10 @@ export default new Vuex.Store({
     actions: {
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
-            context.commit('setGeneName', name);
+            context.commit("setGeneName", name);
 
             if (!!name) {
-                context.dispatch('gene/query', { q: name });
+                context.dispatch("gene/query", { q: name });
             }
         },
 
@@ -79,15 +73,20 @@ export default new Vuex.Store({
             let { chromosome, start, end } = region || context.getters.region;
             let q = `${chromosome}:${start}-${end}`;
 
-            context.dispatch('genes/query', { q });
+            context.dispatch("genes/query", { q });
         },
 
         async queryUniprot(context, symbol) {
             let name = symbol || context.getters.canonicalSymbol;
 
             if (!!symbol) {
-                context.dispatch('uniprot/getUniprotGeneInfo', name);
+                context.dispatch("uniprot/getUniprotGeneInfo", name);
             }
+        },
+
+        async queryAssociations(context) {
+            let query = { q: context.state.geneName };
+            context.dispatch("associations/query", query);
         }
-    },
+    }
 });

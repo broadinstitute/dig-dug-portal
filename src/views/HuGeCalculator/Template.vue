@@ -118,7 +118,7 @@
 
             <div>
                 <b-button v-b-toggle.collapse-1 variant="primary">GWAS Associations</b-button>
-                <b-collapse id="collapse-1" class="card mdkp-card">
+                <div id="collapse-1" class="card mdkp-card">
                     <div class="card mdkp-card">
                         <div class="card-body">
                             <h4
@@ -146,7 +146,7 @@
                             ></associations-table>
                         </div>
                     </div>
-                </b-collapse>
+                </div>
             </div>
         </div>
 

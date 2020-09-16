@@ -1,5 +1,6 @@
 <template>
     <div>
+        <img v-if="bioindex_dev" src="/images/dev_flag.svg" class="dev-flag" />
         <analytics></analytics>
         <alert></alert>
 
@@ -128,8 +129,12 @@
                         <li class="am-menu">
                             <a href="https://kp4cd.org/contact">Contact</a>
                         </li>
-                        <li v-if="user">
-                            <a href="/logout" :class="diseaseGroup.name+'kp-login'">Logout</a>
+                        <li v-if="!!user">
+                            <a
+                                href="/logout"
+                                :class="diseaseGroup.name+'kp-login'"
+                                :title="user"
+                            >Logout</a>
                         </li>
                         <li v-else>
                             <a
@@ -149,25 +154,32 @@
 <script>
 import Vue from "vue";
 import VueCookies from "vue-cookies";
-
 import host from "@/utils/hostUtils";
-
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
-
+import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
     props: ["diseaseGroup", "frontContents"],
-
     components: {
         GoogleAnalytics
     },
-
     data() {
-        return {};
+        return {
+            user: "",
+            bioindex_dev: false,
+        };
     },
     created() {
-        this.user = Vue.$cookies.isKey("session") || false;
+        if (Vue.$cookies.isKey("session")) {
+            fetch(
+                "https://oauth2.googleapis.com/tokeninfo?access_token=" +
+                    Vue.$cookies.get("session")
+            )
+                .then((response) => response.json())
+                .then((data) => (this.user = data.email));
+        }
+        if (BIO_INDEX_HOST.indexOf("dev") != -1) this.bioindex_dev = true;
     },
     computed: {
         currentPage() {

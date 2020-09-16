@@ -40,32 +40,24 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="card" style="width:95%; border: 0">
-                                    <img
-                                        class="card-img-top"
+                                    <raw-img
+                                        id="manhattanPlot"
                                         :src="$parent.manhattanPlot"
                                         alt="Card image cap"
+                                        :documentation="'phenotype.associationplots.manhattan'"
+                                        :content-fill="$store.getters['documentationMap']"
                                     />
-                                    <p class="card-text">
-                                        <documentation
-                                            name="phenotype.associationplots.manhattan"
-                                            :content-fill="$store.getters['documentationMap']"
-                                        ></documentation>
-                                    </p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="card" style="width:95%; border: 0">
-                                    <img
-                                        class="card-img-top"
+                                    <raw-img
+                                        id="qqPlot"
                                         :src="$parent.qqPlot"
                                         alt="Card image cap"
+                                        :documentation="'phenotype.associationplots.qq'"
+                                        :content-fill="$store.getters['documentationMap']"
                                     />
-                                    <p class="card-text">
-                                        <documentation
-                                            name="phenotype.associationplots.qq"
-                                            :content-fill="$store.getters['documentationMap']"
-                                        ></documentation>
-                                    </p>
                                 </div>
                             </div>
                         </div>

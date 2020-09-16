@@ -324,7 +324,9 @@ export default Vue.component("associations-table", {
                 .sort();
         },
         filter_closest_gene_options() {
-            let genes = this.associations.flatMap(assoc => assoc.nearest);
+            let genes = this.associations.flatMap(
+                (assoc) => assoc.nearest || []
+            );
 
             // return sorted, unique genes
             return [...new Set(genes)].sort();

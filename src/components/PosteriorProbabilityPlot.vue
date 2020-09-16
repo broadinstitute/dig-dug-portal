@@ -42,6 +42,7 @@ export default Vue.component("posterior-probability-plot", {
             return l;
         },
         generateChart() {
+            document.getElementById("visualisation").innerHTML = ""
             var margin = { top: 50, right: 50, bottom: 50, left: 50 },
                 width = 500 - margin.left - margin.right,
                 height = 500 - margin.top - margin.bottom;

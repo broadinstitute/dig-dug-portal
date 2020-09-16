@@ -13,9 +13,10 @@ import AssociationsTable from "@/components/AssociationsTable.vue";
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import Documentation from "@/components/Documentation.vue";
+import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
-import { rawUrl } from "@/utils/bioIndexUtils";
+import { rawUrl, getAccessToken } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import Alert, {
     postAlert,
@@ -36,6 +37,7 @@ new Vue({
         EnrichmentTable,
         DatasetsTable,
         Documentation,
+        RawImage
     },
 
     created() {
@@ -54,7 +56,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        intFormatter: Formatters.intFormatter,
+        intFormatter: Formatters.intFormatter
     },
 
     computed: {
@@ -76,7 +78,7 @@ new Vue({
             let phenotype = this.$store.state.phenotype;
 
             if (!!phenotype) {
-                return rawUrl(`/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`);
+                return `/api/raw/plot/phenotype/${phenotype.name}/manhattan.png`;
             }
         },
 
@@ -84,12 +86,10 @@ new Vue({
             let phenotype = this.$store.state.phenotype;
 
             if (!!phenotype) {
-                return rawUrl(`/api/raw/plot/phenotype/${phenotype.name}/qq.png`);
+                return `/api/raw/plot/phenotype/${phenotype.name}/qq.png`;
             }
         }
     },
-
-
 
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
@@ -104,7 +104,7 @@ new Vue({
 
         "$store.state.phenotype": function (phenotype) {
             this.$store.dispatch("queryPhenotype");
-            uiUtils.hideElement('phenotypeSearchHolder');
+            uiUtils.hideElement("phenotypeSearchHolder");
         },
 
         diseaseGroup(group) {

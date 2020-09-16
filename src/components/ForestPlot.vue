@@ -14,18 +14,18 @@ export default Vue.component("forest-plot", {
     props: {
         data: {
             type: Array,
-            required: true
+            required: true,
         },
         element: {
             type: String,
             required: false,
-            default: "forest-plot"
+            default: "forest-plot",
         },
         dichotomous: {
             type: Boolean,
             required: false,
-            default: false
-        }
+            default: false,
+        },
     },
     mounted() {
         this.createChart(this.data, this.element, this.dichotomous);
@@ -36,7 +36,7 @@ export default Vue.component("forest-plot", {
             chart = am4core.create(element, am4charts.XYChart);
             let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
-            chart.data = data.map(item => {
+            chart.data = data.map((item) => {
                 return {
                     category: item.mask,
                     high: dichotomous
@@ -46,7 +46,7 @@ export default Vue.component("forest-plot", {
                         ? Math.exp(item.beta - item.stdErr * 1.96)
                         : item.beta - item.stdErr * 1.96,
                     measure: dichotomous ? Math.exp(item.beta) : item.beta,
-                    bulletSize: 5
+                    bulletSize: 5,
                 };
             });
 
@@ -116,7 +116,7 @@ export default Vue.component("forest-plot", {
                 property: "scale",
                 min: 1,
                 max: 4,
-                dataField: "customValue"
+                dataField: "customValue",
             });
 
             //Overwrites for 52k table
@@ -133,8 +133,8 @@ export default Vue.component("forest-plot", {
         },
         updateChart(newData) {
             chart.data = newData;
-        }
-    }
+        },
+    },
 });
 </script>
 
