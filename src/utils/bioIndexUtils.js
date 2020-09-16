@@ -4,13 +4,22 @@
 */
 
 import querystring from "query-string";
+import cookie from "cookie";
+
+// set cookie for authenticated requests
+let session_cookie = undefined;
+
+// lookup the one in the document
+if (!!document.cookie) {
+    session_cookie = cookie.parse(document.cookie).session;
+}
 
 // updated at compile-time to the dev or production BioIndex server
 export const BIO_INDEX_HOST = "SERVER_IP_ADDRESS";
 
-/* Useful for /api/raw end-points and other requests.
+/* Returns the path for any BioIndex API end-point.
  */
-export function rawUrl(path) {
+export function apiUrl(path) {
     if (path.startsWith("/")) {
         path = path.substr(1);
     }
@@ -18,14 +27,22 @@ export function rawUrl(path) {
     return `${BIO_INDEX_HOST}/${path}`;
 }
 
+/* Useful for /api/raw end-points with query parameters.
+ */
+export function rawUrl(path, query_params) {
+    let qs = querystring.stringify(query_params, { skipNull: true });
+
+    return `${apiUrl(path)}?${qs || ""}`;
+}
+
 /* Build a generic request to a BioIndex end-point.
  */
 export async function request(path, query_params) {
-    let qs =
-        query_params && querystring.stringify(query_params, { skipNull: true });
-
-    // use the rawUrl to get the location in the BioIndex
-    return fetch(rawUrl(`${path}?${qs || ""}`));
+    return fetch(rawUrl(path, query_params), {
+        headers: {
+            "x-bioindex-access-token": session_cookie
+        }
+    });
 }
 
 /* Perform a BioIndex query.

@@ -22,6 +22,8 @@ export default function (index, extend) {
 
                 // accumulated information from query responses
                 data: [],
+                count: 0,
+                restricted: 0,
                 profile: {},
                 progress: null,
             };
@@ -46,6 +48,13 @@ export default function (index, extend) {
         mutations: {
             clearData(state) {
                 state.data = [];
+                state.restricted = 0;
+                state.count = 0;
+            },
+
+            updateCount(state, json) {
+                state.count += json.count;
+                state.restricted += json.restricted;
             },
 
             setResponse(state, json) {
@@ -83,6 +92,7 @@ export default function (index, extend) {
                             profile.query += json.profile.query || 0;
 
                             // update progress bar
+                            context.commit("updateCount", json);
                             context.commit("setProgress", json.progress);
                         },
 
