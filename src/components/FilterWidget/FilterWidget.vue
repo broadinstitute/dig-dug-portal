@@ -96,7 +96,6 @@ export default Vue.component("filter-widget", {
     computed: {
 
         filterFunction() {
-            console.log(this.strictCase, this.looseMatch)
             const predicates = this.filterList.map(obj => predicateFromSpec({...obj}, { strictCase: this.strictCase, notStrictMatch: this.looseMatch }));
             return filterFromPredicates(predicates, !!this.inclusive);
         }

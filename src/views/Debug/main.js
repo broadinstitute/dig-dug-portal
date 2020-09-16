@@ -93,10 +93,5 @@ new Vue({
             let genes = this.associations.flatMap((assoc) => assoc.nearest);
             return [...new Set(genes)].sort();
         },
-    },
-    watch: {
-        filterFunction() {
-            console.log('filter function modified in main')
-        }
     }
 }).$mount("#app");

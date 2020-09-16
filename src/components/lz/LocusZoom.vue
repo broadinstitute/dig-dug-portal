@@ -185,7 +185,6 @@ export default Vue.component("locuszoom", {
         },
         // TODO: Refactor to use the filter function *directly as a function*
         applyFilter(filter) {
-            console.log('filter change in locuszoom')
 
             // TODO: revisit, is there a faster way?
             // Auxiliary method within our json query for data layers in the LocusZoom plot
@@ -203,7 +202,6 @@ export default Vue.component("locuszoom", {
 
                 data_layer.setFilter(obj => {
                     let regularObject = decodeNamespace(obj, { prefix: `${namespaceTag}:` });
-                    // _.once(console.log(regularObject))
                     return filter(regularObject);
                 });
 
