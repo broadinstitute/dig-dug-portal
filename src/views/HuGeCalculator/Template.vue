@@ -114,37 +114,39 @@
                 </div>
             </div>
 
-                                                                     
-
             <div>
-                <b-button v-b-toggle.collapse-1 variant="primary">GWAS Associations</b-button>
-                <div id="collapse-1" class="card mdkp-card">
-                    <div class="card mdkp-card">
-                        <div class="card-body">
-                            <h4
-                                v-if="$store.state.phenotype"
-                                class="card-title"
-                            >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
+                <!-- <b-button @click="$parent.showHideElement('gwasAssocHolder')">GWAS Associations</b-button> -->
+                <div class="col-md-4 gene-page-header-title">
+                    <a
+                        class="edit-btn"
+                        v-on:click="() => $parent.showHideElement('gwasAssocHolder')"
+                    >Show GWAS Data</a>
+                </div>
+                <div id="gwasAssocHolder" class="mdkp-card hidden">
+                    <div class="card-body">
+                        <h4
+                            v-if="$store.state.phenotype"
+                            class="card-title"
+                        >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
 
-                            <locuszoom
-                                v-if="$parent.region"
-                                ref="locuszoom"
-                                :chr="$parent.region.chromosome"
-                                :start="$parent.region.start"
-                                :end="$parent.region.end"
-                                :refSeq="true"
-                            >
-                                <lz-associations-panel
-                                    :phenotype="$store.state.phenotype.name"
-                                    :finishHandler="$parent.updateAssociationsTable"
-                                ></lz-associations-panel>
-                            </locuszoom>
-                            <associations-table
-                                v-if="$parent.inGWAS"
-                                :phenotypes="$parent.phenotypes"
-                                :associations="$parent.associationsData"
-                            ></associations-table>
-                        </div>
+                        <locuszoom
+                            v-if="$parent.region"
+                            ref="locuszoom"
+                            :chr="$parent.region.chromosome"
+                            :start="$parent.region.start"
+                            :end="$parent.region.end"
+                            :refSeq="true"
+                        >
+                            <lz-associations-panel
+                                :phenotype="$store.state.phenotype.name"
+                                :finishHandler="$parent.updateAssociationsTable"
+                            ></lz-associations-panel>
+                        </locuszoom>
+                        <associations-table
+                            v-if="$parent.inGWAS"
+                            :phenotypes="$parent.phenotypes"
+                            :associations="$parent.associationsData"
+                        ></associations-table>
                     </div>
                 </div>
             </div>
