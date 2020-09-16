@@ -134,6 +134,13 @@
                         ></lz-phewas-panel>
                     </locuszoom>
 
+                    <forest-plot-html
+                        v-if="$store.state.phewas.data"
+                        :forestPlotData="$store.state.phewas.data"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                    ></forest-plot-html>
+
+                    {{$store.state.phewas.data}}
                     <h4 class="card-title">
                         {{$parent.varId}}
                         <span v-if="$parent.dbSNP">
