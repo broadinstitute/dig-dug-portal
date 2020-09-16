@@ -71,8 +71,8 @@ export default Vue.component("locuszoom", {
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
-                min_height: 240,
-                height: 240,
+                min_height: 120,
+                height: 120,
                 y_index: 3
             }));
         }
@@ -90,10 +90,6 @@ export default Vue.component("locuszoom", {
             const { start, end } = event; // coordinates are in decimals
             self.$emit('regionchanged', event);
         })
-
-        self.$on("LZ_ADD_PANEL", () => {
-            console.log('load panel')
-        });
 
     },
     methods: {

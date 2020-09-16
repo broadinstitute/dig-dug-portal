@@ -4,7 +4,7 @@
         :predicate="(string, selection) => string === selection"
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${filterDefinition.threshold}`"
         :options="uniqify(options)"
-        :color="'warning'"
+        :color="color"
         :multiple="true">
         <slot>
             Match

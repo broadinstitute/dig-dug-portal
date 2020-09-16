@@ -12,7 +12,7 @@
         -->
         <b-form-select
             v-if="!!options && options.length > 0"
-            :options="[{ value: null, text: '' }].concat(options)"
+            :options="[{ value: null, text: '' }].concat(options.map(option => !!labelFormatter ? { text: labelFormatter(option), value: option } : option))"
             v-model="filterThreshold"
             @input="updateFilter(filterThreshold)"
         ></b-form-select>
@@ -38,7 +38,20 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("filter-widget-control", {
     // TODO: Checker prop to prevent submission of invalid input? (including blank input)
-    props: ["value", "field", "predicate", "default", "options", "multiple", "color", "pillFormatter"],
+    // props: ["value", "field", "predicate", "default", "options", "multiple", "color", "pillFormatter"],
+    props: {
+        value: [ String, Number ],
+        field: String,
+        predicate: Function,
+        options: Array,
+        multiple: Boolean,
+        color: {
+            type: String,
+            default: '#ffc107',
+        },
+        pillFormatter: Function,
+        labelFormatter: Function,
+    },
     data() {
         return {
             filterDefinition: {

@@ -13,7 +13,7 @@ import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
 
 import FilterUser from "./FilterUser.vue"
 
-import AssociationsTable from "./AssociationsTable.vue"
+import AssociationsTable from "@/components/AssociationsTable.vue"
 import LocusZoom from "@/components/lz/LocusZoom.vue"
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel.vue"
 

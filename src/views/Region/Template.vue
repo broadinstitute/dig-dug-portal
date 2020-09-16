@@ -130,43 +130,45 @@
             </div>
 
 
-            <filter-widget
-                v-model="$parent.filterFunction"
-                :inclusive="$parent.inclusive"
-                :looseMatch="true">
 
-                <filter-enumeration-control
-                    :field="'consequence'"
-                    :options="$parent.associationConsequences">
-                    Consequence
-                </filter-enumeration-control>
 
-                <filter-enumeration-control
-                    :field="'nearest'"
-                    :options="$parent.associationNearestGenes">
-                    Closest Genes
-                </filter-enumeration-control>
+        <div class="card mdkp-card">
+            <div class="card-body">
+                <filter-widget
+                    v-model="$parent.filterFunction"
+                    :inclusive="$parent.inclusive"
+                    :looseMatch="true">
 
-                <filter-pvalue-control
-                    :field="'pValue'">
-                    P-Value (&le;)
-                </filter-pvalue-control>
+                    <filter-enumeration-control
+                        :field="'consequence'"
+                        :options="$parent.associationConsequences">
+                        Consequence
+                    </filter-enumeration-control>
 
-                <filter-greater-control
-                    :field="'fold'">
-                    Fold (&ge;)
-                </filter-greater-control>
+                    <filter-enumeration-control
+                        :field="'nearest'"
+                        :options="$parent.associationNearestGenes">
+                        Closest Genes
+                    </filter-enumeration-control>
 
-                <filter-effect-direction-control
-                    :field="'beta'">
-                </filter-effect-direction-control>
+                    <filter-pvalue-control
+                        :field="'pValue'">
+                        P-Value (&le;)
+                    </filter-pvalue-control>
 
-            </filter-widget>
+                    <filter-greater-control
+                        :field="'fold'">
+                        Fold (&ge;)
+                    </filter-greater-control>
 
-        <filter-context v-model="$parent.filterFunction">
-            <div>
-                <div class="card mdkp-card">
-                    <div class="card-body">
+                    <filter-effect-direction-control
+                        :field="'beta'">
+                    </filter-effect-direction-control>
+
+                </filter-widget>
+
+                <filter-context v-model="$parent.filterFunction">
+                    <div>
                         <h4
                             v-if="!!$store.state.phenotype"
                             class="card-title"
@@ -230,12 +232,8 @@
                             ></lz-associations-panel>
                         </locuszoom>
 
-                    </div>
-                </div>
 
-                <div v-if="!!$store.state.phenotype">
-                    <div class="card mdkp-card">
-                        <div class="card-body">
+                        <div v-if="!!$store.state.phenotype">
                             <h4 class="card-title">
                                 Top Associations for {{$store.state.phenotype.description}}
                                 <tooltip-documentation
@@ -253,10 +251,9 @@
                             ></associations-table>
                         </div>
                     </div>
-                </div>
+                </filter-context>
             </div>
-        </filter-context>
-
+        </div>
         </div>
             <!-- TODO: collapse tables -->
             <b-collapse id="collapse-1" class="mt-2">

@@ -13,26 +13,28 @@
 
         <!-- Pills for everything -->
         <b-container fluid class="selected-filters-ui-wrapper">
-            <b-row v-if="filterList.length > 0">
+            <b-row>
                 <b-col>
-
-                    <span>Selected Filters:&nbsp;&nbsp;</span>
-                    <!-- Derive pills from current filter state?
-                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
-                         It would be deterministic upto the compile-time declaration of the FilterWidget controls which would lead to predicatable results at runtime
-                     -->
-                    <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
-                    <b-badge
-                        v-for="(filter, idx) in filterList"
-                        :key="filter.field+filter.predicate+filter.threshold+idx"
-                        pill
-                        :variant="filter.pill.color"
-                        @click="unsetFilter(filter, idx)"
-                        class="btn">
-                        {{filter.pill.label(filter)}}
-                        <span class="remove">X</span>
-                    </b-badge>
-
+                    <span v-if="filterList.length > 0">Selected Filters:&nbsp;&nbsp;
+                        <!-- Derive pills from current filter state?
+                            Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
+                            It would be deterministic upto the compile-time declaration of the FilterWidget controls which would lead to predicatable results at runtime
+                        -->
+                        <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
+                        <b-badge
+                            v-for="(filter, idx) in filterList"
+                            :key="filter.field+filter.predicate+filter.threshold+idx"
+                            pill
+                            :variant="filter.pill.color"
+                            :style="`background-color:${filter.pill.color};color:#242124;`"
+                            @click="unsetFilter(filter, idx)"
+                            class="btn">
+                                {{filter.pill.label(filter)}}
+                                <span class="remove">X</span>
+                        </b-badge>
+                    </span>
+                    <!-- Spacer to prevent flicker when new pills are added to the UI -->
+                    <br v-else>
                 </b-col>
             </b-row>
         </b-container>
