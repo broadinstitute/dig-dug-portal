@@ -137,10 +137,15 @@
                     <forest-plot-html
                         v-if="$store.state.phewas.data"
                         :forestPlotData="$store.state.phewas.data"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :sortBy="'pValue'"
+                        :significant="5e-8"
+                        :moderate="2.5e-6"
+                        :bulletBy="'beta'"
+                        :stdErr="'stdErr'"
+                        :labelBy="'phenotype'"
+                        :labelByDescriptionMap="$store.state.bioPortal.phenotypeMap"
                     ></forest-plot-html>
 
-                    {{$store.state.phewas.data}}
                     <h4 class="card-title">
                         {{$parent.varId}}
                         <span v-if="$parent.dbSNP">
