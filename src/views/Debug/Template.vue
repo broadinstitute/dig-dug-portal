@@ -1,5 +1,18 @@
 <template>
-    <div>
+    <div class="container-fluid mdkp-body">
+        <div class="card mdkp-card">
+            <div class="row card-body">
+                <div class="col-md-12">
+                    <forest-plot-html
+                        v-if="$parent.htmlForestPlotData"
+                        :forestPlotData="$parent.htmlForestPlotData"
+                        :start="'ci_start'"
+                        :end="'ci_end'"
+                        :pvalue="'log_pvalue'"
+                        :beta="'beta'"
+                        :phenotypeid="false"
+                    ></forest-plot-html>
+                    <!--
         <div class="filtering-ui-wrapper">
             <div class="row filtering-ui-content">
                 <div class="col filter-col-lg">
@@ -18,8 +31,9 @@
                         @credibleset="$parent.addCredibleVariantsPanel($event)"
                     />
 
-                    <button @click="$parent.addComputedCredibleVariantsPanel({ phenotype: 'T2D' })">Add Computed Variants</button>
-
+                    <button
+                        @click="$parent.addComputedCredibleVariantsPanel({ phenotype: 'T2D' })"
+                    >Add Computed Variants</button>
                 </div>
             </div>
         </div>
@@ -32,6 +46,9 @@
             :colorScheme="$parent.tissueColorScheme"
             @panelremoved="$parent.tap($event)"
             @regionchanged="$parent.requestCredibleSets($event.data)"
-        ></locuszoom>
+                    ></locuszoom>-->
+                </div>
+            </div>
+        </div>
     </div>
 </template>
