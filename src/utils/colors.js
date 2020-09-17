@@ -25,6 +25,16 @@ export default [
  If we don't know what color something should be ahead of time, but we want the color to be standardized across different parts of the interface,
  BUT, we know roughly how many colors we need, we can create a colorClosure which can create our color scheme for us on the fly. 
  */
+function cycle(input) {
+    return function (times) {
+        var i = 0, output = [];
+        while (i < times) {
+            output.push(input[i++ % input.length]);
+        }
+        return output;
+    };
+}
+
 export function colorClosure(initialColorSpaceSize=0, initialColorRegistry={}) {
 
     // Some assumptions this function makes:
@@ -39,16 +49,18 @@ export function colorClosure(initialColorSpaceSize=0, initialColorRegistry={}) {
     // TODO: rewrite using new Map() and d3.schemeSpectral?
     let colorRegistry = initialColorRegistry;
     let colorSpaceSize = initialColorSpaceSize;
-    let colorScheme = d3.scaleSequential(d3.interpolateSpectral); // TODO: this, or interpolator function?
+    let colorScheme = d3.scaleSequential(d3.interpolateRainbow); // TODO: this, or interpolator function?
+    let samplingScheme = d3.scaleSequential(d3.interpolateBasis(cycle([0, 0.5, 1])(5)));
 
     return function retrieveColor(label) {
         let maybeColor = !!colorRegistry[label];
         if (!maybeColor) {
             colorRegistry[label] = ''; // just add the element so we can make the registry bigger and use it to get the next color, without needing a counter variable.
             if (Object.keys(colorRegistry).length > colorSpaceSize) {
-                colorSpaceSize = Object.keys(colorRegistry).length + Math.floor(colorSpaceSize * 0.5); // arbitrary adjustment on estimate. this can be zero and the colorSpace will grow to extactly what it needs to be.
+                console.log('enlarging color space')
+                colorSpaceSize = Object.keys(colorRegistry).length + Math.floor(colorSpaceSize); // arbitrary adjustment on estimate. this can be zero and the colorSpace will grow to extactly what it needs to be.
             }
-            colorRegistry[label] = colorScheme(Object.keys(colorRegistry).length / colorSpaceSize);
+            colorRegistry[label] = colorScheme(samplingScheme(Object.keys(colorRegistry).length / colorSpaceSize));
         }
         return colorRegistry[label];
     }
@@ -57,4 +69,4 @@ export function colorClosure(initialColorSpaceSize=0, initialColorRegistry={}) {
 // use this if you want to share colors across the application
 // edit DEFAULT_COLOR_MAP with colors you want to standardize on
 const DEFAULT_COLOR_MAP = {};
-export const globalColorSpace = colorClosure(10, DEFAULT_COLOR_MAP);
+export const globalColorSpace = colorClosure(50, DEFAULT_COLOR_MAP);
