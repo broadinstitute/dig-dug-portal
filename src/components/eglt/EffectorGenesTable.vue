@@ -13,6 +13,15 @@
             v-if="!!config && !!tableData && config[dataset].filters != undefined"
             class="filtering-ui-wrapper"
         >
+            <div>
+                <input
+                    type="checkbox"
+                    v-model="showAllFeaturesChk"
+                    id="show_all_features"
+                    @change="showAllFeatures()"
+                />
+                <label for="show_all_features">Only in filtered</label>
+            </div>
             <b-row class="filtering-ui-content">
                 <b-col v-for="filter in config[dataset]['filters']" :key="filter.field">
                     <div class="label" v-html="filter.label"></div>
