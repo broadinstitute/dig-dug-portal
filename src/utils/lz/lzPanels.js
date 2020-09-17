@@ -6,6 +6,8 @@ import idCounter from "@/utils/idCounter"
 import * as d3 from "d3";
 import _ from "lodash"
 
+import { globalColorSpace } from "@/utils/colors"
+
 import { marking, scoring } from 'gwas-credible-sets';
 
 import {
@@ -55,7 +57,7 @@ export class LZAssociationsPanel {
             y_index: 0,
             axes: {
                 y1: {
-                    label: 'log10 log_pvalue'
+                    label: '-log_pvalue'
                 }
             },
             data_layers: [
@@ -64,7 +66,7 @@ export class LZAssociationsPanel {
                     {
                         y_axis: {
                             axis: 1,
-                            field: '{{namespace[assoc]}}log_pvalue|log10', // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                            field: '{{namespace[assoc]}}log_pvalue', 
                             // floor: 0,
                             upper_buffer: 0.10,
                             // min_extent: [0, 10],
@@ -132,12 +134,17 @@ export class LZAnnotationIntervalsPanel {
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
         this.translator = function (intervals) {
             const tissues = _.uniq(intervals.map(interval => interval.tissue));
-            const colorScheme = d3.scaleOrdinal().domain(tissues).range(d3.schemeSet1);
+
+
+            // const colorScheme = d3.scaleOrdinal().domain(tissues).range(d3.schemeSet1);
+            // const colors = colorClosure(tissues.length);
+            // console.log(colors(tissues[0]), colors(tissues[1]))
+
             const tissueIntervals = !!intervals ? intervals
                 .map((interval) => {
                     // let colorScheme = d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
-                    const { r, g, b } = d3.rgb(colorScheme(interval.tissue));
-
+                    const { r, g, b } = d3.rgb(globalColorSpace(interval.tissue));
+                    
                     let t = interval.tissueId || "NA";
                     let m = interval.method || "NA";
                     let key = `${t}_${m}_${interval.annotation}`;
@@ -235,6 +242,7 @@ export class LZAnnotationIntervalsPanel {
     }
 
 }
+
 export class LZCredibleVariantsPanel {
     constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }, initialData) {
 
@@ -592,7 +600,6 @@ class _LZBioIndexSource extends BaseAdapter {
         }).finally(closeAlert(alertID));
     };
 }
-
 
 class _LZComputedCredibleSetSource extends BaseAdapter {
     constructor(params) {

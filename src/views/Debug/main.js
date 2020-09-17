@@ -13,6 +13,8 @@ import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker"
 
+import { colorClosure } from "@/utils/colors"
+
 Vue.config.productionTip = false;
 new Vue({
     store,
@@ -29,12 +31,13 @@ new Vue({
             phenotypes: ['T2D', 'BMI'],
             addPhenotype: '',
             removePhenotype: '',
+            colorScheme: colorClosure(4)
         }
     },
     created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("queryRegion");
+
+        ['a', 'b', 'c', 'd'].forEach(element => console.log(element, this.colorScheme(element)))
+
     },
     mounted() {
         this.addAssociationsPanel({ phenotype: 'T2D' })
