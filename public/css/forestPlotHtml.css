@@ -14,7 +14,7 @@
 
 .beta-0 {
     height: calc(100% + 20px);
-    border-left: dashed 2px #ddd;
+    border-left: dashed 2px #dfdfdf;
 }
 
 .start-min {
@@ -42,7 +42,7 @@
     margin-bottom: 7px;
 }
 
-.forest-plot-html-row .beta-box {
+.forest-plot-html-row .beta-box, .forest-plot-html-legend-wrapper .beta-box  {
     position: absolute;
     width: 12px;
     height: 12px;
@@ -50,11 +50,15 @@
     top: 4px;
 }
 
-.forest-plot-html-row .beta-box.p-significant {
+.forest-plot-html-legend-wrapper .beta-box {
+    left: -20px;
+}
+
+.forest-plot-html-row .beta-box.p-significant, .forest-plot-html-legend-wrapper .beta-box.p-significant{
     background-color: #ff0000;
 }
 
-.forest-plot-html-row .beta-box.p-moderate {
+.forest-plot-html-row .beta-box.p-moderate, .forest-plot-html-legend-wrapper .beta-box.p-moderate {
     background-color: #ff9999;
 }
 
@@ -116,4 +120,36 @@
 .phenotype-group-dot.SLEEP.AND.CIRCADIAN { background-color: #D5A768; }
 .phenotype-group-dot.STROKE { background-color: #cccc00; }
 .phenotype-group-dot.TYPE.DIABETES { background-color: #639bc0; }
+.phenotype-group-dot.HEMATOLOGICAL { background-color: #aa0000; }
 
+.forest-plot-html-legend-wrapper {
+    position: absolute;
+    font-size: 13px;
+    z-index: 10000;
+    background-color: white;
+}
+
+.forest-plot-html-legend-handler {
+    padding-left: 20px;
+}
+
+.forest-plot-html-legend-content {
+    position: relative;
+}
+
+.forest-plot-html-legend-content ul {
+    list-style: none;
+    position: relative;
+}
+
+.forest-plot-html-legend-content ul li {
+    position: relative;
+}
+
+.forest-plot-html-legend-content ul li .phenotype-group-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 12px;
+    left: -20px;
+}

@@ -143,7 +143,8 @@
                         :bulletBy="'beta'"
                         :stdErr="'stdErr'"
                         :labelBy="'phenotype'"
-                        :labelByDescriptionMap="$store.state.bioPortal.phenotypeMap"
+                        :labelMap="$store.state.bioPortal.phenotypeMap"
+                        :countDichotomous="0"
                     ></forest-plot-html>
 
                     <h4 class="card-title">

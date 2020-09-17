@@ -261,7 +261,7 @@ export default Vue.component("effector-genes-table", {
                 this.filtersIndex[FIELD]["search"].push(searchValue);
             }
 
-            console.log(this.filtersIndex);
+            //console.log(this.filtersIndex);
 
             this.applyFilters();
         },

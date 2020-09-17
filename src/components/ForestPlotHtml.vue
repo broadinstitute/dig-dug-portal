@@ -2,7 +2,7 @@
     <div>
         <div class="forest-plot-html-wrapper row">
             <div class="start-min">{{this.plotData.low_min}}</div>
-            <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">Beta: 0.00</div>
+            <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">0</div>
             <div class="end-max">{{this.plotData.high_max}}</div>
             <div
                 v-for="(value,index) in this.plotData.data"
@@ -15,9 +15,9 @@
                         class="forest-plot-html-item"
                     >
                         <span
-                            v-if="!!labelByDescriptionMap"
+                            v-if="!!labelMap"
                             :class="'phenotype-name '+(value.left > value.right? 'left':'right')"
-                        >{{labelByDescriptionMap[value[labelBy]].description}}</span>
+                        >{{labelMap[value[labelBy]].description}}</span>
                         <span
                             v-else
                             :class="'phenotype-name '+(value.left > value.right? 'left':'right')"
@@ -29,14 +29,44 @@
                         :style="'left:calc('+value.beta_position+'% - 9px);'"
                     >&nbsp;</div>
                     <div
-                        v-if="value[sortBy] < significant"
-                        :class="'phenotype-group-dot '+labelByDescriptionMap[value[labelBy]].group"
+                        v-if="!!labelMap"
+                        :class="'phenotype-group-dot '+labelMap[value[labelBy]].group"
                     >
-                        <span
-                            class="phenotype-group-name"
-                        >{{labelByDescriptionMap[value[labelBy]].group}}</span>
+                        <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
                     </div>
                 </template>
+            </div>
+            <div class="forest-plot-html-legend-wrapper">
+                <div class="forest-plot-html-legend-handler">
+                    <a
+                        href="javascript:;"
+                        v-on:click="showLegends('forest-plot-html-legend-content')"
+                    >> Show legends</a>
+                </div>
+                <div class="forest-plot-html-legend-content hidden">
+                    <ul>
+                        <li>
+                            <span class="beta-box p-significant">&nbsp;</span>
+                            {{sortBy}}&nbsp;&lt;&equals;&nbsp;{{significant}}
+                        </li>
+                        <li>
+                            <span class="beta-box p-moderate">&nbsp;</span>
+                            {{significant}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{moderate}}
+                        </li>
+                        <li>
+                            <span class="beta-box">&nbsp;</span>
+                            {{sortBy}}&nbsp;&gt;{{moderate}}
+                        </li>
+                    </ul>
+                    <ul v-if="!!labelMap">
+                        <template>
+                            <li v-for="group in this.plotData.label_group">
+                                <span :class="'phenotype-group-dot '+group">&nbsp;</span>
+                                {{group}}
+                            </li>
+                        </template>
+                    </ul>
+                </div>
             </div>
         </div>
         <b-pagination
@@ -64,10 +94,11 @@ export default Vue.component("forest-plot-html", {
         "sortBy",
         "bulletBy",
         "labelBy",
-        "labelByDescriptionMap",
+        "labelMap",
         "significant",
         "moderate",
         "stdErr",
+        "countDichotomous",
     ],
     data() {
         return { perPage: 25, currentPage: 1 };
@@ -80,6 +111,10 @@ export default Vue.component("forest-plot-html", {
     computed: {
         rows() {
             return this.forestPlotData.length;
+        },
+        legendContent() {
+            if (!!this.forestPlotData) {
+            }
         },
         plotData() {
             if (!!this.forestPlotData) {
@@ -94,62 +129,53 @@ export default Vue.component("forest-plot-html", {
                     false
                 );
 
-                let tempCiStartArr = [],
-                    tempCiEndArr = [];
+                let tempCiStart = 0,
+                    tempCiEnd = 0;
+
+                let labelGroup = [];
 
                 content["data"].map((d) => {
-                    let dichotomous = this.labelByDescriptionMap[
-                        d[this.labelBy]
-                    ].dichotomous;
+                    let dichotomous =
+                        this.countDichotomous == 1
+                            ? this.labelMap[d[this.labelBy]].dichotomous
+                            : 0;
 
-                    let high = d[this.bulletBy] + d[this.stdErr] * 1.96;
-
-                    tempCiEndArr.push(high);
-
-                    let low = d[this.bulletBy] - d[this.stdErr] * 1.96;
-
-                    tempCiStartArr.push(low);
-
-                    let measure = d[this.bulletBy];
-                    /*
                     let high = dichotomous
                         ? Math.exp(d[this.bulletBy] + d[this.stdErr] * 1.96)
                         : d[this.bulletBy] + d[this.stdErr] * 1.96;
 
-                    tempCiEndArr.push(high);
+                    tempCiEnd = high > tempCiEnd ? high : tempCiEnd;
                     let low = dichotomous
                         ? Math.exp(d[this.bulletBy] - d[this.stdErr] * 1.96)
                         : d[this.bulletBy] - d[this.stdErr] * 1.96;
 
-                    tempCiStartArr.push(low);
+                    tempCiStart = low < tempCiStart ? low : tempCiStart;
 
                     let measure = dichotomous
                         ? Math.exp(d[this.bulletBy])
                         : d[this.bulletBy];
-                        */
 
                     d["high"] = high;
                     d["low"] = low;
                     d["measure"] = measure;
+
+                    labelGroup.push(this.labelMap[d[this.labelBy]].group);
                 });
 
-                tempCiStartArr.sort((a, b) => a - b);
-
-                content["low_min"] = tempCiStartArr[0];
-
-                tempCiEndArr.sort((a, b) => b - a);
-
-                content["high_max"] = tempCiEndArr[0];
-
+                content["low_min"] = tempCiStart.toFixed(3);
+                content["high_max"] = tempCiEnd.toFixed(3);
                 content["max_min_difference"] =
                     content["high_max"] - content["low_min"];
+                content["label_group"] = labelGroup.filter(
+                    (v, i, arr) => arr.indexOf(v) == i
+                );
+
+                content["label_group"].sort();
 
                 content["beta_0"] =
                     ((content["max_min_difference"] - content["high_max"]) /
                         content["max_min_difference"]) *
                     100;
-
-                //console.log(content);
 
                 content["data"].map((item) => {
                     let updated = item;
@@ -185,7 +211,11 @@ export default Vue.component("forest-plot-html", {
         },
     },
     watch: {},
-    methods: {},
+    methods: {
+        showLegends(ELEMENT) {
+            uiUtils.showHideElement(ELEMENT);
+        },
+    },
 });
 </script>
 
