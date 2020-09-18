@@ -2,28 +2,7 @@ import { result } from "lodash";
 
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
-    // TODO: what about case of mixed inclusions and exclusions?
-    /*
-    // sort predicates into inclusive and exclusive
-    let exclusivePredicates = predicates.filter(predicate => !predicate.inclusive);
-    let inclusivePredicates = predicates.filter(predicate => predicate.inclusive);
-    return function filterFunction(object) {
 
-        let exclusiveTruth = true;
-        for (let predicateI = 0; predicateI < exclusivePredicates.length; predicateI++) {
-            exclusiveTruth = exclusivePredicates[predicateI].func(object);
-            if (exclusiveTruth === false) break;
-        }
-
-        let inclusiveTruth = false;
-        for (let predicateI = 0; predicateI < inclusivePredicates.length; predicateI++) {
-            inclusiveTruth = inclusivePredicates[predicateI].func(object);
-            if (inclusiveTruth === true) break;
-        }
-
-        return inclusiveTruth || exclusiveTruth || inclusive;
-    }
-    */
     const inclusivePredicates = allPredicates.filter(predicate => predicate.inclusive);
     const predicates = allPredicates.filter(predicate => !predicate.inclusive);
 
@@ -33,18 +12,35 @@ export function filterFromPredicates(allPredicates, inclusive) {
         // we've found evidence that the object isn't innocent.
         // NOTE: Filter policy by default is innocent until proven guilty.
         // so in lieu of any predicates, remain truthy by default
+        let innocent = true;
 
-        let innocence = true;
+        // Predicates can tell us whether or not they want to override the global settings for inclusion
+        // This step must run before anything else is excluded, otherwise certain exclusions might be reversed and in the worst case we just get the original set back (no information)
+        // Instead we treat this as setting up the bounding conditions of the set (what we want to include for filtering)
+
+        // If there are no predicates that want to tell us whether to override the global configuration for the filter, it's irrelevant to the filter.
+        // So the default for whether or not a point is included must be "true" since the filter policy is innocent-until-guilty.
+        let included = true;
+        if (inclusivePredicates.length > 0) {
+            // since there are some local filters doing overrides, we let them decide what's included
+            // so now being included is "false" unless otherwise stated
+            included = false;
+            for (let predicateI = 0; predicateI < inclusivePredicates.length; predicateI++) {
+                included = inclusivePredicates[predicateI].func(object);
+                if (included === true) break;
+            }
+        }
+
         if (allPredicates.length > 0) {
             // if we have predicates, the burden of proof may change based on our filtering type
             if (!!!inclusive) {
 
                 // exclusive filter, equivalent to a series of ANDs
                 // break on soonest failure
-                // innocence = true; redundant to set here due to `true` being default value
+                // innocent = true; redundant to set here due to `true` being default value
                 for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
-                    innocence = predicates[predicateI].func(object);
-                    if (innocence === false) break;
+                    innocent = predicates[predicateI].func(object);
+                    if (innocent === false) break;
                 }
 
             } else {
@@ -52,17 +48,16 @@ export function filterFromPredicates(allPredicates, inclusive) {
                 // inclusive filter, equivalent to a series of logical ORs
                 // let by all values that pass true on any of the predicates, exclude those that don't
                 // inverts strategy to guilty until proven innocent so we set innocgit stence to false before continuing
-                innocence = false;
+                innocent = false;
                 for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
-                    innocence = predicates[predicateI].func(object);
-                    if (innocence === true) break;
+                    innocent = predicates[predicateI].func(object);
+                    if (innocent === true) break;
                 }
 
             }
         }
 
-
-        return innocence;
+        return included && innocence;
     }
 
 }
