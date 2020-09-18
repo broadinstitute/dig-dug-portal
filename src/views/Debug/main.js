@@ -3,7 +3,7 @@ import * as d3 from "d3";
 
 import Template from "./Template.vue";
 
-import FilterContext from "@/components/FilterContext/FilterContext.vue"
+import FilterContextGiver from "@/components/FilterContext/FilterContextGiver.vue"
 import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
 import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
 import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
@@ -27,7 +27,7 @@ Vue.config.productionTip = false;
 new Vue({
     components: {
         FilterUser,
-        FilterContext,
+        FilterContextGiver,
         FilterWidget,
         FilterWidgetControl,
         FilterPValue,

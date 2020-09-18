@@ -2,19 +2,19 @@
 
     <!-- To use the filterable wrapper, just use your component's applyFilter function when the @change event is emitted -->
     <!-- The contract: it should get the new function and apply it. In general these should be simple predicate functions applied on arrays of structs -->
-    <filterable-wrapper @change="applyFilter($event)">
+    <filter-context-receiver @change="applyFilter($event)">
         <div>This component can consume a filter context</div>
         <pre>{{listOfStructs}}</pre>
-    </filterable-wrapper>
+    </filter-context-receiver>
 
 </template>
 <script>
 import Vue from "vue";
-import FilterableWrapper from "@/components/FilterContext/FilterableWrapper.vue"
+import FilterContextReceiver from "@/components/FilterContext/FilterContextReceiver.vue"
 
 export default Vue.component('filter-user', {
     components: {
-        FilterableWrapper,
+        FilterContextReceiver,
     },
     data() {
         return {

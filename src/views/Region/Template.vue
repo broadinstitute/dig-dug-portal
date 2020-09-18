@@ -168,7 +168,7 @@
 
                 </filter-widget>
 
-                <filter-context v-model="$parent.filterFunction">
+                <filter-context-giver v-model="$parent.filterFunction">
                     <!-- the outermost div is a dummy to collect all the child components into the same slot -->
                     <div>
                         <div v-if="!!$store.state.phenotype">
@@ -252,7 +252,7 @@
 
                         </div>
                     </div>
-                </filter-context>
+                </filter-context-giver>
             </div>
         </div>
 

@@ -1,4 +1,9 @@
-import { result } from "lodash";
+import { createContext } from "vue-context-api";
+
+// The argument passed to createContext is the default context value
+// for `id => true`, letting everything through by default amounts to no filter, and vice-versa, so set it as default
+export const { Provider, Consumer } = createContext(id => true); 
+
 
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
@@ -104,6 +109,8 @@ export function looseMatcher(object, fieldName, strictMatchCase=false) {
     // NOTE: is *eager*: in the unlikely event that several cases of this string are supported by the object at once, the one first matched on will win
 }
 
+
+
 /* NAMESPACE FUNCTIONS */
 // These two *Namespace functions are used to handle prefixes an suffixes that different components might have in their application-specific representations of the data
 // They are used to...
@@ -126,7 +133,9 @@ export function looseMatcher(object, fieldName, strictMatchCase=false) {
 //   You could do this if the namespace applied to all properties rather than just some of them, and if you were modifying your component's data by assignment via some previous state.
 //
 export function encodeNamespace(regularObject, { prefix='', suffix='', pDelimiter='', sDelimiter='' }) {
+
     // take an object whose keys are "basic fields", (do not have any application-specific prefixes or suffixes), and add a given prefix or suffix to all of its keys
+    
     // e.g. 'associations_src:pValue' has prefix 'associations_src:' in LocusZoom for the basic field pValue
     // if we're using encodeNamespace on an object with key `pValue` and give a prefix `associations_src:`, the result will be an object with the key `associations_src:pValue`
     // we use this function if we're working with a filter that modifies the object property keys before rendering it.

@@ -1,5 +1,6 @@
 <template>
-    <filterable-wrapper @change="applyFilter">
+    <div>
+        <filter-context-receiver @change="applyFilter"></filter-context-receiver>
         <div v-if="tableData.length > 0">
             <b-table
                 hover
@@ -66,7 +67,7 @@
             <h4 v-if="associations.length > 0">No overlapping associations across phenotypes</h4>
             <h4 v-else>No associations</h4>
         </div>
-    </filterable-wrapper>
+    </div>
 </template>
 
 <script>
@@ -84,7 +85,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
-import FilterableWrapper from "@/components/FilterContext/FilterableWrapper"
+import FilterContextReceiver from "@/components/FilterContext/FilterContextReceiver"
 import { decodeNamespace } from "@/utils/filterHelpers"
 
 export default Vue.component("associations-table", {
@@ -92,7 +93,7 @@ export default Vue.component("associations-table", {
     components: {
         Documentation,
         TooltipDocumentation,
-        FilterableWrapper,
+        FilterContextReceiver,
     },
     data() {
         return {

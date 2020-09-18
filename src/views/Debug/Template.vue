@@ -41,8 +41,8 @@
         </filter-widget>
 
 
-        <!-- FilterContext is required in the page and must wrap around components with a filterable-wrapper -->
-        <filter-context v-model="$parent.filterFunction">
+        <!-- FilterContextGiver is required in the page and must wrap around components with a filter-context-receiver -->
+        <filter-context-giver v-model="$parent.filterFunction">
             <!-- Div is dummy to fit components in slot -->
             <div>
                 <locuszoom
@@ -60,7 +60,7 @@
                     :phenotypes="$parent.phenotypes"
                 ></associations-table>
             </div>
-        </filter-context>
+        </filter-context-giver>
 
 
     </div>

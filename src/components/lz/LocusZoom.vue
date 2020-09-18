@@ -1,6 +1,6 @@
 <template>
     <div :id="`lz_${salt}`">
-        <filterable-wrapper @change="applyFilter"><div></div></filterable-wrapper>
+        <filter-context-receiver @change="applyFilter"></filter-context-receiver>
         <slot v-if="locuszoommounted"></slot>
     </div>
 
@@ -21,7 +21,7 @@ import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPane
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
 
-import FilterableWrapper from "@/components/FilterContext/FilterableWrapper.vue"
+import FilterContextReceiver from "@/components/FilterContext/FilterContextReceiver.vue"
 import { decodeNamespace } from "@/utils/filterHelpers"
 
 import _ from "lodash";
@@ -38,6 +38,9 @@ export default Vue.component("locuszoom", {
         "scoring",
         "refSeq",
     ],
+    components: {
+        FilterContextReceiver
+    },
     data() {
         return {
             locuszoommounted: false,

@@ -49,15 +49,18 @@ export default Vue.component("filter-widget-control", {
         },
         pillFormatter: Function,
         labelFormatter: Function,
-        split: Boolean,
+        splitBy: {
+            type: String,
+            default: ''
+        },
     },
     data() {
         return {
             filterDefinition: {
                 field: this.field,
                 predicate: this.predicate,
-                multiple: !!this.multiple || !!this.split ? true : false, // if undefined, default to false
-                inclusive: !!this.split || !!this.inclusive , // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
+                multiple: !!this.splitBy || !!this.multiple ? true : false, // if undefined, default to false
+                inclusive: !!this.splitBy || !!this.inclusive , // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
             },
             filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
@@ -73,8 +76,8 @@ export default Vue.component("filter-widget-control", {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                // if the filter is a splitter
-                if (this.split) {
+                // if the filter is a splitter (because a char to splitBy is given)
+                if (this.splitBy) {
                     newThreshold.split(',')
                         .forEach(thresholdElement => 
                             this.$parent.$parent.$emit('change', thresholdElement.trim(), 
