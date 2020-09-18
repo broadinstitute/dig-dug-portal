@@ -42,8 +42,6 @@ new Vue({
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomPhewasPanel,
-
-        ForestPlotHtml,
     },
 
     created() {
