@@ -1,7 +1,7 @@
 import { result } from "lodash";
 
 /* FILTER-MAKING FUNCTIONS */
-export function filterFromPredicates(predicates, inclusive) {
+export function filterFromPredicates(allPredicates, inclusive) {
     // TODO: what about case of mixed inclusions and exclusions?
     /*
     // sort predicates into inclusive and exclusive 
@@ -24,7 +24,9 @@ export function filterFromPredicates(predicates, inclusive) {
         return inclusiveTruth || exclusiveTruth || inclusive;
     }
     */
-    
+    const inclusivePredicates = allPredicates.filter(predicate => predicate.inclusive);
+    const predicates = allPredicates.filter(predicate => !predicate.inclusive);
+
     return function filterFunction(object) {
 
         // Guilt is terminal: we break our investigation as soon as
