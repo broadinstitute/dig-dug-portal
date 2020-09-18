@@ -57,7 +57,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
             }
         }
 
-        return included && innocence;
+        return included && innocent;
     }
 
 }
