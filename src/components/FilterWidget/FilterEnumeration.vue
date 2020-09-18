@@ -1,6 +1,7 @@
 <template>
     <filter-widget-control
         :field="field"
+        :type="'string'"
         :predicate="(string, selection) => string === selection"
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${capitalize(filterDefinition.threshold)}`"
         :labelFormatter="capitalize"

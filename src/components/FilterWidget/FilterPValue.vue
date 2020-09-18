@@ -1,6 +1,7 @@
 <template>
     <filter-widget-control
         :field="field"
+        :type="'number'"
         :predicate="(pValue, pBound) => pValue <= pBound"
         :pillFormatter="filterDefinition => `${filterDefinition.field} <= ${pValueFormatter(filterDefinition.threshold)}`"
         :color="color"

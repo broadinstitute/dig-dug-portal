@@ -44,7 +44,7 @@ export class LZAssociationsPanel {
             variant: association.varId,
             ref_allele: association.varId,
             consequence: association.consequence,
-            nearest: association.nearest[0]
+            nearest: association.nearest,
         }));
         this.initialData = initialData;
 

@@ -54,6 +54,10 @@ export default Vue.component("filter-widget-control", {
             type: String,
             default: ''
         },
+        type: {
+            type: String,
+            default: 'string',
+        },
     },
     data() {
         return {
@@ -74,19 +78,37 @@ export default Vue.component("filter-widget-control", {
         }
     },
     methods: {
+        validateInput(newInput) {
+            // TODO: elaborate validation cases here
+            if (!!this.type) {
+                if (this.type === 'number') {
+                    return !isNaN(newInput);
+                // NOTE: this.type defaults to string
+                } else if (typeof newInput !== this.type) {
+                    return false;
+                }
+            }
+            return true;
+        },
         updateFilter(newThreshold) {
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
-                // if the filter is a splitter (because a char to splitBy is given)
-                if (this.splitBy) {
-                    newThreshold.split(',')
-                        .forEach(thresholdElement =>
-                            this.$parent.$parent.$emit('change', thresholdElement.trim(),
-                                { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } }))
+                const isValid = this.validateInput(newThreshold);
+                if (isValid) {
+                    // if the filter is a splitter (because a char to splitBy is given)
+                    if (this.splitBy) {
+                        newThreshold.split(',')
+                            .forEach(thresholdElement =>
+                                this.$parent.$parent.$emit('change', thresholdElement.trim(),
+                                    { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } }))
+                    } else {
+                        // double parent since we're only using this component as a template inside of another component
+                        this.$parent.$parent.$emit('change', newThreshold, { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } });
+                    }
                 } else {
-                    // double parent since we're only using this component as a template inside of another component
-                    this.$parent.$parent.$emit('change', newThreshold, { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } });
+                    // TODO: handle error in here, or go silent?
+                    console.warn('invalid input given for type', this.type, ':', newThreshold);
                 }
             }
             this.filterThreshold = null;
