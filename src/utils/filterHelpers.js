@@ -78,7 +78,8 @@ export function predicateFromSpec({ field, predicate, threshold, inclusive=false
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
-            let match = strictCase ? !!datum[field] : !!datum[field.toLowerCase()] || !!datum[field] ;
+
+            let match = strictCase ? !!datum[field] : !!datum[field] // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {
                 if (datum[field].constructor.name === 'Array') {
                     return datum[field].some(el => predicate(el, threshold));
@@ -88,12 +89,20 @@ export function predicateFromSpec({ field, predicate, threshold, inclusive=false
             } else {
                 return notStrictMatch;
             }
-            // return match ? predicate(datum[field], threshold) : notStrictMatch;
         }
     }
 }
 
-
+// TODO
+export function looseMatcher(object, fieldName, strictMatchCase=false) {
+    // Generate potentially matching strings from fieldName
+        // e.g. pValue => [pValue, p_value, pvalue, ...] etc
+    // Check the object across each potential match
+        // e.g. !!object["pValue"] || !!object["pvalue"] || !!object["pvalue"]
+    // If any potential match is a key for a field in object, return that match
+    // else return null
+    // NOTE: is *eager*: in the unlikely event that several cases of this string are supported by the object at once, the one first matched on will win
+}
 
 /* NAMESPACE FUNCTIONS */
 // These two *Namespace functions are used to handle prefixes an suffixes that different components might have in their application-specific representations of the data
