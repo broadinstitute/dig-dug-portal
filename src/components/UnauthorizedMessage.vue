@@ -1,19 +1,22 @@
 <template>
     <div>
-        <div v-if="unauthorized && !user">
+        <b-alert v-if="unauthorized && !user" show variant="warning">
+            >
             There were {{count}} records hidden, because you do not have permission to view them. Please
             <a
                 href="/login"
             >Login</a> with an authorized Google account to view them.
-        </div>
-        <div v-else-if="unauthorized && !!user">
+        </b-alert>
+        <b-alert v-else-if="unauthorized && !!user" show variant="warning">
+            >
             There were {{count}} records hidden, because you do not have permission to view them.
             Please contact us if you believe you should've given access.
-        </div>
-        <div v-else-if="failed">
+        </b-alert>
+        <b-alert v-else-if="failed" show variant="warning">
+            >
             Some records were failed to load. Please try again later.
             If problems still persist, please contact us.
-        </div>
+        </b-alert>
     </div>
 </template>
 
