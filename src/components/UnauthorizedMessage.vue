@@ -2,6 +2,7 @@
     <div>
         <b-alert v-if="unauthorized && !user" show variant="warning">
             >
+            <b-icon icon="exclamation-triangle"></b-icon>
             There were {{count}} records hidden, because you do not have permission to view them. Please
             <a
                 href="/login"
@@ -9,12 +10,13 @@
         </b-alert>
         <b-alert v-else-if="unauthorized && !!user" show variant="warning">
             >
+            <b-icon icon="exclamation-triangle"></b-icon>
             There were {{count}} records hidden, because you do not have permission to view them.
             Please contact us if you believe you should've given access.
         </b-alert>
         <b-alert v-else-if="failed" show variant="warning">
             >
-            Some records were failed to load. Please try again later.
+            <b-icon icon="exclamation-triangle"></b-icon>Some records were failed to load. Please try again later.
             If problems still persist, please contact us.
         </b-alert>
     </div>
