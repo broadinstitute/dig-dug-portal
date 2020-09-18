@@ -1,10 +1,10 @@
 <template>
     <filter-widget-control
         :field="field"
-        :type="'number'"
+        :type="Number"
         :predicate="(number, upperBound) => number <= upperBound"
         :pillFormatter="filterDefinition => `${filterDefinition.field} <= ${filterDefinition.threshold}`"
-        :color="color"
+        :color="'#dc3545'"
         :multiple="false">
         <slot>
             {{field}} (&le;)

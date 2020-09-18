@@ -136,7 +136,7 @@
             <div class="card-body">
 
                 <filter-widget
-                    v-model="$parent.filterFunction"
+                    v-model="$parent.associationsFilter"
                     :inclusive="$parent.inclusive"
                     :looseMatch="true">
 
@@ -168,7 +168,9 @@
 
                 </filter-widget>
 
-                <filter-context-giver v-model="$parent.filterFunction">
+                <filter-context-giver name="associationsFilter" v-model="$parent.associationsFilter">
+                <filter-context-giver name="annotationsFilter" v-model="$parent.annotationsFilter">
+
                     <!-- the outermost div is a dummy to collect all the child components into the same slot -->
                     <div>
                         <div v-if="!!$store.state.phenotype">
@@ -192,8 +194,7 @@
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
                                         :clearOnSelected="true"
-                                        @annotation="$parent.addAnnotationIntervalsPanel($event)"
-                                    />
+                                        @annotation="$parent.addAnnotationIntervalsPanel($event)"/>
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>
@@ -252,7 +253,10 @@
 
                         </div>
                     </div>
+
                 </filter-context-giver>
+                </filter-context-giver>
+
             </div>
         </div>
 

@@ -13,7 +13,7 @@
         }"
         :pillFormatter="filterDefinition => `effect size ${filterDefinition.threshold ? 'positive' : 'negative'}`"
         :options="[{ value: true, text: 'positive' }, { value: false, text: 'negative' }]"
-        :color="color"
+        :color="'#007bff'"
         :multiple="false">
         <slot>
             Effect (+/-)
@@ -24,7 +24,7 @@
 import Vue from "vue";
 import FilterWidgetControl from "./FilterWidgetControl"
 export default Vue.component('filter-effect-direction-control', {
-    props: ['field', 'color'],
+    props: ['field'],
     components: {
         FilterWidgetControl,
     }

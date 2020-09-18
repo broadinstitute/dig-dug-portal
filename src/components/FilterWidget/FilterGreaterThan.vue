@@ -4,7 +4,7 @@
         :type="'number'"
         :predicate="(number, lowerBound) => number >= lowerBound"
         :pillFormatter="filterDefinition => `${filterDefinition.field} >= ${filterDefinition.threshold}`"
-        :color="color"
+        :color="'#dc3545'"
         :multiple="false">
         <slot>
             {{field}} (&ge;)

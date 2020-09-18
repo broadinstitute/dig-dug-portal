@@ -6,7 +6,7 @@
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${capitalize(filterDefinition.threshold)}`"
         :labelFormatter="capitalize"
         :options="selectionOptions"
-        :color="color"
+        :color="'#28a745'"
         :multiple="false">
         <slot>
             Match

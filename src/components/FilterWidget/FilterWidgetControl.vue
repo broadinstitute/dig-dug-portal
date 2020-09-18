@@ -56,8 +56,12 @@ export default Vue.component("filter-widget-control", {
         },
         type: {
             type: String,
-            default: 'string',
+            // 'string', 'number', 'boolean', 'object', 'function'...
         },
+        clear: {
+            type: Boolean,
+            default: true,
+        }
     },
     data() {
         return {
@@ -71,7 +75,6 @@ export default Vue.component("filter-widget-control", {
         };
     },
     created() {
-        console.log(this);
         // set initial filter value in the widget
         if (!!this.filterThreshold) {
             this.updateFilter(this.filterThreshold);
@@ -84,7 +87,6 @@ export default Vue.component("filter-widget-control", {
             if (!!this.type) {
                 if (this.type === 'number') {
                     return !isNaN(newInput);
-                // NOTE: this.type defaults to string
                 } else if (typeof newInput !== this.type) {
                     return false;
                 }
@@ -112,7 +114,9 @@ export default Vue.component("filter-widget-control", {
                     console.warn('invalid input given for type', this.type, ':', newThreshold);
                 }
             }
-            this.filterThreshold = null;
+            if (this.clear) {
+                this.filterThreshold = null;
+            }
         }
     }
 });

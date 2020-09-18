@@ -87,7 +87,8 @@ new Vue({
 
     data() {
         return {
-            filterFunction: id => id
+            associationsFilter: null,
+            annotationsFilter: null,
         };
     },
 

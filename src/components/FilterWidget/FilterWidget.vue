@@ -25,8 +25,7 @@
                             v-for="(filter, idx) in filterList"
                             :key="filter.field+filter.predicate+filter.threshold+idx"
                             pill
-                            :variant="filter.pill.color"
-                            :style="`background-color:${filter.pill.color};color:#242124;`"
+                            :style="`background-color:${filter.pill.color};`"
                             @click="unsetFilter(filter, idx)"
                             class="btn">
                                 {{filter.pill.label(filter)}}
