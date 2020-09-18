@@ -83,6 +83,7 @@ import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import sortUtils from "@/utils/sortUtils";
 import uiUtils from "@/utils/uiUtils";
+import formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVueIcons);
 
@@ -106,6 +107,7 @@ export default Vue.component("forest-plot-html", {
     modules: {
         uiUtils,
         sortUtils,
+        formatters,
     },
     mounted: function () {},
     computed: {
@@ -214,6 +216,9 @@ export default Vue.component("forest-plot-html", {
     methods: {
         showLegends(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
+        },
+        formatPvalue(VALUE) {
+            return formatters.floatFormatter(VALUE);
         },
     },
 });
