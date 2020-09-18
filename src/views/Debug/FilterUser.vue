@@ -1,11 +1,12 @@
 <template>
 
-    <!-- To use the filterable wrapper, just use your component's applyFilter function when the @change event is emitted -->
-    <!-- The contract: it should get the new function and apply it. In general these should be simple predicate functions applied on arrays of structs -->
-    <filter-context-receiver @change="applyFilter($event)">
+    <div>
+        <!-- To use the filterable wrapper, just use your component's applyFilter function when the @change event is emitted -->
+        <!-- The contract: it should get the new function and apply it. In general these should be simple predicate functions applied on arrays of structs -->
+        <filter-context-receiver @change="applyFilter($event)"></filter-context-receiver>
         <div>This component can consume a filter context</div>
         <pre>{{listOfStructs}}</pre>
-    </filter-context-receiver>
+    </div>
 
 </template>
 <script>

@@ -5,7 +5,8 @@
         :pillFormatter="filterDefinition => `${filterDefinition.field} == ${filterDefinition.threshold}`"
         :options="options"
         :color="color"
-        :multiple="false"
+        :multiple="true"
+        :inclusive="inclusive"
         :splitBy="splitBy">
         <slot>
         </slot>
@@ -23,6 +24,10 @@ export default Vue.component('filter-multi-control', {
             required: false,
         },
         splitBy: String,
+        inclusive: {
+            type: Boolean,
+            default: true,
+        }
     },
     components: {
         FilterWidgetControl,

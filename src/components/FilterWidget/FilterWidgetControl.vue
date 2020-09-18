@@ -43,6 +43,7 @@ export default Vue.component("filter-widget-control", {
         predicate: Function,
         options: Array,
         multiple: Boolean,
+        inclusive: Boolean,
         color: {
             type: String,
             default: '#ffc107',
@@ -59,13 +60,14 @@ export default Vue.component("filter-widget-control", {
             filterDefinition: {
                 field: this.field,
                 predicate: this.predicate,
-                multiple: !!this.splitBy || !!this.multiple ? true : false, // if undefined, default to false
-                inclusive: !!this.splitBy || !!this.inclusive , // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
+                multiple: (!!this.multiple || !!this.splitBy) ? true : false, // if undefined, default to false
+                inclusive: (!!this.inclusive || !!this.splitBy) ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
             },
             filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
     created() {
+        console.log(this);
         // set initial filter value in the widget
         if (!!this.filterThreshold) {
             this.updateFilter(this.filterThreshold);
@@ -79,8 +81,8 @@ export default Vue.component("filter-widget-control", {
                 // if the filter is a splitter (because a char to splitBy is given)
                 if (this.splitBy) {
                     newThreshold.split(',')
-                        .forEach(thresholdElement => 
-                            this.$parent.$parent.$emit('change', thresholdElement.trim(), 
+                        .forEach(thresholdElement =>
+                            this.$parent.$parent.$emit('change', thresholdElement.trim(),
                                 { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } }))
                 } else {
                     // double parent since we're only using this component as a template inside of another component

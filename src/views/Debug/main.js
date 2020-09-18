@@ -1,5 +1,4 @@
 import Vue from "vue";
-import * as d3 from "d3";
 
 import Template from "./Template.vue";
 
@@ -17,9 +16,6 @@ import FilterUser from "./FilterUser.vue"
 import AssociationsTable from "@/components/AssociationsTable.vue"
 import LocusZoom from "@/components/lz/LocusZoom.vue"
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel.vue"
-
-import Formatters from "@/utils/formatters";
-
 import { query } from "@/utils/bioIndexUtils"
 
 Vue.config.productionTip = false;

@@ -6,7 +6,7 @@
         :labelFormatter="capitalize"
         :options="selectionOptions"
         :color="color"
-        :multiple="true">
+        :multiple="false">
         <slot>
             Match
         </slot>

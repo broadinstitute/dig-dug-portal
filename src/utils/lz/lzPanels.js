@@ -43,6 +43,8 @@ export class LZAssociationsPanel {
             log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
             variant: association.varId,
             ref_allele: association.varId,
+            consequence: association.consequence,
+            nearest: association.nearest[0]
         }));
         this.initialData = initialData;
 
@@ -73,6 +75,8 @@ export class LZAssociationsPanel {
                         },
                         fields: [
                             `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${this.datasource_type}]}}consequence`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${this.datasource_type}]}}nearest`,  // adding this piece of data irrelevant to the graphic will help us filter later
                             // we need to call out the fields directly since merge algorithm doesn't combine arrays
                             ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields,
                         ],

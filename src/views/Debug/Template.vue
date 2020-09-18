@@ -34,8 +34,7 @@
 
             <filter-multi-control
                 :field="'nearest'"
-                :options="$parent.associationNearestGenes"
-                :inclusive="true">
+                :options="$parent.associationNearestGenes">
             </filter-multi-control>
 
         </filter-widget>
@@ -45,6 +44,7 @@
         <filter-context-giver v-model="$parent.filterFunction">
             <!-- Div is dummy to fit components in slot -->
             <div>
+
                 <locuszoom
                     ref="locuszoom"
                     :chr="$parent.chr"
@@ -55,10 +55,12 @@
                         :phenotype="$parent.phenotypes[0].name"
                     ></lz-associations-panel>
                 </locuszoom>
+
                 <associations-table
                     :associations="$parent.associations"
                     :phenotypes="$parent.phenotypes"
                 ></associations-table>
+
             </div>
         </filter-context-giver>
 
