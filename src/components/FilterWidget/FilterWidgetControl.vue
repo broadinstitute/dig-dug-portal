@@ -80,6 +80,7 @@ export default Vue.component("filter-widget-control", {
     methods: {
         validateInput(newInput) {
             // TODO: elaborate validation cases here
+            // TODO: validation utils?
             if (!!this.type) {
                 if (this.type === 'number') {
                     return !isNaN(newInput);
