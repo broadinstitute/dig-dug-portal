@@ -59,11 +59,11 @@
                     <div class="row">
                         <div class="col-xs-6 col-md-4">
                             <div class="card" style="width:95%; border: 0">
-                                <h4
+                                <strong
                                     v-if="$store.state.effectorGeneData.category"
-                                >{{$store.state.effectorGeneData.category}}</h4>
+                                >Category: {{$store.state.effectorGeneData.category}}</strong>
                                 <div v-if="$parent.category">
-                                    <h4 v-if="$parent.category.length >1">{{$parent.category}}</h4>
+                                    <strong v-if="$parent.category.length >1">{{$parent.category}}</strong>
                                 </div>
 
                                 <div

@@ -37,20 +37,18 @@ export default new Vuex.Store({
             state.geneName = name;
             state.geneRegion = `${chromosome}:${start}-${end}`;
         },
-
         setSelectedPhenotype(state, phenotype) {
             state.phenotype = phenotype;
         },
         setEffectorGeneData(state, effectorGeneData) {
             state.effectorGeneData = effectorGeneData;
         },
-
         setStage2Category(state, stage2Category) {
             state.stage2Category = stage2Category;
         },
-
-
-
+        setPriorVariance(state, priorVariance) {
+            state.priorVariance = priorVariance;
+        }
     },
 
     getters: {
@@ -78,10 +76,6 @@ export default new Vuex.Store({
                 }
             }
         },
-
-
-
-
     },
 
     actions: {
