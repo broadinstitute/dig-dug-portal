@@ -1,7 +1,7 @@
 <template>
     <div>
         <h6>Posterior Probablity vs Prior</h6>
-        <div id="visualisation" width="800" height="800" />
+        <div id="posteriorpriorplot" width="800" height="800" />
     </div>
 </template>
 
@@ -42,13 +42,13 @@ export default Vue.component("posterior-probability-plot", {
             return l;
         },
         generateChart() {
-            document.getElementById("visualisation").innerHTML = ""
+            document.getElementById("posteriorpriorplot").innerHTML = "";
             var margin = { top: 50, right: 50, bottom: 50, left: 50 },
                 width = 500 - margin.left - margin.right,
                 height = 500 - margin.top - margin.bottom;
 
             var svg = d3
-                .select("#visualisation")
+                .select("#posteriorpriorplot")
                 .append("svg:svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom);
@@ -95,8 +95,8 @@ export default Vue.component("posterior-probability-plot", {
             var path = svg
                 .append("path")
                 .attr("d", lineGen(data))
-                .attr("stroke", "green")
-                .attr("stroke-width", 3)
+                .attr("stroke", "#87CEEB")
+                .attr("stroke-width", 1.25)
                 .attr("fill", "none");
 
             
@@ -125,7 +125,7 @@ export default Vue.component("posterior-probability-plot", {
             var pathLength = pathEl.getTotalLength();
             var BBox = pathEl.getBBox();
             var scale = pathLength / BBox.width;
-            var offsetLeft = document.getElementById("visualisation")
+            var offsetLeft = document.getElementById("posteriorpriorplot")
                 .offsetLeft;
 
             svg.on("mousemove", function() {
@@ -156,7 +156,7 @@ export default Vue.component("posterior-probability-plot", {
             // var lineStroke = "2px";
 
             // let tooltip = d3
-            //     .select("#visualisation")
+            //     .select("#posteriorpriorplot")
             //     .append("div")
             //     .attr("id", "tooltip")
             //     .style("position", "absolute")

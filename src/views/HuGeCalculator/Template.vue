@@ -7,7 +7,7 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-7 gene-page-header-title">
+                    <div class="col-md-8 gene-page-header-title">
                         Gene
                         <a
                             class="edit-btn"
@@ -19,7 +19,7 @@
                         <a
                             class="edit-btn"
                             @click="$parent.showHideElement('priorVarianceHolder','prior_variance_input')"
-                        >Enter Prior Variance</a>
+                        >Set Prior Variance</a>
                     </div>
                     <div class="col-md-8 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
@@ -38,13 +38,17 @@
                     </div>
                     <div class="col-md-4 gene-page-header-body">
                         <div id="priorVarianceHolder" class="gene-page-header-search-holder hidden">
-                            <input
-                                v-model="$store.state.priorVariance"
-                                type="text"
-                                class="form-control input-default"
-                                placeholder="Prior Variance"
-                            />
+                            <div class="col-md-12 input-wrapper">
+                                <input
+                                    v-model="$store.state.priorVariance"
+                                    type="text"
+                                    class="form-control input-default"
+                                    placeholder="Prior Variance"
+                                    id="prior_variance_input"
+                                />
+                            </div>
                         </div>
+                        <span>{{$store.state.priorVariance}}</span>
                     </div>
                 </div>
             </div>
@@ -104,50 +108,52 @@
                                 class="card"
                                 style="width:95%; border: 0"
                             >
-                                <forest-plot
-                                    v-if="$parent.geneAssociationsLoftee.length >0"
-                                    :data="$parent.geneAssociationsLoftee"
-                                ></forest-plot>
+                                <div v-if="$parent.geneAssociationsLoftee.length >0">
+                                    <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
+                                </div>
+                                <div v-else>
+                                    <h4>There are no loss-of-function variants detected in this gene</h4>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div>
-                <!-- <b-button @click="$parent.showHideElement('gwasAssocHolder')">GWAS Associations</b-button> -->
-                <div class="col-md-4 gene-page-header-title">
-                    <a
-                        class="edit-btn"
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <b-button
+                        block
+                        variant="info"
                         v-on:click="() => $parent.showHideElement('gwasAssocHolder')"
-                    >Show GWAS Data</a>
+                    >Show GWAS Data</b-button>
                 </div>
-                <div id="gwasAssocHolder" class="mdkp-card hidden">
-                    <div class="card-body">
-                        <h4
-                            v-if="$store.state.phenotype"
-                            class="card-title"
-                        >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
+            </div>
+            <div id="gwasAssocHolder" class="mdkp-card hidden">
+                <div class="card">
+                    <h4
+                        v-if="$store.state.phenotype"
+                        class="card-title"
+                    >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
 
-                        <locuszoom
-                            v-if="$parent.region"
-                            ref="locuszoom"
-                            :chr="$parent.region.chromosome"
-                            :start="$parent.region.start"
-                            :end="$parent.region.end"
-                            :refSeq="true"
-                        >
-                            <lz-associations-panel
-                                :phenotype="$store.state.phenotype.name"
-                                :finishHandler="$parent.updateAssociationsTable"
-                            ></lz-associations-panel>
-                        </locuszoom>
-                        <associations-table
-                            v-if="$parent.inGWAS"
-                            :phenotypes="$parent.phenotypes"
-                            :associations="$parent.associationsData"
-                        ></associations-table>
-                    </div>
+                    <locuszoom
+                        v-if="$parent.region"
+                        ref="locuszoom"
+                        :chr="$parent.region.chromosome"
+                        :start="$parent.region.start"
+                        :end="$parent.region.end"
+                        :refSeq="true"
+                    >
+                        <lz-associations-panel
+                            :phenotype="$store.state.phenotype.name"
+                            :finishHandler="$parent.updateAssociationsTable"
+                        ></lz-associations-panel>
+                    </locuszoom>
+                    <associations-table
+                        v-if="$parent.inGWAS"
+                        :phenotypes="$parent.phenotypes"
+                        :associations="$parent.associationsData"
+                    ></associations-table>
                 </div>
             </div>
         </div>

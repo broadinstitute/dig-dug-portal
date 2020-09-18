@@ -141,8 +141,8 @@
                     ></documentation>
 
                     <documentation
-                            name="region.igv.subheader"
-                            :content-fill="$parent.documentationMap"
+                        name="region.igv.subheader"
+                        :content-fill="$parent.documentationMap"
                     ></documentation>
 
                     <div class="filtering-ui-wrapper">
@@ -158,7 +158,7 @@
 
                             <div class="col filter-col-sm">
                                 <div class="label">P-Value (&le;)</div>
-                                <input v-model.number="$parent.pValue" class="form-control"/>
+                                <input v-model.number="$parent.pValue" class="form-control" />
                             </div>
                             <div class="col filter-col-sm">
                                 <div class="label">Fold (&ge;)</div>
@@ -196,7 +196,8 @@
                         :end="$store.state.end"
                         :scoring="$parent.tissueScoring"
                         @regionchanged="$parent.requestCredibleSets($event.data)"
-                        :refSeq="true">
+                        :refSeq="true"
+                    >
                         <lz-associations-panel
                             :phenotype="$store.state.phenotype.name"
                             :finishHandler="$parent.updateAssociationsTable"
@@ -226,18 +227,17 @@
                     </div>
                 </div>
             </div>
-
         </div>
-            <!-- TODO: collapse tables -->
-            <b-collapse id="collapse-1" class="mt-2">
-                <b-card>
+        <!-- TODO: collapse tables -->
+        <b-collapse id="collapse-1" class="mt-2">
+            <b-card>
                 <p class="card-text">Collapse contents Here</p>
                 <b-button v-b-toggle.collapse-1-inner size="sm">Toggle Inner Collapse</b-button>
                 <b-collapse id="collapse-1-inner" class="mt-2">
                     <b-card>Hello!</b-card>
                 </b-collapse>
-                </b-card>
-            </b-collapse>
+            </b-card>
+        </b-collapse>
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
