@@ -57,7 +57,7 @@ export class LZAssociationsPanel {
             y_index: 0,
             axes: {
                 y1: {
-                    label: 'log10 log_pvalue'
+                    label: 'log_pvalue'
                 }
             },
             data_layers: [
@@ -66,7 +66,7 @@ export class LZAssociationsPanel {
                     {
                         y_axis: {
                             axis: 1,
-                            field: `{{namespace[${this.datasource_type}]}}log_pvalue|log10`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                            field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
                             // floor: 0,
                             upper_buffer: 0.10,
                             // min_extent: [0, 10],

@@ -4,11 +4,11 @@ import { result } from "lodash";
 export function filterFromPredicates(allPredicates, inclusive) {
     // TODO: what about case of mixed inclusions and exclusions?
     /*
-    // sort predicates into inclusive and exclusive 
+    // sort predicates into inclusive and exclusive
     let exclusivePredicates = predicates.filter(predicate => !predicate.inclusive);
     let inclusivePredicates = predicates.filter(predicate => predicate.inclusive);
     return function filterFunction(object) {
-        
+
         let exclusiveTruth = true;
         for (let predicateI = 0; predicateI < exclusivePredicates.length; predicateI++) {
             exclusiveTruth = exclusivePredicates[predicateI].func(object);
@@ -20,7 +20,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
             inclusiveTruth = inclusivePredicates[predicateI].func(object);
             if (inclusiveTruth === true) break;
         }
-        
+
         return inclusiveTruth || exclusiveTruth || inclusive;
     }
     */
@@ -35,7 +35,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
         // so in lieu of any predicates, remain truthy by default
 
         let innocence = true;
-        if (predicates.length > 0) {
+        if (allPredicates.length > 0) {
             // if we have predicates, the burden of proof may change based on our filtering type
             if (!!!inclusive) {
 
@@ -48,7 +48,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
                 }
 
             } else {
-                
+
                 // inclusive filter, equivalent to a series of logical ORs
                 // let by all values that pass true on any of the predicates, exclude those that don't
                 // inverts strategy to guilty until proven innocent so we set innocgit stence to false before continuing
@@ -60,9 +60,11 @@ export function filterFromPredicates(allPredicates, inclusive) {
 
             }
         }
+
+
         return innocence;
     }
-    
+
 }
 
 export function predicateFromSpec({ field, predicate, threshold, inclusive=false }, { notStrictMatch=false, strictCase=false }) {

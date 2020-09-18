@@ -10,7 +10,6 @@
         -->
         <filter-widget
             v-model="$parent.filterFunction"
-            :inclusive="$parent.inclusive"
             :looseMatch="true">
 
             <filter-enumeration-control
@@ -34,7 +33,9 @@
             </filter-effect-direction-control>
 
             <filter-multi-control
-                :field="'nearest'">
+                :field="'nearest'"
+                :options="$parent.associationNearestGenes"
+                :inclusive="true">
             </filter-multi-control>
 
         </filter-widget>

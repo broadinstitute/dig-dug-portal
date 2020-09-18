@@ -3,8 +3,10 @@
         :field="field"
         :predicate="(string, selection) => string === selection"
         :pillFormatter="filterDefinition => `${filterDefinition.field} == ${filterDefinition.threshold}`"
+        :options="options"
         :color="color"
-        :split="true">
+        :split="true"
+        :inclusive="true">
         <slot>
         </slot>
     </filter-widget-control>
@@ -13,7 +15,7 @@
 import Vue from "vue";
 import FilterWidgetControl from "./FilterWidgetControl"
 export default Vue.component('filter-multi-control', {
-    props: ['field', 'color'],
+    props: ['field', 'color', 'options'],
     components: {
         FilterWidgetControl,
     },
