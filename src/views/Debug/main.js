@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
 import LocusZoom from "@/components/lz/LocusZoom";
+import ForestPlotHtml from "@/components/ForestPlotHtml";
 
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker"
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
@@ -22,6 +23,8 @@ new Vue({
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
         PhenotypeSelectPicker,
+
+        ForestPlotHtml,
     },
 
     data() {
@@ -35,6 +38,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("queryRegion");
+        this.$store.dispatch("kp4cd/getForestPlotData");
     },
     mounted() {
         this.addAssociationsPanel({ phenotype: 'T2D' })
@@ -55,7 +59,7 @@ new Vue({
             let self = this;
             this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
                 // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
+                function (dataLoadedResponse) {
                     self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
                 }
             );
@@ -64,7 +68,7 @@ new Vue({
             const { phenotype, credibleSetId } = event;
             this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
                 // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function(dataLoadedResponse) {
+                function (dataLoadedResponse) {
                     // TODO: callbacks for creating a new table column for credible sets might go here
                 }
             )
@@ -77,7 +81,7 @@ new Vue({
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
         },
-     },
+    },
 
     computed: {
         globalEnrichmentAnnotations() {
@@ -150,6 +154,10 @@ new Vue({
             // region loaded, hide search
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+        },
+        htmlForestPlotData() {
+            let datasets = this.$store.state.kp4cd.forestPlotData;
+            return datasets.data;
         },
 
     },
