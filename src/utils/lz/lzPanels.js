@@ -64,7 +64,7 @@ export class LZAssociationsPanel {
                     {
                         y_axis: {
                             axis: 1,
-                            field: '{{namespace[assoc]}}log_pvalue|log10', // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                            field: '{{namespace[assoc]}}log_pvalue', // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
                             // floor: 0,
                             upper_buffer: 0.10,
                             // min_extent: [0, 10],
