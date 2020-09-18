@@ -47,15 +47,15 @@
                     <ul>
                         <li>
                             <span class="beta-box p-significant">&nbsp;</span>
-                            {{sortBy}}&nbsp;&lt;&equals;&nbsp;{{significant}}
+                            {{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(significant)}}
                         </li>
                         <li>
                             <span class="beta-box p-moderate">&nbsp;</span>
-                            {{significant}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{moderate}}
+                            {{formatPvalue(significant)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(moderate)}}
                         </li>
                         <li>
                             <span class="beta-box">&nbsp;</span>
-                            {{sortBy}}&nbsp;&gt;{{moderate}}
+                            {{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}
                         </li>
                     </ul>
                     <ul v-if="!!labelMap">
@@ -218,7 +218,7 @@ export default Vue.component("forest-plot-html", {
             uiUtils.showHideElement(ELEMENT);
         },
         formatPvalue(VALUE) {
-            return formatters.floatFormatter(VALUE);
+            return formatters.pValueFormatter(VALUE);
         },
     },
 });
