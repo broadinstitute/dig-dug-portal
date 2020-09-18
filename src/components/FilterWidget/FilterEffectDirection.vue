@@ -1,6 +1,7 @@
 <template>
     <filter-widget-control
         :field="field"
+        :type="'boolean'"
         :predicate="(beta, direction) => {
             // must be positive
             if (direction === true) {
