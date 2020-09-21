@@ -290,12 +290,12 @@ export class LZCredibleVariantsPanel {
             // Fourth: write down the type of visualization using the data
             // Fifth: add stylings, and the data layer ID
             data_layers: [
-                LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
-                    namespace: {
-                        assoc: this.datasource_namespace_symbol_for_panel,
-                        credset: this.datasource_namespace_symbol_for_panel
-                    },
-                }),
+                // LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
+                //     namespace: {
+                //         assoc: this.datasource_namespace_symbol_for_panel,
+                //         credset: this.datasource_namespace_symbol_for_panel
+                //     },
+                // }),
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,
@@ -415,12 +415,12 @@ export class LZComputedCredibleVariantsPanel {
                 }
             },
             data_layers: [
-                LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
-                    namespace: {
-                        assoc: this.datasource_namespace_symbol_for_panel,
-                        credset: this.datasource_namespace_symbol_for_panel
-                    },
-                }),
+                // LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
+                //     namespace: {
+                //         assoc: this.datasource_namespace_symbol_for_panel,
+                //         credset: this.datasource_namespace_symbol_for_panel
+                //     },
+                // }),
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,
