@@ -1,7 +1,7 @@
 <template>
     <div>
         <h6>Posterior Probablity vs Prior</h6>
-        <div id="posteriorpriorplot" width="800" height="800" />
+        <div id="posteriorpriorplot"  />
     </div>
 </template>
 
@@ -44,8 +44,8 @@ export default Vue.component("posterior-probability-plot", {
         generateChart() {
             document.getElementById("posteriorpriorplot").innerHTML = "";
             var margin = { top: 50, right: 50, bottom: 50, left: 50 },
-                width = 500 - margin.left - margin.right,
-                height = 500 - margin.top - margin.bottom;
+                width = 600 - margin.left - margin.right,
+                height = 600 - margin.top - margin.bottom;
 
             var svg = d3
                 .select("#posteriorpriorplot")
@@ -66,7 +66,8 @@ export default Vue.component("posterior-probability-plot", {
                 .domain([0.0001, 0.999]);
             var xAxis = d3.axisBottom().scale(xScale);
             var yAxis = d3.axisLeft().scale(yScale);
-            var legend_keys = ["Posterior probab"];
+            var legend_keys = ["Posterior Probability"];
+            //placing of the legend box relative to the plot
             var lineLegend = svg
                 .selectAll(".lineLegend")
                 .data(legend_keys)
@@ -74,14 +75,16 @@ export default Vue.component("posterior-probability-plot", {
                 .append("g")
                 .attr("class", "lineLegend")
                 .attr("transform", function(d, i) {
-                    return "translate(" + width + "," + i * 20 + ")";
+                    return "translate(" + 300 + "," + i*10 + ")";
                 });
+            //placing of the lgened text inside the legend box    
             lineLegend
                 .append("text")
                 .text(function(d) {
                     return d;
                 })
-                .attr("transform", "translate(15,9)");
+                .attr("transform", "translate(20,15)");
+            //size of the legend box
             lineLegend
                 .append("rect")
                 .attr("fill", function(d, i) {
@@ -133,8 +136,8 @@ export default Vue.component("posterior-probability-plot", {
             var circle = svg
                 .append("circle")
                 .attr("cx", 300)
-                .attr("cy", 500)
-                .attr("r", 6)
+                .attr("cy", 300)
+                .attr("r", 3)
                 .attr("fill", "red");
 
             var pathEl = path.node();
@@ -166,112 +169,11 @@ export default Vue.component("posterior-probability-plot", {
                     .attr("opacity", 1)
                     .attr("cx", x)
                     .attr("cy", pos.y);
+
+                circle.append("text","hello");
             });
 
-            //Hover Over and show the tooltip lines across the plot
-            // var lineStroke = "2px";
-
-            // let tooltip = d3
-            //     .select("#posteriorpriorplot")
-            //     .append("div")
-            //     .attr("id", "tooltip")
-            //     .style("position", "absolute")
-            //     .style("background-color", "#D3D3D3")
-            //     .style("padding", 6)
-            //     .style("display", "none");
-
-            // var color = d3
-            //     .scaleOrdinal()
-            //     .domain([0.0, 1.0])
-            //     .range(["#2D4057", "#7C8DA4"]);
-
-            // let mouseG = svg.append("g").attr("class", "mouse-over-effects");
-
-            // mouseG
-            //     .append("path") // create vertical line to follow mouse
-            //     .attr("class", "mouse-line")
-            //     .style("stroke", "#A9A9A9")
-            //     .style("stroke-width", lineStroke)
-            //     .style("opacity", "0");
-
-            // var lines = document.getElementsByClassName("line");
-
-            // var mousePerLine = mouseG
-            //     .selectAll(".mouse-per-line")
-            //     .data(this.columns)
-            //     .enter()
-            //     .append("g")
-            //     .attr("class", "mouse-per-line");
-
-            // mousePerLine
-            //     .append("circle")
-            //     .attr("r", 4)
-            //     .style("stroke", function(d) {
-            //         return color(d.key);
-            //     })
-            //     .style("fill", "none")
-            //     .style("stroke-width", lineStroke)
-            //     .style("opacity", "0");
-
-            // mouseG
-            //     .append("svg:rect") // append a rect to catch mouse movements on canvas
-            //     .attr("width", margin.width)
-            //     .attr("height", margin.height)
-            //     .attr("fill", "none")
-            //     .attr("pointer-events", "all")
-            //     .on("mouseout", function() {
-            //         // on mouse out hide line, circles and text
-            //         d3.select(".mouse-line").style("opacity", "0");
-            //         d3.selectAll(".mouse-per-line circle").style(
-            //             "opacity",
-            //             "0"
-            //         );
-            //         d3.selectAll(".mouse-per-line text").style("opacity", "0");
-            //         d3.selectAll("#tooltip").style("display", "none");
-            //     })
-            //     .on("mouseover", function() {
-            //         // on mouse in show line, circles and text
-            //         d3.select(".mouse-line").style("opacity", "1");
-            //         d3.selectAll(".mouse-per-line circle").style(
-            //             "opacity",
-            //             "1"
-            //         );
-            //         d3.selectAll("#tooltip").style("display", "block");
-            //     })
-
-            // .on("mousemove", function() {
-            //     // update tooltip content, line, circles and text when mouse moves
-            //     var mouse = d3.mouse(this);
-
-            //     d3.selectAll(".mouse-per-line").attr("transform", function(
-            //         d,
-            //         i
-            //     ) {
-            //         var xDate = xScale.invert(mouse[0]); // use 'invert' to get date corresponding to distance from mouse position relative to svg
-            //         var bisect = d3.bisector(function(d) {
-            //             return d.date;
-            //         }).left; // retrieve row index of date on parsed csv
-            //         var idx = bisect(d.values, xDate);
-
-            //         d3.select(".mouse-line").attr("d", function() {
-            //             var data =
-            //                 "M" +
-            //                 xScale(d[idx].prior) +
-            //                 "," +
-            //                 margin.height;
-            //             data += " " + xScale(d[idx].prior) + "," + 0;
-            //             return data;
-            //         });
-            //         return (
-            //             "translate(" +
-            //             xScale(d[idx].prior) +
-            //             "," +
-            //             yScale(d[idx].ppa) +
-            //             ")"
-            //         );
-            //     });
-            //     //updateTooltipContent(mouse, this.columns)
-            // });
+           
         },
 
         posteriorProbability(p, beta, stdErr) {

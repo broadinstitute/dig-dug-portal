@@ -5,6 +5,15 @@ import store from "./store.js";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
+
+// imports the ESM module by default
+import VueFlex from "vue-flex";
+// Already autoprefixed for vendor prefixes.
+// Also namespaced to avoid collisions.
+import "vue-flex/dist/vue-flex.css";
+
+Vue.use(VueFlex);
+
 import ForestPlot from "@/components/ForestPlot";
 
 Vue.config.productionTip = false;

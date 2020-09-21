@@ -55,68 +55,80 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
-                    <div class="row">
-                        <div class="col-xs-6 col-md-4">
-                            <div class="card" style="width:95%; border: 0">
-                                <strong
-                                    v-if="$store.state.effectorGeneData.category"
-                                >Category: {{$store.state.effectorGeneData.category}}</strong>
-                                <div v-if="$parent.category">
-                                    <strong v-if="$parent.category.length >1">{{$parent.category}}</strong>
-                                </div>
+                    <b-container fluid class="bv-example-row bv-example-row-flex-cols">
+                        <b-row class="mb-3">
+                            <b-col md="8">
+                                <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
+                                <b-row class="mb-3">
+                                    <b-col md="6" class="p-3">
+                                        <h4 class="card-title">Stage 1</h4>
+                                        <strong
+                                            v-if="$store.state.effectorGeneData.category"
+                                        >Category: {{$store.state.effectorGeneData.category}}</strong>
+                                        <div v-if="$parent.category">
+                                            <strong
+                                                v-if="$parent.category.length >1"
+                                            >{{$parent.category}}</strong>
+                                        </div>
 
-                                <div
-                                    v-if="$store.state.effectorGeneData.genetic"
-                                    class="alternative-names"
-                                >
-                                    <strong>Coding Evidence: &nbsp;</strong>
-                                    <span
-                                        v-if="$store.state.effectorGeneData.genetic"
-                                    >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
-                                </div>
-                                <div v-if="$store.state.effectorGeneData.regulatory">
-                                    <strong>Regulatory Evidence:</strong>
-                                    <span
-                                        v-if="$store.state.effectorGeneData.regulatory"
-                                    >{{$store.state.effectorGeneData.regulatory}}</span>
-                                </div>
-                                <div>
-                                    <strong>Perturbational Evidence:</strong>
-                                    <span
-                                        v-if="$store.state.effectorGeneData.perturbational"
-                                    >{{$store.state.effectorGeneData.perturbational}}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xs-6 col-md-4">
-                            <div
-                                v-if="$parent.geneAssociations"
-                                class="card"
-                                style="width:95%; border: 0"
-                            >
-                                <posterior-probability-plot
-                                    :geneAssociationsData="$parent.geneAssociations"
-                                    :priorVariance="$store.state.priorVariance"
-                                    :isDichotomous="true"
-                                ></posterior-probability-plot>
-                            </div>
-                        </div>
-                        <div class="col-xs-6 col-md-4">
-                            <div
-                                v-if="$parent.geneAssociations"
-                                class="card"
-                                style="width:95%; border: 0"
-                            >
-                                <div v-if="$parent.geneAssociationsLoftee.length >0">
-                                    <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
-                                </div>
-                                <div v-else>
-                                    <strong>There are no loss-of-function variants detected in this gene</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                        <div
+                                            v-if="$store.state.effectorGeneData.genetic"
+                                            class="alternative-names"
+                                        >
+                                            <strong>Coding Evidence: &nbsp;</strong>
+                                            <span
+                                                v-if="$store.state.effectorGeneData.genetic"
+                                            >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
+                                        </div>
+                                        <div v-if="$store.state.effectorGeneData.regulatory">
+                                            <strong>Regulatory Evidence:</strong>
+                                            <span
+                                                v-if="$store.state.effectorGeneData.regulatory"
+                                            >{{$store.state.effectorGeneData.regulatory}}</span>
+                                        </div>
+                                        <div>
+                                            <strong>Perturbational Evidence:</strong>
+                                            <span
+                                                v-if="$store.state.effectorGeneData.perturbational"
+                                            >{{$store.state.effectorGeneData.perturbational}}</span>
+                                        </div>
+                                    </b-col>
+                                </b-row>
+                                <b-row class="mb-3">
+                                    <b-col md="6" class="p-3">
+                                        <h4 class="card-title">Stage 2</h4>
+
+                                        <div v-if="$parent.geneAssociations">
+                                            <posterior-probability-plot
+                                                :geneAssociationsData="$parent.geneAssociations"
+                                                :priorVariance="$store.state.priorVariance"
+                                                :isDichotomous="true"
+                                            ></posterior-probability-plot>
+                                        </div>
+                                    </b-col>
+                                </b-row>
+                                <b-row class="mb-3">
+                                    <b-col md="6" class="p-3">
+                                        <h4 class="card-title">Stage 3</h4>
+                                        <div v-if="$parent.geneAssociations">
+                                            <div v-if="$parent.geneAssociationsLoftee.length >0">
+                                                <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
+                                            </div>
+                                            <div v-else>
+                                                <strong>There are no loss-of-function variants detected in this gene</strong>
+                                            </div>
+                                        </div>
+                                    </b-col>
+                                </b-row>
+                            </b-col>
+                            <b-col md="4" class="ml-auto p-3">
+                                <documentation
+                                    name="hugecal.explore.docs"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                            </b-col>
+                        </b-row>
+                    </b-container>
                 </div>
             </div>
 
