@@ -4,8 +4,11 @@
         <p class="card-text" v-if="documentation && loaded">
             <documentation :name="documentation" :content-fill="contentFill"></documentation>
         </p>
-        <div v-else-if="status === 401">Unauthorized</div>
-        <div v-else-if="status">Failed to load</div>
+        <div v-else-if="unauthorized" class="unauthorized">
+            Please
+            <a href="/login">log in</a> with an authorized Google account to see this content.
+        </div>
+        <div v-else-if="status" class="failed">Failed to load</div>
     </div>
 </template>
 
