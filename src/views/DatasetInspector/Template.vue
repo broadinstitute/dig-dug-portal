@@ -97,10 +97,6 @@
                         :associations="$store.state.datasetAssociations.data"
                     ></associations-table>
                     <div v-show="$store.state.datasetAssociations.restricted > 0">
-                        There were {{$store.state.datasetAssociations.restricted}} records hidden, because you are not authorized to view them. Please
-                        <a
-                            href="/login"
-                        >login</a> with an authorized Google account to see them.
                         <unauthorized-message
                             :unauthorized="true"
                             :count="$store.state.datasetAssociations.restricted"
