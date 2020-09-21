@@ -2,6 +2,8 @@
     <div>
         <input type="checkbox" id="checkbox" v-model="$parent.inclusive">
         <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
+        <!-- FilterContextGiver is required in the page and must wrap around components with a filter-context-receiver -->
+        <filter-context v-model="$parent.filterFunction"></filter-context>
 
         <!-- FilterWidget -->
         <!-- "looseMatch=true" means objects that don't have all the properties will pass through by default
@@ -40,29 +42,27 @@
         </filter-widget>
 
 
-        <!-- FilterContextGiver is required in the page and must wrap around components with a filter-context-receiver -->
-        <filter-context-giver v-model="$parent.filterFunction">
-            <!-- Div is dummy to fit components in slot -->
-            <div>
 
-                <locuszoom
-                    ref="locuszoom"
-                    :chr="$parent.chr"
-                    :start="$parent.start"
-                    :end="$parent.end"
-                    :refSeq="true">
-                    <lz-associations-panel
-                        :phenotype="$parent.phenotypes[0].name"
-                    ></lz-associations-panel>
-                </locuszoom>
+        <!-- Div is dummy to fit components in slot -->
+        <div>
 
-                <associations-table
-                    :associations="$parent.associations"
-                    :phenotypes="$parent.phenotypes"
-                ></associations-table>
+            <locuszoom
+                ref="locuszoom"
+                :chr="$parent.chr"
+                :start="$parent.start"
+                :end="$parent.end"
+                :refSeq="true">
+                <lz-associations-panel
+                    :phenotype="$parent.phenotypes[0].name"
+                ></lz-associations-panel>
+            </locuszoom>
 
-            </div>
-        </filter-context-giver>
+            <associations-table
+                :associations="$parent.associations"
+                :phenotypes="$parent.phenotypes"
+            ></associations-table>
+
+        </div>
 
 
     </div>

@@ -137,7 +137,6 @@
 
                 <filter-widget
                     v-model="$parent.associationsFilter"
-                    :inclusive="$parent.inclusive"
                     :looseMatch="true">
 
                     <filter-enumeration-control
@@ -170,7 +169,6 @@
 
                 <filter-widget
                     v-model="$parent.annotationsFilter"
-                    :inclusive="$parent.inclusive"
                     :looseMatch="true">
 
                     <filter-pvalue-control
@@ -178,11 +176,12 @@
                         P-Value (&le;)
                     </filter-pvalue-control>
 
+                    <filter-greater-control
+                        :field="'fold'">
+                        Fold (&ge;)
+                    </filter-greater-control>
+
                 </filter-widget>
-
-                <filter-context-giver name="associationsFilter" v-model="$parent.associationsFilter">
-                <filter-context-giver name="annotationsFilter" v-model="$parent.annotationsFilter">
-
                     <!-- the outermost div is a dummy to collect all the child components into the same slot -->
                     <div>
                         <div v-if="!!$store.state.phenotype">
@@ -237,15 +236,16 @@
                             :chr="$store.state.chr"
                             :start="$store.state.start"
                             :end="$store.state.end"
-                            :scoring="$parent.tissueScoring"
                             :filterAssociations="$parent.associationsFilter"
                             :filterAnnotations="$parent.annotationsFilter"
                             @regionchanged="$parent.requestCredibleSets($event.data)"
                             :refSeq="true">
+
                             <lz-associations-panel
                                 :phenotype="$store.state.phenotype.name"
                                 :finishHandler="$parent.updateAssociationsTable"
                             ></lz-associations-panel>
+
                         </locuszoom>
 
 
@@ -259,17 +259,18 @@
                             </h4>
                             <documentation name="region.variantassociation.subheader"></documentation>
 
-                            <associations-table
-                                v-if="$store.state.associations.data.length > 0"
-                                :phenotypes="$parent.phenotypes"
-                                :associations="$store.state.associations.data"
-                            ></associations-table>
+                            <filter-context-giver v-model="$parent.associationsFilter">
+                                <associations-table
+                                    v-if="$store.state.associations.data.length > 0"
+                                    :phenotypes="$parent.phenotypes"
+                                    :associations="$store.state.associations.data"
+                                ></associations-table>
+                            </filter-context-giver>
 
                         </div>
                     </div>
 
-                </filter-context-giver>
-                </filter-context-giver>
+
 
             </div>
         </div>

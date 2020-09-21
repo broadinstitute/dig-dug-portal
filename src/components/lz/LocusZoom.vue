@@ -40,6 +40,8 @@ export default Vue.component("locuszoom", {
         "filterAssociations",
         "filterAnnotations",
         "refSeq",
+        "filterAssociations",
+        "filterAnnotations",
     ],
     components: {
         FilterContextReceiver
@@ -191,24 +193,22 @@ export default Vue.component("locuszoom", {
         },
         applyFilter(filter, panelType='') {
 
-            // TODO: revisit, is there a faster way?
             // Auxiliary method within our json query for data layers in the LocusZoom plot
             // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
             // using flatmap because we need to work across many Object.keys
-            // const forceKeys = el => el.flatMap(data_layer_set => Object.keys(data_layer_set).map(data_layer_name => data_layer_set[data_layer_name]));
             const forceKeys = el => el.flatMap(data_layer_set => Object.entries(data_layer_set).map(data_layer_pair => data_layer_pair[1]));
 
             // Do we need to calculate this forceKeys every time?
             let data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
             if (panelType !== '') {
-                data_layers = data_layers.map(data_layer => {                 
+                data_layers = data_layers.map(data_layer => {
                     console.log(data_layer.parent.id)
                     return data_layer
                 }).filter(data_layer => data_layer.parent.id.includes(panelType));
                 console.log('datalayers for paneltype', data_layers, panelType)
             }
 
-          
+
             data_layers.forEach(data_layer => {
                 const target = data_layer.parent.id
                 const namespaceTag = `${target}_src`;
