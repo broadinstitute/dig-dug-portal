@@ -96,11 +96,14 @@
                         :phenotypes="[$store.state.selectedPhenotype]"
                         :associations="$store.state.datasetAssociations.data"
                     ></associations-table>
-                    <div v-show="$store.state.datasetAssociations.restricted > 0">
+                    <div
+                        v-show="$store.state.datasetAssociations.restricted > 0"
+                        class="login-required-wrapper"
+                    >
                         There were {{$store.state.datasetAssociations.restricted}} records hidden, because you are not authorized to view them. Please
                         <a
                             href="/login"
-                        >login</a> with an authorized Google account to see them.
+                        >log in</a> with an authorized Google account to see them.
                     </div>
                 </div>
             </div>

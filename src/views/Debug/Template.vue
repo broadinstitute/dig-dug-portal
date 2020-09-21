@@ -2,17 +2,15 @@
     <div class="container-fluid mdkp-body">
         <div class="card mdkp-card">
             <div class="row card-body">
-                <div class="col-md-12">
-                    <forest-plot-html
-                        v-if="$parent.htmlForestPlotData"
-                        :forestPlotData="$parent.htmlForestPlotData"
-                        :start="'ci_start'"
-                        :end="'ci_end'"
-                        :pvalue="'log_pvalue'"
-                        :beta="'beta'"
-                        :phenotypeid="false"
-                    ></forest-plot-html>
-                    <!--
+                <div class="col-md-6">
+                    <div
+                        class="login-required-wrapper"
+                    >Please log in with an authorized Google account to see content.</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="fail-loading-wrapper">Failed to load: reason for fail goes here.</div>
+                </div>
+                <!--
         <div class="filtering-ui-wrapper">
             <div class="row filtering-ui-content">
                 <div class="col filter-col-lg">
@@ -46,8 +44,7 @@
             :colorScheme="$parent.tissueColorScheme"
             @panelremoved="$parent.tap($event)"
             @regionchanged="$parent.requestCredibleSets($event.data)"
-                    ></locuszoom>-->
-                </div>
+                ></locuszoom>-->
             </div>
         </div>
     </div>
