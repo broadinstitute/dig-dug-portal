@@ -160,18 +160,15 @@ export default Vue.component("page-header", {
     },
     data() {
         return {
-            user: "",
             bioindex_dev: false,
         };
     },
     created() {
         if (Vue.$cookies.isKey("session")) {
-            fetch(
-                "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                    Vue.$cookies.get("session")
-            )
-                .then((response) => response.json())
-                .then((data) => (this.user = data.email));
+            this.$store.dispatch(
+                "bioPortal/getUser",
+                Vue.$cookies.get("session")
+            );
         }
         if (BIO_INDEX_HOST.indexOf("dev") != -1) this.bioindex_dev = true;
     },
@@ -181,6 +178,9 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
+        },
+        user() {
+            return this.$store.state.bioPortal.user;
         },
     },
     methods: {
