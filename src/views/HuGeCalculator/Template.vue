@@ -38,11 +38,11 @@
                     </div>
                     <div class="col-md-4 gene-page-header-body">
                         <div id="priorVarianceHolder" class="gene-page-header-search-holder hidden">
-                            <div class="col-md-12 input-wrapper">
+                            <div class="input-group">
                                 <input
-                                    v-model="$store.state.priorVariance"
-                                    type="text"
                                     class="form-control input-default"
+                                    v-model.number="$store.state.priorVariance"
+                                    type="number"
                                     placeholder="Prior Variance"
                                     id="prior_variance_input"
                                 />
@@ -112,7 +112,7 @@
                                     <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
                                 </div>
                                 <div v-else>
-                                    <h4>There are no loss-of-function variants detected in this gene</h4>
+                                    <strong>There are no loss-of-function variants detected in this gene</strong>
                                 </div>
                             </div>
                         </div>
@@ -125,35 +125,34 @@
                     <b-button
                         block
                         variant="info"
-                        v-on:click="() => $parent.showHideElement('gwasAssocHolder')"
-                    >Show GWAS Data</b-button>
-                </div>
-            </div>
-            <div id="gwasAssocHolder" class="mdkp-card hidden">
-                <div class="card">
-                    <h4
-                        v-if="$store.state.phenotype"
-                        class="card-title"
-                    >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
+                        v-on:click="() => $parent.showAssociations == true ? $parent.showAssociations = false : $parent.showAssociations=true"
+                    >Show Associations Data</b-button>
 
-                    <locuszoom
-                        v-if="$parent.region"
-                        ref="locuszoom"
-                        :chr="$parent.region.chromosome"
-                        :start="$parent.region.start"
-                        :end="$parent.region.end"
-                        :refSeq="true"
-                    >
-                        <lz-associations-panel
-                            :phenotype="$store.state.phenotype.name"
-                            :finishHandler="$parent.updateAssociationsTable"
-                        ></lz-associations-panel>
-                    </locuszoom>
-                    <associations-table
-                        v-if="$parent.inGWAS"
-                        :phenotypes="$parent.phenotypes"
-                        :associations="$parent.associationsData"
-                    ></associations-table>
+                    <div id="gwasAssocHolder" class="mdkp-card" v-if="$parent.showAssociations">
+                        <h4
+                            v-if="$store.state.phenotype"
+                            class="card-title"
+                        >Associations for {{$store.state.phenotype.name}} in {{$parent.symbolName}}</h4>
+
+                        <locuszoom
+                            v-if="$parent.region"
+                            ref="locuszoom"
+                            :chr="$parent.region.chromosome"
+                            :start="$parent.region.start"
+                            :end="$parent.region.end"
+                            :refSeq="true"
+                        >
+                            <lz-associations-panel
+                                :phenotype="$store.state.phenotype.name"
+                                :finishHandler="$parent.updateAssociationsTable"
+                            ></lz-associations-panel>
+                        </locuszoom>
+                        <associations-table
+                            v-if="$parent.inGWAS"
+                            :phenotypes="$parent.phenotypes"
+                            :associations="$parent.associationsData"
+                        ></associations-table>
+                    </div>
                 </div>
             </div>
         </div>

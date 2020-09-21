@@ -54,8 +54,7 @@ new Vue({
     data() {
         return {
             counter: 0,
-
-
+            showAssociations: false,
         };
     },
 
@@ -79,6 +78,7 @@ new Vue({
 
 
         updateAssociationsTable(data) {
+            
             this.$store.commit(`associations/setResponse`, data);
         },
 

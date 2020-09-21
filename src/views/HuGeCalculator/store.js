@@ -133,6 +133,12 @@ export default new Vuex.Store({
             }
         },
 
+        async updatePriorVariance(context, priorVariance) {
+
+            context.commit('setPriorVariance', priorVariance);
+
+        },
+
 
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
