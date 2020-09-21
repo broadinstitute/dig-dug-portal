@@ -136,6 +136,8 @@
             <div class="card-body">
             <b-container fluid class="filtering-ui-wrapper">
                 <b-row class="filtering-ui-content">
+
+                <!-- "looseMatch" prop allows the filter to be applied to data that doesn't have all the necessary properties -->
                 <filter-widget
                     v-model="$parent.associationsFilter"
                     :looseMatch="true">
@@ -249,26 +251,25 @@
                         </locuszoom>
 
 
-                            <h4 class="card-title">
-                                Top Associations for {{$store.state.phenotype.description}}
-                                <tooltip-documentation
-                                    name="region.topassoc.tooltip"
-                                    :isHover="true"
-                                    :noIcon="false"
-                                ></tooltip-documentation>
-                            </h4>
-                            <documentation name="region.variantassociation.subheader"></documentation>
+                        <h4 class="card-title">
+                            Top Associations for {{$store.state.phenotype.description}}
+                            <tooltip-documentation
+                                name="region.topassoc.tooltip"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+                        <documentation name="region.variantassociation.subheader"></documentation>
 
-                            <filter-context-giver v-model="$parent.associationsFilter">
-                                <associations-table
-                                    v-if="$store.state.associations.data.length > 0"
-                                    :phenotypes="$parent.phenotypes"
-                                    :associations="$store.state.associations.data"
-                                ></associations-table>
-                            </filter-context-giver>
+                        <associations-table
+                            v-if="$store.state.associations.data.length > 0"
+                            :phenotypes="$parent.phenotypes"
+                            :associations="$store.state.associations.data"
+                            :filter="$parent.associationsFilter"
+                        ></associations-table>
 
-                        </div>
                     </div>
+                </div>
 
 
 

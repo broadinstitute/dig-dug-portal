@@ -1,6 +1,5 @@
 <template>
     <div>
-        <filter-context-receiver @change="applyFilter"></filter-context-receiver>
         <div v-if="tableData.length > 0">
             <b-table
                 hover
@@ -89,7 +88,7 @@ import FilterContextReceiver from "@/components/FilterContext/FilterContextRecei
 import { decodeNamespace } from "@/utils/filterHelpers"
 
 export default Vue.component("associations-table", {
-    props: ["associations", "phenotypes"],
+    props: ["associations", "phenotypes", "filter"],
     components: {
         Documentation,
         TooltipDocumentation,
@@ -121,9 +120,6 @@ export default Vue.component("associations-table", {
                     label: "Closest Genes",
                 },
             ],
-
-            filterFunction: id => id,
-
         };
     },
     computed: {
@@ -212,23 +208,21 @@ export default Vue.component("associations-table", {
         },
         tableData() {
             let dataRows = this.groupedAssociations;
-            return this.groupedAssociations.filter(association => {
-                // decode the namespace of the association to allow the filter function (which shouldn't know about component-specific namespaces) to access all of the association's properties
-                const regularAssociation = decodeNamespace(association, { prefix: `${association.phenotype}:` });
-                // now, apply the filter function to the decoded object
-                // NOTE: the decoded object corresponds directly and uniquely to the original object, so any predicate applying to the deocded version should apply to the original
-                // This means that we don't have to reproject the regularAssociation into the original's namespace before returning the tableData
-                return this.filterFunction(regularAssociation);
-            });
+            if (!!this.filter) {
+                dataRows = this.groupedAssociations.filter(association => {
+                    // decode the namespace of the association to allow the filter function (which shouldn't know about component-specific namespaces) to access all of the association's properties
+                    const regularAssociation = decodeNamespace(association, { prefix: `${association.phenotype}:` });
+                    // now, apply the filter function to the decoded object
+                    // NOTE: the decoded object corresponds directly and uniquely to the original object, so any predicate applying to the deocded version should apply to the original
+                    // This means that we don't have to reproject the regularAssociation into the original's namespace before returning the tableData
+                    return this.filter(regularAssociation);
+                });
+            }
+            return dataRows;
         },
     },
 
     methods: {
-
-        applyFilter($event) {
-            // reassigning the filter function will trigger a recomputation of tableData
-            this.filterFunction = $event;
-        },
 
         phenotypeBetaColumn(phenotype) {
             return `cell(${phenotype.name}:beta)`;
