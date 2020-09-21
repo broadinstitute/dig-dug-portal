@@ -1,20 +1,15 @@
 <template>
-    <div>
+    <span>
         <!-- Controls and their labels -->
-        <b-container fluid class="filtering-ui-wrapper">
-            <b-row class="filtering-ui-content">
+
                 <EventListener @change="filterControlChange">
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
                 </EventListener>
-            </b-row>
-        </b-container>
 
         <!-- Pills for everything -->
-        <b-container fluid class="selected-filters-ui-wrapper">
-            <b-row>
-                <b-col>
+
                     <span v-if="filterList.length > 0">Selected Filters:&nbsp;&nbsp;
                         <!-- Derive pills from current filter state?
                             Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
@@ -33,12 +28,10 @@
                         </b-badge>
                     </span>
                     <!-- Spacer to prevent flicker when new pills are added to the UI -->
-                    <br v-else>
-                </b-col>
-            </b-row>
-        </b-container>
+                    <br v-else/>
 
-    </div>
+
+    </span>
 </template>
 
 <script>

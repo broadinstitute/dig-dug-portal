@@ -1,5 +1,5 @@
 <template>
-    <b-col class="filter-col-sm">
+    <div class="col filter-col-sm" style="padding:0 7px 0 7px;">
         <div class="label">
             <slot>
                 <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
@@ -22,7 +22,7 @@
             @keydown.enter="updateFilter(filterThreshold)"
         ></b-form-input>
 
-    </b-col>
+    </div>
 </template>
 
 <script>

@@ -134,11 +134,14 @@
 
         <div class="card mdkp-card">
             <div class="card-body">
-
+            <b-container fluid class="filtering-ui-wrapper">
+                <b-row class="filtering-ui-content">
                 <filter-widget
                     v-model="$parent.associationsFilter"
                     :looseMatch="true">
-
+                    <template #header>
+                        Associations Filter
+                    </template>
                     <filter-enumeration-control
                         :field="'consequence'"
                         :options="$parent.associationConsequences">
@@ -156,32 +159,14 @@
                         P-Value (&le;)
                     </filter-pvalue-control>
 
-                    <filter-greater-control
-                        :field="'fold'">
-                        Fold (&ge;)
-                    </filter-greater-control>
-
                     <filter-effect-direction-control
                         :field="'beta'">
                     </filter-effect-direction-control>
 
                 </filter-widget>
 
-                <filter-widget
-                    v-model="$parent.annotationsFilter"
-                    :looseMatch="true">
-
-                    <filter-pvalue-control
-                        :field="'pValue'">
-                        P-Value (&le;)
-                    </filter-pvalue-control>
-
-                    <filter-greater-control
-                        :field="'fold'">
-                        Fold (&ge;)
-                    </filter-greater-control>
-
-                </filter-widget>
+                </b-row>
+            </b-container>
                     <!-- the outermost div is a dummy to collect all the child components into the same slot -->
                     <div>
                         <div v-if="!!$store.state.phenotype">
@@ -200,14 +185,29 @@
 
                         <div class="filtering-ui-wrapper">
                             <div class="row filtering-ui-content">
-                                <div class="col filter-col-lg">
+                                <div class="col filter-col-lg" style="vertical-align: top;">
                                     <div class="label">Annotation Method Panel</div>
                                     <annotation-method-selectpicker
                                         :annotations="$parent.globalEnrichmentAnnotations"
                                         :clearOnSelected="true"
                                         @annotation="$parent.addAnnotationIntervalsPanel($event)"/>
-                                </div>
 
+                                </div>
+                                <div class="col" style="vertical-align: top;">
+                                    <filter-widget
+                                        v-model="$parent.annotationsFilter"
+                                        :looseMatch="true">
+                                            <filter-pvalue-control
+                                            :field="'pValue'">
+                                            P-Value (&le;)
+                                        </filter-pvalue-control>
+
+                                        <filter-greater-control
+                                            :field="'fold'">
+                                            Fold (&ge;)
+                                        </filter-greater-control>
+                                    </filter-widget>
+                                </div>
                                 <div class="col divider">&nbsp;</div>
                                 <div class="col filter-col-lg">
                                     <div class="label">Credible Sets Panel</div>
@@ -219,7 +219,7 @@
                                 </div>
 
                                 <div class="col divider">&nbsp;</div>
-                                <div class="col filter-col-lg">
+                                <div class="col filter-col-lg" style="vertical-align: top;">
                                     <div class="label">View region in Variant Prioritizer</div>
                                     <b-button
                                         v-if="!!$store.state.phenotype"
