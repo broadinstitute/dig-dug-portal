@@ -101,6 +101,10 @@
                         <a
                             href="/login"
                         >login</a> with an authorized Google account to see them.
+                        <unauthorized-message
+                            :unauthorized="true"
+                            :count="$store.state.datasetAssociations.restricted"
+                        ></unauthorized-message>
                     </div>
                 </div>
             </div>

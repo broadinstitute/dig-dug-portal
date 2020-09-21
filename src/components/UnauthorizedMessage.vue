@@ -1,21 +1,18 @@
 <template>
     <div>
         <b-alert v-if="unauthorized && !user" show variant="warning">
-            >
             <b-icon icon="exclamation-triangle"></b-icon>
-            There were {{count}} records hidden, because you do not have permission to view them. Please
+            There were {{count}} records hidden, because you do not have required permission. Please
             <a
                 href="/login"
-            >Login</a> with an authorized Google account to view them.
+            >log in</a> with an authorized Google account to view them.
         </b-alert>
         <b-alert v-else-if="unauthorized && !!user" show variant="warning">
-            >
             <b-icon icon="exclamation-triangle"></b-icon>
-            There were {{count}} records hidden, because you do not have permission to view them.
+            There were {{count}} records hidden, because you do not have required permission.
             Please contact us if you believe you should've given access.
         </b-alert>
         <b-alert v-else-if="failed" show variant="warning">
-            >
             <b-icon icon="exclamation-triangle"></b-icon>Some records were failed to load. Please try again later.
             If problems still persist, please contact us.
         </b-alert>
@@ -36,7 +33,7 @@ export default Vue.component("unauthorized-message", {
         count: { type: Number, required: false },
     },
     created() {
-        this.user = $parent.user;
+        //this.user = $parent.user;
     },
 });
 </script>
