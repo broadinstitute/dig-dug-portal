@@ -8,8 +8,8 @@
  * and transfering the location to it.
  */
 
-import queryString from 'query-string';
-import host from '@/utils/hostUtils';
+import queryString from "query-string";
+import host from "@/utils/hostUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
 export default {
@@ -25,7 +25,8 @@ export default {
             phenotypeMap: {},
             datasetMap: {},
             documentation: {},
-        }
+            user: ""
+        };
     },
 
     mutations: {
@@ -38,7 +39,8 @@ export default {
 
             // create a map of the phenotypes by name for fast lookup
             for (let i in state.phenotypes) {
-                state.phenotypeMap[state.phenotypes[i].name] = state.phenotypes[i];
+                state.phenotypeMap[state.phenotypes[i].name] =
+                    state.phenotypes[i];
             }
         },
         setDatasets(state, data) {
@@ -53,6 +55,9 @@ export default {
         setDocumentation(state, data) {
             state.documentation = data;
         },
+        setUser(state, user) {
+            state.user = user;
+        }
     },
 
     getters: {
@@ -73,38 +78,55 @@ export default {
 
             // find the default
             return getters.defaultGroup;
-        },
-
+        }
     },
 
     actions: {
         // fetch all disease groups from the bio index
         async getDiseaseGroups({ commit }) {
-            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/groups`)
-                .then(resp => resp.json());
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/groups`
+            ).then(resp => resp.json());
 
             // set the portal list
-            commit('setDiseaseGroups', json.data);
+            commit("setDiseaseGroups", json.data);
         },
 
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
-            let qs = queryString.stringify({ q: state.host.subDomain }, { skipNull: true });
-            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/phenotypes?${qs}`)
-                .then(resp => resp.json());
+            let qs = queryString.stringify(
+                { q: state.host.subDomain },
+                { skipNull: true }
+            );
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/phenotypes?${qs}`
+            ).then(resp => resp.json());
 
             // set the list of phenotypes
-            commit('setPhenotypes', json.data);
+            commit("setPhenotypes", json.data);
         },
 
         // fetch all datasets for this portal
         async getDatasets({ state, commit }) {
-            let qs = queryString.stringify({ q: state.host.subDomain }, { skipNull: true });
-            let json = await fetch(`${BIO_INDEX_HOST}/api/portal/datasets?${qs}`)
-                .then(resp => resp.json());
+            let qs = queryString.stringify(
+                { q: state.host.subDomain },
+                { skipNull: true }
+            );
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/datasets?${qs}`
+            ).then(resp => resp.json());
 
             // set the list of datasets
-            commit('setDatasets', json.data);
+            commit("setDatasets", json.data);
+        },
+
+        async getUser(context, access_token) {
+            let data = await fetch(
+                "https://oauth2.googleapis.com/tokeninfo?access_token=" +
+                    access_token
+            ).then(response => response.json());
+
+            context.commit("setUser", data.email);
         }
     }
-}
+};
