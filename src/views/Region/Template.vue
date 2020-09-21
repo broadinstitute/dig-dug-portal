@@ -150,8 +150,8 @@
                             </filter-widget>
                         </b-row>
                     </b-container>
-                    <!-- the outermost div is a dummy to collect all the child components into the same slot -->
-                    <div>
+
+
                         <div v-if="!!$store.state.phenotype">
                             <h4
                                 class="card-title"
@@ -225,26 +225,28 @@
                                 ></lz-associations-panel>
                             </locuszoom>
 
-                            <h4 class="card-title">
-                                Top Associations for {{$store.state.phenotype.description}}
-                                <tooltip-documentation
-                                    name="region.topassoc.tooltip"
-                                    :isHover="true"
-                                    :noIcon="false"
-                                ></tooltip-documentation>
-                            </h4>
-                            <documentation name="region.variantassociation.subheader"></documentation>
+                        <h4 class="card-title">
+                            Top Associations for {{$store.state.phenotype.description}}
+                            <tooltip-documentation
+                                name="region.topassoc.tooltip"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+                        <documentation name="region.variantassociation.subheader"></documentation>
 
-                            <filter-context-giver v-model="$parent.associationsFilter">
-                                <associations-table
-                                    v-if="$store.state.associations.data.length > 0"
-                                    :phenotypes="$parent.phenotypes"
-                                    :associations="$store.state.associations.data"
-                                ></associations-table>
-                            </filter-context-giver>
-                        </div>
+                        <associations-table
+                            v-if="$store.state.associations.data.length > 0"
+                            :phenotypes="$parent.phenotypes"
+                            :associations="$store.state.associations.data"
+                            :filter="$parent.associationsFilter"
+                        ></associations-table>
+
                     </div>
                 </div>
+
+
+
             </div>
         </div>
         <!-- TODO: collapse tables -->
