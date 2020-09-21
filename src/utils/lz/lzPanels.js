@@ -44,7 +44,7 @@ export class LZAssociationsPanel {
             variant: association.varId,
             ref_allele: association.varId,
             consequence: association.consequence,
-            nearest: association.nearest,
+            beta: association.beta,
         }));
         this.initialData = initialData;
 
@@ -78,6 +78,7 @@ export class LZAssociationsPanel {
                             `{{namespace[${this.datasource_type}]}}consequence`,  // adding this piece of data irrelevant to the graphic will help us filter later
                             `{{namespace[${this.datasource_type}]}}nearest`,  // adding this piece of data irrelevant to the graphic will help us filter later
                             // we need to call out the fields directly since merge algorithm doesn't combine arrays
+                            `{{namespace[${this.datasource_type}]}}beta`,
                             ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields,
                         ],
                     },
@@ -304,7 +305,8 @@ export class LZCredibleVariantsPanel {
                     "fields": [
                         `${this.datasource_namespace_symbol_for_panel}:id`,
                         `${this.datasource_namespace_symbol_for_panel}:position`,
-                        `${this.datasource_namespace_symbol_for_panel}:posterior_prob`
+                        `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
+                        `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
                     ],
                     "x_axis": {
                         "field": `${this.datasource_namespace_symbol_for_panel}:position`
