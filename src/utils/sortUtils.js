@@ -16,6 +16,23 @@ let sort = function (data, key, isNumeric, isAscending) {
     });
 }
 
+let sortEGLTableData = function (data, key, isNumeric, isAscending) {
+    return data.sort(function (a, b) {
+        let A = (isNumeric) ? a[key] : a[key].toLowerCase();
+        let B = (isNumeric) ? b[key] : b[key].toLowerCase();
+
+        let comparison = 0;
+        if (A > B) {
+            comparison = 1;
+        } else if (A < B) {
+            comparison = -1;
+        }
+
+        return (isAscending) ? (isNumeric) ? (comparison * -1) : comparison : (isNumeric) ? comparison : (comparison * -1);
+
+    });
+}
+
 export default {
-    sort,
+    sort, sortEGLTableData,
 }

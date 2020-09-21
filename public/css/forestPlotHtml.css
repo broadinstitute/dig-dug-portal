@@ -1,0 +1,159 @@
+.forest-plot-html-wrapper {
+    margin: 30px 40px;
+    padding: 10px 0;
+    border: solid 1px #ddd;
+    position: relative;
+}
+
+.start-min, .end-max, .beta-0 {
+    font-size: 14px;
+    position: absolute;
+    top: -20px;
+
+}
+
+.beta-0 {
+    height: calc(100% + 20px);
+    border-left: dashed 2px #dfdfdf;
+}
+
+.start-min {
+    left: 0;
+}
+
+.end-max {
+    right: 0;
+}
+
+.forest-plot-html-row {
+    position: relative;
+    width: 100%;
+    height: 20px;
+}
+
+.forest-plot-html-row:hover {
+    background-color: #e9e9e9;
+}
+
+.forest-plot-html-row:hover .phenotype-group-name{
+    display: block;
+}
+
+.forest-plot-html-item {
+    position: absolute;
+    border-top: solid 1px #aaa;
+    margin-top: 10px;
+    margin-bottom: 7px;
+}
+
+.forest-plot-html-row .beta-box, .forest-plot-html-legend-wrapper .beta-box  {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #bbbbbb;
+    top: 4px;
+}
+
+.forest-plot-html-legend-wrapper .beta-box {
+    left: -20px;
+}
+
+.forest-plot-html-row .beta-box.p-significant, .forest-plot-html-legend-wrapper .beta-box.p-significant{
+    background-color: #ff0000;
+}
+
+.forest-plot-html-row .beta-box.p-moderate, .forest-plot-html-legend-wrapper .beta-box.p-moderate {
+    background-color: #ff9999;
+}
+
+.forest-plot-html-item .phenotype-name {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 14px;
+    top: -12px;
+}
+
+.forest-plot-html-item .phenotype-name.left {
+    right: calc(100% + 5px);
+}
+
+.forest-plot-html-item .phenotype-name.right {
+    left: calc(100% + 5px);
+}
+
+.phenotype-group-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 12px;
+    left:calc(100% - 20px);
+    top: 4px;
+}
+
+.phenotype-group-dot .phenotype-group-name{
+    display:none;
+    position: absolute;
+    right: 15px;
+    font-size: 14px;
+    top: -3px;
+}
+
+.phenotype-group-dot:hover .phenotype-group-name{
+    display:block;
+}
+
+.phenotype-group-dot.ANTHROPOMETRIC { background-color: #048845; }
+.phenotype-group-dot.ATRIAL.FIBRILLATION { background-color: #7aaa1c; }
+.phenotype-group-dot.CARDIOVASCULAR { background-color: #6FC7B6; }
+.phenotype-group-dot.ECG.TRAITS { background-color: #8490C8; }
+.phenotype-group-dot.GLYCEMIC { background-color: #9F78AC; }
+.phenotype-group-dot.HEMORRHAGIC.STROKE { background-color: #BF61A5; }
+.phenotype-group-dot.HEPATIC { background-color: #F88084; }
+.phenotype-group-dot.INFLAMMATORY.BOWEL { background-color: #007bff; }
+.phenotype-group-dot.ISCHEMIC.STROKE { background-color: #EE3124; }
+.phenotype-group-dot.LIPIDS { background-color: #fAA553; }
+.phenotype-group-dot.LUNG { background-color: #0000ff; }
+.phenotype-group-dot.METABOLITE { background-color: #fcc500; }
+.phenotype-group-dot.MRI.TRAITS { background-color: #F5A4C7; }
+.phenotype-group-dot.MUSCULOSKELETAL { background-color: #aec6a1; }
+.phenotype-group-dot.NEUROLOGICAL { background-color: #33ff00; }
+.phenotype-group-dot.OCULAR { background-color: #ccc698; }
+.phenotype-group-dot.OTHER { background-color: #B4B4B4; }
+.phenotype-group-dot.PSYCHIATRIC { background-color: #5555FF; }
+.phenotype-group-dot.RENAL { background-color: #ff55ff; }
+.phenotype-group-dot.SLEEP.AND.CIRCADIAN { background-color: #D5A768; }
+.phenotype-group-dot.STROKE { background-color: #cccc00; }
+.phenotype-group-dot.TYPE.DIABETES { background-color: #639bc0; }
+.phenotype-group-dot.HEMATOLOGICAL { background-color: #aa0000; }
+
+.forest-plot-html-legend-wrapper {
+    position: absolute;
+    font-size: 13px;
+    z-index: 10000;
+    background-color: white;
+}
+
+.forest-plot-html-legend-handler {
+    padding-left: 20px;
+}
+
+.forest-plot-html-legend-content {
+    position: relative;
+}
+
+.forest-plot-html-legend-content ul {
+    list-style: none;
+    position: relative;
+}
+
+.forest-plot-html-legend-content ul li {
+    position: relative;
+}
+
+.forest-plot-html-legend-content ul li .phenotype-group-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 12px;
+    left: -20px;
+}

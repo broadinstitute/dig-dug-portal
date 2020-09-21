@@ -13,20 +13,39 @@
             v-if="!!config && !!tableData && config[dataset].filters != undefined"
             class="filtering-ui-wrapper"
         >
+            <!--<div>
+                <input
+                    type="checkbox"
+                    v-model="showAllFeaturesChk"
+                    id="show_all_features"
+                    @change="showAllFeatures()"
+                />
+                <label for="show_all_features">Only in filtered</label>
+            </div>-->
             <b-row class="filtering-ui-content">
                 <b-col v-for="filter in config[dataset]['filters']" :key="filter.field">
                     <div class="label" v-html="filter.label"></div>
                     <template v-if="filter.type.includes('search')">
-                        <b-form-input
+                        <input
                             type="text"
+                            class="form-control"
+                            :id="'filter_'+filter.field.replace(/ /g,'')"
                             @change="filterData($event, filter.field, filter.type)"
-                        ></b-form-input>
+                        />
                     </template>
                     <template v-else-if="filter.type == 'dropdown'">
-                        <b-form-select
-                            :options="buildOptions(filter.field)"
+                        <select
+                            :id="'filter_'+filter.field"
                             @change="filterData($event, filter.field, filter.type)"
-                        ></b-form-select>
+                            class="custom-select"
+                        >
+                            <option></option>
+                            <option
+                                v-for="value in buildOptions(filter.field)"
+                                :key="value"
+                                :value="value"
+                            >{{value}}</option>
+                        </select>
                     </template>
                 </b-col>
             </b-row>
@@ -52,19 +71,61 @@
                 :key="i"
             ></b-row>
         </b-container>
+        <b-container fluid v-if="!!config && !!tableData" class="table-ui-wrapper">
+            <b-row>
+                <div class="col-md-12 egl-table-ui-options">
+                    <div class="show-all-features-wrapper">
+                        <input
+                            type="checkbox"
+                            v-model="showAllFeaturesChk"
+                            id="show_all_features"
+                            @change="showAllFeatures()"
+                        />
+                        <label for="show_all_features">Show all feature rows</label>
+                    </div>
+                    <div class="hide-all-feature-headers-wrapper">
+                        <input
+                            type="checkbox"
+                            v-model="hideAllFeatureHeadersChk"
+                            id="hide_all_feature_headers"
+                            @change="hideAllFeatureHeaders()"
+                        />
+                        <label for="hide_all_feature_headers">Hide feature headers</label>
+                    </div>
+                    <div class="hide-top-level-wrapper">
+                        <input
+                            type="checkbox"
+                            v-model="hideTopLevelRowsChk"
+                            id="hide_top_level_rows"
+                            @change="hideTopLevelRows()"
+                        />
+                        <label for="hide_top_level_rows">Hide top level rows</label>
+                    </div>
+                </div>
+            </b-row>
+        </b-container>
         <div :class="'EGLT-table '+this.dataset">
             <b-container fluid v-if="!!config && !!filteredData" class>
                 <b-row class="top-level-header">
                     <div
-                        v-for="name in config[dataset]['topLevelRender']"
-                        :class="'top-level-header-item ' + name"
-                        v-html="name"
+                        v-for="(value,key) in config[dataset]['topLevelRender']"
+                        :key="key"
+                        :class="'sortable top-level-header-item ' + value"
+                        v-html="value"
+                        @click="applySorting(key)"
                     ></div>
                     <div class="top-level-header-item">View</div>
                 </b-row>
                 <b-row v-for="(value,index) in filteredData" class="top-level-value" :key="index">
                     <template v-for="(col, i) in config[dataset]['topLevelRender']">
                         <div
+                            v-if="i == config[dataset]['topLevelPrime']"
+                            :class="'top-level-value-item prime '+i+' '+i+'-'+value[i]"
+                            :key="i"
+                            v-html="formatContent(i,value[i],'top')"
+                        ></div>
+                        <div
+                            v-else
                             :class="'top-level-value-item '+i+' '+i+'-'+value[i]"
                             :key="i"
                             v-html="formatContent(i,value[i],'top')"
@@ -104,6 +165,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 //import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 
 Vue.use(BootstrapVueIcons);
 
@@ -115,6 +177,11 @@ export default Vue.component("effector-genes-table", {
             filtersIndex: {},
             highestScores: { features: {} },
             lowestScores: { features: {} },
+            showAllFeaturesChk: null,
+            hideTopLevelRowsChk: null,
+            hideAllFeatureHeadersChk: null,
+            sortTableSelect: null,
+            sortDirection: "asc",
             /*igvBrowser: false,*/
         };
     },
@@ -163,7 +230,7 @@ export default Vue.component("effector-genes-table", {
             }
         },
         tableData(data) {
-            uiUtils.showHideElement("data-loading-indicator");
+            uiUtils.hideElement("data-loading-indicator");
         },
     },
     methods: {
@@ -172,10 +239,38 @@ export default Vue.component("effector-genes-table", {
                 .map((v) => v[field])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
-            return options;
+            return options.sort();
         },
-        filterData(search, field, type) {
-            this.filtersIndex[field]["search"].push(search);
+        applySorting(key) {
+            let filtered = this.filteredData;
+            let sortDirection = this.sortDirection == "asc" ? false : true;
+            this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
+            let keyData = filtered[0][key];
+            let isNumeric = typeof keyData != "number" ? false : true;
+
+            sortUtils.sortEGLTableData(filtered, key, isNumeric, sortDirection);
+            this.$store.dispatch("filteredData", filtered);
+        },
+        filterData(EVENT, FIELD, TYPE) {
+            let searchValue = EVENT.target.value;
+            let id = "#filter_" + FIELD.replace(/ /g, "");
+            let inputField = document.querySelector(id);
+
+            inputField.blur();
+            inputField.value = "";
+
+            if (TYPE == "search") {
+                let searchTerms = searchValue.split(",");
+                searchTerms.map((searchTerm) => {
+                    this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
+                });
+            } else if (TYPE == "search_gt" || TYPE == "search_lt") {
+                this.filtersIndex[FIELD]["search"] = [searchValue];
+            } else {
+                this.filtersIndex[FIELD]["search"].push(searchValue);
+            }
+
+            //console.log(this.filtersIndex);
 
             this.applyFilters();
         },
@@ -183,6 +278,7 @@ export default Vue.component("effector-genes-table", {
             let filtered = this.tableData;
             let tempFiltered = [];
             let i = 0;
+
             for (var f in this.filtersIndex) {
                 let searchIndex = this.filtersIndex[f];
 
@@ -237,6 +333,94 @@ export default Vue.component("effector-genes-table", {
         },
         showFeatures(INDEX) {
             uiUtils.showHideElement("feature-content-wrapper-" + INDEX);
+        },
+        showAllFeatures(INDEX) {
+            let checked = document.getElementById("show_all_features").checked;
+            let topLevelChecked = document.getElementById("hide_top_level_rows")
+                .checked;
+
+            let featureWrappers = document.querySelectorAll(
+                ".feature-content-wrapper"
+            );
+
+            featureWrappers.forEach(function (featureWrapper) {
+                checked == true
+                    ? featureWrapper.classList.remove("hidden")
+                    : featureWrapper.classList.add("hidden");
+                topLevelChecked == true
+                    ? featureWrapper.classList.add("open-all")
+                    : featureWrapper.classList.remove("open-all");
+            });
+        },
+        hideAllFeatureHeaders() {
+            let checked = document.getElementById("hide_all_feature_headers")
+                .checked;
+
+            let primeFeatureHeadersLength = document
+                .getElementsByClassName("feature-content-wrapper")[0]
+                .querySelectorAll(".feature-headers").length;
+
+            let allFeatureHeaderLength = document.querySelectorAll(
+                ".feature-headers"
+            ).length;
+
+            for (
+                let i = primeFeatureHeadersLength;
+                i < allFeatureHeaderLength;
+                i++
+            ) {
+                checked == true
+                    ? document
+                          .getElementsByClassName("feature-headers")
+                          [i].classList.add("hidden")
+                    : document
+                          .getElementsByClassName("feature-headers")
+                          [i].classList.remove("hidden");
+            }
+        },
+        hideTopLevelRows(INDEX) {
+            let checked = document.getElementById("hide_top_level_rows")
+                .checked;
+
+            checked == true
+                ? document
+                      .getElementsByClassName("top-level-header")[0]
+                      .classList.add("hidden")
+                : document
+                      .getElementsByClassName("top-level-header")[0]
+                      .classList.remove("hidden");
+
+            let topLevelRows = document.querySelectorAll(".top-level-value");
+
+            topLevelRows.forEach(function (topLevelRow) {
+                let topLevelItems = topLevelRow.querySelectorAll(
+                    ".top-level-value-item"
+                );
+
+                for (let i = 0; i < topLevelItems.length; i++) {
+                    if (topLevelItems[i].classList.contains("prime")) {
+                        checked == true
+                            ? topLevelItems[i].classList.add("top-prime-column")
+                            : topLevelItems[i].classList.remove(
+                                  "top-prime-column"
+                              );
+                    } else {
+                        checked == true
+                            ? topLevelItems[i].classList.add("hidden")
+                            : topLevelItems[i].classList.remove("hidden");
+                    }
+                }
+            });
+
+            let featureWrappers = document.querySelectorAll(
+                ".feature-content-wrapper"
+            );
+
+            featureWrappers.forEach(function (featureWrapper) {
+                checked == true
+                    ? featureWrapper.classList.add("open-all")
+                    : featureWrapper.classList.remove("open-all");
+            });
         },
         showVisualizer(ITEM) {
             this.$store.dispatch("selectGene", ITEM);
