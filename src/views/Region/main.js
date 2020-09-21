@@ -142,7 +142,7 @@ new Vue({
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method, this.tissueScoring);
         },
 
     },

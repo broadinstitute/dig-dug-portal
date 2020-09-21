@@ -168,6 +168,18 @@
 
                 </filter-widget>
 
+                <filter-widget
+                    v-model="$parent.annotationsFilter"
+                    :inclusive="$parent.inclusive"
+                    :looseMatch="true">
+
+                    <filter-pvalue-control
+                        :field="'pValue'">
+                        P-Value (&le;)
+                    </filter-pvalue-control>
+
+                </filter-widget>
+
                 <filter-context-giver name="associationsFilter" v-model="$parent.associationsFilter">
                 <filter-context-giver name="annotationsFilter" v-model="$parent.annotationsFilter">
 
@@ -226,6 +238,8 @@
                             :start="$store.state.start"
                             :end="$store.state.end"
                             :scoring="$parent.tissueScoring"
+                            :filterAssociations="$parent.associationsFilter"
+                            :filterAnnotations="$parent.annotationsFilter"
                             @regionchanged="$parent.requestCredibleSets($event.data)"
                             :refSeq="true">
                             <lz-associations-panel

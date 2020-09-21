@@ -1,6 +1,6 @@
 <template>
     <div :id="`lz_${salt}`">
-        <filter-context-receiver @change="applyFilter"></filter-context-receiver>
+        <!-- <filter-context-receiver @change="applyFilter"></filter-context-receiver> -->
         <slot v-if="locuszoommounted"></slot>
     </div>
 
@@ -36,6 +36,9 @@ export default Vue.component("locuszoom", {
         "start",
         "end",
         "scoring",
+        "filterPanels",
+        "filterAssociations",
+        "filterAnnotations",
         "refSeq",
     ],
     components: {
@@ -149,12 +152,12 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        addAnnotationIntervalsPanel: function(annotation, method, initialData, finishHandler, resolveHandler, errHandler) {
+        addAnnotationIntervalsPanel: function(annotation, method, scoring, initialData, finishHandler, resolveHandler, errHandler) {
             const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
                     annotation, method, { finishHandler, resolveHandler, errHandler },
                     initialData,
-                    this.scoring,
+                    scoring,
                 )
             );
             return panelId;
@@ -186,8 +189,7 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        // TODO: Refactor to use the filter function *directly as a function*
-        applyFilter(filter) {
+        applyFilter(filter, panelType='') {
 
             // TODO: revisit, is there a faster way?
             // Auxiliary method within our json query for data layers in the LocusZoom plot
@@ -196,10 +198,18 @@ export default Vue.component("locuszoom", {
             // const forceKeys = el => el.flatMap(data_layer_set => Object.keys(data_layer_set).map(data_layer_name => data_layer_set[data_layer_name]));
             const forceKeys = el => el.flatMap(data_layer_set => Object.entries(data_layer_set).map(data_layer_pair => data_layer_pair[1]));
 
-            // Do we need to calculate this every time?
-            const data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
-            data_layers.forEach(data_layer => {
+            // Do we need to calculate this forceKeys every time?
+            let data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
+            if (panelType !== '') {
+                data_layers = data_layers.map(data_layer => {                 
+                    console.log(data_layer.parent.id)
+                    return data_layer
+                }).filter(data_layer => data_layer.parent.id.includes(panelType));
+                console.log('datalayers for paneltype', data_layers, panelType)
+            }
 
+          
+            data_layers.forEach(data_layer => {
                 const target = data_layer.parent.id
                 const namespaceTag = `${target}_src`;
 
@@ -214,7 +224,7 @@ export default Vue.component("locuszoom", {
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
 
-        }
+        },
     },
     computed: {
         region() {
@@ -228,7 +238,19 @@ export default Vue.component("locuszoom", {
     watch: {
         region(newRegion) {
             this.plot.applyState({ chr: newRegion.chr, start: newRegion.start, end: newRegion.end })
-        }
+        },
+        filterPanel(filter) {
+            console.log('filtering all panels')
+            this.applyFilter(filter);
+        },
+        filterAssociations(associationsFilter) {
+            console.log('associations filter changed')
+            this.applyFilter(associationsFilter, 'association');
+        },
+        filterAnnotations(annotationsFilter) {
+            console.log('annotations filter changed')
+            this.applyFilter(annotationsFilter, 'intervals');
+        },
     }
 });
 
