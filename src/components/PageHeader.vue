@@ -144,13 +144,13 @@
     </div>
 </template>
 
-
 <script>
 import Vue from "vue";
 import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { userMixin } from "@/mixins/userMixin";
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
@@ -158,6 +158,7 @@ export default Vue.component("page-header", {
     components: {
         GoogleAnalytics,
     },
+    mixins: [userMixin],
     data() {
         return {
             bioindex_dev: false,
@@ -178,14 +179,6 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
-        },
-        user() {
-            return this.$store.state.bioPortal.user;
-        },
-    },
-    methods: {
-        saveCurrentPage() {
-            Vue.$cookies.set("whereAmI", location.href, "", "", host.domain);
         },
     },
 });

@@ -5,6 +5,7 @@
             There were {{count}} records hidden, because you do not have required permission. Please
             <a
                 href="/login"
+                @click="saveCurrentPage"
             >log in</a> with an authorized Google account to view them.
         </b-alert>
         <b-alert v-else-if="unauthorized && !!user" show variant="warning">
@@ -21,19 +22,16 @@
 
 <script>
 import Vue from "vue";
+import { userMixin } from "@/mixins/userMixin";
 export default Vue.component("unauthorized-message", {
+    mixins: [userMixin],
     data() {
-        return {
-            user: "",
-        };
+        return {};
     },
     props: {
         unauthorized: { type: Boolean, required: false, default: false },
         failed: { type: Boolean, required: false, default: false },
         count: { type: Number, required: false },
-    },
-    created() {
-        //this.user = $parent.user;
     },
 });
 </script>
