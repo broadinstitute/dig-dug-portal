@@ -131,112 +131,132 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4
-                        v-if="!!$store.state.phenotype"
-                        class="card-title"
-                    >Visualize associations for {{$store.state.phenotype.description}}</h4>
-                    <documentation
-                        name="region.lz.subheader"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>
+                    <b-container fluid class="filtering-ui-wrapper">
+                        <b-row class="filtering-ui-content">
+                            <filter-widget v-model="$parent.associationsFilter" :looseMatch="true">
+                                <filter-enumeration-control
+                                    :field="'consequence'"
+                                    :options="$parent.associationConsequences"
+                                >Consequence</filter-enumeration-control>
 
-                    <documentation
-                            name="region.igv.subheader"
-                            :content-fill="$parent.documentationMap"
-                    ></documentation>
+                                <filter-enumeration-control
+                                    :field="'nearest'"
+                                    :options="$parent.associationNearestGenes"
+                                >Closest Genes</filter-enumeration-control>
 
-                    <div class="filtering-ui-wrapper">
-                        <div class="row filtering-ui-content">
-                            <div class="col filter-col-lg">
-                                <div class="label">Annotation Method Panel</div>
-                                <annotation-method-selectpicker
-                                    :annotations="$parent.globalEnrichmentAnnotations"
-                                    :clearOnSelected="true"
-                                    @annotation="$parent.addAnnotationIntervalsPanel($event)"
-                                />
+                                <filter-pvalue-control :field="'pValue'">P-Value (&le;)</filter-pvalue-control>
+
+                                <filter-effect-direction-control :field="'beta'"></filter-effect-direction-control>
+                            </filter-widget>
+                        </b-row>
+                    </b-container>
+                    <!-- the outermost div is a dummy to collect all the child components into the same slot -->
+                    <div>
+                        <div v-if="!!$store.state.phenotype">
+                            <h4
+                                class="card-title"
+                            >Visualize associations for {{$store.state.phenotype.description}}</h4>
+                            <documentation
+                                name="region.lz.subheader"
+                                :content-fill="$parent.documentationMap"
+                            ></documentation>
+
+                            <documentation
+                                name="region.igv.subheader"
+                                :content-fill="$parent.documentationMap"
+                            ></documentation>
+
+                            <div class="filtering-ui-wrapper">
+                                <div class="row filtering-ui-content">
+                                    <div class="col filter-col-lg" style="vertical-align: top;">
+                                        <div class="label">Annotation Method Panel</div>
+                                        <annotation-method-selectpicker
+                                            :annotations="$parent.globalEnrichmentAnnotations"
+                                            :clearOnSelected="true"
+                                            @annotation="$parent.addAnnotationIntervalsPanel($event)"
+                                        />
+                                    </div>
+                                    <div class="col" style="vertical-align: top;">
+                                        <filter-widget
+                                            v-model="$parent.annotationsFilter"
+                                            :looseMatch="true"
+                                        >
+                                            <filter-pvalue-control :field="'pValue'">P-Value (&le;)</filter-pvalue-control>
+
+                                            <filter-greater-control :field="'fold'">Fold (&ge;)</filter-greater-control>
+                                        </filter-widget>
+                                    </div>
+                                    <div class="col divider">&nbsp;</div>
+                                    <div class="col filter-col-lg">
+                                        <div class="label">Credible Sets Panel</div>
+                                        <credible-sets-selectpicker
+                                            :credibleSets="$parent.credibleSets"
+                                            :clearOnSelected="true"
+                                            @credibleset="$parent.addCredibleVariantsPanel($event)"
+                                        />
+                                    </div>
+
+                                    <div class="col divider">&nbsp;</div>
+                                    <div class="col filter-col-lg" style="vertical-align: top;">
+                                        <div class="label">View region in Variant Prioritizer</div>
+                                        <b-button
+                                            v-if="!!$store.state.phenotype"
+                                            class="btn btn-sm btn-2-vptz"
+                                            :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
+                                            target="_blank"
+                                        >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col filter-col-sm">
-                                <div class="label">P-Value (&le;)</div>
-                                <input v-model.number="$parent.pValue" class="form-control"/>
-                            </div>
-                            <div class="col filter-col-sm">
-                                <div class="label">Fold (&ge;)</div>
-                                <input v-model.number="$parent.fold" class="form-control" />
-                            </div>
+                            <locuszoom
+                                ref="locuszoom"
+                                :chr="$store.state.chr"
+                                :start="$store.state.start"
+                                :end="$store.state.end"
+                                :filterAssociations="$parent.associationsFilter"
+                                :filterAnnotations="$parent.annotationsFilter"
+                                @regionchanged="$parent.requestCredibleSets($event.data)"
+                                :refSeq="true"
+                            >
+                                <lz-associations-panel
+                                    :phenotype="$store.state.phenotype.name"
+                                    :finishHandler="$parent.updateAssociationsTable"
+                                ></lz-associations-panel>
+                            </locuszoom>
 
-                            <div class="col divider">&nbsp;</div>
-                            <div class="col filter-col-lg">
-                                <div class="label">Credible Sets Panel</div>
-                                <credible-sets-selectpicker
-                                    :credibleSets="$parent.credibleSets"
-                                    :clearOnSelected="true"
-                                    @credibleset="$parent.addCredibleVariantsPanel($event)"
-                                />
-                            </div>
+                            <h4 class="card-title">
+                                Top Associations for {{$store.state.phenotype.description}}
+                                <tooltip-documentation
+                                    name="region.topassoc.tooltip"
+                                    :isHover="true"
+                                    :noIcon="false"
+                                ></tooltip-documentation>
+                            </h4>
+                            <documentation name="region.variantassociation.subheader"></documentation>
 
-                            <div class="col divider">&nbsp;</div>
-                            <div class="col filter-col-lg">
-                                <div class="label">View region in Variant Prioritizer</div>
-                                <b-button
-                                    v-if="!!$store.state.phenotype"
-                                    class="btn btn-sm btn-2-vptz"
-                                    :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
-                                    target="_blank"
-                                >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
-                            </div>
+                            <filter-context-giver v-model="$parent.associationsFilter">
+                                <associations-table
+                                    v-if="$store.state.associations.data.length > 0"
+                                    :phenotypes="$parent.phenotypes"
+                                    :associations="$store.state.associations.data"
+                                ></associations-table>
+                            </filter-context-giver>
                         </div>
                     </div>
-
-                    <locuszoom
-                        ref="locuszoom"
-                        v-if="$store.state.phenotype"
-                        :chr="$store.state.chr"
-                        :start="$store.state.start"
-                        :end="$store.state.end"
-                        :scoring="$parent.tissueScoring"
-                        @regionchanged="$parent.requestCredibleSets($event.data)"
-                        :refSeq="true">
-                        <lz-associations-panel
-                            :phenotype="$store.state.phenotype.name"
-                            :finishHandler="$parent.updateAssociationsTable"
-                        ></lz-associations-panel>
-                    </locuszoom>
                 </div>
             </div>
-
-            <div v-if="!!$store.state.phenotype">
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Top Associations for {{$store.state.phenotype.description}}
-                            <tooltip-documentation
-                                name="region.topassoc.tooltip"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation>
-                        </h4>
-
-                        <documentation name="region.variantassociation.subheader"></documentation>
-                        <associations-table
-                            :phenotypes="$parent.phenotypes"
-                            :associations="$store.state.associations.data"
-                        ></associations-table>
-                    </div>
-                </div>
-            </div>
-
         </div>
-            <!-- TODO: collapse tables -->
-            <b-collapse id="collapse-1" class="mt-2">
-                <b-card>
+        <!-- TODO: collapse tables -->
+        <b-collapse id="collapse-1" class="mt-2">
+            <b-card>
                 <p class="card-text">Collapse contents Here</p>
                 <b-button v-b-toggle.collapse-1-inner size="sm">Toggle Inner Collapse</b-button>
                 <b-collapse id="collapse-1-inner" class="mt-2">
                     <b-card>Hello!</b-card>
                 </b-collapse>
-                </b-card>
-            </b-collapse>
+            </b-card>
+        </b-collapse>
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>

@@ -84,11 +84,10 @@ export default {
         proteinExistence(state) {
             let doc = state.uniprotDoc
             let references = []
-            references.push(_.get(doc.uniprot.entry.dbReference, '_text'))
+            // eliminated lodash here in a quest to remove dependencies
+            // previously was _.get
+            references.push(!!doc.uniprot.entry.dbReference ? doc.uniprot.entry.dbReference : '_text');
             return references
-        },
-        feature(state) {
-
         }
 
     },

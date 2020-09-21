@@ -17,8 +17,6 @@
 
 <script>
 import Vue from "vue";
-import _ from "lodash";
-import { debounce } from "lodash";
 import queryString from "query-string";
 import host from "@/utils/hostUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";

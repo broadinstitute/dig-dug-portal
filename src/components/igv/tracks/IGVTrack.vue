@@ -11,7 +11,6 @@ import IGVEvents, {
     IGV_CHILD_DESTROY_TRACK,
 } from "@/components/igv/IGVEvents";
 import { BioIndexReader } from "@/utils/igvUtils";
-import * as _ from "lodash";
 
 export default Vue.component("igv-track", {
     props: {
