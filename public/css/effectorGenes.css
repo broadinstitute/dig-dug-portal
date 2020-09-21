@@ -626,6 +626,12 @@
     border-bottom: solid 1px #eee;
 }
 
+.top-level-header.hidden,
+.top-level-value-item.hidden,
+.feature-headers.hidden {
+    display: none;
+}
+
 .feature-content-wrapper {
     width: calc(100% - 15px);
     margin-left: 15px;
