@@ -120,6 +120,11 @@ export default Vue.component("locuszoom", {
 
             this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, panelOptions)).addBasicLoader();
 
+            // TODO: make this better abstracted
+            if (!!this.filterPanel) this.applyFilter(this.filterPanel);
+            if (!!this.filterAssociations) this.applyFilter(this.filterAssociations, 'associations');
+            if (!!this.filterAnnotations) this.applyFilter(this.filterAnnotations, 'intervals');
+
             // so we can figure out how to remove it later
             return panel.id;
 
