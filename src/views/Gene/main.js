@@ -10,6 +10,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
+import UnauthorizeMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
@@ -38,7 +39,8 @@ new Vue({
         GeneAssociationsMasks,
         Documentation,
         Autocomplete,
-        GeneSelectPicker
+        GeneSelectPicker,
+        UnauthorizeMessage
     },
 
     data() {
@@ -82,7 +84,7 @@ new Vue({
             if (!!r) {
                 window.location.href = `./region.html?chr=${
                     r.chromosome
-                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         }
     },
