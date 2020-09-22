@@ -1,5 +1,5 @@
 <template>
-    <div class="EGLT-table fiftytwo">
+    <div class="EGLT-table fiftytwo" v-if="associations > 0">
         <!-- <forest-plot :data="test" :dichotomous="true"></forest-plot> -->
         <b-container fluid>
             <b-row class="top-level-header">
