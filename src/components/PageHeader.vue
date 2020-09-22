@@ -10,7 +10,7 @@
                 <div class="amp-banner-right">
                     <div class="amp-banner-left">
                         <a
-                            href="http://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
+                            href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
                         >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a>
                     </div>
                 </div>
@@ -27,7 +27,7 @@
                             style="padding: 5px; text-align: center;height: 50px;"
                         >
                             <img
-                                :src="'https://kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
+                                :src="'//kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
                                 :class="'portals-2-mdkp-logo'"
                             />
                         </div>
@@ -39,12 +39,12 @@
                     <a href="/">
                         <img
                             v-if="frontContents.field_banner_logo"
-                            :src="'https://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
+                            :src="'//kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
                             :class="diseaseGroup.name+'kp-logo'"
                         />
                         <img
                             v-else
-                            src="https://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
+                            src="//kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
                             class="mdkp-logo"
                         />
                     </a>
@@ -121,7 +121,7 @@
                             </ul>
                         </li>
                         <li class="am-menu">
-                            <a href="https://kp4cd.org/contact">Contact</a>
+                            <a href="//kp4cd.org/contact">Contact</a>
                         </li>
                         <li v-if="!!user">
                             <a
