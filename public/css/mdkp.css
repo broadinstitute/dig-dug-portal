@@ -1046,6 +1046,7 @@ div.filtering-ui-content div.col.filter-col-sm .form-control,
 div.filtering-ui-content div.col.filter-col-sm select,
 div.filtering-ui-content div.col.filter-col-sm .input {
     width: 110px;
+    display: inline-block;
 }
 
 div.filtering-ui-content div.col.filter-col-md .form-control,

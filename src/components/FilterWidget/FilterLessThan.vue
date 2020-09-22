@@ -7,7 +7,7 @@
         :color="'#dc3545'"
         :multiple="false">
         <slot>
-            {{field}} (&le;)
+            {{field}}
         </slot>
     </filter-widget-control>
 </template>

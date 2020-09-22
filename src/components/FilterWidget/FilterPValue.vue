@@ -6,9 +6,7 @@
         :pillFormatter="filterDefinition => `${filterDefinition.field} <= ${pValueFormatter(filterDefinition.threshold)}`"
         :color="'#dc3545'"
         :multiple="false">
-        <slot>
-            P-Value (&le;)
-        </slot>
+        <slot></slot>
     </filter-widget-control>
 </template>
 <script>

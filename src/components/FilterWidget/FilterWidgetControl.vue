@@ -1,11 +1,9 @@
 <template>
-    <div class="col filter-col-sm" style="padding:0 7px 0 7px;">
-        <div class="label">
-            <slot>
-                <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
-                {{field}}
-            </slot>
-        </div>
+    <div class="col filter-col-sm" style="padding: 5px 7px 5px 7px;">
+        <slot>
+            <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
+            {{field}}
+        </slot>
         <!--
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.

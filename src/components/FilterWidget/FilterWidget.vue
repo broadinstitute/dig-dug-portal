@@ -1,7 +1,8 @@
 <template>
     <span>
         <!-- Controls and their labels -->
-
+        <slot name="header">
+        </slot>
                 <EventListener @change="filterControlChange">
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
@@ -10,25 +11,25 @@
 
         <!-- Pills for everything -->
 
-                    <span v-if="filterList.length > 0">Selected Filters:&nbsp;&nbsp;
-                        <!-- Derive pills from current filter state?
-                            Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
-                            It would be deterministic upto the compile-time declaration of the FilterWidget controls which would lead to predicatable results at runtime
-                        -->
-                        <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
-                        <b-badge
-                            v-for="(filter, idx) in filterList"
-                            :key="filter.field+filter.predicate+filter.threshold+idx"
-                            pill
-                            :style="`background-color:${filter.pill.color};`"
-                            @click="unsetFilter(filter, idx)"
-                            class="btn">
-                                {{filter.pill.label(filter)}}
-                                <span class="remove">X</span>
-                        </b-badge>
-                    </span>
-                    <!-- Spacer to prevent flicker when new pills are added to the UI -->
-                    <br v-else/>
+                <span v-if="filterList.length > 0">Selected Filters:&nbsp;&nbsp;
+                    <!-- Derive pills from current filter state?
+                        Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
+                        It would be deterministic upto the compile-time declaration of the FilterWidget controls which would lead to predicatable results at runtime
+                    -->
+                    <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
+                    <b-badge
+                        v-for="(filter, idx) in filterList"
+                        :key="filter.field+filter.predicate+filter.threshold+idx"
+                        pill
+                        :style="`background-color:${filter.pill.color};`"
+                        @click="unsetFilter(filter, idx)"
+                        class="btn">
+                            {{filter.pill.label(filter)}}
+                            <span class="remove">X</span>
+                    </b-badge>
+                </span>
+                <!-- Spacer to prevent flicker when new pills are added to the UI -->
+                <br v-else/>
 
 
     </span>
