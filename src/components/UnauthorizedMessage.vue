@@ -1,16 +1,16 @@
 <template>
     <div class="no-access">
         <b-alert v-if="unauthorized && !user" show variant="warning">
-            <b-icon icon="exclamation-triangle"></b-icon>
-            There were {{count}} records hidden because you do not have required permission to view them. Please
+            <b-icon icon="exclamation-triangle"></b-icon>There were
+            <strong>{{count}}</strong> records hidden because you do not have required permission to view them. Please
             <a
                 href="/login"
                 @click="saveCurrentPage"
             >log in</a> with an authorized Google account to see them.
         </b-alert>
         <b-alert v-else-if="unauthorized && !!user" show variant="warning">
-            <b-icon icon="exclamation-triangle"></b-icon>
-            There were {{count}} records hidden because you do not have required permission to view them.
+            <b-icon icon="exclamation-triangle"></b-icon>There were
+            <strong>{{count}}</strong> records hidden because you do not have required permission to view them.
             Please contact us if you believe you should've given access.
         </b-alert>
         <b-alert v-else-if="failed" show variant="danger">
