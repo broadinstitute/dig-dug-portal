@@ -10,7 +10,11 @@
                 <b-col class="top-level-header-item">View</b-col>
             </b-row>
             <template v-for="(row, i) in associations">
-                <b-row class="data top-level-value" :key="row.phenotype + i">
+                <b-row
+                    v-if="phenotypeMap[row.phenotype]"
+                    class="data top-level-value"
+                    :key="row.phenotype + i"
+                >
                     <b-col class="top-level-value-item">
                         <a
                             :href="`/phenotype.html?phenotype=${row.phenotype}`"
@@ -67,6 +71,7 @@
                     </b-col>
                 </b-row>
                 <div
+                    v-if="phenotypeMap[row.phenotype]"
                     :class="`feature-headers-${i}`"
                     class="feature-content-wrapper hidden"
                     :key="`features_${i}`"
@@ -154,6 +159,7 @@
                     </template>
                 </div>
                 <div
+                    v-if="phenotypeMap[row.phenotype]"
                     class="feature-plot-wrapper hidden"
                     :class="`feature-plot-${i}`"
                     :key="`plot_${i}`"

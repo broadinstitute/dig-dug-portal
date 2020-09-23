@@ -1,3 +1,5 @@
+// TODO: refactor into LocusZoom component
+
 /* Used by several of the default data sources.
  */
 const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';

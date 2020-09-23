@@ -104,7 +104,8 @@ function pValueFormatter(value) {
     if (x < 1e-5) {
         return x.toExponential(2);
     } else {
-        return x.toFixed(7);
+        let num = (x.toFixed(7) * 1).toString(); // remove trailing zeroes using string hacks
+        return num;
     }
 }
 

@@ -1,5 +1,7 @@
+// TODO: refactor into LocusZoom Panels
+
 import LocusZoom from "locuszoom";
-import {BaseAdapter} from "locuszoom/esm/data/adapters"
+import { BaseAdapter } from "locuszoom/esm/data/adapters"
 
 import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
@@ -37,10 +39,13 @@ export class LZAssociationsPanel {
             start: association.position,
             end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
             variant: association.varId,
             ref_allele: association.varId,
+            consequence: association.consequence,
+            beta: association.beta,
+            nearest: association.nearest,
         }));
         this.initialData = initialData;
 
@@ -55,7 +60,7 @@ export class LZAssociationsPanel {
             y_index: 0,
             axes: {
                 y1: {
-                    label: 'log10 log_pvalue'
+                    label: 'log_pvalue'
                 }
             },
             data_layers: [
@@ -64,11 +69,19 @@ export class LZAssociationsPanel {
                     {
                         y_axis: {
                             axis: 1,
-                            field: '{{namespace[assoc]}}log_pvalue', // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                            field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
                             // floor: 0,
                             upper_buffer: 0.10,
                             // min_extent: [0, 10],
-                        }
+                        },
+                        fields: [
+                            `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${this.datasource_type}]}}consequence`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${this.datasource_type}]}}nearest`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            // we need to call out the fields directly since merge algorithm doesn't combine arrays
+                            `{{namespace[${this.datasource_type}]}}beta`,
+                            ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields,
+                        ],
                     },
                     LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }),
                 ),
@@ -148,16 +161,16 @@ export class LZAnnotationIntervalsPanel {
                         chr: interval.chromosome,
                         start: interval.start,
                         end: interval.end,
-                        pvalue: scoring[key].minP,
+                        pValue: scoring[key].minP,
                         fold: scoring[key].maxFold,
                         state_id: `${interval.tissueId}`,
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                         state_name: `${interval.tissue}`,
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
-                        itemRgb: [r,g,b].join(),
+                        itemRgb: [r, g, b].join(),
                     } : null;
-            // filter nulls (which represent elements we can't score)
-            }).filter(el => !!el) : [];
+                    // filter nulls (which represent elements we can't score)
+                }).filter(el => !!el) : [];
             return tissueIntervals;
         }
         this.initialData = initialData;
@@ -172,10 +185,17 @@ export class LZAnnotationIntervalsPanel {
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
-            fields: [
-                `${this.datasource_namespace_symbol_for_panel}:pvalue`,
-                `${this.datasource_namespace_symbol_for_panel}:fold`,
-                ...LocusZoom.Layouts.get('data_layer', 'intervals', { namespace: this.datasource_namespace_symbol_for_panel }).fields
+            data_layers: [
+                LocusZoom.Layouts.merge(
+                    {
+                        fields: [
+                            `{{namespace[${this.datasource_type}]}}pValue`,
+                            `{{namespace[${this.datasource_type}]}}fold`,
+                            ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
+                        ]
+                    },
+                    LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }),
+                ),
             ]
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
@@ -212,28 +232,6 @@ export class LZAnnotationIntervalsPanel {
         }
     }
 
-    get dataLayers() {
-        // I had to find these data_layers out from doing LocusZoom.Layouts.get('panel', 'intervals') <= LocusZoom.Layouts.get('panel', this.panel_layout_type)
-
-        // need to find a better way of editing data layers that doesn't require:
-        // - having to call all of them, because overriding one overrides them all
-        // - ditto with extending fields
-        // the refactoring will probably have to occur conceptually, didn't think i'd have to be doing this
-        return [
-            // this works
-            LocusZoom.Layouts.merge(
-                {
-                    fields: [
-                        '{{namespace[intervals]}}pvalue',
-                        '{{namespace[intervals]}}fold',
-                        ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
-                    ]
-                },
-                LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true })
-            ),
-        ]
-    }
-
 }
 export class LZCredibleVariantsPanel {
     constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }, initialData) {
@@ -255,7 +253,7 @@ export class LZCredibleVariantsPanel {
             start: association.position,
             end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
             posterior_prob: association.posteriorProbability,
             contrib_fraction: 0.5,
@@ -292,12 +290,12 @@ export class LZCredibleVariantsPanel {
             // Fourth: write down the type of visualization using the data
             // Fifth: add stylings, and the data layer ID
             data_layers: [
-                LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
-                    namespace: {
-                        assoc: this.datasource_namespace_symbol_for_panel,
-                        credset: this.datasource_namespace_symbol_for_panel
-                    },
-                }),
+                // LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
+                //     namespace: {
+                //         assoc: this.datasource_namespace_symbol_for_panel,
+                //         credset: this.datasource_namespace_symbol_for_panel
+                //     },
+                // }),
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,
@@ -308,7 +306,8 @@ export class LZCredibleVariantsPanel {
                     "fields": [
                         `${this.datasource_namespace_symbol_for_panel}:id`,
                         `${this.datasource_namespace_symbol_for_panel}:position`,
-                        `${this.datasource_namespace_symbol_for_panel}:posterior_prob`
+                        `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
+                        `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
                     ],
                     "x_axis": {
                         "field": `${this.datasource_namespace_symbol_for_panel}:position`
@@ -380,7 +379,7 @@ export class LZComputedCredibleVariantsPanel {
             start: association.position,
             end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
             posterior_prob: association.posteriorProbability,
             log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
@@ -416,12 +415,12 @@ export class LZComputedCredibleVariantsPanel {
                 }
             },
             data_layers: [
-                LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
-                    namespace: {
-                        assoc: this.datasource_namespace_symbol_for_panel,
-                        credset: this.datasource_namespace_symbol_for_panel
-                    },
-                }),
+                // LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
+                //     namespace: {
+                //         assoc: this.datasource_namespace_symbol_for_panel,
+                //         credset: this.datasource_namespace_symbol_for_panel
+                //     },
+                // }),
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,
@@ -552,7 +551,8 @@ export class LZPhewasPanel {
         }
     }
 }
-class _LZBioIndexSource extends BaseAdapter {
+
+export class _LZBioIndexSource extends BaseAdapter {
     constructor(params) {
         super(params)
     }
@@ -581,13 +581,13 @@ class _LZBioIndexSource extends BaseAdapter {
                     resolveHandler: self.params.resolveHandler,
                     errHandler: self.params.errHandler,
                 })
-                .then(async resultData => {
-                    resolve(self.translator(resultData));
-                })
-                .catch(async error => {
-                    postAlertError(error.detail);
-                    reject(new Error(error));
-                })
+                    .then(async resultData => {
+                        resolve(self.translator(resultData));
+                    })
+                    .catch(async error => {
+                        postAlertError(error.detail);
+                        reject(new Error(error));
+                    })
             }
         }).finally(closeAlert(alertID));
     };
