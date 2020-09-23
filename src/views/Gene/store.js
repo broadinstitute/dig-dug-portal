@@ -86,7 +86,7 @@ export default new Vuex.Store({
 
         async queryAssociations(context) {
             let query = { q: context.state.geneName };
-            context.dispatch("associations52k/query", query);
+            context.dispatch("associations/query", query);
         }
     }
 });
