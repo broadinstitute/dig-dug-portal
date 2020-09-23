@@ -60,46 +60,53 @@
                             <b-col md="8">
                                 <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
                                 <b-row class="mb-3">
-                                    <b-col md="6" class="p-3">
+                                    <b-col
+                                        class="col-md-auto"
+                                        v-if="$parent.isSignificantAssociationCommonVariation"
+                                    >
                                         <h4 class="card-title">Stage 1</h4>
-                                        <strong
-                                            v-if="$store.state.effectorGeneData.category"
-                                        >Category: {{$store.state.effectorGeneData.category}}</strong>
+                                        <strong v-if="$store.state.effectorGeneData.category">
+                                            {{$store.state.effectorGeneData.category}}:
+                                            <span
+                                                v-if="$store.state.effectorGeneData.genetic"
+                                            >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
+                                        </strong>
                                         <div v-if="$parent.category">
                                             <strong
                                                 v-if="$parent.category.length >1"
                                             >{{$parent.category}}</strong>
                                         </div>
 
-                                        <div
-                                            v-if="$store.state.effectorGeneData.genetic"
-                                            class="alternative-names"
-                                        >
-                                            <strong>Coding Evidence: &nbsp;</strong>
-                                            <span
-                                                v-if="$store.state.effectorGeneData.genetic"
-                                            >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
-                                        </div>
-                                        <div v-if="$store.state.effectorGeneData.regulatory">
-                                            <strong>Regulatory Evidence:</strong>
-                                            <span
-                                                v-if="$store.state.effectorGeneData.regulatory"
-                                            >{{$store.state.effectorGeneData.regulatory}}</span>
+                                        <div v-if="$store.state.effectorGeneData.genomic">
+                                            <strong>
+                                                Regulatory Evidence:
+                                                <span
+                                                    v-if="$store.state.effectorGeneData.genomic"
+                                                >{{$store.state.effectorGeneData.genomic}}</span>&nbsp;
+                                            </strong>
                                         </div>
                                         <div>
-                                            <strong>Perturbational Evidence:</strong>
-                                            <span
-                                                v-if="$store.state.effectorGeneData.perturbational"
-                                            >{{$store.state.effectorGeneData.perturbational}}</span>
+                                            <strong>
+                                                Perturbational Evidence:
+                                                <span
+                                                    v-if="$store.state.effectorGeneData.perturbational"
+                                                >{{$store.state.effectorGeneData.perturbational}}</span>&nbsp;
+                                            </strong>
                                         </div>
                                     </b-col>
                                 </b-row>
-                                <b-row class="mb-3">
-                                    <b-col md="6" class="p-3">
+                                <b-row class="mb-3" v-if="$store.state.effectorGeneData.category">
+                                    <b-col
+                                        v-if="$store.state.effectorGeneData.category != 'CAUSAL'"
+                                    >
                                         <h4 class="card-title">Stage 2</h4>
 
                                         <div v-if="$parent.geneAssociations">
+                                            <div v-if="isSignificant52AssociationRareVariation">
+                                                <strong>{{$parent.stage2Category.category}}</strong>
+                                            </div>
                                             <posterior-probability-plot
+                                                v-else
                                                 :geneAssociationsData="$parent.geneAssociations"
                                                 :priorVariance="$store.state.priorVariance"
                                                 :isDichotomous="true"
@@ -122,10 +129,12 @@
                                 </b-row>
                             </b-col>
                             <b-col md="4" class="ml-auto p-3">
-                                <documentation
-                                    name="hugecal.explore.docs"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
+                                <b-row>
+                                    <documentation
+                                        name="hugecal.explore.docs"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </b-row>
                             </b-col>
                         </b-row>
                     </b-container>
@@ -160,7 +169,6 @@
                             ></lz-associations-panel>
                         </locuszoom>
                         <associations-table
-                            v-if="$parent.inGWAS"
                             :phenotypes="$parent.phenotypes"
                             :associations="$parent.associationsData"
                         ></associations-table>

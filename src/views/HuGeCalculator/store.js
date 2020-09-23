@@ -79,7 +79,9 @@ export default new Vuex.Store({
     },
 
     actions: {
+        //Common Variation, Stage 1
         async getEffectorGeneData(context, geneSymbol) {
+
             let dataset = 'mccarthy'
             let trait = 't2d'
             let json = fetch(`http://kp4cd.org/egldata/dataset?dataset=${dataset}&trait=${trait}`)
@@ -95,14 +97,11 @@ export default new Vuex.Store({
                 .then(json => {
                     if (json.data.length > 0) {
                         let effectorGeneData = {}
-
                         for (var i = 0; i < json.data.length; ++i) {
-
                             if (json.data[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
                                 effectorGeneData = json.data[i];
                                 let p = effectorGeneData.perturbational.split("")[0] - 1;
                                 effectorGeneData.perturbational = p.toString() + "P";
-
                                 break;
                             }
                             else {
@@ -117,28 +116,22 @@ export default new Vuex.Store({
                     }
                 });
         },
-        async get52KGeneAssociationsData(context, gene) {
 
-            //fetch call to gene-associations: 
-
-            context.dispatch('geneAssociations/query', { q: gene });
-        },
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
+            let phenotype = "T2D";
             context.commit('setGeneName', name);
+            let query = {
+                q: `${phenotype},${name}`
+            };
+
             if (!!name) {
                 context.dispatch('gene/query', { q: name });
                 context.dispatch('getEffectorGeneData', name);
-                context.dispatch('get52KGeneAssociationsData', name);
+                context.dispatch('associations/query', query);
+                context.dispatch('geneAssociations/query', { q: name });
             }
         },
-
-        async updatePriorVariance(context, priorVariance) {
-
-            context.commit('setPriorVariance', priorVariance);
-
-        },
-
 
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
@@ -146,7 +139,5 @@ export default new Vuex.Store({
 
             context.dispatch('genes/query', { q });
         },
-
-
     },
 });

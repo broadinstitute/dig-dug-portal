@@ -2,163 +2,220 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
+import PageHeader from "@/components/PageHeader.vue";
+import PageFooter from "@/components/PageFooter.vue";
 
-// imports the ESM module by default
-import VueFlex from "vue-flex";
-// Already autoprefixed for vendor prefixes.
-// Also namespaced to avoid collisions.
-import "vue-flex/dist/vue-flex.css";
+import Documentation from "@/components/Documentation.vue";
+import Autocomplete from "@/components/Autocomplete.vue";
+import LocusZoom from "@/components/lz/LocusZoom";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
+import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+import AssociationsTable from "@/components/AssociationsTable.vue";
+import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
+import ConfidenceIntervalPlot from "@/components/ConfidenceIntervalPlot.vue";
+import ForestPlot from "@/components/ForestPlot.vue";
+import uiUtils from "@/utils/uiUtils";
 
-Vue.use(VueFlex);
-
-import ForestPlot from "@/components/ForestPlot";
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 Vue.config.productionTip = false;
+Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
+
 new Vue({
     store,
+    modules: {},
     components: {
+        PageHeader,
+        PageFooter,
+        Alert,
+        Documentation,
+        Autocomplete,
+        LocusZoom,
+        LocusZoomAssociationsPanel,
+        GeneSelectPicker,
+        PhenotypeSelectPicker,
+        AssociationsTable,
+        PosteriorProbabilityPlot,
+        ConfidenceIntervalPlot,
         ForestPlot
     },
 
     data() {
         return {
-            phenotypes: ['T2D', 'BMI'],
-            addPhenotype: '',
-            removePhenotype: '',
-        }
+            counter: 0,
+            showAssociations: false,
+        };
     },
+
     created() {
+        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("queryRegion");
-        this.$store.dispatch("kp4cd/getForestPlotData");
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
+    },
+
+    methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
+
+
+        updateAssociationsTable(data) {
+
+            this.$store.commit(`associations/setResponse`, data);
+        },
+
+
+
     },
     mounted() {
-        this.addAssociationsPanel({ phenotype: 'T2D' })
-    },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-    methods: {
-        requestCredibleSets(eventData) {
-            const { start, end } = eventData;
-            if (!!start && !!end) {
-                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
-                this.$store.dispatch('credibleSets/query', { q: queryString });
-            }
-        },
-        addAssociationsPanel(event) {
-            const { phenotype } = event;
-            let self = this;
-            this.$children[0].$refs.locuszoom.addAssociationsPanel(phenotype,
-                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function (dataLoadedResponse) {
-                    self.$store.commit(`${dataLoadedResponse.index}/setResponse`, dataLoadedResponse);
-                }
-            );
-        },
-        addCredibleVariantsPanel(event) {
-            const { phenotype, credibleSetId } = event;
-            this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId,
-                // next arg for dataLoaded callback, second arg for dataResolved callback, last arg for error callback
-                function (dataLoadedResponse) {
-                    // TODO: callbacks for creating a new table column for credible sets might go here
-                }
-            )
-        },
-        addComputedCredibleVariantsPanel(event) {
-            const { phenotype } = event;
-            this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(phenotype);
-        },
-        addAnnotationIntervalsPanel(event) {
-            const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method);
-        },
-    },
 
+    },
     computed: {
-        globalEnrichmentAnnotations() {
-            // an array of annotations
-            return _.uniqBy(this.$store.state.globalEnrichment.data, el => JSON.stringify([el.annotation, !!el.method ? el.method : ''].join()));
+
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
         },
 
-        tissues() {
-            // an array of tissue
-            return _.uniq(this.$store.state.globalEnrichment.data.filter(interval => !!interval.tissue).map(interval => interval.tissue));
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
-        // TODO: refactor into IGV Utils
-        tissueColorScheme() {
-            return d3.scaleOrdinal().domain(this.tissues).range(d3.schemeSet1);
+        region() {
+            return this.$store.getters.region;
         },
 
-        tissueScoring() {
-            let groups = {};
+        symbolName() {
+            return this.$store.getters.canonicalSymbol;
+        },
 
-            for (let i in this.$store.state.globalEnrichment.data) {
-                let r = this.$store.state.globalEnrichment.data[i];
-                let t = r.tissueId || "NA";
-                let m = r.method || "NA";
+        gene() {
+            let data = this.$store.state.gene;
+            if (data.length > 0) {
+                return data[0];
+            }
+            return {};
+        },
 
-                let key = `${t}_${m}_${r.annotation}`;
-                let group = groups[key];
-                let fold = r.SNPs / r.expectedSNPs;
+        phenotypes() {
+            return [this.$store.state.phenotype];
+        },
 
-                if (!group) {
-                    groups[key] = {
-                        minP: r.pValue,
-                        maxFold: fold,
-                    };
-                } else {
-                    group.minP = Math.min(group.minP, r.pValue);
-                    group.maxFold = Math.max(group.maxFold, fold);
+        associationsData() {
+            let data = this.$store.state.associations.data;
+            let filteredData = [];
+            data.forEach(function (row) {
+                if (!!row.consequence) {
+                    if (row.consequence == "missense_variant") {
+                        filteredData.push(row);
+                    }
+                }
+            })
+            return filteredData;
+        },
+
+        inGWAS() {
+            let data = this.$store.state.associations.data;
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].pValue <= 0.00000005) {
+                    return true;
+                }
+            }
+        },
+
+        geneAssociations() {
+            // let data = this.$store.state.geneAssociations;
+            let trait = "T2D";
+            if (!!this.$store.state.geneAssociations.data.length) {
+                let data = this.$store.state.geneAssociations.data;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        return data[i];
+                    }
                 }
             }
 
-            return groups;
         },
 
-        credibleSets() {
-            return this.$store.state.credibleSets.data;
-        },
-
-        // Give the top associations, find the best one across all unique
-        // phenotypes available.
-        topAssociations() {
-            let data = this.$store.state.topAssociations.data;
-            let assocMap = {};
-
-            // TODO: I think the garbage collector is freaking out here
-            for (let i in data) {
-                let assoc = data[i];
-
-                // skip associations not part of the disease group
-                if (
-                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
-                ) {
-                    continue;
+        geneAssociationsLoftee() {
+            // let data = this.$store.state.geneAssociations;
+            let trait = "T2D";
+            if (!!this.$store.state.geneAssociations.data.length) {
+                let data = this.$store.state.geneAssociations.data;
+                let lofteeData = [];
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        data[i].masks.forEach(r => {
+                            if (r.mask == "LofTee") {
+                                lofteeData.push(r)
+                            }
+                        })
+                    }
                 }
-
-                let curAssoc = assocMap[assoc.phenotype];
-                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
-                    assocMap[assoc.phenotype] = assoc;
-                }
+                return lofteeData;
             }
-            // region loaded, hide search
-            // convert to an array, sorted by p-value
-            return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
-        },
-        htmlForestPlotData() {
-            let datasets = this.$store.state.kp4cd.forestPlotData;
-            return datasets.data;
         },
 
+        //still needs to be fixed
+        category() {
+            let trait = "T2D";
+            if (!!this.$store.state.geneAssociations.data.length) {
+                let data = this.$store.state.geneAssociations.data;
+                let category = [];
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        if (data[i].pValue <= 0.0000025) {
+                            //if Exome wide significant
+                            //this.$store.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+                        }
+                    }
+                }
+                return category;
+            }
+        }
     },
 
-    render(createElement, context) {
-        return createElement(Template);
+
+    watch: {
+
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+
+        // the region for the gene was found
+        region(region) {
+            this.hideElement("variantSearchHolder");
+            this.$store.dispatch("queryGeneRegion", region);
+
+        },
+
+        // geneAssociations(gene) {
+        //     // this.hideElement("variantSearchHolder");
+        //     this.$store.dispatch("queryGeneName", gene);
+
+        // },
+
+
     }
 }).$mount("#app");

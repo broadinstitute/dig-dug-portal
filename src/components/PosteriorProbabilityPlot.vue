@@ -147,7 +147,7 @@ export default Vue.component("posterior-probability-plot", {
             var offsetLeft = document.getElementById("posteriorpriorplot")
                 .offsetLeft;
 
-            svg.on("mousemove", function() {
+            svg.on("mousemove", function() { 
                 var x = d3.event.pageX - offsetLeft;
                 var beginning = x,
                     end = pathLength,
