@@ -60,7 +60,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        this.$store.dispatch("queryAssociations");
+        //this.$store.dispatch("queryAssociations");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
