@@ -115,25 +115,6 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">PheWAS visualization</h4>
-                    <documentation
-                        name="variant.phewas.subheader"
-                        :content-fill="$parent.documentationMap"
-                    ></documentation>
-                    <locuszoom
-                        ref="locuszoom"
-                        :chr="$store.state.chr"
-                        :start="$store.state.start"
-                        :end="$store.state.end"
-                        :refSeq="false"
-                    >
-                        <lz-phewas-panel
-                            v-if="$store.state.variant"
-                            :varId="$store.state.variant.varId"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                        ></lz-phewas-panel>
-                    </locuszoom>
-
                     <h4 class="card-title">
                         {{$parent.varId}}
                         <span v-if="$parent.dbSNP">
@@ -148,6 +129,42 @@
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h4>
+                    <!--<h4 class="card-title">Visualization</h4>-->
+                    <b-tabs content-class="mt-3" align="center">
+                        <b-tab title="PheWAS visualization" active>
+                            <documentation
+                                name="variant.phewas.subheader"
+                                :content-fill="$parent.documentationMap"
+                            ></documentation>
+                            <locuszoom
+                                ref="locuszoom"
+                                :chr="$store.state.chr"
+                                :start="$store.state.start"
+                                :end="$store.state.end"
+                                :refSeq="false"
+                            >
+                                <lz-phewas-panel
+                                    v-if="$store.state.variant"
+                                    :varId="$store.state.variant.varId"
+                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                ></lz-phewas-panel>
+                            </locuszoom>
+                        </b-tab>
+                        <b-tab title="Forest plot">
+                            <forest-plot-html
+                                v-if="$store.state.phewas.data"
+                                :forestPlotData="$store.state.phewas.data"
+                                :labelMap="$store.state.bioPortal.phenotypeMap"
+                                :sortBy="'pValue'"
+                                :significant="5e-8"
+                                :moderate="2.5e-6"
+                                :bulletBy="'beta'"
+                                :stdErr="'stdErr'"
+                                :labelBy="'phenotype'"
+                                :countDichotomous="0"
+                            ></forest-plot-html>
+                        </b-tab>
+                    </b-tabs>
                     <phewas-table
                         v-if="$store.state.phewas.data"
                         :associations="$store.state.phewas.data"

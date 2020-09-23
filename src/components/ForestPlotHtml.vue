@@ -1,8 +1,30 @@
 <template>
-    <div>
+    <div class="forest-plot-card-wrapper">
         <div class="forest-plot-html-wrapper row">
+            <div class="forest-plot-ui-options">
+                <div class="show-groups-wrapper">
+                    <input
+                        type="checkbox"
+                        v-model="groupsShown"
+                        id="show_groups"
+                        @change="showGroups()"
+                    />
+                    <label for="show_groups">Hide groups</label>
+                </div>
+                <div class="sort-groups-wrapper">
+                    <input
+                        type="checkbox"
+                        v-model="groupsSort"
+                        id="sort_groups"
+                        @change="sortByGroup()"
+                    />
+                    <label for="sort_groups">Sort by group</label>
+                </div>
+            </div>
             <div class="start-min">{{this.plotData.low_min}}</div>
-            <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">0</div>
+            <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">
+                <label>0</label>
+            </div>
             <div class="end-max">{{this.plotData.high_max}}</div>
             <div
                 v-for="(value,index) in this.plotData.data"
@@ -36,6 +58,7 @@
                     </div>
                 </template>
             </div>
+
             <div class="forest-plot-html-legend-wrapper">
                 <div class="forest-plot-html-legend-handler">
                     <a
@@ -61,7 +84,7 @@
                     <ul v-if="!!labelMap">
                         <template>
                             <li v-for="group in this.plotData.label_group">
-                                <span :class="'phenotype-group-dot '+group">&nbsp;</span>
+                                <span :class="'legend-phenotype-group-dot '+group">&nbsp;</span>
                                 {{group}}
                             </li>
                         </template>
@@ -102,7 +125,12 @@ export default Vue.component("forest-plot-html", {
         "countDichotomous",
     ],
     data() {
-        return { perPage: 25, currentPage: 1 };
+        return {
+            perPage: 25,
+            currentPage: 1,
+            groupsShown: null,
+            groupsSort: null,
+        };
     },
     modules: {
         uiUtils,
@@ -124,12 +152,14 @@ export default Vue.component("forest-plot-html", {
 
                 content["data"] = this.forestPlotData;
 
-                sortUtils.sortEGLTableData(
-                    content["data"],
-                    this.sortBy,
-                    true,
-                    false
-                );
+                /*
+                    sortUtils.sortEGLTableData(
+                        content["data"],
+                        this.sortBy,
+                        true,
+                        false
+                    );
+                */
 
                 let tempCiStart = 0,
                     tempCiEnd = 0;
@@ -160,6 +190,7 @@ export default Vue.component("forest-plot-html", {
                     d["high"] = high;
                     d["low"] = low;
                     d["measure"] = measure;
+                    d["group"] = this.labelMap[d[this.labelBy]].group;
 
                     labelGroup.push(this.labelMap[d[this.labelBy]].group);
                 });
@@ -216,6 +247,30 @@ export default Vue.component("forest-plot-html", {
     methods: {
         showLegends(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
+        },
+        showGroups() {
+            let checked = document.getElementById("show_groups").checked;
+
+            let groupDots = document.querySelectorAll(".phenotype-group-dot");
+
+            groupDots.forEach(function (groupDot) {
+                checked == true
+                    ? groupDot.classList.add("hidden")
+                    : groupDot.classList.remove("hidden");
+            });
+        },
+        sortByGroup() {
+            let checked = document.getElementById("sort_groups").checked;
+            let sortColumn = checked == true ? "group" : this.sortBy;
+            let isNumeric = checked == true ? false : true;
+            let isAsc = checked == true ? true : false;
+
+            sortUtils.sortEGLTableData(
+                this.forestPlotData,
+                sortColumn,
+                isNumeric,
+                isAsc
+            );
         },
         formatPvalue(VALUE) {
             return formatters.pValueFormatter(VALUE);
