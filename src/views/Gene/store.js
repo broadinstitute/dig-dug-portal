@@ -15,7 +15,7 @@ export default new Vuex.Store({
         kp4cd,
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
-        associations: bioIndex("gene-associations"),
+        associations: bioIndex("gene-associations-52k"),
         uniprot
     },
     state: {
