@@ -57,7 +57,7 @@
                 <div class="card-body">
                     <b-container fluid class="bv-example-row bv-example-row-flex-cols">
                         <b-row class="mb-3">
-                            <b-col md="8">
+                            <b-col md="6">
                                 <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
                                 <b-row class="mb-3">
                                     <b-col
@@ -128,7 +128,7 @@
                                     </b-col>
                                 </b-row>
                             </b-col>
-                            <b-col md="4" class="ml-auto p-3">
+                            <b-col md="6" class="ml-auto p-3">
                                 <b-row>
                                     <documentation
                                         name="hugecal.explore.docs"
@@ -140,16 +140,15 @@
                     </b-container>
                 </div>
             </div>
-
-            <div class="card mdkp-card">
+            <b-button
+                block
+                variant="info"
+                v-on:click="() => $parent.showAssociations == true ? $parent.showAssociations = false : $parent.showAssociations=true"
+                class="btn-sm"
+            >Show Associations Data</b-button>
+            <div class="card mdkp-card" v-if="$parent.showAssociations">
                 <div class="card-body">
-                    <b-button
-                        block
-                        variant="info"
-                        v-on:click="() => $parent.showAssociations == true ? $parent.showAssociations = false : $parent.showAssociations=true"
-                    >Show Associations Data</b-button>
-
-                    <div id="gwasAssocHolder" class="mdkp-card" v-if="$parent.showAssociations">
+                    <div id="gwasAssocHolder" class="mdkp-card">
                         <h4
                             v-if="$store.state.phenotype"
                             class="card-title"
