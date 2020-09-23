@@ -17,7 +17,7 @@ export default new Vuex.Store({
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
-        geneAssociations: bioIndex("gene-associations"),
+        geneAssociations52k: bioIndex("gene-associations-52k"),
     },
     state: {
         geneName: keyParams.gene,
@@ -129,7 +129,7 @@ export default new Vuex.Store({
                 context.dispatch('gene/query', { q: name });
                 context.dispatch('getEffectorGeneData', name);
                 context.dispatch('associations/query', query);
-                context.dispatch('geneAssociations/query', { q: name });
+                context.dispatch('geneAssociations52k/query', { q: name });
             }
         },
 

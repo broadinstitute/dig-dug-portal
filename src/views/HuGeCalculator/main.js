@@ -154,9 +154,9 @@ new Vue({
         },
 
         geneAssociations() {
-            if (!!this.$store.state.geneAssociations) {
-                if (!!this.$store.state.geneAssociations.data.length) {
-                    let data = this.$store.state.geneAssociations.data;
+            if (!!this.$store.state.geneAssociations52k) {
+                if (!!this.$store.state.geneAssociations52k.data.length) {
+                    let data = this.$store.state.geneAssociations52k.data;
                     for (let i = 0; i < data.length; i++) {
                         if (data[i].phenotype == this.trait) {
                             return data[i];
@@ -170,8 +170,8 @@ new Vue({
         },
 
         geneAssociationsLoftee() {
-            if (!!this.$store.state.geneAssociations.data.length) {
-                let data = this.$store.state.geneAssociations.data;
+            if (!!this.$store.state.geneAssociations52k.data.length) {
+                let data = this.$store.state.geneAssociations52k.data;
                 let lofteeData = [];
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == this.trait) {
@@ -188,8 +188,8 @@ new Vue({
 
 
         isSignificant52AssociationRareVariation() {
-            if (!!this.$store.state.geneAssociations.data.length) {
-                let data = this.$store.state.geneAssociations.data;
+            if (!!this.$store.state.geneAssociations52k.data.length) {
+                let data = this.$store.state.geneAssociations52k.data;
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == this.trait) {
                         if (data[i].pValue <= 2.5e-6) {
