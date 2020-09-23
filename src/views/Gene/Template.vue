@@ -1,7 +1,10 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -11,23 +14,35 @@
                         Gene
                         <a
                             class="edit-btn"
-                            v-on:click="$parent.showHideElement('variantSearchHolder')"
-                        >Select gene</a>
+                            v-on:click="
+                                $parent.showHideElement('variantSearchHolder')
+                            "
+                            >Select gene</a
+                        >
                     </div>
                     <div class="col-md-4 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
+                        <div
+                            id="variantSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
                             <gene-selectpicker
-                                @onGeneChange="$store.dispatch('queryGeneName',$event)"
+                                @onGeneChange="
+                                    $store.dispatch('queryGeneName', $event)
+                                "
                             ></gene-selectpicker>
                         </div>
                         <div v-if="$parent.symbolName">
                             <span>
-                                {{$parent.symbolName}}
+                                {{ $parent.symbolName }}
                                 <span
-                                    v-if="$parent.symbolName.toLowerCase() !== $store.state.geneName.toLowerCase()"
-                                >({{$store.state.geneName}})</span>
+                                    v-if="
+                                        $parent.symbolName.toLowerCase() !==
+                                        $store.state.geneName.toLowerCase()
+                                    "
+                                    >({{ $store.state.geneName }})</span
+                                >
                             </span>
                         </div>
                     </div>
@@ -38,12 +53,16 @@
                                 style="margin-right: 20px"
                                 :title="$parent.regionText"
                                 @click="$parent.exploreRegion()"
-                            >Explore Region</button>
+                            >
+                                Explore Region
+                            </button>
                             <button
                                 class="btn btn-primary input-group-append explore-region-btn"
                                 :title="$parent.regionTextExpanded"
                                 @click="$parent.exploreRegion(50000)"
-                            >Explore &plusmn; 50 kb</button>
+                            >
+                                Explore &plusmn; 50 kb
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -72,7 +91,7 @@
                                 ></tooltip-documentation>
                             </h4>
 
-                            <div>{{$parent.geneFunction}}</div>
+                            <div>{{ $parent.geneFunction }}</div>
                         </div>
                         <div v-else>
                             <h5>Gene function not found</h5>
@@ -86,19 +105,24 @@
                                 v-for="gene in $parent.alternateNames"
                                 v-if="gene.source == 'alias'"
                                 :key="gene.name"
-                            >{{gene.name}}</span>&nbsp;
+                                >{{ gene.name }}</span
+                            >&nbsp;
                         </div>
                         <div v-if="$parent.regionText">
                             <strong>Coding sequence:</strong>
-                            {{$parent.regionText}}
+                            {{ $parent.regionText }}
                         </div>
                         <div v-if="$parent.region">
                             <strong>Length:</strong>
-                            {{" "+($parent.region.end - $parent.region.start).toLocaleString()}} bp
+                            {{
+                                " " +
+                                (
+                                    $parent.region.end - $parent.region.start
+                                ).toLocaleString()
+                            }}
+                            bp
                         </div>
-                        <div>
-                            <strong>Assembly:</strong> GRCh37
-                        </div>
+                        <div><strong>Assembly:</strong> GRCh37</div>
                         <div>
                             <strong>Gene sources:</strong>
                             <span>&nbsp;Ensembl, HGNC, UCSC, RGD, MGD</span>
@@ -109,15 +133,19 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
-                        <h4 class="card-title">Gene Associations with Masks (52K)</h4>
-                        <div v-show="$store.state.associations.restricted > 0">
+                        <h4 class="card-title">
+                            Gene Associations with Masks (52K)
+                        </h4>
+                        <div
+                            v-show="$store.state.associations52k.restricted > 0"
+                        >
                             <unauthorized-message
                                 :unauthorized="true"
-                                :count="$store.state.associations.restricted"
+                                :count="$store.state.associations52k.restricted"
                             ></unauthorized-message>
                         </div>
                         <gene-associations-masks
-                            :associations="$store.state.associations.data"
+                            :associations="$store.state.associations52k.data"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         ></gene-associations-masks>
                     </div>
@@ -135,7 +163,9 @@
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
-                        <uniprot-references-table v-bind:references="$parent.dbReference"></uniprot-references-table>
+                        <uniprot-references-table
+                            v-bind:references="$parent.dbReference"
+                        ></uniprot-references-table>
                     </div>
                 </div>
             </div>
@@ -143,8 +173,14 @@
                 <div class="card-body">
                     <div v-if="$parent.accession">
                         <h4 class="card-title">Swiss Prot Accesssion IDs</h4>
-                        <div v-for="row in $parent.accession" class="gene-with-signal none">
-                            <a :href="`https://www.uniprot.org/uniprot/${row}`">{{row}}</a>
+                        <div
+                            v-for="row in $parent.accession"
+                            class="gene-with-signal none"
+                        >
+                            <a
+                                :href="`https://www.uniprot.org/uniprot/${row}`"
+                                >{{ row }}</a
+                            >
                         </div>
                     </div>
                 </div>
@@ -161,15 +197,23 @@
                             :key="gene.name"
                         >
                             <a
-                                :href="$parent.externalResources[gene.source]+gene.name"
+                                :href="
+                                    $parent.externalResources[gene.source] +
+                                    gene.name
+                                "
                                 v-if="gene.source != 'ucsc'"
                                 target="_blank"
-                            >{{gene.name}}</a>
+                                >{{ gene.name }}</a
+                            >
                             <a
-                                :href="$parent.externalResources[gene.source]+$parent.symbolName"
+                                :href="
+                                    $parent.externalResources[gene.source] +
+                                    $parent.symbolName
+                                "
                                 target="_blank"
                                 v-else
-                            >{{gene.name}}</a>
+                                >{{ gene.name }}</a
+                            >
                         </div>
                     </div>
                 </div>
