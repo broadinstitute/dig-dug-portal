@@ -1,3 +1,7 @@
+.forest-plot-card-wrapper {
+    padding: 10px 0 30px 0;
+}
+
 .forest-plot-html-wrapper {
     margin: 30px 40px;
     padding: 10px 0;
@@ -8,13 +12,19 @@
 .start-min, .end-max, .beta-0 {
     font-size: 14px;
     position: absolute;
-    top: -20px;
-
+    bottom: -20px;
 }
 
 .beta-0 {
-    height: calc(100% + 20px);
+    height: 100%;
     border-left: dashed 2px #dfdfdf;
+    bottom: 0 !important;
+}
+
+.beta-0 label {
+    display: block;
+    position: absolute;
+    bottom: -28px;
 }
 
 .start-min {
@@ -35,7 +45,17 @@
     background-color: #e9e9e9;
 }
 
-.forest-plot-html-row:hover .phenotype-group-name{
+.forest-plot-html-row .phenotype-group-dot, .forest-plot-html-row .phenotype-group-dot.hidden {
+    display: block !important;
+    position: relative;
+    z-index: 10000;
+}
+
+.forest-plot-html-row .phenotype-group-dot.hidden .phenotype-group-name{
+    display: none;
+}
+
+.forest-plot-html-row:hover .phenotype-group-dot.hidden .phenotype-group-name{
     display: block;
 }
 
@@ -91,40 +111,41 @@
 }
 
 .phenotype-group-dot .phenotype-group-name{
-    display:none;
+    display:block;
     position: absolute;
     right: 15px;
-    font-size: 14px;
+    font-size: 13px;
     top: -3px;
+    white-space: nowrap;
 }
 
 .phenotype-group-dot:hover .phenotype-group-name{
     display:block;
 }
 
-.phenotype-group-dot.ANTHROPOMETRIC { background-color: #048845; }
-.phenotype-group-dot.ATRIAL.FIBRILLATION { background-color: #7aaa1c; }
-.phenotype-group-dot.CARDIOVASCULAR { background-color: #6FC7B6; }
-.phenotype-group-dot.ECG.TRAITS { background-color: #8490C8; }
-.phenotype-group-dot.GLYCEMIC { background-color: #9F78AC; }
-.phenotype-group-dot.HEMORRHAGIC.STROKE { background-color: #BF61A5; }
-.phenotype-group-dot.HEPATIC { background-color: #F88084; }
-.phenotype-group-dot.INFLAMMATORY.BOWEL { background-color: #007bff; }
-.phenotype-group-dot.ISCHEMIC.STROKE { background-color: #EE3124; }
-.phenotype-group-dot.LIPIDS { background-color: #fAA553; }
-.phenotype-group-dot.LUNG { background-color: #0000ff; }
-.phenotype-group-dot.METABOLITE { background-color: #fcc500; }
-.phenotype-group-dot.MRI.TRAITS { background-color: #F5A4C7; }
-.phenotype-group-dot.MUSCULOSKELETAL { background-color: #aec6a1; }
-.phenotype-group-dot.NEUROLOGICAL { background-color: #33ff00; }
-.phenotype-group-dot.OCULAR { background-color: #ccc698; }
-.phenotype-group-dot.OTHER { background-color: #B4B4B4; }
-.phenotype-group-dot.PSYCHIATRIC { background-color: #5555FF; }
-.phenotype-group-dot.RENAL { background-color: #ff55ff; }
-.phenotype-group-dot.SLEEP.AND.CIRCADIAN { background-color: #D5A768; }
-.phenotype-group-dot.STROKE { background-color: #cccc00; }
-.phenotype-group-dot.TYPE.DIABETES { background-color: #639bc0; }
-.phenotype-group-dot.HEMATOLOGICAL { background-color: #aa0000; }
+.phenotype-group-dot.ANTHROPOMETRIC, .legend-phenotype-group-dot.ANTHROPOMETRIC { background-color: #048845; }
+.phenotype-group-dot.ATRIAL.FIBRILLATION, .legend-phenotype-group-dot.ATRIAL.FIBRILLATION { background-color: #7aaa1c; }
+.phenotype-group-dot.CARDIOVASCULAR, .legend-phenotype-group-dot.CARDIOVASCULAR { background-color: #6FC7B6; }
+.phenotype-group-dot.ECG.TRAITS, .legend-phenotype-group-dot.ECG.TRAITS { background-color: #8490C8; }
+.phenotype-group-dot.GLYCEMIC, .legend-phenotype-group-dot.GLYCEMIC { background-color: #9F78AC; }
+.phenotype-group-dot.HEMORRHAGIC.STROKE, .legend-phenotype-group-dot.HEMORRHAGIC.STROKE { background-color: #BF61A5; }
+.phenotype-group-dot.HEPATIC, .legend-phenotype-group-dot.HEPATIC { background-color: #F88084; }
+.phenotype-group-dot.INFLAMMATORY.BOWEL, .legend-phenotype-group-dot.INFLAMMATORY.BOWEL { background-color: #007bff; }
+.phenotype-group-dot.ISCHEMIC.STROKE, .legend-phenotype-group-dot.ISCHEMIC.STROKE { background-color: #EE3124; }
+.phenotype-group-dot.LIPIDS, .legend-phenotype-group-dot.LIPIDS { background-color: #fAA553; }
+.phenotype-group-dot.LUNG, .legend-phenotype-group-dot.LUNG { background-color: #0000ff; }
+.phenotype-group-dot.METABOLITE, .legend-phenotype-group-dot.METABOLITE { background-color: #fcc500; }
+.phenotype-group-dot.MRI.TRAITS, .legend-phenotype-group-dot.MRI.TRAITS { background-color: #F5A4C7; }
+.phenotype-group-dot.MUSCULOSKELETAL, .legend-phenotype-group-dot.MUSCULOSKELETAL { background-color: #aec6a1; }
+.phenotype-group-dot.NEUROLOGICAL, .legend-phenotype-group-dot.NEUROLOGICAL { background-color: #33ff00; }
+.phenotype-group-dot.OCULAR, .legend-phenotype-group-dot.OCULAR { background-color: #ccc698; }
+.phenotype-group-dot.OTHER, .legend-phenotype-group-dot.OTHER { background-color: #B4B4B4; }
+.phenotype-group-dot.PSYCHIATRIC, .legend-phenotype-group-dot.PSYCHIATRIC { background-color: #5555FF; }
+.phenotype-group-dot.RENAL, .legend-phenotype-group-dot.RENAL { background-color: #ff55ff; }
+.phenotype-group-dot.SLEEP.AND.CIRCADIAN, .legend-phenotype-group-dot.SLEEP.AND.CIRCADIAN { background-color: #D5A768; }
+.phenotype-group-dot.STROKE, .legend-phenotype-group-dot.STROKE { background-color: #cccc00; }
+.phenotype-group-dot.TYPE.DIABETES, .legend-phenotype-group-dot.TYPE.DIABETES { background-color: #639bc0; }
+.phenotype-group-dot.HEMATOLOGICAL, .legend-phenotype-group-dot.HEMATOLOGICAL { background-color: #aa0000; }
 
 .forest-plot-html-legend-wrapper {
     position: absolute;
@@ -150,10 +171,37 @@
     position: relative;
 }
 
-.forest-plot-html-legend-content ul li .phenotype-group-dot {
+.forest-plot-html-legend-content ul li .legend-phenotype-group-dot {
     position: absolute;
     width: 12px;
     height: 12px;
     border-radius: 12px;
     left: -20px;
+}
+
+.forest-plot-html-wrapper .forest-plot-ui-options {
+    position: absolute;
+    right: 0;
+    top: -25px;
+    font-size: 14px;
+}
+
+.forest-plot-html-wrapper .forest-plot-ui-options div {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.forest-plot-ui-options {
+    text-align: right;
+    font-size: 14px;
+}
+
+.forest-plot-ui-options label {
+    vertical-align: middle;
+    margin-left: 3px;
+}
+
+.forest-plot-ui-options input[type=checkbox] {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
 }
