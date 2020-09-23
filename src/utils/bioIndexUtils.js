@@ -40,7 +40,9 @@ export function rawUrl(path, query_params) {
 export async function request(path, query_params) {
     return fetch(rawUrl(path, query_params), {
         headers: {
-            "x-bioindex-access-token": session_cookie
+            // "x-bioindex-access-token": session_cookie,
+            // "Content-Type": "text/plain",
+            // "Access-Control-Max-Age": 600
         }
     });
 }
