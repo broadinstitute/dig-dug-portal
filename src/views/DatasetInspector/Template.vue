@@ -1,7 +1,10 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -11,27 +14,43 @@
                         Dataset
                         <a
                             class="edit-btn"
-                            v-on:click="() => $parent.showHideElement('datasetSearchHolder','dataset_search')"
-                        >Select datasets</a>
+                            v-on:click="
+                                () =>
+                                    $parent.showHideElement(
+                                        'datasetSearchHolder',
+                                        'dataset_search'
+                                    )
+                            "
+                            >Select datasets</a
+                        >
                     </div>
                     <div class="col-md-4 gene-page-header-title">
                         Phenotype
                         <a
                             class="edit-btn"
-                            v-on:click="() => $parent.showHideElement('phenotypeSearchHolder')"
-                        >Select phenotype</a>
+                            v-on:click="
+                                () =>
+                                    $parent.showHideElement(
+                                        'phenotypeSearchHolder'
+                                    )
+                            "
+                            >Select phenotype</a
+                        >
                     </div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div id="datasetSearchHolder" class="gene-page-header-search-holder hidden">
+                        <div
+                            id="datasetSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
                             <dataset-selectpicker
                                 v-if="$store.state.bioPortal.datasetMap"
                                 :datasets="$store.state.bioPortal.datasets"
                             ></dataset-selectpicker>
                         </div>
-                        <span
-                            v-if="$store.state.selectedDataset"
-                        >{{$store.state.selectedDataset.description}}</span>
+                        <span v-if="$store.state.selectedDataset">{{
+                            $store.state.selectedDataset.description
+                        }}</span>
                     </div>
 
                     <div class="col-md-4 gene-page-header-body">
@@ -44,25 +63,28 @@
                                 :phenotypes="$parent.datasetPhenotypes"
                             ></phenotype-selectpicker>
                         </div>
-                        <span
-                            v-if="$store.state.selectedPhenotype"
-                        >{{$store.state.selectedPhenotype.description}}</span>
+                        <span v-if="$store.state.selectedPhenotype">{{
+                            $store.state.selectedPhenotype.description
+                        }}</span>
                     </div>
                 </div>
             </div>
 
             <div v-if="$store.state.selectedPhenotype" class="card mdkp-card">
                 <div class="card-body">
-                    <h4
-                        class="card-title"
-                    >{{$store.state.selectedPhenotype.description}} association plots</h4>
+                    <h4 class="card-title">
+                        {{
+                            $store.state.selectedPhenotype.description
+                        }}
+                        association plots
+                    </h4>
                     <!-- TODO: phenotype select -->
                     <div class="row">
                         <div class="col-md-6">
                             <div
                                 v-if="$parent.manhattanPlot"
                                 class="card"
-                                style="width:95%; border: 0"
+                                style="width: 95%; border: 0"
                             >
                                 <raw-img
                                     :src="$parent.manhattanPlot"
@@ -73,7 +95,11 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div v-if="$parent.qqPlot" class="card" style="width:95%; border: 0">
+                            <div
+                                v-if="$parent.qqPlot"
+                                class="card"
+                                style="width: 95%; border: 0"
+                            >
                                 <raw-img
                                     :src="$parent.qqPlot"
                                     alt="Card image cap"
@@ -88,25 +114,45 @@
 
             <div v-if="$store.state.selectedPhenotype" class="card mdkp-card">
                 <div class="card-body">
-                    <h4
-                        v-if="$store.state.selectedDataset"
-                        class="card-title"
-                    >Top {{$parent.intFormatter($store.state.datasetAssociations.data.length)}} variants for {{$store.state.selectedDataset.description}}</h4>
+                    <h4 v-if="$store.state.selectedDataset" class="card-title">
+                        Top
+                        {{
+                            $parent.intFormatter(
+                                $store.state.datasetAssociations.data.length
+                            )
+                        }}
+                        variants for
+                        {{ $store.state.selectedDataset.description }}
+                    </h4>
                     <associations-table
                         :phenotypes="[$store.state.selectedPhenotype]"
                         :associations="$store.state.datasetAssociations.data"
                     ></associations-table>
-                    <div v-show="$store.state.datasetAssociations.restricted > 0">
+                    <div
+                        v-show="$store.state.datasetAssociations.restricted > 0"
+                    >
                         <unauthorized-message
                             :unauthorized="true"
                             :count="$store.state.datasetAssociations.restricted"
+                        ></unauthorized-message>
+                    </div>
+                    <div
+                        v-show="
+                            $store.state.datasetAssociations.restricted == 0 &&
+                            $store.state.datasetAssociations.count == 0
+                        "
+                    >
+                        <unauthorized-message
+                            :failed="true"
                         ></unauthorized-message>
                     </div>
                 </div>
             </div>
             <div v-else class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Select phenotype for associations</h4>
+                    <h4 class="card-title">
+                        Select phenotype for associations
+                    </h4>
                 </div>
             </div>
 
@@ -115,7 +161,9 @@
                     <h4 class="card-title">Dataset Description</h4>
                     <div class="row">
                         <div class="col-md-12">
-                            <dataset-info-section :datasetInfo="$parent.datasetInfo"></dataset-info-section>
+                            <dataset-info-section
+                                :datasetInfo="$parent.datasetInfo"
+                            ></dataset-info-section>
                         </div>
                     </div>
                 </div>
