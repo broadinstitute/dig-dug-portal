@@ -1222,3 +1222,21 @@ a.to-previous-page:hover {
     width: 50px;
     height: 50px;
 }
+
+.huge-calculator-show-associations-wrapper {
+    text-align: left;
+    padding-left: 30px;
+}
+
+.huge-calculator-show-associations {
+    width: auto !important;
+    color: #fff !important;
+    font-size: 16px  !important;
+    background-color: #0097d695 !important;
+    border: solid 1px #0097d6 !important;
+    padding: 1px 10px !important;
+}
+
+.huge-calculator-show-associations:hover {
+    background-color: #0097d6 !important;
+}

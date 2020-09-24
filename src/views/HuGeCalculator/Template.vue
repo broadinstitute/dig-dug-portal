@@ -55,16 +55,16 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
+                    <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
                     <b-container fluid class="bv-example-row bv-example-row-flex-cols">
                         <b-row class="mb-3">
-                            <b-col md="8">
-                                <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
+                            <b-col md="6">
                                 <b-row class="mb-3">
                                     <b-col
                                         class="col-md-auto"
                                         v-if="$parent.isSignificantAssociationCommonVariation"
                                     >
-                                        <h4 class="card-title">Stage 1</h4>
+                                        <h5 class="card-title">Stage 1</h5>
                                         <strong v-if="$store.state.effectorGeneData.category">
                                             {{$store.state.effectorGeneData.category}}:
                                             <span
@@ -99,7 +99,7 @@
                                     <b-col
                                         v-if="$store.state.effectorGeneData.category != 'CAUSAL'"
                                     >
-                                        <h4 class="card-title">Stage 2</h4>
+                                        <h5 class="card-title">Stage 2</h5>
 
                                         <div v-if="$parent.geneAssociations">
                                             <div v-if="isSignificant52AssociationRareVariation">
@@ -116,7 +116,7 @@
                                 </b-row>
                                 <b-row class="mb-3">
                                     <b-col md="6" class="p-3">
-                                        <h4 class="card-title">Stage 3</h4>
+                                        <h5 class="card-title">Stage 3</h5>
                                         <div v-if="$parent.geneAssociations">
                                             <div v-if="$parent.geneAssociationsLoftee.length >0">
                                                 <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
@@ -128,7 +128,7 @@
                                     </b-col>
                                 </b-row>
                             </b-col>
-                            <b-col md="4" class="ml-auto p-3">
+                            <b-col md="6" class="ml-auto p-3">
                                 <b-row>
                                     <documentation
                                         name="hugecal.explore.docs"
@@ -140,16 +140,16 @@
                     </b-container>
                 </div>
             </div>
-
-            <div class="card mdkp-card">
+            <div class="huge-calculator-show-associations-wrapper">
+                <b-button
+                    block
+                    v-on:click="() => $parent.showAssociations == true ? $parent.showAssociations = false : $parent.showAssociations=true"
+                    class="btn-sm huge-calculator-show-associations to-previous-page"
+                >Show Associations Data</b-button>
+            </div>
+            <div class="card mdkp-card" v-if="$parent.showAssociations">
                 <div class="card-body">
-                    <b-button
-                        block
-                        variant="info"
-                        v-on:click="() => $parent.showAssociations == true ? $parent.showAssociations = false : $parent.showAssociations=true"
-                    >Show Associations Data</b-button>
-
-                    <div id="gwasAssocHolder" class="mdkp-card" v-if="$parent.showAssociations">
+                    <div id="gwasAssocHolder" class="mdkp-card">
                         <h4
                             v-if="$store.state.phenotype"
                             class="card-title"
