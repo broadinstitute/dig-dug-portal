@@ -1,7 +1,7 @@
 <template>
     <div>
         <h6>Posterior Probablity vs Prior</h6>
-        <div id="posteriorpriorplot"  />
+        <div id="posteriorpriorplot" />
     </div>
 </template>
 
@@ -75,9 +75,9 @@ export default Vue.component("posterior-probability-plot", {
                 .append("g")
                 .attr("class", "lineLegend")
                 .attr("transform", function(d, i) {
-                    return "translate(" + 300 + "," + i*10 + ")";
+                    return "translate(" + 300 + "," + i * 10 + ")";
                 });
-            //placing of the lgened text inside the legend box    
+            //placing of the lgened text inside the legend box
             lineLegend
                 .append("text")
                 .text(function(d) {
@@ -115,9 +115,7 @@ export default Vue.component("posterior-probability-plot", {
                     return yScale(d.ppa);
                 })
                 .curve(d3.curveLinear);
-            // d3.selectAll("svg > g > *").remove();
 
-            // d3.select("path").remove();
             var path = svg
                 .append("path")
                 .attr("d", lineGen(data))
@@ -132,48 +130,90 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("stroke-width", 0.5)
                 .attr("fill", "none");
 
-        
-            var circle = svg
+            var bisect = d3.bisector(function(d) {
+                return d.ppa;
+            }).left;
+            var focus = svg
                 .append("circle")
                 .attr("cx", 300)
                 .attr("cy", 300)
                 .attr("r", 3)
                 .attr("fill", "red");
 
-            var pathEl = path.node();
-            var pathLength = pathEl.getTotalLength();
-            var BBox = pathEl.getBBox();
-            var scale = pathLength / BBox.width;
-            var offsetLeft = document.getElementById("posteriorpriorplot")
-                .offsetLeft;
+            var focusText = svg
+                .append("g")
+                .append("text")
+                .style("opacity", 0)
+                .attr("text-anchor", "left")
+                .attr("alignment-baseline", "middle");
 
-            svg.on("mousemove", function() { 
-                var x = d3.event.pageX - offsetLeft;
-                var beginning = x,
-                    end = pathLength,
-                    target;
-                while (true) {
-                    target = Math.floor((beginning + end) / 2);
-                    var pos = pathEl.getPointAtLength(target);
-                    if (
-                        (target === end || target === beginning) &&
-                        pos.x !== x
-                    ) {
-                        break;
-                    }
-                    if (pos.x > x) end = target;
-                    else if (pos.x < x) beginning = target;
-                    else break; //position found
-                }
-                circle
-                    .attr("opacity", 1)
-                    .attr("cx", x)
-                    .attr("cy", pos.y);
+svg 
+    .append('rect')
+    .style("fill", "none")
+    .style("pointer-events", "all")
+    .attr('width', width)
+    .attr('height', height)
+    .on('mouseover', mouseover)
+    .on('mousemove', mousemove)
+    .on('mouseout', mouseout);
 
-                circle.append("text","hello");
-            });
 
-           
+function mouseover() {
+    focus.style("opacity", 1)
+    focusText.style("opacity",1)
+  }
+
+  function mousemove() {
+    // recover coordinate we need
+    var x0 = xScale.invert(d3.mouse(this)[0]);
+    var i = bisect(data, x0, 1);
+    var selectedData = data[i]
+    focus
+      .attr("cx", xScale(selectedData.prior))
+      .attr("cy", yScale(selectedData.ppa))
+    focusText
+      .html("x:" + selectedData.prior + "  -  " + "y:" + selectedData.ppa)
+      .attr("x", xScale(selectedData.prior)+15)
+      .attr("y", yScale(selectedData.ppa))
+    }
+function mouseout() {
+    focus.style("opacity", 0)
+    focusText.style("opacity", 0)
+  }
+
+
+            // var pathEl = path.node();
+            // var pathLength = pathEl.getTotalLength();
+            // var BBox = pathEl.getBBox();
+            // var scale = pathLength / BBox.width;
+            // var offsetLeft = document.getElementById("posteriorpriorplot")
+            //     .offsetLeft;
+
+            // svg.on("mousemove", function() {
+            //     var x = d3.event.pageX - offsetLeft;
+            //     var beginning = x,
+            //         end = pathLength,
+            //         target;
+            //     while (true) {
+            //         target = Math.floor((beginning + end) / 2);
+            //         var pos = pathEl.getPointAtLength(target);
+            //         if (
+            //             (target === end || target === beginning) &&
+            //             pos.x !== x
+            //         ) {
+            //             break;
+            //         }
+            //         if (pos.x > x) end = target;
+            //         else if (pos.x < x) beginning = target;
+            //         else break; //position found
+            //     }
+            //     focus
+            //         .attr("opacity", 1)
+            //         .attr("cx", x)
+            //         .attr("cy", pos.y);
+
+            //     focus.append("text", "hello");
+            // });
         },
 
         posteriorProbability(p, beta, stdErr) {
@@ -229,10 +269,9 @@ export default Vue.component("posterior-probability-plot", {
         geneAssociationsData(newValue) {
             this.generateChart();
         },
-        priorVariance(newPrior){
-          this.priorVariance = newPrior;
-          this.columns();
-          this.generateChart();
+        priorVariance(newPrior) {
+            this.priorVariance = newPrior;
+            this.generateChart();
         }
     }
 });

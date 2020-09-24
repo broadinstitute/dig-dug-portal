@@ -55,10 +55,10 @@
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
-                    <b-container fluid class="bv-example-row bv-example-row-flex-cols">
+                    <b-container class="bv-example-row bv-example-row-flex-cols" fluid>
                         <b-row class="mb-3">
                             <b-col md="6">
+                                <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
                                 <b-row class="mb-3">
                                     <b-col
                                         class="col-md-auto"
@@ -101,13 +101,15 @@
                                     >
                                         <h5 class="card-title">Stage 2</h5>
 
-                                        <div v-if="$parent.geneAssociations">
-                                            <div v-if="isSignificant52AssociationRareVariation">
+                                        <div v-if="$parent.geneAssociations52k">
+                                            <div
+                                                v-if="$parent.isSignificant52kAssociationRareVariation"
+                                            >
                                                 <strong>{{$parent.stage2Category.category}}</strong>
                                             </div>
                                             <posterior-probability-plot
                                                 v-else
-                                                :geneAssociationsData="$parent.geneAssociations"
+                                                :geneAssociationsData="$parent.geneAssociations52k"
                                                 :priorVariance="$store.state.priorVariance"
                                                 :isDichotomous="true"
                                             ></posterior-probability-plot>
@@ -117,7 +119,7 @@
                                 <b-row class="mb-3">
                                     <b-col md="6" class="p-3">
                                         <h5 class="card-title">Stage 3</h5>
-                                        <div v-if="$parent.geneAssociations">
+                                        <div v-if="$parent.geneAssociations52k">
                                             <div v-if="$parent.geneAssociationsLoftee.length >0">
                                                 <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
                                             </div>

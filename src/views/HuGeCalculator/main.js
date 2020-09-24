@@ -140,7 +140,7 @@ new Vue({
         },
         //stage 1 - Significant association? (common Variation)
         //this makes sure the gene is in GWAS region or not
-        isSignificantAssociationCommonVariation() {
+        isSignificant52kAssociationRareVariation() {
             if (!!this.$store.state.associations.data) {
                 let data = this.$store.state.associations.data;
                 for (let i = 0; i < data.length; i++) {
@@ -153,7 +153,7 @@ new Vue({
 
         },
 
-        geneAssociations() {
+        geneAssociations52k() {
             if (!!this.$store.state.geneAssociations52k) {
                 if (!!this.$store.state.geneAssociations52k.data.length) {
                     let data = this.$store.state.geneAssociations52k.data;
