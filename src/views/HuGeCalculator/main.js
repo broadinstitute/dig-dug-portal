@@ -140,7 +140,7 @@ new Vue({
         },
         //stage 1 - Significant association? (common Variation)
         //this makes sure the gene is in GWAS region or not
-        isSignificant52kAssociationRareVariation() {
+        isSignificantAssociationCommonVariation() {
             if (!!this.$store.state.associations.data) {
                 let data = this.$store.state.associations.data;
                 for (let i = 0; i < data.length; i++) {
@@ -187,7 +187,7 @@ new Vue({
         },
 
 
-        isSignificant52AssociationRareVariation() {
+        isSignificant52kAssociationRareVariation() {
             if (!!this.$store.state.geneAssociations52k.data.length) {
                 let data = this.$store.state.geneAssociations52k.data;
                 for (let i = 0; i < data.length; i++) {
@@ -205,7 +205,16 @@ new Vue({
         //show the following instead of stage 2 plot
         stage2Category() {
             return { "category": "CAUSAL", "Evidence": "Strong Coding Evidence", "genetic": "1C" }
-        }
+        },
+        documentationMap() {
+            let gene = this.$store.state.geneName;
+            let phenotype = this.$store.state.phenotype.description;
+
+            return {
+                gene: gene,
+                phenotype: phenotype
+            }
+        },
     },
 
 

@@ -171,10 +171,10 @@ export default Vue.component("posterior-probability-plot", {
                     .attr("cy", yScale(selectedData.ppa));
                 focusText
                     .html(
-                        "x:" +
+                        "Prior:" +
                             selectedData.prior +
                             "  -  " +
-                            "y:" +
+                            "PPA:" +
                             selectedData.ppa
                     )
                     .attr("x", xScale(selectedData.prior) + 15)

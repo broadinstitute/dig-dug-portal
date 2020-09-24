@@ -23,8 +23,8 @@ export default new Vuex.Store({
         geneName: keyParams.gene,
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
         effectorGeneData: [],
-        category: "Not in GWAS region",
-        stage2Category: null,
+        // category: "Not in GWAS region",
+        // stage2Category: null,
         priorVariance: 0.0462,
     },
 
@@ -43,9 +43,9 @@ export default new Vuex.Store({
         setEffectorGeneData(state, effectorGeneData) {
             state.effectorGeneData = effectorGeneData;
         },
-        setStage2Category(state, stage2Category) {
-            state.stage2Category = stage2Category;
-        },
+        // setStage2Category(state, stage2Category) {
+        //     state.stage2Category = stage2Category;
+        // },
         setPriorVariance(state, priorVariance) {
             state.priorVariance = priorVariance;
         }
@@ -83,7 +83,7 @@ export default new Vuex.Store({
         async getEffectorGeneData(context, geneSymbol) {
 
             let dataset = 'mccarthy'
-            let trait = 't2d'
+            let trait = this.state.phenotype.name.toLowerCase();
             let json = fetch(`http://kp4cd.org/egldata/dataset?dataset=${dataset}&trait=${trait}`)
                 .then(resp => {
                     if (resp.status === 422) {
@@ -119,7 +119,7 @@ export default new Vuex.Store({
 
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
-            let phenotype = "T2D";
+            let phenotype = this.state.phenotype.name;
             context.commit('setGeneName', name);
             let query = {
                 q: `${phenotype},${name}`

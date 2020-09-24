@@ -56,15 +56,18 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <b-container class="bv-example-row bv-example-row-flex-cols" fluid>
-                        <b-row class="mb-3">
+                        <b-row class="mb-3 border-right">
                             <b-col md="6">
-                                <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
-                                <b-row class="mb-3">
+                                <b-row class="mb-3 border-right">
                                     <b-col
                                         class="col-md-auto"
                                         v-if="$parent.isSignificantAssociationCommonVariation"
                                     >
-                                        <h5 class="card-title">Stage 1</h5>
+                                        <h5>Stage 1</h5>
+                                        <documentation
+                                            name="hugecal.stage1.subheader"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
                                         <strong v-if="$store.state.effectorGeneData.category">
                                             {{$store.state.effectorGeneData.category}}:
                                             <span
@@ -94,18 +97,32 @@
                                             </strong>
                                         </div>
                                     </b-col>
+                                    <b-col class="col-md-auto" v-else>
+                                        <h5>Stage 1</h5>
+                                        <documentation
+                                            name="hugecal.stage1.subheader"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                        <strong>No Evidence.The {{$store.state.geneName}} is not genome wide significant</strong>
+                                    </b-col>
                                 </b-row>
-                                <b-row class="mb-3" v-if="$store.state.effectorGeneData.category">
+                                <b-row
+                                    class="mb-3 border-right"
+                                    v-if="$store.state.effectorGeneData.category"
+                                >
                                     <b-col
                                         v-if="$store.state.effectorGeneData.category != 'CAUSAL'"
                                     >
-                                        <h5 class="card-title">Stage 2</h5>
-
+                                        <h5>Stage 2</h5>
+                                        <documentation
+                                            name="hugecal.stage2.subheader"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
                                         <div v-if="$parent.geneAssociations52k">
                                             <div
                                                 v-if="$parent.isSignificant52kAssociationRareVariation"
                                             >
-                                                <strong>{{$parent.stage2Category.category}}</strong>
+                                                <strong>{{$parent.stage2Category.category}}:{{$parent.stage2Category.Evidence}}</strong>
                                             </div>
                                             <posterior-probability-plot
                                                 v-else
@@ -115,10 +132,23 @@
                                             ></posterior-probability-plot>
                                         </div>
                                     </b-col>
+                                    <b-col v-else>
+                                        <h5>Stage 2</h5>
+                                        <documentation
+                                            name="hugecal.stage2.subheader"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                        <strong>{{$store.state.geneName}} is Causal</strong>
+                                    </b-col>
                                 </b-row>
-                                <b-row class="mb-3">
-                                    <b-col md="6" class="p-3">
+
+                                <b-row class="mb-3 border-right">
+                                    <b-col md="10">
                                         <h5 class="card-title">Stage 3</h5>
+                                        <documentation
+                                            name="hugecal.stage3.subheader"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
                                         <div v-if="$parent.geneAssociations52k">
                                             <div v-if="$parent.geneAssociationsLoftee.length >0">
                                                 <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
