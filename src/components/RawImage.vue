@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="img">
         <img v-show="loaded" ref="im" class="card-img-top" />
         <p class="card-text" v-if="documentation && loaded">
             <documentation
