@@ -73,9 +73,7 @@
             <div v-if="$store.state.selectedPhenotype" class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        {{
-                            $store.state.selectedPhenotype.description
-                        }}
+                        {{ $store.state.selectedPhenotype.description }}
                         association plots
                     </h4>
                     <!-- TODO: phenotype select -->
@@ -128,24 +126,12 @@
                         :phenotypes="[$store.state.selectedPhenotype]"
                         :associations="$store.state.datasetAssociations.data"
                     ></associations-table>
-                    <div
-                        v-show="$store.state.datasetAssociations.restricted > 0"
-                    >
-                        <unauthorized-message
-                            :unauthorized="true"
-                            :count="$store.state.datasetAssociations.restricted"
-                        ></unauthorized-message>
-                    </div>
-                    <div
-                        v-show="
-                            $store.state.datasetAssociations.restricted == 0 &&
-                            $store.state.datasetAssociations.count == 0
+                    <unauthorized-message
+                        :restricted="
+                            $store.state.datasetAssociations.restricted
                         "
-                    >
-                        <unauthorized-message
-                            :failed="true"
-                        ></unauthorized-message>
-                    </div>
+                        :failed="$store.state.datasetAssociations.error"
+                    ></unauthorized-message>
                 </div>
             </div>
             <div v-else class="card mdkp-card">

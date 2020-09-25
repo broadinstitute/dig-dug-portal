@@ -136,12 +136,9 @@
                         <h4 class="card-title">
                             Gene Associations with Masks (52K)
                         </h4>
-                        <div v-show="$store.state.associations.restricted > 0">
-                            <unauthorized-message
-                                :unauthorized="true"
-                                :count="$store.state.associations.restricted"
-                            ></unauthorized-message>
-                        </div>
+                        <unauthorized-message
+                            :restricted="$store.state.associations.restricted"
+                        ></unauthorized-message>
                         <gene-associations-masks
                             :associations="$store.state.associations.data"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"

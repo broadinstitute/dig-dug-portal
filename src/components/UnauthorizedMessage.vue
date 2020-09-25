@@ -1,21 +1,32 @@
 <template>
     <div class="no-access">
-        <b-alert v-if="unauthorized && !user" show variant="warning">
-            <b-icon icon="exclamation-triangle"></b-icon>There were
-            <strong>{{ count }}</strong> records hidden because you do not have
-            required permission to view them. Please
-            <a href="/login" @click.prevent="loginUser">log in</a> with an
-            authorized Google account to see them.
+        <b-alert v-if="restricted" show variant="warning">
+            <span v-if="count">
+                <b-icon icon="exclamation-triangle"></b-icon>
+                There were
+                <strong>{{ count }}</strong> records hidden because you do not
+                have required permission to view them.
+            </span>
+            <span v-else>
+                <b-icon icon="exclamation-triangle"></b-icon>
+                There was hidden data because you do not have required
+                permission to view them.
+            </span>
+
+            <!-- ask user to login -->
+            <span v-if="!!user">
+                Please contact us if you believe you should've given access.
+            </span>
+            <span v-else>
+                Please
+                <a href="/login" @click.prevent="loginUser">log in</a> with an
+                authorized Google account to see them.
+            </span>
         </b-alert>
-        <b-alert v-else-if="unauthorized && !!user" show variant="warning">
-            <b-icon icon="exclamation-triangle"></b-icon>There were
-            <strong>{{ count }}</strong> records hidden because you do not have
-            required permission to view them. Please contact us if you believe
-            you should've given access.
-        </b-alert>
-        <b-alert v-else-if="failed" show variant="danger">
-            <b-icon icon="exclamation-triangle"></b-icon>There are no records to
-            show. Please contact us if you believe this is an error.
+
+        <b-alert v-else-if="!!failed" show variant="danger">
+            <b-icon icon="exclamation-triangle"></b-icon>
+            There was an error loading the data: {{ failed }}
         </b-alert>
     </div>
 </template>
@@ -29,9 +40,16 @@ export default Vue.component("unauthorized-message", {
         return {};
     },
     props: {
-        unauthorized: { type: Boolean, required: false, default: false },
-        failed: { type: Boolean, required: false, default: false },
-        count: { type: Number, required: false },
+        restricted: { required: false, default: false },
+        failed: { required: false, default: false },
+    },
+    computed: {
+        count() {
+            if (typeof this.restricted === "number") {
+                return this.restricted;
+            }
+            return null;
+        },
     },
 });
 </script>

@@ -9,7 +9,7 @@ import merge from "lodash.merge";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
-export default function(index, extend) {
+export default function (index, extend) {
     let module = {
         namespaced: true,
         limit: null,
@@ -25,7 +25,8 @@ export default function(index, extend) {
                 count: 0,
                 restricted: 0,
                 profile: {},
-                progress: null
+                progress: null,
+                error: null,
             };
         },
 
@@ -50,6 +51,7 @@ export default function(index, extend) {
                 state.data = [];
                 state.restricted = 0;
                 state.count = 0;
+                state.error = null;
             },
 
             updateCount(state, json) {
@@ -60,10 +62,15 @@ export default function(index, extend) {
             setResponse(state, json) {
                 state.data = json.data;
                 state.profile = json.profile;
+                state.error = null;
             },
 
             setProgress(state, progress) {
                 state.progress = progress;
+            },
+
+            setError(state, error) {
+                state.error = error;
             }
         },
 
@@ -102,6 +109,7 @@ export default function(index, extend) {
                         errHandler: error => {
                             closeAlert(alertID);
                             postAlertError(error.detail);
+                            context.commit('setError', error.detail);
                         },
 
                         finishHandler: response => {
