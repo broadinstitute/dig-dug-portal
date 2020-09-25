@@ -12,6 +12,10 @@ export const userMixin = {
     methods: {
         saveCurrentPage() {
             Vue.$cookies.set("whereAmI", location.href, "", "", host.domain);
+        },
+        loginUser() {
+            this.saveCurrentPage();
+            window.location.href = "/login";
         }
     }
 };
