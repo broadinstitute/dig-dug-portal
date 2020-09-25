@@ -224,6 +224,22 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
+                        {{ $parent.varId }}
+                        <span v-if="$parent.dbSNP">
+                            <span style="color: gray">/</span>
+                            {{ $parent.dbSNP }}
+                        </span>
+                        associations across datasets
+                    </h4>
+                    <dataset-associations
+                        :associations="$store.state.datasetAssociations.data"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                    ></dataset-associations>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
                         Transcription factor binding motifs altered by
                         {{ $parent.variantName }}
                         <tooltip-documentation
