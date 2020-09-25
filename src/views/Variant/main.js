@@ -44,7 +44,7 @@ new Vue({
         LocusZoomAssociationsPanel,
         LocusZoomPhewasPanel,
 
-        ForestPlotHtml,
+        ForestPlotHtml
     },
 
     created() {
@@ -70,7 +70,10 @@ new Vue({
             let pos = this.chromPos;
 
             if (!!pos) {
-                window.location.href = `./region.html?chr=${pos.chromosome}&start=${pos.position - expanded}&end=${pos.position + expanded}&variant=${this.$store.state.variant.varId}`;
+                window.location.href = `./region.html?chr=${
+                    pos.chromosome
+                }&start=${pos.position - expanded}&end=${pos.position +
+                    expanded}&variant=${this.$store.state.variant.varId}`;
             }
         }
     },
@@ -89,20 +92,20 @@ new Vue({
         },
 
         variantName() {
-            return this.dbSNP || this.varId || '';
+            return this.dbSNP || this.varId || "";
         },
 
         chromPos() {
             let variant = this.$store.state.variant;
 
             if (!!variant) {
-                let chrom = variant.varId.split(':')[0];
-                let pos = variant.varId.split(':')[1];
+                let chrom = variant.varId.split(":")[0];
+                let pos = variant.varId.split(":")[1];
 
                 return {
                     chromosome: chrom,
-                    position: parseInt(pos),
-                }
+                    position: parseInt(pos)
+                };
             }
         },
 
@@ -114,7 +117,7 @@ new Vue({
                 return { variant: `${varId} / ${dbSNP}` };
             }
 
-            return { variant: varId || '' };
+            return { variant: varId || "" };
         },
 
         frontContents() {
@@ -156,9 +159,8 @@ new Vue({
 
         regions() {
             return this.$store.state.regions.data;
-        },
+        }
     },
-
 
     watch: {
         diseaseGroup(group) {
@@ -167,7 +169,7 @@ new Vue({
 
         variantData(data) {
             if (!!data) {
-                this.$store.commit('setVariant', data[0]);  // only ever 1 result
+                this.$store.commit("setVariant", data[0]); // only ever 1 result
             }
         },
 
@@ -175,10 +177,19 @@ new Vue({
             if (variant) {
                 let p = this.chromPos;
 
-                this.$store.dispatch('phewas/query', { q: variant.varId });
-                this.$store.dispatch('transcriptConsequences/query', { q: variant.varId });
-                this.$store.dispatch('transcriptionFactors/query', { q: variant.varId });
-                this.$store.dispatch('regions/query', { q: `${p.chromosome}:${p.position}` });
+                this.$store.dispatch("phewas/query", { q: variant.varId });
+                this.$store.dispatch("transcriptConsequences/query", {
+                    q: variant.varId
+                });
+                this.$store.dispatch("transcriptionFactors/query", {
+                    q: variant.varId
+                });
+                this.$store.dispatch("regions/query", {
+                    q: `${p.chromosome}:${p.position}`
+                });
+                this.$store.dispatch("datasetAssociations/query", {
+                    q: variant.varId
+                });
             }
         }
     }
