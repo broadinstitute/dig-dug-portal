@@ -13,16 +13,17 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        variantData: bioIndex('variant'),
-        transcriptConsequences: bioIndex('transcript-consequences'),
-        transcriptionFactors: bioIndex('transcription-factors'),
+        variantData: bioIndex("variant"),
+        transcriptConsequences: bioIndex("transcript-consequences"),
+        transcriptionFactors: bioIndex("transcription-factors"),
         phewas: bioIndex("phewas-associations"),
         regions: bioIndex("regions"),
+        datasetAssociations: bioIndex("variant-dataset-associations")
     },
 
     state: {
         variant: null,
-        newVariantId: null,
+        newVariantId: null
     },
 
     mutations: {
@@ -33,16 +34,18 @@ export default new Vuex.Store({
             state.newVariantId = variant.dbSNP || varId;
 
             keyParams.set({ variant: state.newVariantId });
-        },
+        }
     },
 
     actions: {
         async queryVariant(context, newVarId) {
-            newVarId = await variantUtils.parseVariant(newVarId || context.state.newVariantId);
+            newVarId = await variantUtils.parseVariant(
+                newVarId || context.state.newVariantId
+            );
 
             if (!!newVarId) {
-                context.dispatch('variantData/query', { q: newVarId });
+                context.dispatch("variantData/query", { q: newVarId });
             }
-        },
+        }
     }
 });
