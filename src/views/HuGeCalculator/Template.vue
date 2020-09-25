@@ -115,7 +115,7 @@
                                     >
                                         <h5>Stage 2</h5>
                                         <documentation
-                                            name="hugecal.stage2.subheader"
+                                            name="hugecal.stage2NoAssociation.subheader"
                                             :content-fill="$parent.documentationMap"
                                         ></documentation>
                                         <div v-if="$parent.geneAssociations52k">
@@ -160,7 +160,7 @@
                                     </b-col>
                                 </b-row>
                             </b-col>
-                            <b-col md="6" class="ml-auto p-3">
+                            <b-col md="5" class="ml-auto p-3">
                                 <b-row>
                                     <documentation
                                         name="hugecal.explore.docs"

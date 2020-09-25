@@ -1,12 +1,18 @@
 <template>
     <div>
-        <h6>Posterior Probablity vs Prior</h6>
-        <div id="posteriorpriorplot" />
+       
+        <div id="posteriorpriorplot" style="text-align:center"> 
+            
+        </div>
+        <h6 style="text-align:center" >Posterior Probablity vs Prior</h6> 
+        
+        
     </div>
 </template>
 
 
 <script>
+
 import Vue from "vue";
 
 import * as d3 from "d3";
@@ -43,9 +49,9 @@ export default Vue.component("posterior-probability-plot", {
         },
         generateChart() {
             document.getElementById("posteriorpriorplot").innerHTML = "";
-            var margin = { top: 50, right: 50, bottom: 50, left: 50 },
-                width = 600 - margin.left - margin.right,
-                height = 600 - margin.top - margin.bottom;
+            var margin = { top: 10, right: 30, bottom: 30, left: 60 },
+                width = 460 - margin.left - margin.right,
+                height = 400 - margin.top - margin.bottom;
 
             var svg = d3
                 .select("#posteriorpriorplot")
@@ -75,15 +81,19 @@ export default Vue.component("posterior-probability-plot", {
                 .append("g")
                 .attr("class", "lineLegend")
                 .attr("transform", function(d, i) {
-                    return "translate(" + 300 + "," + i * 10 + ")";
+                    return "translate(" + 100 + "," + i * 30 + ")";
                 });
-            //placing of the lgened text inside the legend box
+            //placing of the legened text inside the legend box
             lineLegend
                 .append("text")
                 .text(function(d) {
                     return d;
                 })
                 .attr("transform", "translate(20,15)");
+
+            //var color_scale = 
+
+            
             //size of the legend box
             lineLegend
                 .append("rect")
@@ -97,7 +107,7 @@ export default Vue.component("posterior-probability-plot", {
                 .append("g")
                 .attr(
                     "transform",
-                    "translate(0," + (height - margin.bottom) + ")"
+                    "translate(0," + (height-margin.top ) + ")"
                 )
                 .call(xAxis);
 
