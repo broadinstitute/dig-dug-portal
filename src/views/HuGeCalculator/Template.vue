@@ -7,21 +7,15 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">
+                    <div class="col-md-12 gene-page-header-title">
                         Gene
                         <a
                             class="edit-btn"
                             @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
                         >Search gene</a>
                     </div>
-                    <div class="col-md-4 gene-page-header-title">
-                        Prior Variance
-                        <a
-                            class="edit-btn"
-                            @click="$parent.showHideElement('priorVarianceHolder','prior_variance_input')"
-                        >Set Prior Variance</a>
-                    </div>
-                    <div class="col-md-8 gene-page-header-body">
+
+                    <div class="col-md-12 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <gene-selectpicker
                                 @onGeneChange="$store.dispatch('queryGeneName',$event)"
@@ -35,20 +29,6 @@
                                 >({{$store.state.geneName}})</span>
                             </span>
                         </div>
-                    </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <div id="priorVarianceHolder" class="gene-page-header-search-holder hidden">
-                            <div class="input-group">
-                                <input
-                                    class="form-control input-default"
-                                    v-model.number="$store.state.priorVariance"
-                                    type="number"
-                                    placeholder="Prior Variance"
-                                    id="prior_variance_input"
-                                />
-                            </div>
-                        </div>
-                        <span>{{$store.state.priorVariance}}</span>
                     </div>
                 </div>
             </div>
@@ -115,9 +95,33 @@
                                     >
                                         <h5>Stage 2</h5>
                                         <documentation
-                                            name="hugecal.stage2NoAssociation.subheader"
+                                            name="hugecal.stage2.subheader"
                                             :content-fill="$parent.documentationMap"
                                         ></documentation>
+                                        <div class="col-md-4 gene-page-header-title">
+                                            Prior Variance
+                                            <a
+                                                class="edit-btn"
+                                                @click="$parent.showHideElement('priorVarianceHolder','prior_variance_input')"
+                                            >Set Prior Variance</a>
+                                        </div>
+                                        <div class="col-md-4 gene-page-header-body">
+                                            <div
+                                                id="priorVarianceHolder"
+                                                class="gene-page-header-search-holder hidden"
+                                            >
+                                                <div class="input-group">
+                                                    <input
+                                                        class="form-control input-default"
+                                                        v-model.number="$store.state.priorVariance"
+                                                        type="number"
+                                                        placeholder="Prior Variance"
+                                                        id="prior_variance_input"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <span>{{$store.state.priorVariance}}</span>
+                                        </div>
                                         <div v-if="$parent.geneAssociations52k">
                                             <div
                                                 v-if="$parent.isSignificant52kAssociationRareVariation"
@@ -135,7 +139,7 @@
                                     <b-col v-else>
                                         <h5>Stage 2</h5>
                                         <documentation
-                                            name="hugecal.stage2.subheader"
+                                            name="hugecal.stage2NoAssociation.subheader"
                                             :content-fill="$parent.documentationMap"
                                         ></documentation>
                                         <strong>{{$store.state.geneName}} is Causal</strong>
@@ -150,7 +154,10 @@
                                             :content-fill="$parent.documentationMap"
                                         ></documentation>
                                         <div v-if="$parent.geneAssociations52k">
-                                            <div v-if="$parent.geneAssociationsLoftee.length >0">
+                                            <div
+                                                v-if="$parent.geneAssociationsLoftee.length >0"
+                                                class="border"
+                                            >
                                                 <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
                                             </div>
                                             <div v-else>
