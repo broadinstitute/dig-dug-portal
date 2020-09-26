@@ -1,7 +1,16 @@
 <template>
     <div id="dataset-associations" v-if="rows > 0">
-        <div v-for="(phenotype, index) in groupedAssociations" :key="phenotype">
-            <b-col>{{ phenotypeMap[index].description }}</b-col>
+        <div
+            v-for="(phenotype, name, index) in groupedAssociations"
+            :key="index"
+            :class="
+                index < (currentPage - 1) * perPage ||
+                index >= currentPage * perPage
+                    ? 'hidden'
+                    : ''
+            "
+        >
+            <b-col>{{ phenotypeMap[name].description }}</b-col>
         </div>
         <b-pagination
             class="pagination-sm justify-content-center"
@@ -29,8 +38,14 @@ export default Vue.component("dataset-associations", {
             return groupBy(ordered, "phenotype");
         },
         rows() {
-            return this.associations.length;
+            return Object.keys(this.groupedAssociations).length;
         },
+        // itemList() {
+        //     return this.groupedAssociations.splice(
+        //         (this.currentPage - 1) * this.perPage,
+        //         this.currentPage * this.perPage
+        //     );
+        // },
     },
 });
 </script>
