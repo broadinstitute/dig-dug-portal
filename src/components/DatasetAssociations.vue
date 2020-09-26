@@ -1,6 +1,6 @@
 <template>
     <div id="dataset-associations" v-if="rows > 0">
-        <div
+        <b-row
             v-for="(phenotype, name, index) in groupedAssociations"
             :key="index"
             :class="
@@ -11,7 +11,11 @@
             "
         >
             <b-col>{{ phenotypeMap[name].description }}</b-col>
-        </div>
+            <b-col>{{ phenotype }}</b-col>
+            <b-col>{{ name }}</b-col
+            ><b-col>{{ index }}</b-col>
+            <b-col>{{ pValueFormatter(phenotype[0].pValue) }}</b-col>
+        </b-row>
         <b-pagination
             class="pagination-sm justify-content-center"
             v-model="currentPage"
@@ -24,28 +28,27 @@
 <script>
 import Vue from "vue";
 import { orderBy, groupBy } from "lodash";
+import Formatters from "@/utils/formatters";
 export default Vue.component("dataset-associations", {
     props: ["associations", "phenotypeMap"],
     data() {
         return {
-            perPage: 25,
+            perPage: 10,
             currentPage: 1,
         };
     },
     computed: {
         groupedAssociations() {
-            let ordered = orderBy(this.associations, ["pValue"], ["desc"]);
+            let ordered = orderBy(this.associations, ["pValue"], ["asc"]);
             return groupBy(ordered, "phenotype");
         },
         rows() {
             return Object.keys(this.groupedAssociations).length;
         },
-        // itemList() {
-        //     return this.groupedAssociations.splice(
-        //         (this.currentPage - 1) * this.perPage,
-        //         this.currentPage * this.perPage
-        //     );
-        // },
+    },
+    methods: {
+        pValueFormatter: Formatters.pValueFormatter,
+        betaFormatter: Formatters.betaFormatter,
     },
 });
 </script>
