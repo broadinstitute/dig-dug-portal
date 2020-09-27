@@ -2,7 +2,7 @@
     <div id="dataset-associations" v-if="rows > 0">
         <b-row
             v-for="(phenotype, name, index) in groupedAssociations"
-            :key="index"
+            :key="name"
             :class="
                 index < (currentPage - 1) * perPage ||
                 index >= currentPage * perPage
