@@ -260,7 +260,11 @@
                         name="variant.tfbinding.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-
+                    <unauthorized-message
+                        :restricted="
+                            $store.state.transcriptionFactors.restricted
+                        "
+                    ></unauthorized-message>
                     <div v-if="$store.state.transcriptionFactors.data">
                         <transcription-factors-table
                             v-bind:transcriptionFactors="
@@ -288,6 +292,9 @@
                         name="variant.annotated.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
+                    <unauthorized-message
+                        :restricted="$store.state.regions.restricted"
+                    ></unauthorized-message>
                     <regions-table :regions="$parent.regions"></regions-table>
                 </div>
             </div>
