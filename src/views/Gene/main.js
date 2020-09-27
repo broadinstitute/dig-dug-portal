@@ -10,7 +10,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
-import UnauthorizeMessage from "@/components/UnauthorizedMessage";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
@@ -40,7 +40,7 @@ new Vue({
         Documentation,
         Autocomplete,
         GeneSelectPicker,
-        UnauthorizeMessage
+        UnauthorizedMessage
     },
 
     data() {

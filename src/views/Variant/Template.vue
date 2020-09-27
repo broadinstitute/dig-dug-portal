@@ -180,7 +180,9 @@
                         name="variant.phewas.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-                    <!--<h4 class="card-title">Visualization</h4>-->
+                    <unauthorized-message
+                        :restricted="$store.state.phewas.restricted"
+                    ></unauthorized-message>
                     <b-tabs content-class="mt-3" align="center">
                         <b-tab title="LocusZoom" active>
                             <locuszoom
@@ -231,6 +233,11 @@
                         </span>
                         associations across datasets
                     </h4>
+                    <unauthorized-message
+                        :restricted="
+                            $store.state.datasetAssociations.restricted
+                        "
+                    ></unauthorized-message>
                     <dataset-associations
                         :associations="$store.state.datasetAssociations.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
