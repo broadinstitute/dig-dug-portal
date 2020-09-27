@@ -10,47 +10,55 @@
                 <div class="amp-banner-right">
                     <div class="amp-banner-left">
                         <a
-                            href="http://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
-                        >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a>
+                            href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
+                            >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a
+                        >
                     </div>
                 </div>
             </div>
             <div
                 class="row amp-header"
                 v-if="!diseaseGroup.default && diseaseGroup.memberCMD"
-                style="height: 50px;"
+                style="height: 50px"
             >
-                <div class="amp-banner-right" style="height: 50px;">
+                <div class="amp-banner-right" style="height: 50px">
                     <a :href="url2Md">
                         <div
                             class="amp-banner-left"
-                            style="padding: 5px; text-align: center;height: 50px;"
+                            style="
+                                padding: 5px;
+                                text-align: center;
+                                height: 50px;
+                            "
                         >
                             <img
-                                :src="'https://kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
+                                :src="'//kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
                                 :class="'portals-2-mdkp-logo'"
                             />
                         </div>
                     </a>
                 </div>
             </div>
-            <div :class="'row '+diseaseGroup.name+'kp-header'">
-                <div :class="diseaseGroup.name+'kp-logo-wrapper col-md-4'">
+            <div :class="'row ' + diseaseGroup.name + 'kp-header'">
+                <div :class="diseaseGroup.name + 'kp-logo-wrapper col-md-4'">
                     <a href="/">
                         <img
                             v-if="frontContents.field_banner_logo"
-                            :src="'https://kp4cd.org/sites/default/files/vueportal/'+frontContents.field_banner_logo"
-                            :class="diseaseGroup.name+'kp-logo'"
+                            :src="
+                                '//kp4cd.org/sites/default/files/vueportal/' +
+                                frontContents.field_banner_logo
+                            "
+                            :class="diseaseGroup.name + 'kp-logo'"
                         />
                         <img
                             v-else
-                            src="https://kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
+                            src="//kp4cd.org/sites/default/files/vueportal/mdkp_header_logo.svg"
                             class="mdkp-logo"
                         />
                     </a>
                 </div>
-                <div :class="diseaseGroup.name+'kp-menu-wrapper col-md-8'">
-                    <ul :class="diseaseGroup.name+'kp-menu kp-menu'">
+                <div :class="diseaseGroup.name + 'kp-menu-wrapper col-md-8'">
+                    <ul :class="diseaseGroup.name + 'kp-menu kp-menu'">
                         <li class="am-menu">
                             <a href="/">Home</a>
                         </li>
@@ -59,19 +67,30 @@
                             <ul class="am-submenu">
                                 <li
                                     page="data"
-                                    v-if="diseaseGroup.name && diseaseGroup.name == 'v2f'"
+                                    v-if="
+                                        diseaseGroup.name &&
+                                        diseaseGroup.name == 'v2f'
+                                    "
                                 >
-                                    <a :href="'/epigeneticdatasets.html'">Epigenetic Datasets</a>
+                                    <a :href="'/epigeneticdatasets.html'"
+                                        >Epigenetic Datasets</a
+                                    >
                                 </li>
                                 <li page="data">
-                                    <a :href="'/datasets.html'">Genetic association datasets</a>
+                                    <a :href="'/datasets.html'"
+                                        >Genetic association datasets</a
+                                    >
                                 </li>
                                 <li page="data">
                                     <a :href="'/downloads.html'">Downloads</a>
                                 </li>
                                 <li
                                     page="data"
-                                    v-if="diseaseGroup.name && (diseaseGroup.name == 't2d' || diseaseGroup.name == 'md')"
+                                    v-if="
+                                        diseaseGroup.name &&
+                                        (diseaseGroup.name == 't2d' ||
+                                            diseaseGroup.name == 'md')
+                                    "
                                 >
                                     <a :href="'/apis.html'">APIs</a>
                                 </li>
@@ -82,9 +101,14 @@
                             <ul class="am-submenu">
                                 <li
                                     page="tools"
-                                    v-if="diseaseGroup.name == 'md' || diseaseGroup.name == 't2d'"
+                                    v-if="
+                                        diseaseGroup.name == 'md' ||
+                                        diseaseGroup.name == 't2d'
+                                    "
                                 >
-                                    <a href="/effectorgenes.html">Predicted Effector Genes</a>
+                                    <a href="/effectorgenes.html"
+                                        >Predicted Effector Genes</a
+                                    >
                                 </li>
                             </ul>
                         </li>
@@ -96,7 +120,13 @@
                                 </li>
                                 <li
                                     page="information"
-                                    v-if="diseaseGroup.name && (diseaseGroup.name != 'v2f' && diseaseGroup.name != 'cvd' && diseaseGroup.name != 'cd' && diseaseGroup.name != 'sleep')"
+                                    v-if="
+                                        diseaseGroup.name &&
+                                        diseaseGroup.name != 'v2f' &&
+                                        diseaseGroup.name != 'cvd' &&
+                                        diseaseGroup.name != 'cd' &&
+                                        diseaseGroup.name != 'sleep'
+                                    "
                                 >
                                     <a href="/collaborate.html">Collaborate</a>
                                 </li>
@@ -108,9 +138,16 @@
                                 </li>
                                 <li
                                     page="information"
-                                    v-if="diseaseGroup.name && (diseaseGroup.name != 'cvd' && diseaseGroup.name != 'cd' && diseaseGroup.name != 'sleep')"
+                                    v-if="
+                                        diseaseGroup.name &&
+                                        diseaseGroup.name != 'cvd' &&
+                                        diseaseGroup.name != 'cd' &&
+                                        diseaseGroup.name != 'sleep'
+                                    "
                                 >
-                                    <a href="/publications.html">Publications</a>
+                                    <a href="/publications.html"
+                                        >Publications</a
+                                    >
                                 </li>
                                 <li page="information">
                                     <a href="/news.html">News</a>
@@ -121,21 +158,23 @@
                             </ul>
                         </li>
                         <li class="am-menu">
-                            <a href="https://kp4cd.org/contact">Contact</a>
+                            <a href="//kp4cd.org/contact">Contact</a>
                         </li>
                         <li v-if="!!user">
                             <a
                                 href="/logout"
-                                :class="diseaseGroup.name+'kp-login'"
+                                :class="diseaseGroup.name + 'kp-login'"
                                 :title="user"
-                            >Logout</a>
+                                >Logout</a
+                            >
                         </li>
                         <li v-else>
                             <a
                                 href="/login"
-                                @click="saveCurrentPage"
-                                :class="diseaseGroup.name+'kp-login'"
-                            >Login</a>
+                                @click.prevent="loginUser"
+                                :class="diseaseGroup.name + 'kp-login'"
+                                >Login</a
+                            >
                         </li>
                     </ul>
                 </div>
@@ -144,13 +183,13 @@
     </div>
 </template>
 
-
 <script>
 import Vue from "vue";
 import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
+import { userMixin } from "@/mixins/userMixin";
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
@@ -158,20 +197,18 @@ export default Vue.component("page-header", {
     components: {
         GoogleAnalytics,
     },
+    mixins: [userMixin],
     data() {
         return {
-            user: "",
             bioindex_dev: false,
         };
     },
     created() {
         if (Vue.$cookies.isKey("session")) {
-            fetch(
-                "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                    Vue.$cookies.get("session")
-            )
-                .then((response) => response.json())
-                .then((data) => (this.user = data.email));
+            this.$store.dispatch(
+                "bioPortal/getUser",
+                Vue.$cookies.get("session")
+            );
         }
         if (BIO_INDEX_HOST.indexOf("dev") != -1) this.bioindex_dev = true;
     },
@@ -181,11 +218,6 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
-        },
-    },
-    methods: {
-        saveCurrentPage() {
-            Vue.$cookies.set("whereAmI", location.href, "", "", host.domain);
         },
     },
 });
