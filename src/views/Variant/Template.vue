@@ -241,6 +241,7 @@
                     <dataset-associations
                         :associations="$store.state.datasetAssociations.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :datasetMap="$store.state.bioPortal.datasetMap"
                     ></dataset-associations>
                 </div>
             </div>
