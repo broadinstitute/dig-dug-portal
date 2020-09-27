@@ -1,6 +1,6 @@
 <template>
     <div id="dataset-associations" class="EGLT-table datasets" v-if="rows > 0">
-        <b-container fluid>
+        <b-container fluid v-if="!!phenotypeMap && !!datasetMap">
             <b-row class="top-level-header">
                 <b-col class="top-level-header-item">Phenotype</b-col>
                 <b-col class="top-level-header-item">P-Value</b-col>
@@ -105,9 +105,13 @@
                         >
                             <b-col class="feature-content-item">
                                 <a
+                                    v-if="!!datasetMap[dataset.dataset]"
                                     :href="`/dinspector.html?dataset=${dataset.dataset}`"
-                                    >{{ dataset.dataset }}</a
+                                    >{{
+                                        datasetMap[dataset.dataset].description
+                                    }}</a
                                 >
+                                <span v-else>{{ dataset.dataset }}</span>
                             </b-col>
                             <b-col class="feature-content-item">{{
                                 pValueFormatter(dataset.pValue)
@@ -170,7 +174,7 @@ import { orderBy, groupBy } from "lodash";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 export default Vue.component("dataset-associations", {
-    props: ["associations", "phenotypeMap"],
+    props: ["associations", "phenotypeMap", "datasetMap"],
     data() {
         return {
             perPage: 10,
