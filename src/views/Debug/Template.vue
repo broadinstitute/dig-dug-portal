@@ -32,17 +32,17 @@
                     </div>
                 </div>
             </div>
-            <!-- <div  id="fademe6s" class="card mdkp-card">
+            <!-- <div id="fademe6s" class="card mdkp-card">
                 <div class="card-body">
                     <h4>Fade me in!</h4>
                 </div>
             </div>-->
 
-            <div class="card mdkp-card">
+            <div class="slideInRight animated card mdkp-card">
                 <div class="card-body">
                     <!-- Stage 1 -->
 
-                    <div id="fademe3s" class="card mdkp-card">
+                    <div class="card mdkp-card">
                         <div class="card-body">
                             <div v-if="$parent.isSignificantAssociationCommonVariation">
                                 <h5>Stage 1</h5>
@@ -90,7 +90,7 @@
 
                     <!-- Stage 2 -->
 
-                    <div id="fademe6s" class="card mdkp-card">
+                    <div class="slideInRight animated2 card mdkp-card">
                         <div class="card-body" v-if="$store.state.effectorGeneData.category">
                             <div v-if="$store.state.effectorGeneData.category != 'CAUSAL'">
                                 <h5>Stage 2</h5>
@@ -245,6 +245,33 @@ window.onload = function() {
 
 
 <style>
+.wrap {
+    overflow-x: hidden;
+}
+.slideInRight {
+    animation-name: slideInRight;
+}
+.animated {
+    animation-duration: 4s;
+    animation-fill-mode: both;
+}
+
+.animated2 {
+    animation-duration: 8s;
+    animation-fill-mode: both;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translate3d(100%, 0, 0);
+        visibility: visible;
+    }
+
+    to {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
 #fademe3s {
     opacity: 0;
     transition: 4s;
