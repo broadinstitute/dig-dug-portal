@@ -55,6 +55,7 @@ new Vue({
         return {
             counter: 0,
             showAssociations: false,
+            trait: "T2D"
         };
     },
 
@@ -122,50 +123,58 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
+
         associationsData() {
-            let data = this.$store.state.associations.data;
-            let filteredData = [];
-            data.forEach(function (row) {
-                if (!!row.consequence) {
-                    if (row.consequence == "missense_variant") {
-                        filteredData.push(row);
+            if (!!this.$store.state.associations.data) {
+                let data = this.$store.state.associations.data;
+                let filteredData = [];
+                data.forEach(function (row) {
+                    if (!!row.consequence) {
+                        if (row.consequence == "missense_variant") {
+                            filteredData.push(row);
+                        }
                     }
-                }
-            })
-            return filteredData;
-        },
-
-        inGWAS() {
-            let data = this.$store.state.associations.data;
-            for (let i = 0; i < data.length; i++) {
-                if (data[i].pValue <= 0.00000005) {
-                    return true;
-                }
+                })
+                return filteredData;
             }
         },
-
-        geneAssociations() {
-            // let data = this.$store.state.geneAssociations;
-            let trait = "T2D";
-            if (!!this.$store.state.geneAssociations.data.length) {
-                let data = this.$store.state.geneAssociations.data;
+        //stage 1 - Significant association? (common Variation)
+        //this makes sure the gene is in GWAS region or not
+        isSignificantAssociationCommonVariation() {
+            if (!!this.$store.state.associations.data) {
+                let data = this.$store.state.associations.data;
                 for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == trait) {
-                        return data[i];
+                    if (data[i].pValue <= 5e-8) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+        },
+
+        geneAssociations52k() {
+            if (!!this.$store.state.geneAssociations52k) {
+                if (!!this.$store.state.geneAssociations52k.data.length) {
+                    let data = this.$store.state.geneAssociations52k.data;
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].phenotype == this.trait) {
+                            return data[i];
+                        }
                     }
                 }
             }
+
+
 
         },
 
         geneAssociationsLoftee() {
-            // let data = this.$store.state.geneAssociations;
-            let trait = "T2D";
-            if (!!this.$store.state.geneAssociations.data.length) {
-                let data = this.$store.state.geneAssociations.data;
+            if (!!this.$store.state.geneAssociations52k.data.length) {
+                let data = this.$store.state.geneAssociations52k.data;
                 let lofteeData = [];
                 for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == trait) {
+                    if (data[i].phenotype == this.trait) {
                         data[i].masks.forEach(r => {
                             if (r.mask == "LofTee") {
                                 lofteeData.push(r)
@@ -177,28 +186,39 @@ new Vue({
             }
         },
 
-        //still needs to be fixed
-        category() {
-            let trait = "T2D";
-            if (!!this.$store.state.geneAssociations.data.length) {
-                let data = this.$store.state.geneAssociations.data;
-                let category = [];
+
+        isSignificant52kAssociationRareVariation() {
+            if (!!this.$store.state.geneAssociations52k.data.length) {
+                let data = this.$store.state.geneAssociations52k.data;
                 for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == trait) {
-                        if (data[i].pValue <= 0.0000025) {
-                            //if Exome wide significant
-                            //this.$store.commit('setStage2Category', "Strong coding evidence-Causal, 1C");
+                    if (data[i].phenotype == this.trait) {
+                        if (data[i].pValue <= 2.5e-6) {
+                            return true;
                         }
                     }
                 }
-                return category;
+                return false;
             }
-        }
+        },
+        //when the gene has significant association  (if exome wide significant)
+        //(Rare Variation), that means there is Strong coding evidence
+        //show the following instead of stage 2 plot
+        stage2Category() {
+            return { "category": "CAUSAL", "Evidence": "Strong Coding Evidence", "genetic": "1C" }
+        },
+        documentationMap() {
+            let gene = this.$store.state.geneName;
+            let phenotype = this.$store.state.phenotype.description;
+
+            return {
+                gene: gene,
+                phenotype: phenotype
+            }
+        },
     },
 
 
     watch: {
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
@@ -207,15 +227,7 @@ new Vue({
         region(region) {
             this.hideElement("variantSearchHolder");
             this.$store.dispatch("queryGeneRegion", region);
-
         },
-
-        // geneAssociations(gene) {
-        //     // this.hideElement("variantSearchHolder");
-        //     this.$store.dispatch("queryGeneName", gene);
-
-        // },
-
 
     }
 }).$mount("#app");

@@ -17,14 +17,14 @@ export default new Vuex.Store({
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
-        geneAssociations: bioIndex("gene-associations"),
+        geneAssociations52k: bioIndex("gene-associations-52k"),
     },
     state: {
         geneName: keyParams.gene,
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
         effectorGeneData: [],
-        category: "Not in GWAS region",
-        stage2Category: null,
+        // category: "Not in GWAS region",
+        // stage2Category: null,
         priorVariance: 0.0462,
     },
 
@@ -43,9 +43,9 @@ export default new Vuex.Store({
         setEffectorGeneData(state, effectorGeneData) {
             state.effectorGeneData = effectorGeneData;
         },
-        setStage2Category(state, stage2Category) {
-            state.stage2Category = stage2Category;
-        },
+        // setStage2Category(state, stage2Category) {
+        //     state.stage2Category = stage2Category;
+        // },
         setPriorVariance(state, priorVariance) {
             state.priorVariance = priorVariance;
         }
@@ -79,9 +79,11 @@ export default new Vuex.Store({
     },
 
     actions: {
+        //Common Variation, Stage 1
         async getEffectorGeneData(context, geneSymbol) {
+
             let dataset = 'mccarthy'
-            let trait = 't2d'
+            let trait = this.state.phenotype.name.toLowerCase();
             let json = fetch(`http://kp4cd.org/egldata/dataset?dataset=${dataset}&trait=${trait}`)
                 .then(resp => {
                     if (resp.status === 422) {
@@ -95,14 +97,11 @@ export default new Vuex.Store({
                 .then(json => {
                     if (json.data.length > 0) {
                         let effectorGeneData = {}
-
                         for (var i = 0; i < json.data.length; ++i) {
-
                             if (json.data[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
                                 effectorGeneData = json.data[i];
                                 let p = effectorGeneData.perturbational.split("")[0] - 1;
                                 effectorGeneData.perturbational = p.toString() + "P";
-
                                 break;
                             }
                             else {
@@ -117,28 +116,22 @@ export default new Vuex.Store({
                     }
                 });
         },
-        async get52KGeneAssociationsData(context, gene) {
 
-            //fetch call to gene-associations: 
-
-            context.dispatch('geneAssociations/query', { q: gene });
-        },
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
+            let phenotype = this.state.phenotype.name;
             context.commit('setGeneName', name);
+            let query = {
+                q: `${phenotype},${name}`
+            };
+
             if (!!name) {
                 context.dispatch('gene/query', { q: name });
                 context.dispatch('getEffectorGeneData', name);
-                context.dispatch('get52KGeneAssociationsData', name);
+                context.dispatch('associations/query', query);
+                context.dispatch('geneAssociations52k/query', { q: name });
             }
         },
-
-        async updatePriorVariance(context, priorVariance) {
-
-            context.commit('setPriorVariance', priorVariance);
-
-        },
-
 
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
@@ -146,7 +139,5 @@ export default new Vuex.Store({
 
             context.dispatch('genes/query', { q });
         },
-
-
     },
 });

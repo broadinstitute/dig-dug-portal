@@ -7,21 +7,15 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">
+                    <div class="col-md-12 gene-page-header-title">
                         Gene
                         <a
                             class="edit-btn"
                             @click="$parent.showHideElement('variantSearchHolder','gene_search_input')"
                         >Search gene</a>
                     </div>
-                    <div class="col-md-4 gene-page-header-title">
-                        Prior Variance
-                        <a
-                            class="edit-btn"
-                            @click="$parent.showHideElement('priorVarianceHolder','prior_variance_input')"
-                        >Set Prior Variance</a>
-                    </div>
-                    <div class="col-md-8 gene-page-header-body">
+
+                    <div class="col-md-12 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <gene-selectpicker
                                 @onGeneChange="$store.dispatch('queryGeneName',$event)"
@@ -36,82 +30,135 @@
                             </span>
                         </div>
                     </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <div id="priorVarianceHolder" class="gene-page-header-search-holder hidden">
-                            <div class="input-group">
-                                <input
-                                    class="form-control input-default"
-                                    v-model.number="$store.state.priorVariance"
-                                    type="number"
-                                    placeholder="Prior Variance"
-                                    id="prior_variance_input"
-                                />
-                            </div>
-                        </div>
-                        <span>{{$store.state.priorVariance}}</span>
-                    </div>
                 </div>
             </div>
+            <!-- <div  id="fademe6s" class="card mdkp-card">
+                <div class="card-body">
+                    <h4>Fade me in!</h4>
+                </div>
+            </div>-->
 
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <b-container fluid class="bv-example-row bv-example-row-flex-cols">
-                        <b-row class="mb-3">
-                            <b-col md="8">
-                                <h4 class="card-title">Gene associations for Type 2 Diabetes</h4>
-                                <b-row class="mb-3">
-                                    <b-col class="col-md-auto">
-                                        <h4 class="card-title">Stage 1</h4>
-                                        <strong
-                                            v-if="$store.state.effectorGeneData.category"
-                                        >Category: {{$store.state.effectorGeneData.category}}</strong>
-                                        <div v-if="$parent.category">
-                                            <strong
-                                                v-if="$parent.category.length >1"
-                                            >{{$parent.category}}</strong>
-                                        </div>
+                    <!-- Stage 1 -->
 
-                                        <div
-                                            v-if="$store.state.effectorGeneData.genetic"
-                                            class="alternative-names"
-                                        >
-                                            <strong>Coding Evidence: &nbsp;</strong>
-                                            <span
-                                                v-if="$store.state.effectorGeneData.genetic"
-                                            >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
-                                        </div>
-                                        <div v-if="$store.state.effectorGeneData.regulatory">
-                                            <strong>Regulatory Evidence:</strong>
-                                            <span
-                                                v-if="$store.state.effectorGeneData.regulatory"
-                                            >{{$store.state.effectorGeneData.regulatory}}</span>
-                                        </div>
-                                        <div>
-                                            <strong>Perturbational Evidence:</strong>
-                                            <span
-                                                v-if="$store.state.effectorGeneData.perturbational"
-                                            >{{$store.state.effectorGeneData.perturbational}}</span>
-                                        </div>
-                                    </b-col>
-                                </b-row>
-                                <b-row class="mb-3">
-                                    <b-col>
-                                        <h4 class="card-title">Stage 2</h4>
+                    <div id="fademe3s" class="card mdkp-card">
+                        <div class="card-body">
+                            <div v-if="$parent.isSignificantAssociationCommonVariation">
+                                <h5>Stage 1</h5>
+                                <documentation
+                                    name="hugecal.stage1.subheader"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                                <strong v-if="$store.state.effectorGeneData.category">
+                                    {{$store.state.effectorGeneData.category}}:
+                                    <span
+                                        v-if="$store.state.effectorGeneData.genetic"
+                                    >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
+                                </strong>
+                                <div v-if="$parent.category">
+                                    <strong v-if="$parent.category.length >1">{{$parent.category}}</strong>
+                                </div>
 
-                                        <div v-if="$parent.geneAssociations">
-                                            <posterior-probability-plot
-                                                :geneAssociationsData="$parent.geneAssociations"
-                                                :priorVariance="$store.state.priorVariance"
-                                                :isDichotomous="true"
-                                            ></posterior-probability-plot>
+                                <div v-if="$store.state.effectorGeneData.genomic">
+                                    <strong>
+                                        Regulatory Evidence:
+                                        <span
+                                            v-if="$store.state.effectorGeneData.genomic"
+                                        >{{$store.state.effectorGeneData.genomic}}</span>&nbsp;
+                                    </strong>
+                                </div>
+                                <div>
+                                    <strong>
+                                        Perturbational Evidence:
+                                        <span
+                                            v-if="$store.state.effectorGeneData.perturbational"
+                                        >{{$store.state.effectorGeneData.perturbational}}</span>&nbsp;
+                                    </strong>
+                                </div>
+                            </div>
+                            <b-col class="col-md-auto" v-else>
+                                <h5>Stage 1</h5>
+                                <documentation
+                                    name="hugecal.stage1.subheader"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                                <strong>No Evidence.The {{$store.state.geneName}} is not genome wide significant</strong>
+                            </b-col>
+                        </div>
+                    </div>
+
+                    <!-- Stage 2 -->
+
+                    <div id="fademe6s" class="card mdkp-card">
+                        <div class="card-body" v-if="$store.state.effectorGeneData.category">
+                            <div v-if="$store.state.effectorGeneData.category != 'CAUSAL'">
+                                <h5>Stage 2</h5>
+                                <documentation
+                                    name="hugecal.stage2.subheader"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                                <div class="col-md-4 gene-page-header-title">
+                                    Prior Variance
+                                    <a
+                                        class="edit-btn"
+                                        @click="$parent.showHideElement('priorVarianceHolder','prior_variance_input')"
+                                    >Set Prior Variance</a>
+                                </div>
+                                <div class="col-md-4 gene-page-header-body">
+                                    <div
+                                        id="priorVarianceHolder"
+                                        class="gene-page-header-search-holder hidden"
+                                    >
+                                        <div class="input-group">
+                                            <input
+                                                class="form-control input-default"
+                                                v-model.number="$store.state.priorVariance"
+                                                type="number"
+                                                placeholder="Prior Variance"
+                                                id="prior_variance_input"
+                                            />
                                         </div>
-                                    </b-col>
-                                </b-row>
-                                <b-row class="mb-3">
-                                    <b-col md="6" class="p-3">
-                                        <h4 class="card-title">Stage 3</h4>
-                                        <div v-if="$parent.geneAssociations">
-                                            <div v-if="$parent.geneAssociationsLoftee.length >0">
+                                    </div>
+                                    <span>{{$store.state.priorVariance}}</span>
+                                </div>
+                                <div v-if="$parent.geneAssociations52k">
+                                    <div v-if="$parent.isSignificant52kAssociationRareVariation">
+                                        <strong>{{$parent.stage2Category.category}}:{{$parent.stage2Category.Evidence}}</strong>
+                                    </div>
+                                    <posterior-probability-plot
+                                        v-else
+                                        :geneAssociationsData="$parent.geneAssociations52k"
+                                        :priorVariance="$store.state.priorVariance"
+                                        :isDichotomous="true"
+                                    ></posterior-probability-plot>
+                                </div>
+                            </div>
+                            <div v-else>
+                                <h5>Stage 2</h5>
+                                <documentation
+                                    name="hugecal.stage2NoAssociation.subheader"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                                <strong>{{$store.state.geneName}} is Causal</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stage 3 -->
+
+                    <!-- <b-row class="mb-3 border-right">
+                                    <b-col md="10">
+                                        <h5 class="card-title">Stage 3</h5>
+                                        <documentation
+                                            name="hugecal.stage3.subheader"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                        <div v-if="$parent.geneAssociations52k">
+                                            <div
+                                                v-if="$parent.geneAssociationsLoftee.length >0"
+                                                class="border"
+                                            >
                                                 <forest-plot :data="$parent.geneAssociationsLoftee"></forest-plot>
                                             </div>
                                             <div v-else>
@@ -119,28 +166,19 @@
                                             </div>
                                         </div>
                                     </b-col>
-                                </b-row>
-                            </b-col>
-                            <b-col md="4" class="ml-auto p-3">
-                                <documentation
-                                    name="hugecal.explore.docs"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
-                            </b-col>
-                        </b-row>
-                    </b-container>
+                    </b-row>-->
                 </div>
             </div>
-
-            <div class="card mdkp-card">
+            <div class="huge-calculator-show-associations-wrapper">
+                <b-button
+                    block
+                    v-on:click="() => $parent.showAssociations == true ? $parent.showAssociations = false : $parent.showAssociations=true"
+                    class="btn-sm huge-calculator-show-associations to-previous-page"
+                >Show Associations Data</b-button>
+            </div>
+            <div class="card mdkp-card" v-if="$parent.showAssociations">
                 <div class="card-body">
-                    <b-button
-                        block
-                        variant="info"
-                        v-on:click="() => $parent.showAssociations == true ? $parent.showAssociations = false : $parent.showAssociations=true"
-                    >Show Associations Data</b-button>
-
-                    <div id="gwasAssocHolder" class="mdkp-card" v-if="$parent.showAssociations">
+                    <div id="gwasAssocHolder" class="mdkp-card">
                         <h4
                             v-if="$store.state.phenotype"
                             class="card-title"
@@ -160,7 +198,6 @@
                             ></lz-associations-panel>
                         </locuszoom>
                         <associations-table
-                            v-if="$parent.inGWAS"
                             :phenotypes="$parent.phenotypes"
                             :associations="$parent.associationsData"
                         ></associations-table>
@@ -173,5 +210,56 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import $ from "jquery";
+import "jquery-ui";
+import Vue from "vue";
+
+import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import Formatters from "@/utils/formatters";
+import Filters from "@/utils/filters";
+
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
+
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
+
+export default Vue.component("test", {
+    props: [],
+    data() {
+        return {};
+    },
+
+    computed: {},
+
+    methods: {}
+});
+
+window.onload = function() {
+    document.getElementById("fademe3s").style.opacity = 1;
+    document.getElementById("fademe6s").style.opacity = 1;
+};
+</script>
+
+
+<style>
+#fademe3s {
+    opacity: 0;
+    transition: 4s;
+}
+
+#fademe6s {
+    opacity: 0;
+    transition: 8s;
+}
+
+#fademe9s {
+    opacity: 0;
+    transition: 12s;
+}
+</style> 
+
 
 
