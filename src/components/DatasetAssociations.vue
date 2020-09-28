@@ -106,7 +106,7 @@
                             <b-col class="feature-content-item">
                                 <a
                                     v-if="!!datasetMap[dataset.dataset]"
-                                    :href="`/dinspector.html?dataset=${dataset.dataset}`"
+                                    :href="`/dinspector.html?dataset=${dataset.dataset}&phenotype=${name}`"
                                     >{{
                                         datasetMap[dataset.dataset].description
                                     }}</a
