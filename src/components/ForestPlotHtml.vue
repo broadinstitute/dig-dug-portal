@@ -26,6 +26,7 @@
                 <label>0</label>
             </div>
             <div class="end-max">{{this.plotData.high_max}}</div>
+
             <div
                 v-for="(value,index) in this.plotData.data"
                 class="forest-plot-html-row"
@@ -33,25 +34,22 @@
             >
                 <template>
                     <div
+                        v-if="!!labelMap[value[labelBy]]"
                         :style="'width:'+value.width+'%; left:'+value.left+'%;'"
                         class="forest-plot-html-item"
                     >
                         <span
-                            v-if="!!labelMap"
                             :class="'phenotype-name '+(value.left > value.right? 'left':'right')"
                         >{{labelMap[value[labelBy]].description}}</span>
-                        <span
-                            v-else
-                            :class="'phenotype-name '+(value.left > value.right? 'left':'right')"
-                        >{{value[labelBy]}}</span>
                     </div>
                     <div
+                        v-if="!!labelMap[value[labelBy]]"
                         class="beta-box"
                         :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':''"
                         :style="'left:calc('+value.beta_position+'% - 9px);'"
                     >&nbsp;</div>
                     <div
-                        v-if="!!labelMap"
+                        v-if="!!labelMap[value[labelBy]]"
                         :class="'phenotype-group-dot '+labelMap[value[labelBy]].group"
                     >
                         <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
@@ -139,9 +137,6 @@ export default Vue.component("forest-plot-html", {
     },
     mounted: function () {},
     computed: {
-        rows() {
-            return this.forestPlotData.length;
-        },
         legendContent() {
             if (!!this.forestPlotData) {
             }
@@ -149,17 +144,14 @@ export default Vue.component("forest-plot-html", {
         plotData() {
             if (!!this.forestPlotData) {
                 let content = {};
+                content["data"] = [];
 
-                content["data"] = this.forestPlotData;
-
-                /*
-                    sortUtils.sortEGLTableData(
-                        content["data"],
-                        this.sortBy,
-                        true,
-                        false
-                    );
-                */
+                this.forestPlotData.map((d) => {
+                    if (!!this.labelMap[d[this.labelBy]]) {
+                        content["data"].push(d);
+                        //console.log(d);
+                    }
+                });
 
                 let tempCiStart = 0,
                     tempCiEnd = 0;
@@ -242,6 +234,9 @@ export default Vue.component("forest-plot-html", {
                 return [];
             }
         },
+        rows() {
+            return this.plotData.data.length;
+        },
     },
     watch: {},
     methods: {
@@ -266,7 +261,7 @@ export default Vue.component("forest-plot-html", {
             let isAsc = checked == true ? true : false;
 
             sortUtils.sortEGLTableData(
-                this.forestPlotData,
+                this.plotData.data,
                 sortColumn,
                 isNumeric,
                 isAsc

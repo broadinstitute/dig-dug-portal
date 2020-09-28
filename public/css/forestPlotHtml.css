@@ -4,7 +4,7 @@
 
 .forest-plot-html-wrapper {
     margin: 30px 40px;
-    padding: 10px 0;
+    padding: 25px 0 10px 0;
     border: solid 1px #ddd;
     position: relative;
 }
@@ -12,19 +12,17 @@
 .start-min, .end-max, .beta-0 {
     font-size: 14px;
     position: absolute;
-    bottom: -20px;
+    top: 0px;
 }
 
 .beta-0 {
     height: 100%;
     border-left: dashed 2px #dfdfdf;
-    bottom: 0 !important;
 }
 
 .beta-0 label {
     display: block;
     position: absolute;
-    bottom: -28px;
 }
 
 .start-min {
@@ -177,6 +175,7 @@
     height: 12px;
     border-radius: 12px;
     left: -20px;
+    top: 3px;
 }
 
 .forest-plot-html-wrapper .forest-plot-ui-options {
