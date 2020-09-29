@@ -12,7 +12,7 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        associations: bioIndex("gwas-associations"),
+        associations: bioIndex("global-associations"),
         annotations: bioIndex("global-enrichment")
     },
     state: {
