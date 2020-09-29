@@ -1,5 +1,37 @@
 <template>
     <div class="forest-plot-card-wrapper">
+        <div class="forest-plot-html-legend-wrapper">
+            <div class="forest-plot-html-legend-content">
+                <ul>
+                    <li>{{sortBy+':'}}</li>
+                    <li>
+                        <span class="beta-box p-significant">&nbsp;</span>
+                        <span
+                            class="label"
+                        >{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(significant)}}</span>
+                    </li>
+                    <li>
+                        <span class="beta-box p-moderate">&nbsp;</span>
+                        <span
+                            class="label"
+                        >{{formatPvalue(significant)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(moderate)}}</span>
+                    </li>
+                    <li>
+                        <span class="beta-box">&nbsp;</span>
+                        <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}</span>
+                    </li>
+                </ul>
+                <ul v-if="!!labelMap">
+                    <li>{{'Group:'}}</li>
+                    <template>
+                        <li v-for="group in this.plotData.label_group">
+                            <span :class="'legend-phenotype-group-dot '+group">&nbsp;</span>
+                            <span class="label">{{group}}</span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </div>
         <div class="forest-plot-html-wrapper row">
             <div class="forest-plot-ui-options">
                 <div class="show-groups-wrapper">
@@ -9,7 +41,7 @@
                         id="show_groups"
                         @change="showGroups()"
                     />
-                    <label for="show_groups">Hide groups</label>
+                    <label for="show_groups">Show groups</label>
                 </div>
                 <div class="sort-groups-wrapper">
                     <input
@@ -21,6 +53,7 @@
                     <label for="sort_groups">Sort by group</label>
                 </div>
             </div>
+
             <div class="start-min">{{this.plotData.low_min}}</div>
             <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">
                 <label>0</label>
@@ -35,12 +68,21 @@
                 <template>
                     <div
                         v-if="!!labelMap[value[labelBy]]"
+                        :class="'hidden phenotype-group-dot '+labelMap[value[labelBy]].group"
+                    >
+                        <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
+                    </div>
+                    <div
+                        v-if="!!labelMap[value[labelBy]]"
                         :style="'width:'+value.width+'%; left:'+value.left+'%;'"
                         class="forest-plot-html-item"
                     >
-                        <span
-                            :class="'phenotype-name '+(value.left > value.right? 'left':'right')"
-                        >{{labelMap[value[labelBy]].description}}</span>
+                        <span :class="'phenotype-name '+(value.left > value.right? 'left':'right')">
+                            {{labelMap[value[labelBy]].description}}
+                            <span
+                                class="order-value"
+                            >{{' ('+formatPvalue(value[sortBy])+')'}}</span>
+                        </span>
                     </div>
                     <div
                         v-if="!!labelMap[value[labelBy]]"
@@ -48,16 +90,10 @@
                         :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':''"
                         :style="'left:calc('+value.beta_position+'% - 9px);'"
                     >&nbsp;</div>
-                    <div
-                        v-if="!!labelMap[value[labelBy]]"
-                        :class="'phenotype-group-dot '+labelMap[value[labelBy]].group"
-                    >
-                        <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
-                    </div>
                 </template>
             </div>
 
-            <div class="forest-plot-html-legend-wrapper">
+            <!--<div class="forest-plot-html-legend-wrapper">
                 <div class="forest-plot-html-legend-handler">
                     <a
                         href="javascript:;"
@@ -88,7 +124,7 @@
                         </template>
                     </ul>
                 </div>
-            </div>
+            </div>-->
         </div>
         <b-pagination
             class="pagination-sm justify-content-center"
@@ -250,8 +286,8 @@ export default Vue.component("forest-plot-html", {
 
             groupDots.forEach(function (groupDot) {
                 checked == true
-                    ? groupDot.classList.add("hidden")
-                    : groupDot.classList.remove("hidden");
+                    ? groupDot.classList.remove("hidden")
+                    : groupDot.classList.add("hidden");
             });
         },
         sortByGroup() {
