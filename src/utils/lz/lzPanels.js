@@ -18,6 +18,10 @@ import {
 
 const BASE_PANEL_OPTIONS = {
     height: 240,
+    // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
+    // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
+    // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
+    min_height: 240,
 }
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
@@ -35,9 +39,6 @@ export class LZAssociationsPanel {
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
         this.translator = associations => associations.map(association => ({
             id: association.varId,
-            chr: association.chromosome,
-            start: association.position,
-            end: association.position,
             position: association.position,
             pValue: association.pValue,
             log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
@@ -144,7 +145,7 @@ export class LZAnnotationIntervalsPanel {
         this.index = 'annotated-regions';
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
         this.translator = function (intervals) {
-            const tissues = _.uniq(intervals.map(interval => interval.tissue));
+            const tissues = intervals.map(interval => interval.tissue);
             const colorScheme = d3.scaleOrdinal().domain(tissues).range(d3.schemeSet1);
             const tissueIntervals = !!intervals ? intervals
                 .map((interval) => {
@@ -249,9 +250,6 @@ export class LZCredibleVariantsPanel {
         this.queryStringMaker = (chr, start, end) => `${phenotype},${credibleSetId}`
         this.translator = associations => associations.map(association => ({
             id: association.varId,
-            chr: association.chromosome,
-            start: association.position,
-            end: association.position,
             position: association.position,
             pValue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
@@ -397,15 +395,14 @@ export class LZComputedCredibleVariantsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomPanelOptions = {
-            title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' } },
-            height: 240,
-            proportional_width: 1,
+            ...BASE_PANEL_OPTIONS,
+            title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' }, x: -0.5 },
             y_index: 1,
-            // margin: { top: 25, bottom: 32  },
+            margin: { bottom: 28  },
             axes: {
                 x: {
                     label: 'Chromosome {{chr}} (Mb)',
-                    label_offset: 32,
+                    label_offset: 26,
                     tick_format: 'region',
                     extent: 'state',
                 },
@@ -600,10 +597,13 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
     }
     parseInit(params) {
         const { phenotype, translator, initialData } = params;
-        this.params = params;
         this.translator = translator;
         this.initialData = initialData;
         this.phenotype = phenotype;
+        this.params = Object.assign(
+            { threshold: 0.95, significance_threshold: 7.301 },
+            params
+        );
     };
     fetchRequest(state, chain, fields) {
         const self = this;
@@ -621,6 +621,12 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
                     const translatedResults = self.translator(results);
                     const nlogpvals = translatedResults.map(association => association.log_pvalue);
 
+                    if (!nlogpvals.some((val) => val >= self.params.significance_threshold)) {
+                        // If NO points have evidence of significance, define the credible set to be empty
+                        //  (rather than make a credible set that we don't think is meaningful)
+                        return resolve([]);
+                    }
+
                     const credset_data = [];
                     try {
                         const scores = scoring.bayesFactors(nlogpvals);
@@ -628,7 +634,7 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
 
                         // Use scores to mark the credible set in various ways (depending on your visualization preferences,
                         //   some of these may not be needed)
-                        const credibleSet = marking.findCredibleSet(posteriorProbabilities, 0.95);
+                        const credibleSet = marking.findCredibleSet(posteriorProbabilities, self.params.threshold);
                         const credSetScaled = marking.rescaleCredibleSet(credibleSet);
                         const credSetBool = marking.markBoolean(credibleSet);
 

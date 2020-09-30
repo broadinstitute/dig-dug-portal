@@ -36,10 +36,8 @@ export default Vue.component("locuszoom", {
         "start",
         "end",
         "scoring",
-        "filterPanels",
-        "filterAssociations",
-        "filterAnnotations",
         "refSeq",
+        "filter",
         "filterAssociations",
         "filterAnnotations",
     ],
@@ -79,8 +77,12 @@ export default Vue.component("locuszoom", {
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
-                min_height: 120,
                 height: 120,
+                // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
+                // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
+                // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
+                min_height: 120,
+                // bottom section
                 y_index: 3
             }));
         }
@@ -121,7 +123,7 @@ export default Vue.component("locuszoom", {
             this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, panelOptions)).addBasicLoader();
 
             // TODO: make this better abstracted
-            if (!!this.filterPanel) this.applyFilter(this.filterPanel);
+            if (!!this.filter) this.applyFilter(this.filter);
             if (!!this.filterAssociations) this.applyFilter(this.filterAssociations, 'associations');
             if (!!this.filterAnnotations) this.applyFilter(this.filterAnnotations, 'intervals');
 
@@ -207,10 +209,8 @@ export default Vue.component("locuszoom", {
             let data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
             if (panelType !== '') {
                 data_layers = data_layers.map(data_layer => {
-                    console.log(data_layer.parent.id)
                     return data_layer
                 }).filter(data_layer => data_layer.parent.id.includes(panelType));
-                console.log('datalayers for paneltype', data_layers, panelType)
             }
 
 
@@ -244,16 +244,13 @@ export default Vue.component("locuszoom", {
         region(newRegion) {
             this.plot.applyState({ chr: newRegion.chr, start: newRegion.start, end: newRegion.end })
         },
-        filterPanel(filter) {
-            console.log('filtering all panels')
+        filter(filter) {
             this.applyFilter(filter);
         },
         filterAssociations(associationsFilter) {
-            console.log('associations filter changed')
             this.applyFilter(associationsFilter, 'association');
         },
         filterAnnotations(annotationsFilter) {
-            console.log('annotations filter changed')
             this.applyFilter(annotationsFilter, 'intervals');
         },
     }
