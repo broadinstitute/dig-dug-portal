@@ -84,18 +84,14 @@
             <hr>
 
             <div class="pancakeplot-viewer-toolbar-wrapper">
-
                 <div class="pancakeplot-viewer-toolbar-button" id="pancakeplot-viewer-toolbar-filter-button" onclick="toggleFilterToolbar()">Filter Menu <i class="fa fa-filter"></i><span id="filter-expand"></span></div>
-
                 <div id="pancakeplot-viewer-filter-toolbar">
-
                         <div class="column-block">
                             <div class="checkbox-wrapper">
                                 <div class="checkbox-title">Variants (<span id="summary-value-varId" class="summary-value"></span>)</div>
                                 <div class="checkbox-set" id= "checkbox-set-varId"></div>
                             </div>
                         </div>
-
                         <div class="column-block">
                             <div class="checkbox-wrapper">
                                 <div class="checkbox-title">Genes (<span id="summary-value-gene" class="summary-value"></span>)</div>
@@ -115,12 +111,10 @@
                                 <div class="checkbox-set" id= "checkbox-set-lineOfEvidence"></div>
                             </div>
                         </div>
-
                 </div>
             </div>
             <hr>
             <div class="pancakeplot-viewer-toolbar-wrapper" id="pancakeplot-viewer-config-toolbar">
-
                 <div class="column-block-wrapper">
                     <div class="column-block">
                         <div class="inline-block">
@@ -134,7 +128,6 @@
                         </div>
                     </div>
                 </div>
-
                     <div class="column-block-wrapper">
                         <div class="column-block">
                             <div class="inline-block">
@@ -159,7 +152,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="column-block-wrapper">
                         <div class="column-block">
                             <div class="select-title"><br></div>
@@ -168,19 +160,19 @@
                             <div id="color-legend-wrapper"></div>
                         </div>
                     </div>
-
                 </div>
-
                 <div id="pancakeplot-wrapper"></div>
-
             </div>
         </body>
     </div>
+
 </template>
 <script>
 import Vue from "vue";
 import * as pancakePlot from "./Pancake/src/plots/pancakePlot"
 import * as $ from "jquery";
+import "./css/svg.css";
+import "./css/style.css";
 
 var expanded = false;
 
