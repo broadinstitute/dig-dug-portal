@@ -79,8 +79,12 @@ export default Vue.component("locuszoom", {
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(LocusZoom.Layouts.get("panel", "genes", {
-                min_height: 120,
                 height: 120,
+                // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
+                // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
+                // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
+                min_height: 120,
+                // bottom section
                 y_index: 3
             }));
         }
