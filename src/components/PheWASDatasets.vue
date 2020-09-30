@@ -175,7 +175,7 @@ import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("phewas-datasets", {
-    props: ["associations", "datasets", "phenotypeMap", "datasetMap"],
+    props: ["associations", "datasets", "phenotypeMap", "datasetMap", "filter"],
     data() {
         return {
             perPage: 10,
@@ -207,6 +207,14 @@ export default Vue.component("phewas-datasets", {
         },
         rows() {
             return this.pheWASAssociations.length;
+        },
+        tableData() {
+            if (!!this.filter) {
+                dataRows = this.pheWASAssociations.filter((association) => {
+                    return this.filter(association);
+                });
+            }
+            return dataRows;
         },
     },
 });
