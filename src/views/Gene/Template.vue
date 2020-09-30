@@ -134,13 +134,61 @@
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
-                            Gene Associations with Masks (52K)
+                            Phenotypes associated with
+                            {{ $store.state.geneName }}
+                            <tooltip-documentation
+                                name="gene.associations.tooltip.hover"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
                         </h4>
+                        <locuszoom
+                            v-if="$store.state.gene"
+                            ref="locuszoom"
+                            :refSeq="false"
+                        >
+                            <lz-phewas-panel
+                                v-if="$store.state.geneName"
+                                :id="$store.state.geneName"
+                                :type="'gene'"
+                                :phenotypeMap="
+                                    $store.state.bioPortal.phenotypeMap
+                                "
+                            ></lz-phewas-panel>
+                        </locuszoom>
                         <unauthorized-message
                             :restricted="$store.state.associations.restricted"
                         ></unauthorized-message>
-                        <gene-associations-masks
+                        <gene-associations-table
+                            v-if="$store.state.gene.data.length > 0"
+                            :gene="$store.state.gene.data[0]"
                             :associations="$store.state.associations.data"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            :filter="$parent.associationsFilter"
+                        ></gene-associations-table>
+                    </div>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div v-if="$parent.dbReference">
+                        <h4 class="card-title">
+                            Gene associations with masks (52K)
+                            <tooltip-documentation
+                                name="gene.52k.tooltip.hover"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+                        <unauthorized-message
+                            :restricted="
+                                $store.state.associations52k.restricted
+                            "
+                        ></unauthorized-message>
+                        <gene-associations-masks
+                            :associations="$store.state.associations52k.data"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         ></gene-associations-masks>
                     </div>

@@ -10,6 +10,7 @@ import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
+import GeneFinderTable from "@/components/GeneFinderTable.vue";
 import EnrichmentTable from "@/components/EnrichmentTable.vue";
 import DatasetsTable from "@/components/DatasetsTable.vue";
 import Documentation from "@/components/Documentation.vue";
@@ -33,6 +34,7 @@ new Vue({
         PageFooter,
         Alert,
         PhenotypeSelectPicker,
+        GeneFinderTable,
         AssociationsTable,
         EnrichmentTable,
         DatasetsTable,

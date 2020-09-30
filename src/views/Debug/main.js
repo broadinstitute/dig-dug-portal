@@ -2,7 +2,6 @@ import Vue from "vue";
 
 import Template from "./Template.vue";
 
-import FilterContextGiver from "@/components/FilterContext/FilterContextGiver.vue"
 import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
 import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
 import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
@@ -10,8 +9,6 @@ import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirecti
 import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
 import FilterMulti from "@/components/FilterWidget/FilterMulti.vue"
-
-import FilterUser from "./FilterUser.vue"
 
 import AssociationsTable from "@/components/AssociationsTable.vue"
 import LocusZoom from "@/components/lz/LocusZoom.vue"
@@ -22,8 +19,6 @@ Vue.config.productionTip = false;
 
 new Vue({
     components: {
-        FilterUser,
-        FilterContextGiver,
         FilterWidget,
         FilterWidgetControl,
         FilterPValue,

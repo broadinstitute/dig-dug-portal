@@ -194,7 +194,8 @@
                             >
                                 <lz-phewas-panel
                                     v-if="$store.state.variant"
-                                    :varId="$store.state.variant.varId"
+                                    :id="$store.state.variant.varId"
+                                    :type="'variant'"
                                     :phenotypeMap="
                                         $store.state.bioPortal.phenotypeMap
                                     "

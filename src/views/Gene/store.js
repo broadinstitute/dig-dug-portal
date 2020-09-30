@@ -15,11 +15,12 @@ export default new Vuex.Store({
         kp4cd,
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
-        associations: bioIndex("gene-associations-52k"),
+        associations: bioIndex("gene-associations"),
+        associations52k: bioIndex("gene-associations-52k"),
         uniprot
     },
     state: {
-        geneName: keyParams.gene
+        geneName: keyParams.gene,
     },
 
     mutations: {
@@ -86,6 +87,7 @@ export default new Vuex.Store({
 
         async queryAssociations(context) {
             let query = { q: context.state.geneName };
+            context.dispatch("associations52k/query", query);
             context.dispatch("associations/query", query);
         }
     }
