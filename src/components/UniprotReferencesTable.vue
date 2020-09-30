@@ -47,6 +47,7 @@
                 </b-col>
             </b-row>
         </b-container>
+
         <b-table
             hover
             small

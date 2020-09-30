@@ -6,6 +6,7 @@
             :placeholder="placeholder"
             @hit="onAutoCompleteItemSelected($event)"
             @keyup.enter="onUserEnterNonAutoCompleteItem"
+            
         >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
@@ -32,7 +33,7 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["matches", "placeholder", "secondaryKey"],
+    props: ["matches", "placeholder", "secondaryKey", "matchkey"],
 
     data() {
         return {

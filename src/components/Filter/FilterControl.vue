@@ -14,12 +14,22 @@
             :data="
                 options.map(option => !!labelFormatter ? { text: labelFormatter(option), value: option } : option)
             "
+            class="autocomplete"
             v-model="filterThreshold"
             :serializer="s => s.text"
             :showOnFocus="true"
             :minMatchingChars="0"
             @hit="updateFilter($event.value)"
         ></vue-typeahead-bootstrap>
+
+        <!-- TODO: reuse this code -->
+        <!-- <autocomplete
+            v-if="!!options && options.length > 0"
+            :lookupOptions="options.map(option => !!labelFormatter ? { text: labelFormatter(option), value: option } : option)"
+            :matchKey=""
+            @item-select="updateFilter($event.value)"
+        ></autocomplete> -->
+
         <b-form-input
             v-else
             v-model="filterThreshold"
@@ -31,6 +41,8 @@
 
 <script>
 import Vue from "vue";
+
+import Autocomplete from "@/components/Autocomplete.vue";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
@@ -105,7 +117,6 @@ export default Vue.component("filter-control", {
             return true;
         },
         updateFilter(newThreshold) {
-            console.log('update filter', newThreshold)
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterGroup
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {

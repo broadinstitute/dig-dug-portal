@@ -1,42 +1,5 @@
 <template>
     <div>
-        <!-- <b-container fluid class="filtering-ui-wrapper">
-            <b-row class="filtering-ui-content">
-                <b-col class="filter-col-lg">
-                    <div class="label">Phenotype</div>
-                    <vue-typeahead-bootstrap
-                        v-if="phenotypeMap"
-                        v-model="phenotypeText"
-                        ref="phenotypeSelect"
-                        :data="Object.values(phenotypeMap)"
-                        :serializer="s => s.description"
-                        @hit="addPhenotype($event)"
-                    ></vue-typeahead-bootstrap>
-                </b-col>
-                <b-col class="divider">
-                    <span class="or-text">OR</span>
-                </b-col>
-                <b-col class="filter-col-sm">
-                    <div class="label">P-Value (&le;)</div>
-                    <b-form-input
-                        id="filter-pValue"
-                        type="text"
-                        @change="filterPValue($event)"
-                        v-model="pValueText"
-                    ></b-form-input>
-                </b-col>
-                <b-col class="filter-col-sm">
-                    <div class="label">Effect</div>
-                    <b-form-select
-                        @input="filterBeta()"
-                        :options="beta_options"
-                        ref="beta"
-                        v-model="beta"
-                    ></b-form-select>
-                </b-col>
-            </b-row>
-        </b-container> -->
-
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
                 v-if="selectedPhenotypes.length > 0 || pValue != '' || (beta != '' && beta != null)"

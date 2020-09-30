@@ -73,7 +73,8 @@ new Vue({
     },
     data() {
         return {
-            phewasFilter: id => true
+            phewasFilter: id => true,
+            regionFilter: id => true,
         }
     },
     methods: {

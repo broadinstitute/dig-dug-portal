@@ -1,6 +1,7 @@
 <template>
     <div>
-        <b-container fluid class="filtering-ui-wrapper filter-rows">
+
+        <!-- <b-container fluid class="filtering-ui-wrapper filter-rows">
             <b-row class="filtering-ui-content">
                 <b-col>
                     <div class="label">Annotations</div>
@@ -27,7 +28,10 @@
                     ></b-form-select>
                 </b-col>
             </b-row>
-        </b-container>
+        </b-container> -->
+
+
+
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row v-if="annotations.length > 0 || methods.length > 0 || tissues.length > 0">
                 <b-col>
@@ -122,7 +126,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("regions-table", {
-    props: ["regions"],
+    props: ["regions", "filter"],
     data() {
         return {
             perPage: 10,
@@ -184,35 +188,14 @@ export default Vue.component("regions-table", {
                 .filter((v, i, arr) => v != undefined && v != "-");
         },
         tableData() {
-            let annotationFiltered =
-                this.annotations.length > 0
-                    ? Filters.filterFormatted(
-                          this.sortedRegions,
-                          this.annotations,
-                          "annotation"
-                      )
-                    : this.sortedRegions;
-
-            let methodsFiltered =
-                this.methods.length > 0
-                    ? Filters.filterFormatted(
-                          annotationFiltered,
-                          this.methods,
-                          "method"
-                      )
-                    : annotationFiltered;
-
-            let tissuesFiltered =
-                this.tissues.length > 0
-                    ? Filters.filterFormatted(
-                          methodsFiltered,
-                          this.tissues,
-                          "tissue"
-                      )
-                    : methodsFiltered;
-
-            return tissuesFiltered;
-        }
+            let dataRows = this.sortedRegions;
+            if (!!this.filter) {
+                dataRows = this.sortedRegions.filter(region => {
+                    return this.filter(region);
+                });
+            }
+            return dataRows;
+        },
     },
 
     methods: {

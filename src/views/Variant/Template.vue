@@ -303,7 +303,46 @@
                         name="variant.annotated.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-                    <regions-table :regions="$parent.regions"></regions-table>
+
+                    <b-container fluid class="filtering-ui-wrapper">
+                        <b-row class="filtering-ui-content">
+
+                            <filter-group
+                                v-model="$parent.regionFilter"
+                                :inclusive="true"
+                                :looseMatch="true">
+
+                                <filter-enumeration-control
+                                    :field="'annotation'"
+                                    :options="$parent.regions.map(region => region.annotation)"
+                                    :multiple="true">
+                                    <div class="label">Annotations</div>
+                                </filter-enumeration-control>
+
+                                <filter-enumeration-control
+                                    :field="'method'"
+                                    :options="$parent.regions.map(region => region.method)"
+                                    :multiple="true">
+                                    <div class="label">Methods</div>
+                                </filter-enumeration-control>
+
+                                <filter-enumeration-control
+                                    :field="'tissue'"
+                                    :options="$parent.regions.map(region => region.tissue)"
+                                    :multiple="true">
+                                    <div class="label">Tissues</div>
+                                </filter-enumeration-control>
+
+                            </filter-group>
+
+                        </b-row>
+                    </b-container>
+
+                    <regions-table
+                        :regions="$parent.regions"
+                        :filter="$parent.regionFilter"
+                    ></regions-table>
+
                 </div>
             </div>
 
