@@ -95,29 +95,11 @@ export default Vue.component("locuszoom", {
         // event listeners
         let self = this;
 
-<<<<<<< HEAD
-        this.plot.on("panel_removed", function(event) {
-=======
         this.plot.on("panel_removed", function (event) {
->>>>>>> master
             self.$emit("panelremoved", event);
         });
 
         // region change handler
-<<<<<<< HEAD
-        this.plot.on("state_changed", function(event) {
-            // TODO: doesn't pass out chromosome!
-            const { start, end } = event; // coordinates are in decimals
-            self.$emit("regionchanged", event);
-        });
-
-        self.$on("LZ_ADD_PANEL", () => {
-            console.log("load panel");
-        });
-    },
-    methods: {
-        addPanelAndDataSource: function(panelClass) {
-=======
         this.plot.on("state_changed", function (event) {
             // TODO: doesn't pass out chromosome!
             const { start, end } = event; // coordinates are in decimals
@@ -126,7 +108,6 @@ export default Vue.component("locuszoom", {
     },
     methods: {
         addPanelAndDataSource: function (panelClass) {
->>>>>>> master
             // DataSources and Panels/Layouts are linked together via namespaces.
             // A DataSource name is given to the panel, for a particular data type
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'

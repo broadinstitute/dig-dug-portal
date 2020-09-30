@@ -69,11 +69,12 @@ export default new Vuex.Store({
         },
 
         canonicalSymbol(state) {
-            let data = state.genes.data;
+            let dataa = state.genes.data;
 
-            for (let i in data) {
-                if (data[i].source === 'symbol') {
-                    return data[i].name;
+
+            for (let i in dataa) {
+                if (dataa[i].source === 'symbol') {
+                    return dataa[i].name;
                 }
             }
         },
