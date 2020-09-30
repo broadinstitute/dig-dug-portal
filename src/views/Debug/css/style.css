@@ -1,0 +1,205 @@
+body{
+    font-family: 'Overpass';
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.8em;
+}
+
+#pancakeplot-viewer-loader {
+  position:fixed;
+  top:20vh;
+  left:45vw;
+}
+
+.pancakeplot-viewer-loading{
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #e2e2e2; /* Blue */
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  animation: spin 2s linear infinite;
+  display:block;
+} 
+
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+h3{
+  font-size:1rem;
+}
+
+.pancakeplot-viewer-body{
+    width:95%;
+    margin:auto;
+  }
+  
+  hr {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border: 0;
+    border-top: 1px solid #eee;
+  }
+  b{
+    font-weight:700;
+  }
+    /* all toolbars have this class */
+  .pancakeplot-viewer-toolbar-wrapper{
+    padding:1rem 2rem 1rem 2rem;
+    width:100%;
+    margin:auto;
+  }
+  
+  #pancakeplot-viewer-genomic-query-range-toolbar{
+    display:flex;
+  }
+  #pancakeplot-viewer-filter-toolbar{
+    display:none;
+    margin-top:1rem;
+  }
+  #pancakeplot-viewer-config-toolbar{
+    display:flex;
+    justify-content: space-around;
+    /* height:200px; */
+  }
+  
+  #color-legend-wrapper{
+    margin-top:1rem;
+  }
+
+  .pancakeplot-viewer-main-toolbar-wrapper{
+    padding:1rem 2rem 1rem 2rem;
+    width:100%;
+    margin:auto;
+    display:flex;
+  }
+
+  /* #credibleSet-select-wrapper{
+    display:inline-block;
+  }  */
+  #igv-barcode-plot-wrapper{
+    width:90%;
+    height:100px;
+    margin-bottom:50px;
+    margin-top:50px;
+  }  
+  
+  #pancakeplot-wrapper{
+    width:100%;
+    margin-bottom:50px;
+  }
+  
+.select-title, .checkbox-title{
+    font-size:.9rem;
+    line-height:1.6em;
+    margin-bottom:.7rem;
+}
+.pancakeplot-viewer-toolbar-button{
+    font-size:.9rem;
+    display:inline-block;
+    border-radius:0.2rem;
+    font-weight:700;
+    border:.5px solid black;
+    padding:0.3rem 0.4rem 0.3rem 0.4rem;
+    cursor:pointer;
+}
+
+.checkbox-wrapper{
+    margin-right:2rem;
+}
+.inline-block{
+  display:inline-block;
+}
+
+.column-block-wrapper{
+  justify-content:space-around;
+  display:flex;
+  border:1px solid #eee;
+  border-radius:5px;
+  padding:1rem 1rem 1rem 1rem;
+}
+
+.column-block{
+  justify-content:space-around;
+  min-width:200px;
+  max-width:350px;
+  margin:0 10px 0 0;
+}
+.column-wrapper, .select-wrapper{
+  justify-content:space-around;
+  margin:0 50px 0 0;
+}
+.checkbox-set, .select-set, .pancakeplot-color-button, .handle-label, .input-form, .input-button{
+    font-family:'Overpass';
+    font-size:0.8rem;
+    line-height:1.6em;
+}
+.checkbox-set{
+    overflow-y:scroll;
+    overflow-x:hidden;
+    height:100px;
+}
+.select-set{
+    padding:0.2rem 0.3rem 0.2rem 0.3rem;
+}
+
+.pancakeplot-color-key{
+  font-size:0.8rem;
+    display:inline-block;
+    padding: 0.2rem 0.3rem 0.2rem 0.3rem;
+    border-radius:0.2rem;
+    margin-right:0.2rem;
+    font-weight:700;
+}
+
+.handle-label{
+    font-weight:700;
+    fill:#c13122;
+}
+.igv-axis-title{
+    font-family:'Overpass';
+    font-weight:300;
+    font-size:0.8rem;
+}
+
+  
+#node-tooltip{
+  font-size:.8rem;
+  line-height: 1.6em;
+  position:fixed;
+  background-color:white;
+  /* width:360px; */
+  z-index:10000;
+  pointer-events: none;
+  padding:4px;
+  border:.5px solid rgba(0,0,0,.5);
+}
+
+.tooltip-text{
+  line-height:1.6em;
+  padding:.2em .1em .2em .1em;
+}
+.tooltip-ul{
+  display:block;
+}
+.tooltip-value{
+  color:grey;
+}
+.tooltip-key{
+  color:black;
+  font-weight:700;
+}
+.tooltip-name{
+  color:black;
+  font-weight:300;
+}
+.tooltip-tag{
+    display:inline-block; 
+    color:white;
+    font-weight:700;
+    padding:0px 5px 0px 5px;
+    border-radius:2px;
+    margin: .2em .2em .2em .2em;
+}

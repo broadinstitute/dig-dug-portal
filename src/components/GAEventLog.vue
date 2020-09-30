@@ -19,7 +19,13 @@
 
         methods: {
             async fetchResults() {
-                await gaUtils.logAnalyticsEvent("GA Event Log Vue","Test Event","Special Number",42);
+                await gaUtils.logAnalyticsEvent(
+                    "GA Event Log Vue",
+                    "Test Event",
+                    {
+                        label: "Special Number"
+                    },
+                    42);
                 this.value = "Event Sent!";
             }
         },

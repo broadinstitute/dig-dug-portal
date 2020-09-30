@@ -21,7 +21,6 @@ import { LZAssociationsPanel, LZAnnotationIntervalsPanel, LZCredibleVariantsPane
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
 
-import FilterContextReceiver from "@/components/FilterContext/FilterContextReceiver.vue"
 import { decodeNamespace } from "@/utils/filterHelpers"
 
 import _ from "lodash";
@@ -43,9 +42,6 @@ export default Vue.component("locuszoom", {
         "filterAssociations",
         "filterAnnotations",
     ],
-    components: {
-        FilterContextReceiver
-    },
     data() {
         return {
             locuszoommounted: false,

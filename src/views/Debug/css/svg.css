@@ -1,0 +1,84 @@
+
+svg:not(:root) {
+    overflow: visible;
+  }
+
+
+  
+  .track,
+  .track-inset,
+  .track-overlay {
+    stroke-linecap: round;
+  }
+  
+  .track {
+    stroke: #000;
+    stroke-opacity: 0.3;
+    stroke-width: 6px;
+  }
+  
+  .track-inset {
+    stroke: #ddd;
+    stroke-width: 8px;
+  }
+  
+  .track-overlay {
+    pointer-events: stroke;
+    stroke-width: 50px;
+    stroke: transparent;
+    cursor: crosshair;
+  }
+  
+  .handle {
+    fill: #fff;
+    stroke: #000;
+    stroke-opacity: 0.5;
+    stroke-width: 1.25px;
+  }
+
+.pancakeplot-axis-title{
+  font-size:.9rem;
+  font-weight:900;
+  fill:#000000;
+  text-transform:uppercase;
+
+}
+
+.axis-parent-label{
+  font-size:.7rem;
+  /* text-transform:uppercase; */
+  fill:#000000;
+}
+.axis-child-label{
+    font-size:.7rem;
+}
+.axis-disease-label, .disease-label, .disease-label span{
+    fill:#c13122 !important;
+    color:#c13122 !important;
+}
+
+  .node{
+    cursor:pointer;
+    opacity:1;
+  }
+  .selected-node{
+    opacity:1;
+    stroke:black !important;
+  }
+  
+  .unselected-node{
+    opacity:.4;
+  }
+
+  .selected-axis text{
+    /* font-weight:900 !important; */
+    fill:rgb(0,0,0);
+  }
+  
+  .unselected-axis text{
+    opacity:.4;
+  }
+
+
+  
+  
