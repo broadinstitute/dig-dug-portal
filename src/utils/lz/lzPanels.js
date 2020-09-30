@@ -479,7 +479,7 @@ export class LZComputedCredibleVariantsPanel {
 }
 
 export class LZPhewasPanel {
-    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }, initialData) {
+    constructor(varOrGeneId, idType, phenotypeMap, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -490,8 +490,8 @@ export class LZPhewasPanel {
         this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
-        this.index = 'phewas-associations';
-        this.queryStringMaker = (chr, start, end) => `${varId}`
+        this.index = ({ gene: 'gene-associations', variant: 'phewas-associations' })[idType];
+        this.queryStringMaker = (chr, start, end) => `${varOrGeneId}`
         this.translator = associations => {
             const portalAssociations = associations.filter(a => {
                 return !!phenotypeMap[a.phenotype];
