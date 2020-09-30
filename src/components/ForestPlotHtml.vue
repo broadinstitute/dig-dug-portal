@@ -1,72 +1,112 @@
 <template>
-    <div>
+    <div class="forest-plot-card-wrapper">
+        <div class="forest-plot-html-legend-wrapper">
+            <div class="forest-plot-html-legend-content">
+                <ul>
+                    <li>Hover over each row for more information.</li>
+                </ul>
+                <ul>
+                    <li>{{sortBy+':'}}</li>
+                    <li>
+                        <span class="beta-box p-significant">&nbsp;</span>
+                        <span
+                            class="label"
+                        >{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(significant)}}</span>
+                    </li>
+                    <li>
+                        <span class="beta-box p-moderate">&nbsp;</span>
+                        <span
+                            class="label"
+                        >{{formatPvalue(significant)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(moderate)}}</span>
+                    </li>
+                    <li>
+                        <span class="beta-box">&nbsp;</span>
+                        <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}</span>
+                    </li>
+                </ul>
+                <ul v-if="!!labelMap">
+                    <li>{{'Group:'}}</li>
+                    <template>
+                        <li v-for="group in this.plotData.label_group">
+                            <span :class="'legend-phenotype-group-dot '+group">&nbsp;</span>
+                            <span class="label">{{group}}</span>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </div>
         <div class="forest-plot-html-wrapper row">
+            <div class="forest-plot-ui-options">
+                <div class="show-groups-wrapper">
+                    <input
+                        type="checkbox"
+                        v-model="groupsShown"
+                        id="show_groups"
+                        @change="showGroups()"
+                    />
+                    <label for="show_groups">Show groups</label>
+                </div>
+                <div class="sort-groups-wrapper">
+                    <input
+                        type="checkbox"
+                        v-model="groupsSort"
+                        id="sort_groups"
+                        @change="sortByGroup()"
+                    />
+                    <label for="sort_groups">Sort by group</label>
+                </div>
+            </div>
+
             <div class="start-min">{{this.plotData.low_min}}</div>
-            <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">0</div>
+            <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">
+                <label>0</label>
+            </div>
             <div class="end-max">{{this.plotData.high_max}}</div>
+
             <div
                 v-for="(value,index) in this.plotData.data"
                 class="forest-plot-html-row"
                 :class="index < (currentPage-1)*perPage || index >= currentPage*perPage ? 'hidden':''"
             >
-                <template>
-                    <div
-                        :style="'width:'+value.width+'%; left:'+value.left+'%;'"
-                        class="forest-plot-html-item"
-                    >
-                        <span
-                            v-if="!!labelMap"
-                            :class="'phenotype-name '+(value.left > value.right? 'left':'right')"
-                        >{{labelMap[value[labelBy]].description}}</span>
-                        <span
-                            v-else
-                            :class="'phenotype-name '+(value.left > value.right? 'left':'right')"
-                        >{{value[labelBy]}}</span>
-                    </div>
-                    <div
-                        class="beta-box"
-                        :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':''"
-                        :style="'left:calc('+value.beta_position+'% - 9px);'"
-                    >&nbsp;</div>
-                    <div
-                        v-if="!!labelMap"
-                        :class="'phenotype-group-dot '+labelMap[value[labelBy]].group"
-                    >
-                        <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
-                    </div>
-                </template>
-            </div>
-            <div class="forest-plot-html-legend-wrapper">
-                <div class="forest-plot-html-legend-handler">
-                    <a
-                        href="javascript:;"
-                        v-on:click="showLegends('forest-plot-html-legend-content')"
-                    >> Show legends</a>
+                <div
+                    v-if="!!labelMap[value[labelBy]]"
+                    :class="'hidden phenotype-group-dot '+labelMap[value[labelBy]].group"
+                >
+                    <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
                 </div>
-                <div class="forest-plot-html-legend-content hidden">
-                    <ul>
-                        <li>
-                            <span class="beta-box p-significant">&nbsp;</span>
-                            {{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(significant)}}
-                        </li>
-                        <li>
-                            <span class="beta-box p-moderate">&nbsp;</span>
-                            {{formatPvalue(significant)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(moderate)}}
-                        </li>
-                        <li>
-                            <span class="beta-box">&nbsp;</span>
-                            {{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}
-                        </li>
-                    </ul>
-                    <ul v-if="!!labelMap">
-                        <template>
-                            <li v-for="group in this.plotData.label_group">
-                                <span :class="'phenotype-group-dot '+group">&nbsp;</span>
-                                {{group}}
-                            </li>
-                        </template>
-                    </ul>
+                <div
+                    v-if="!!labelMap[value[labelBy]]"
+                    :style="'width:'+value.width+'%; left:'+value.left+'%;'"
+                    class="forest-plot-html-item"
+                >
+                    <span :class="'phenotype-name '+(value.left > value.right? 'left':'right')">
+                        {{labelMap[value[labelBy]].description}}
+                        <!--<span
+                            class="order-value"
+                        >{{' ('+formatPvalue(value[sortBy])+')'}}</span>-->
+                    </span>
+                    <div
+                        :class="'forest-plot-more-info '+(value.left > value.right? 'right':'left')"
+                        v-if="!!labelMap[value[labelBy]]"
+                    >
+                        <ul>
+                            <li>{{labelMap[value[labelBy]].description}}</li>
+                            <li
+                                v-if="!!labelMap[value[labelBy]].group"
+                            >{{'Group: '}}{{labelMap[value[labelBy]].group}}</li>
+                            <li>{{sortBy + ': '}}{{formatPvalue(value[sortBy])}}</li>
+
+                            <li>{{'CI low: '}}{{value.low.toFixed(3)}}</li>
+                            <li>{{'CI high: '}}{{value.high.toFixed(3)}}</li>
+                        </ul>
+                    </div>
                 </div>
+                <div
+                    v-if="!!labelMap[value[labelBy]]"
+                    class="beta-box"
+                    :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':''"
+                    :style="'left:calc('+value.beta_position+'% - 9px);'"
+                >&nbsp;</div>
             </div>
         </div>
         <b-pagination
@@ -102,7 +142,12 @@ export default Vue.component("forest-plot-html", {
         "countDichotomous",
     ],
     data() {
-        return { perPage: 25, currentPage: 1 };
+        return {
+            perPage: 25,
+            currentPage: 1,
+            groupsShown: null,
+            groupsSort: null,
+        };
     },
     modules: {
         uiUtils,
@@ -111,9 +156,6 @@ export default Vue.component("forest-plot-html", {
     },
     mounted: function () {},
     computed: {
-        rows() {
-            return this.forestPlotData.length;
-        },
         legendContent() {
             if (!!this.forestPlotData) {
             }
@@ -121,15 +163,14 @@ export default Vue.component("forest-plot-html", {
         plotData() {
             if (!!this.forestPlotData) {
                 let content = {};
+                content["data"] = [];
 
-                content["data"] = this.forestPlotData;
-
-                sortUtils.sortEGLTableData(
-                    content["data"],
-                    this.sortBy,
-                    true,
-                    false
-                );
+                this.forestPlotData.map((d) => {
+                    if (!!this.labelMap[d[this.labelBy]]) {
+                        content["data"].push(d);
+                        //console.log(d);
+                    }
+                });
 
                 let tempCiStart = 0,
                     tempCiEnd = 0;
@@ -160,6 +201,7 @@ export default Vue.component("forest-plot-html", {
                     d["high"] = high;
                     d["low"] = low;
                     d["measure"] = measure;
+                    d["group"] = this.labelMap[d[this.labelBy]].group;
 
                     labelGroup.push(this.labelMap[d[this.labelBy]].group);
                 });
@@ -211,11 +253,38 @@ export default Vue.component("forest-plot-html", {
                 return [];
             }
         },
+        rows() {
+            return this.plotData.data.length;
+        },
     },
     watch: {},
     methods: {
         showLegends(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
+        },
+        showGroups() {
+            let checked = document.getElementById("show_groups").checked;
+
+            let groupDots = document.querySelectorAll(".phenotype-group-dot");
+
+            groupDots.forEach(function (groupDot) {
+                checked == true
+                    ? groupDot.classList.remove("hidden")
+                    : groupDot.classList.add("hidden");
+            });
+        },
+        sortByGroup() {
+            let checked = document.getElementById("sort_groups").checked;
+            let sortColumn = checked == true ? "group" : this.sortBy;
+            let isNumeric = checked == true ? false : true;
+            let isAsc = checked == true ? true : false;
+
+            sortUtils.sortEGLTableData(
+                this.plotData.data,
+                sortColumn,
+                isNumeric,
+                isAsc
+            );
         },
         formatPvalue(VALUE) {
             return formatters.pValueFormatter(VALUE);

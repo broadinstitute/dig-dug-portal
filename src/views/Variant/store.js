@@ -27,12 +27,14 @@ export default new Vuex.Store({
 
     mutations: {
         setVariant(state, variant) {
-            let varId = variant.varId;
+            if (variant) {
+                let varId = variant.varId;
 
-            state.variant = variant;
-            state.newVariantId = variant.dbSNP || varId;
+                state.variant = variant;
+                state.newVariantId = variant.dbSNP || varId;
 
-            keyParams.set({ variant: state.newVariantId });
+                keyParams.set({ variant: state.newVariantId });
+            }
         },
     },
 

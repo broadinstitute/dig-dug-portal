@@ -1,10 +1,11 @@
-import merge from "lodash.merge";
 import { query } from "@/utils/bioIndexUtils";
 import {
     postAlertNotice,
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+
+import merge from "lodash.merge";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -25,6 +26,7 @@ export default function (index, extend) {
                 restricted: 0,
                 profile: {},
                 progress: null,
+                error: null,
             };
         },
 
@@ -40,7 +42,7 @@ export default function (index, extend) {
                     state.progress.bytes_read / state.progress.bytes_total,
                     1.0
                 );
-            },
+            }
         },
 
         // commit methods
@@ -49,6 +51,7 @@ export default function (index, extend) {
                 state.data = [];
                 state.restricted = 0;
                 state.count = 0;
+                state.error = null;
             },
 
             updateCount(state, json) {
@@ -59,27 +62,34 @@ export default function (index, extend) {
             setResponse(state, json) {
                 state.data = json.data;
                 state.profile = json.profile;
+                state.error = null;
             },
 
             setProgress(state, progress) {
                 state.progress = progress;
             },
 
+            setError(state, error) {
+                state.error = error;
+            }
         },
 
         // dispatch methods
         actions: {
             async clear(context) {
-                context.commit("setResponse", { data: [] });
+                context.commit("clearData");
             },
             async query(context, { q, limit }) {
+                context.commit("clearData");
                 let profile = {
                     fetch: 0,
                     query: 0
                 };
 
                 if (!!q) {
-                    let alertID = postAlertNotice(`Loading ${index}; please wait ...`);
+                    let alertID = postAlertNotice(
+                        `Loading ${index}; please wait ...`
+                    );
 
                     // fetch the data
                     let data = await query(index, q, {
@@ -99,6 +109,7 @@ export default function (index, extend) {
                         errHandler: error => {
                             closeAlert(alertID);
                             postAlertError(error.detail);
+                            context.commit('setError', error.detail);
                         },
 
                         finishHandler: response => {

@@ -940,8 +940,11 @@ polyline {
     border-radius: 25px;
     padding: 3px 10px;
     font-size: 15px;
-    width: fit-content;
+    /* width: fit-content;*/
     margin: auto;
+    width: intrinsic; /* Safari/WebKit uses a non-standard name */
+    width: -moz-max-content; /* Firefox/Gecko */
+    width: -webkit-max-content; /* Chrome */
 }
 
 .pagination.b-pagination .page-item {
@@ -1056,6 +1059,7 @@ div.filtering-ui-content div.col.filter-col-sm .form-control,
 div.filtering-ui-content div.col.filter-col-sm select,
 div.filtering-ui-content div.col.filter-col-sm .input {
     width: 110px;
+    display: inline-block;
 }
 
 div.filtering-ui-content div.col.filter-col-md .form-control,
@@ -1233,20 +1237,19 @@ a.to-previous-page:hover {
     height: 50px;
 }
 
-.huge-calculator-show-associations-wrapper {
-    text-align: left;
-    padding-left: 30px;
+.img .alert,
+.no-access .alert {
+    border-style: dashed;
+    border-width: 1px;
+    text-align: center;
 }
 
-.huge-calculator-show-associations {
-    width: auto !important;
-    color: #fff !important;
-    font-size: 16px  !important;
-    background-color: #0097d695 !important;
-    border: solid 1px #0097d6 !important;
-    padding: 1px 10px !important;
+.img .alert-warning,
+.no-access .alert-warning {
+    border-color: darkorange;
 }
 
-.huge-calculator-show-associations:hover {
-    background-color: #0097d6 !important;
+.img .alert-danger,
+.no-access .alert-danger {
+    border-color: darkred;
 }

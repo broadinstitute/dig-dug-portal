@@ -1,107 +1,6 @@
 <template>
     <div>
-        <b-container fluid class="filtering-ui-wrapper">
-            <b-row class="filtering-ui-content">
-                <b-col>
-                    <div class="label">Consequence</div>
-                    <b-form-select
-                        @change="addCompound($event, 'select_consequence','filter-consequence')"
-                        :options="filter_consequence_options"
-                        id="filter-consequence"
-                        ref="select_consequence"
-                    ></b-form-select>
-                </b-col>
-                <b-col>
-                    <div class="label">Closest Gene</div>
-                    <b-form-select
-                        id="filter-gene"
-                        :options="filter_closest_gene_options"
-                        @change="addCompound($event, 'select_gene','filter-gene')"
-                    ></b-form-select>
-                </b-col>
-                <b-col class="filter-col-sm">
-                    <div class="label">P-Value (&le;)</div>
-                    <b-form-input
-                        id="filter-pValue"
-                        type="text"
-                        v-model="select_pValue_text"
-                        @change="addCompound($event, 'select_pValue','filter-pValue', false)"
-                        ref="select_pValue"
-                    ></b-form-input>
-                </b-col>
-                <b-col class="filter-col-sm">
-                    <div class="label">Effect</div>
-                    <b-form-select
-                        id="filter-beta"
-                        @input="addCompound($event, 'select_beta','filter-beta', false)"
-                        :options="select_beta_options"
-                        ref="select_beta"
-                        v-model="select_beta"
-                    ></b-form-select>
-                </b-col>
-            </b-row>
-        </b-container>
-        <b-container fluid class="selected-filters-ui-wrapper">
-            <b-row
-                v-if="select_consequence.length > 0 || select_gene.length > 0 || select_pValue || select_beta"
-            >
-                <b-col>
-                    <span>Selected Filters:&nbsp;&nbsp;</span>
-                    <template v-if="select_consequence.length > 0">
-                        <b-badge
-                            pill
-                            variant="success"
-                            v-for="(v,i) in select_consequence"
-                            :key="v"
-                            @click="removeFilter(i, 'select_consequence')"
-                            class="btn"
-                        >
-                            {{v}}
-                            <span class="remove">X</span>
-                        </b-badge>
-                    </template>
-                    <template v-if="select_gene.length > 0">
-                        <b-badge
-                            pill
-                            variant="warning"
-                            v-for="(g,i) in select_gene"
-                            :key="g"
-                            @click="removeFilter(i, 'select_gene')"
-                            class="btn"
-                        >
-                            {{g}}
-                            <span class="remove">X</span>
-                        </b-badge>
-                    </template>
-                    <template v-if="select_pValue.length > 0">
-                        <b-badge
-                            pill
-                            variant="danger"
-                            @click="unsetFilter('select_pValue')"
-                            class="btn"
-                        >
-                            {{select_pValue}}
-                            <span class="remove">X</span>
-                        </b-badge>
-                    </template>
-                    <template v-if="select_beta">
-                        <b-badge
-                            pill
-                            variant="primary"
-                            @click="unsetFilter('select_beta')"
-                            class="btn"
-                        >
-                            {{select_beta_options.find(e => e.value === select_beta).text}}
-                            <span
-                                class="remove"
-                            >X</span>
-                        </b-badge>
-                    </template>
-                </b-col>
-            </b-row>
-        </b-container>
-
-        <div v-if="rows > 0">
+        <div v-if="tableData.length > 0">
             <b-table
                 hover
                 small
@@ -136,6 +35,7 @@
                 <template v-slot:cell(dbSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
                 </template>
+                <template v-slot:cell(consequence)="r">{{consequenceFormatter(r.item.consequence)}}</template>
                 <template v-slot:cell(genes)="r">
                     <a
                         v-for="gene in r.item.nearest"
@@ -145,21 +45,25 @@
                 </template>
                 <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
                     <span
-                        :class="`effect ${r.item[`${p.name}_beta`] < 0 ? 'negative' : 'positive'}`"
-                    >{{r.item[`${p.name}_beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
-                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}_beta`]) : r.item[`${p.name}_beta`])}}</span>
+                        :class="`effect ${r.item[`${p.name}:beta`] < 0 ? 'negative' : 'positive'}`"
+                    >{{r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
+                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}:beta`]) : r.item[`${p.name}:beta`])}}</span>
                 </template>
-                <template v-slot:cell()
+                <template
+                    v-slot:[phenotypePValueColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >{{pValueFormatter(r.item[`${p.name}:pValue`])}}</template>
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
                 v-model="currentPage"
-                :total-rows="rows"
+                :total-rows="tableData.length"
                 :per-page="perPage"
             ></b-pagination>
         </div>
         <div v-else>
             <h4 v-if="associations.length > 0">No overlapping associations across phenotypes</h4>
+            <h4 v-else>No associations</h4>
         </div>
     </div>
 </template>
@@ -170,7 +74,6 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -180,9 +83,10 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
+import { decodeNamespace } from "@/utils/filterHelpers";
 
 export default Vue.component("associations-table", {
-    props: ["associations", "phenotypes", "showFilters"],
+    props: ["associations", "phenotypes", "filter"],
     components: {
         Documentation,
         TooltipDocumentation
@@ -207,26 +111,14 @@ export default Vue.component("associations-table", {
                 {
                     key: "consequence",
                     label: "Consequence",
-                    formatter: Formatters.consequenceFormatter
                 },
                 {
                     key: "genes",
                     label: "Closest Genes"
                 }
             ],
-
-            select_pValue: "",
-            select_pValue_text: "",
-            select_consequence: [],
-            select_gene: [],
-            select_beta: "",
-            select_beta_options: [
-                { value: "p", text: "Positive" },
-                { value: "n", text: "Negative" }
-            ]
         };
     },
-    mounted() {},
     computed: {
         fields() {
             let fields = this.baseFields;
@@ -236,9 +128,8 @@ export default Vue.component("associations-table", {
 
                 fields = fields.concat([
                     {
-                        key: `${p.name}_pValue`,
+                        key: `${p.name}:pValue`,
                         label: `P-Value`,
-                        formatter: Formatters.pValueFormatter,
                         tdClass(x) {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
@@ -246,19 +137,14 @@ export default Vue.component("associations-table", {
                         }
                     },
                     {
-                        key: `${p.name}_beta`,
-                        label: !!p.dichotomous ? "Odds Ratio" : "Beta"
-                    }
+                        key: `${p.name}:beta`,
+                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
+                    },
                 ]);
             }
 
             return fields;
         },
-
-        rows() {
-            return this.tableData.length;
-        },
-
         groupedAssociations() {
             let data = [];
             let groups = {};
@@ -272,6 +158,7 @@ export default Vue.component("associations-table", {
                     groups[r.varId] = dataIndex;
 
                     data.push({
+                        phenotype: r.phenotype,
                         varId: r.varId,
                         chromosome: r.chromosome,
                         position: r.position,
@@ -285,11 +172,11 @@ export default Vue.component("associations-table", {
                 }
 
                 // add the phenotype columns
-                data[dataIndex][`${r.phenotype}_pValue`] = r.pValue;
-                data[dataIndex][`${r.phenotype}_beta`] = r.beta;
-                data[dataIndex][`${r.phenotype}_stdErr`] = r.stdErr;
-                data[dataIndex][`${r.phenotype}_zScore`] = r.zScore;
-                data[dataIndex][`${r.phenotype}_n`] = r.n;
+                data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
+                data[dataIndex][`${r.phenotype}:beta`] = r.beta;
+                data[dataIndex][`${r.phenotype}:stdErr`] = r.stdErr;
+                data[dataIndex][`${r.phenotype}:zScore`] = r.zScore;
+                data[dataIndex][`${r.phenotype}:n`] = r.n;
 
                 // lowest p-value across all phenotypes
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
@@ -303,7 +190,7 @@ export default Vue.component("associations-table", {
                     let phenotype = this.phenotypes[i];
 
                     // ensure a p-value exists for each phenotype
-                    if (!row[`${phenotype.name}_pValue`]) {
+                    if (!row[`${phenotype.name}:pValue`]) {
                         return false;
                     }
                 }
@@ -316,66 +203,29 @@ export default Vue.component("associations-table", {
 
             return data;
         },
-        filter_consequence_options() {
-            return this.groupedAssociations
-                .map(v => Formatters.consequenceFormatter(v.consequence))
-                .filter((v, i, arr) => arr.indexOf(v) == i)
-                .filter((v, i, arr) => v != undefined)
-                .sort();
-        },
-        filter_closest_gene_options() {
-            let genes = this.associations.flatMap(
-                (assoc) => assoc.nearest || []
-            );
-
-            // return sorted, unique genes
-            return [...new Set(genes)].sort();
-        },
         tableData() {
             let dataRows = this.groupedAssociations;
-
-            let consequenceFiltered =
-                this.select_consequence.length > 0
-                    ? Filters.filterFormatted(
-                          dataRows,
-                          this.select_consequence,
-                          "consequence"
-                      )
-                    : dataRows;
-
-            let geneFiltered =
-                this.select_gene.length > 0
-                    ? Filters.filterNearest(
-                          consequenceFiltered,
-                          this.select_gene,
-                          "nearest"
-                      )
-                    : consequenceFiltered;
-
-            let pValueFiltered =
-                this.select_pValue != ""
-                    ? Filters.filterPValue(
-                          geneFiltered,
-                          this.select_pValue,
-                          "minP"
-                      )
-                    : geneFiltered;
-
-            let betaFiltered = this.select_beta
-                ? Filters.filterBeta(
-                      pValueFiltered,
-                      this.select_beta,
-                      `${this.phenotypes[0].name}_beta`
-                  )
-                : pValueFiltered;
-
-            return betaFiltered;
-        }
+            if (!!this.filter) {
+                dataRows = this.groupedAssociations.filter(association => {
+                    // decode the namespace of the association to allow the filter function (which shouldn't know about component-specific namespaces) to access all of the association's properties
+                    const regularAssociation = decodeNamespace(association, { prefix: `${association.phenotype}:` });
+                    // now, apply the filter function to the decoded object
+                    // NOTE: the decoded object corresponds directly and uniquely to the original object, so any predicate applying to the deocded version should apply to the original
+                    // This means that we don't have to reproject the regularAssociation into the original's namespace before returning the tableData
+                    return this.filter(regularAssociation);
+                });
+            }
+            return dataRows;
+        },
     },
 
     methods: {
+
         phenotypeBetaColumn(phenotype) {
-            return `cell(${phenotype.name}_beta)`;
+            return `cell(${phenotype.name}:beta)`;
+        },
+        phenotypePValueColumn(phenotype) {
+            return `cell(${phenotype.name}:pValue)`;
         },
         alleleFormatter({ reference, alt }) {
             return Formatters.alleleFormatter(reference, alt);
@@ -389,38 +239,12 @@ export default Vue.component("associations-table", {
         effectFormatter(effect) {
             return Formatters.effectFormatter(effect);
         },
-        addFilter(event, obj) {
-            //console.log("add" + event);
-            this[obj].push(event.trim());
-            this[obj + "_text"] = "";
+        pValueFormatter(pValue) {
+            return Formatters.pValueFormatter(pValue);
         },
-        setFilter(event, obj) {
-            this[obj] = event;
-            this[obj + "_text"] = "";
+        consequenceFormatter(consequence) {
+            return Formatters.consequenceFormatter(consequence);
         },
-        removeFilter(index, obj) {
-            this[obj].splice(index, 1);
-        },
-        unsetFilter(obj) {
-            this[obj] = "";
-        },
-        addSingle(event, obj) {
-            this.addFilter(event, obj);
-            this.clearCompound();
-        },
-        addCompound(event, obj, id, multiple = true) {
-            if (multiple) this.addFilter(event, obj);
-            else this.setFilter(event, obj);
-
-            let element = document.getElementById(id);
-            element.value = "";
-        },
-        clearCompound() {
-            this.select_consequence = [];
-            this.select_gene = [];
-            this.select_pValue = "";
-            this.select_beta = "";
-        }
-    }
+    },
 });
 </script>

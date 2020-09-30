@@ -9,12 +9,23 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable";
 import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
+import UnauthorizeMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import Formatters from "@/utils/formatters";
+
+import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
+
+import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
+import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
+import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
+import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
 
 import Alert, {
     postAlert,
@@ -35,15 +46,25 @@ new Vue({
         PageFooter,
         Alert,
         UniprotReferencesTable,
+        GeneAssociationsTable,
         GeneAssociationsMasks,
         Documentation,
         Autocomplete,
-        GeneSelectPicker
+        GeneSelectPicker,
+        UnauthorizeMessage,
+        FilterWidget,
+        FilterWidgetControl,
+        FilterPValue,
+        FilterEnumeration,
+        FilterGreaterThan,
+        LocusZoom,
+        LocusZoomPhewasPanel,
     },
 
     data() {
         return {
             counter: 0,
+            associationsFilter: null,
             externalResources: {
                 ensembl:
                     "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
@@ -58,7 +79,7 @@ new Vue({
 
     created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        this.$store.dispatch("queryAssociations");
+        //this.$store.dispatch("queryAssociations");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -80,8 +101,7 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                window.location.href = `./region.html?chr=${
-                    r.chromosome
+                window.location.href = `./region.html?chr=${r.chromosome
                     }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         }
@@ -170,6 +190,10 @@ new Vue({
             } else {
                 return "";
             }
+        },
+
+        associationPhenotypes() {
+            return this.$store.state.associations.data.map(a => a.phenotype);
         },
 
         documentationMap() {

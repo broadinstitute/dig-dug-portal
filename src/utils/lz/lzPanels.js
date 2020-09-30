@@ -1,5 +1,7 @@
+// TODO: refactor into LocusZoom Panels
+
 import LocusZoom from "locuszoom";
-import {BaseAdapter} from "locuszoom/esm/data/adapters"
+import { BaseAdapter } from "locuszoom/esm/data/adapters"
 
 import { query } from "@/utils/bioIndexUtils";
 import idCounter from "@/utils/idCounter"
@@ -16,6 +18,10 @@ import {
 
 const BASE_PANEL_OPTIONS = {
     height: 240,
+    // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
+    // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
+    // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
+    min_height: 240,
 }
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
@@ -33,14 +39,14 @@ export class LZAssociationsPanel {
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
         this.translator = associations => associations.map(association => ({
             id: association.varId,
-            chr: association.chromosome,
-            start: association.position,
-            end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
             variant: association.varId,
             ref_allele: association.varId,
+            consequence: association.consequence,
+            beta: association.beta,
+            nearest: association.nearest,
         }));
         this.initialData = initialData;
 
@@ -55,7 +61,7 @@ export class LZAssociationsPanel {
             y_index: 0,
             axes: {
                 y1: {
-                    label: 'log10 log_pvalue'
+                    label: 'log_pvalue'
                 }
             },
             data_layers: [
@@ -64,11 +70,19 @@ export class LZAssociationsPanel {
                     {
                         y_axis: {
                             axis: 1,
-                            field: '{{namespace[assoc]}}log_pvalue', // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                            field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
                             // floor: 0,
                             upper_buffer: 0.10,
                             // min_extent: [0, 10],
-                        }
+                        },
+                        fields: [
+                            `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${this.datasource_type}]}}consequence`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${this.datasource_type}]}}nearest`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            // we need to call out the fields directly since merge algorithm doesn't combine arrays
+                            `{{namespace[${this.datasource_type}]}}beta`,
+                            ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields,
+                        ],
                     },
                     LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }),
                 ),
@@ -131,7 +145,7 @@ export class LZAnnotationIntervalsPanel {
         this.index = 'annotated-regions';
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
         this.translator = function (intervals) {
-            const tissues = _.uniq(intervals.map(interval => interval.tissue));
+            const tissues = intervals.map(interval => interval.tissue);
             const colorScheme = d3.scaleOrdinal().domain(tissues).range(d3.schemeSet1);
             const tissueIntervals = !!intervals ? intervals
                 .map((interval) => {
@@ -148,16 +162,16 @@ export class LZAnnotationIntervalsPanel {
                         chr: interval.chromosome,
                         start: interval.start,
                         end: interval.end,
-                        pvalue: scoring[key].minP,
+                        pValue: scoring[key].minP,
                         fold: scoring[key].maxFold,
                         state_id: `${interval.tissueId}`,
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                         state_name: `${interval.tissue}`,
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
-                        itemRgb: [r,g,b].join(),
+                        itemRgb: [r, g, b].join(),
                     } : null;
-            // filter nulls (which represent elements we can't score)
-            }).filter(el => !!el) : [];
+                    // filter nulls (which represent elements we can't score)
+                }).filter(el => !!el) : [];
             return tissueIntervals;
         }
         this.initialData = initialData;
@@ -172,10 +186,17 @@ export class LZAnnotationIntervalsPanel {
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
-            fields: [
-                `${this.datasource_namespace_symbol_for_panel}:pvalue`,
-                `${this.datasource_namespace_symbol_for_panel}:fold`,
-                ...LocusZoom.Layouts.get('data_layer', 'intervals', { namespace: this.datasource_namespace_symbol_for_panel }).fields
+            data_layers: [
+                LocusZoom.Layouts.merge(
+                    {
+                        fields: [
+                            `{{namespace[${this.datasource_type}]}}pValue`,
+                            `{{namespace[${this.datasource_type}]}}fold`,
+                            ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
+                        ]
+                    },
+                    LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }),
+                ),
             ]
         };
         this.handlers = { finishHandler, resolveHandler, errHandler }
@@ -212,28 +233,6 @@ export class LZAnnotationIntervalsPanel {
         }
     }
 
-    get dataLayers() {
-        // I had to find these data_layers out from doing LocusZoom.Layouts.get('panel', 'intervals') <= LocusZoom.Layouts.get('panel', this.panel_layout_type)
-
-        // need to find a better way of editing data layers that doesn't require:
-        // - having to call all of them, because overriding one overrides them all
-        // - ditto with extending fields
-        // the refactoring will probably have to occur conceptually, didn't think i'd have to be doing this
-        return [
-            // this works
-            LocusZoom.Layouts.merge(
-                {
-                    fields: [
-                        '{{namespace[intervals]}}pvalue',
-                        '{{namespace[intervals]}}fold',
-                        ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
-                    ]
-                },
-                LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true })
-            ),
-        ]
-    }
-
 }
 export class LZCredibleVariantsPanel {
     constructor(phenotype, credibleSetId, { finishHandler, resolveHandler, errHandler }, initialData) {
@@ -251,11 +250,8 @@ export class LZCredibleVariantsPanel {
         this.queryStringMaker = (chr, start, end) => `${phenotype},${credibleSetId}`
         this.translator = associations => associations.map(association => ({
             id: association.varId,
-            chr: association.chromosome,
-            start: association.position,
-            end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
             posterior_prob: association.posteriorProbability,
             contrib_fraction: 0.5,
@@ -292,12 +288,12 @@ export class LZCredibleVariantsPanel {
             // Fourth: write down the type of visualization using the data
             // Fifth: add stylings, and the data layer ID
             data_layers: [
-                LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
-                    namespace: {
-                        assoc: this.datasource_namespace_symbol_for_panel,
-                        credset: this.datasource_namespace_symbol_for_panel
-                    },
-                }),
+                // LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
+                //     namespace: {
+                //         assoc: this.datasource_namespace_symbol_for_panel,
+                //         credset: this.datasource_namespace_symbol_for_panel
+                //     },
+                // }),
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,
@@ -308,7 +304,8 @@ export class LZCredibleVariantsPanel {
                     "fields": [
                         `${this.datasource_namespace_symbol_for_panel}:id`,
                         `${this.datasource_namespace_symbol_for_panel}:position`,
-                        `${this.datasource_namespace_symbol_for_panel}:posterior_prob`
+                        `${this.datasource_namespace_symbol_for_panel}:posterior_prob`,
+                        `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
                     ],
                     "x_axis": {
                         "field": `${this.datasource_namespace_symbol_for_panel}:position`
@@ -380,7 +377,7 @@ export class LZComputedCredibleVariantsPanel {
             start: association.position,
             end: association.position,
             position: association.position,
-            pvalue: association.pValue,
+            pValue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
             posterior_prob: association.posteriorProbability,
             log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
@@ -398,15 +395,14 @@ export class LZComputedCredibleVariantsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomPanelOptions = {
-            title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' } },
-            height: 240,
-            proportional_width: 1,
+            ...BASE_PANEL_OPTIONS,
+            title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' }, x: -0.5 },
             y_index: 1,
-            // margin: { top: 25, bottom: 32  },
+            margin: { bottom: 28  },
             axes: {
                 x: {
                     label: 'Chromosome {{chr}} (Mb)',
-                    label_offset: 32,
+                    label_offset: 26,
                     tick_format: 'region',
                     extent: 'state',
                 },
@@ -416,12 +412,12 @@ export class LZComputedCredibleVariantsPanel {
                 }
             },
             data_layers: [
-                LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
-                    namespace: {
-                        assoc: this.datasource_namespace_symbol_for_panel,
-                        credset: this.datasource_namespace_symbol_for_panel
-                    },
-                }),
+                // LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
+                //     namespace: {
+                //         assoc: this.datasource_namespace_symbol_for_panel,
+                //         credset: this.datasource_namespace_symbol_for_panel
+                //     },
+                // }),
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,
@@ -480,7 +476,7 @@ export class LZComputedCredibleVariantsPanel {
 }
 
 export class LZPhewasPanel {
-    constructor(varId, phenotypeMap, { finishHandler, resolveHandler, errHandler }, initialData) {
+    constructor(varOrGeneId, idType, phenotypeMap, { finishHandler, resolveHandler, errHandler }, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -491,8 +487,8 @@ export class LZPhewasPanel {
         this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
-        this.index = 'phewas-associations';
-        this.queryStringMaker = (chr, start, end) => `${varId}`
+        this.index = ({ gene: 'gene-associations', variant: 'phewas-associations' })[idType];
+        this.queryStringMaker = (chr, start, end) => `${varOrGeneId}`
         this.translator = associations => {
             const portalAssociations = associations.filter(a => {
                 return !!phenotypeMap[a.phenotype];
@@ -552,7 +548,8 @@ export class LZPhewasPanel {
         }
     }
 }
-class _LZBioIndexSource extends BaseAdapter {
+
+export class _LZBioIndexSource extends BaseAdapter {
     constructor(params) {
         super(params)
     }
@@ -581,13 +578,13 @@ class _LZBioIndexSource extends BaseAdapter {
                     resolveHandler: self.params.resolveHandler,
                     errHandler: self.params.errHandler,
                 })
-                .then(async resultData => {
-                    resolve(self.translator(resultData));
-                })
-                .catch(async error => {
-                    postAlertError(error.detail);
-                    reject(new Error(error));
-                })
+                    .then(async resultData => {
+                        resolve(self.translator(resultData));
+                    })
+                    .catch(async error => {
+                        postAlertError(error.detail);
+                        reject(new Error(error));
+                    })
             }
         }).finally(closeAlert(alertID));
     };
@@ -600,10 +597,13 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
     }
     parseInit(params) {
         const { phenotype, translator, initialData } = params;
-        this.params = params;
         this.translator = translator;
         this.initialData = initialData;
         this.phenotype = phenotype;
+        this.params = Object.assign(
+            { threshold: 0.95, significance_threshold: 7.301 },
+            params
+        );
     };
     fetchRequest(state, chain, fields) {
         const self = this;
@@ -621,6 +621,12 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
                     const translatedResults = self.translator(results);
                     const nlogpvals = translatedResults.map(association => association.log_pvalue);
 
+                    if (!nlogpvals.some((val) => val >= self.params.significance_threshold)) {
+                        // If NO points have evidence of significance, define the credible set to be empty
+                        //  (rather than make a credible set that we don't think is meaningful)
+                        return resolve([]);
+                    }
+
                     const credset_data = [];
                     try {
                         const scores = scoring.bayesFactors(nlogpvals);
@@ -628,7 +634,7 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
 
                         // Use scores to mark the credible set in various ways (depending on your visualization preferences,
                         //   some of these may not be needed)
-                        const credibleSet = marking.findCredibleSet(posteriorProbabilities, 0.95);
+                        const credibleSet = marking.findCredibleSet(posteriorProbabilities, self.params.threshold);
                         const credSetScaled = marking.rescaleCredibleSet(credibleSet);
                         const credSetBool = marking.markBoolean(credibleSet);
 

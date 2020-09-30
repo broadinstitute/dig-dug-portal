@@ -19,7 +19,6 @@
 
 <script>
 import Vue from "vue";
-import _ from "lodash";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";

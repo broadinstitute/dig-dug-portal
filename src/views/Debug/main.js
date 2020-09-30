@@ -1,6 +1,5 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
 
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
@@ -52,7 +51,9 @@ new Vue({
         ForestPlot,
         TooltipDocumentation
     },
-
+    render(createElement, context) {
+        return createElement(Template);
+    },
     data() {
         return {
             counter: 0,
