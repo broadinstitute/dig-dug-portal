@@ -18,6 +18,7 @@ import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import AssociationsTable from "@/components/AssociationsTable.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import ConfidenceIntervalPlot from "@/components/ConfidenceIntervalPlot.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import ForestPlot from "@/components/ForestPlot.vue";
 import uiUtils from "@/utils/uiUtils";
 
@@ -48,7 +49,8 @@ new Vue({
         AssociationsTable,
         PosteriorProbabilityPlot,
         ConfidenceIntervalPlot,
-        ForestPlot
+        ForestPlot,
+        TooltipDocumentation
     },
 
     data() {

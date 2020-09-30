@@ -47,18 +47,26 @@
                     <b-col cols="6">
                         <!-- Stage 1 -->
                         <div id="fademe2s" class="mdkp-body">
-                            <div class="card mdkp-card slideInLeft animated">
+                            <div class="card mdkp-card slideInLeft .animated1">
                                 <div
                                     class="card-body"
                                     v-if="$parent.isSignificantAssociationCommonVariation"
                                 >
-                                    <h5>Common Variation: Is {{$store.state.geneName}} is genome wide significant?</h5>
+                                    <h5>
+                                        Common Variation: Is {{$store.state.geneName}} is genome wide significant?
+                                        <tooltip-documentation
+                                            name="gene.function.tooltip.hover"
+                                            :content-fill="$parent.documentationMap"
+                                            :isHover="true"
+                                            :noIcon="false"
+                                        ></tooltip-documentation>
+                                    </h5>
                                     <documentation
                                         name="hugecal.stage1.subheader"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                     <strong v-if="$store.state.effectorGeneData.category">
-                                        {{$store.state.effectorGeneData.category}}:
+                                        {{$store.state.effectorGeneData.category}}
                                         <span
                                             style="background-color:#ffc107; padding:5px; border-radius:25px"
                                             v-if="$store.state.effectorGeneData.genetic"
@@ -111,28 +119,27 @@
                                 <!-- <div class="card mdkp-card" >
                                 <div class="card-body" >-->
                                 <b-col cols="6">
-                                    <div
-                                        id="gwasAssocHolder"
-                                        class="mdkp-card"
-                                        v-if="$parent.showAssociations"
-                                    >
-                                        <div class="col-md-12">
-                                            <locuszoom
-                                                v-if="$parent.region"
-                                                ref="locuszoom"
-                                                :chr="$parent.region.chromosome"
-                                                :start="$parent.region.start"
-                                                :end="$parent.region.end"
-                                                :refSeq="true"
-                                            >
-                                                <lz-associations-panel
-                                                    :phenotype="$store.state.phenotype.name"
-                                                    :finishHandler="$parent.updateAssociationsTable"
-                                                ></lz-associations-panel>
-                                            </locuszoom>
-                                        </div>
-                                    </div>
+                                    <div></div>
                                 </b-col>
+                                <div
+                                    class="col-md-12 mdkp-card"
+                                    id="gwasAssocHolder"
+                                    v-if="$parent.showAssociations"
+                                >
+                                    <locuszoom
+                                        v-if="$parent.region"
+                                        ref="locuszoom"
+                                        :chr="$parent.region.chromosome"
+                                        :start="$parent.region.start"
+                                        :end="$parent.region.end"
+                                        :refSeq="true"
+                                    >
+                                        <lz-associations-panel
+                                            :phenotype="$store.state.phenotype.name"
+                                            :finishHandler="$parent.updateAssociationsTable"
+                                        ></lz-associations-panel>
+                                    </locuszoom>
+                                </div>
 
                                 <!-- </div>
                                 </div>-->
@@ -167,7 +174,7 @@
                     <b-col cols="6">
                         <!-- Stage 1 -->
                         <div class="mdkp-body" v-if="$store.state.effectorGeneData.category">
-                            <div class="card mdkp-card slideInLeft animated">
+                            <div class="card mdkp-card slideInLeft .animated2">
                                 <div
                                     class="card-body"
                                     v-if="$store.state.effectorGeneData.category != 'CAUSAL'"
@@ -225,6 +232,10 @@
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                     <strong>{{$store.state.geneName}} is Causal</strong>
+                                    &nbsp;
+                                    <span
+                                        style="background-color:#ffc107; padding:5px; border-radius:25px"
+                                    >1C</span>&nbsp;
                                     <!-- </div>
                                         </div>
                                     </div>-->
@@ -236,7 +247,7 @@
                     <!-- confidence interval -->
                     <b-col cols="6">
                         <div class="mdkp-body">
-                            <div class="card mdkp-card slideInRight animated">
+                            <div class="card mdkp-card slideInRight .animated3">
                                 <div class="card-body">
                                     <documentation
                                         name="hugecal.stage3.subheader"
@@ -370,7 +381,7 @@ window.onload = function() {
 .slideInLeft {
     animation-name: slideInLeft;
 }
-.animated {
+.animated1 {
     animation-duration: 2s;
     animation-fill-mode: both;
 }
@@ -379,6 +390,18 @@ window.onload = function() {
     animation-duration: 2s;
     animation-fill-mode: both;
     animation-delay: 1s;
+}
+
+.animated3 {
+    animation-duration: 2s;
+    animation-fill-mode: both;
+    animation-delay: 2s;
+}
+
+.animated4 {
+    animation-duration: 2s;
+    animation-fill-mode: both;
+    animation-delay: 3s;
 }
 
 @keyframes slideInRight {
