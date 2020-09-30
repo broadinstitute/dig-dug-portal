@@ -1,5 +1,5 @@
 <template>
-    <filter-widget-control
+    <filter-control
         :field="field"
         :predicate="(string, selection) => string === selection"
         :pillFormatter="filterDefinition => `${filterDefinition.field} == ${filterDefinition.threshold}`"
@@ -10,11 +10,11 @@
         :splitBy="splitBy">
         <slot>
         </slot>
-    </filter-widget-control>
+    </filter-control>
 </template>
 <script>
 import Vue from "vue";
-import FilterWidgetControl from "./FilterWidgetControl"
+import FilterControl from "./FilterControl"
 export default Vue.component('filter-multi-control', {
     props: {
         field: String,
@@ -29,7 +29,7 @@ export default Vue.component('filter-multi-control', {
         }
     },
     components: {
-        FilterWidgetControl,
+        FilterControl,
     },
 })
 </script>

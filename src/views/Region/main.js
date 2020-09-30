@@ -20,12 +20,12 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
-import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
-import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
-import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -63,8 +63,8 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
 
-        FilterWidget,
-        FilterWidgetControl,
+        FilterGroup,
+        FilterControl,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,

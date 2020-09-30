@@ -1,6 +1,6 @@
 <template>
     <div>
-        <b-container fluid class="filtering-ui-wrapper">
+        <!-- <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
                 <b-col class="filter-col-lg">
                     <div class="label">Phenotype</div>
@@ -35,7 +35,8 @@
                     ></b-form-select>
                 </b-col>
             </b-row>
-        </b-container>
+        </b-container> -->
+
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
                 v-if="selectedPhenotypes.length > 0 || pValue != '' || (beta != '' && beta != null)"
@@ -128,7 +129,7 @@ import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
 export default Vue.component("phewas-table", {
-    props: ["associations", "phenotypeMap"],
+    props: ["associations", "phenotypeMap", "filter"],
     components: {
         Documentation,
         TooltipDocumentation,
@@ -207,27 +208,13 @@ export default Vue.component("phewas-table", {
         },
 
         tableData() {
-            let sourceData = this.pheWASAssociations;
-
-            let phenotypeFiltered =
-                this.selectedPhenotypes.length > 0
-                    ? Filters.filterPhenotype(
-                          this.pheWASAssociations,
-                          this.selectedPhenotypes
-                      )
-                    : this.pheWASAssociations;
-
-            let pValueFiltered =
-                this.pValue != ""
-                    ? Filters.filterPValue(phenotypeFiltered, this.pValue)
-                    : phenotypeFiltered;
-
-            let betaFiltered =
-                this.beta != "" && this.beta != null
-                    ? Filters.filterBeta(pValueFiltered, this.beta, "beta")
-                    : pValueFiltered;
-
-            return betaFiltered;
+            let dataRows = this.pheWASAssociations;
+            if (!!this.filter) {
+                dataRows = this.pheWASAssociations.filter(association => {
+                    return this.filter(association);
+                });
+            }
+            return dataRows;
         },
     },
 

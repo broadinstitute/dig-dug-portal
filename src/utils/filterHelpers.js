@@ -1,9 +1,4 @@
-import { createContext } from "vue-context-api";
-
-// The argument passed to createContext is the default context value
-// for `id => true`, letting everything through by default amounts to no filter, and vice-versa, so set it as default
-export const { Provider, Consumer } = createContext(id => true); 
-
+import { get } from "lodash";
 
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
@@ -35,11 +30,9 @@ export function filterFromPredicates(allPredicates, inclusive) {
                 if (included === true) break;
             }
         }
-
         if (allPredicates.length > 0) {
             // if we have predicates, the burden of proof may change based on our filtering type
             if (!!!inclusive) {
-
                 // exclusive filter, equivalent to a series of ANDs
                 // break on soonest failure
                 // innocent = true; redundant to set here due to `true` being default value
@@ -47,9 +40,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
                     innocent = predicates[predicateI].func(object);
                     if (innocent === false) break;
                 }
-
             } else {
-
                 // inclusive filter, equivalent to a series of logical ORs
                 // let by all values that pass true on any of the predicates, exclude those that don't
                 // inverts strategy to guilty until proven innocent so we set innocgit stence to false before continuing
@@ -61,7 +52,6 @@ export function filterFromPredicates(allPredicates, inclusive) {
 
             }
         }
-
         return included && innocent;
     }
 
@@ -78,18 +68,19 @@ export function predicateFromSpec({ field, predicate, threshold, inclusive=false
 
     return {
         inclusive,
-        func: (datum) => {
+        func: (obj) => {
             // TODO: other ways of doing matches?
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
 
-            let match = strictCase ? !!datum[field] : !!datum[field] // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
+            let data = get(obj, field);  // NOTE: this technically supports nested fields.
+            let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {
-                if (datum[field].constructor.name === 'Array') {
-                    return datum[field].some(el => predicate(el, threshold));
+                if (data.constructor.name === 'Array') {
+                    return data.some(el => predicate(el, threshold));
                 } else {
-                    return predicate(datum[field], threshold);
+                    return predicate(data, threshold);
                 }
             } else {
                 return notStrictMatch;
@@ -135,7 +126,7 @@ export function looseMatcher(object, fieldName, strictMatchCase=false) {
 export function encodeNamespace(regularObject, { prefix='', suffix='', pDelimiter='', sDelimiter='' }) {
 
     // take an object whose keys are "basic fields", (do not have any application-specific prefixes or suffixes), and add a given prefix or suffix to all of its keys
-    
+
     // e.g. 'associations_src:pValue' has prefix 'associations_src:' in LocusZoom for the basic field pValue
     // if we're using encodeNamespace on an object with key `pValue` and give a prefix `associations_src:`, the result will be an object with the key `associations_src:pValue`
     // we use this function if we're working with a filter that modifies the object property keys before rendering it.
@@ -160,10 +151,7 @@ export function decodeNamespace(namespacedObject, { prefix='', suffix='', pDelim
         // TODO: replace with disjoint regex?
         // for fun: regex crosswords https://regexcrossword.com
         const newKey = key.replace(prefix, '').replace(suffix, '')
-            // TODO: using delimiters redundant/unecessary/confusing?
-            // TODO: remove everything before delimiter
             .replace(pDelimiter, '')
-            // TODO: remove everything after delimiter
             .replace(sDelimiter, '');
         tempObject[newKey] = value;
     })

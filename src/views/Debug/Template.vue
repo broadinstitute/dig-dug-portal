@@ -3,12 +3,12 @@
         <input type="checkbox" id="checkbox" v-model="$parent.inclusive" />
         <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
 
-        <!-- FilterWidget -->
+        <!-- FilterGroup -->
         <!-- "looseMatch=true" means objects that don't have all the properties will pass through by default
              On the Region page this is necessary
              "inclusive" means that the filter will be inclusive predicates (akin to a series of ORs) by default, unless the child controls override.
         -->
-        <filter-widget v-model="$parent.filterFunction" :looseMatch="true">
+        <filter-group v-model="$parent.filterFunction" :looseMatch="true">
             <filter-enumeration-control
                 :field="'consequence'"
                 :options="$parent.associationConsequences"
@@ -24,7 +24,7 @@
             <filter-effect-direction-control :field="'beta'"></filter-effect-direction-control>
 
             <filter-multi-control :field="'nearest'" :options="$parent.associationNearestGenes"></filter-multi-control>
-        </filter-widget>
+        </filter-group>
 
         <!-- Div is dummy to fit components in slot -->
         <div>

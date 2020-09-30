@@ -198,7 +198,7 @@
 
                         <b-container fluid class="filtering-ui-wrapper">
                             <b-row class="filtering-ui-content">
-                                <filter-widget
+                                <filter-group
                                     v-model="$parent.associationsFilter"
                                     :looseMatch="true"
                                 >
@@ -229,7 +229,7 @@
                                     >
                                         <div class="label">Effect (+/-)</div>
                                     </filter-effect-direction-control>
-                                </filter-widget>
+                                </filter-group>
                             </b-row>
                         </b-container>
 
@@ -295,7 +295,7 @@
                                 <div class="col divider">&nbsp;</div>
 
                                 <div class="col" style="vertical-align: top">
-                                    <filter-widget
+                                    <filter-group
                                         v-model="$parent.annotationsFilter"
                                         :looseMatch="true"
                                     >
@@ -319,7 +319,7 @@
                                                 Fold (&ge;)
                                             </span>
                                         </filter-greater-control>
-                                    </filter-widget>
+                                    </filter-group>
                                 </div>
 
                                 <!-- <div class="col filter-col-lg" style="vertical-align: top;">

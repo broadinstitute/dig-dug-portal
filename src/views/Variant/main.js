@@ -27,6 +27,13 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+
 new Vue({
     store,
 
@@ -45,6 +52,14 @@ new Vue({
         LocusZoomPhewasPanel,
 
         ForestPlotHtml,
+
+        FilterGroup,
+        FilterControl,
+        FilterPValue,
+        FilterEffectDirection,
+        FilterEnumeration,
+        FilterGreaterThan,
+
     },
 
     created() {
@@ -56,7 +71,11 @@ new Vue({
     render(createElement, context) {
         return createElement(Template);
     },
-
+    data() {
+        return {
+            phewasFilter: id => true
+        }
+    },
     methods: {
         ...uiUtils,
         postAlert,

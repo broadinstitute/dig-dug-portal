@@ -1,5 +1,5 @@
 <template>
-    <filter-widget-control
+    <filter-control
         :field="field"
         :type="'string'"
         :predicate="(string, selection) => string === selection"
@@ -7,20 +7,20 @@
         :labelFormatter="capitalize"
         :options="selectionOptions"
         :color="'#28a745'"
-        :multiple="false">
+        :multiple="!!multiple"
+        :inclusive="!!inclusive">
         <slot>
-            Match
         </slot>
-    </filter-widget-control>
+    </filter-control>
 </template>
 <script>
 import Vue from "vue";
-import FilterWidgetControl from "./FilterWidgetControl"
+import FilterControl from "./FilterControl"
 import Formatter from "@/utils/formatters"
 export default Vue.component('filter-enumeration-control', {
-    props: ['field', 'options', 'color'],
+    props: ['field', 'options', 'color', 'multiple', 'inclusive'],
     components: {
-        FilterWidgetControl,
+        FilterControl,
     },
     methods: {
         capitalize: Formatter.capitalizedFormatter,

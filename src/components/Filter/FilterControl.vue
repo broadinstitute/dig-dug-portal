@@ -4,12 +4,10 @@
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
             {{field}}
         </slot>
+
         <!--
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
-        -->
-        <!--
-
         -->
         <vue-typeahead-bootstrap
             v-if="!!options && options.length > 0"
@@ -20,7 +18,6 @@
             :serializer="s => s.text"
             :showOnFocus="true"
             :minMatchingChars="0"
-            :maxMatches="30"
             @hit="updateFilter($event.value)"
         ></vue-typeahead-bootstrap>
         <b-form-input
@@ -44,7 +41,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("filter-widget-control", {
+export default Vue.component("filter-control", {
     props: {
         value: [ String, Number ],
         field: String,
@@ -82,7 +79,7 @@ export default Vue.component("filter-widget-control", {
                 multiple: (!!this.multiple || !!this.splitBy) ? true : false, // if undefined, default to false
                 inclusive: (!!this.inclusive || !!this.splitBy) ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
             },
-            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterGroup we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
     created() {
@@ -109,7 +106,7 @@ export default Vue.component("filter-widget-control", {
         },
         updateFilter(newThreshold) {
             console.log('update filter', newThreshold)
-            // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
+            // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterGroup
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
                 const isValid = this.validateInput(newThreshold);

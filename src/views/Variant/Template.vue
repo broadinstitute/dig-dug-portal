@@ -8,6 +8,7 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-9 gene-page-header-title">
@@ -176,10 +177,42 @@
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h4>
+
                     <documentation
                         name="variant.phewas.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
+
+                    <b-container fluid class="filtering-ui-wrapper">
+                        <b-row class="filtering-ui-content">
+
+                            <filter-group
+                                v-model="$parent.phewasFilter"
+                                :looseMatch="true">
+
+                                <filter-enumeration-control
+                                    :field="'phenotype.description'"
+                                    :options="Object.values(this.$store.state.bioPortal.phenotypeMap).map(phenotypeInfo => phenotypeInfo.description)"
+                                    :inclusive="true"
+                                    :multiple="true">
+                                    <div class="label">Phenotypes</div>
+                                </filter-enumeration-control>
+
+                                <filter-pvalue-control :field="'pValue'">
+                                    <div class="label">P-Value (&le;)</div>
+                                </filter-pvalue-control>
+
+                                <filter-effect-direction-control
+                                    :field="'beta'"
+                                >
+                                    <div class="label">Effect (+/-)</div>
+                                </filter-effect-direction-control>
+
+                            </filter-group>
+
+                        </b-row>
+                    </b-container>
+
                     <!--<h4 class="card-title">Visualization</h4>-->
                     <b-tabs content-class="mt-3" align="center">
                         <b-tab title="LocusZoom" active>
@@ -188,6 +221,7 @@
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
+                                :filter="$parent.phewasFilter"
                                 :refSeq="false"
                             >
                                 <lz-phewas-panel
@@ -219,9 +253,11 @@
                         v-if="$store.state.phewas.data"
                         :associations="$store.state.phewas.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :filter="$parent.phewasFilter"
                     ></phewas-table>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
@@ -251,6 +287,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
@@ -269,6 +306,7 @@
                     <regions-table :regions="$parent.regions"></regions-table>
                 </div>
             </div>
+
         </div>
 
         <!-- Footer-->

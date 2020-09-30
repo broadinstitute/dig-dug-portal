@@ -14,7 +14,7 @@
             >Selected Filters:&nbsp;&nbsp;
             <!-- Derive pills from current filter state?
                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
-                        It would be deterministic upto the compile-time declaration of the FilterWidget controls which would lead to predicatable results at runtime
+                        It would be deterministic upto the compile-time declaration of the FilterGroup controls which would lead to predicatable results at runtime
                     -->
             <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
             <b-badge
@@ -31,6 +31,7 @@
         </span>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <br v-else />
+
     </span>
 </template>
 
@@ -58,7 +59,7 @@ const EventListener = {
      * If you want someone to blame for this, it's the Vue devs, for not allowing v-on with slots: https://github.com/vuejs/vue/issues/4781
      * And we're doing this as our response: https://github.com/vuejs/vue/issues/4781#issuecomment-501217642
      *
-     * In FilterWidget we'll use 'change' as the event share between EventListener and the child components.
+     * In FilterGroup we'll use 'change' as the event share between EventListener and the child components.
      *
      */
     render(createElement) {
@@ -72,7 +73,7 @@ const EventListener = {
     },
 };
 
-export default Vue.component("filter-widget", {
+export default Vue.component("filter-group", {
     props: ["value", "inclusive", "strictCase", "looseMatch"],
     components: {
         EventListener,

@@ -1,5 +1,5 @@
 <template>
-    <filter-widget-control
+    <filter-control
         :field="field"
         :type="'boolean'"
         :predicate="(beta, direction) => {
@@ -18,15 +18,15 @@
         <slot>
             Effect (+/-)
         </slot>
-    </filter-widget-control>
+    </filter-control>
 </template>
 <script>
 import Vue from "vue";
-import FilterWidgetControl from "./FilterWidgetControl"
+import FilterControl from "./FilterControl"
 export default Vue.component('filter-effect-direction-control', {
     props: ['field'],
     components: {
-        FilterWidgetControl,
+        FilterControl,
     }
 })
 </script>

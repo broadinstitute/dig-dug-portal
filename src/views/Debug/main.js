@@ -2,13 +2,13 @@ import Vue from "vue";
 
 import Template from "./Template.vue";
 
-import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
-import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
-import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
-import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
-import FilterMulti from "@/components/FilterWidget/FilterMulti.vue"
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import FilterMulti from "@/components/Filter/FilterMulti.vue"
 
 
 import AssociationsTable from "@/components/AssociationsTable.vue"
@@ -20,8 +20,8 @@ Vue.config.productionTip = false;
 
 new Vue({
     components: {
-        FilterWidget,
-        FilterWidgetControl,
+        FilterGroup,
+        FilterControl,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,

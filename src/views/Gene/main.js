@@ -21,11 +21,11 @@ import Formatters from "@/utils/formatters";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
-import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
-import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
-import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 
 import Alert, {
     postAlert,
@@ -52,8 +52,8 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
         UnauthorizeMessage,
-        FilterWidget,
-        FilterWidgetControl,
+        FilterGroup,
+        FilterControl,
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,

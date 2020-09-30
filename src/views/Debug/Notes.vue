@@ -13,14 +13,14 @@
              - Components shouldn't know about the filter being passed to them (they should apply the function no problem)
              - A filter function should be applicable to many components at once
          -->
-         
+
         <!-- Step 1: Interface Ergonomics -->
-        <!-- 
+        <!--
             Filter provider and client are directly in page
             Cons:
             - Looks messy
             - Clutters template with implementation detail (of a kind) that technically could be hidden in the component
-                !! Although, it seems that since this alone isn't sufficient for locuszoom and associations-table to respond to a change in the filters, 
+                !! Although, it seems that since this alone isn't sufficient for locuszoom and associations-table to respond to a change in the filters,
                    this ends up being the biggest solution! (since we need to do reactive prop-drilling which implies prop/watcher, composition API, or multiple filterCs anyway)
             Pros:
             - Explicit
@@ -36,7 +36,7 @@
             </template>
         </filterP>
 
-        <!-- 
+        <!--
             Filter component binds to a piece of data in the page, that each component directly subscribes to
             - Cost:
               - Breaches page scope (which we shouldn't do without Composition API to facilitate modularity and DRY)
@@ -55,7 +55,7 @@
             :filter="$parent.filter"
         ></asscociations-table>
 
-        <!-- 
+        <!--
             Apply the filter onto the data before it's passed out
             Pro:
             - No component necessary
@@ -83,7 +83,7 @@
                 - Forces us towards Composition API/Vue 3
          -->
         <filter-widget v-model="$parent.filter"></filter-widget>
-        <!-- 
+        <!--
             Page Script
             <script>
                 new Vue({
@@ -103,26 +103,26 @@
             v-model="$parent.associationsData"
         ></asscociations-table>
 
-        <!-- 
-            Revision: 
+        <!--
+            Revision:
             - Use providers, again, to manage scope, but combine the filter provider with the filter widget to prevent the function from escaping to the page scope
             - Only usable with puppet components
         -->
-        <filter-widget>
+        <filter-group>
             <filterP>
                 <filterC slot-scope="filter">
                     <locuszoom
                         :associations="filter($store.state.associations.data)">
                     </locuszoom>
                     <asscociations-table
-                        :associations="filter($store.state.associations.data)">    
+                        :associations="filter($store.state.associations.data)">
                     </asscociations-table>
                 </filterC>
             </filterP>
-        </filter-widget>
+        </filter-group>
 
-        <!-- 
-            PO: 
+        <!--
+            PO:
             Turn the filter into a module?
             Could use registration functions to create hooks for filter change beahvior
             Pros:
@@ -136,7 +136,7 @@
 
         <filter-widget v-model="$parent.filter"></filter-widget>
         <filter-scope :state="$parent.filter">
-            <!-- 
+            <!--
                 LocusZoom and AssociationsTable both have a filterC component inside of them which handles
                 => An APPLY event (which the component passes an applicator function to, as the response will vary with the client)
                 => Prop Drilling (which will allow for an arbitrary location for the respondents to the filter as long as they are inside the parent)
@@ -172,13 +172,13 @@
                 <locuszoom ref="locuszoom"></locuszoom>
             </filterC>
             <filterC slot-scope="filter" @change="$ref.associationsTable.applyFilter(filter)">
-                <asscociations-table ref="associationsTable">    
+                <asscociations-table ref="associationsTable">
                 </asscociations-table>
             </filterC>
         </filterP>
 
 
-        <!-- 
+        <!--
             Also necessary is a filter-function library
             - Assume AoS format: then => pattern match to prop shapes
                 * applyFilter HoF?
@@ -197,28 +197,28 @@
             Alternately retool label tables
          -->
 
-         <!-- 
+         <!--
              Also needed is a filter widget
             - Filter widget needs to be able to modify the filter function with an arbitrary number of option-value pairs given to it (i.e. highly extensible)
             - Filter function neeeds to know how to modify the provider that passes the function change message along
           -->
 
-        <!-- 
-            Suppose (preliminarily!) that we use the vue context api library. 
+        <!--
+            Suppose (preliminarily!) that we use the vue context api library.
             Then the components we will need for the final solution would be:
             - Provider
             - Consumer
             - Event-Binder (wrapped by Consumer)
             - A component with means of defining what the filter is
-            
+
             Then the widget that uses the component with means of defining what the filter is to the Provider, and all wrapped consumers respond with the function that was bound to them.
             Does this satisfy on the associations table?
             Does this satisfy on the locuszoom component?
             What will Jeff think?
          -->
 
-        <!-- 
-            NOTE: 
+        <!--
+            NOTE:
             some of these solutions share implementation requirements - these are the common currencies for the tradeoffs between these solutions
          -->
 

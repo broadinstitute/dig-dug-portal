@@ -1,5 +1,5 @@
 <template>
-    <filter-widget-control
+    <filter-control
         :field="field"
         :type="'number'"
         :predicate="(pValue, pBound) => pValue <= pBound"
@@ -7,16 +7,16 @@
         :color="'#dc3545'"
         :multiple="false">
         <slot></slot>
-    </filter-widget-control>
+    </filter-control>
 </template>
 <script>
 import Vue from "vue";
-import FilterWidgetControl from "./FilterWidgetControl"
+import FilterControl from "./FilterControl"
 import Formatter from "@/utils/formatters"
 export default Vue.component('filter-pvalue-control', {
     props: ['field'],
     components: {
-        FilterWidgetControl,
+        FilterControl,
     },
     methods: {
         pValueFormatter: Formatter.pValueFormatter

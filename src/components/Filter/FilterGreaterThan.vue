@@ -1,5 +1,5 @@
 <template>
-    <filter-widget-control
+    <filter-control
         :field="field"
         :type="'number'"
         :predicate="(number, lowerBound) => number >= lowerBound"
@@ -9,15 +9,15 @@
         <slot>
             {{field}}
         </slot>
-    </filter-widget-control>
+    </filter-control>
 </template>
 <script>
 import Vue from "vue";
-import FilterWidgetControl from "./FilterWidgetControl"
+import FilterControl from "./FilterControl"
 export default Vue.component('filter-greater-control', {
     props: ['field', 'color'],
     components: {
-        FilterWidgetControl,
+        FilterControl,
     }
 })
 </script>
