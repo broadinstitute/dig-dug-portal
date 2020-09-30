@@ -20,7 +20,6 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-import FilterContextGiver from "@/components/FilterContext/FilterContextGiver.vue"
 import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
 import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
 import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
@@ -64,7 +63,6 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
 
-        FilterContextGiver,
         FilterWidget,
         FilterWidgetControl,
         FilterPValue,
