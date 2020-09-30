@@ -35,9 +35,6 @@ export class LZAssociationsPanel {
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
         this.translator = associations => associations.map(association => ({
             id: association.varId,
-            chr: association.chromosome,
-            start: association.position,
-            end: association.position,
             position: association.position,
             pValue: association.pValue,
             log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
@@ -144,7 +141,7 @@ export class LZAnnotationIntervalsPanel {
         this.index = 'annotated-regions';
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
         this.translator = function (intervals) {
-            const tissues = _.uniq(intervals.map(interval => interval.tissue));
+            const tissues = intervals.map(interval => interval.tissue);
             const colorScheme = d3.scaleOrdinal().domain(tissues).range(d3.schemeSet1);
             const tissueIntervals = !!intervals ? intervals
                 .map((interval) => {
@@ -249,9 +246,6 @@ export class LZCredibleVariantsPanel {
         this.queryStringMaker = (chr, start, end) => `${phenotype},${credibleSetId}`
         this.translator = associations => associations.map(association => ({
             id: association.varId,
-            chr: association.chromosome,
-            start: association.position,
-            end: association.position,
             position: association.position,
             pValue: association.pValue,
             // posteriorProbability => posterior_prob; it's refactored to the name compatible with the other credible set visualization supported by LocusZoom
@@ -397,15 +391,14 @@ export class LZComputedCredibleVariantsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomPanelOptions = {
+            ...BASE_PANEL_OPTIONS,
             title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' }, x: -0.5 },
-            height: 240,
-            proportional_width: 1,
             y_index: 1,
-            margin: { bottom: 32  },
+            margin: { bottom: 28  },
             axes: {
                 x: {
                     label: 'Chromosome {{chr}} (Mb)',
-                    label_offset: 30,
+                    label_offset: 26,
                     tick_format: 'region',
                     extent: 'state',
                 },
