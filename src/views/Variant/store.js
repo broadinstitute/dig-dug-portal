@@ -27,7 +27,7 @@ export default new Vuex.Store({
 
     mutations: {
         setVariant(state, variant) {
-            if (!!variant) {
+            if (variant) {
                 let varId = variant.varId;
 
                 state.variant = variant;
@@ -35,7 +35,6 @@ export default new Vuex.Store({
 
                 keyParams.set({ variant: state.newVariantId });
             }
-
         },
     },
 
