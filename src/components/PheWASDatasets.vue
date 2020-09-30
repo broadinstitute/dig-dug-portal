@@ -1,17 +1,17 @@
 <template>
     <div id="dataset-associations" class="EGLT-table datasets" v-if="rows > 0">
-        <!-- <b-container fluid v-if="!!phenotypeMap && !!datasetMap">
+        <b-container fluid v-if="!!phenotypeMap && !!datasetMap">
             <b-row class="top-level-header">
-                <b-col class="top-level-header-item">Phenotype</b-col>
+                <b-col cols="4" class="top-level-header-item">Phenotype</b-col>
                 <b-col class="top-level-header-item">P-Value</b-col>
                 <b-col class="top-level-header-item">Beta</b-col>
                 <b-col class="top-level-header-item">Odds Ratio</b-col>
                 <b-col class="top-level-header-item">Sample Size</b-col>
                 <b-col class="top-level-header-item">View</b-col>
             </b-row>
-            <template v-for="(phenotype, name, index) in pheWASAssociations">
+            <template v-for="(item, index) in tableData">
                 <b-row
-                    :key="name"
+                    :key="index"
                     :class="
                         index < (currentPage - 1) * perPage ||
                         index >= currentPage * perPage
@@ -20,53 +20,54 @@
                     "
                 >
                     <b-col class="top-level-value-item"
-                        ><a :href="`/phenotype.html?phenotype=${name}`">{{
-                            phenotypeMap[name].description
-                        }}</a></b-col
+                        ><a
+                            :href="`/phenotype.html?phenotype=${item.phenotype.name}`"
+                            >{{ item.phenotype.description }}</a
+                        ></b-col
                     >
-                    <b-col class="top-level-value-item pValue">{{
-                        pValueFormatter(phenotype[0].pValue)
-                    }}</b-col>
+                    <b-col
+                        class="top-level-value-item pValue"
+                        :class="
+                            item.pValue < 1e-5 ? 'variant-table-cell high' : ''
+                        "
+                        >{{ pValueFormatter(item.pValue) }}</b-col
+                    >
                     <b-col class="top-level-value-item beta">
-                        <template v-if="!phenotypeMap[name].dichotomous">
+                        <template v-if="!item.phenotype.dichotomous">
                             <span
                                 :class="
-                                    phenotype[0].beta < 0
+                                    item.beta < 0
                                         ? 'effect negative'
                                         : 'effect positive'
                                 "
                                 >{{
-                                    phenotype[0].beta < 0
-                                        ? "&#9660;"
-                                        : "&#9650;"
+                                    item.beta < 0 ? "&#9660;" : "&#9650;"
                                 }}</span
                             >
-                            <span>{{
-                                effectFormatter(phenotype[0].beta)
-                            }}</span>
+                            <span>{{ effectFormatter(item.beta) }}</span>
                         </template>
                     </b-col>
                     <b-col class="top-level-value-item beta">
-                        <template v-if="!!phenotypeMap[name].dichotomous">
+                        <template v-if="!!item.phenotype.dichotomous">
                             <span
                                 :class="
-                                    Math.exp(phenotype[0].beta) < 1
+                                    Math.exp(item.beta) < 1
                                         ? 'effect negative'
                                         : 'effect positive'
                                 "
                                 >{{
-                                    Math.exp(phenotype[0].beta) < 1
+                                    Math.exp(item.beta) < 1
                                         ? "&#9660;"
                                         : "&#9650;"
                                 }}</span
                             >
                             <span>{{
-                                effectFormatter(Math.exp(phenotype[0].beta))
+                                effectFormatter(Math.exp(item.beta))
                             }}</span>
                         </template>
                     </b-col>
                     <b-col class="top-level-value-item">{{
-                        intFormatter(phenotype[0].n)
+                        intFormatter(item.n)
                     }}</b-col>
                     <b-col class="top-level-value-item">
                         <b-button
@@ -77,7 +78,7 @@
                     </b-col>
                 </b-row>
 
-                <div
+                <!-- <div
                     :class="`feature-headers-${index}`"
                     class="feature-content-wrapper hidden"
                     :key="`features_${index}`"
@@ -155,7 +156,7 @@
                             }}</b-col>
                         </b-row>
                     </template>
-                </div>
+                </div> -->
             </template>
 
             <b-pagination
@@ -164,7 +165,7 @@
                 :total-rows="rows"
                 :per-page="perPage"
             ></b-pagination>
-        </b-container> -->
+        </b-container>
     </div>
 </template>
 
@@ -209,12 +210,22 @@ export default Vue.component("phewas-datasets", {
             return this.pheWASAssociations.length;
         },
         tableData() {
+            let dataRows = this.pheWASAssociations;
+
             if (!!this.filter) {
-                dataRows = this.pheWASAssociations.filter((association) => {
+                dataRows = dataRows.filter((association) => {
                     return this.filter(association);
                 });
             }
             return dataRows;
+        },
+    },
+    methods: {
+        pValueFormatter: Formatters.pValueFormatter,
+        effectFormatter: Formatters.effectFormatter,
+        intFormatter: Formatters.intFormatter,
+        showDatasets(index) {
+            uiUtils.showHideElement("feature-headers-" + index);
         },
     },
 });
