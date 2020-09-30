@@ -397,7 +397,7 @@ export class LZComputedCredibleVariantsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomPanelOptions = {
-            title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' } },
+            title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' }, x: -0.5 },
             height: 240,
             proportional_width: 1,
             y_index: 1,
@@ -405,7 +405,7 @@ export class LZComputedCredibleVariantsPanel {
             axes: {
                 x: {
                     label: 'Chromosome {{chr}} (Mb)',
-                    label_offset: 32,
+                    label_offset: 30,
                     tick_format: 'region',
                     extent: 'state',
                 },
