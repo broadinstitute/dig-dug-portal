@@ -19,7 +19,6 @@
     "gwas-credible-sets": "^0.1.0",
     "igv": "^2.6.3",
     "jquery": "^3.5.1",
-    "jquery-ui": "^1.12.1",
     "json-query": "^2.2.2",
     "jsonpath": "^1.0.2",
     "locuszoom": "^0.12.1",
