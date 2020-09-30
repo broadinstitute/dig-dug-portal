@@ -124,6 +124,10 @@ new Vue({
         },
 
 
+        commonVariationCategory() {
+            let data = $store.state.effectorGeneData
+        },
+
         associationsData() {
             if (!!this.$store.state.associations.data) {
                 let data = this.$store.state.associations.data;

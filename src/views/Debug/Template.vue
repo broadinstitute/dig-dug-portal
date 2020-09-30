@@ -60,6 +60,7 @@
                                     <strong v-if="$store.state.effectorGeneData.category">
                                         {{$store.state.effectorGeneData.category}}:
                                         <span
+                                            style="background-color:#ffc107; padding:5px; border-radius:25px"
                                             v-if="$store.state.effectorGeneData.genetic"
                                         >{{$store.state.effectorGeneData.genetic}}</span>&nbsp;
                                     </strong>
@@ -81,6 +82,7 @@
                                         <strong>
                                             Perturbational Evidence:
                                             <span
+                                                style="background-color:#007bff; padding:5px; border-radius:25px"
                                                 v-if="$store.state.effectorGeneData.perturbational"
                                             >{{$store.state.effectorGeneData.perturbational}}</span>&nbsp;
                                         </strong>
@@ -142,11 +144,19 @@
                         </div>
                     </b-col>
 
-                    <!-- traffic light -->
+                    <!-- Color gradient -->
                     <b-col cols="6">
                         <div class="mdkp-body">
                             <div class="card mdkp-card slideInRight animated">
-                                <div class="card-body">color gradient</div>
+                                <div class="card-body">
+                                    color gradient
+                                    <div class="gradient">
+                                        <div class="arrow-up causalclass"></div>
+                                        <div>
+                                            <strong>Causal</strong>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </b-col>
@@ -205,10 +215,10 @@
                                         ></posterior-probability-plot>
                                     </div>
                                 </div>
-                                <div v-else>
+                                <div class="card-body" v-else>
                                     <!-- <div class="mdkp-body">
                                         <div class="card mdkp-card slideInLeft animated">
-                                    <div class="card-body">-->
+                                    <div >-->
                                     <h5>Stage 2</h5>
                                     <documentation
                                         name="hugecal.stage2NoAssociation.subheader"
@@ -249,12 +259,6 @@
                     </b-col>
                 </b-row>
             </b-container>
-
-            <!-- Stage 2 -->
-
-            <!-- Stage 3 -->
-            <!-- </div>
-            </div>-->
         </div>
 
         <!-- Footer-->
@@ -291,13 +295,71 @@ export default Vue.component("test", {
 window.onload = function() {
     document.getElementById("fademe2s").style.opacity = 1;
     // document.getElementById("fademe4s").style.opacity = 1;
-    document.getElementById("fademe6s").style.opacity = 1;
-    document.getElementById("fademe8s").style.opacity = 1;
+    // document.getElementById("fademe6s").style.opacity = 1;
+    // document.getElementById("fademe8s").style.opacity = 1;
 };
 </script>
 
 
 <style>
+.gradient {
+    width: 800px;
+    height: 60px;
+    background: rgb(255, 193, 7);
+    background: linear-gradient(
+        90deg,
+        rgba(255, 193, 7, 1) 27%,
+        rgba(40, 167, 69, 1) 59%,
+        rgba(0, 123, 255, 1) 90%
+    );
+}
+.arrow-up {
+    width: 0;
+    height: 75px;
+
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid black;
+    animation: moveright 1s alternate 1s;
+}
+
+.causalclass {
+    position: absolute;
+    left: 80px;
+}
+
+.strongclass {
+    position: absolute;
+    left: 100px;
+}
+
+.moderateclass {
+    position: absolute;
+    left: 200px;
+}
+
+.possibleclass {
+    position: absolute;
+    left: 250px;
+}
+
+.weakclass {
+    position: absolute;
+    left: 400px;
+}
+
+@keyframes moveup {
+    to {
+        transform: translateY(-50%);
+    }
+}
+
+@keyframes moveup {
+    to {
+        transform: translateY(-50%);
+    }
+}
+
 .wrap {
     overflow-x: hidden;
 }
