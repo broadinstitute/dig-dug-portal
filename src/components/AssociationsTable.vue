@@ -83,7 +83,6 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
-import FilterContextReceiver from "@/components/FilterContext/FilterContextReceiver";
 import { decodeNamespace } from "@/utils/filterHelpers";
 
 export default Vue.component("associations-table", {
@@ -91,7 +90,6 @@ export default Vue.component("associations-table", {
     components: {
         Documentation,
         TooltipDocumentation,
-        FilterContextReceiver,
     },
     data() {
         return {

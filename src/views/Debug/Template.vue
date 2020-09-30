@@ -2,8 +2,6 @@
     <div>
         <input type="checkbox" id="checkbox" v-model="$parent.inclusive" />
         <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
-        <!-- FilterContextGiver is required in the page and must wrap around components with a filter-context-receiver -->
-        <filter-context v-model="$parent.filterFunction"></filter-context>
 
         <!-- FilterWidget -->
         <!-- "looseMatch=true" means objects that don't have all the properties will pass through by default
