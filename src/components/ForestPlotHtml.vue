@@ -3,6 +3,9 @@
         <div class="forest-plot-html-legend-wrapper">
             <div class="forest-plot-html-legend-content">
                 <ul>
+                    <li>Hover over each row for more information.</li>
+                </ul>
+                <ul>
                     <li>{{sortBy+':'}}</li>
                     <li>
                         <span class="beta-box p-significant">&nbsp;</span>
@@ -65,66 +68,46 @@
                 class="forest-plot-html-row"
                 :class="index < (currentPage-1)*perPage || index >= currentPage*perPage ? 'hidden':''"
             >
-                <template>
+                <div
+                    v-if="!!labelMap[value[labelBy]]"
+                    :class="'hidden phenotype-group-dot '+labelMap[value[labelBy]].group"
+                >
+                    <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
+                </div>
+                <div
+                    v-if="!!labelMap[value[labelBy]]"
+                    :style="'width:'+value.width+'%; left:'+value.left+'%;'"
+                    class="forest-plot-html-item"
+                >
+                    <span :class="'phenotype-name '+(value.left > value.right? 'left':'right')">
+                        {{labelMap[value[labelBy]].description}}
+                        <!--<span
+                            class="order-value"
+                        >{{' ('+formatPvalue(value[sortBy])+')'}}</span>-->
+                    </span>
                     <div
+                        :class="'forest-plot-more-info '+(value.left > value.right? 'right':'left')"
                         v-if="!!labelMap[value[labelBy]]"
-                        :class="'hidden phenotype-group-dot '+labelMap[value[labelBy]].group"
                     >
-                        <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
-                    </div>
-                    <div
-                        v-if="!!labelMap[value[labelBy]]"
-                        :style="'width:'+value.width+'%; left:'+value.left+'%;'"
-                        class="forest-plot-html-item"
-                    >
-                        <span :class="'phenotype-name '+(value.left > value.right? 'left':'right')">
-                            {{labelMap[value[labelBy]].description}}
-                            <span
-                                class="order-value"
-                            >{{' ('+formatPvalue(value[sortBy])+')'}}</span>
-                        </span>
-                    </div>
-                    <div
-                        v-if="!!labelMap[value[labelBy]]"
-                        class="beta-box"
-                        :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':''"
-                        :style="'left:calc('+value.beta_position+'% - 9px);'"
-                    >&nbsp;</div>
-                </template>
-            </div>
+                        <ul>
+                            <li>{{labelMap[value[labelBy]].description}}</li>
+                            <li
+                                v-if="!!labelMap[value[labelBy]].group"
+                            >{{'Group: '}}{{labelMap[value[labelBy]].group}}</li>
+                            <li>{{sortBy + ': '}}{{formatPvalue(value[sortBy])}}</li>
 
-            <!--<div class="forest-plot-html-legend-wrapper">
-                <div class="forest-plot-html-legend-handler">
-                    <a
-                        href="javascript:;"
-                        v-on:click="showLegends('forest-plot-html-legend-content')"
-                    >> Show legends</a>
+                            <li>{{'CI low: '}}{{value.low.toFixed(3)}}</li>
+                            <li>{{'CI high: '}}{{value.high.toFixed(3)}}</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="forest-plot-html-legend-content hidden">
-                    <ul>
-                        <li>
-                            <span class="beta-box p-significant">&nbsp;</span>
-                            {{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(significant)}}
-                        </li>
-                        <li>
-                            <span class="beta-box p-moderate">&nbsp;</span>
-                            {{formatPvalue(significant)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(moderate)}}
-                        </li>
-                        <li>
-                            <span class="beta-box">&nbsp;</span>
-                            {{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}
-                        </li>
-                    </ul>
-                    <ul v-if="!!labelMap">
-                        <template>
-                            <li v-for="group in this.plotData.label_group">
-                                <span :class="'legend-phenotype-group-dot '+group">&nbsp;</span>
-                                {{group}}
-                            </li>
-                        </template>
-                    </ul>
-                </div>
-            </div>-->
+                <div
+                    v-if="!!labelMap[value[labelBy]]"
+                    class="beta-box"
+                    :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':''"
+                    :style="'left:calc('+value.beta_position+'% - 9px);'"
+                >&nbsp;</div>
+            </div>
         </div>
         <b-pagination
             class="pagination-sm justify-content-center"

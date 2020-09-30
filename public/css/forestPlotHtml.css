@@ -130,7 +130,7 @@
 }
 
 .forest-plot-html-row:hover .phenotype-group-dot.hidden .phenotype-group-name{
-    display: block;
+    /*display: block;*/
 }
 
 .phenotype-group-dot.ANTHROPOMETRIC, .legend-phenotype-group-dot.ANTHROPOMETRIC { background-color: #048845; }
@@ -226,4 +226,41 @@
 .forest-plot-ui-options input[type=checkbox] {
     border: 1px solid #ced4da;
     border-radius: .25rem;
+}
+
+.forest-plot-html-row .forest-plot-more-info {
+    position: absolute;
+    background-color: #ffffff;
+    font-size: 14px;
+    color: #000000;
+    padding: 5px 10px;
+    white-space: nowrap;
+    border-radius: 5px;
+    display: none;
+    z-index: 10;
+    top: -17px;
+    border: solid 1px #cccccc;
+}
+
+.forest-plot-html-row:hover .forest-plot-more-info {
+    display: block;
+}
+
+.forest-plot-more-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.forest-plot-more-info li {
+    padding: 0;
+    margin: 0;
+}
+
+.forest-plot-html-item .forest-plot-more-info.left {
+    left: calc(100% + 5px);
+}
+
+.forest-plot-html-item .forest-plot-more-info.right {
+    right: calc(100% + 5px);
 }
