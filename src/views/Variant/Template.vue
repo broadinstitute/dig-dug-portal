@@ -222,6 +222,13 @@
                         :associations="$store.state.phewas.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     ></phewas-table>
+                    <phewas-datasets
+                        v-if="$store.state.phewas.data"
+                        :associations="$store.state.phewas.data"
+                        :datasets="$store.state.datasetAssociations.data"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :datasetMap="$store.state.bioPortal.datasetMap"
+                    ></phewas-datasets>
                 </div>
             </div>
             <div class="card mdkp-card">

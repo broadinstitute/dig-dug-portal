@@ -19,6 +19,7 @@ import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ForestPlotHtml from "@/components/ForestPlotHtml.vue";
 import DatasetAssociations from "@/components/DatasetAssociations";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
+import PheWASDatasets from "@/components/PheWASDatasets";
 import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
@@ -40,6 +41,7 @@ new Vue({
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
         PheWASTable,
+        PheWASDatasets,
         RegionsTable,
         LocusZoom,
         LocusZoomAssociationsPanel,
