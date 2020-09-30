@@ -26,6 +26,10 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+
+
 new Vue({
     store,
 
@@ -39,7 +43,15 @@ new Vue({
         EnrichmentTable,
         DatasetsTable,
         Documentation,
-        RawImage
+        RawImage,
+        FilterGroup,
+        FilterEnumeration
+    },
+
+    data() {
+        return {
+            phenotypeFilter: id => true,
+        }
     },
 
     created() {

@@ -140,9 +140,39 @@
                             name="pheno.assocdatasets.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
+
+                        <b-container fluid class="filtering-ui-wrapper">
+                            <b-row class="filtering-ui-content">
+                                <filter-group
+                                    v-model="$parent.phenotypeFilter"
+                                    :looseMatch="true"
+                                >
+                                    <filter-enumeration-control
+                                        :field="'tech'"
+                                        :options="
+                                            $store.state.bioPortal.datasets.map(dataset => dataset.tech)
+                                        "
+                                    >
+                                        <div class="label">Technology</div>
+                                    </filter-enumeration-control>
+
+                                    <filter-enumeration-control
+                                        :field="'ancestry'"
+                                        :options="
+                                            $store.state.bioPortal.datasets.map(dataset => dataset.ancestry)
+                                        "
+                                    >
+                                        <div class="label">Ancestry</div>
+                                    </filter-enumeration-control>
+
+                                </filter-group>
+                            </b-row>
+                        </b-container>
+
                         <datasets-table
                             :datasets="$store.state.bioPortal.datasets"
                             :phenotype="$store.state.phenotype"
+                            :filter="$parent.phenotypeFilter"
                         ></datasets-table>
                     </div>
                 </div>
