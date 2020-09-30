@@ -401,7 +401,7 @@ export class LZComputedCredibleVariantsPanel {
             height: 240,
             proportional_width: 1,
             y_index: 1,
-            // margin: { top: 25, bottom: 32  },
+            margin: { bottom: 32  },
             axes: {
                 x: {
                     label: 'Chromosome {{chr}} (Mb)',
@@ -600,10 +600,13 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
     }
     parseInit(params) {
         const { phenotype, translator, initialData } = params;
-        this.params = params;
         this.translator = translator;
         this.initialData = initialData;
         this.phenotype = phenotype;
+        this.params = Object.assign(
+            { threshold: 0.95, significance_threshold: 7.301 },
+            params
+        );
     };
     fetchRequest(state, chain, fields) {
         const self = this;
@@ -621,6 +624,12 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
                     const translatedResults = self.translator(results);
                     const nlogpvals = translatedResults.map(association => association.log_pvalue);
 
+                    if (!nlogpvals.some((val) => val >= self.params.significance_threshold)) {
+                        // If NO points have evidence of significance, define the credible set to be empty
+                        //  (rather than make a credible set that we don't think is meaningful)
+                        return resolve([]);
+                    }
+
                     const credset_data = [];
                     try {
                         const scores = scoring.bayesFactors(nlogpvals);
@@ -628,7 +637,7 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
 
                         // Use scores to mark the credible set in various ways (depending on your visualization preferences,
                         //   some of these may not be needed)
-                        const credibleSet = marking.findCredibleSet(posteriorProbabilities, 0.95);
+                        const credibleSet = marking.findCredibleSet(posteriorProbabilities, self.params.threshold);
                         const credSetScaled = marking.rescaleCredibleSet(credibleSet);
                         const credSetBool = marking.markBoolean(credibleSet);
 
