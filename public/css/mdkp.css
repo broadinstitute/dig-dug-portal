@@ -1244,3 +1244,11 @@ a.to-previous-page:hover {
 .no-access .alert-danger {
     border-color: darkred;
 }
+
+#phewas-datasets {
+    font-size: 1rem;
+}
+
+#phewas-datasets .list {
+    margin-bottom: 1rem;
+}

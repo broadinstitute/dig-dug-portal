@@ -1,6 +1,6 @@
 <template>
-    <div id="dataset-associations" class="EGLT-table datasets" v-if="rows > 0">
-        <b-container fluid v-if="!!phenotypeMap && !!datasetMap">
+    <div id="phewas-datasets" class="EGLT-table" v-if="rows > 0">
+        <b-container fluid v-if="!!phenotypeMap && !!datasetMap" class="list">
             <b-row class="top-level-header">
                 <b-col cols="4" class="top-level-header-item">Phenotype</b-col>
                 <b-col class="top-level-header-item">P-Value</b-col>
@@ -19,7 +19,7 @@
                             : ''
                     "
                 >
-                    <b-col class="top-level-value-item"
+                    <b-col cols="4" class="top-level-value-item"
                         ><a
                             :href="`/phenotype.html?phenotype=${item.phenotype.name}`"
                             >{{ item.phenotype.description }}</a
@@ -158,14 +158,13 @@
                     </template>
                 </div> -->
             </template>
-
-            <b-pagination
-                class="pagination-sm justify-content-center"
-                v-model="currentPage"
-                :total-rows="rows"
-                :per-page="perPage"
-            ></b-pagination>
         </b-container>
+        <b-pagination
+            class="pagination-sm justify-content-center"
+            v-model="currentPage"
+            :total-rows="rows"
+            :per-page="perPage"
+        ></b-pagination>
     </div>
 </template>
 
