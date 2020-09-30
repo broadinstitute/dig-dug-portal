@@ -171,7 +171,8 @@ new Vue({
         },
 
         variantData(data) {
-            if (!!data) {
+            //! data is an array
+            if (data.length > 0) {
                 this.$store.commit("setVariant", data[0]); // only ever 1 result
             }
         },
