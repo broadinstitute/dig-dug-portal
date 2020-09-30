@@ -10,7 +10,6 @@ import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
 import FilterMulti from "@/components/FilterWidget/FilterMulti.vue"
 
-import FilterUser from "./FilterUser.vue"
 
 import AssociationsTable from "@/components/AssociationsTable.vue"
 import LocusZoom from "@/components/lz/LocusZoom.vue"
@@ -21,7 +20,6 @@ Vue.config.productionTip = false;
 
 new Vue({
     components: {
-        FilterUser,
         FilterWidget,
         FilterWidgetControl,
         FilterPValue,

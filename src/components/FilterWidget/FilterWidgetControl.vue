@@ -1,5 +1,5 @@
 <template>
-    <div class="col filter-col-sm" style="padding: 5px 7px 5px 7px;">
+    <div class="col filter-col-md" style="padding: 5px 7px 5px 7px;">
         <slot>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
             {{field}}
@@ -8,12 +8,21 @@
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
-        <b-form-select
+        <!--
+
+        -->
+        <vue-typeahead-bootstrap
             v-if="!!options && options.length > 0"
-            :options="[{ value: null, text: '' }].concat(options.map(option => !!labelFormatter ? { text: labelFormatter(option), value: option } : option))"
+            :data="
+                options.map(option => !!labelFormatter ? { text: labelFormatter(option), value: option } : option)
+            "
             v-model="filterThreshold"
-            @input="updateFilter(filterThreshold)"
-        ></b-form-select>
+            :serializer="s => s.text"
+            :showOnFocus="true"
+            :minMatchingChars="0"
+            :maxMatches="30"
+            @hit="updateFilter($event.value)"
+        ></vue-typeahead-bootstrap>
         <b-form-input
             v-else
             v-model="filterThreshold"
@@ -27,6 +36,7 @@
 import Vue from "vue";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -61,6 +71,9 @@ export default Vue.component("filter-widget-control", {
             default: true,
         }
     },
+    components: {
+        VueTypeaheadBootstrap
+    },
     data() {
         return {
             filterDefinition: {
@@ -79,6 +92,9 @@ export default Vue.component("filter-widget-control", {
         }
     },
     methods: {
+        tap(value) {
+            console.log(value);
+        },
         validateInput(newInput) {
             // TODO: elaborate validation cases here
             // TODO: validation utils?
@@ -92,6 +108,7 @@ export default Vue.component("filter-widget-control", {
             return true;
         },
         updateFilter(newThreshold) {
+            console.log('update filter', newThreshold)
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
