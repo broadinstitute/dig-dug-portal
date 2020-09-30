@@ -36,10 +36,8 @@ export default Vue.component("locuszoom", {
         "start",
         "end",
         "scoring",
-        "filterPanels",
-        "filterAssociations",
-        "filterAnnotations",
         "refSeq",
+        "filter",
         "filterAssociations",
         "filterAnnotations",
     ],
@@ -125,7 +123,7 @@ export default Vue.component("locuszoom", {
             this.plot.addPanel(LocusZoom.Layouts.get("panel", panel.panelLayoutType, panelOptions)).addBasicLoader();
 
             // TODO: make this better abstracted
-            if (!!this.filterPanel) this.applyFilter(this.filterPanel);
+            if (!!this.filter) this.applyFilter(this.filter);
             if (!!this.filterAssociations) this.applyFilter(this.filterAssociations, 'associations');
             if (!!this.filterAnnotations) this.applyFilter(this.filterAnnotations, 'intervals');
 
@@ -211,10 +209,8 @@ export default Vue.component("locuszoom", {
             let data_layers = jsonQuery('panels[*].data_layers[*]:forceKeys', { data: this.plot, locals: { forceKeys } }).value;
             if (panelType !== '') {
                 data_layers = data_layers.map(data_layer => {
-                    console.log(data_layer.parent.id)
                     return data_layer
                 }).filter(data_layer => data_layer.parent.id.includes(panelType));
-                console.log('datalayers for paneltype', data_layers, panelType)
             }
 
 
@@ -248,16 +244,13 @@ export default Vue.component("locuszoom", {
         region(newRegion) {
             this.plot.applyState({ chr: newRegion.chr, start: newRegion.start, end: newRegion.end })
         },
-        filterPanel(filter) {
-            console.log('filtering all panels')
+        filter(filter) {
             this.applyFilter(filter);
         },
         filterAssociations(associationsFilter) {
-            console.log('associations filter changed')
             this.applyFilter(associationsFilter, 'association');
         },
         filterAnnotations(annotationsFilter) {
-            console.log('annotations filter changed')
             this.applyFilter(annotationsFilter, 'intervals');
         },
     }
