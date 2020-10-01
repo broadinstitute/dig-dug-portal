@@ -475,7 +475,6 @@ export class LZPhewasPanel {
             // transform from bio index to locuszoom
             const phewas = portalAssociations.map(a => {
                 const phenotypeInfo = phenotypeMap[a.phenotype];
-                console.log(a)
                 return {
                     id: phenotypeInfo.name,
                     pValue: a.pValue,

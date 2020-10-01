@@ -140,6 +140,7 @@ export default Vue.component("forest-plot-html", {
         "moderate",
         "stdErr",
         "countDichotomous",
+        "filter",
     ],
     data() {
         return {
@@ -178,6 +179,7 @@ export default Vue.component("forest-plot-html", {
                 let labelGroup = [];
 
                 content["data"].map((d) => {
+                    console.log(d, this.labelBy)
                     let dichotomous =
                         this.countDichotomous == 1
                             ? this.labelMap[d[this.labelBy]].dichotomous
@@ -244,15 +246,23 @@ export default Vue.component("forest-plot-html", {
                     updated["left"] = itemLeft;
                     updated["right"] = itemRight;
                     updated["beta_position"] = itemBeta;
-
+                    updated["phenotype"] = item.phenotype;
                     return updated;
                 });
 
                 return content;
+
             } else {
                 return [];
             }
         },
+        // filteredPlotContent() {
+        //     let plotContent = this.plotData;
+        //     if (!!this.filter) {
+        //         plotContent.data = plotContent.data.filter(this.filter);
+        //     }
+        //     return plotContent;
+        // },
         rows() {
             return this.plotData.data.length;
         },

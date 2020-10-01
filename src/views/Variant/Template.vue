@@ -246,6 +246,7 @@
                                 :stdErr="'stdErr'"
                                 :labelBy="'phenotype'"
                                 :countDichotomous="0"
+                                :filter="$parent.phewasFilter"
                             ></forest-plot-html>
                         </b-tab>
                     </b-tabs>
