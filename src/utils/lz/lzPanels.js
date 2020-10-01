@@ -475,14 +475,15 @@ export class LZPhewasPanel {
             // transform from bio index to locuszoom
             const phewas = portalAssociations.map(a => {
                 const phenotypeInfo = phenotypeMap[a.phenotype];
+                console.log(a)
                 return {
                     id: phenotypeInfo.name,
                     pValue: a.pValue,
-                    beta: a.beta,
                     log_pvalue: -Math.log10(a.pValue),
                     trait_group: phenotypeInfo.group,
                     trait_label: phenotypeInfo.description,
                     phenotype: phenotypeInfo,
+                    beta: a.beta,
                 };
             });
             return phewas;
@@ -500,11 +501,10 @@ export class LZPhewasPanel {
                     {
                         fields: [
                             // we need to call out the fields directly since merge algorithm doesn't combine arrays
-                            `{{namespace[${this.datasource_type}]}}beta`, // adding this piece of data irrelevant to the graphic will help us filter later
                             `{{namespace[${this.datasource_type}]}}pValue`, // adding this piece of data irrelevant to the graphic will help us filter later
                             `{{namespace[${this.datasource_type}]}}phenotype`, // adding this piece of data irrelevant to the graphic will help us filter later
                             ...LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }).fields,
-                        ],
+                        ].concat( this.index === 'phewas-associations' ?`{{namespace[${this.datasource_type}]}}beta` : [] ), // concat spreading an empty list means it adds no elements
                     },
                     LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }),
                 ),

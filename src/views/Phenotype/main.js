@@ -26,8 +26,12 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
 
 
 new Vue({
@@ -44,13 +48,20 @@ new Vue({
         DatasetsTable,
         Documentation,
         RawImage,
+
         FilterGroup,
-        FilterEnumeration
+        FilterControl,
+        FilterPValue,
+        FilterGreaterThan,
+        FilterEnumeration,
+        FilterEffectDirection
     },
 
     data() {
         return {
-            phenotypeFilter: id => true,
+            phenotypeFilter: null,
+            annotationsFilter: null,
+            associationsFilter: null,
         }
     },
 

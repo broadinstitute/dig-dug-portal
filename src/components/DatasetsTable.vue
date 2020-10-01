@@ -93,41 +93,6 @@ export default Vue.component("datasets-table", {
             // sort datasets by subjects
             return rawDatasets.sort((a, b) => b.subjects - a.subjects);
         },
-        // filter_tech() {
-        //     return this.sortedDatasets
-        //         .map(v => v.tech)
-        //         .filter((v, i, arr) => arr.indexOf(v) == i);
-        // },
-        // filter_ancestry() {
-        //     return this.sortedDatasets
-        //         .map(v => Formatters.ancestryFormatter(v.ancestry))
-        //         .filter((v, i, arr) => arr.indexOf(v) == i);
-        // },
-        // tableData() {
-        //     if (this.tech != "" || this.ancestry != "") {
-        //         let techFiltered =
-        //             this.tech != ""
-        //                 ? Filters.filterTable(
-        //                       this.sortedDatasets,
-        //                       this.tech,
-        //                       "tech"
-        //                   )
-        //                 : this.sortedDatasets;
-
-        //         let ancestryFiltered =
-        //             this.ancestry != ""
-        //                 ? Filters.filterFormatted(
-        //                       techFiltered,
-        //                       this.ancestry,
-        //                       "ancestry"
-        //                   )
-        //                 : techFiltered;
-
-        //         return ancestryFiltered;
-        //     } else {
-        //         return this.sortedDatasets;
-        //     }
-        // },
         tableData() {
             let dataRows = this.sortedDatasets;
             if (!!this.filter) {

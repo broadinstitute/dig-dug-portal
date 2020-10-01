@@ -19,6 +19,7 @@
             :serializer="s => s.text"
             :showOnFocus="true"
             :minMatchingChars="0"
+            :maxMatches="30"
             @hit="updateFilter($event.value)"
         ></vue-typeahead-bootstrap>
 
