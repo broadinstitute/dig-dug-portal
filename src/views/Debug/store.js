@@ -78,6 +78,10 @@ export default new Vuex.Store({
                 }
             }
         },
+
+        effectiveData(state) {
+
+        }
     },
 
     actions: {

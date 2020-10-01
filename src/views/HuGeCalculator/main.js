@@ -204,7 +204,7 @@ new Vue({
         //(Rare Variation), that means there is Strong coding evidence
         //show the following instead of stage 2 plot
         stage2Category() {
-            return { "category": "CAUSAL", "Evidence": "Strong Coding Evidence", "genetic": "1C" }
+            return { "category": "CAUSAL", "evidence": "Strong Coding Evidence", "genetic": "1C" }
         },
         documentationMap() {
             let gene = this.$store.state.geneName;
@@ -215,6 +215,12 @@ new Vue({
                 phenotype: phenotype
             }
         },
+
+        finalStageCalculation() {
+            let effectorGeneData = $store.state.effectorGeneData;
+            
+        }
+
     },
 
 
