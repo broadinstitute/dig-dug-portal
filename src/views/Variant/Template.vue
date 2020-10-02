@@ -217,11 +217,7 @@
                             ></forest-plot-html>
                         </b-tab>
                     </b-tabs>
-                    <phewas-table
-                        v-if="$store.state.phewas.data"
-                        :associations="$store.state.phewas.data"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                    ></phewas-table>
+
                     <unauthorized-message
                         :restricted="
                             $store.state.datasetAssociations.restricted
