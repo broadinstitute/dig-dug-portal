@@ -1,9 +1,3 @@
-import { createContext } from "vue-context-api";
-
-// The argument passed to createContext is the default context value
-// for `id => true`, letting everything through by default amounts to no filter, and vice-versa, so set it as default
-export const { Provider, Consumer } = createContext(id => true); 
-
 
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
@@ -135,7 +129,7 @@ export function looseMatcher(object, fieldName, strictMatchCase=false) {
 export function encodeNamespace(regularObject, { prefix='', suffix='', pDelimiter='', sDelimiter='' }) {
 
     // take an object whose keys are "basic fields", (do not have any application-specific prefixes or suffixes), and add a given prefix or suffix to all of its keys
-    
+
     // e.g. 'associations_src:pValue' has prefix 'associations_src:' in LocusZoom for the basic field pValue
     // if we're using encodeNamespace on an object with key `pValue` and give a prefix `associations_src:`, the result will be an object with the key `associations_src:pValue`
     // we use this function if we're working with a filter that modifies the object property keys before rendering it.
