@@ -1260,7 +1260,9 @@ a.to-previous-page:hover {
 #phewas-datasets .top-level-value {
     font-size: 1rem;
 }
-
+#phewas-datasets .top-level-value:hover {
+    background-color: #efefef;
+}
 #phewas-datasets .list {
     margin-bottom: 1rem;
 }
