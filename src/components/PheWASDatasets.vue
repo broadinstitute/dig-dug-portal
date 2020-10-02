@@ -106,8 +106,8 @@
                     </b-row>
                     <template v-for="(dataset, j) in item.datasets">
                         <b-row
-                            class="features"
                             :class="`features_${index}_${j}`"
+                            class="feature-row"
                             :key="`features_${index}_${j}`"
                         >
                             <b-col cols="5" class="feature-content-item">
