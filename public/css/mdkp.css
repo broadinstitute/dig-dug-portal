@@ -1245,10 +1245,29 @@ a.to-previous-page:hover {
     border-color: darkred;
 }
 
+/* pheWAS dataset association table */
 #phewas-datasets {
+    border-right: none;
+}
+#phewas-datasets div {
+    border-left: none;
+    border-right: none;
+}
+#phewas-datasets .top-level-value-item:first-child {
+    text-align: left;
+}
+#phewas-datasets .top-level-header,
+#phewas-datasets .top-level-value {
     font-size: 1rem;
 }
 
 #phewas-datasets .list {
     margin-bottom: 1rem;
+}
+#phewas-datasets .feature-content-wrapper {
+    border-left: 4px solid #5959f7;
+}
+
+#phewas-datasets .feature-header-item {
+    background-color: #7775f86b;
 }
