@@ -7,7 +7,6 @@
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${labelFormatter(filterDefinition.threshold)}`"
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
-        :color="'#28a745'"
         :multiple="true"
         :inclusive="true">
         <slot>

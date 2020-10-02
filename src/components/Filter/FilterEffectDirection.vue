@@ -14,7 +14,6 @@
         }"
         :pillFormatter="filterDefinition => `effect size ${filterDefinition.threshold}`"
         :options="['positive', 'negative']"
-        :color="'#007bff'"
         :multiple="false">
         <slot>
             Effect (+/-)

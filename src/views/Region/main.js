@@ -21,6 +21,7 @@ import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterHeader from "@/components/Filter/FilterHeader.vue"
 import FilterControl from "@/components/Filter/FilterControl.vue"
 import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
@@ -65,6 +66,7 @@ new Vue({
 
         FilterGroup,
         FilterControl,
+        FilterHeader,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
