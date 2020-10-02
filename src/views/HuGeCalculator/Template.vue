@@ -47,13 +47,39 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-5">
-                            <h4>{{$store.state.geneName}} {{"Causal"}}</h4>
+                            <h4>{{$store.state.geneName}} is {{$store.state.effectorGeneData.category}}</h4>
 
                             <!-- traffic light -->
-                            <div id="fademe2s" style="width:600px">
+                            <div
+                                id="fademe2s"
+                                style="width:600px"
+                                v-if="$store.state.effectorGeneData"
+                            >
                                 <br />
-
-                                <div class="arrow-up predictionArrow"></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'CAUSAL'"
+                                    class="arrow-up causalclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'STRONG'"
+                                    class="arrow-up strongclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'MODERATE'"
+                                    class="arrow-up moderateclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'POSSIBLE'"
+                                    class="arrow-up possibleclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'WEAK'"
+                                    class="arrow-up weakclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'No Evidence'"
+                                    class="arrow-up noEvidenceclass"
+                                ></div>
                                 <div>
                                     <div class="container">
                                         <div class="row">
@@ -77,13 +103,18 @@
                                                 style="background-color:#33E0FF"
                                                 class="col-sm"
                                             >Weak</div>
+
+                                            <div
+                                                style="background-color:#b3fcf7"
+                                                class="col-"
+                                            >No Evidence</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <hr style="margin:60px" />
+                            <!-- <hr style="margin:60px" /> -->
 
-                            <div style="width:600px">
+                            <!-- <div style="width:600px">
                                 <div class="arrow-up categoryArrow"></div>
                                 <div>
                                     <div class="container">
@@ -107,7 +138,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div>-->
                             <hr style="margin:60px" />
 
                             <!-- loftee -->
@@ -183,11 +214,11 @@
 
                             <!-- mccarthy EGL -->
                             <!-- <p v-if="$store.state.effectorGeneData.category"> -->
-                            <h5>Evidence for {{ $store.state.geneName }} in {{ $store.state.phenotype.description }}...</h5>
+                            <h5>Common variation evidence for {{ $store.state.geneName }} in {{ $store.state.phenotype.description }}...</h5>
                             <ul>
                                 <!-- genetic -->
                                 <li v-if="$store.state.effectorGeneData.genetic">
-                                    Regulatory Evidence:
+                                    Genetic Evidence:
                                     <span
                                         v-if="$store.state.effectorGeneData.genetic == '1C'"
                                         class="codingEvidence1C"
@@ -228,10 +259,69 @@
                                     >{{$store.state.effectorGeneData.perturbational}}</span>
                                 </li>
                             </ul>
+
+                            <div style="width:600px" v-if="$store.state.effectorGeneData">
+                                <br />
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'CAUSAL'"
+                                    class="arrow-up causalclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'STRONG'"
+                                    class="arrow-up strongclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'MODERATE'"
+                                    class="arrow-up moderateclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'POSSIBLE'"
+                                    class="arrow-up possibleclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'WEAK'"
+                                    class="arrow-up weakclass"
+                                ></div>
+                                <div
+                                    v-if="$store.state.effectorGeneData.category == 'No Evidence'"
+                                    class="arrow-up noEvidenceclass"
+                                ></div>
+                                <div>
+                                    <div class="container">
+                                        <div class="row">
+                                            <div
+                                                style="background-color:#3352FF"
+                                                class="col-sm"
+                                            >Causal</div>
+                                            <div
+                                                style="background-color:#337AFF"
+                                                class="col-sm"
+                                            >Strong</div>
+                                            <div
+                                                style="background-color:#3393FF"
+                                                class="col-sm"
+                                            >Moderate</div>
+                                            <div
+                                                style="background-color:#33ACFF"
+                                                class="col-sm"
+                                            >Possible</div>
+                                            <div
+                                                style="background-color:#33E0FF"
+                                                class="col-sm"
+                                            >Weak</div>
+
+                                            <div
+                                                style="background-color:#b3fcf7"
+                                                class="col-"
+                                            >No Evidence</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- </p> -->
                             <hr style="margin:60px" />
 
-                            <!-- stage 2 -->
+                            <!-- Start Rare Variation -->
                             <h4>
                                 Rare Variation
                                 <tooltip-documentation
@@ -247,10 +337,10 @@
                             <div v-if="$parent.isSignificant52kAssociationRareVariation">
                                 <h6>{{ $store.state.geneName }} is exome wide significant since it's p-value is less than the threshold 2.5e-6.</h6>
                                 <hr style="margin:40px" />
-                                <h5>Evidence for {{ $store.state.geneName }} in {{ $store.state.phenotype.description }}...</h5>
+                                <h5>Rare variation evidence for {{ $store.state.geneName }} in {{ $store.state.phenotype.description }}...</h5>
                                 <ul>
                                     <li>
-                                        {{$parent.stage2Category.category}}
+                                        Genetic Evidence
                                         <span
                                             class="codingEvidence1C"
                                         >{{$store.state.effectorGeneData.genetic}}</span>
@@ -262,6 +352,64 @@
                                         </span>
                                     </li>
                                 </ul>
+                                <div style="width:600px" v-if="$parent.stage2Category">
+                                    <br />
+                                    <div
+                                        v-if="$parent.stage2Category.category == 'CAUSAL'"
+                                        class="arrow-up causalclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.stage2Category.category == 'STRONG'"
+                                        class="arrow-up strongclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.stage2Category.category == 'MODERATE'"
+                                        class="arrow-up moderateclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.stage2Category.category == 'POSSIBLE'"
+                                        class="arrow-up possibleclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.stage2Category.category == 'WEAK'"
+                                        class="arrow-up weakclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.stage2Category.category == 'No Evidence'"
+                                        class="arrow-up noEvidenceclass"
+                                    ></div>
+                                    <div>
+                                        <div class="container">
+                                            <div class="row">
+                                                <div
+                                                    style="background-color:#3352FF"
+                                                    class="col-sm"
+                                                >Causal</div>
+                                                <div
+                                                    style="background-color:#337AFF"
+                                                    class="col-sm"
+                                                >Strong</div>
+                                                <div
+                                                    style="background-color:#3393FF"
+                                                    class="col-sm"
+                                                >Moderate</div>
+                                                <div
+                                                    style="background-color:#33ACFF"
+                                                    class="col-sm"
+                                                >Possible</div>
+                                                <div
+                                                    style="background-color:#33E0FF"
+                                                    class="col-sm"
+                                                >Weak</div>
+
+                                                <div
+                                                    style="background-color:#b3fcf7"
+                                                    class="col-"
+                                                >No Evidence</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div v-else>
@@ -270,10 +418,9 @@
                                 <!-- <p> -->
                                 <div v-if="$parent.geneAssociations52k">
                                     <h6>Posterior Probability vs. Prior Variance</h6>
-                                    <div class="input-group">
+                                    <div>
                                         Prior variance:
                                         <input
-                                            class="form-control input-default"
                                             v-model.number="$store.state.priorVariance"
                                             type="number"
                                             placeholder="Prior Variance"
@@ -281,7 +428,6 @@
                                         />
                                     </div>
 
-                                    <strong>{{$parent.stage2Category.category}}:{{$parent.stage2Category.Evidence}}</strong>
                                     <posterior-probability-plot
                                         :geneAssociationsData="$parent.geneAssociations52k"
                                         :priorVariance="$store.state.priorVariance"
@@ -289,6 +435,7 @@
                                     ></posterior-probability-plot>
                                 </div>
                             </div>
+                            <!-- Close Rare Variation -->
                         </div>
                     </div>
                 </div>
@@ -358,37 +505,32 @@ window.onload = function() {
 
 .causalclass {
     position: absolute;
-    left: 80px;
-}
-
-.predictionArrow {
-    position: absolute;
-    left: 80px;
-}
-
-.categoryArrow {
-    position: absolute;
-    left: 80px;
+    left: 60px;
 }
 
 .strongclass {
     position: absolute;
-    left: 100px;
+    left: 200px;
 }
 
 .moderateclass {
     position: absolute;
-    left: 200px;
+    left: 360px;
 }
 
 .possibleclass {
     position: absolute;
-    left: 250px;
+    left: 400px;
 }
 
 .weakclass {
     position: absolute;
-    left: 400px;
+    left: 470px;
+}
+
+.noEvidenceclass {
+    position: absolute;
+    left: 540px;
 }
 
 .codingEvidence1C {

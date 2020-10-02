@@ -105,7 +105,7 @@ export default new Vuex.Store({
                                 break;
                             }
                             else {
-                                effectorGeneData = { "perturbational": "3P", "category": "In GWAS but only one line of perturbation evidence" }
+                                effectorGeneData = { "perturbational": "3P", "category": "WEAK", "message": "is in GWAS but only one line of perturbational evidence found" }
                             }
                         }
                         context.commit('setEffectorGeneData', effectorGeneData);
