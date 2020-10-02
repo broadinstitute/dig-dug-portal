@@ -567,14 +567,16 @@
     margin-left: 0 !important;
 }
 
-.EGLT-table small, .EGLT-table .small {
+.EGLT-table small,
+.EGLT-table .small {
     font-size: 100% !important;
     font-weight: 400 !important;
 }
 
-.eglt-table-wrapper .filtering-ui-wrapper input, .eglt-table-wrapper .filtering-ui-wrapper select {
+.eglt-table-wrapper .filtering-ui-wrapper input,
+.eglt-table-wrapper .filtering-ui-wrapper select {
     border: 1px solid #ced4da;
-    border-radius: .25rem;
+    border-radius: 0.25rem;
     height: 30px;
     width: 175px;
     font-size: 14px;
@@ -614,7 +616,7 @@
 }
 
 .top-level-header-item.sortable {
-    color: #0067a6 ;
+    color: #0067a6;
 }
 
 .top-level-header-item.sortable:hover {
@@ -746,9 +748,9 @@ span.weight-blue {
     margin-left: 3px;
 }
 
-.egl-table-ui-options input[type=checkbox] {
+.egl-table-ui-options input[type="checkbox"] {
     border: 1px solid #ced4da;
-    border-radius: .25rem;
+    border-radius: 0.25rem;
 }
 /*
 .egl-table-ui-options select {
@@ -761,7 +763,10 @@ span.weight-blue {
     padding: 0 15px;
 }
 */
-.show-all-features-wrapper, .hide-all-feature-headers-wrapper, .hide-top-level-wrapper, .sort-table-wrapper {
+.show-all-features-wrapper,
+.hide-all-feature-headers-wrapper,
+.hide-top-level-wrapper,
+.sort-table-wrapper {
     display: inline-block;
     margin-left: 10px;
 }
@@ -1111,7 +1116,7 @@ span.weight-blue {
 
 .EGLT-table.richards100 .feature-headers.variants_features,
 .EGLT-table.richards100 .feature-headers.gene_features {
-    display: table-row ;
+    display: table-row;
 }
 
 .EGLT-table.richards100 .feature-content.variants_features,
@@ -1330,24 +1335,29 @@ span.weight-blue {
 }
 
 /* 52K table */
-.fiftytwo .feature-header-item {
+.fiftytwo .feature-header-item,
+.datasets .feature-header-item {
     background-color: #75def850;
 }
-.fiftytwo .feature-content-wrapper {
+.fiftytwo .feature-content-wrapper,
+.datasets .feature-content-wrapper {
     border-left: solid 4px #75def8 !important;
 }
 
-.fiftytwo .feature-plot-wrapper {
+.fiftytwo .feature-plot-wrapper,
+.datasets .feature-plot-wrapper {
     border-left: solid 4px #bfd730 !important;
     width: calc(100% - 15px);
     margin-left: 15px;
 }
-.fiftytwo .plots {
+.fiftytwo .plots,
+.datasets .plots {
     min-height: 350px;
     padding-right: 15px;
     background-color: #f9f9f9;
 }
-.fiftytwo .feature-plot-wrapper > .col {
+.fiftytwo .feature-plot-wrapper > .col,
+.datasets .feature-plot-wrapper > .col {
     background-color: #bfd73050;
     font-size: 12px;
     font-weight: 600;

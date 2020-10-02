@@ -19,7 +19,6 @@ import RawImage from "@/components/RawImage.vue";
 import UnauthorizeMessage from "@/components/UnauthorizedMessage";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
-import { rawUrl } from "@/utils/bioIndexUtils";
 import Alert, {
     postAlert,
     postAlertNotice,
