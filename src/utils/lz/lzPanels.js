@@ -481,7 +481,7 @@ export class LZPhewasPanel {
                     log_pvalue: -Math.log10(a.pValue),
                     trait_group: phenotypeInfo.group,
                     trait_label: phenotypeInfo.description,
-                    phenotype: phenotypeInfo,
+                    phenotype: phenotypeInfo.name,
                     beta: a.beta,
                 };
             });

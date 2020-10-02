@@ -1,5 +1,6 @@
 <template>
     <filter-control
+        class="filter-col-md"
         :field="field"
         :predicate="(string, selection) => string === selection"
         :pillFormatter="filterDefinition => `${filterDefinition.field} == ${filterDefinition.threshold}`"

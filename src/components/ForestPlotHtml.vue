@@ -27,7 +27,7 @@
                 <ul v-if="!!labelMap">
                     <li>{{'Group:'}}</li>
                     <template>
-                        <li v-for="group in this.plotData.label_group">
+                        <li v-for="group in plotData.label_group">
                             <span :class="'legend-phenotype-group-dot '+group">&nbsp;</span>
                             <span class="label">{{group}}</span>
                         </li>
@@ -57,14 +57,14 @@
                 </div>
             </div>
 
-            <div class="start-min">{{this.plotData.low_min}}</div>
-            <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">
+            <div class="start-min">{{plotData.low_min}}</div>
+            <div class="beta-0" :style="'left:'+plotData.beta_0+'%;'">
                 <label>0</label>
             </div>
-            <div class="end-max">{{this.plotData.high_max}}</div>
+            <div class="end-max">{{plotData.high_max}}</div>
 
             <div
-                v-for="(value,index) in this.plotData.data"
+                v-for="(value,index) in plotData.data"
                 class="forest-plot-html-row"
                 :class="index < (currentPage-1)*perPage || index >= currentPage*perPage ? 'hidden':''"
             >
@@ -120,6 +120,7 @@
 
 <script>
 import Vue from "vue";
+import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import sortUtils from "@/utils/sortUtils";
 import uiUtils from "@/utils/uiUtils";
@@ -162,14 +163,13 @@ export default Vue.component("forest-plot-html", {
             }
         },
         plotData() {
-            if (!!this.forestPlotData) {
-                let content = {};
+            let content = {};
                 content["data"] = [];
-
-                this.forestPlotData.map((d) => {
+            if (!!this.forestPlotData) {
+                let forestPlotData = cloneDeep(this.forestPlotData);
+                forestPlotData.map((d) => {
                     if (!!this.labelMap[d[this.labelBy]]) {
                         content["data"].push(d);
-                        //console.log(d);
                     }
                 });
 
@@ -179,7 +179,6 @@ export default Vue.component("forest-plot-html", {
                 let labelGroup = [];
 
                 content["data"].map((d) => {
-                    console.log(d, this.labelBy)
                     let dichotomous =
                         this.countDichotomous == 1
                             ? this.labelMap[d[this.labelBy]].dichotomous
@@ -204,7 +203,6 @@ export default Vue.component("forest-plot-html", {
                     d["low"] = low;
                     d["measure"] = measure;
                     d["group"] = this.labelMap[d[this.labelBy]].group;
-
                     labelGroup.push(this.labelMap[d[this.labelBy]].group);
                 });
 
@@ -223,6 +221,7 @@ export default Vue.component("forest-plot-html", {
                         content["max_min_difference"]) *
                     100;
 
+                let self = this;
                 content["data"].map((item) => {
                     let updated = item;
                     let itemWidth =
@@ -249,20 +248,13 @@ export default Vue.component("forest-plot-html", {
                     updated["phenotype"] = item.phenotype;
                     return updated;
                 });
-
-                return content;
-
-            } else {
-                return [];
             }
+
+            if (!!this.filter) {
+                content.data = content.data.filter(this.filter);
+            }
+            return content;
         },
-        // filteredPlotContent() {
-        //     let plotContent = this.plotData;
-        //     if (!!this.filter) {
-        //         plotContent.data = plotContent.data.filter(this.filter);
-        //     }
-        //     return plotContent;
-        // },
         rows() {
             return this.plotData.data.length;
         },
@@ -274,7 +266,6 @@ export default Vue.component("forest-plot-html", {
         },
         showGroups() {
             let checked = document.getElementById("show_groups").checked;
-
             let groupDots = document.querySelectorAll(".phenotype-group-dot");
 
             groupDots.forEach(function (groupDot) {

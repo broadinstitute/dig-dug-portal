@@ -1,52 +1,31 @@
 <template>
-    <div class="col filter-col-md" style="padding: 5px 7px 5px 7px;">
+    <div class="col" style="padding: 5px 7px 5px 7px;">
         <slot>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
             {{field}}
         </slot>
-
         <!--
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
-        <vue-typeahead-bootstrap
+        <autocomplete
             v-if="!!options && options.length > 0"
-            :data="
-                options.map(option => !!labelFormatter ? { text: labelFormatter(option), value: option } : option)
-            "
-            class="autocomplete"
-            v-model="filterThreshold"
-            :serializer="s => s.text"
-            :showOnFocus="true"
-            :minMatchingChars="0"
-            :maxMatches="30"
-            @hit="updateFilter($event.value)"
-        ></vue-typeahead-bootstrap>
-
-        <!-- TODO: reuse this code -->
-        <!-- <autocomplete
-            v-if="!!options && options.length > 0"
-            :lookupOptions="options.map(option => !!labelFormatter ? { text: labelFormatter(option), value: option } : option)"
-            :matchKey=""
-            @item-select="updateFilter($event.value)"
-        ></autocomplete> -->
-
+            :matches="options"
+            :labelFormatter="labelFormatter"
+            @item-select="updateFilter($event)"
+        ></autocomplete>
         <b-form-input
             v-else
             v-model="filterThreshold"
             @keydown.enter="updateFilter(filterThreshold)"
         ></b-form-input>
-
     </div>
 </template>
 
 <script>
 import Vue from "vue";
-
 import Autocomplete from "@/components/Autocomplete.vue";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -67,7 +46,10 @@ export default Vue.component("filter-control", {
             default: '#ffc107',
         },
         pillFormatter: Function,
-        labelFormatter: Function,
+        labelFormatter: {
+            type: Function,
+            default: id => id,
+        },
         splitBy: {
             type: String,
             default: ''
@@ -82,7 +64,7 @@ export default Vue.component("filter-control", {
         }
     },
     components: {
-        VueTypeaheadBootstrap
+        Autocomplete
     },
     data() {
         return {
@@ -101,10 +83,16 @@ export default Vue.component("filter-control", {
             this.updateFilter(this.filterThreshold);
         }
     },
+    computed: {
+        optionData() {
+            if (!!this.options && this.options.length > 0) {
+                return this.options.map(option => !!this.labelFormatter ? { text: this.labelFormatter(option), value: option } : option)
+            } else {
+                return [];
+            }
+        }
+    },
     methods: {
-        tap(value) {
-            console.log(value);
-        },
         validateInput(newInput) {
             // TODO: elaborate validation cases here
             // TODO: validation utils?

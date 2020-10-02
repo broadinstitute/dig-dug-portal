@@ -95,9 +95,36 @@
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
+
+                        <b-container fluid class="filtering-ui-wrapper">
+                            <b-row class="filtering-ui-content">
+                                <filter-group
+                                    v-model="$parent.geneFinderFilter"
+                                    :looseMatch="true"
+                                >
+                                    <filter-enumeration-control
+                                        :field="'gene'"
+                                        :options="
+                                            $store.state.genes.data.map(gene => gene.gene)
+                                        "
+                                        :multiple="true"
+                                        :inclusive="true"
+                                    >
+                                        <div class="label">Gene</div>
+                                    </filter-enumeration-control>
+
+                                    <filter-pvalue-control :field="'pValue'">
+                                        <div class="label">P-Value (&le;)</div>
+                                    </filter-pvalue-control>
+
+                                </filter-group>
+                            </b-row>
+                        </b-container>
+
                         <gene-finder-table
                             :associations="$store.state.genes.data"
                             :per-page="10"
+                            :filter="$parent.geneFinderFilter"
                         ></gene-finder-table>
                     </div>
                 </div>
@@ -135,11 +162,10 @@
                                     >
                                         <div class="label">Consequence</div>
                                     </filter-enumeration-control>
-
                                     <filter-enumeration-control
                                         :field="'nearest'"
                                         :options="
-                                            $store.state.associations.data.map(association => association.consequence)
+                                            $store.state.associations.data.map(association => association.nearest[0])
                                         "
                                     >
                                         <div class="label">Closest Genes</div>
@@ -161,6 +187,7 @@
                         <associations-table
                             :phenotypes="[$store.state.phenotype]"
                             :associations="$store.state.associations.data"
+                            :filter="$parent.associationsFilter"
                             :per-page="10"
                         ></associations-table>
                     </div>

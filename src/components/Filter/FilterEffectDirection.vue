@@ -1,18 +1,19 @@
 <template>
     <filter-control
+        class="filter-col-sm"
         :field="field"
-        :type="'boolean'"
+        :type="'string'"
         :predicate="(beta, direction) => {
             // must be positive
-            if (direction === true) {
+            if (direction === 'positive') {
                 return Math.sign(beta) === 1;
             // must be negative
-            } else {
+            } else if (direction === 'negative') {
                 return Math.sign(beta) === -1;
             }
         }"
-        :pillFormatter="filterDefinition => `effect size ${filterDefinition.threshold ? 'positive' : 'negative'}`"
-        :options="[{ value: true, text: 'positive' }, { value: false, text: 'negative' }]"
+        :pillFormatter="filterDefinition => `effect size ${filterDefinition.threshold}`"
+        :options="['positive', 'negative']"
         :color="'#007bff'"
         :multiple="false">
         <slot>
@@ -27,6 +28,15 @@ export default Vue.component('filter-effect-direction-control', {
     props: ['field'],
     components: {
         FilterControl,
+    },
+    methods: {
+        tap(value) {
+            if (value === true) {
+                return 'positive'
+            } else if (value === false) {
+                return 'negative'
+            };
+        }
     }
 })
 </script>

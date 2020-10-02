@@ -189,13 +189,16 @@
                             <filter-group
                                 v-model="$parent.phewasFilter"
                                 :looseMatch="true">
-
+                                
                                 <filter-enumeration-control
-                                    :field="'phenotype.description'"
-                                    :options="Object.values(this.$store.state.bioPortal.phenotypeMap).map(phenotypeInfo => phenotypeInfo.description)"
-                                    :inclusive="true"
-                                    :multiple="true">
-                                    <div class="label">Phenotypes</div>
+                                    :field="'phenotype'"
+                                    :options="$store.state.phewas.data.map(phewas => phewas.phenotype)"
+                                    :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
+                                    :multiple="true"
+                                    :inclusive="true">
+                                    <div class="label">
+                                        Phenotypes
+                                    </div>
                                 </filter-enumeration-control>
 
                                 <filter-pvalue-control :field="'pValue'">

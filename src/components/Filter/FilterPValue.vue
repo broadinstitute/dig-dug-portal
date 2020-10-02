@@ -1,5 +1,6 @@
 <template>
     <filter-control
+        class="filter-col-sm"
         :field="field"
         :type="'number'"
         :predicate="(pValue, pBound) => pValue <= pBound"

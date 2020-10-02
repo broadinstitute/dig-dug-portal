@@ -45,11 +45,11 @@
         >
             <template v-slot:cell(phenotype)="r">
                 <a
-                    :href="`/phenotype.html?phenotype=${r.item.phenotype.name}`"
-                >{{phenotypeFormatter(r.item.phenotype)}}</a>
+                    :href="`/phenotype.html?phenotype=${r.item.phenotypeName}`"
+                >{{phenotypeFormatter(r.item.phenotypeInfo)}}</a>
             </template>
             <template v-slot:cell(continuousEffect)="r">
-                <div v-if="!r.item.phenotype.dichotomous" class="effect">
+                <div v-if="!r.item.phenotypeInfo.dichotomous" class="effect">
                     <span
                         :class="`effect ${r.item.beta < 0 ? 'negative' : 'positive'}`"
                     >{{r.item.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
@@ -57,7 +57,7 @@
                 </div>
             </template>
             <template v-slot:cell(dichotomousEffect)="r">
-                <div v-if="!!r.item.phenotype.dichotomous" class="effect">
+                <div v-if="!!r.item.phenotypeInfo.dichotomous" class="effect">
                     <span
                         :class="`effect ${r.item.beta < 0 ? 'negative' : 'positive'}`"
                     >{{r.item.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
@@ -162,7 +162,12 @@ export default Vue.component("phewas-table", {
 
             let phenotypes = this.phenotypeMap;
             let assocs = this.associations.map((a) => {
-                return { ...a, phenotype: phenotypes[a.phenotype] };
+                return { ...a,
+                    phenotype: phenotypes[a.phenotype].name,
+                    phenotypeInfo: phenotypes[a.phenotype],
+                    phenotypeName: phenotypes[a.phenotype].name,
+                    phenotypeGroup: phenotypes[a.phenotype].group,
+                };
             });
 
             return assocs

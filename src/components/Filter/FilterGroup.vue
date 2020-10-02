@@ -23,8 +23,7 @@
                 pill
                 :style="`background-color:${filter.pill.color}; margin-right: 4px`"
                 @click="unsetFilter(filter, idx)"
-                class="btn"
-            >
+                class="btn">
                 {{ filter.pill.label(filter) }}
                 <span class="remove">X</span>
             </b-badge>

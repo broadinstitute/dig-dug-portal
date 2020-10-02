@@ -62,6 +62,7 @@ new Vue({
             phenotypeFilter: null,
             annotationsFilter: null,
             associationsFilter: null,
+            geneFinderFilter: null,
         }
     },
 

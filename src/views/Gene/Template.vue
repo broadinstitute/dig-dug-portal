@@ -151,7 +151,10 @@
                                     :looseMatch="true">
                                     <filter-enumeration-control
                                         :field="'phenotype'"
-                                        :options="Object.values($store.state.bioPortal.phenotypeMap).map(phenotypeInfo => phenotypeInfo.name)">
+                                        :options="$store.state.associations.data.map(association => association.phenotype)"
+                                        :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
+                                        :multiple="true"
+                                        :inclusive="true">
                                         <div class="label">
                                             Phenotypes
                                         </div>
@@ -167,6 +170,7 @@
                         <locuszoom
                             v-if="$store.state.gene"
                             ref="locuszoom"
+                            :filter="$parent.associationsFilter"
                             :refSeq="false"
                         >
                             <lz-phewas-panel
