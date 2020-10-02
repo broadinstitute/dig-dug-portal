@@ -23,38 +23,36 @@
                     <div class="col-md-12 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <gene-selectpicker
-                                @onGeneChange="
-                                    $store.dispatch('queryGeneName', $event)
-                                "
+                                @onGeneChange="$store.dispatch('queryGeneName', $event)"
                             ></gene-selectpicker>
                         </div>
                         <div v-if="$parent.symbolName">
                             <span>
                                 {{ $parent.symbolName }}
                                 <span
-                                    v-if="
-                                        $parent.symbolName.toLowerCase() !==
-                                        $store.state.geneName.toLowerCase()
-                                    "
+                                    v-if="$parent.symbolName.toLowerCase() !==$store.state.geneName.toLowerCase()"
                                 >({{ $store.state.geneName }})</span>
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div class="card mdkp-card">
-                <div class="card-body">
+                <div class="card-body" style="margin-block-end: 20px; ">
                     <div class="row">
-                        <div class="col-md-5">
-                            <h4>{{$store.state.geneName}} is {{$store.state.effectorGeneData.category}}</h4>
+                        <div class="col-md-7">
+                            <h5 v-if="$store.state.effectorGeneData.category">
+                                {{$store.state.geneName}} has {{$store.state.effectorGeneData.category}} Evidence
+                                <tooltip-documentation
+                                    name="gene.function.tooltip.hover"
+                                    :content-fill="$parent.documentationMap"
+                                    :isHover="true"
+                                    :noIcon="false"
+                                ></tooltip-documentation>
+                            </h5>
 
                             <!-- traffic light -->
-                            <div
-                                id="fademe2s"
-                                style="width:600px"
-                                v-if="$store.state.effectorGeneData"
-                            >
+                            <div style="width:600px;" v-if="$store.state.effectorGeneData">
                                 <br />
                                 <div
                                     v-if="$store.state.effectorGeneData.category == 'CAUSAL'"
@@ -83,95 +81,45 @@
                                 <div>
                                     <div class="container">
                                         <div class="row">
-                                            <div
-                                                style="background-color:#3352FF"
-                                                class="col-sm"
-                                            >Causal</div>
-                                            <div
-                                                style="background-color:#337AFF"
-                                                class="col-sm"
-                                            >Strong</div>
-                                            <div
-                                                style="background-color:#3393FF"
-                                                class="col-sm"
-                                            >Moderate</div>
-                                            <div
-                                                style="background-color:#33ACFF"
-                                                class="col-sm"
-                                            >Possible</div>
-                                            <div
-                                                style="background-color:#33E0FF"
-                                                class="col-sm"
-                                            >Weak</div>
+                                            <div style="background-color:#3352FF" class="col-sm">
+                                                <strong>Causal</strong>
+                                            </div>
+                                            <div style="background-color:#337AFF" class="col-sm">
+                                                <strong>Strong</strong>
+                                            </div>
+                                            <div style="background-color:#3393FF" class="col-sm">
+                                                <strong>Moderate</strong>
+                                            </div>
+                                            <div style="background-color:#33ACFF" class="col-sm">
+                                                <strong>Possible</strong>
+                                            </div>
+                                            <div style="background-color:#33E0FF" class="col-sm">
+                                                <strong>Weak</strong>
+                                            </div>
 
-                                            <div
-                                                style="background-color:#b3fcf7"
-                                                class="col-"
-                                            >No Evidence</div>
+                                            <div style="background-color:#b3fcf7" class="col-">
+                                                <strong>No Evidence</strong>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <!-- <hr style="margin:60px" /> -->
-
-                            <!-- <div style="width:600px">
-                                <div class="arrow-up categoryArrow"></div>
-                                <div>
-                                    <div class="container">
-                                        <div class="row">
-                                            <div style="background-color:#ffd62e" class="col-sm">1C</div>
-                                            <div style="background-color:#FFEC2E" class="col-sm">2C</div>
-                                            <div style="background-color:#bfd730" class="col-sm">2R</div>
-                                            <div
-                                                style="background-color:#bfd73050"
-                                                class="col-sm"
-                                            >3R</div>
-                                            <div style="background-color:#add3f0" class="col-sm">1P</div>
-                                            <div
-                                                style="background-color:#add3f075"
-                                                class="col-sm"
-                                            >2P</div>
-                                            <div
-                                                style="background-color:#add3f050"
-                                                class="col-sm"
-                                            >3P</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>-->
-                            <hr style="margin:60px" />
-
-                            <!-- loftee -->
-                            <documentation
-                                name="hugecal.stage3.subheader"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
-                            <div v-if="$parent.geneAssociations52k">
-                                <div
-                                    v-if="
-                                        $parent.geneAssociationsLoftee
-                                            .length > 0
-                                    "
-                                    class="border"
-                                >
-                                    <forest-plot
-                                        :data="
-                                            $parent.geneAssociationsLoftee
-                                        "
-                                    ></forest-plot>
-                                </div>
-                                <div v-else>
-                                    <strong>
-                                        There are no loss-of-function
-                                        variants detected in this
-                                        gene
-                                    </strong>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-7" style="border-left: 1px dashed #444">
-                            <!-- stage 1 -->
+                        <div class="col-md-5">
+                            <documentation
+                                name="hugecal.combinedscore.help"
+                                :content-fill="$parent.documentationMap"
+                            ></documentation>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body" style="margin-block-end: 20px;">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <!-- Common Variation -->
                             <h4>
                                 Common Variation
                                 <tooltip-documentation
@@ -201,12 +149,8 @@
                                     :refSeq="true"
                                 >
                                     <lz-associations-panel
-                                        :phenotype="
-                                                $store.state.phenotype.name
-                                            "
-                                        :finishHandler="
-                                                $parent.updateAssociationsTable
-                                            "
+                                        :phenotype="$store.state.phenotype.name"
+                                        :finishHandler="$parent.updateAssociationsTable"
                                     ></lz-associations-panel>
                                 </locuszoom>
                             </div>
@@ -233,11 +177,11 @@
                                 <li v-if="$store.state.effectorGeneData.genomic">
                                     Regulatory Evidence:
                                     <span
-                                        v-if="store.state.effectorGeneData.genomic == '2R'"
+                                        v-if="$store.state.effectorGeneData.genomic == '2R'"
                                         class="regulatoryEvidence2R"
                                     >{{$store.state.effectorGeneData.genomic}}</span>
                                     <span
-                                        v-if="store.state.effectorGeneData.genomic == '3R'"
+                                        v-if="$store.state.effectorGeneData.genomic == '3R'"
                                         class="regulatoryEvidence3R"
                                     >{{$store.state.effectorGeneData.genomic}}</span>
                                 </li>
@@ -318,8 +262,11 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- Close Common Varation -->
+                        </div>
+
+                        <div class="col-md-5" style="border-left: 1px dashed #444">
                             <!-- </p> -->
-                            <hr style="margin:60px" />
 
                             <!-- Start Rare Variation -->
                             <h4>
@@ -332,10 +279,14 @@
                                 ></tooltip-documentation>
                             </h4>
 
-                            <h5>Is {{ $store.state.geneName }} exome-wide significant?</h5>
+                            <h5>Is {{ $store.state.geneName }} Exome-wide significant?</h5>
 
                             <div v-if="$parent.isSignificant52kAssociationRareVariation">
-                                <h6>{{ $store.state.geneName }} is exome wide significant since it's p-value is less than the threshold 2.5e-6.</h6>
+                                <documentation
+                                    name="hugecal.priorVariance.isExomeSignificant"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+
                                 <hr style="margin:40px" />
                                 <h5>Rare variation evidence for {{ $store.state.geneName }} in {{ $store.state.phenotype.description }}...</h5>
                                 <ul>
@@ -413,12 +364,14 @@
                             </div>
 
                             <div v-else>
-                                <h6>{{ $store.state.geneName }} is not exome wide significant since it's p-value is greater than the threshold p-value of 2.5e-6. So Bayesian approach is used to calculate PPAs over a range of priors</h6>
-                                <!-- 52k -->
-                                <!-- <p> -->
+                                <h6>
+                                    <documentation
+                                        name="hugecal.priorVariance.notExomeSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h6>
                                 <div v-if="$parent.geneAssociations52k">
-                                    <h6>Posterior Probability vs. Prior Variance</h6>
-                                    <div>
+                                    <div style="margin-block-end: 10px; ">
                                         Prior variance:
                                         <input
                                             v-model.number="$store.state.priorVariance"
@@ -436,6 +389,29 @@
                                 </div>
                             </div>
                             <!-- Close Rare Variation -->
+                            <hr style="margin:60px" />
+
+                            <!-- loftee -->
+                            <documentation
+                                name="hugecal.stage3.subheader"
+                                :content-fill="$parent.documentationMap"
+                            ></documentation>
+                            <div v-if="$parent.geneAssociations52k">
+                                <div
+                                    v-if="$parent.geneAssociationsLoftee.length > 0"
+                                    class="border"
+                                >
+                                    <forest-plot :data=" $parent.geneAssociationsLoftee"></forest-plot>
+                                </div>
+                                <div v-else>
+                                    <strong>
+                                        <documentation
+                                            name="hugecal.rareVaration.noLoftee"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                    </strong>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -471,13 +447,6 @@ export default Vue.component("test", {
 
     methods: {}
 });
-
-window.onload = function() {
-    document.getElementById("fademe2s").style.opacity = 1;
-    document.getElementById("fademe4s").style.opacity = 1;
-    document.getElementById("fademe6s").style.opacity = 1;
-    document.getElementById("fademe8s").style.opacity = 1;
-};
 </script>
 
 
