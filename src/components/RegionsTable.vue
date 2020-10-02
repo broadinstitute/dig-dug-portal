@@ -190,6 +190,9 @@ export default Vue.component("regions-table", {
         tableData() {
             let dataRows = this.sortedRegions;
             if (!!this.filter) {
+                console.log(this.sortedRegions.length, this.sortedRegions.filter(region => {
+                    return this.filter(region);
+                }).length)
                 dataRows = this.sortedRegions.filter(region => {
                     return this.filter(region);
                 });

@@ -152,9 +152,7 @@
                                     <filter-enumeration-control
                                         :field="'phenotype'"
                                         :options="$store.state.associations.data.map(association => association.phenotype)"
-                                        :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
-                                        :multiple="true"
-                                        :inclusive="true">
+                                        :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
                                         <div class="label">
                                             Phenotypes
                                         </div>
@@ -238,16 +236,14 @@
                                 <filter-group v-model="$parent.referenceFilter" :inclusive="true">
                                     <filter-enumeration-control
                                         :field="'source'"
-                                        :options="$parent.dbReference.map(reference => reference.source)"
-                                        :multiple="true">
+                                        :options="$parent.dbReference.map(reference => reference.source)">
                                         <div class="label">
                                             Sources
                                         </div>
                                     </filter-enumeration-control>
                                     <filter-enumeration-control
                                         :field="'moleculeType'"
-                                        :options="$parent.dbReference.map(reference => reference.moleculeType)"
-                                        :multiple="true">
+                                        :options="$parent.dbReference.map(reference => reference.moleculeType)">
                                         <div class="label">
                                             Molecule Type
                                         </div>

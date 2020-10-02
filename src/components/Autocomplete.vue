@@ -63,7 +63,6 @@ export default Vue.component("autocomplete", {
 
     methods: {
         formatHTML(html) {
-            console.log('format', this.labelFormatter(html))
             return this.labelFormatter(html);
         },
         serializer(item) {

@@ -189,13 +189,11 @@
                             <filter-group
                                 v-model="$parent.phewasFilter"
                                 :looseMatch="true">
-                                
+
                                 <filter-enumeration-control
                                     :field="'phenotype'"
                                     :options="$store.state.phewas.data.map(phewas => phewas.phenotype)"
-                                    :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
-                                    :multiple="true"
-                                    :inclusive="true">
+                                    :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
                                     <div class="label">
                                         Phenotypes
                                     </div>
@@ -313,27 +311,23 @@
 
                             <filter-group
                                 v-model="$parent.regionFilter"
-                                :inclusive="true"
                                 :looseMatch="true">
 
                                 <filter-enumeration-control
                                     :field="'annotation'"
-                                    :options="$parent.regions.map(region => region.annotation)"
-                                    :multiple="true">
+                                    :options="$parent.regions.map(region => region.annotation)">
                                     <div class="label">Annotations</div>
                                 </filter-enumeration-control>
 
                                 <filter-enumeration-control
                                     :field="'method'"
-                                    :options="$parent.regions.map(region => region.method)"
-                                    :multiple="true">
+                                    :options="$parent.regions.map(region => region.method)">
                                     <div class="label">Methods</div>
                                 </filter-enumeration-control>
 
                                 <filter-enumeration-control
                                     :field="'tissue'"
-                                    :options="$parent.regions.map(region => region.tissue)"
-                                    :multiple="true">
+                                    :options="$parent.regions.map(region => region.tissue)">
                                     <div class="label">Tissues</div>
                                 </filter-enumeration-control>
 

@@ -8,8 +8,8 @@
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
         :color="'#28a745'"
-        :multiple="!!multiple"
-        :inclusive="!!inclusive">
+        :multiple="true"
+        :inclusive="true">
         <slot>
         </slot>
     </filter-control>
@@ -24,8 +24,14 @@ export default Vue.component('filter-enumeration-control', {
         field: String,
         options: Array,
         color: String,
-        multiple: Boolean,
-        inclusive: Boolean,
+        multiple: {
+            type: Boolean,
+            default: true
+        },
+        inclusive: {
+            type: Boolean,
+            default: true,
+        },
         labelFormatter: {
             type: Function,
             default: Formatter.capitalizedFormatter,

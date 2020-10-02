@@ -106,10 +106,7 @@
                                         :field="'gene'"
                                         :options="
                                             $store.state.genes.data.map(gene => gene.gene)
-                                        "
-                                        :multiple="true"
-                                        :inclusive="true"
-                                    >
+                                        ">
                                         <div class="label">Gene</div>
                                     </filter-enumeration-control>
 
