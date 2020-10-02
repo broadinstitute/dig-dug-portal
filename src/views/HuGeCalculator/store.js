@@ -133,7 +133,7 @@ export default new Vuex.Store({
             }
         },
 
-        async queryGeneRegion(context, region) {
+        queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
             let q = `${chromosome}:${start}-${end}`;
 

@@ -139,7 +139,7 @@
                             <h6
                                 v-else
                             >{{ $store.state.geneName }} is not genome wide significant since it's p-value is greater than the threshold p-value of 5e-6 as shown below in this locuszoom interactive visualization</h6>
-                            <div id="gwasAssocHolder">
+                            <div v-if="$parent.region">
                                 <locuszoom
                                     v-if="$parent.region"
                                     ref="locuszoom"
