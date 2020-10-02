@@ -318,7 +318,7 @@ new Vue({
 
         topAssociations(top) {
             // If no phenotype is selected, pick the top phenotype from assocations
-            if (!this.selectedPhenotype && top.length > 0) {
+            if (!this.$store.state.phenotype && top.length > 0) {
                 let topAssoc = top[0];
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                     topAssoc.phenotype
