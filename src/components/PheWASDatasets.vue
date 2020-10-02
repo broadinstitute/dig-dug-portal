@@ -1,5 +1,9 @@
 <template>
-    <div id="phewas-datasets" class="EGLT-table" v-if="rows > 0">
+    <div
+        id="phewas-datasets"
+        class="EGLT-table variant-datasets"
+        v-if="rows > 0"
+    >
         <b-container fluid v-if="!!phenotypeMap && !!datasetMap" class="list">
             <b-row class="top-level-header">
                 <b-col cols="4" class="top-level-header-item">Phenotype</b-col>
@@ -11,6 +15,7 @@
             </b-row>
             <template v-for="(item, index) in tableData">
                 <b-row
+                    class="top-level-value"
                     :key="index"
                     :class="
                         index < (currentPage - 1) * perPage ||
@@ -78,36 +83,37 @@
                     </b-col>
                 </b-row>
 
-                <!-- <div
-                    :class="`feature-headers-${index}`"
+                <div
+                    :class="`features_${index}`"
                     class="feature-content-wrapper hidden"
                     :key="`features_${index}`"
                 >
                     <b-row class="feature-header">
-                        <b-col class="feature-header-item">Dataset</b-col
+                        <b-col cols="5" class="feature-header-item"
+                            >Dataset</b-col
                         ><b-col class="feature-header-item">P-Value</b-col>
                         <b-col
                             class="feature-header-item"
-                            v-if="!phenotypeMap[name].dichotomous"
+                            v-if="!item.phenotype.dichotomous"
                             >Beta</b-col
                         >
                         <b-col
                             class="feature-header-item"
-                            v-if="!!phenotypeMap[name].dichotomous"
+                            v-if="!!item.phenotype.dichotomous"
                             >Odds Ratio</b-col
                         >
                         <b-col class="feature-header-item">Sample Size</b-col>
                     </b-row>
-                    <template v-for="(dataset, j) in phenotype">
+                    <template v-for="(dataset, j) in item.datasets">
                         <b-row
                             class="features"
                             :class="`features_${index}_${j}`"
                             :key="`features_${index}_${j}`"
                         >
-                            <b-col class="feature-content-item">
+                            <b-col cols="5" class="feature-content-item">
                                 <a
                                     v-if="!!datasetMap[dataset.dataset]"
-                                    :href="`/dinspector.html?dataset=${dataset.dataset}&phenotype=${name}`"
+                                    :href="`/dinspector.html?dataset=${dataset.dataset}&phenotype=${item.phenotype.name}`"
                                     >{{
                                         datasetMap[dataset.dataset].description
                                     }}</a
@@ -119,7 +125,7 @@
                             }}</b-col>
                             <b-col
                                 class="feature-content-item"
-                                v-if="!phenotypeMap[name].dichotomous"
+                                v-if="!item.phenotype.dichotomous"
                             >
                                 <span
                                     :class="
@@ -135,7 +141,7 @@
                             </b-col>
                             <b-col
                                 class="feature-content-item"
-                                v-if="!!phenotypeMap[name].dichotomous"
+                                v-if="!!item.phenotype.dichotomous"
                             >
                                 <span
                                     :class="
@@ -156,7 +162,7 @@
                             }}</b-col>
                         </b-row>
                     </template>
-                </div> -->
+                </div>
             </template>
         </b-container>
         <b-pagination
@@ -224,7 +230,7 @@ export default Vue.component("phewas-datasets", {
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,
         showDatasets(index) {
-            uiUtils.showHideElement("feature-headers-" + index);
+            uiUtils.showHideElement("features_" + index);
         },
     },
 });
