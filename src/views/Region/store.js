@@ -28,7 +28,7 @@ export default new Vuex.Store({
     state: {
         // only used at the start
         phenotypeParam: keyParams.phenotype,
-        hello: keyParams.phenotype,
+
         // user-entered locus
         chr: keyParams.chr,
         start: keyParams.start,
@@ -45,13 +45,13 @@ export default new Vuex.Store({
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
-            //state.phenotypeParam = null;
+            state.phenotypeParam = phenotype.name;
             state.phenotype = phenotype;
 
             keyParams.set({ phenotype: phenotype.name });
         },
         setPhenotypeByName(state, name) {
-            //state.phenotypeParam = null;
+            state.phenotypeParam = name;
             state.phenotype = state.bioPortal.phenotypeMap[name];
         },
         setLocus(state, region = {}) {
@@ -122,7 +122,7 @@ export default new Vuex.Store({
             if (context.state.searchGene) {
                 context.dispatch("findGene");
             } else {
-                context.commit("setSelectedPhenotype", null);
+                //context.commit("setSelectedPhenotype", null);
                 context.commit("genes/clearData");
                 context.commit("associations/clearData");
                 context.commit("topAssociations/clearData");
