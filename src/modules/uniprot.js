@@ -70,7 +70,13 @@ export default {
         geneFunction(state) {
             let doc = state.uniprotDoc
             if (!!doc) {
-                let commentObject = doc.uniprot.entry.comment
+                let commentObject = doc.uniprot.entry.comment;
+
+                // most uniprot comments are an array, so ensure that
+                if (!Array.isArray(commentObject)) {
+                    commentObject = [commentObject];
+                }
+
                 for (let i in commentObject) {
                     if (commentObject[i]._attributes.type == 'function') {
                         let geneFunction = jsonQuery('text[**]', { data: commentObject[i] }).value
