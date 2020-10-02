@@ -23,8 +23,12 @@
                         <span class="beta-box">&nbsp;</span>
                         <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}</span>
                     </li>
+                    <li>
+                        <span class="beta-box">&nbsp;</span>
+                        <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}</span>
+                    </li>
                 </ul>
-                <ul v-if="!!labelMap">
+                <!--<ul v-if="!!labelMap">
                     <li>{{'Group:'}}</li>
                     <template>
                         <li v-for="group in this.plotData.label_group">
@@ -32,7 +36,7 @@
                             <span class="label">{{group}}</span>
                         </li>
                     </template>
-                </ul>
+                </ul>-->
             </div>
         </div>
         <div class="forest-plot-html-wrapper row">
