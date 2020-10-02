@@ -222,6 +222,11 @@
                         :associations="$store.state.phewas.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                     ></phewas-table>
+                    <unauthorized-message
+                        :restricted="
+                            $store.state.datasetAssociations.restricted
+                        "
+                    ></unauthorized-message>
                     <phewas-datasets
                         v-if="$store.state.phewas.data"
                         :associations="$store.state.phewas.data"
@@ -241,11 +246,6 @@
                         </span>
                         associations across datasets
                     </h4>
-                    <unauthorized-message
-                        :restricted="
-                            $store.state.datasetAssociations.restricted
-                        "
-                    ></unauthorized-message>
                     <dataset-associations
                         :associations="$store.state.datasetAssociations.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
