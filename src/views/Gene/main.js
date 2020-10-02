@@ -51,7 +51,7 @@ new Vue({
         Documentation,
         Autocomplete,
         GeneSelectPicker,
-        UnauthorizeMessage,
+        UnauthorizedMessage,
         FilterWidget,
         FilterWidgetControl,
         FilterPValue,
