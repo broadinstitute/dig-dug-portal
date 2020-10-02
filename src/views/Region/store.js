@@ -8,8 +8,6 @@ import lunaris from "@/modules/lunaris";
 import kp4cd from "@/modules/kp4cd";
 import regionUtils from "@/utils/regionUtils";
 
-
-
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -25,12 +23,12 @@ export default new Vuex.Store({
         regions: bioIndex("regions"),
         credibleSets: bioIndex("credible-sets"),
         globalEnrichment: bioIndex("global-enrichment"),
-        variant: bioIndex("variant"),
+        variant: bioIndex("variant")
     },
     state: {
         // only used at the start
         phenotypeParam: keyParams.phenotype,
-
+        hello: keyParams.phenotype,
         // user-entered locus
         chr: keyParams.chr,
         start: keyParams.start,
@@ -43,15 +41,17 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
-        matchingGenes: null,
+        matchingGenes: null
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
-            state.phenotypeParam = null;
+            //state.phenotypeParam = null;
             state.phenotype = phenotype;
+
+            keyParams.set({ phenotype: phenotype.name });
         },
         setPhenotypeByName(state, name) {
-            state.phenotypeParam = null;
+            //state.phenotypeParam = null;
             state.phenotype = state.bioPortal.phenotypeMap[name];
         },
         setLocus(state, region = {}) {
@@ -66,12 +66,12 @@ export default new Vuex.Store({
             keyParams.set({
                 chr: state.chr,
                 start: state.start,
-                end: state.end,
+                end: state.end
             });
         },
         setMatchingGenes(state, genes) {
             state.matchingGenes = genes;
-        },
+        }
     },
     getters: {
         // The phenotype is a getter because it depends on the bioPortal
@@ -90,17 +90,20 @@ export default new Vuex.Store({
         },
         region(state) {
             return `${state.chr}:${state.start}-${state.end}`;
-        },
+        }
     },
     actions: {
-
         async onPhenotypeChange(context, phenotype) {
-            context.commit('setSelectedPhenotype', phenotype);
+            context.commit("setSelectedPhenotype", phenotype);
         },
 
         async findGene(context) {
             if (context.state.searchGene) {
-                let locus = await regionUtils.parseRegion(context.state.searchGene, true, 50000);
+                let locus = await regionUtils.parseRegion(
+                    context.state.searchGene,
+                    true,
+                    50000
+                );
 
                 if (locus) {
                     context.state.newChr = locus.chr;
@@ -108,8 +111,8 @@ export default new Vuex.Store({
                     context.state.newEnd = locus.end;
 
                     // update the locus
-                    context.commit('setLocus');
-                    context.dispatch('queryRegion');
+                    context.commit("setLocus");
+                    context.dispatch("queryRegion");
                 }
             }
         },
@@ -117,26 +120,27 @@ export default new Vuex.Store({
         async queryRegion(context, region) {
             const newRegion = region || context.getters.region;
             if (context.state.searchGene) {
-                context.dispatch('findGene');
+                context.dispatch("findGene");
             } else {
-                context.commit('setSelectedPhenotype', null);
-                context.commit('genes/clearData');
-                context.commit('associations/clearData');
-                context.commit('topAssociations/clearData');
+                context.commit("setSelectedPhenotype", null);
+                context.commit("genes/clearData");
+                context.commit("associations/clearData");
+                context.commit("topAssociations/clearData");
 
-                if (context.state.newChr !== context.state.chr ||
+                if (
+                    context.state.newChr !== context.state.chr ||
                     context.state.newStart !== context.state.start ||
-                    context.state.newEnd !== context.state.end) {
-                    context.commit('setLocus');
+                    context.state.newEnd !== context.state.end
+                ) {
+                    context.commit("setLocus");
                 }
 
                 // find all the top associations and genes in the region
-                context.dispatch('topAssociations/query', { q: newRegion });
-                context.dispatch('genes/query', { q: newRegion });
+                context.dispatch("topAssociations/query", { q: newRegion });
+                context.dispatch("genes/query", { q: newRegion });
 
                 // for variant prioritizer?
                 // context.dispatch('regions/query', { q: newRegion });
-
             }
         },
 
@@ -144,8 +148,8 @@ export default new Vuex.Store({
             let locus = await regionUtils.parseRegion(gene, true, 50000);
 
             if (locus) {
-                context.commit('setLocus', locus);
-                context.dispatch('queryRegion');
+                context.commit("setLocus", locus);
+                context.dispatch("queryRegion");
             }
         },
 
@@ -158,16 +162,15 @@ export default new Vuex.Store({
             };
 
             // load the association
-            context.dispatch('associations/query', query);
+            context.dispatch("associations/query", query);
         },
 
         async resetToDefaultRegion(context) {
-            context.commit('setLocus', {
+            context.commit("setLocus", {
                 chr: context.state.initial.chr,
                 start: context.state.initial.start,
-                end: context.state.initial.end,
+                end: context.state.initial.end
             });
         }
-
-    },
+    }
 });
