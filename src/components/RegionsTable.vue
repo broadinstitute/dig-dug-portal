@@ -1,37 +1,5 @@
 <template>
     <div>
-
-        <!-- <b-container fluid class="filtering-ui-wrapper filter-rows">
-            <b-row class="filtering-ui-content">
-                <b-col>
-                    <div class="label">Annotations</div>
-                    <b-form-select
-                        @input="addFilter($event, 'annotations')"
-                        :options="filter_annotation"
-                        id="annotations-filter"
-                    ></b-form-select>
-                </b-col>
-                <b-col>
-                    <div class="label">Methods</div>
-                    <b-form-select
-                        @input="addFilter($event, 'methods')"
-                        :options="filter_method"
-                        id="methods-filter"
-                    ></b-form-select>
-                </b-col>
-                <b-col>
-                    <div class="label">Tissues</div>
-                    <b-form-select
-                        @input="addFilter($event, 'tissues')"
-                        :options="filter_tissue"
-                        id="tissues-filter"
-                    ></b-form-select>
-                </b-col>
-            </b-row>
-        </b-container> -->
-
-
-
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row v-if="annotations.length > 0 || methods.length > 0 || tissues.length > 0">
                 <b-col>

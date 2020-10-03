@@ -144,8 +144,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <b-container fluid class="filtering-ui-wrapper">
-                            <b-row class="filtering-ui-content">
+
                                 <filter-group
                                     v-model="$parent.associationsFilter"
                                     :looseMatch="true">
@@ -162,8 +161,7 @@
                                         <div class="label">P-Value (&le;)</div>
                                     </filter-pvalue-control>
                                 </filter-group>
-                            </b-row>
-                        </b-container>
+
 
                         <locuszoom
                             v-if="$store.state.gene"
@@ -231,26 +229,23 @@
                         </h4>
 
 
-                        <b-container fluid class="filtering-ui-wrapper">
-                            <b-row class="filtering-ui-content">
-                                <filter-group v-model="$parent.referenceFilter" :inclusive="true">
-                                    <filter-enumeration-control
-                                        :field="'source'"
-                                        :options="$parent.dbReference.map(reference => reference.source)">
-                                        <div class="label">
-                                            Sources
-                                        </div>
-                                    </filter-enumeration-control>
-                                    <filter-enumeration-control
-                                        :field="'moleculeType'"
-                                        :options="$parent.dbReference.map(reference => reference.moleculeType)">
-                                        <div class="label">
-                                            Molecule Type
-                                        </div>
-                                    </filter-enumeration-control>
-                                </filter-group>
-                            </b-row>
-                        </b-container>
+
+                        <filter-group v-model="$parent.referenceFilter" :inclusive="true">
+                            <filter-enumeration-control
+                                :field="'source'"
+                                :options="$parent.dbReference.map(reference => reference.source)">
+                                <div class="label">
+                                    Sources
+                                </div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'moleculeType'"
+                                :options="$parent.dbReference.map(reference => reference.moleculeType)">
+                                <div class="label">
+                                    Molecule Type
+                                </div>
+                            </filter-enumeration-control>
+                        </filter-group>
 
                         <uniprot-references-table
                             :references="$parent.dbReference"

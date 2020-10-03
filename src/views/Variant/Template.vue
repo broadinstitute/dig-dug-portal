@@ -183,36 +183,30 @@
                         :content-fill="$parent.documentationMap"
                     ></documentation>
 
-                    <b-container fluid class="filtering-ui-wrapper">
-                        <b-row class="filtering-ui-content">
+                    <filter-group
+                        v-model="$parent.phewasFilter"
+                        :looseMatch="true">
 
-                            <filter-group
-                                v-model="$parent.phewasFilter"
-                                :looseMatch="true">
+                        <filter-enumeration-control
+                            :field="'phenotype'"
+                            :options="$store.state.phewas.data.map(phewas => phewas.phenotype)"
+                            :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
+                            <div class="label">
+                                Phenotypes
+                            </div>
+                        </filter-enumeration-control>
 
-                                <filter-enumeration-control
-                                    :field="'phenotype'"
-                                    :options="$store.state.phewas.data.map(phewas => phewas.phenotype)"
-                                    :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
-                                    <div class="label">
-                                        Phenotypes
-                                    </div>
-                                </filter-enumeration-control>
+                        <filter-pvalue-control :field="'pValue'">
+                            <div class="label">P-Value (&le;)</div>
+                        </filter-pvalue-control>
 
-                                <filter-pvalue-control :field="'pValue'">
-                                    <div class="label">P-Value (&le;)</div>
-                                </filter-pvalue-control>
+                        <filter-effect-direction-control
+                            :field="'beta'"
+                        >
+                            <div class="label">Effect (+/-)</div>
+                        </filter-effect-direction-control>
 
-                                <filter-effect-direction-control
-                                    :field="'beta'"
-                                >
-                                    <div class="label">Effect (+/-)</div>
-                                </filter-effect-direction-control>
-
-                            </filter-group>
-
-                        </b-row>
-                    </b-container>
+                    </filter-group>
 
                     <!--<h4 class="card-title">Visualization</h4>-->
                     <b-tabs content-class="mt-3" align="center">
@@ -306,35 +300,29 @@
                         :content-fill="$parent.documentationMap"
                     ></documentation>
 
-                    <b-container fluid class="filtering-ui-wrapper">
-                        <b-row class="filtering-ui-content">
+                    <filter-group
+                        v-model="$parent.regionFilter"
+                        :looseMatch="true">
 
-                            <filter-group
-                                v-model="$parent.regionFilter"
-                                :looseMatch="true">
+                        <filter-enumeration-control
+                            :field="'annotation'"
+                            :options="$parent.regions.map(region => region.annotation)">
+                            <div class="label">Annotations</div>
+                        </filter-enumeration-control>
 
-                                <filter-enumeration-control
-                                    :field="'annotation'"
-                                    :options="$parent.regions.map(region => region.annotation)">
-                                    <div class="label">Annotations</div>
-                                </filter-enumeration-control>
+                        <filter-enumeration-control
+                            :field="'method'"
+                            :options="$parent.regions.map(region => region.method)">
+                            <div class="label">Methods</div>
+                        </filter-enumeration-control>
 
-                                <filter-enumeration-control
-                                    :field="'method'"
-                                    :options="$parent.regions.map(region => region.method)">
-                                    <div class="label">Methods</div>
-                                </filter-enumeration-control>
+                        <filter-enumeration-control
+                            :field="'tissue'"
+                            :options="$parent.regions.map(region => region.tissue)">
+                            <div class="label">Tissues</div>
+                        </filter-enumeration-control>
 
-                                <filter-enumeration-control
-                                    :field="'tissue'"
-                                    :options="$parent.regions.map(region => region.tissue)">
-                                    <div class="label">Tissues</div>
-                                </filter-enumeration-control>
-
-                            </filter-group>
-
-                        </b-row>
-                    </b-container>
+                    </filter-group>
 
                     <regions-table
                         :regions="$parent.regions"

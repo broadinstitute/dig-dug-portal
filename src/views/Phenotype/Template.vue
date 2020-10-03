@@ -96,27 +96,25 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <b-container fluid class="filtering-ui-wrapper">
-                            <b-row class="filtering-ui-content">
-                                <filter-group
-                                    v-model="$parent.geneFinderFilter"
-                                    :looseMatch="true"
-                                >
-                                    <filter-enumeration-control
-                                        :field="'gene'"
-                                        :options="
-                                            $store.state.genes.data.map(gene => gene.gene)
-                                        ">
-                                        <div class="label">Gene</div>
-                                    </filter-enumeration-control>
 
-                                    <filter-pvalue-control :field="'pValue'">
-                                        <div class="label">P-Value (&le;)</div>
-                                    </filter-pvalue-control>
+                        <filter-group
+                            v-model="$parent.geneFinderFilter"
+                            :looseMatch="true"
+                        >
+                            <filter-enumeration-control
+                                :field="'gene'"
+                                :options="
+                                    $store.state.genes.data.map(gene => gene.gene)
+                                ">
+                                <div class="label">Gene</div>
+                            </filter-enumeration-control>
 
-                                </filter-group>
-                            </b-row>
-                        </b-container>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
+
+                        </filter-group>
+
 
                         <gene-finder-table
                             :associations="$store.state.genes.data"
@@ -145,41 +143,37 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <b-container fluid class="filtering-ui-wrapper">
-                            <b-row class="filtering-ui-content">
-                                <filter-group
-                                    v-model="$parent.associationsFilter"
-                                    :looseMatch="true"
-                                >
-                                    <filter-enumeration-control
-                                        :field="'consequence'"
-                                        :options="
-                                            $store.state.associations.data.map(association => association.consequence)
-                                        "
-                                    >
-                                        <div class="label">Consequence</div>
-                                    </filter-enumeration-control>
-                                    <filter-enumeration-control
-                                        :field="'nearest'"
-                                        :options="
-                                            $store.state.associations.data.map(association => association.nearest[0])
-                                        "
-                                    >
-                                        <div class="label">Closest Genes</div>
-                                    </filter-enumeration-control>
+                        <filter-group
+                            v-model="$parent.associationsFilter"
+                            :looseMatch="true"
+                        >
+                            <filter-enumeration-control
+                                :field="'consequence'"
+                                :options="
+                                    $store.state.associations.data.map(association => association.consequence)
+                                "
+                            >
+                                <div class="label">Consequence</div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'nearest'"
+                                :options="
+                                    $store.state.associations.data.map(association => association.nearest[0])
+                                "
+                            >
+                                <div class="label">Closest Genes</div>
+                            </filter-enumeration-control>
 
-                                    <filter-pvalue-control :field="'pValue'">
-                                        <div class="label">P-Value (&le;)</div>
-                                    </filter-pvalue-control>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
 
-                                    <filter-effect-direction-control
-                                        :field="'beta'"
-                                    >
-                                        <div class="label">Effect (+/-)</div>
-                                    </filter-effect-direction-control>
-                                </filter-group>
-                            </b-row>
-                        </b-container>
+                            <filter-effect-direction-control
+                                :field="'beta'"
+                            >
+                                <div class="label">Effect (+/-)</div>
+                            </filter-effect-direction-control>
+                        </filter-group>
 
                         <associations-table
                             :phenotypes="[$store.state.phenotype]"
@@ -201,33 +195,29 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <b-container fluid class="filtering-ui-wrapper">
-                            <b-row class="filtering-ui-content">
-                                <filter-group
-                                    v-model="$parent.phenotypeFilter"
-                                    :looseMatch="true"
-                                >
-                                    <filter-enumeration-control
-                                        :field="'tech'"
-                                        :options="
-                                            $store.state.bioPortal.datasets.map(dataset => dataset.tech)
-                                        "
-                                    >
-                                        <div class="label">Technology</div>
-                                    </filter-enumeration-control>
+                        <filter-group
+                            v-model="$parent.phenotypeFilter"
+                            :looseMatch="true"
+                        >
+                            <filter-enumeration-control
+                                :field="'tech'"
+                                :options="
+                                    $store.state.bioPortal.datasets.map(dataset => dataset.tech)
+                                "
+                            >
+                                <div class="label">Technology</div>
+                            </filter-enumeration-control>
 
-                                    <filter-enumeration-control
-                                        :field="'ancestry'"
-                                        :options="
-                                            $store.state.bioPortal.datasets.map(dataset => dataset.ancestry)
-                                        "
-                                    >
-                                        <div class="label">Ancestry</div>
-                                    </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'ancestry'"
+                                :options="
+                                    $store.state.bioPortal.datasets.map(dataset => dataset.ancestry)
+                                "
+                            >
+                                <div class="label">Ancestry</div>
+                            </filter-enumeration-control>
 
-                                </filter-group>
-                            </b-row>
-                        </b-container>
+                        </filter-group>
 
                         <datasets-table
                             :datasets="$store.state.bioPortal.datasets"
@@ -255,71 +245,66 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
+                        <filter-group
+                            v-model="$parent.annotationsFilter"
+                            :looseMatch="true"
+                        >
+                            <filter-enumeration-control
+                                :field="'annotation'"
+                                :options="
+                                    $store.state.annotations.data.map(annotation => annotation.annotation)
+                                "
+                            >
+                                <div class="label">
+                                    Annotations
+                                </div>
+                            </filter-enumeration-control>
 
-                        <b-container fluid class="filtering-ui-wrapper">
-                            <b-row class="filtering-ui-content">
-                                <filter-group
-                                    v-model="$parent.annotationsFilter"
-                                    :looseMatch="true"
-                                >
-                                    <filter-enumeration-control
-                                        :field="'annotation'"
-                                        :options="
-                                            $store.state.annotations.data.map(annotation => annotation.annotation)
-                                        "
-                                    >
-                                        <div class="label">
-                                            Annotations
-                                        </div>
-                                    </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'method'"
+                                :options="
+                                    $store.state.annotations.data.map(annotation => annotation.method)
+                                "
+                            >
+                                <div class="label">
+                                    Methods
+                                </div>
+                            </filter-enumeration-control>
 
-                                    <filter-enumeration-control
-                                        :field="'method'"
-                                        :options="
-                                            $store.state.annotations.data.map(annotation => annotation.method)
-                                        "
-                                    >
-                                        <div class="label">
-                                            Methods
-                                        </div>
-                                    </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'tissue'"
+                                :options="
+                                    $store.state.annotations.data.map(annotation => annotation.tissue)
+                                "
+                            >
+                                <div class="label">
+                                    Tissues
+                                </div>
+                            </filter-enumeration-control>
 
-                                    <filter-enumeration-control
-                                        :field="'tissue'"
-                                        :options="
-                                            $store.state.annotations.data.map(annotation => annotation.tissue)
-                                        "
-                                    >
-                                        <div class="label">
-                                            Tissues
-                                        </div>
-                                    </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'ancestry'"
+                                :options="
+                                    $store.state.annotations.data.map(annotation => annotation.ancestry)
+                                "
+                            >
+                                <div class="label">
+                                    Ancestry
+                                </div>
+                            </filter-enumeration-control>
 
-                                    <filter-enumeration-control
-                                        :field="'ancestry'"
-                                        :options="
-                                            $store.state.annotations.data.map(annotation => annotation.ancestry)
-                                        "
-                                    >
-                                        <div class="label">
-                                            Ancestry
-                                        </div>
-                                    </filter-enumeration-control>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">
+                                    P-Value (&le;)
+                                </div>
+                            </filter-pvalue-control>
 
-                                    <filter-pvalue-control :field="'pValue'">
-                                        <div class="label">
-                                            P-Value (&le;)
-                                        </div>
-                                    </filter-pvalue-control>
-
-                                    <filter-greater-control :field="'fold'">
-                                        <div class="label">
-                                            Fold (&ge;)
-                                        </div>
-                                    </filter-greater-control>
-                                </filter-group>
-                            </b-row>
-                        </b-container>
+                            <filter-greater-control :field="'fold'">
+                                <div class="label">
+                                    Fold (&ge;)
+                                </div>
+                            </filter-greater-control>
+                        </filter-group>
 
                         <enrichment-table
                             :phenotypes="[$store.state.phenotype]"
