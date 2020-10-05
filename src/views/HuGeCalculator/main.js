@@ -82,22 +82,43 @@ new Vue({
 
             this.$store.commit(`associations/setResponse`, data);
         },
-        posteriorProbability(p, beta, stdErr) {
+        posteriorProbability(prior, beta, stdErr) {
             let w = 0.0462
             let v = Math.pow(stdErr, 2);
-            let f1 = v / v + w;
+            let f1 = v / (v + w);
             let sqrt_f1 = Math.sqrt(f1);
             let f2 = w * Math.pow(beta, 2);
             let f3 = 2 * v * (v + w);
             let f4 = f2 / f3;
             let bayes_factor = sqrt_f1 * Math.exp(f4);
-            let f5 = p / (1 - p);
+            let f5 = prior / (1 - prior);
             let p0 = bayes_factor * f5;
             let ppa = p0 / (1 + p0);
-            return ppa;
+            return { "ppa": ppa, "bayes_factor": bayes_factor };
         },
 
-
+        calculateCategoryScore(category) {
+            let score = 1
+            if (category == "WEAK") {
+                score = 1;
+            }
+            else if (category == "POSSIBLE") {
+                score = 2;
+            }
+            else if (category == "MODERATE") {
+                score = 3;
+            }
+            else if (category == "STRONG") {
+                score = 4;
+            }
+            else if (category == "CAUSAL") {
+                score = 5;
+            }
+            else if (category == "No") {
+                score = 0;
+            }
+            return score;
+        },
 
     },
     mounted() {
@@ -178,9 +199,6 @@ new Vue({
                     }
                 }
             }
-
-
-
         },
 
         geneAssociationsLoftee() {
@@ -232,7 +250,7 @@ new Vue({
 
 
 
-        rareVarianceCategory() {
+        rareVariationCategoryAndScore() {
             let prior = 0.20;
             let d = this.$store.state.geneAssociations52k.data[0].masks.sort(
                 (a, b) => a.pValue - b.pValue
@@ -245,10 +263,13 @@ new Vue({
             } else {
                 beta = Math.log(mostSignificantMask.oddsRatio);
             }
-            let ppa = this.posteriorProbability(prior, beta, stdErr)
+            let ppa = this.posteriorProbability(prior, beta, stdErr).ppa;
+            let bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
             let category = "";
+
             if (ppa < 0.30) {
                 category = "WEAK"
+
             }
             else if (ppa >= 0.30 && ppa < 0.50) {
                 category = "POSSIBLE"
@@ -262,13 +283,66 @@ new Vue({
             else if (ppa >= 0.90) {
                 category = "CAUSAL"
             }
-            return category;
+            else if (bayes_factor < 1) {
+                category = "No"
+            }
+            let categoryScore = this.calculateCategoryScore(category);
+            return { "category": category, "categoryScore": categoryScore };
+        },
+        commonVariationCategoryAndScore() {
+            let category = this.$store.state.effectorGeneData.category;
+            let categoryScore = this.calculateCategoryScore(category);
+            return { "category": category, "categoryScore": categoryScore };
         },
 
-        finalStageCalculation() {
-            let effectorGeneData = this.$store.state.effectorGeneData;
+        finalCategory() {
+            let finalCategory = "";
+            if (
+                this.rareVariationCategoryAndScore.categoryScore +
+                this.commonVariationCategoryAndScore.categoryScore >=
+                5
+            ) {
+                finalCategory = "CAUSAL";
+            }
+            if (
+                this.rareVariationCategoryAndScore.categoryScore +
+                this.commonVariationCategoryAndScore.categoryScore ==
+                4
+            ) {
+                finalCategory = "STRONG";
+            }
+            if (
+                this.rareVariationCategoryAndScore.categoryScore +
+                this.commonVariationCategoryAndScore.categoryScore ==
+                3
+            ) {
+                finalCategory = "MODERATE";
+            }
+            if (
+                this.rareVariationCategoryAndScore.categoryScore +
+                this.commonVariationCategoryAndScore.categoryScore ==
+                2
+            ) {
+                finalCategory = "POSSIBLE";
+            }
+            if (
+                this.rareVariationCategoryAndScore.categoryScore +
+                this.commonVariationCategoryAndScore.categoryScore ==
+                1
+            ) {
+                finalCategory = "WEAK";
+            }
+            if (
+                this.rareVariationCategoryAndScore.categoryScore +
+                this.commonVariationCategoryAndScore.categoryScore ==
+                0
+            ) {
+                finalCategory = "No Evidence";
+            }
+            return finalCategory;
+        }
 
-        },
+
     },
 
 

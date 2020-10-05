@@ -87,8 +87,8 @@
                 <div class="card-body" style="margin-block-end: 20px; ">
                     <div class="row">
                         <div class="col-md-7">
-                            <h5 v-if="$store.state.effectorGeneData.category">
-                                {{$store.state.geneName}} has {{$store.state.effectorGeneData.category}} Evidence
+                            <h5 v-if="$parent.geneAssociations52k">
+                                {{$store.state.geneName}} has {{$parent.finalCategory}} Evidence
                                 <tooltip-documentation
                                     name="gene.function.tooltip.hover"
                                     :content-fill="$parent.documentationMap"
@@ -98,30 +98,30 @@
                             </h5>
 
                             <!-- traffic light -->
-                            <div style="width:600px;" v-if="$store.state.effectorGeneData">
+                            <div style="width:600px;" v-if="$parent.geneAssociations52k">
                                 <br />
                                 <div
-                                    v-if="$store.state.effectorGeneData.category == 'CAUSAL'"
+                                    v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore >=5"
                                     class="arrow-up causalclass"
                                 ></div>
                                 <div
-                                    v-if="$store.state.effectorGeneData.category == 'STRONG'"
+                                    v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore ==4"
                                     class="arrow-up strongclass"
                                 ></div>
                                 <div
-                                    v-if="$store.state.effectorGeneData.category == 'MODERATE'"
+                                    v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore == 3"
                                     class="arrow-up moderateclass"
                                 ></div>
                                 <div
-                                    v-if="$store.state.effectorGeneData.category == 'POSSIBLE'"
+                                    v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore == 2"
                                     class="arrow-up possibleclass"
                                 ></div>
                                 <div
-                                    v-if="$store.state.effectorGeneData.category == 'WEAK'"
+                                    v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore == 1"
                                     class="arrow-up weakclass"
                                 ></div>
                                 <div
-                                    v-if="$store.state.effectorGeneData.category == 'No Evidence'"
+                                    v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore<1"
                                     class="arrow-up noEvidenceclass"
                                 ></div>
                                 <div>
@@ -290,37 +290,31 @@
                                     class="arrow-up weakclass"
                                 ></div>
                                 <div
-                                    v-if="$store.state.effectorGeneData.category == 'No Evidence'"
+                                    v-if="$store.state.effectorGeneData.category == 'No'"
                                     class="arrow-up noEvidenceclass"
                                 ></div>
                                 <div>
                                     <div class="container">
                                         <div class="row">
-                                            <div
-                                                style="background-color:#3352FF"
-                                                class="col-sm"
-                                            >Causal</div>
-                                            <div
-                                                style="background-color:#337AFF"
-                                                class="col-sm"
-                                            >Strong</div>
-                                            <div
-                                                style="background-color:#3393FF"
-                                                class="col-sm"
-                                            >Moderate</div>
-                                            <div
-                                                style="background-color:#33ACFF"
-                                                class="col-sm"
-                                            >Possible</div>
-                                            <div
-                                                style="background-color:#33E0FF"
-                                                class="col-sm"
-                                            >Weak</div>
+                                            <div style="background-color:#3352FF" class="col-sm">
+                                                <strong>Causal</strong>
+                                            </div>
+                                            <div style="background-color:#337AFF" class="col-sm">
+                                                <strong>Strong</strong>
+                                            </div>
+                                            <div style="background-color:#3393FF" class="col-sm">
+                                                <strong>Moderate</strong>
+                                            </div>
+                                            <div style="background-color:#33ACFF" class="col-sm">
+                                                <strong>Possible</strong>
+                                            </div>
+                                            <div style="background-color:#33E0FF" class="col-sm">
+                                                <strong>Weak</strong>
+                                            </div>
 
-                                            <div
-                                                style="background-color:#b3fcf7"
-                                                class="col-"
-                                            >No Evidence</div>
+                                            <div style="background-color:#b3fcf7" class="col-">
+                                                <strong>No Evidence</strong>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -400,7 +394,7 @@
                                         class="arrow-up weakclass"
                                     ></div>
                                     <div
-                                        v-if="$parent.stage2Category.category == 'No Evidence'"
+                                        v-if="$parent.stage2Category.category == 'No'"
                                         class="arrow-up noEvidenceclass"
                                     ></div>
                                     <div>
@@ -409,28 +403,37 @@
                                                 <div
                                                     style="background-color:#3352FF"
                                                     class="col-sm"
-                                                >Causal</div>
+                                                >
+                                                    <strong>Causal</strong>
+                                                </div>
                                                 <div
                                                     style="background-color:#337AFF"
                                                     class="col-sm"
-                                                >Strong</div>
+                                                >
+                                                    <strong>Strong</strong>
+                                                </div>
                                                 <div
                                                     style="background-color:#3393FF"
                                                     class="col-sm"
-                                                >Moderate</div>
+                                                >
+                                                    <strong>Moderate</strong>
+                                                </div>
                                                 <div
                                                     style="background-color:#33ACFF"
                                                     class="col-sm"
-                                                >Possible</div>
+                                                >
+                                                    <strong>Possible</strong>
+                                                </div>
                                                 <div
                                                     style="background-color:#33E0FF"
                                                     class="col-sm"
-                                                >Weak</div>
+                                                >
+                                                    <strong>Weak</strong>
+                                                </div>
 
-                                                <div
-                                                    style="background-color:#b3fcf7"
-                                                    class="col-"
-                                                >No Evidence</div>
+                                                <div style="background-color:#b3fcf7" class="col-">
+                                                    <strong>No Evidence</strong>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -463,30 +466,33 @@
 
                                     <!-- Traffic Light -->
 
-                                    <div style="width:600px" v-if="$parent.rareVarianceCategory">
+                                    <div
+                                        style="width:600px"
+                                        v-if="$parent.rareVariationCategoryAndScore.category"
+                                    >
                                         <br />
                                         <div
-                                            v-if="$parent.rareVarianceCategory == 'CAUSAL'"
+                                            v-if="$parent.rareVariationCategoryAndScore.category == 'CAUSAL'"
                                             class="arrow-up causalclass"
                                         ></div>
                                         <div
-                                            v-if="$parent.rareVarianceCategory == 'STRONG'"
+                                            v-if="$parent.rareVariationCategoryAndScore.category == 'STRONG'"
                                             class="arrow-up strongclass"
                                         ></div>
                                         <div
-                                            v-if="$parent.rareVarianceCategory == 'MODERATE'"
+                                            v-if="$parent.rareVariationCategoryAndScore.category == 'MODERATE'"
                                             class="arrow-up moderateclass"
                                         ></div>
                                         <div
-                                            v-if="$parent.rareVarianceCategory == 'POSSIBLE'"
+                                            v-if="$parent.rareVariationCategoryAndScore.category == 'POSSIBLE'"
                                             class="arrow-up possibleclass"
                                         ></div>
                                         <div
-                                            v-if="$parent.rareVarianceCategory == 'WEAK'"
+                                            v-if="$parent.rareVariationCategoryAndScore.category == 'WEAK'"
                                             class="arrow-up weakclass"
                                         ></div>
                                         <div
-                                            v-if="$parent.rareVarianceCategory == 'No Evidence'"
+                                            v-if="$parent.rareVariationCategoryAndScore.category == 'No'"
                                             class="arrow-up noEvidenceclass"
                                         ></div>
                                         <div>
@@ -495,28 +501,40 @@
                                                     <div
                                                         style="background-color:#3352FF"
                                                         class="col-sm"
-                                                    >Causal</div>
+                                                    >
+                                                        <strong>Causal</strong>
+                                                    </div>
                                                     <div
                                                         style="background-color:#337AFF"
                                                         class="col-sm"
-                                                    >Strong</div>
+                                                    >
+                                                        <strong>Strong</strong>
+                                                    </div>
                                                     <div
                                                         style="background-color:#3393FF"
                                                         class="col-sm"
-                                                    >Moderate</div>
+                                                    >
+                                                        <strong>Moderate</strong>
+                                                    </div>
                                                     <div
                                                         style="background-color:#33ACFF"
                                                         class="col-sm"
-                                                    >Possible</div>
+                                                    >
+                                                        <strong>Possible</strong>
+                                                    </div>
                                                     <div
                                                         style="background-color:#33E0FF"
                                                         class="col-sm"
-                                                    >Weak</div>
+                                                    >
+                                                        <strong>Weak</strong>
+                                                    </div>
 
                                                     <div
                                                         style="background-color:#b3fcf7"
                                                         class="col-"
-                                                    >No Evidence</div>
+                                                    >
+                                                        <strong>No Evidence</strong>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

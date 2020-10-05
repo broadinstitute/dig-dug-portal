@@ -199,7 +199,7 @@ export default Vue.component("posterior-probability-plot", {
         posteriorProbability(p, beta, stdErr) {
             let w = this.priorVariance;
             let v = Math.pow(stdErr, 2);
-            let f1 = v / v + w;
+            let f1 = v / (v + w);
             let sqrt_f1 = Math.sqrt(f1);
             let f2 = w * Math.pow(beta, 2);
             let f3 = 2 * v * (v + w);

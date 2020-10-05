@@ -54,7 +54,7 @@ export default new Vuex.Store({
 
     getters: {
 
-        
+
 
         region(state) {
             let data = state.gene.data;
@@ -108,7 +108,7 @@ export default new Vuex.Store({
                                 break;
                             }
                             else {
-                                effectorGeneData = { "perturbational": "3P", "category": "No Evidence", "message": "is in GWAS but only one line of perturbational evidence found" }
+                                effectorGeneData = { "perturbational": "3P", "category": "No", "message": "is in GWAS but only one line of perturbational evidence found" }
                             }
                         }
                         context.commit('setEffectorGeneData', effectorGeneData);
