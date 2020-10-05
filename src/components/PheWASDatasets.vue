@@ -106,19 +106,18 @@
                     </b-row>
                     <template v-for="(dataset, j) in item.datasets">
                         <b-row
+                            v-if="!!datasetMap[dataset.dataset]"
                             :class="`features_${index}_${j}`"
                             class="feature-row"
                             :key="`features_${index}_${j}`"
                         >
                             <b-col cols="5" class="feature-content-item">
                                 <a
-                                    v-if="!!datasetMap[dataset.dataset]"
                                     :href="`/dinspector.html?dataset=${dataset.dataset}&phenotype=${item.phenotype.name}`"
                                     >{{
                                         datasetMap[dataset.dataset].description
                                     }}</a
                                 >
-                                <span v-else>{{ dataset.dataset }}</span>
                             </b-col>
                             <b-col class="feature-content-item">{{
                                 pValueFormatter(dataset.pValue)
