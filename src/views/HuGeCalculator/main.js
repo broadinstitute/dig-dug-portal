@@ -82,6 +82,20 @@ new Vue({
 
             this.$store.commit(`associations/setResponse`, data);
         },
+        posteriorProbability(p, beta, stdErr) {
+            let w = 0.0462
+            let v = Math.pow(stdErr, 2);
+            let f1 = v / v + w;
+            let sqrt_f1 = Math.sqrt(f1);
+            let f2 = w * Math.pow(beta, 2);
+            let f3 = 2 * v * (v + w);
+            let f4 = f2 / f3;
+            let bayes_factor = sqrt_f1 * Math.exp(f4);
+            let f5 = p / (1 - p);
+            let p0 = bayes_factor * f5;
+            let ppa = p0 / (1 + p0);
+            return ppa;
+        },
 
 
 
@@ -216,11 +230,45 @@ new Vue({
             }
         },
 
-        finalStageCalculation() {
-            let effectorGeneData = $store.state.effectorGeneData;
-            
-        }
 
+
+        rareVarianceCategory() {
+            let prior = 0.20;
+            let d = this.$store.state.geneAssociations52k.data[0].masks.sort(
+                (a, b) => a.pValue - b.pValue
+            );
+            let mostSignificantMask = d[0];
+            let stdErr = mostSignificantMask.stdErr;
+            let beta;
+            if (this.$store.state.phenotype.isDichotomous) {
+                beta = mostSignificantMask.beta;
+            } else {
+                beta = Math.log(mostSignificantMask.oddsRatio);
+            }
+            let ppa = this.posteriorProbability(prior, beta, stdErr)
+            let category = "";
+            if (ppa < 0.30) {
+                category = "WEAK"
+            }
+            else if (ppa >= 0.30 && ppa < 0.50) {
+                category = "POSSIBLE"
+            }
+            else if (ppa >= 0.50 && ppa < 0.70) {
+                category = "MODERATE"
+            }
+            else if (ppa >= 0.70 && ppa < 0.90) {
+                category = "STRONG"
+            }
+            else if (ppa >= 0.90) {
+                category = "CAUSAL"
+            }
+            return category;
+        },
+
+        finalStageCalculation() {
+            let effectorGeneData = this.$store.state.effectorGeneData;
+
+        },
     },
 
 

@@ -21,7 +21,8 @@ export default new Vuex.Store({
     },
     state: {
         geneName: keyParams.gene,
-        phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
+        phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
+        phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
         effectorGeneData: [],
         // category: "Not in GWAS region",
         // stage2Category: null,
@@ -52,6 +53,8 @@ export default new Vuex.Store({
     },
 
     getters: {
+
+        
 
         region(state) {
             let data = state.gene.data;
@@ -105,7 +108,7 @@ export default new Vuex.Store({
                                 break;
                             }
                             else {
-                                effectorGeneData = { "perturbational": "3P", "category": "WEAK", "message": "is in GWAS but only one line of perturbational evidence found" }
+                                effectorGeneData = { "perturbational": "3P", "category": "No Evidence", "message": "is in GWAS but only one line of perturbational evidence found" }
                             }
                         }
                         context.commit('setEffectorGeneData', effectorGeneData);
@@ -133,7 +136,7 @@ export default new Vuex.Store({
             }
         },
 
-        queryGeneRegion(context, region) {
+        async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
             let q = `${chromosome}:${start}-${end}`;
 

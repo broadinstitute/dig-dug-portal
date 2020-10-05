@@ -7,7 +7,7 @@
         <div class="container-fluid mdkp-body">
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-12 gene-page-header-title">
+                    <div class="col-md-6 gene-page-header-title">
                         Gene
                         <a
                             class="edit-btn"
@@ -19,8 +19,20 @@
                             "
                         >Search gene</a>
                     </div>
+                    <div class="col-md-6 gene-page-header-title">
+                        Phenotype
+                        <a
+                            class="edit-btn"
+                            @click="
+                                $parent.showHideElement(
+                                    'phenotypeSearchHolder',
+                                    'phenotype_search_input'
+                                )
+                            "
+                        >Select Phenotype</a>
+                    </div>
 
-                    <div class="col-md-12 gene-page-header-body">
+                    <div class="col-md-6 gene-page-header-body">
                         <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <gene-selectpicker
                                 @onGeneChange="$store.dispatch('queryGeneName', $event)"
@@ -35,8 +47,42 @@
                             </span>
                         </div>
                     </div>
+
+                    <div class="col-md-6 gene-page-header-body">
+                        <div
+                            id="phenotypeSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
+                            <!-- change the input of phenotypes to bioportal.phenotypes when we have data for all the phenotypes -->
+                            <phenotype-selectpicker
+                                v-if="$store.state.phenotype"
+                                :phenotypes="$store.state.phenotypes"
+                                :default-phenotype="
+                                    $store.state.phenotype.description
+                                "
+                            ></phenotype-selectpicker>
+                        </div>
+                        <span v-if="$store.state.phenotype">
+                            {{
+                            $store.state.phenotype.description
+                            }}
+                        </span>
+                    </div>
                 </div>
             </div>
+
+            <!-- Page header -->
+            <!-- <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <documentation
+                            name="hugecal.title.header"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
+                    </h4>
+                </div>
+            </div>-->
+
             <div class="card mdkp-card">
                 <div class="card-body" style="margin-block-end: 20px; ">
                     <div class="row">
@@ -118,7 +164,7 @@
             <div class="card mdkp-card">
                 <div class="card-body" style="margin-block-end: 20px;">
                     <div class="row">
-                        <div class="col-md-7">
+                        <div class="col-md-7" v-if="$parent.region">
                             <!-- Common Variation -->
                             <h4>
                                 Common Variation
@@ -131,14 +177,26 @@
                             </h4>
                             <!-- associations -->
                             <!-- <p> -->
-                            <h5>Is {{ $store.state.geneName }} genome-wide significant?</h5>
-                            <h6
-                                v-if="$parent.isSignificantAssociationCommonVariation"
-                            >{{ $store.state.geneName }} is genome wide significant since it's p-value is less than the threshold p-value of 5e-6 as shown below in this locuszoom interactive visualization.</h6>
 
-                            <h6
-                                v-else
-                            >{{ $store.state.geneName }} is not genome wide significant since it's p-value is greater than the threshold p-value of 5e-6 as shown below in this locuszoom interactive visualization</h6>
+                            <h5>
+                                <documentation
+                                    name="hugecal.commonVaration.header"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                            </h5>
+                            <h6 v-if="$parent.isSignificantAssociationCommonVariation">
+                                <documentation
+                                    name="hugecal.commonVaration.subheader.gwasSignificant"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                            </h6>
+
+                            <h6 v-else>
+                                <documentation
+                                    name="hugecal.commonVaration.subheader.notgwasSignificant"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                            </h6>
                             <div v-if="$parent.region">
                                 <locuszoom
                                     v-if="$parent.region"
@@ -158,7 +216,12 @@
 
                             <!-- mccarthy EGL -->
                             <!-- <p v-if="$store.state.effectorGeneData.category"> -->
-                            <h5>Common variation evidence for {{ $store.state.geneName }} in {{ $store.state.phenotype.description }}...</h5>
+                            <h5>
+                                <documentation
+                                    name="hugecal.commonVaration.header.evidence"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                            </h5>
                             <ul>
                                 <!-- genetic -->
                                 <li v-if="$store.state.effectorGeneData.genetic">
@@ -279,7 +342,12 @@
                                 ></tooltip-documentation>
                             </h4>
 
-                            <h5>Is {{ $store.state.geneName }} Exome-wide significant?</h5>
+                            <h5>
+                                <documentation
+                                    name="hugecal.rareVaration.header"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                            </h5>
 
                             <div v-if="$parent.isSignificant52kAssociationRareVariation">
                                 <documentation
@@ -288,7 +356,12 @@
                                 ></documentation>
 
                                 <hr style="margin:40px" />
-                                <h5>Rare variation evidence for {{ $store.state.geneName }} in {{ $store.state.phenotype.description }}...</h5>
+                                <h5>
+                                    <documentation
+                                        name="hugecal.rareVaration.evidence"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h5>
                                 <ul>
                                     <li>
                                         Genetic Evidence
@@ -303,6 +376,7 @@
                                         </span>
                                     </li>
                                 </ul>
+                                <!-- Traffic Light -->
                                 <div style="width:600px" v-if="$parent.stage2Category">
                                     <br />
                                     <div
@@ -386,31 +460,131 @@
                                         :priorVariance="$store.state.priorVariance"
                                         :isDichotomous="true"
                                     ></posterior-probability-plot>
+
+                                    <!-- Traffic Light -->
+
+                                    <div style="width:600px" v-if="$parent.rareVarianceCategory">
+                                        <br />
+                                        <div
+                                            v-if="$parent.rareVarianceCategory == 'CAUSAL'"
+                                            class="arrow-up causalclass"
+                                        ></div>
+                                        <div
+                                            v-if="$parent.rareVarianceCategory == 'STRONG'"
+                                            class="arrow-up strongclass"
+                                        ></div>
+                                        <div
+                                            v-if="$parent.rareVarianceCategory == 'MODERATE'"
+                                            class="arrow-up moderateclass"
+                                        ></div>
+                                        <div
+                                            v-if="$parent.rareVarianceCategory == 'POSSIBLE'"
+                                            class="arrow-up possibleclass"
+                                        ></div>
+                                        <div
+                                            v-if="$parent.rareVarianceCategory == 'WEAK'"
+                                            class="arrow-up weakclass"
+                                        ></div>
+                                        <div
+                                            v-if="$parent.rareVarianceCategory == 'No Evidence'"
+                                            class="arrow-up noEvidenceclass"
+                                        ></div>
+                                        <div>
+                                            <div class="container">
+                                                <div class="row">
+                                                    <div
+                                                        style="background-color:#3352FF"
+                                                        class="col-sm"
+                                                    >Causal</div>
+                                                    <div
+                                                        style="background-color:#337AFF"
+                                                        class="col-sm"
+                                                    >Strong</div>
+                                                    <div
+                                                        style="background-color:#3393FF"
+                                                        class="col-sm"
+                                                    >Moderate</div>
+                                                    <div
+                                                        style="background-color:#33ACFF"
+                                                        class="col-sm"
+                                                    >Possible</div>
+                                                    <div
+                                                        style="background-color:#33E0FF"
+                                                        class="col-sm"
+                                                    >Weak</div>
+
+                                                    <div
+                                                        style="background-color:#b3fcf7"
+                                                        class="col-"
+                                                    >No Evidence</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <!-- Close Rare Variation -->
-                            <hr style="margin:60px" />
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Confidence interval and it's explaination -->
+            <div class="card mdkp-card">
+                <div class="card-body" style="margin-block-end: 20px; ">
+                    <div class="row">
+                        <div class="col-md-7">
                             <!-- loftee -->
-                            <documentation
-                                name="hugecal.stage3.subheader"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
+
                             <div v-if="$parent.geneAssociations52k">
                                 <div
                                     v-if="$parent.geneAssociationsLoftee.length > 0"
                                     class="border"
                                 >
-                                    <forest-plot :data=" $parent.geneAssociationsLoftee"></forest-plot>
-                                </div>
-                                <div v-else>
-                                    <strong>
+                                    <h5>
                                         <documentation
-                                            name="hugecal.rareVaration.noLoftee"
+                                            name="hugecal.loftee.header"
                                             :content-fill="$parent.documentationMap"
                                         ></documentation>
-                                    </strong>
+                                    </h5>
+                                    <div>
+                                        <forest-plot :data=" $parent.geneAssociationsLoftee"></forest-plot>
+                                    </div>
                                 </div>
+                                <div v-else>
+                                    <h5>
+                                        <documentation
+                                            name="hugecal.noloftee.header"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                    </h5>
+
+                                    <ul>
+                                        <li>
+                                            <strong>
+                                                <documentation
+                                                    name="hugecal.rareVaration.noLoftee"
+                                                    :content-fill="$parent.documentationMap"
+                                                ></documentation>
+                                            </strong>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div v-if="$parent.geneAssociations52k">
+                                <div v-if="$parent.geneAssociationsLoftee.length > 0"></div>
+                                <documentation
+                                    name="hugecal.confidenceInterval.help"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+                            </div>
+                            <div v-else>
+                                <documentation
+                                    name="hugecal.confidenceInterval.help"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
                             </div>
                         </div>
                     </div>
@@ -447,6 +621,13 @@ export default Vue.component("test", {
 
     methods: {}
 });
+// window.onload = function() {
+//     document.getElementById("fademe2s").style.opacity = 1;
+//     document.getElementById("fademe5s").style.opacity = 1;
+//     document.getElementById("fademe5ss").style.opacity = 1;
+//     // document.getElementById("fademe6s").style.opacity = 1;
+//     // document.getElementById("fademe8s").style.opacity = 1;
+// };
 </script>
 
 
@@ -479,27 +660,27 @@ export default Vue.component("test", {
 
 .strongclass {
     position: absolute;
-    left: 200px;
+    left: 160px;
 }
 
 .moderateclass {
     position: absolute;
-    left: 360px;
+    left: 260px;
 }
 
 .possibleclass {
     position: absolute;
-    left: 400px;
+    left: 360px;
 }
 
 .weakclass {
     position: absolute;
-    left: 470px;
+    left: 460px;
 }
 
 .noEvidenceclass {
     position: absolute;
-    left: 540px;
+    left: 560px;
 }
 
 .codingEvidence1C {
@@ -619,11 +800,15 @@ export default Vue.component("test", {
 
 #fademe2s {
     opacity: 0;
-    transition: 4s;
+    transition: 1s;
 }
-#fademe4s {
+#fademe5s {
     opacity: 0;
-    transition: 4s;
+    transition: 8s;
+}
+#fademe5ss {
+    opacity: 0;
+    transition: 8s;
 }
 #fademe6s {
     opacity: 0;
