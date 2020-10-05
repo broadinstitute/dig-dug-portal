@@ -47,12 +47,12 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, phenotype) {
             state.phenotypeParam = phenotype.name;
             state.phenotype = phenotype;
-
             keyParams.set({ phenotype: phenotype.name });
         },
         setPhenotypeByName(state, name) {
             state.phenotypeParam = name;
             state.phenotype = state.bioPortal.phenotypeMap[name];
+            keyParams.set({ phenotype: name });
         },
         setLocus(state, region = {}) {
             state.chr = region.chr || state.newChr || state.chr;
