@@ -139,6 +139,7 @@
                     <div
                         v-for="row in $parent.genes"
                         :class="'gene-with-signal ' + row.type"
+                        :key="row.name"
                     >
                         <a :href="`/gene.html?gene=${row.name}`">{{
                             row.name
