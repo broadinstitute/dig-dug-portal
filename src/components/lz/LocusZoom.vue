@@ -1,8 +1,12 @@
 <template>
-    <div :id="`lz_${salt}`">
-        <!-- <filter-context-receiver @change="applyFilter"></filter-context-receiver> -->
-        <slot v-if="locuszoommounted"></slot>
-    </div>
+    <span class="lz-panel-toolbar">
+        <div style="float: right;" class=" lz-toolbar-button">
+            <button @click="toggleLogLog">Toggle LogLog</button>
+        </div>
+        <div :id="`lz_${salt}`">
+            <slot v-if="locuszoommounted"></slot>
+        </div>
+    </span>
 </template>
 
 <script>
@@ -27,8 +31,6 @@ import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
 
 import { decodeNamespace } from "@/utils/filterHelpers";
-
-import _ from "lodash";
 
 LocusZoom.use(intervalTracks);
 LocusZoom.use(credibleSets);
@@ -66,14 +68,11 @@ export default Vue.component("locuszoom", {
 
         this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "both",
-            state: Object.assign(
-                {},
-                {
+            state: {
                     chr: this.chr,
                     start: this.start,
                     end: this.end,
-                }
-            ),
+            },
         });
         this.locuszoommounted = true;
 
@@ -247,7 +246,7 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        applyFilter(filter, panelType = "") {
+        getDataLayers() {
             // Auxiliary method within our json query for data layers in the LocusZoom plot
             // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
             // using flatmap because we need to work across many Object.keys
@@ -263,6 +262,11 @@ export default Vue.component("locuszoom", {
                 data: this.plot,
                 locals: { forceKeys },
             }).value;
+            return data_layers;
+        },
+        applyFilter(filter, panelType = "") {
+            let data_layers = this.getDataLayers();
+
             if (panelType !== "") {
                 data_layers = data_layers
                     .map((data_layer) => {
@@ -287,6 +291,24 @@ export default Vue.component("locuszoom", {
 
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
+            this.plot.applyState();
+        },
+        toggleLogLog: function() {
+            let data_layers = this.getDataLayers();
+            data_layers.forEach((data_layer) => {
+                if (!!data_layer.layout.y_axis.field) {
+                    if (data_layer.layout.y_axis.field.includes('log_pvalue') &&
+                        !data_layer.layout.y_axis.field.includes('|log10')) {
+                        data_layer.layout.y_axis.field = data_layer.layout.y_axis.field.concat('|log10');
+                        data_layer.parent.layout.axes.y1.label = 'log10 log_pvalue'
+                    } else
+                    if (data_layer.layout.y_axis.field.includes('log_pvalue') &&
+                        data_layer.layout.y_axis.field.includes('|log10'))  {
+                        data_layer.layout.y_axis.field = data_layer.layout.y_axis.field.split('|log10')[0];
+                        data_layer.parent.layout.axes.y1.label = 'log_pvalue'
+                    }
+                }
+            });
             this.plot.applyState();
         },
     },

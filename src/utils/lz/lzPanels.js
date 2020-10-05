@@ -23,6 +23,9 @@ const BASE_PANEL_OPTIONS = {
     // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
     min_height: 240,
 }
+
+
+
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
 
@@ -71,9 +74,7 @@ export class LZAssociationsPanel {
                         y_axis: {
                             axis: 1,
                             field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
-                            // floor: 0,
                             upper_buffer: 0.10,
-                            // min_extent: [0, 10],
                         },
                         fields: [
                             `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
