@@ -88,7 +88,7 @@
                     <div class="row">
                         <div class="col-md-7">
                             <h5 v-if="$parent.geneAssociations52k">
-                                {{$store.state.geneName}} has {{$parent.finalCategory}} Evidence
+                                {{$store.state.geneName}} has {{$parent.finalCategory}} Evidence of a disease-susceptibility.
                                 <tooltip-documentation
                                     name="gene.function.tooltip.hover"
                                     :content-fill="$parent.documentationMap"
@@ -164,7 +164,7 @@
             <div class="card mdkp-card">
                 <div class="card-body" style="margin-block-end: 20px;">
                     <div class="row">
-                        <div class="col-md-7" v-if="$parent.region">
+                        <div class="col-md-7">
                             <!-- Common Variation -->
                             <h4>
                                 Common Variation
@@ -199,12 +199,13 @@
                                 ></documentation>
                             </div>
 
-                            <div>
+                            <div v-if="$store.state.geneName">
                                 <locuszoom
+                                    v-if="$parent.region"
                                     ref="locuszoom"
                                     :chr="$parent.region.chromosome"
-                                    :start="$parent.region.start-50000"
-                                    :end="$parent.region.end+ 50000"
+                                    :start="$parent.region.start - 50000"
+                                    :end="$parent.region.end + 50000"
                                     :refSeq="true"
                                 >
                                     <lz-associations-panel

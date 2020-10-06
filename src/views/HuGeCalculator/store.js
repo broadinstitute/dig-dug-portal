@@ -59,7 +59,6 @@ export default new Vuex.Store({
         region(state) {
             let data = state.gene.data;
 
-
             if (data.length > 0) {
                 let gene = data[0];
 
@@ -73,7 +72,6 @@ export default new Vuex.Store({
 
         canonicalSymbol(state) {
             let data = state.genes.data;
-
             for (let i in data) {
                 if (data[i].source === 'symbol') {
                     return data[i].name;
@@ -134,13 +132,13 @@ export default new Vuex.Store({
                 context.dispatch('getEffectorGeneData', name);
                 context.dispatch('associations/query', query);
                 context.dispatch('geneAssociations52k/query', { q: name });
+
             }
         },
 
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
             let q = `${chromosome}:${start}-${end}`;
-
             context.dispatch('genes/query', { q });
         },
     },

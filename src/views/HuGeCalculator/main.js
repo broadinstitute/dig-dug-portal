@@ -267,7 +267,7 @@ new Vue({
             let bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
             let category = "";
 
-            if (ppa < 0.30) {
+            if (ppa < 0.30 && bayes_factor > 1) {
                 category = "WEAK"
 
             }
@@ -304,35 +304,35 @@ new Vue({
             ) {
                 finalCategory = "CAUSAL";
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 4
             ) {
                 finalCategory = "STRONG";
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 3
             ) {
                 finalCategory = "MODERATE";
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 2
             ) {
                 finalCategory = "POSSIBLE";
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 1
             ) {
                 finalCategory = "WEAK";
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 0
