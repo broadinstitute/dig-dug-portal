@@ -23,78 +23,35 @@ const BASE_PANEL_OPTIONS = {
     // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
     min_height: 240,
 }
-export class LZAssociationsPanel {
-    constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
 
+// PROBLEM: should not have two ways of adding panels, just done.
+// Current way allows us to evade having to use components.
+// Would be better to stick to the way that uses components.
+// Unfortunately the two aren't equivalent because adding components programatically to another component eliminates reactivity.
+// This would be fixed by using the Composition API to add watchers programatically during the created phase of the object lifecycle, if necessary.
+class LZPanel {
+
+    constructor(panel_layout_type, datasource_type, index, queryStringMaker, translator, locusZoomLayoutOptions, { finishHandler, resolveHandler, errHandler }, initialData) {
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
-        this.panel_layout_type = 'association';
-        this.datasource_type = 'assoc';
+        this.panel_layout_type = panel_layout_type;
+        this.datasource_type = datasource_type;
 
         // this is arbitrary, but we want to base it on the ID
         this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
-        this.index = 'associations'
-        this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
-        this.translator = associations => associations.map(association => ({
-            id: association.varId,
-            position: association.position,
-            pValue: association.pValue,
-            log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
-            variant: association.varId,
-            ref_allele: association.varId,
-            consequence: association.consequence,
-            beta: association.beta,
-            nearest: association.nearest,
-        }));
-        this.initialData = initialData;
+        this.index = index;
+        this.queryStringMaker = queryStringMaker;
+        this.translator = translator;
+        this.locusZoomLayoutOptions = Object.assign(locusZoomLayoutOptions, { ...BASE_PANEL_OPTIONS, id: this.panel_id });
 
-
-        // LocusZoom Layout configuration options
-        // See the LocusZoom docs for how this works
-        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
-        // If there's not a lot in here it's because we're overriding defaults
-        this.locusZoomPanelOptions = {
-            ...BASE_PANEL_OPTIONS,
-            id: this.panel_id,
-            y_index: 0,
-            axes: {
-                y1: {
-                    label: 'log_pvalue'
-                }
-            },
-            data_layers: [
-                // this works
-                LocusZoom.Layouts.merge(
-                    {
-                        y_axis: {
-                            axis: 1,
-                            field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
-                            // floor: 0,
-                            upper_buffer: 0.10,
-                            // min_extent: [0, 10],
-                        },
-                        fields: [
-                            `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
-                            `{{namespace[${this.datasource_type}]}}consequence`,  // adding this piece of data irrelevant to the graphic will help us filter later
-                            `{{namespace[${this.datasource_type}]}}nearest`,  // adding this piece of data irrelevant to the graphic will help us filter later
-                            // we need to call out the fields directly since merge algorithm doesn't combine arrays
-                            `{{namespace[${this.datasource_type}]}}beta`,
-                            ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields,
-                        ],
-                    },
-                    LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }),
-                ),
-                LocusZoom.Layouts.get('data_layer', 'recomb_rate', { unnamespaced: true }),
-                LocusZoom.Layouts.get('data_layer', 'significance', { unnamespaced: true })
-            ]
-        };
         this.handlers = {
             finishHandler,
             resolveHandler,
             errHandler
         };
+        this.initialData = initialData;
     }
 
     get bioIndexToLZReader() {
@@ -116,7 +73,7 @@ export class LZAssociationsPanel {
             panelLayoutType: this.panel_layout_type,
             takingDataSourceName: this.datasource_namespace_symbol_for_panel,
             forDataSourceType: this.datasource_type,
-            locusZoomPanelOptions: this.locusZoomPanelOptions,
+            locusZoomLayoutOptions: this.locusZoomLayoutOptions,
         }
     }
 
@@ -128,6 +85,78 @@ export class LZAssociationsPanel {
         }
     }
 
+}
+export class LZAssociationsPanel extends LZPanel {
+    constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
+
+        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
+        // however they are also jointly necessary for LocusZoom –
+        const panel_layout_type = 'association';
+        const datasource_type = 'assoc';
+        const index = 'associations';
+
+        const queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
+        const translator = associations => associations.map(association => ({
+            id: association.varId,
+            position: association.position,
+            pValue: association.pValue,
+            log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
+            variant: association.varId,
+            ref_allele: association.varId,
+            consequence: association.consequence,
+            beta: association.beta,
+            nearest: association.nearest,
+        }));
+
+        // LocusZoom Layout configuration options
+        // See the LocusZoom docs for how this works
+        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
+        // If there's not a lot in here it's because we're overriding defaults
+        const locusZoomPanelOptions = {
+            y_index: 0,
+            axes: {
+                y1: {
+                    label: 'log_pvalue'
+                }
+            },
+            data_layers: [
+                // this works
+                LocusZoom.Layouts.merge(
+                    {
+                        y_axis: {
+                            axis: 1,
+                            field: `{{namespace[${datasource_type}}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                            // floor: 0,
+                            upper_buffer: 0.10,
+                            // min_extent: [0, 10],
+                        },
+                        fields: [
+                            `{{namespace[${datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${datasource_type}]}}consequence`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${datasource_type}]}}nearest`,  // adding this piece of data irrelevant to the graphic will help us filter later
+                            // we need to call out the fields directly since merge algorithm doesn't combine arrays
+                            `{{namespace[${datasource_type}]}}beta`,
+                            ...LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }).fields,
+                        ],
+                    },
+                    LocusZoom.Layouts.get('data_layer', 'association_pvalues', { unnamespaced: true }),
+                ),
+                LocusZoom.Layouts.get('data_layer', 'recomb_rate', { unnamespaced: true }),
+                LocusZoom.Layouts.get('data_layer', 'significance', { unnamespaced: true })
+            ]
+        };
+
+        super(
+            panel_layout_type,
+            datasource_type,
+            index,
+            queryStringMaker,
+            translator,
+            locusZoomPanelOptions,
+            { finishHandler, resolveHandler, errHandler },
+            initialData,
+        )
+    }
 }
 
 export class LZAnnotationIntervalsPanel {

@@ -49,11 +49,12 @@ export default Vue.component("lz-phewas-panel", {
         updatePanel() {
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
             const finishHandler = !!!this.finishHandler ? result => this.$emit('input', result) : this.finishHandler;
-            this.panelId = this.$parent.addPhewasPanel(
-                this.id,
-                this.type,
-                this.phenotypeMap,
-                this.value,
+            this.panelId = this.$parent.addAnnotationIntervalsPanel(
+                // TODO
+                this.annotation,
+                this.method,
+                this.scoring,
+                this.initialData,
                 finishHandler,
                 this.resolveHandler,
                 this.errHandler
@@ -70,14 +71,7 @@ export default Vue.component("lz-phewas-panel", {
                 }
                 this.updatePanel();
             }
-        },
-        varOrGeneId(newVarOrGeneId) {
-            // this is good enough
-            if (!!this.panelId) {
-                this.$parent.plot.removePanel(this.panelId);
-            }
-            this.updatePanel();
-        },
+        }
     },
 });
 </script>

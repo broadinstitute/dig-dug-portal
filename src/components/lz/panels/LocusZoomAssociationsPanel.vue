@@ -7,75 +7,12 @@ import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 import idCounter from "@/utils/idCounter";
 import LocusZoom from "locuszoom";
-import { _LZBioIndexSource, LZAssociationsPanel } from "@/utils/lz/lzPanels"
+import { _LZBioIndexSourc, LZAssociationsPanel } from "@/utils/lz/lzPanels"
 
 const BASE_PANEL_OPTIONS = {
     height: 240,
 }
 
-// TODO: refactor lzPanels into their respective Vue components
-// PROBLEM: should not have two ways of adding panels, just done.
-// Current way allows us to evade having to use components.
-// Would be better to stick to the way that uses components.
-// Unfortunately the two aren't equivalent because adding components programatically to another component eliminates reactivity.
-// This would be fixed by using the Composition API to add watchers programatically during the created phase of the object lifecycle, if necessary.
-class LZPanel {
-
-    constructor(panel_layout_type, datasource_type, index, queryStringMaker, translator, locusZoomLayoutOptions, { finishHandler, resolveHandler, errHandler }, initialData) {
-        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
-        // however they are also jointly necessary for LocusZoom –
-        this.panel_layout_type = panel_layout_type;
-        this.datasource_type = datasource_type;
-
-        // this is arbitrary, but we want to base it on the ID
-        this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
-        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
-
-        this.index = index;
-        this.queryStringMaker = queryStringMaker;
-        this.translator = translator;
-        this.locusZoomLayoutOptions = Object.assign(locusZoomLayoutOptions, { ...BASE_PANEL_OPTIONS, id: this.panel_id });
-
-        this.handlers = {
-            finishHandler,
-            resolveHandler,
-            errHandler
-        };
-        this.initialData = initialData;
-    }
-
-    get bioIndexToLZReader() {
-        const reader = new _LZBioIndexSource({
-            index: this.index,
-            queryStringMaker: this.queryStringMaker,
-            translator: this.translator,
-            finishHandler: this.handlers.finishHandler,
-            resolveHandler: this.handlers.resolveHandler,
-            errHandler: this.handlers.errHandler,
-            initialData: this.initialData,
-        });
-        return reader;
-    }
-
-    get panel() {
-        return {
-            id: this.panel_id,
-            panelLayoutType: this.panel_layout_type,
-            takingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            forDataSourceType: this.datasource_type,
-            locusZoomLayoutOptions: this.locusZoomLayoutOptions,
-        }
-    }
-
-    get source() {
-        return {
-            isDataSourceType: this.datasource_type,
-            givingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            withDataSourceReader: this.bioIndexToLZReader,
-        }
-    }
-
-}
 /*
 class LZAssociationsPanel extends LZPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
@@ -157,14 +94,20 @@ export default Vue.component("lz-associations-panel", {
     },
     mounted() {
         this.updatePanel();
+
+        this.$parent.plot.on("panel_removed", panel => {
+            console.log('panel', panel)
+            if (panel.data === this.id) {
+                // this.$destroy();
+            }
+        });
+
     },
     methods: {
         updatePanel() {
             // TODO: what *should* happen when this.finishHandler and this.value are both defined?
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const finishHandler = typeof this.value !== 'undefined' ?
-                result => this.$emit('input', result.data) : this.finishHandler;
-
+            const finishHandler = !!!this.finishHandler ? result => this.$emit('input', result) : this.finishHandler;
             this.id = this.$parent.addAssociationsPanel(
                 this.phenotype,
                 this.value,
@@ -172,18 +115,6 @@ export default Vue.component("lz-associations-panel", {
                 this.resolveHandler,
                 this.errHandler,
             );
-
-            // this.id = this.$parent.addPanelAndDataSource(
-            //     new LZAssociationsPanel(
-            //         this.phenotype,
-            //         {
-            //             finishHandler,
-            //             resolveHandler: this.resolveHandler,
-            //             errHandler: this.errHandler
-            //         },
-            //         this.value,
-            //     )
-            // )
 
         }
     },

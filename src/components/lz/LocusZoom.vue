@@ -14,7 +14,6 @@ import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
-import LZDataSources from "@/utils/lz/lzDataSources";
 import {
     LZAssociationsPanel,
     LZAnnotationIntervalsPanel,
@@ -28,11 +27,65 @@ import idCounter from "@/utils/idCounter";
 
 import { decodeNamespace } from "@/utils/filterHelpers";
 
-import _ from "lodash";
-
 LocusZoom.use(intervalTracks);
 LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
+
+
+/* Used by several of the default data sources.
+ */
+const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';
+
+/* The available data sources available to bind.
+ */
+const LZ_TYPE = Object.freeze({
+    assoc: 'assoc',
+    gene: 'gene',
+    recomb: 'recomb',
+    ld: 'ld',
+    constraint: 'constraint',
+    intervals: 'intervals',
+    phewas: 'phewas',
+});
+
+const LZDataSources = {
+    [LZ_TYPE.gene]: ["GeneLZ", {
+        url:
+            'https://portaldev.sph.umich.edu/api/v1/annotation/genes/',
+        params: {
+            build: HUMAN_GENOME_BUILD_VERSION,
+        }
+    }],
+    [LZ_TYPE.ld]: ["LDLZ2", {
+        url: 'https://portaldev.sph.umich.edu/ld/',
+        params: {
+            source: '1000G',
+            build: HUMAN_GENOME_BUILD_VERSION,
+            population: 'ALL'
+        }
+    }],
+    [LZ_TYPE.recomb]: ["RecombLZ", {
+        url: 'https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/',
+        params: {
+            build: HUMAN_GENOME_BUILD_VERSION,
+        }
+    }],
+    [LZ_TYPE.constraint]: ["GeneConstraintLZ",
+        {
+            url: 'http://gnomad.broadinstitute.org/api',
+            params: {
+                build: HUMAN_GENOME_BUILD_VERSION,
+            }
+        }],
+    // [LZ_TYPE.intervals]: ["IntervalLZ",
+    //     {
+    //         url: 'https://portaldev.sph.umich.edu/api/v1/annotation/intervals/results/',
+    //         params: {
+    //             source: 19,
+    //             build: HUMAN_GENOME_BUILD_VERSION,
+    //         }
+    //     }],
+}
 
 export default Vue.component("locuszoom", {
     props: [
@@ -66,16 +119,27 @@ export default Vue.component("locuszoom", {
 
         this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "both",
-            state: Object.assign(
-                {},
-                {
-                    chr: this.chr,
-                    start: this.start,
-                    end: this.end,
-                }
-            ),
+            state: {
+                chr: this.chr,
+                start: this.start,
+                end: this.end,
+            }
         });
         this.locuszoommounted = true;
+
+        // event listeners
+        let self = this;
+
+        this.plot.on("panel_removed", function (event) {
+            self.$emit("panelremoved", event);
+        });
+
+        // region change handler
+        this.plot.on("state_changed", function (event) {
+            // NOTE: doesn't pass out chromosome!
+            self.$emit("regionchanged", event);
+        });
+
 
         if (this.refSeq) {
             // adding default panel for gene reference track
@@ -92,19 +156,6 @@ export default Vue.component("locuszoom", {
             );
         }
 
-        // event listeners
-        let self = this;
-
-        this.plot.on("panel_removed", function (event) {
-            self.$emit("panelremoved", event);
-        });
-
-        // region change handler
-        this.plot.on("state_changed", function (event) {
-            // TODO: doesn't pass out chromosome!
-            const { start, end } = event; // coordinates are in decimals
-            self.$emit("regionchanged", event);
-        });
     },
     methods: {
         addPanelAndDataSource: function (panelClass) {
@@ -137,7 +188,7 @@ export default Vue.component("locuszoom", {
                 )
                 .addBasicLoader();
 
-            // TODO: make this better abstracted
+            // TODO: make this more abstract
             if (!!this.filter) this.applyFilter(this.filter);
             if (!!this.filterAssociations)
                 this.applyFilter(this.filterAssociations, "associations");
@@ -148,7 +199,6 @@ export default Vue.component("locuszoom", {
             return panel.id;
         },
 
-        // TODO: component system for LocusZoom
         addLZComponent: function (PanelComponentType, panelConfig) {
             if (this.plot != null) {
                 let LZPanelConstructor = Vue.extend(PanelComponentType);
@@ -160,6 +210,7 @@ export default Vue.component("locuszoom", {
                     propsData: panelConfig,
                     parent: this,
                 }).$mount(vueContainer);
+
             } else {
                 console.log("lz is null right now");
             }
