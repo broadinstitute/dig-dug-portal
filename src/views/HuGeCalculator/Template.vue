@@ -98,12 +98,10 @@
                                 ></tooltip-documentation>
                             </h4>
 
-                            <h5
-                                v-if="$parent.geneAssociations52k"
-                            >{{$store.state.geneName}} has {{$parent.finalCategory}} Evidence of a disease-susceptibility.</h5>
+                            <h5>{{$store.state.geneName}} has {{$parent.finalCategory}} Evidence of a disease-susceptibility.</h5>
 
                             <!-- traffic light -->
-                            <div style="width:600px;" v-if="$parent.geneAssociations52k">
+                            <div style="width:600px;">
                                 <br />
                                 <div
                                     v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore >=5"
@@ -127,6 +125,10 @@
                                 ></div>
                                 <div
                                     v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore<1"
+                                    class="arrow-up noEvidenceclass"
+                                ></div>
+                                <div
+                                    v-if="$parent.rareVariationCategoryAndScore.categoryScore + $parent.commonVariationCategoryAndScore.categoryScore==0"
                                     class="arrow-up noEvidenceclass"
                                 ></div>
                                 <div>
@@ -292,63 +294,65 @@
                             <!-- End of common variation evidence -->
 
                             <!-- gwas associations -->
+                            <div v-if="$store.state.associations.data">
+                                <div v-if="$parent.isSignificantAssociationCommonVariation">
+                                    <h5>
+                                        <documentation
+                                            name="hugecal.commonVaration.header.gwasSignificant"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                    </h5>
 
-                            <div v-if="$parent.isSignificantAssociationCommonVariation">
-                                <h5>
-                                    <documentation
-                                        name="hugecal.commonVaration.header.gwasSignificant"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </h5>
-                                <h6>
-                                    <documentation
-                                        name="hugecal.commonVaration.subheader.gwasSignificant"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </h6>
-
-                                <locuszoom
-                                    v-if="$parent.region"
-                                    ref="locuszoom"
-                                    :chr="$parent.region.chromosome"
-                                    :start="$parent.region.start - 50000"
-                                    :end="$parent.region.end + 50000"
-                                    :refSeq="true"
+                                    <h6>
+                                        <documentation
+                                            name="hugecal.commonVaration.subheader.gwasSignificant"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                    </h6>
+                                    <locuszoom
+                                        v-if="$parent.region"
+                                        ref="locuszoom"
+                                        :chr="$parent.region.chromosome"
+                                        :start="$parent.region.start - 50000"
+                                        :end="$parent.region.end + 50000"
+                                        :refSeq="true"
+                                    >
+                                        <lz-associations-panel
+                                            :phenotype="$store.state.phenotype.name"
+                                            :finishHandler="$parent.updateAssociationsTable"
+                                        ></lz-associations-panel>
+                                    </locuszoom>
+                                </div>
+                                <div
+                                    v-else-if="$parent.isSignificantAssociationCommonVariation == false"
                                 >
-                                    <lz-associations-panel
-                                        :phenotype="$store.state.phenotype.name"
-                                        :finishHandler="$parent.updateAssociationsTable"
-                                    ></lz-associations-panel>
-                                </locuszoom>
-                            </div>
+                                    <h5>
+                                        <documentation
+                                            name="hugecal.commonVaration.header.notgwasSignificant"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                    </h5>
 
-                            <div v-else>
-                                <h5>
-                                    <documentation
-                                        name="hugecal.commonVaration.header.notgwasSignificant"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </h5>
-                                <h6>
-                                    <documentation
-                                        name="hugecal.commonVaration.subheader.notgwasSignificant"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </h6>
-
-                                <locuszoom
-                                    v-if="$parent.region"
-                                    ref="locuszoom"
-                                    :chr="$parent.region.chromosome"
-                                    :start="$parent.region.start - 50000"
-                                    :end="$parent.region.end + 50000"
-                                    :refSeq="true"
-                                >
-                                    <lz-associations-panel
-                                        :phenotype="$store.state.phenotype.name"
-                                        :finishHandler="$parent.updateAssociationsTable"
-                                    ></lz-associations-panel>
-                                </locuszoom>
+                                    <h6>
+                                        <documentation
+                                            name="hugecal.commonVaration.subheader.notgwasSignificant"
+                                            :content-fill="$parent.documentationMap"
+                                        ></documentation>
+                                    </h6>
+                                    <locuszoom
+                                        v-if="$parent.region"
+                                        ref="locuszoom"
+                                        :chr="$parent.region.chromosome"
+                                        :start="$parent.region.start - 50000"
+                                        :end="$parent.region.end + 50000"
+                                        :refSeq="true"
+                                    >
+                                        <lz-associations-panel
+                                            :phenotype="$store.state.phenotype.name"
+                                            :finishHandler="$parent.updateAssociationsTable"
+                                        ></lz-associations-panel>
+                                    </locuszoom>
+                                </div>
                             </div>
                         </div>
 
@@ -446,14 +450,18 @@
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h5>
-                                <documentation
-                                    name="hugecal.rareVariation.isExomeSignificant"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
+                                <h6>
+                                    <documentation
+                                        name="hugecal.rareVariation.isExomeSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h6>
                             </div>
 
                             <!-- Rare variation when NOT Exome wide significant -->
-                            <div v-else>
+                            <div
+                                v-else-if="$parent.isSignificant52kAssociationRareVariation == false"
+                            >
                                 <h5>
                                     <documentation
                                         name="hugecal.rareVaration.evidence.exomeSignificant"
@@ -568,7 +576,6 @@
                     <div class="row">
                         <div class="col-md-7">
                             <!-- loftee -->
-
                             <div v-if="$parent.geneAssociations52k">
                                 <div
                                     v-if="$parent.geneAssociationsLoftee.length > 0"
@@ -580,9 +587,8 @@
                                             :content-fill="$parent.documentationMap"
                                         ></documentation>
                                     </h5>
-                                    <div>
-                                        <forest-plot :data=" $parent.geneAssociationsLoftee"></forest-plot>
-                                    </div>
+
+                                    <forest-plot :data=" $parent.geneAssociationsLoftee"></forest-plot>
                                 </div>
                                 <div v-else>
                                     <h5>
@@ -607,17 +613,18 @@
                         </div>
                         <div class="col-md-5">
                             <div v-if="$parent.geneAssociations52k">
-                                <div v-if="$parent.geneAssociationsLoftee.length > 0"></div>
-                                <documentation
-                                    name="hugecal.confidenceInterval.help"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
-                            </div>
-                            <div v-else>
-                                <documentation
-                                    name="hugecal.confidenceInterval.help"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
+                                <div v-if="$parent.geneAssociationsLoftee.length > 0">
+                                    <documentation
+                                        name="hugecal.confidenceInterval.help"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </div>
+                                <div v-else>
+                                    <documentation
+                                        name="hugecal.confidenceInterval.help"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </div>
                             </div>
                         </div>
                     </div>

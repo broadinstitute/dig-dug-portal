@@ -24,9 +24,7 @@ export default new Vuex.Store({
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
         phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
         effectorGeneData: [],
-        // category: "Not in GWAS region",
-        // stage2Category: null,
-        priorVariance: 0.0462,
+        priorVariance: 0.3696,
     },
 
     mutations: {
@@ -44,18 +42,13 @@ export default new Vuex.Store({
         setEffectorGeneData(state, effectorGeneData) {
             state.effectorGeneData = effectorGeneData;
         },
-        // setStage2Category(state, stage2Category) {
-        //     state.stage2Category = stage2Category;
-        // },
+
         setPriorVariance(state, priorVariance) {
             state.priorVariance = priorVariance;
         }
     },
 
     getters: {
-
-
-
         region(state) {
             let data = state.gene.data;
 
@@ -134,6 +127,10 @@ export default new Vuex.Store({
                 context.dispatch('geneAssociations52k/query', { q: name });
 
             }
+        },
+
+        async query52kGeneAssociations(context, symbol) {
+            context.dispatch('geneAssociations52k/query', { q: symbol });
         },
 
         async queryGeneRegion(context, region) {

@@ -83,7 +83,7 @@ new Vue({
             this.$store.commit(`associations/setResponse`, data);
         },
         posteriorProbability(prior, beta, stdErr) {
-            let w = 0.3696
+            let w = this.$store.state.priorVariance
             let v = Math.pow(stdErr, 2);
             let f1 = v / (v + w);
             let sqrt_f1 = Math.sqrt(f1);
@@ -98,26 +98,32 @@ new Vue({
         },
 
         calculateCategoryScore(category) {
-            let score = 1
+            let score;
             if (category == "WEAK") {
                 score = 1;
+                return score;
             }
-            else if (category == "POSSIBLE") {
+            if (category == "POSSIBLE") {
                 score = 2;
+                return score;
             }
-            else if (category == "MODERATE") {
+            if (category == "MODERATE") {
                 score = 3;
+                return score;
             }
-            else if (category == "STRONG") {
+            if (category == "STRONG") {
                 score = 4;
+                return score;
             }
-            else if (category == "CAUSAL") {
+            if (category == "CAUSAL") {
                 score = 5;
+                return score;
             }
-            else if (category == "No") {
+            if (category == "No") {
                 score = 0;
+                return score;
             }
-            return score;
+
         },
 
     },
@@ -160,7 +166,7 @@ new Vue({
 
 
         associationsData() {
-            if (!!this.$store.state.associations.data) {
+            if (!!this.$store.state.associations.data.length) {
                 let data = this.$store.state.associations.data;
                 let filteredData = [];
                 data.forEach(function (row) {
@@ -176,7 +182,7 @@ new Vue({
         //stage 1 - Significant association? (common Variation)
         //this makes sure the gene is in GWAS region or not
         isSignificantAssociationCommonVariation() {
-            if (!!this.$store.state.associations.data) {
+            if (!!this.$store.state.associations.data.length) {
                 let data = this.$store.state.associations.data;
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].pValue <= 5e-8) {
@@ -213,6 +219,7 @@ new Vue({
                 }
             }
         },
+
 
         geneAssociationsLoftee() {
             if (!!this.$store.state.geneAssociations52k.data.length) {
@@ -262,9 +269,11 @@ new Vue({
 
         rareVariationCategoryAndScore() {
             let masks = [];
-            let category = "";
+            let category = "No";
             let ppa = "";
             let bayes_factor = "";
+            let categoryScore = 0;
+            let categorymap = {};
 
             if (!!this.$store.state.geneAssociations52k.data[0]) {
                 masks = this.$store.state.geneAssociations52k.data[0].masks
@@ -285,27 +294,44 @@ new Vue({
 
                 if (ppa < 0.30 && bayes_factor > 1) {
                     category = "WEAK"
-
+                    categoryScore = this.calculateCategoryScore(category);
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    return categorymap;
                 }
-                else if (ppa >= 0.30 && ppa < 0.50) {
+                if (ppa >= 0.30 && ppa < 0.50) {
                     category = "POSSIBLE"
+                    categoryScore = this.calculateCategoryScore(category);
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    return categorymap;
                 }
-                else if (ppa >= 0.50 && ppa < 0.70) {
+                if (ppa >= 0.50 && ppa < 0.70) {
                     category = "MODERATE"
+                    categoryScore = this.calculateCategoryScore(category);
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    return categorymap;
                 }
-                else if (ppa >= 0.70 && ppa < 0.90) {
+                if (ppa >= 0.70 && ppa < 0.90) {
                     category = "STRONG"
+                    categoryScore = this.calculateCategoryScore(category);
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    return categorymap;
                 }
-                else if (ppa >= 0.90) {
+                if (ppa >= 0.90) {
                     category = "CAUSAL"
+                    categoryScore = this.calculateCategoryScore(category);
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    return categorymap
                 }
-                else if (bayes_factor < 1) {
+                if (bayes_factor < 1) {
                     category = "No"
+                    categoryScore = this.calculateCategoryScore(category);
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    return categorymap;
                 }
+
             }
 
-            let categoryScore = this.calculateCategoryScore(category);
-            return { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+
         },
         commonVariationCategoryAndScore() {
             let category = this.$store.state.effectorGeneData.category;
@@ -321,27 +347,31 @@ new Vue({
                 5
             ) {
                 finalCategory = "CAUSAL";
+                return finalCategory;
             }
-            else if (
+            if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 4
             ) {
                 finalCategory = "STRONG";
+                return finalCategory;
             }
-            else if (
+            if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 3
             ) {
                 finalCategory = "MODERATE";
+                return finalCategory;
             }
-            else if (
+            if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 2
             ) {
                 finalCategory = "POSSIBLE";
+                return finalCategory;
             }
             else if (
                 this.rareVariationCategoryAndScore.categoryScore +
@@ -349,15 +379,17 @@ new Vue({
                 1
             ) {
                 finalCategory = "WEAK";
+                return finalCategory;
             }
-            else if (
+            if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 0
             ) {
-                finalCategory = "No Evidence";
+                finalCategory = "No";
+                return finalCategory;
             }
-            return finalCategory;
+
         }
 
 
@@ -374,6 +406,11 @@ new Vue({
             this.hideElement("variantSearchHolder");
             this.$store.dispatch("queryGeneRegion", region);
         },
+        // the canonical symbol was found
+        symbolName(symbol) {
+            this.$store.dispatch("query52kGeneAssociations", symbol);
+
+        }
 
     }
 }).$mount("#app");
