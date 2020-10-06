@@ -1,7 +1,7 @@
 <template>
-    <span class="lz-panel-toolbar">
-        <div style="float: right;" class=" lz-toolbar-button">
-            <button @click="toggleLogLog">Toggle LogLog</button>
+    <span>
+        <div v-if="!!loglog" style="float: right; font-size: 12px" class="lz-panel-toolbar">
+            <button class="lz-toolbar-button lz-toolbar-button-gray" @click="toggleLogLog">Toggle LogLog</button>
         </div>
         <div :id="`lz_${salt}`">
             <slot v-if="locuszoommounted"></slot>
@@ -43,6 +43,7 @@ export default Vue.component("locuszoom", {
         "end",
         "scoring",
         "refSeq",
+        "loglog",
         "filter",
         "filterAssociations",
         "filterAnnotations",
