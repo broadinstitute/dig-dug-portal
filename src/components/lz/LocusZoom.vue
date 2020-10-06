@@ -19,7 +19,7 @@ import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnno
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel"
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel"
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel"
-import { makeSource, makeLayer } from "@/utils/lzUtils"
+import { makeSource, makeLayout } from "@/utils/lzUtils"
 
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
@@ -107,8 +107,8 @@ export default Vue.component("locuszoom", {
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
             // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <panel.takingDataSourceName>
 
+            const layout = makeLayer(panelClass);
             const source = makeSource(panelClass);
-            const panel = makeLayer(panelClass);
 
             this.dataSources.add(
                 source.givingDataSourceName,
@@ -117,17 +117,17 @@ export default Vue.component("locuszoom", {
 
             let panelOptions = {
                 namespace: {
-                    [panel.forDataSourceType]: panel.takingDataSourceName,
+                    [layout.forDataSourceType]: panel.takingDataSourceName,
                 },
-                id: panel.id,
-                ...panel.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
+                id: layout.id,
+                ...layout.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
             };
 
             this.plot
                 .addPanel(
                     LocusZoom.Layouts.get(
                         "panel",
-                        panel.panelLayoutType,
+                        layout.panelLayoutType,
                         panelOptions
                     )
                 )

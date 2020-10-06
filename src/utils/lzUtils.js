@@ -14,6 +14,7 @@ export const BASE_PANEL_OPTIONS = {
     min_height: 240,
 }
 
+// just letting you know what everything is for
 export const makeSource = function(that) {
     return {
         isDataSourceType: that.datasource_type,
@@ -22,7 +23,7 @@ export const makeSource = function(that) {
     }
 }
 
-export const makeLayer = function(that) {
+export const makeLayout = function(that) {
     return {
         id: that.panel_id,
         panelLayoutType: that.panel_layout_type,
