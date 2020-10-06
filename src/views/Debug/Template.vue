@@ -333,7 +333,7 @@
                                 </div> -->
                             </div>
                         </div>
-
+                        <button @click="$parent.addAssociationsPanelComponent">Add Associations Panel</button>
                         <locuszoom
                             ref="locuszoom"
                             :chr="$store.state.chr"
@@ -346,10 +346,10 @@
                             "
                             :refSeq="true"
                         >
-                            <lz-associations-panel
+                            <!-- <lz-associations-panel
                                 :phenotype="$store.state.phenotype.name"
                                 @input="$parent.updateAssociationsTable"
-                            ></lz-associations-panel>
+                            ></lz-associations-panel> -->
                         </locuszoom>
                     </div>
                 </div>

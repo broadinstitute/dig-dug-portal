@@ -12,8 +12,10 @@ import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
+
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
+
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker";
 import LunarisLink from "@/components/LunarisLink";
@@ -38,9 +40,14 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import VueCompositionAPI from '@vue/composition-api'
+import { toRefs } from '@vue/composition-api'
+
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
 Vue.use(BootstrapVueIcons);
+Vue.use(VueCompositionAPI);
+
 
 new Vue({
     store,
@@ -116,6 +123,12 @@ new Vue({
 
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, data);
+        },
+
+        addAssociationsPanelComponent(phenotype) {
+            this.$children[0].$refs.locuszoom.addLZComponent(LocusZoomAssociationsPanel, {
+                phenotype: this.$store.state.phenotype.name
+            });
         },
 
         addCredibleVariantsPanel(event) {

@@ -14,13 +14,12 @@ import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
-import {
-    LZAssociationsPanel,
-    LZAnnotationIntervalsPanel,
-    LZCredibleVariantsPanel,
-    LZPhewasPanel,
-    LZComputedCredibleVariantsPanel,
-} from "@/utils/lz/lzPanels";
+import { LZAssociationsPanel } from "@/components/lz/panels/LocusZoomAssociationsPanel"
+import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnnotationsPanel"
+import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel"
+import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel"
+import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel"
+import { makeSource, makeLayer } from "@/utils/lzUtils"
 
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
@@ -30,62 +29,6 @@ import { decodeNamespace } from "@/utils/filterHelpers";
 LocusZoom.use(intervalTracks);
 LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
-
-
-/* Used by several of the default data sources.
- */
-const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';
-
-/* The available data sources available to bind.
- */
-const LZ_TYPE = Object.freeze({
-    assoc: 'assoc',
-    gene: 'gene',
-    recomb: 'recomb',
-    ld: 'ld',
-    constraint: 'constraint',
-    intervals: 'intervals',
-    phewas: 'phewas',
-});
-
-const LZDataSources = {
-    [LZ_TYPE.gene]: ["GeneLZ", {
-        url:
-            'https://portaldev.sph.umich.edu/api/v1/annotation/genes/',
-        params: {
-            build: HUMAN_GENOME_BUILD_VERSION,
-        }
-    }],
-    [LZ_TYPE.ld]: ["LDLZ2", {
-        url: 'https://portaldev.sph.umich.edu/ld/',
-        params: {
-            source: '1000G',
-            build: HUMAN_GENOME_BUILD_VERSION,
-            population: 'ALL'
-        }
-    }],
-    [LZ_TYPE.recomb]: ["RecombLZ", {
-        url: 'https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/',
-        params: {
-            build: HUMAN_GENOME_BUILD_VERSION,
-        }
-    }],
-    [LZ_TYPE.constraint]: ["GeneConstraintLZ",
-        {
-            url: 'http://gnomad.broadinstitute.org/api',
-            params: {
-                build: HUMAN_GENOME_BUILD_VERSION,
-            }
-        }],
-    // [LZ_TYPE.intervals]: ["IntervalLZ",
-    //     {
-    //         url: 'https://portaldev.sph.umich.edu/api/v1/annotation/intervals/results/',
-    //         params: {
-    //             source: 19,
-    //             build: HUMAN_GENOME_BUILD_VERSION,
-    //         }
-    //     }],
-}
 
 export default Vue.component("locuszoom", {
     props: [
@@ -164,7 +107,9 @@ export default Vue.component("locuszoom", {
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
             // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <panel.takingDataSourceName>
 
-            const { panel, source } = panelClass;
+            const source = makeSource(panelClass);
+            const panel = makeLayer(panelClass);
+
             this.dataSources.add(
                 source.givingDataSourceName,
                 source.withDataSourceReader
@@ -228,7 +173,7 @@ export default Vue.component("locuszoom", {
             const panelId = this.addPanelAndDataSource(
                 new LZAssociationsPanel(
                     phenotype,
-                    { finishHandler, resolveHandler, errHandler },
+                    finishHandler, resolveHandler, errHandler,
                     initialData
                 )
             );
@@ -247,7 +192,7 @@ export default Vue.component("locuszoom", {
                 new LZAnnotationIntervalsPanel(
                     annotation,
                     method,
-                    { finishHandler, resolveHandler, errHandler },
+                    finishHandler, resolveHandler, errHandler,
                     initialData,
                     scoring
                 )
@@ -292,7 +237,7 @@ export default Vue.component("locuszoom", {
                     varOrGeneId,
                     index,
                     phenotypeMap,
-                    { finishHandler, resolveHandler, errHandler },
+                    finishHandler, resolveHandler, errHandler,
                     initialData
                 )
             );
@@ -369,4 +314,37 @@ export default Vue.component("locuszoom", {
         },
     },
 });
+
+const HUMAN_GENOME_BUILD_VERSION = 'GRCh37';
+const LZDataSources = {
+    gene: ["GeneLZ", {
+        url:
+            'https://portaldev.sph.umich.edu/api/v1/annotation/genes/',
+        params: {
+            build: HUMAN_GENOME_BUILD_VERSION,
+        }
+    }],
+    ld: ["LDLZ2", {
+        url: 'https://portaldev.sph.umich.edu/ld/',
+        params: {
+            source: '1000G',
+            build: HUMAN_GENOME_BUILD_VERSION,
+            population: 'ALL'
+        }
+    }],
+    recomb: ["RecombLZ", {
+        url: 'https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/',
+        params: {
+            build: HUMAN_GENOME_BUILD_VERSION,
+        }
+    }],
+    constraint: ["GeneConstraintLZ",
+        {
+            url: 'http://gnomad.broadinstitute.org/api',
+            params: {
+                build: HUMAN_GENOME_BUILD_VERSION,
+            }
+        }],
+}
+
 </script>

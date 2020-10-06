@@ -6,6 +6,10 @@
 import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 
+import LocusZoom from "locuszoom";
+import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
+import idCounter from "@/utils/idCounter";
+
 export default Vue.component("lz-phewas-panel", {
     props: {
         id: {
@@ -20,22 +24,13 @@ export default Vue.component("lz-phewas-panel", {
             type: Object,
             required: true,
         },
-        finishHandler: {
-            type: Function,
-            required: false,
-        },
-        resolveHandler: {
-            type: Function,
-            required: false,
-        },
-        errHandler: {
-            type: Function,
-            required: false,
-        },
         // for use with v-model
         value: {
-            required: false,
+            required: false
         },
+        finishHandler: Function,
+        resolveHandler: Function,
+        errHandler: Function,
     },
     data() {
         return {
@@ -71,7 +66,14 @@ export default Vue.component("lz-phewas-panel", {
                 this.updatePanel();
             }
         },
-        varOrGeneId(newVarOrGeneId) {
+        id(newVarOrGeneId) {
+            // this is good enough
+            if (!!this.panelId) {
+                this.$parent.plot.removePanel(this.panelId);
+            }
+            this.updatePanel();
+        },
+        type() {
             // this is good enough
             if (!!this.panelId) {
                 this.$parent.plot.removePanel(this.panelId);
@@ -80,4 +82,55 @@ export default Vue.component("lz-phewas-panel", {
         },
     },
 });
+
+export class LZPhewasPanel {
+    constructor(varOrGeneId, idType, phenotypeMap, finishHandler, resolveHandler, errHandler, initialData) {
+
+        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
+        // however they are also jointly necessary for LocusZoom –
+        this.panel_layout_type = 'phewas';
+        this.datasource_type = 'phewas';
+
+        // this is arbitrary, but we want to base it on the ID
+        this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
+        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+
+        this.index = ({ gene: 'gene-associations', variant: 'phewas-associations' })[idType];
+        this.queryStringMaker = (chr, start, end) => `${varOrGeneId}`
+        this.translator = associations => {
+            const portalAssociations = associations.filter(a => {
+                return !!phenotypeMap[a.phenotype];
+            });
+            // transform from bio index to locuszoom
+            const phewas = portalAssociations.map(a => {
+                const phenotypeInfo = phenotypeMap[a.phenotype];
+                return {
+                    id: phenotypeInfo.name,
+                    log_pvalue: -Math.log10(a.pValue),
+                    trait_group: phenotypeInfo.group,
+                    trait_label: phenotypeInfo.description
+                };
+            });
+            return phewas;
+        }
+        this.initialData = initialData;
+
+        // LocusZoom Layout configuration options
+        // See the LocusZoom docs for how this works
+        // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
+        // If there's not a lot in here it's because we're not overriding defaults
+        this.locusZoomPanelOptions = {
+            // ...BASE_PANEL_OPTIONS,
+        };
+        this.handlers = { finishHandler, resolveHandler, errHandler };
+        this.bioIndexToLZReader = new LZBioIndexSource({
+            index: this.index,
+            queryStringMaker: this.queryStringMaker,
+            translator: this.translator,
+            finishHandler: this.handlers.finishHandler,
+            initialData: this.initialData,
+        });
+    }
+}
+
 </script>
