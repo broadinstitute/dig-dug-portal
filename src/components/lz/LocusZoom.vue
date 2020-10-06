@@ -105,9 +105,9 @@ export default Vue.component("locuszoom", {
             // DataSources and Panels/Layouts are linked together via namespaces.
             // A DataSource name is given to the panel, for a particular data type
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
-            // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <panel.takingDataSourceName>
+            // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
 
-            const layout = makeLayer(panelClass);
+            const layout = makeLayout(panelClass);
             const source = makeSource(panelClass);
 
             this.dataSources.add(
@@ -117,7 +117,7 @@ export default Vue.component("locuszoom", {
 
             let panelOptions = {
                 namespace: {
-                    [layout.forDataSourceType]: panel.takingDataSourceName,
+                    [layout.forDataSourceType]: layout.takingDataSourceName,
                 },
                 id: layout.id,
                 ...layout.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
@@ -141,7 +141,7 @@ export default Vue.component("locuszoom", {
                 this.applyFilter(this.filterAnnotations, "intervals");
 
             // so we can figure out how to remove it later
-            return panel.id;
+            return layout.id;
         },
 
         addLZComponent: function (PanelComponentType, panelConfig) {
