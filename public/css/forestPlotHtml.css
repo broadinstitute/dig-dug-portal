@@ -4,7 +4,7 @@
 
 .forest-plot-html-wrapper {
     margin: 30px 40px;
-    padding: 25px 0 10px 0;
+    padding: 10px 0 10px 0;
     border: solid 1px #ddd;
     position: relative;
 }
@@ -12,11 +12,11 @@
 .start-min, .end-max, .beta-0 {
     font-size: 14px;
     position: absolute;
-    top: 0px;
+    top: -20px;
 }
 
 .beta-0 {
-    height: 100%;
+    height: calc(100% + 20px);
     border-left: dashed 2px #dfdfdf;
 }
 
@@ -54,7 +54,7 @@
     position: absolute;
     width: 12px;
     height: 12px;
-    background-color: #bbbbbb;
+    background-color: #cccccc;
     top: 4px;
 }
 
@@ -66,11 +66,8 @@
     background-color: #ff9999;
 }
 
-.forest-plot-html-item .phenotype-name {
-    position: absolute;
-    white-space: nowrap;
-    font-size: 14px;
-    top: -12px;
+.forest-plot-html-row .beta-box.p-weak, .forest-plot-html-legend-wrapper .beta-box.p-weak {
+    background-color: #ffcc88;
 }
 
 .forest-plot-html-item .phenotype-name {
@@ -86,6 +83,13 @@
 
 .forest-plot-html-item .phenotype-name.right {
     left: calc(100% + 5px);
+}
+
+.forest-plot-html-item.too-wide-item .phenotype-name {
+    display: block;
+    overflow: hidden;
+    max-width: 10%;
+    text-overflow: ellipsis;
 }
 
 .forest-plot-html-item .phenotype-name .order-value {
@@ -263,4 +267,12 @@
 
 .forest-plot-html-item .forest-plot-more-info.right {
     right: calc(100% + 5px);
+}
+
+.forest-plot-html-item.too-wide-item .forest-plot-more-info.left {
+    left: 90%;
+}
+
+.forest-plot-html-item.too-wide-item .forest-plot-more-info.right {
+    right: 90%;
 }

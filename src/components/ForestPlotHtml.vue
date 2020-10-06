@@ -20,12 +20,14 @@
                         >{{formatPvalue(significant)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(moderate)}}</span>
                     </li>
                     <li>
-                        <span class="beta-box">&nbsp;</span>
-                        <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}</span>
+                        <span class="beta-box p-weak">&nbsp;</span>
+                        <span
+                            class="label"
+                        >{{formatPvalue(moderate)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(weak)}}</span>
                     </li>
                     <li>
                         <span class="beta-box">&nbsp;</span>
-                        <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}</span>
+                        <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(weak)}}</span>
                     </li>
                 </ul>
                 <!--<ul v-if="!!labelMap">
@@ -40,7 +42,7 @@
             </div>
         </div>
         <div class="forest-plot-html-wrapper row">
-            <div class="forest-plot-ui-options">
+            <!--<div class="forest-plot-ui-options">
                 <div class="show-groups-wrapper">
                     <input
                         type="checkbox"
@@ -59,7 +61,7 @@
                     />
                     <label for="sort_groups">Sort by group</label>
                 </div>
-            </div>
+            </div>-->
 
             <div class="start-min">{{this.plotData.low_min}}</div>
             <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">
@@ -72,16 +74,16 @@
                 class="forest-plot-html-row"
                 :class="index < (currentPage-1)*perPage || index >= currentPage*perPage ? 'hidden':''"
             >
-                <div
+                <!--<div
                     v-if="!!labelMap[value[labelBy]]"
                     :class="'hidden phenotype-group-dot '+labelMap[value[labelBy]].group"
                 >
                     <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
-                </div>
+                </div>-->
                 <div
                     v-if="!!labelMap[value[labelBy]]"
                     :style="'width:'+value.width+'%; left:'+value.left+'%;'"
-                    class="forest-plot-html-item"
+                    :class="'forest-plot-html-item '+(value.width > 90 ? 'too-wide-item':'')"
                 >
                     <span :class="'phenotype-name '+(value.left > value.right? 'left':'right')">
                         {{labelMap[value[labelBy]].description}}
@@ -99,17 +101,17 @@
                                 v-if="!!labelMap[value[labelBy]].group"
                             >{{'Group: '}}{{labelMap[value[labelBy]].group}}</li>
                             <li>{{sortBy + ': '}}{{formatPvalue(value[sortBy])}}</li>
-
-                            <li>{{'CI low: '}}{{value.low.toFixed(3)}}</li>
-                            <li>{{'CI high: '}}{{value.high.toFixed(3)}}</li>
+                            <li>{{'Beta: '}}{{value[bulletBy].toFixed(3)}}</li>
+                            <li>{{'95% confidence interval low: '}}{{value.low.toFixed(3)}}</li>
+                            <li>{{'95% confidence interval high: '}}{{value.high.toFixed(3)}}</li>
                         </ul>
                     </div>
                 </div>
                 <div
                     v-if="!!labelMap[value[labelBy]]"
                     class="beta-box"
-                    :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':''"
-                    :style="'left:calc('+value.beta_position+'% - 9px);'"
+                    :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':value[sortBy] <= weak ? 'p-weak':''"
+                    :style="'left:calc('+value.beta_position+'% - 6px);'"
                 >&nbsp;</div>
             </div>
         </div>
@@ -142,6 +144,7 @@ export default Vue.component("forest-plot-html", {
         "labelMap",
         "significant",
         "moderate",
+        "weak",
         "stdErr",
         "countDichotomous",
     ],
@@ -248,6 +251,14 @@ export default Vue.component("forest-plot-html", {
                     updated["left"] = itemLeft;
                     updated["right"] = itemRight;
                     updated["beta_position"] = itemBeta;
+
+                    console.log(
+                        item.phenotype,
+                        "itemLeft",
+                        itemLeft,
+                        "itemRight",
+                        itemRight
+                    );
 
                     return updated;
                 });
