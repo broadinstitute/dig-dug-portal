@@ -143,24 +143,6 @@ export default Vue.component("locuszoom", {
             // so we can figure out how to remove it later
             return layout.id;
         },
-
-        addLZComponent: function (PanelComponentType, panelConfig) {
-            if (this.plot != null) {
-                let LZPanelConstructor = Vue.extend(PanelComponentType);
-
-                let vueContainer = document.createElement("div");
-                this.$el.appendChild(vueContainer);
-
-                const trackComponentInstance = new LZPanelConstructor({
-                    propsData: panelConfig,
-                    parent: this,
-                }).$mount(vueContainer);
-
-            } else {
-                console.log("lz is null right now");
-            }
-        },
-
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
         addAssociationsPanel: function (
