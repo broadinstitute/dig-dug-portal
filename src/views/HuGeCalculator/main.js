@@ -103,23 +103,23 @@ new Vue({
                 score = 1;
                 return score;
             }
-            if (category == "POSSIBLE") {
+            else if (category == "POSSIBLE") {
                 score = 2;
                 return score;
             }
-            if (category == "MODERATE") {
+            else if (category == "MODERATE") {
                 score = 3;
                 return score;
             }
-            if (category == "STRONG") {
+            else if (category == "STRONG") {
                 score = 4;
                 return score;
             }
-            if (category == "CAUSAL") {
+            else if (category == "CAUSAL") {
                 score = 5;
                 return score;
             }
-            if (category == "No") {
+            else if (category == "No") {
                 score = 0;
                 return score;
             }
@@ -300,31 +300,31 @@ new Vue({
                     categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
-                if (ppa >= 0.30 && ppa < 0.50) {
+                else if (ppa >= 0.30 && ppa < 0.50) {
                     category = "POSSIBLE"
                     categoryScore = this.calculateCategoryScore(category);
                     categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
-                if (ppa >= 0.50 && ppa < 0.70) {
+                else if (ppa >= 0.50 && ppa < 0.70) {
                     category = "MODERATE"
                     categoryScore = this.calculateCategoryScore(category);
                     categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
-                if (ppa >= 0.70 && ppa < 0.90) {
+                else if (ppa >= 0.70 && ppa < 0.90) {
                     category = "STRONG"
                     categoryScore = this.calculateCategoryScore(category);
                     categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
-                if (ppa >= 0.90) {
+                else if (ppa >= 0.90) {
                     category = "CAUSAL"
                     categoryScore = this.calculateCategoryScore(category);
                     categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap
                 }
-                if (bayes_factor < 1) {
+                else if (bayes_factor < 1) {
                     category = "No"
                     categoryScore = this.calculateCategoryScore(category);
                     categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
@@ -351,7 +351,7 @@ new Vue({
                 finalCategory = "CAUSAL";
                 return finalCategory;
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 4
@@ -359,7 +359,7 @@ new Vue({
                 finalCategory = "STRONG";
                 return finalCategory;
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 3
@@ -367,7 +367,7 @@ new Vue({
                 finalCategory = "MODERATE";
                 return finalCategory;
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 2
@@ -383,7 +383,7 @@ new Vue({
                 finalCategory = "WEAK";
                 return finalCategory;
             }
-            if (
+            else if (
                 this.rareVariationCategoryAndScore.categoryScore +
                 this.commonVariationCategoryAndScore.categoryScore ==
                 0

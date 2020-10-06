@@ -372,7 +372,7 @@
                             <div v-if="$parent.isSignificant52kAssociationRareVariation">
                                 <h5>
                                     <documentation
-                                        name="hugecal.rareVaration.evidence.exomeSignificant"
+                                        name="hugecal.rareVaration.header"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h5>
@@ -464,7 +464,7 @@
                             >
                                 <h5>
                                     <documentation
-                                        name="hugecal.rareVaration.evidence.exomeSignificant"
+                                        name="hugecal.rareVaration.header"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h5>
