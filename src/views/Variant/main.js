@@ -17,6 +17,9 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 import ForestPlotHtml from "@/components/ForestPlotHtml.vue";
+import DatasetAssociations from "@/components/DatasetAssociations";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage";
+import PheWASDatasets from "@/components/PheWASDatasets";
 import keyParams from "@/utils/keyParams";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
@@ -38,18 +41,20 @@ new Vue({
         TranscriptConsequenceTable,
         TranscriptionFactorsTable,
         PheWASTable,
+        PheWASDatasets,
         RegionsTable,
-
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomPhewasPanel,
-
         ForestPlotHtml,
+        DatasetAssociations,
+        UnauthorizedMessage
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("queryVariant", keyParams.variant);
     },
 
@@ -70,7 +75,10 @@ new Vue({
             let pos = this.chromPos;
 
             if (!!pos) {
-                window.location.href = `./region.html?chr=${pos.chromosome}&start=${pos.position - expanded}&end=${pos.position + expanded}&variant=${this.$store.state.variant.varId}`;
+                window.location.href = `./region.html?chr=${
+                    pos.chromosome
+                }&start=${pos.position - expanded}&end=${pos.position +
+                    expanded}&variant=${this.$store.state.variant.varId}`;
             }
         }
     },
@@ -89,20 +97,20 @@ new Vue({
         },
 
         variantName() {
-            return this.dbSNP || this.varId || '';
+            return this.dbSNP || this.varId || "";
         },
 
         chromPos() {
             let variant = this.$store.state.variant;
 
             if (!!variant) {
-                let chrom = variant.varId.split(':')[0];
-                let pos = variant.varId.split(':')[1];
+                let chrom = variant.varId.split(":")[0];
+                let pos = variant.varId.split(":")[1];
 
                 return {
                     chromosome: chrom,
-                    position: parseInt(pos),
-                }
+                    position: parseInt(pos)
+                };
             }
         },
 
@@ -114,7 +122,7 @@ new Vue({
                 return { variant: `${varId} / ${dbSNP}` };
             }
 
-            return { variant: varId || '' };
+            return { variant: varId || "" };
         },
 
         frontContents() {
@@ -156,9 +164,8 @@ new Vue({
 
         regions() {
             return this.$store.state.regions.data;
-        },
+        }
     },
-
 
     watch: {
         diseaseGroup(group) {
@@ -166,8 +173,9 @@ new Vue({
         },
 
         variantData(data) {
-            if (!!data) {
-                this.$store.commit('setVariant', data[0]);  // only ever 1 result
+            //! data is an array
+            if (data.length > 0) {
+                this.$store.commit("setVariant", data[0]); // only ever 1 result
             }
         },
 
@@ -175,10 +183,19 @@ new Vue({
             if (variant) {
                 let p = this.chromPos;
 
-                this.$store.dispatch('phewas/query', { q: variant.varId });
-                this.$store.dispatch('transcriptConsequences/query', { q: variant.varId });
-                this.$store.dispatch('transcriptionFactors/query', { q: variant.varId });
-                this.$store.dispatch('regions/query', { q: `${p.chromosome}:${p.position}` });
+                this.$store.dispatch("phewas/query", { q: variant.varId });
+                this.$store.dispatch("transcriptConsequences/query", {
+                    q: variant.varId
+                });
+                this.$store.dispatch("transcriptionFactors/query", {
+                    q: variant.varId
+                });
+                this.$store.dispatch("regions/query", {
+                    q: `${p.chromosome}:${p.position}`
+                });
+                this.$store.dispatch("datasetAssociations/query", {
+                    q: variant.varId
+                });
             }
         }
     }

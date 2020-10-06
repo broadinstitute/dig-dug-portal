@@ -1,18 +1,12 @@
-import { createContext } from "vue-context-api";
-
-// The argument passed to createContext is the default context value
-// for `id => true`, letting everything through by default amounts to no filter, and vice-versa, so set it as default
-export const { Provider, Consumer } = createContext(id => true); 
-
 
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
-
-    const inclusivePredicates = allPredicates.filter(predicate => predicate.inclusive);
+    const inclusivePredicates = allPredicates.filter(
+        predicate => predicate.inclusive
+    );
     const predicates = allPredicates.filter(predicate => !predicate.inclusive);
 
     return function filterFunction(object) {
-
         // Guilt is terminal: we break our investigation as soon as
         // we've found evidence that the object isn't innocent.
         // NOTE: Filter policy by default is innocent until proven guilty.
@@ -30,7 +24,11 @@ export function filterFromPredicates(allPredicates, inclusive) {
             // since there are some local filters doing overrides, we let them decide what's included
             // so now being included is "false" unless otherwise stated
             included = false;
-            for (let predicateI = 0; predicateI < inclusivePredicates.length; predicateI++) {
+            for (
+                let predicateI = 0;
+                predicateI < inclusivePredicates.length;
+                predicateI++
+            ) {
                 included = inclusivePredicates[predicateI].func(object);
                 if (included === true) break;
             }
@@ -39,36 +37,41 @@ export function filterFromPredicates(allPredicates, inclusive) {
         if (allPredicates.length > 0) {
             // if we have predicates, the burden of proof may change based on our filtering type
             if (!!!inclusive) {
-
                 // exclusive filter, equivalent to a series of ANDs
                 // break on soonest failure
                 // innocent = true; redundant to set here due to `true` being default value
-                for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
+                for (
+                    let predicateI = 0;
+                    predicateI < predicates.length;
+                    predicateI++
+                ) {
                     innocent = predicates[predicateI].func(object);
                     if (innocent === false) break;
                 }
-
             } else {
-
                 // inclusive filter, equivalent to a series of logical ORs
                 // let by all values that pass true on any of the predicates, exclude those that don't
                 // inverts strategy to guilty until proven innocent so we set innocgit stence to false before continuing
                 innocent = false;
-                for (let predicateI = 0; predicateI < predicates.length; predicateI++) {
+                for (
+                    let predicateI = 0;
+                    predicateI < predicates.length;
+                    predicateI++
+                ) {
                     innocent = predicates[predicateI].func(object);
                     if (innocent === true) break;
                 }
-
             }
         }
 
         return included && innocent;
-    }
-
+    };
 }
 
-export function predicateFromSpec({ field, predicate, threshold, inclusive=false }, { notStrictMatch=false, strictCase=false }) {
-
+export function predicateFromSpec(
+    { field, predicate, threshold, inclusive = false },
+    { notStrictMatch = false, strictCase = false }
+) {
     // Specs for predicateFromSpec are objects satisfying properties { field, predicate, threshold } to return a function Object => Boolean, parameterized on a field
     // NOTE: the default policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
     // This can be modified in two ways:
@@ -78,15 +81,15 @@ export function predicateFromSpec({ field, predicate, threshold, inclusive=false
 
     return {
         inclusive,
-        func: (datum) => {
+        func: datum => {
             // TODO: other ways of doing matches?
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
 
-            let match = strictCase ? !!datum[field] : !!datum[field] // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
+            let match = strictCase ? !!datum[field] : !!datum[field]; // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {
-                if (datum[field].constructor.name === 'Array') {
+                if (datum[field].constructor.name === "Array") {
                     return datum[field].some(el => predicate(el, threshold));
                 } else {
                     return predicate(datum[field], threshold);
@@ -95,21 +98,19 @@ export function predicateFromSpec({ field, predicate, threshold, inclusive=false
                 return notStrictMatch;
             }
         }
-    }
+    };
 }
 
 // TODO
-export function looseMatcher(object, fieldName, strictMatchCase=false) {
+export function looseMatcher(object, fieldName, strictMatchCase = false) {
     // Generate potentially matching strings from fieldName
-        // e.g. pValue => [pValue, p_value, pvalue, ...] etc
+    // e.g. pValue => [pValue, p_value, pvalue, ...] etc
     // Check the object across each potential match
-        // e.g. !!object["pValue"] || !!object["pvalue"] || !!object["pvalue"]
+    // e.g. !!object["pValue"] || !!object["pvalue"] || !!object["pvalue"]
     // If any potential match is a key for a field in object, return that match
     // else return null
     // NOTE: is *eager*: in the unlikely event that several cases of this string are supported by the object at once, the one first matched on will win
 }
-
-
 
 /* NAMESPACE FUNCTIONS */
 // These two *Namespace functions are used to handle prefixes an suffixes that different components might have in their application-specific representations of the data
@@ -132,10 +133,12 @@ export function looseMatcher(object, fieldName, strictMatchCase=false) {
 //
 //   You could do this if the namespace applied to all properties rather than just some of them, and if you were modifying your component's data by assignment via some previous state.
 //
-export function encodeNamespace(regularObject, { prefix='', suffix='', pDelimiter='', sDelimiter='' }) {
-
+export function encodeNamespace(
+    regularObject,
+    { prefix = "", suffix = "", pDelimiter = "", sDelimiter = "" }
+) {
     // take an object whose keys are "basic fields", (do not have any application-specific prefixes or suffixes), and add a given prefix or suffix to all of its keys
-    
+
     // e.g. 'associations_src:pValue' has prefix 'associations_src:' in LocusZoom for the basic field pValue
     // if we're using encodeNamespace on an object with key `pValue` and give a prefix `associations_src:`, the result will be an object with the key `associations_src:pValue`
     // we use this function if we're working with a filter that modifies the object property keys before rendering it.
@@ -146,11 +149,14 @@ export function encodeNamespace(regularObject, { prefix='', suffix='', pDelimite
         const [key, value] = entry;
         const newKey = `${prefix}${pDelimiter}${key}${sDelimiter}${suffix}`;
         tempObject[newKey] = value;
-    })
+    });
     return tempObject;
-};
+}
 
-export function decodeNamespace(namespacedObject, { prefix='', suffix='', pDelimiter='', sDelimiter='' }) {
+export function decodeNamespace(
+    namespacedObject,
+    { prefix = "", suffix = "", pDelimiter = "", sDelimiter = "" }
+) {
     // strip prefixes and suffixes from object properties given that they have them,
     // otherwise strip nothing and just return the object
 
@@ -159,14 +165,15 @@ export function decodeNamespace(namespacedObject, { prefix='', suffix='', pDelim
         const [key, value] = entry;
         // TODO: replace with disjoint regex?
         // for fun: regex crosswords https://regexcrossword.com
-        const newKey = key.replace(prefix, '').replace(suffix, '')
+        const newKey = key
+            .replace(prefix, "")
+            .replace(suffix, "")
             // TODO: using delimiters redundant/unecessary/confusing?
             // TODO: remove everything before delimiter
-            .replace(pDelimiter, '')
+            .replace(pDelimiter, "")
             // TODO: remove everything after delimiter
-            .replace(sDelimiter, '');
+            .replace(sDelimiter, "");
         tempObject[newKey] = value;
-    })
+    });
     return tempObject;
-
-};
+}
