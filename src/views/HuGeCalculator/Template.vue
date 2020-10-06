@@ -300,33 +300,13 @@
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h5>
-                            </div>
-                            <!-- <div v-else>
-                                <h5>
-                                    <documentation
-                                        name="hugecal.commonVaration.header.notgwasSignificant"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </h5>
-                            </div>-->
-                            <div v-if="$parent.isSignificantAssociationCommonVariation">
                                 <h6>
                                     <documentation
                                         name="hugecal.commonVaration.subheader.gwasSignificant"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h6>
-                            </div>
-                            <!-- <div v-else>
-                                <h6>
-                                    <documentation
-                                        name="hugecal.commonVaration.subheader.notgwasSignificant"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </h6>
-                            </div>-->
 
-                            <div v-if="$store.state.geneName">
                                 <locuszoom
                                     v-if="$parent.region"
                                     ref="locuszoom"
@@ -342,7 +322,34 @@
                                 </locuszoom>
                             </div>
 
-                            <!-- Close Common Varation -->
+                            <div v-else>
+                                <h5>
+                                    <documentation
+                                        name="hugecal.commonVaration.header.notgwasSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h5>
+                                <h6>
+                                    <documentation
+                                        name="hugecal.commonVaration.subheader.notgwasSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h6>
+
+                                <locuszoom
+                                    v-if="$parent.region"
+                                    ref="locuszoom"
+                                    :chr="$parent.region.chromosome"
+                                    :start="$parent.region.start - 50000"
+                                    :end="$parent.region.end + 50000"
+                                    :refSeq="true"
+                                >
+                                    <lz-associations-panel
+                                        :phenotype="$store.state.phenotype.name"
+                                        :finishHandler="$parent.updateAssociationsTable"
+                                    ></lz-associations-panel>
+                                </locuszoom>
+                            </div>
                         </div>
 
                         <div class="col-md-5" style="border-left: 1px dashed #444">
