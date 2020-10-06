@@ -184,22 +184,23 @@
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
                             </h5>
-                            <h6 v-if="$parent.isSignificantAssociationCommonVariation">
-                                <documentation
-                                    name="hugecal.commonVaration.subheader.gwasSignificant"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
-                            </h6>
-
-                            <h6 v-else>
+                            <div v-if="$parent.isSignificantAssociationCommonVariation">
+                                <h6>
+                                    <documentation
+                                        name="hugecal.commonVaration.subheader.gwasSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h6>
+                            </div>
+                            <div v-else>
                                 <documentation
                                     name="hugecal.commonVaration.subheader.notgwasSignificant"
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
-                            </h6>
-                            <div v-if="$parent.region">
+                            </div>
+
+                            <div>
                                 <locuszoom
-                                    v-if="$parent.region"
                                     ref="locuszoom"
                                     :chr="$parent.region.chromosome"
                                     :start="$parent.region.start-50000"

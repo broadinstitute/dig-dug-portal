@@ -59,6 +59,7 @@ export default new Vuex.Store({
         region(state) {
             let data = state.gene.data;
 
+
             if (data.length > 0) {
                 let gene = data[0];
 
