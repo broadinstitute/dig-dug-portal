@@ -251,17 +251,19 @@ new Vue({
             let phenotype = this.$store.state.phenotype.description;
             let rareVariationEvidence;
             let ppa;
+            let abf;
             if (!!this.$store.state.geneAssociations52k.data[0]) {
                 rareVariationEvidence = this.rareVariationCategoryAndScore.category;
                 ppa = this.rareVariationCategoryAndScore.ppa;
+                abf = this.rareVariationCategoryAndScore.abf;
             }
-
 
             return {
                 gene: gene,
                 phenotype: phenotype,
                 category: rareVariationEvidence,
-                ppa: ppa
+                ppa: ppa,
+                abf: abf
             }
         },
 
@@ -295,37 +297,37 @@ new Vue({
                 if (ppa < 0.30 && bayes_factor > 1) {
                     category = "WEAK"
                     categoryScore = this.calculateCategoryScore(category);
-                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
                 if (ppa >= 0.30 && ppa < 0.50) {
                     category = "POSSIBLE"
                     categoryScore = this.calculateCategoryScore(category);
-                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
                 if (ppa >= 0.50 && ppa < 0.70) {
                     category = "MODERATE"
                     categoryScore = this.calculateCategoryScore(category);
-                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
                 if (ppa >= 0.70 && ppa < 0.90) {
                     category = "STRONG"
                     categoryScore = this.calculateCategoryScore(category);
-                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
                 if (ppa >= 0.90) {
                     category = "CAUSAL"
                     categoryScore = this.calculateCategoryScore(category);
-                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap
                 }
                 if (bayes_factor < 1) {
                     category = "No"
                     categoryScore = this.calculateCategoryScore(category);
-                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa };
+                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
                     return categorymap;
                 }
 
