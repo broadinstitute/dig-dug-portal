@@ -85,31 +85,6 @@
                             Top
                             {{
                                 $parent.intFormatter(
-                                    $store.state.genes.data.length
-                                )
-                            }}
-                            genes associated with
-                            {{ $store.state.phenotype.description }}
-                            <tooltip-documentation
-                                name="phenotype.genes.tooltip"
-                                :content-fill="$parent.documentationMap"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation>
-                        </h4>
-                        <gene-finder-table
-                            :associations="$store.state.genes.data"
-                            :per-page="10"
-                        ></gene-finder-table>
-                    </div>
-                </div>
-
-                <div class="card mdkp-card">
-                    <div class="card-body">
-                        <h4 class="card-title">
-                            Top
-                            {{
-                                $parent.intFormatter(
                                     $store.state.associations.data.length
                                 )
                             }}
@@ -128,6 +103,31 @@
                             :per-page="10"
                             :showFilters="true"
                         ></associations-table>
+                    </div>
+                </div>
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            Top
+                            {{
+                                $parent.intFormatter(
+                                    $store.state.genes.data.length
+                                )
+                            }}
+                            genes associated with
+                            {{ $store.state.phenotype.description }}
+                            <tooltip-documentation
+                                name="phenotype.genes.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+                        <gene-finder-table
+                            :associations="$store.state.genes.data"
+                            :per-page="10"
+                        ></gene-finder-table>
                     </div>
                 </div>
 
