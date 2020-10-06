@@ -83,19 +83,24 @@
                 </div>
             </div>-->
 
+            <!-- Card for combined Evidence -->
             <div class="card mdkp-card">
                 <div class="card-body" style="margin-block-end: 20px; ">
                     <div class="row">
                         <div class="col-md-7">
-                            <h5 v-if="$parent.geneAssociations52k">
-                                {{$store.state.geneName}} has {{$parent.finalCategory}} Evidence of a disease-susceptibility.
+                            <h4>
+                                Combined Evidence
                                 <tooltip-documentation
                                     name="gene.function.tooltip.hover"
                                     :content-fill="$parent.documentationMap"
                                     :isHover="true"
                                     :noIcon="false"
                                 ></tooltip-documentation>
-                            </h5>
+                            </h4>
+
+                            <h5
+                                v-if="$parent.geneAssociations52k"
+                            >{{$store.state.geneName}} has {{$parent.finalCategory}} Evidence of a disease-susceptibility.</h5>
 
                             <!-- traffic light -->
                             <div style="width:600px;" v-if="$parent.geneAssociations52k">
@@ -127,23 +132,23 @@
                                 <div>
                                     <div class="container">
                                         <div class="row">
-                                            <div style="background-color:#3352FF" class="col-sm">
+                                            <div class="col-sm combinedVariationCausal">
                                                 <strong>Causal</strong>
                                             </div>
-                                            <div style="background-color:#337AFF" class="col-sm">
+                                            <div class="col-sm combinedVariationStrong">
                                                 <strong>Strong</strong>
                                             </div>
-                                            <div style="background-color:#3393FF" class="col-sm">
+                                            <div class="col-sm combinedVariationModerate">
                                                 <strong>Moderate</strong>
                                             </div>
-                                            <div style="background-color:#33ACFF" class="col-sm">
+                                            <div class="col-sm combinedVariationPossible">
                                                 <strong>Possible</strong>
                                             </div>
-                                            <div style="background-color:#33E0FF" class="col-sm">
+                                            <div class="col-sm combinedVariationWeak">
                                                 <strong>Weak</strong>
                                             </div>
 
-                                            <div style="background-color:#b3fcf7" class="col-">
+                                            <div class="col- combinedVariationNoEvidence">
                                                 <strong>No Evidence</strong>
                                             </div>
                                         </div>
@@ -161,6 +166,9 @@
                     </div>
                 </div>
             </div>
+            <!-- End of combined evidence -->
+
+            <!-- card for Common and Rare Variation -->
             <div class="card mdkp-card">
                 <div class="card-body" style="margin-block-end: 20px;">
                     <div class="row">
@@ -175,49 +183,7 @@
                                     :noIcon="false"
                                 ></tooltip-documentation>
                             </h4>
-                            <!-- associations -->
-                            <!-- <p> -->
 
-                            <h5>
-                                <documentation
-                                    name="hugecal.commonVaration.header"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
-                            </h5>
-                            <div v-if="$parent.isSignificantAssociationCommonVariation">
-                                <h6>
-                                    <documentation
-                                        name="hugecal.commonVaration.subheader.gwasSignificant"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </h6>
-                            </div>
-                            <div v-else>
-                                <documentation
-                                    name="hugecal.commonVaration.subheader.notgwasSignificant"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
-                            </div>
-
-                            <div v-if="$store.state.geneName">
-                                <locuszoom
-                                    v-if="$parent.region"
-                                    ref="locuszoom"
-                                    :chr="$parent.region.chromosome"
-                                    :start="$parent.region.start - 50000"
-                                    :end="$parent.region.end + 50000"
-                                    :refSeq="true"
-                                >
-                                    <lz-associations-panel
-                                        :phenotype="$store.state.phenotype.name"
-                                        :finishHandler="$parent.updateAssociationsTable"
-                                    ></lz-associations-panel>
-                                </locuszoom>
-                            </div>
-                            <!-- </p> -->
-
-                            <!-- mccarthy EGL -->
-                            <!-- <p v-if="$store.state.effectorGeneData.category"> -->
                             <h5>
                                 <documentation
                                     name="hugecal.commonVaration.header.evidence"
@@ -295,32 +261,87 @@
                                     v-if="$store.state.effectorGeneData.category == 'No'"
                                     class="arrow-up noEvidenceclass"
                                 ></div>
+                                <!-- traffic light for common varation when gene is and is not genome wide significant -->
                                 <div>
                                     <div class="container">
                                         <div class="row">
-                                            <div style="background-color:#3352FF" class="col-sm">
+                                            <div class="col-sm commonVariationCausal">
                                                 <strong>Causal</strong>
                                             </div>
-                                            <div style="background-color:#337AFF" class="col-sm">
+                                            <div class="col-sm commonVariationStrong">
                                                 <strong>Strong</strong>
                                             </div>
-                                            <div style="background-color:#3393FF" class="col-sm">
+                                            <div class="col-sm commonVariationModerate">
                                                 <strong>Moderate</strong>
                                             </div>
-                                            <div style="background-color:#33ACFF" class="col-sm">
+                                            <div class="col-sm commonVariationPossible">
                                                 <strong>Possible</strong>
                                             </div>
-                                            <div style="background-color:#33E0FF" class="col-sm">
+                                            <div class="col-sm commonVariationWeak">
                                                 <strong>Weak</strong>
                                             </div>
 
-                                            <div style="background-color:#b3fcf7" class="col-">
+                                            <div class="col- commonVariationNoEvidence">
                                                 <strong>No Evidence</strong>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <hr style="margin:40px" />
+                            <!-- End of common variation evidence -->
+
+                            <!-- gwas associations -->
+
+                            <div v-if="$parent.isSignificantAssociationCommonVariation">
+                                <h5>
+                                    <documentation
+                                        name="hugecal.commonVaration.header.gwasSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h5>
+                            </div>
+                            <!-- <div v-else>
+                                <h5>
+                                    <documentation
+                                        name="hugecal.commonVaration.header.notgwasSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h5>
+                            </div>-->
+                            <div v-if="$parent.isSignificantAssociationCommonVariation">
+                                <h6>
+                                    <documentation
+                                        name="hugecal.commonVaration.subheader.gwasSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h6>
+                            </div>
+                            <!-- <div v-else>
+                                <h6>
+                                    <documentation
+                                        name="hugecal.commonVaration.subheader.notgwasSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h6>
+                            </div>-->
+
+                            <div v-if="$store.state.geneName">
+                                <locuszoom
+                                    v-if="$parent.region"
+                                    ref="locuszoom"
+                                    :chr="$parent.region.chromosome"
+                                    :start="$parent.region.start - 50000"
+                                    :end="$parent.region.end + 50000"
+                                    :refSeq="true"
+                                >
+                                    <lz-associations-panel
+                                        :phenotype="$store.state.phenotype.name"
+                                        :finishHandler="$parent.updateAssociationsTable"
+                                    ></lz-associations-panel>
+                                </locuszoom>
+                            </div>
+
                             <!-- Close Common Varation -->
                         </div>
 
@@ -337,24 +358,10 @@
                                     :noIcon="false"
                                 ></tooltip-documentation>
                             </h4>
-
-                            <h5>
-                                <documentation
-                                    name="hugecal.rareVaration.header"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
-                            </h5>
-
                             <div v-if="$parent.isSignificant52kAssociationRareVariation">
-                                <documentation
-                                    name="hugecal.priorVariance.isExomeSignificant"
-                                    :content-fill="$parent.documentationMap"
-                                ></documentation>
-
-                                <hr style="margin:40px" />
                                 <h5>
                                     <documentation
-                                        name="hugecal.rareVaration.evidence"
+                                        name="hugecal.rareVaration.evidence.exomeSignificant"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h5>
@@ -367,12 +374,11 @@
                                     </li>
                                     <li>
                                         <span>
-                                            Evidence:
                                             <strong>{{$parent.stage2Category.evidence}}</strong>
                                         </span>
                                     </li>
                                 </ul>
-                                <!-- Traffic Light -->
+                                <!-- Traffic Light for rare variation when gene is exome significant -->
                                 <div style="width:600px" v-if="$parent.stage2Category">
                                     <br />
                                     <div
@@ -402,49 +408,125 @@
                                     <div>
                                         <div class="container">
                                             <div class="row">
-                                                <div
-                                                    style="background-color:#3352FF"
-                                                    class="col-sm"
-                                                >
+                                                <div class="col-sm rareVariationCausal">
                                                     <strong>Causal</strong>
                                                 </div>
-                                                <div
-                                                    style="background-color:#337AFF"
-                                                    class="col-sm"
-                                                >
+                                                <div class="col-sm rareVariationStrong">
                                                     <strong>Strong</strong>
                                                 </div>
-                                                <div
-                                                    style="background-color:#3393FF"
-                                                    class="col-sm"
-                                                >
+                                                <div class="col-sm rareVariationModerate">
                                                     <strong>Moderate</strong>
                                                 </div>
-                                                <div
-                                                    style="background-color:#33ACFF"
-                                                    class="col-sm"
-                                                >
+                                                <div class="col-sm rareVariationPossible">
                                                     <strong>Possible</strong>
                                                 </div>
-                                                <div
-                                                    style="background-color:#33E0FF"
-                                                    class="col-sm"
-                                                >
+                                                <div class="col-sm rareVariationWeak">
                                                     <strong>Weak</strong>
                                                 </div>
 
-                                                <div style="background-color:#b3fcf7" class="col-">
+                                                <div class="col- rareVariationNoEvidence">
                                                     <strong>No Evidence</strong>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <hr style="margin:40px" />
+                                <h5>
+                                    <documentation
+                                        name="hugecal.rareVaration.header.isExomeSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h5>
+                                <documentation
+                                    name="hugecal.rareVariation.isExomeSignificant"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
                             </div>
 
+                            <!-- Rare variation when NOT Exome wide significant -->
                             <div v-else>
+                                <h5>
+                                    <documentation
+                                        name="hugecal.rareVaration.evidence.exomeSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h5>
                                 <h6>
                                     <documentation
+                                        name="hugecal.rareVaration.evidence.description"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h6>
+
+                                <!-- Traffic Light -->
+                                <div
+                                    v-if="$parent.rareVariationCategoryAndScore.category"
+                                    style="width:600px"
+                                >
+                                    <br />
+                                    <div
+                                        v-if="$parent.rareVariationCategoryAndScore.category == 'CAUSAL'"
+                                        class="arrow-up causalclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.rareVariationCategoryAndScore.category == 'STRONG'"
+                                        class="arrow-up strongclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.rareVariationCategoryAndScore.category == 'MODERATE'"
+                                        class="arrow-up moderateclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.rareVariationCategoryAndScore.category == 'POSSIBLE'"
+                                        class="arrow-up possibleclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.rareVariationCategoryAndScore.category == 'WEAK'"
+                                        class="arrow-up weakclass"
+                                    ></div>
+                                    <div
+                                        v-if="$parent.rareVariationCategoryAndScore.category == 'No'"
+                                        class="arrow-up noEvidenceclass"
+                                    ></div>
+                                    <div>
+                                        <div class="container">
+                                            <div class="row">
+                                                <div class="col-sm rareVariationCausal">
+                                                    <strong>Causal</strong>
+                                                </div>
+                                                <div class="col-sm rareVariationStrong">
+                                                    <strong>Strong</strong>
+                                                </div>
+                                                <div class="col-sm rareVariationModerate">
+                                                    <strong>Moderate</strong>
+                                                </div>
+                                                <div class="col-sm rareVariationPossible">
+                                                    <strong>Possible</strong>
+                                                </div>
+                                                <div class="col-sm rareVariationWeak">
+                                                    <strong>Weak</strong>
+                                                </div>
+
+                                                <div class="col- rareVariationNoEvidence">
+                                                    <strong>No Evidence</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr style="margin:40px" />
+                                <h5>
+                                    <documentation
+                                        v-if="$parent.rareVariationCategoryAndScore.category"
+                                        name="hugecal.priorVariance.header.notExomeSignificant"
+                                        :content-fill="$parent.documentationMap"
+                                    ></documentation>
+                                </h5>
+                                <h6>
+                                    <documentation
+                                        v-if="$parent.rareVariationCategoryAndScore.category"
                                         name="hugecal.priorVariance.notExomeSignificant"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
@@ -465,82 +547,6 @@
                                         :priorVariance="$store.state.priorVariance"
                                         :isDichotomous="true"
                                     ></posterior-probability-plot>
-
-                                    <!-- Traffic Light -->
-
-                                    <div
-                                        style="width:600px"
-                                        v-if="$parent.rareVariationCategoryAndScore.category"
-                                    >
-                                        <br />
-                                        <div
-                                            v-if="$parent.rareVariationCategoryAndScore.category == 'CAUSAL'"
-                                            class="arrow-up causalclass"
-                                        ></div>
-                                        <div
-                                            v-if="$parent.rareVariationCategoryAndScore.category == 'STRONG'"
-                                            class="arrow-up strongclass"
-                                        ></div>
-                                        <div
-                                            v-if="$parent.rareVariationCategoryAndScore.category == 'MODERATE'"
-                                            class="arrow-up moderateclass"
-                                        ></div>
-                                        <div
-                                            v-if="$parent.rareVariationCategoryAndScore.category == 'POSSIBLE'"
-                                            class="arrow-up possibleclass"
-                                        ></div>
-                                        <div
-                                            v-if="$parent.rareVariationCategoryAndScore.category == 'WEAK'"
-                                            class="arrow-up weakclass"
-                                        ></div>
-                                        <div
-                                            v-if="$parent.rareVariationCategoryAndScore.category == 'No'"
-                                            class="arrow-up noEvidenceclass"
-                                        ></div>
-                                        <div>
-                                            <div class="container">
-                                                <div class="row">
-                                                    <div
-                                                        style="background-color:#3352FF"
-                                                        class="col-sm"
-                                                    >
-                                                        <strong>Causal</strong>
-                                                    </div>
-                                                    <div
-                                                        style="background-color:#337AFF"
-                                                        class="col-sm"
-                                                    >
-                                                        <strong>Strong</strong>
-                                                    </div>
-                                                    <div
-                                                        style="background-color:#3393FF"
-                                                        class="col-sm"
-                                                    >
-                                                        <strong>Moderate</strong>
-                                                    </div>
-                                                    <div
-                                                        style="background-color:#33ACFF"
-                                                        class="col-sm"
-                                                    >
-                                                        <strong>Possible</strong>
-                                                    </div>
-                                                    <div
-                                                        style="background-color:#33E0FF"
-                                                        class="col-sm"
-                                                    >
-                                                        <strong>Weak</strong>
-                                                    </div>
-
-                                                    <div
-                                                        style="background-color:#b3fcf7"
-                                                        class="col-"
-                                                    >
-                                                        <strong>No Evidence</strong>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                             <!-- Close Rare Variation -->
@@ -652,57 +658,96 @@ export default Vue.component("test", {
 
 
 <style>
-.predictionRow {
-    width: 500px;
-    height: 25px;
-    background: rgb(255, 193, 7);
-    background: linear-gradient(
-        90deg,
-        rgba(255, 193, 7, 1) 27%,
-        rgba(40, 167, 69, 1) 59%,
-        rgba(0, 123, 255, 1) 90%
-    );
-}
 .arrow-up {
     width: 0;
     height: 40px;
-
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-bottom: 10px solid black;
     animation: moveright 1s alternate 1s;
 }
 
+.commonVariationCausal {
+    background-color: #884ea0;
+}
+.commonVariationStrong {
+    background-color: #9b59b6;
+}
+.commonVariationModerate {
+    background-color: #af7ac5;
+}
+.commonVariationPossible {
+    background-color: #c39bd3;
+}
+.commonVariationWeak {
+    background-color: #d7bde2;
+}
+.commonVariationNoEvidence {
+    background-color: #ebdef0;
+}
+
+.rareVariationCausal {
+    background-color: #f1c40f;
+}
+.rareVariationStrong {
+    background-color: #f4d03f;
+}
+.rareVariationModerate {
+    background-color: #f7dc6f;
+}
+.rareVariationPossible {
+    background-color: #f9e79f;
+}
+.rareVariationWeak {
+    background-color: #fcf3cf;
+}
+.rareVariationNoEvidence {
+    background-color: #fef9e7;
+}
+
+.combinedVariationCausal {
+    background-color: #28b463;
+}
+.combinedVariationStrong {
+    background-color: #2ecc71;
+}
+.combinedVariationModerate {
+    background-color: #58d68d;
+}
+.combinedVariationPossible {
+    background-color: #82e0aa;
+}
+.combinedVariationWeak {
+    background-color: #abebc6;
+}
+.combinedVariationNoEvidence {
+    background-color: #d5f5e3;
+}
+
 .causalclass {
     position: absolute;
     left: 60px;
 }
-
 .strongclass {
     position: absolute;
     left: 160px;
 }
-
 .moderateclass {
     position: absolute;
     left: 260px;
 }
-
 .possibleclass {
     position: absolute;
     left: 360px;
 }
-
 .weakclass {
     position: absolute;
     left: 460px;
 }
-
 .noEvidenceclass {
     position: absolute;
     left: 560px;
 }
-
 .codingEvidence1C {
     background-color: #ffd62e;
     padding: 5px;
@@ -715,61 +760,52 @@ export default Vue.component("test", {
     border-radius: 25px;
     font-weight: 700;
 }
-
 .regulatoryEvidence2R {
     background-color: #bfd730;
     padding: 5px;
     border-radius: 25px;
     font-weight: 700;
 }
-
 .regulatoryEvidence3R {
     background-color: #bfd73050;
     padding: 5px;
     border-radius: 25px;
     font-weight: 700;
 }
-
 .perturbationalEvidence1P {
     background-color: #add3f0;
     padding: 5px;
     border-radius: 25px;
     font-weight: 700;
 }
-
 .perturbationalEvidence2P {
     background-color: #add3f075;
     padding: 5px;
     border-radius: 25px;
     font-weight: 700;
 }
-
 .perturbationalEvidence3P {
     background-color: #add3f050;
     padding: 5px;
     border-radius: 25px;
     font-weight: 700;
 }
-
 @keyframes moveup {
     to {
         transform: translateY(-50%);
     }
 }
-
 @keyframes moveup {
     to {
         transform: translateY(-50%);
     }
 }
-
 .wrap {
     overflow-x: hidden;
 }
 .slideInRight {
     animation-name: slideInRight;
 }
-
 .slideInLeft {
     animation-name: slideInLeft;
 }
@@ -777,47 +813,39 @@ export default Vue.component("test", {
     animation-duration: 2s;
     animation-fill-mode: both;
 }
-
 .animated2 {
     animation-duration: 2s;
     animation-fill-mode: both;
     animation-delay: 1s;
 }
-
 .animated3 {
     animation-duration: 2s;
     animation-fill-mode: both;
     animation-delay: 2s;
 }
-
 .animated4 {
     animation-duration: 2s;
     animation-fill-mode: both;
     animation-delay: 3s;
 }
-
 @keyframes slideInRight {
     from {
         transform: translate3d(100%, 0, 0);
         visibility: visible;
     }
-
     to {
         transform: translate3d(0, 0, 0);
     }
 }
-
 @keyframes slideInLeft {
     from {
         transform: translate3d(-100%, 0, 0);
         visibility: visible;
     }
-
     to {
         transform: translate3d(0, 0, 0);
     }
 }
-
 #fademe2s {
     opacity: 0;
     transition: 1s;
@@ -826,6 +854,7 @@ export default Vue.component("test", {
     opacity: 0;
     transition: 8s;
 }
+
 #fademe5ss {
     opacity: 0;
     transition: 8s;
@@ -834,7 +863,6 @@ export default Vue.component("test", {
     opacity: 0;
     transition: 6s;
 }
-
 #fademe8s {
     opacity: 0;
     transition: 8s;

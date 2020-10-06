@@ -1,18 +1,11 @@
 <template>
     <div>
-       
-        <div id="posteriorpriorplot" style="text-align:center"> 
-            
-        </div>
-        <h6 style="text-align:center" >Posterior Probablity vs Prior</h6> 
-        
-        
+        <div id="posteriorpriorplot" style="text-align:center"></div>
     </div>
 </template>
 
 
 <script>
-
 import Vue from "vue";
 
 import * as d3 from "d3";
@@ -91,9 +84,8 @@ export default Vue.component("posterior-probability-plot", {
                 })
                 .attr("transform", "translate(20,15)");
 
-            //var color_scale = 
+            //var color_scale =
 
-            
             //size of the legend box
             lineLegend
                 .append("rect")
@@ -105,10 +97,7 @@ export default Vue.component("posterior-probability-plot", {
 
             svg.append("svg")
                 .append("g")
-                .attr(
-                    "transform",
-                    "translate(0," + (height-margin.top ) + ")"
-                )
+                .attr("transform", "translate(0," + (height - margin.top) + ")")
                 .call(xAxis);
 
             svg.append("svg")
@@ -125,7 +114,7 @@ export default Vue.component("posterior-probability-plot", {
                     return yScale(d.ppa);
                 })
                 .curve(d3.curveLinear);
-
+//append the ppa line- calculated
             var path = svg
                 .append("path")
                 .attr("d", lineGen(data))
@@ -133,6 +122,7 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("stroke-width", 1.25)
                 .attr("fill", "none");
 
+//append the reference line
             var path2 = svg
                 .append("path")
                 .attr("d", lineGen(data2))
@@ -140,6 +130,25 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("stroke-width", 0.5)
                 .attr("fill", "none");
 
+
+            //axis labeling
+            svg.append("text")
+                .attr("class", "x label")
+                .attr("text-anchor", "end")
+                .attr("x", width - 200)
+                .attr("y", height + 35)
+                .text("Prior");
+
+            svg.append("text")
+                .attr("class", "y label")
+                .attr("text-anchor", "end")
+                .attr("y", 20)
+                .attr("x", -100)
+                .attr("dy", "0.5em")
+                .attr("transform", "rotate(-90)")
+                .text("Posterior probability");
+
+//hover over
             var bisect = d3.bisector(function(d) {
                 return d.ppa;
             }).left;
@@ -148,14 +157,15 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("cx", 300)
                 .attr("cy", 300)
                 .attr("r", 3)
-                .attr("fill", "red");
+                .style("visibility","hidden");
 
             var focusText = svg
                 .append("g")
                 .append("text")
                 .style("opacity", 0)
                 .attr("text-anchor", "left")
-                .attr("alignment-baseline", "middle");
+                .attr("alignment-baseline", "middle")
+               
 
             svg.append("rect")
                 .style("fill", "none")
@@ -166,9 +176,12 @@ export default Vue.component("posterior-probability-plot", {
                 .on("mousemove", mousemove)
                 .on("mouseout", mouseout);
 
+
             function mouseover() {
                 focus.style("opacity", 1);
                 focusText.style("opacity", 1);
+                focus.style("visibility", "visible");
+                focus.attr("fill", "red")
             }
 
             function mousemove() {
@@ -184,15 +197,18 @@ export default Vue.component("posterior-probability-plot", {
                         "Prior:" +
                             selectedData.prior +
                             "  -  " +
+                            
                             "PPA:" +
                             selectedData.ppa
                     )
+    
                     .attr("x", xScale(selectedData.prior) + 15)
                     .attr("y", yScale(selectedData.ppa));
             }
             function mouseout() {
                 focus.style("opacity", 0);
-                focusText.style("opacity", 0);
+                focus.style("visibility","hidden")
+                
             }
         },
 

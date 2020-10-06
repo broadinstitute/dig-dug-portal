@@ -83,7 +83,7 @@ new Vue({
             this.$store.commit(`associations/setResponse`, data);
         },
         posteriorProbability(prior, beta, stdErr) {
-            let w = 0.0462
+            let w = 0.3696
             let v = Math.pow(stdErr, 2);
             let f1 = v / (v + w);
             let sqrt_f1 = Math.sqrt(f1);
@@ -185,7 +185,20 @@ new Vue({
                 }
                 return false;
             }
+        },
 
+        isSignificant52kAssociationRareVariation() {
+            if (!!this.$store.state.geneAssociations52k.data.length) {
+                let data = this.$store.state.geneAssociations52k.data;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == this.trait) {
+                        if (data[i].pValue <= 2.5e-6) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
         },
 
         geneAssociations52k() {
@@ -219,19 +232,7 @@ new Vue({
         },
 
 
-        isSignificant52kAssociationRareVariation() {
-            if (!!this.$store.state.geneAssociations52k.data.length) {
-                let data = this.$store.state.geneAssociations52k.data;
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == this.trait) {
-                        if (data[i].pValue <= 2.5e-6) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        },
+
         //when the gene has significant association  (if exome wide significant)
         //(Rare Variation), that means there is Strong coding evidence
         //show the following instead of stage 2 plot
@@ -241,53 +242,70 @@ new Vue({
         documentationMap() {
             let gene = this.$store.state.geneName;
             let phenotype = this.$store.state.phenotype.description;
+            let rareVariationEvidence;
+            let ppa;
+            if (!!this.$store.state.geneAssociations52k.data[0]) {
+                rareVariationEvidence = this.rareVariationCategoryAndScore.category;
+                ppa = this.rareVariationCategoryAndScore.ppa;
+            }
+
 
             return {
                 gene: gene,
-                phenotype: phenotype
+                phenotype: phenotype,
+                category: rareVariationEvidence,
+                ppa: ppa
             }
         },
 
 
 
         rareVariationCategoryAndScore() {
-            let prior = 0.20;
-            let d = this.$store.state.geneAssociations52k.data[0].masks.sort(
-                (a, b) => a.pValue - b.pValue
-            );
-            let mostSignificantMask = d[0];
-            let stdErr = mostSignificantMask.stdErr;
-            let beta;
-            if (this.$store.state.phenotype.isDichotomous) {
-                beta = mostSignificantMask.beta;
-            } else {
-                beta = Math.log(mostSignificantMask.oddsRatio);
-            }
-            let ppa = this.posteriorProbability(prior, beta, stdErr).ppa;
-            let bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
+            let masks = [];
             let category = "";
+            let ppa = "";
+            let bayes_factor = "";
 
-            if (ppa < 0.30 && bayes_factor > 1) {
-                category = "WEAK"
+            if (!!this.$store.state.geneAssociations52k.data[0]) {
+                masks = this.$store.state.geneAssociations52k.data[0].masks
+                let prior = 0.20;
+                let d = masks.sort(
+                    (a, b) => a.pValue - b.pValue
+                );
+                let mostSignificantMask = d[0];
+                let stdErr = mostSignificantMask.stdErr;
+                let beta;
+                if (this.$store.state.phenotype.isDichotomous) {
+                    beta = mostSignificantMask.beta;
+                } else {
+                    beta = Math.log(mostSignificantMask.oddsRatio);
+                }
+                ppa = this.posteriorProbability(prior, beta, stdErr).ppa;
+                bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
 
+                if (ppa < 0.30 && bayes_factor > 1) {
+                    category = "WEAK"
+
+                }
+                else if (ppa >= 0.30 && ppa < 0.50) {
+                    category = "POSSIBLE"
+                }
+                else if (ppa >= 0.50 && ppa < 0.70) {
+                    category = "MODERATE"
+                }
+                else if (ppa >= 0.70 && ppa < 0.90) {
+                    category = "STRONG"
+                }
+                else if (ppa >= 0.90) {
+                    category = "CAUSAL"
+                }
+                else if (bayes_factor < 1) {
+                    category = "No"
+                }
             }
-            else if (ppa >= 0.30 && ppa < 0.50) {
-                category = "POSSIBLE"
-            }
-            else if (ppa >= 0.50 && ppa < 0.70) {
-                category = "MODERATE"
-            }
-            else if (ppa >= 0.70 && ppa < 0.90) {
-                category = "STRONG"
-            }
-            else if (ppa >= 0.90) {
-                category = "CAUSAL"
-            }
-            else if (bayes_factor < 1) {
-                category = "No"
-            }
+
             let categoryScore = this.calculateCategoryScore(category);
-            return { "category": category, "categoryScore": categoryScore };
+            return { "category": category, "categoryScore": categoryScore, "ppa": ppa };
         },
         commonVariationCategoryAndScore() {
             let category = this.$store.state.effectorGeneData.category;
