@@ -164,7 +164,9 @@
                         name="variant.phewas.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-                    <!--<h4 class="card-title">Visualization</h4>-->
+                    <unauthorized-message
+                        :restricted="$store.state.phewas.restricted"
+                    ></unauthorized-message>
                     <b-tabs content-class="mt-3" align="center">
                         <b-tab title="LocusZoom" active>
                             <locuszoom
@@ -200,13 +202,22 @@
                             ></forest-plot-html>
                         </b-tab>
                     </b-tabs>
-                    <phewas-table
+
+                    <unauthorized-message
+                        :restricted="
+                            $store.state.datasetAssociations.restricted
+                        "
+                    ></unauthorized-message>
+                    <phewas-datasets
                         v-if="$store.state.phewas.data"
                         :associations="$store.state.phewas.data"
+                        :datasets="$store.state.datasetAssociations.data"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                    ></phewas-table>
+                        :datasetMap="$store.state.bioPortal.datasetMap"
+                    ></phewas-datasets>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
@@ -223,7 +234,11 @@
                         name="variant.tfbinding.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
-
+                    <unauthorized-message
+                        :restricted="
+                            $store.state.transcriptionFactors.restricted
+                        "
+                    ></unauthorized-message>
                     <div v-if="$store.state.transcriptionFactors.data">
                         <transcription-factors-table
                             v-bind:transcriptionFactors="
@@ -251,6 +266,9 @@
                         name="variant.annotated.subheader"
                         :content-fill="$parent.documentationMap"
                     ></documentation>
+                    <unauthorized-message
+                        :restricted="$store.state.regions.restricted"
+                    ></unauthorized-message>
                     <regions-table :regions="$parent.regions"></regions-table>
                 </div>
             </div>

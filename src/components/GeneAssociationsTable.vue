@@ -105,10 +105,20 @@ export default Vue.component("gene-associations-table", {
         },
 
         tableData() {
-            if (!!this.filter) {
-                return this.associations.filter(this.filter);
+            let assocs = this.associations;
+            let phenotypeMap = this.phenotypeMap;
+
+            if (!phenotypeMap) {
+                return [];
             }
-            return this.associations;
+
+            // remove unknown phenotypes
+            assocs = assocs.filter((a) => phenotypeMap[a.phenotype]);
+
+            if (!!this.filter) {
+                return assocs.filter(this.filter);
+            }
+            return assocs;
         },
     },
 
