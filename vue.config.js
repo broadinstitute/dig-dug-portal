@@ -150,7 +150,13 @@ let pages = {
         title: "HuGe Calculator",
         chunks: ["chunk-vendors", "chunk-common", "hugecalculator"]
     },
-
+    page404: {
+        entry: "src/views/404/main.js",
+        template: "public/index.html",
+        filename: "404.html",
+        title: "Page Not Found",
+        chunks: ["chunk-vendors", "chunk-common", "page404"]
+    }
 };
 
 // remove the debug page in production
