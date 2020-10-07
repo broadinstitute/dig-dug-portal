@@ -122,12 +122,14 @@ export class LZPhewasPanel {
         this.locusZoomPanelOptions = {
             // ...BASE_PANEL_OPTIONS,
         };
-        this.handlers = { finishHandler, resolveHandler, errHandler };
+
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
-            finishHandler: this.handlers.finishHandler,
+            finishHandler,
+            resolveHandler,
+            errHandler,
             initialData: this.initialData,
         });
     }

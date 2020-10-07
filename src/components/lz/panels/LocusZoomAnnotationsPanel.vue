@@ -159,14 +159,13 @@ export class LZAnnotationIntervalsPanel {
                 ),
             ]
         };
-        this.handlers = { finishHandler, resolveHandler, errHandler };
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
-            finishHandler: this.handlers.finishHandler,
-            resolveHandler: this.handlers.resolveHandler,
-            errHandler: this.handlers.errHandler,
+            finishHandler,
+            resolveHandler,
+            errHandler,
             initialData: this.initialData,
         });
     }
