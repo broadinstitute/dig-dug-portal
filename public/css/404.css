@@ -22,7 +22,7 @@ body {
     -webkit-box-direction: normal;
     flex-direction: column;
 } */
-@import url("https://fonts.googleapis.com/css2?family=Sirin+Stencil&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Righteous&family=Sirin+Stencil&display=swap");
 
 .DNA {
     display: inline-block;
@@ -435,13 +435,28 @@ body {
 
 .notice {
     text-align: center;
+    color: #5366cc;
+    font-size: 1.2rem;
 }
-
+.notice h4 {
+    font-family: "Righteous", cursive;
+    font-size: 2em;
+}
+.notice .btn {
+    margin: 40px 10px;
+}
 .page {
     display: flex;
     justify-content: center;
     align-items: center;
 }
+.notfound {
+    background-color: #84c3efab;
+}
 .notfound .card {
     background-color: transparent;
+    border: none;
+}
+.notfound a.btn {
+    color: white !important;
 }
