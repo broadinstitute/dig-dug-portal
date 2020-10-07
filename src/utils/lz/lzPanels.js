@@ -80,7 +80,8 @@ export class LZAssociationsPanel {
             y_index: 0,
             axes: {
                 y1: {
-                    label: 'log_pvalue'
+                    label: '-log10(p)',
+                    ticks: [1, 10, 100, 1000, 10000],
                 }
             },
             data_layers: [
@@ -90,9 +91,7 @@ export class LZAssociationsPanel {
                         y_axis: {
                             axis: 1,
                             field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
-                            // floor: 0,
                             upper_buffer: 0.10,
-                            // min_extent: [0, 10],
                         },
                         fields: [
                             `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
@@ -387,7 +386,7 @@ export class LZComputedCredibleVariantsPanel {
             ...BASE_PANEL_OPTIONS,
             title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' }, x: -0.5 },
             y_index: 1,
-            margin: { bottom: 28  },
+            margin: { bottom: 28 },
             axes: {
                 x: {
                     label: 'Chromosome {{chr}} (Mb)',
@@ -503,11 +502,16 @@ export class LZPhewasPanel {
                             `{{namespace[${this.datasource_type}]}}pValue`, // adding this piece of data irrelevant to the graphic will help us filter later
                             `{{namespace[${this.datasource_type}]}}phenotype`, // adding this piece of data irrelevant to the graphic will help us filter later
                             ...LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }).fields,
-                        ].concat( this.index === 'phewas-associations' ?`{{namespace[${this.datasource_type}]}}beta` : [] ), // concat spreading an empty list means it adds no elements
+                        ].concat(this.index === 'phewas-associations' ? `{{namespace[${this.datasource_type}]}}beta` : []), // concat spreading an empty list means it adds no elements
                     },
                     LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }),
                 ),
             ],
+            axes: {
+                y1: {
+                    label: '-log10(p)',
+                }
+            },
         };
         this.handlers = { finishHandler, resolveHandler, errHandler };
 
