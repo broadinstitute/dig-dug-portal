@@ -13,7 +13,6 @@
             :matches="options"
             :labelFormatter="labelFormatter"
             @item-select="updateFilter($event)"
-            @keyup-enter="updateFilter($event)"
         ></autocomplete>
         <b-form-input
             v-else
