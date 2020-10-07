@@ -9,10 +9,13 @@
             :showOnFocus="true"
             :maxMatches="1000"
             @hit="onAutoCompleteItemSelected($event)"
-            @keyup.enter="onUserEnterNonAutoCompleteItem">
+            @keyup.enter="onUserEnterNonAutoCompleteItem"
+        >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <span v-html="formatHTML(htmlText)"></span>&nbsp;
-                <small v-if="secondaryKey" class="text-secondary">{{ data[secondaryKey] }}</small>
+                <small v-if="secondaryKey" class="text-secondary">{{
+                    data[secondaryKey]
+                }}</small>
             </template>
         </vue-typeahead-bootstrap>
     </div>
@@ -41,8 +44,8 @@ export default Vue.component("autocomplete", {
         secondaryKey: String,
         labelFormatter: {
             type: Function,
-            default: id => id,
-        }
+            default: (id) => id,
+        },
     },
     data() {
         return {
@@ -79,9 +82,9 @@ export default Vue.component("autocomplete", {
         },
 
         onUserEnterNonAutoCompleteItem() {
+            this.$emit("keyup-enter", this.userInput);
             this.userInput = null;
             this.$refs.autocomplete.inputValue = null;
-            this.$emit("keyup-enter", this.userInput);
         },
     },
 
