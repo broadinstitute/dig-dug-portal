@@ -43,7 +43,16 @@
                         </div>
                         <div class="notice">
                             <h4>Page Not Found</h4>
-                            <p>We couldn't find the page you're looking for.</p>
+                            <p>
+                                <div>We couldn't find the page you're looking for.</div>
+                                <div class="button"><b-button pill variant="primary" href="/"
+                                    >Home</b-button
+                                >
+                                <b-button pill variant="warning" href="//kp4cd.org/contact"
+                                    >Contact</b-button
+                                ></div>
+
+                            </p>
                         </div>
                     </div>
                 </div>
