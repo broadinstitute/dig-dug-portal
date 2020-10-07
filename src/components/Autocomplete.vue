@@ -11,7 +11,7 @@
             @hit="onAutoCompleteItemSelected($event)"
             @keyup.enter="onUserEnterNonAutoCompleteItem">
             <template slot="suggestion" slot-scope="{ data, htmlText }">
-                <span v-html="formatHTML(htmlText)"></span>&nbsp;
+                <span v-html="htmlText"></span>&nbsp;
                 <small v-if="secondaryKey" class="text-secondary">{{ data[secondaryKey] }}</small>
             </template>
         </vue-typeahead-bootstrap>
@@ -20,6 +20,7 @@
 
 <script>
 import Vue from "vue";
+import { cloneDeep } from "lodash";
 import queryString from "query-string";
 import host from "@/utils/hostUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
@@ -63,7 +64,7 @@ export default Vue.component("autocomplete", {
 
     methods: {
         formatHTML(html) {
-            return this.labelFormatter(html);
+            return this.labelFormatter(cloneDeep(html));
         },
         serializer(item) {
             if (!this.matchkey) {
@@ -73,15 +74,15 @@ export default Vue.component("autocomplete", {
             }
         },
         onAutoCompleteItemSelected(item) {
+            this.$emit("item-select", item);
             this.userInput = '';
             this.$refs.autocomplete.inputValue = '';
-            this.$emit("item-select", item);
         },
 
         onUserEnterNonAutoCompleteItem() {
+            this.$emit("keyup-enter", this.userInput);
             this.userInput = '';
             this.$refs.autocomplete.inputValue = '';
-            this.$emit("keyup-enter", this.userInput);
         },
     },
 
