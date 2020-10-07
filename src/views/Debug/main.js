@@ -1,25 +1,14 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import FilterMulti from "@/components/Filter/FilterMulti.vue"
 
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
-
-import Documentation from "@/components/Documentation.vue";
-import Autocomplete from "@/components/Autocomplete.vue";
-import LocusZoom from "@/components/lz/LocusZoom";
-import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
-import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
-import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
-import AssociationsTable from "@/components/AssociationsTable.vue";
-import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
-import ConfidenceIntervalPlot from "@/components/ConfidenceIntervalPlot.vue";
-import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
-import ForestPlot from "@/components/ForestPlot.vue";
-import uiUtils from "@/utils/uiUtils";
 
 import Alert, {
     postAlert,
@@ -36,11 +25,15 @@ new Vue({
     store,
     modules: {},
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
-        Documentation,
-        Autocomplete,
+        FilterGroup,
+        FilterControl,
+        FilterPValue,
+        FilterEffectDirection,
+        FilterEnumeration,
+        FilterGreaterThan,
+        FilterMulti,
+
+        AssociationsTable,
         LocusZoom,
         LocusZoomAssociationsPanel,
         GeneSelectPicker,

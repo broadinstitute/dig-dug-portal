@@ -1,7 +1,10 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -9,7 +12,10 @@
                 <div class="row card-body">
                     <div class="col-md-9 gene-page-header-title">
                         Variant
-                        <tooltip-documentation name="variant.alleles.tooltip.hover" :isHover="true"></tooltip-documentation>
+                        <tooltip-documentation
+                            name="variant.alleles.tooltip.hover"
+                            :isHover="true"
+                        ></tooltip-documentation>
                         <a
                             class="edit-btn"
                             v-on:click="
@@ -18,12 +24,16 @@
                                     'variant_search_input'
                                 )
                             "
-                        >Set variant</a>
+                            >Set variant</a
+                        >
                     </div>
                     <div class="col-md-3 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-9 gene-page-header-body">
-                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
+                        <div
+                            id="variantSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
                             <div class="col-md-5">
                                 <input
                                     v-model="$store.state.newVariantId"
@@ -44,7 +54,9 @@
                                             $store.state.newVariantId
                                         )
                                     "
-                                >GO</button>
+                                >
+                                    GO
+                                </button>
                             </div>
                             <div class="col-md-6 search-example">
                                 <strong>Search format examples</strong>
@@ -64,7 +76,9 @@
                         <button
                             class="btn btn-primary explore-region-btn"
                             @click="$parent.exploreRegion()"
-                        >Explore region</button>
+                        >
+                            Explore region
+                        </button>
                     </div>
                 </div>
             </div>
@@ -128,17 +142,19 @@
                         ></transcript-consequence-table>
                     </div>
                     <div v-else-if="$store.state.variant">
-                        <h4 class="card-title">Most severe variant consequence</h4>
+                        <h4 class="card-title">
+                            Most severe variant consequence
+                        </h4>
                         {{
-                        $parent.consequenceFormatter(
-                        $store.state.variant.consequence
-                        )
+                            $parent.consequenceFormatter(
+                                $store.state.variant.consequence
+                            )
                         }}
                         &mdash;
                         {{
-                        $parent.consequenceMeaning(
-                        $store.state.variant.consequence
-                        )
+                            $parent.consequenceMeaning(
+                                $store.state.variant.consequence
+                            )
                         }}
                     </div>
                 </div>
@@ -160,6 +176,7 @@
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h4>
+
                     <documentation
                         name="variant.phewas.subheader"
                         :content-fill="$parent.documentationMap"
@@ -167,6 +184,42 @@
                     <unauthorized-message
                         :restricted="$store.state.phewas.restricted"
                     ></unauthorized-message>
+
+                    <filter-group
+                        v-model="$parent.phewasFilter"
+                        :looseMatch="true"
+                    >
+                        <filter-enumeration-control
+                            :field="'phenotype'"
+                            :options="
+                                $store.state.phewas.data.map(
+                                    (phewas) => phewas.phenotype
+                                )
+                            "
+                            :labelFormatter="
+                                (phenotype) =>
+                                    !!$store.state.bioPortal.phenotypeMap[
+                                        phenotype
+                                    ]
+                                        ? $store.state.bioPortal.phenotypeMap[
+                                              phenotype
+                                          ].description
+                                        : phenotype
+                            "
+                        >
+                            <div class="label">Phenotypes</div>
+                        </filter-enumeration-control>
+
+                        <filter-pvalue-control :field="'pValue'">
+                            <div class="label">P-Value (&le;)</div>
+                        </filter-pvalue-control>
+
+                        <filter-effect-direction-control :field="'beta'">
+                            <div class="label">Effect (+/-)</div>
+                        </filter-effect-direction-control>
+                    </filter-group>
+
+                    <!--<h4 class="card-title">Visualization</h4>-->
                     <b-tabs content-class="mt-3" align="center">
                         <b-tab title="LocusZoom" active>
                             <locuszoom
@@ -174,6 +227,7 @@
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
+                                :filter="$parent.phewasFilter"
                                 :refSeq="false"
                             >
                                 <lz-phewas-panel
@@ -199,6 +253,7 @@
                                 :stdErr="'stdErr'"
                                 :labelBy="'phenotype'"
                                 :countDichotomous="0"
+                                :filter="$parent.phewasFilter"
                             ></forest-plot-html>
                         </b-tab>
                     </b-tabs>
@@ -208,12 +263,14 @@
                             $store.state.datasetAssociations.restricted
                         "
                     ></unauthorized-message>
+
                     <phewas-datasets
                         v-if="$store.state.phewas.data"
                         :associations="$store.state.phewas.data"
                         :datasets="$store.state.datasetAssociations.data"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :datasetMap="$store.state.bioPortal.datasetMap"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :filter="$parent.phewasFilter"
                     ></phewas-datasets>
                 </div>
             </div>
@@ -251,6 +308,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
@@ -269,7 +327,45 @@
                     <unauthorized-message
                         :restricted="$store.state.regions.restricted"
                     ></unauthorized-message>
-                    <regions-table :regions="$parent.regions"></regions-table>
+
+                    <filter-group
+                        v-model="$parent.regionFilter"
+                        :looseMatch="true"
+                    >
+                        <filter-enumeration-control
+                            :field="'annotation'"
+                            :options="
+                                $parent.regions.map(
+                                    (region) => region.annotation
+                                )
+                            "
+                        >
+                            <div class="label">Annotations</div>
+                        </filter-enumeration-control>
+
+                        <filter-enumeration-control
+                            :field="'method'"
+                            :options="
+                                $parent.regions.map((region) => region.method)
+                            "
+                        >
+                            <div class="label">Methods</div>
+                        </filter-enumeration-control>
+
+                        <filter-enumeration-control
+                            :field="'tissue'"
+                            :options="
+                                $parent.regions.map((region) => region.tissue)
+                            "
+                        >
+                            <div class="label">Tissues</div>
+                        </filter-enumeration-control>
+                    </filter-group>
+
+                    <regions-table
+                        :regions="$parent.regions"
+                        :filter="$parent.regionFilter"
+                    ></regions-table>
                 </div>
             </div>
         </div>

@@ -20,12 +20,12 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-import FilterWidget from "@/components/FilterWidget/FilterWidget.vue";
-import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue";
-import FilterPValue from "@/components/FilterWidget/FilterPValue.vue";
-import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirection.vue";
-import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue";
-import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue";
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -63,8 +63,8 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
 
-        FilterWidget,
-        FilterWidgetControl,
+        FilterGroup,
+        FilterControl,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
@@ -99,9 +99,8 @@ new Vue({
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
-                const queryString = `${this.$store.state.phenotype.name},${
-                    this.$store.state.chr
-                }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr
+                    }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                 this.$store.dispatch("credibleSets/query", { q: queryString });
             }
         },
@@ -176,7 +175,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function(gene) {
+            return this.$store.state.genes.data.filter(function (gene) {
                 return gene.source == "symbol";
             });
         },
@@ -242,7 +241,7 @@ new Vue({
                     .filter(interval => !!interval.tissue)
                     .map(interval => interval.tissue)
                     // unique
-                    .filter(function(value, index, self) {
+                    .filter(function (value, index, self) {
                         return self.indexOf(value) === index;
                     })
             );
@@ -289,7 +288,7 @@ new Vue({
         }
     },
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function(phenotypeMap) {
+        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
             // if there's a phenotypeParam, then pick that phenotype
@@ -302,7 +301,7 @@ new Vue({
             }
         },
 
-        "$store.state.phenotype": function(phenotype) {
+        "$store.state.phenotype": function (phenotype) {
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement("phenotypeSearchHolder");
 
