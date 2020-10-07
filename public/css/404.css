@@ -297,27 +297,27 @@ body {
         left top,
         right top,
         color-stop(10%, transparent),
-        color-stop(10%, #717ec3),
-        color-stop(50%, #717ec3),
-        color-stop(50%, #edd382),
-        color-stop(90%, #edd382),
+        color-stop(10%, #5366cc),
+        color-stop(50%, #5366cc),
+        color-stop(50%, #f6c940),
+        color-stop(90%, #f6c940),
         color-stop(90%, transparent)
     );
     background-image: linear-gradient(
         to right,
         transparent 10%,
-        #717ec3 10%,
-        #717ec3 50%,
-        #edd382 50%,
-        #edd382 90%,
+        #5366cc 10%,
+        #5366cc 50%,
+        #f6c940 50%,
+        #f6c940 90%,
         transparent 90%
     );
 }
 .bases.at:before {
-    background: #edd382;
+    background: #f6c940;
 }
 .bases.at:after {
-    background: #717ec3;
+    background: #5366cc;
 }
 .bases.ta {
     background-image: -webkit-gradient(
@@ -325,27 +325,27 @@ body {
         left top,
         right top,
         color-stop(10%, transparent),
-        color-stop(10%, #edd382),
-        color-stop(50%, #edd382),
-        color-stop(50%, #717ec3),
-        color-stop(90%, #717ec3),
+        color-stop(10%, #f6c940),
+        color-stop(50%, #f6c940),
+        color-stop(50%, #5366cc),
+        color-stop(90%, #5366cc),
         color-stop(90%, transparent)
     );
     background-image: linear-gradient(
         to right,
         transparent 10%,
-        #edd382 10%,
-        #edd382 50%,
-        #717ec3 50%,
-        #717ec3 90%,
+        #f6c940 10%,
+        #f6c940 50%,
+        #5366cc 50%,
+        #5366cc 90%,
         transparent 90%
     );
 }
 .bases.ta:before {
-    background: #717ec3;
+    background: #5366cc;
 }
 .bases.ta:after {
-    background: #edd382;
+    background: #f6c940;
 }
 .bases.cg {
     background-image: -webkit-gradient(
@@ -353,8 +353,8 @@ body {
         left top,
         right top,
         color-stop(10%, transparent),
-        color-stop(10%, #85ffc7),
-        color-stop(50%, #85ffc7),
+        color-stop(10%, #1ee487),
+        color-stop(50%, #1ee487),
         color-stop(50%, #ff6f59),
         color-stop(90%, #ff6f59),
         color-stop(90%, transparent)
@@ -362,8 +362,8 @@ body {
     background-image: linear-gradient(
         to right,
         transparent 10%,
-        #85ffc7 10%,
-        #85ffc7 50%,
+        #1ee487 10%,
+        #1ee487 50%,
         #ff6f59 50%,
         #ff6f59 90%,
         transparent 90%
@@ -373,7 +373,7 @@ body {
     background: #ff6f59;
 }
 .bases.cg:after {
-    background: #85ffc7;
+    background: #1ee487;
 }
 .bases.gc {
     background-image: -webkit-gradient(
@@ -383,8 +383,8 @@ body {
         color-stop(10%, transparent),
         color-stop(10%, #ff6f59),
         color-stop(50%, #ff6f59),
-        color-stop(50%, #85ffc7),
-        color-stop(90%, #85ffc7),
+        color-stop(50%, #1ee487),
+        color-stop(90%, #1ee487),
         color-stop(90%, transparent)
     );
     background-image: linear-gradient(
@@ -392,13 +392,13 @@ body {
         transparent 10%,
         #ff6f59 10%,
         #ff6f59 50%,
-        #85ffc7 50%,
-        #85ffc7 90%,
+        #1ee487 50%,
+        #1ee487 90%,
         transparent 90%
     );
 }
 .bases.gc:before {
-    background: #85ffc7;
+    background: #1ee487;
 }
 .bases.gc:after {
     background: #ff6f59;
@@ -450,9 +450,7 @@ body {
     justify-content: center;
     align-items: center;
 }
-.notfound {
-    background-color: #84c3efab;
-}
+
 .notfound .card {
     background-color: transparent;
     border: none;
