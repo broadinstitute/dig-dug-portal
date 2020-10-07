@@ -207,6 +207,7 @@
                                         :options="
                                             $parent.associationConsequences
                                         "
+                                        :inclusive="true"
                                     >
                                         <div class="label">Consequence</div>
                                     </filter-enumeration-control>
@@ -216,6 +217,7 @@
                                         :options="
                                             $parent.associationNearestGenes
                                         "
+                                        :inclusive="true"
                                     >
                                         <div class="label">Closest Genes</div>
                                     </filter-enumeration-control>

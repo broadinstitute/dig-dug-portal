@@ -46,8 +46,8 @@ export default Vue.component("autocomplete", {
     },
     data() {
         return {
-            userInput: this.initialText || null,
-            selectedItem: null,
+            userInput: this.initialText || '',
+            selectedItem: '',
         };
     },
 
@@ -73,14 +73,14 @@ export default Vue.component("autocomplete", {
             }
         },
         onAutoCompleteItemSelected(item) {
-            this.userInput = null;
-            this.$refs.autocomplete.inputValue = null;
+            this.userInput = '';
+            this.$refs.autocomplete.inputValue = '';
             this.$emit("item-select", item);
         },
 
         onUserEnterNonAutoCompleteItem() {
-            this.userInput = null;
-            this.$refs.autocomplete.inputValue = null;
+            this.userInput = '';
+            this.$refs.autocomplete.inputValue = '';
             this.$emit("keyup-enter", this.userInput);
         },
     },

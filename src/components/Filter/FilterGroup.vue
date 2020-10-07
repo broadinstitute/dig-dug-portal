@@ -116,11 +116,16 @@ export default Vue.component("filter-group", {
             } else {
                 // if the definition already exists, and it's a multiple, then just push, since we can allow for multiple instances of the same filter
                 if (filterDefinition.multiple) {
-                    this.filterList.push({
-                        ...filterDefinition,
-                        threshold,
-                    });
-
+                    // check if value is unique
+                    if (threshold !== null &&
+                        !this.filterList
+                            .map((filter) => filter.threshold)
+                            .includes(threshold)) {
+                        this.filterList.push({
+                            ...filterDefinition,
+                            threshold,
+                        });
+                    }
                     // if the definition already exists, and it's a not a multiple, then modify the existing definition in filterList that matches the field
                     // TODO: would be faster if we maintain a normalized version of filterList against the filter ID, refactor towards this for performance
                 } else if (!filterDefinition.multiple) {
