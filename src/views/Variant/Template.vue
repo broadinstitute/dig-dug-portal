@@ -1,10 +1,7 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -12,10 +9,7 @@
                 <div class="row card-body">
                     <div class="col-md-9 gene-page-header-title">
                         Variant
-                        <tooltip-documentation
-                            name="variant.alleles.tooltip.hover"
-                            :isHover="true"
-                        ></tooltip-documentation>
+                        <tooltip-documentation name="variant.alleles.tooltip.hover" :isHover="true"></tooltip-documentation>
                         <a
                             class="edit-btn"
                             v-on:click="
@@ -24,16 +18,12 @@
                                     'variant_search_input'
                                 )
                             "
-                            >Set variant</a
-                        >
+                        >Set variant</a>
                     </div>
                     <div class="col-md-3 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-9 gene-page-header-body">
-                        <div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <div class="col-md-5">
                                 <input
                                     v-model="$store.state.newVariantId"
@@ -54,9 +44,7 @@
                                             $store.state.newVariantId
                                         )
                                     "
-                                >
-                                    GO
-                                </button>
+                                >GO</button>
                             </div>
                             <div class="col-md-6 search-example">
                                 <strong>Search format examples</strong>
@@ -76,9 +64,7 @@
                         <button
                             class="btn btn-primary explore-region-btn"
                             @click="$parent.exploreRegion()"
-                        >
-                            Explore region
-                        </button>
+                        >Explore region</button>
                     </div>
                 </div>
             </div>
@@ -142,19 +128,17 @@
                         ></transcript-consequence-table>
                     </div>
                     <div v-else-if="$store.state.variant">
-                        <h4 class="card-title">
-                            Most severe variant consequence
-                        </h4>
+                        <h4 class="card-title">Most severe variant consequence</h4>
                         {{
-                            $parent.consequenceFormatter(
-                                $store.state.variant.consequence
-                            )
+                        $parent.consequenceFormatter(
+                        $store.state.variant.consequence
+                        )
                         }}
                         &mdash;
                         {{
-                            $parent.consequenceMeaning(
-                                $store.state.variant.consequence
-                            )
+                        $parent.consequenceMeaning(
+                        $store.state.variant.consequence
+                        )
                         }}
                     </div>
                 </div>
@@ -210,6 +194,7 @@
                                 :sortBy="'pValue'"
                                 :significant="5e-8"
                                 :moderate="2.5e-6"
+                                :weak="0.05"
                                 :bulletBy="'beta'"
                                 :stdErr="'stdErr'"
                                 :labelBy="'phenotype'"
