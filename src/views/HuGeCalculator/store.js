@@ -17,16 +17,14 @@ export default new Vuex.Store({
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
-
         geneAssociations52k: bioIndex("gene-associations-52k"),
     },
     state: {
         geneName: keyParams.gene,
-        phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
+        phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
+        phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
         effectorGeneData: [],
-        // category: "Not in GWAS region",
-        // stage2Category: null,
-        priorVariance: 0.0462,
+        priorVariance: 0.3696,
     },
 
     mutations: {
@@ -44,16 +42,13 @@ export default new Vuex.Store({
         setEffectorGeneData(state, effectorGeneData) {
             state.effectorGeneData = effectorGeneData;
         },
-        // setStage2Category(state, stage2Category) {
-        //     state.stage2Category = stage2Category;
-        // },
+
         setPriorVariance(state, priorVariance) {
             state.priorVariance = priorVariance;
         }
     },
 
     getters: {
-
         region(state) {
             let data = state.gene.data;
 
@@ -69,19 +64,13 @@ export default new Vuex.Store({
         },
 
         canonicalSymbol(state) {
-            let dataa = state.genes.data;
-
-
-            for (let i in dataa) {
-                if (dataa[i].source === 'symbol') {
-                    return dataa[i].name;
+            let data = state.genes.data;
+            for (let i in data) {
+                if (data[i].source === 'symbol') {
+                    return data[i].name;
                 }
             }
         },
-
-        effectiveData(state) {
-
-        }
     },
 
     actions: {
@@ -111,7 +100,7 @@ export default new Vuex.Store({
                                 break;
                             }
                             else {
-                                effectorGeneData = { "perturbational": "3P", "category": "In GWAS but only one line of perturbation evidence" }
+                                effectorGeneData = { "perturbational": "3P", "category": "No", "message": "is in GWAS but only one line of perturbational evidence found" }
                             }
                         }
                         context.commit('setEffectorGeneData', effectorGeneData);
@@ -136,13 +125,17 @@ export default new Vuex.Store({
                 context.dispatch('getEffectorGeneData', name);
                 context.dispatch('associations/query', query);
                 context.dispatch('geneAssociations52k/query', { q: name });
+
             }
+        },
+
+        async query52kGeneAssociations(context, symbol) {
+            context.dispatch('geneAssociations52k/query', { q: symbol });
         },
 
         async queryGeneRegion(context, region) {
             let { chromosome, start, end } = region || context.getters.region;
             let q = `${chromosome}:${start}-${end}`;
-
             context.dispatch('genes/query', { q });
         },
     },

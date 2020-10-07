@@ -99,6 +99,12 @@
                         <li class="am-menu">
                             <a href>Tools</a>
                             <ul class="am-submenu">
+                                <!-- <li page="hugecalculator">
+                                    <a href="/hugecalculator.html">HuGe Calculator</a>
+                                </li>-->
+                                <li page="hugecalculator">
+                                    <a href="/hugecalculator.html?gene=SLC30A8">HuGe Calculator</a>
+                                </li>
                                 <li
                                     page="tools"
                                     v-if="
@@ -195,7 +201,7 @@ Vue.use(VueCookies);
 export default Vue.component("page-header", {
     props: ["diseaseGroup", "frontContents"],
     components: {
-        GoogleAnalytics,
+        GoogleAnalytics
     },
     mixins: [userMixin],
     data() {
@@ -218,7 +224,7 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
-        },
+        }
     },
 });
 </script>

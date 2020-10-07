@@ -142,7 +142,15 @@ let pages = {
         filename: "method.html",
         title: "Research method",
         chunks: ["chunk-vendors", "chunk-common", "eglmethod"]
-    }
+    },
+    hugecalculator: {
+        entry: "src/views/HuGeCalculator/main.js",
+        template: "public/index.html",
+        filename: "hugecalculator.html",
+        title: "HuGe Calculator",
+        chunks: ["chunk-vendors", "chunk-common", "hugecalculator"]
+    },
+
 };
 
 // remove the debug page in production

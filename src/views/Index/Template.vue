@@ -30,6 +30,7 @@
                                                 <autocomplete
                                                     :placeholder="'Gene symbol'"
                                                     :matches="$parent.matchingGenes"
+                                                    :match-key="null"
                                                     @input-change="$store.dispatch('lookupGenes', $event)"
                                                     @keyup-enter="$store.dispatch('exploreRegionOrVariant', $event)"
                                                     @item-select="$store.dispatch('onGeneChange', $event)"

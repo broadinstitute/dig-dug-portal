@@ -108,7 +108,10 @@ export class LZPhewasPanel {
                     id: phenotypeInfo.name,
                     log_pvalue: -Math.log10(a.pValue),
                     trait_group: phenotypeInfo.group,
-                    trait_label: phenotypeInfo.description
+                    trait_label: phenotypeInfo.description,
+                    pValue: a.pValue,
+                    phenotype: phenotypeInfo.name,
+                    beta: a.beta,
                 };
             });
             return phewas;
@@ -121,7 +124,19 @@ export class LZPhewasPanel {
         // If there's not a lot in here it's because we're not overriding defaults
         this.locusZoomPanelOptions = {
             // ...BASE_PANEL_OPTIONS,
-            id: this.panel_id,
+            data_layers: [
+                LocusZoom.Layouts.merge(
+                    {
+                        fields: [
+                            // we need to call out the fields directly since merge algorithm doesn't combine arrays
+                            `{{namespace[${this.datasource_type}]}}pValue`, // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${this.datasource_type}]}}phenotype`, // adding this piece of data irrelevant to the graphic will help us filter later
+                            ...LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }).fields,
+                        ].concat(this.index === 'phewas-associations' ? `{{namespace[${this.datasource_type}]}}beta` : []), // concat spreading an empty list means it adds no elements
+                    },
+                    LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }),
+                ),
+            ],
             axes: {
                 y1: {
                     label: '-log10(p)',

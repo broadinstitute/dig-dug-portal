@@ -1,8 +1,4 @@
 import Vue from "vue";
-import * as d3 from "d3";
-
-import sortUtils from "@/utils/sortUtils";
-
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -22,17 +18,15 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
-import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
-import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
-import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import FilterMulti from "@/components/Filter/FilterMulti.vue"
 
-import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
-import Formatters from "@/utils/formatters";
-import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -40,50 +34,31 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import VueCompositionAPI from '@vue/composition-api'
-import { toRefs } from '@vue/composition-api'
-
 Vue.config.productionTip = false;
-Vue.component("b-button", BButton);
+Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
-Vue.use(VueCompositionAPI);
-
 
 new Vue({
     store,
+    modules: {},
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
-        Documentation,
-        LunarisLink,
-
-        LocusZoom,
-        LocusZoomAssociationsPanel,
-        AssociationsTable,
-
-        PhenotypeSignalMixed,
-
-        CredibleSetSelectPicker,
-        AnnotationMethodSelectPicker,
-        PhenotypeSelectPicker,
-        Autocomplete,
-        GeneSelectPicker,
-
-        FilterWidget,
-        FilterWidgetControl,
+        FilterGroup,
+        FilterControl,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
 
-    },
-
-    created() {
-        // get the disease group and set of phenotypes available
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-        this.$store.dispatch("queryRegion");
+        AssociationsTable,
+        LocusZoom,
+        LocusZoomAssociationsPanel,
+        GeneSelectPicker,
+        PhenotypeSelectPicker,
+        AssociationsTable,
+        PosteriorProbabilityPlot,
+        ConfidenceIntervalPlot,
+        ForestPlot,
+        TooltipDocumentation
     },
 
     render(createElement) {
@@ -92,9 +67,21 @@ new Vue({
 
     data() {
         return {
-            associationsFilter: null,
-            annotationsFilter: null,
+            counter: 0,
+            showAssociations: false,
+            trait: "T2D"
         };
+    },
+
+    created() {
+        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        // get the disease group and set of phenotypes available
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+    },
+
+    render(createElement, context) {
+        return createElement(Template);
     },
 
     methods: {
@@ -104,46 +91,16 @@ new Vue({
         postAlertError,
         closeAlert,
 
-        requestCredibleSets(eventData) {
-            const { start, end } = eventData;
-            if (!!start && !!end) {
-                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
-                this.$store.dispatch('credibleSets/query', { q: queryString });
-            }
-        },
-
-        exploreExpanded() {
-            this.$store.commit('setLocus', {
-                chr: this.$store.state.chr,
-                start: this.$store.state.start - 50000,
-                end: this.$store.state.end + 50000,
-            });
-            this.$store.dispatch('queryRegion');
-        },
 
         updateAssociationsTable(data) {
+
             this.$store.commit(`associations/setResponse`, data);
         },
 
-        addAssociationsPanelComponent(phenotype) {
-            this.$children[0].$refs.locuszoom.addLZComponent(LocusZoomAssociationsPanel, {
-                phenotype: this.$store.state.phenotype.name
-            });
-        },
 
-        addCredibleVariantsPanel(event) {
-            const { phenotype, credibleSetId } = event;
-            if (credibleSetId !== 'computed') {
-                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId);
-            } else if (credibleSetId === 'computed') {
-                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
-                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(this.$store.state.phenotype.name);
-            }
-        },
-        addAnnotationIntervalsPanel(event) {
-            const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method, this.tissueScoring);
-        },
+
+    },
+    mounted() {
 
     },
 
@@ -160,164 +117,135 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
-        documentationMap() {
-            return {
-                phenotype:
-                    this.$store.state.phenotype &&
-                    this.$store.state.phenotype.description
-            };
+        region() {
+            return this.$store.getters.region;
         },
 
-        genes() {
-            return this.$store.state.genes.data.filter(function (gene) {
-                return gene.source == "symbol";
-            });
+        symbolName() {
+            return this.$store.getters.canonicalSymbol;
+        },
+
+        gene() {
+            let data = this.$store.state.gene;
+            if (data.length > 0) {
+                return data[0];
+            }
+            return {};
         },
 
         phenotypes() {
             return [this.$store.state.phenotype];
         },
 
-        credibleSets() {
-            return this.$store.state.credibleSets.data;
+
+        commonVariationCategory() {
+            let data = $store.state.effectorGeneData
         },
 
-        regionString() {
-            let chr = this.$store.state.chr;
-            let start = Formatters.intFormatter(this.$store.state.start);
-            let end = Formatters.intFormatter(this.$store.state.end);
-            return Formatters.locusFormatter(chr, start, end);
-        },
-
-        // Give the top associations, find the best one across all unique
-        // phenotypes available.
-        topAssociations() {
-            let data = this.$store.state.topAssociations.data;
-            let assocMap = {};
-
-            for (let i in data) {
-                const assoc = data[i];
-
-                // skip associations not part of the disease group
-                if (
-                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
-                ) {
-                    continue;
-                }
-
-                const curAssoc = assocMap[assoc.phenotype];
-                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
-                    assocMap[assoc.phenotype] = assoc;
-                }
+        associationsData() {
+            if (!!this.$store.state.associations.data) {
+                let data = this.$store.state.associations.data;
+                let filteredData = [];
+                data.forEach(function (row) {
+                    if (!!row.consequence) {
+                        if (row.consequence == "missense_variant") {
+                            filteredData.push(row);
+                        }
+                    }
+                })
+                return filteredData;
             }
-            // region loaded, hide search
-            uiUtils.hideElement("regionSearchHolder");
-            // convert to an array, sorted by p-value
-            return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+        },
+        //stage 1 - Significant association? (common Variation)
+        //this makes sure the gene is in GWAS region or not
+        isSignificantAssociationCommonVariation() {
+            if (!!this.$store.state.associations.data) {
+                let data = this.$store.state.associations.data;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].pValue <= 5e-8) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
         },
 
-        globalEnrichmentAnnotations() {
-            // an array of annotations
-            return sortUtils.uniqBy(this.$store.state.globalEnrichment.data, el =>
-                JSON.stringify(
-                    [el.annotation, !!el.method ? el.method : ""].join()
-                )
-            );
-        },
-
-        // TODO: eliminate using colorUtils
-        tissues() {
-            // an array of tissue
-            return this.$store.state.globalEnrichment.data
-                    .filter(interval => !!interval.tissue)
-                    .map(interval => interval.tissue)
-                    // unique
-                    .filter(function (value, index, self) {
-                        return self.indexOf(value) === index;
-                    });
-        },
-        tissueColorScheme() {
-            return d3
-                .scaleOrdinal()
-                .domain(this.tissues)
-                .range(d3.schemeSet1);
-        },
-
-        tissueScoring() {
-            let groups = {};
-
-            for (let i in this.$store.state.globalEnrichment.data) {
-                let r = this.$store.state.globalEnrichment.data[i];
-                let t = r.tissueId || "NA";
-                let m = r.method || "NA";
-
-                let key = `${t}_${m}_${r.annotation}`;
-                let group = groups[key];
-                let fold = r.SNPs / r.expectedSNPs;
-
-                if (!group) {
-                    groups[key] = {
-                        minP: r.pValue,
-                        maxFold: fold
-                    };
-                } else {
-                    group.minP = Math.min(group.minP, r.pValue);
-                    group.maxFold = Math.max(group.maxFold, fold);
+        geneAssociations52k() {
+            if (!!this.$store.state.geneAssociations52k) {
+                if (!!this.$store.state.geneAssociations52k.data.length) {
+                    let data = this.$store.state.geneAssociations52k.data;
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].phenotype == this.trait) {
+                            return data[i];
+                        }
+                    }
                 }
             }
 
-            return groups;
+
+
         },
 
-        associationConsequences() {
-            return this.$store.state.associations.data.map((v) => v.consequence);
-        },
-        associationNearestGenes() {
-            return this.$store.state.associations.data.flatMap((assoc) => assoc.nearest)
+        geneAssociationsLoftee() {
+            if (!!this.$store.state.geneAssociations52k.data.length) {
+                let data = this.$store.state.geneAssociations52k.data;
+                let lofteeData = [];
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == this.trait) {
+                        data[i].masks.forEach(r => {
+                            if (r.mask == "LofTee") {
+                                lofteeData.push(r)
+                            }
+                        })
+                    }
+                }
+                return lofteeData;
+            }
         },
 
+
+        isSignificant52kAssociationRareVariation() {
+            if (!!this.$store.state.geneAssociations52k.data.length) {
+                let data = this.$store.state.geneAssociations52k.data;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == this.trait) {
+                        if (data[i].pValue <= 2.5e-6) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        },
+        //when the gene has significant association  (if exome wide significant)
+        //(Rare Variation), that means there is Strong coding evidence
+        //show the following instead of stage 2 plot
+        stage2Category() {
+            return { "category": "CAUSAL", "Evidence": "Strong Coding Evidence", "genetic": "1C" }
+        },
+        documentationMap() {
+            let gene = this.$store.state.geneName;
+            let phenotype = this.$store.state.phenotype.description;
+
+            return {
+                gene: gene,
+                phenotype: phenotype
+            }
+        },
     },
+
+
     watch: {
-
-        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            let param = this.$store.state.phenotypeParam;
-
-            // if there's a phenotypeParam, then pick that phenotype
-            if (param) {
-                let phenotype = phenotypeMap[param];
-
-                if (phenotype) {
-                    this.$store.commit("setSelectedPhenotype", phenotype);
-                }
-            }
-        },
-
-        "$store.state.phenotype": function (phenotype) {
-            // I don't like mixing UI effects with databinding - Ken
-            uiUtils.hideElement("phenotypeSearchHolder");
-
-            if (phenotype) {
-                this.$store.dispatch("globalEnrichment/query", {
-                    q: phenotype.name
-                });
-                this.$store.dispatch("credibleSets/query", {
-                    q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-                });
-            }
-        },
-
-        topAssociations(top) {
-            if (!this.selectedPhenotype && top.length > 0) {
-                let topAssoc = top[0];
-                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
-                    topAssoc.phenotype
-                ];
-                this.$store.commit("setSelectedPhenotype", topPhenotype);
-            }
-        },
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        }
+        },
+
+        // the region for the gene was found
+        region(region) {
+            this.hideElement("variantSearchHolder");
+            this.$store.dispatch("queryGeneRegion", region);
+        },
+
     }
 }).$mount("#app");

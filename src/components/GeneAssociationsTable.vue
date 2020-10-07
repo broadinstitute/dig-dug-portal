@@ -11,15 +11,24 @@
             :current-page="currentPage"
         >
             <template v-slot:cell(phenotype)="r">
-                <a
-                    :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
-                    v-if="phenotypeMap"
-                    >{{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}</a
-                >&nbsp;<a
-                    :href="`/region.html?phenotype=${r.item.phenotype}&chr=${gene.chromosome}&start=${gene.start}&end=${gene.end}`"
-                    v-if="phenotypeMap"
-                    >&#x1F50E;</a
-                >
+                <a href="javascript:;" class="phenotype-gene-association">
+                    {{ phenotypeFormatter(phenotypeMap[r.item.phenotype]) }}
+                    <div class="options-4-actions">
+                        <div>
+                            <a
+                                :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
+                                v-if="phenotypeMap"
+                            >Open phenotype page</a>
+                        </div>
+                        <div>
+                            <a
+                                :href="`/region.html?phenotype=${r.item.phenotype}&chr=${gene.chromosome}&start=${gene.start}&end=${gene.end}`"
+                                v-if="phenotypeMap"
+                            >Open region page with selected phenotype</a>
+                        </div>
+                    </div>
+                </a>
+                &nbsp;
             </template>
         </b-table>
         <b-pagination

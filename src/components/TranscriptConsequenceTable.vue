@@ -5,7 +5,7 @@
                 hover
                 small
                 responsive="sm"
-                :items="sortedTranscriptConsequences"
+                :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -39,7 +39,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
 export default Vue.component("transcript-consequence-table", {
-    props: ["transcriptConsequences"],
+    props: ["transcriptConsequences", "filter"],
     data() {
         return {
             fields: [
@@ -81,7 +81,7 @@ export default Vue.component("transcript-consequence-table", {
 
     computed: {
         rows() {
-            return this.transcriptConsequences.length;
+            return this.tableData.length;
         },
         sortedTranscriptConsequences() {
             let picked = this.transcriptConsequences.filter((a) => a.pick == 1);
@@ -96,6 +96,15 @@ export default Vue.component("transcript-consequence-table", {
                         ...cqs,
                     };
                 });
+        },
+        tableData() {
+            let dataRows = this.sortedTranscriptConsequences;
+            if (!!this.filter) {
+                dataRows = this.sortedTranscriptConsequences.filter(association => {
+                    return this.filter(association);
+                });
+            }
+            return dataRows;
         },
     },
     methods: {

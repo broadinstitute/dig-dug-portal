@@ -176,6 +176,7 @@
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h4>
+
                     <documentation
                         name="variant.phewas.subheader"
                         :content-fill="$parent.documentationMap"
@@ -183,6 +184,43 @@
                     <unauthorized-message
                         :restricted="$store.state.phewas.restricted"
                     ></unauthorized-message>
+
+                    <filter-group
+                        v-model="$parent.phewasFilter"
+                        :looseMatch="true"
+                    >
+                        <filter-enumeration-control
+                            :field="'phenotype'"
+                            :options="
+                                $store.state.phewas.data.map(
+                                    (phewas) => phewas.phenotype
+                                )
+                            "
+                            :labelFormatter="
+                                (phenotype) =>
+                                    !!$store.state.bioPortal.phenotypeMap[
+                                        phenotype
+                                    ]
+                                        ? $store.state.bioPortal.phenotypeMap[
+                                              phenotype
+                                          ].description
+                                        : phenotype
+                            "
+                            :multiple="true"
+                        >
+                            <div class="label">Phenotypes</div>
+                        </filter-enumeration-control>
+
+                        <filter-pvalue-control :field="'pValue'" :inclusive="true">
+                            <div class="label">P-Value (&le;)</div>
+                        </filter-pvalue-control>
+
+                        <filter-effect-direction-control :field="'beta'" :inclusive="true">
+                            <div class="label">Effect (+/-)</div>
+                        </filter-effect-direction-control>
+                    </filter-group>
+
+                    <!--<h4 class="card-title">Visualization</h4>-->
                     <b-tabs content-class="mt-3" align="center">
                         <b-tab title="LocusZoom" active>
                             <locuszoom
@@ -190,6 +228,7 @@
                                 :chr="$store.state.chr"
                                 :start="$store.state.start"
                                 :end="$store.state.end"
+                                :filter="$parent.phewasFilter"
                                 :refSeq="false"
                             >
                                 <lz-phewas-panel
@@ -210,10 +249,12 @@
                                 :sortBy="'pValue'"
                                 :significant="5e-8"
                                 :moderate="2.5e-6"
+                                :weak="0.05"
                                 :bulletBy="'beta'"
                                 :stdErr="'stdErr'"
                                 :labelBy="'phenotype'"
                                 :countDichotomous="0"
+                                :filter="$parent.phewasFilter"
                             ></forest-plot-html>
                         </b-tab>
                     </b-tabs>
@@ -223,12 +264,14 @@
                             $store.state.datasetAssociations.restricted
                         "
                     ></unauthorized-message>
+
                     <phewas-datasets
                         v-if="$store.state.phewas.data"
                         :associations="$store.state.phewas.data"
                         :datasets="$store.state.datasetAssociations.data"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :datasetMap="$store.state.bioPortal.datasetMap"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :filter="$parent.phewasFilter"
                     ></phewas-datasets>
                 </div>
             </div>
@@ -266,6 +309,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
@@ -284,7 +328,45 @@
                     <unauthorized-message
                         :restricted="$store.state.regions.restricted"
                     ></unauthorized-message>
-                    <regions-table :regions="$parent.regions"></regions-table>
+
+                    <filter-group
+                        v-model="$parent.regionFilter"
+                        :looseMatch="true"
+                    >
+                        <filter-enumeration-control
+                            :field="'annotation'"
+                            :options="
+                                $parent.regions.map(
+                                    (region) => region.annotation
+                                )
+                            "
+                        >
+                            <div class="label">Annotations</div>
+                        </filter-enumeration-control>
+
+                        <filter-enumeration-control
+                            :field="'method'"
+                            :options="
+                                $parent.regions.map((region) => region.method)
+                            "
+                        >
+                            <div class="label">Methods</div>
+                        </filter-enumeration-control>
+
+                        <filter-enumeration-control
+                            :field="'tissue'"
+                            :options="
+                                $parent.regions.map((region) => region.tissue)
+                            "
+                        >
+                            <div class="label">Tissues</div>
+                        </filter-enumeration-control>
+                    </filter-group>
+
+                    <regions-table
+                        :regions="$parent.regions"
+                        :filter="$parent.regionFilter"
+                    ></regions-table>
                 </div>
             </div>
         </div>

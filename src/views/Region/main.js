@@ -20,12 +20,12 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-import FilterWidget from "@/components/FilterWidget/FilterWidget.vue"
-import FilterWidgetControl from "@/components/FilterWidget/FilterWidgetControl.vue"
-import FilterPValue from "@/components/FilterWidget/FilterPValue.vue"
-import FilterEffectDirection from "@/components/FilterWidget/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/FilterWidget/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/FilterWidget/FilterGreaterThan.vue"
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -63,13 +63,12 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
 
-        FilterWidget,
-        FilterWidgetControl,
+        FilterGroup,
+        FilterControl,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
-        FilterGreaterThan,
-
+        FilterGreaterThan
     },
 
     created() {
@@ -86,7 +85,7 @@ new Vue({
     data() {
         return {
             associationsFilter: null,
-            annotationsFilter: null,
+            annotationsFilter: null
         };
     },
 
@@ -100,18 +99,19 @@ new Vue({
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
-                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
-                this.$store.dispatch('credibleSets/query', { q: queryString });
+                const queryString = `${this.$store.state.phenotype.name},${this.$store.state.chr
+                    }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                this.$store.dispatch("credibleSets/query", { q: queryString });
             }
         },
 
         exploreExpanded() {
-            this.$store.commit('setLocus', {
+            this.$store.commit("setLocus", {
                 chr: this.$store.state.chr,
                 start: this.$store.state.start - 50000,
-                end: this.$store.state.end + 50000,
+                end: this.$store.state.end + 50000
             });
-            this.$store.dispatch('queryRegion');
+            this.$store.dispatch("queryRegion");
         },
 
         // TODO: refactor this away in favor of v-model
@@ -131,18 +131,26 @@ new Vue({
         },
         addCredibleVariantsPanel(event) {
             const { phenotype, credibleSetId } = event;
-            if (credibleSetId !== 'computed') {
-                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(phenotype, credibleSetId);
-            } else if (credibleSetId === 'computed') {
+            if (credibleSetId !== "computed") {
+                this.$children[0].$refs.locuszoom.addCredibleVariantsPanel(
+                    phenotype,
+                    credibleSetId
+                );
+            } else if (credibleSetId === "computed") {
                 // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
-                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(this.$store.state.phenotype.name);
+                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
+                    this.$store.state.phenotype.name
+                );
             }
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(annotation, method, this.tissueScoring);
-        },
-
+            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
+                annotation,
+                method,
+                this.tissueScoring
+            );
+        }
     },
 
     computed: {
@@ -216,23 +224,27 @@ new Vue({
 
         globalEnrichmentAnnotations() {
             // an array of annotations
-            return sortUtils.uniqBy(this.$store.state.globalEnrichment.data, el =>
-                JSON.stringify(
-                    [el.annotation, !!el.method ? el.method : ""].join()
-                )
+            return sortUtils.uniqBy(
+                this.$store.state.globalEnrichment.data,
+                el =>
+                    JSON.stringify(
+                        [el.annotation, !!el.method ? el.method : ""].join()
+                    )
             );
         },
 
         // TODO: eliminate using colorUtils
         tissues() {
             // an array of tissue
-            return this.$store.state.globalEnrichment.data
+            return (
+                this.$store.state.globalEnrichment.data
                     .filter(interval => !!interval.tissue)
                     .map(interval => interval.tissue)
                     // unique
                     .filter(function (value, index, self) {
                         return self.indexOf(value) === index;
-                    });
+                    })
+            );
         },
         tissueColorScheme() {
             return d3
@@ -267,15 +279,15 @@ new Vue({
             return groups;
         },
         associationConsequences() {
-            return this.$store.state.associations.data.map((v) => v.consequence);
+            return this.$store.state.associations.data.map(v => v.consequence);
         },
         associationNearestGenes() {
-            return this.$store.state.associations.data.flatMap((assoc) => assoc.nearest)
-        },
-
+            return this.$store.state.associations.data.flatMap(
+                assoc => assoc.nearest
+            );
+        }
     },
     watch: {
-
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
@@ -304,7 +316,8 @@ new Vue({
         },
 
         topAssociations(top) {
-            if (!this.selectedPhenotype && top.length > 0) {
+            // If no phenotype is selected, pick the top phenotype from assocations
+            if (!this.$store.state.phenotype && top.length > 0) {
                 let topAssoc = top[0];
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                     topAssoc.phenotype

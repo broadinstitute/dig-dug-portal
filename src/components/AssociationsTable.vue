@@ -5,7 +5,7 @@
                 hover
                 small
                 responsive="sm"
-                :items="tableData"
+                :items="groupedAssociations"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -19,50 +19,83 @@
                         v-for="(phenotype, i) in phenotypes"
                         colspan="2"
                         class="reference"
-                        :class="'color-' + (i+1)"
+                        :class="'color-' + (i + 1)"
                     >
-                        <span style="color:white">{{phenotype.description}}</span>
+                        <span style="color: white">{{
+                            phenotype.description
+                        }}</span>
                     </b-th>
                 </template>
                 <template v-slot:cell(position)="r">
                     <a
-                        :href="`/region.html?phenotype=${phenotypes[0].name}&chr=${r.item.chromosome}&start=${r.item.position-50000}&end=${r.item.position+50000}`"
-                    >{{locusFormatter(r.item)}}</a>
+                        :href="`/region.html?phenotype=${
+                            phenotypes[0].name
+                        }&chr=${r.item.chromosome}&start=${
+                            r.item.position - 50000
+                        }&end=${r.item.position + 50000}`"
+                        >{{ locusFormatter(r.item) }}</a
+                    >
                 </template>
                 <template v-slot:cell(allele)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{alleleFormatter(r.item)}}</a>
+                    <a :href="`/variant.html?variant=${r.item.varId}`">{{
+                        alleleFormatter(r.item)
+                    }}</a>
                 </template>
                 <template v-slot:cell(dbSNP)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{dbSNPFormatter(r.item)}}</a>
+                    <a :href="`/variant.html?variant=${r.item.varId}`">{{
+                        dbSNPFormatter(r.item)
+                    }}</a>
                 </template>
-                <template v-slot:cell(consequence)="r">{{consequenceFormatter(r.item.consequence)}}</template>
+                <template v-slot:cell(consequence)="r">{{
+                    consequenceFormatter(r.item.consequence)
+                }}</template>
                 <template v-slot:cell(genes)="r">
                     <a
                         v-for="gene in r.item.nearest"
                         class="item"
                         :href="`/gene.html?gene=${gene}`"
-                    >{{gene}}</a>
+                        >{{ gene }}</a
+                    >
                 </template>
-                <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
+                <template
+                    v-slot:[phenotypeBetaColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >
                     <span
-                        :class="`effect ${r.item[`${p.name}:beta`] < 0 ? 'negative' : 'positive'}`"
-                    >{{r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"}}</span>
-                    <span>{{effectFormatter(p.dichotomous ? Math.exp(r.item[`${p.name}:beta`]) : r.item[`${p.name}:beta`])}}</span>
+                        :class="`effect ${
+                            r.item[`${p.name}:beta`] < 0
+                                ? 'negative'
+                                : 'positive'
+                        }`"
+                        >{{
+                            r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
+                        }}</span
+                    >
+                    <span>{{
+                        effectFormatter(
+                            p.dichotomous
+                                ? Math.exp(r.item[`${p.name}:beta`])
+                                : r.item[`${p.name}:beta`]
+                        )
+                    }}</span>
                 </template>
                 <template
                     v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
-                >{{pValueFormatter(r.item[`${p.name}:pValue`])}}</template>
+                    >{{ pValueFormatter(r.item[`${p.name}:pValue`]) }}</template
+                >
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
                 v-model="currentPage"
-                :total-rows="tableData.length"
+                :total-rows="groupedAssociations.length"
                 :per-page="perPage"
             ></b-pagination>
         </div>
         <div v-else>
-            <h4 v-if="associations.length > 0">No overlapping associations across phenotypes</h4>
+            <h4 v-if="associations.length > 0">
+                No overlapping associations across phenotypes
+            </h4>
             <h4 v-else>No associations</h4>
         </div>
     </div>
@@ -148,9 +181,10 @@ export default Vue.component("associations-table", {
         groupedAssociations() {
             let data = [];
             let groups = {};
+            let associations = this.tableData;
 
-            for (let i in this.associations) {
-                let r = this.associations[i];
+            for (let i in associations) {
+                let r = associations[i];
                 let dataIndex = groups[r.varId];
 
                 if (!dataIndex) {
@@ -204,23 +238,15 @@ export default Vue.component("associations-table", {
             return data;
         },
         tableData() {
-            let dataRows = this.groupedAssociations;
+            let dataRows = this.associations;
             if (!!this.filter) {
-                dataRows = this.groupedAssociations.filter(association => {
-                    // decode the namespace of the association to allow the filter function (which shouldn't know about component-specific namespaces) to access all of the association's properties
-                    const regularAssociation = decodeNamespace(association, { prefix: `${association.phenotype}:` });
-                    // now, apply the filter function to the decoded object
-                    // NOTE: the decoded object corresponds directly and uniquely to the original object, so any predicate applying to the deocded version should apply to the original
-                    // This means that we don't have to reproject the regularAssociation into the original's namespace before returning the tableData
-                    return this.filter(regularAssociation);
-                });
+                dataRows = this.associations.filter(this.filter);
             }
             return dataRows;
         },
     },
 
     methods: {
-
         phenotypeBetaColumn(phenotype) {
             return `cell(${phenotype.name}:beta)`;
         },
