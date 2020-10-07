@@ -47,7 +47,6 @@ export default Vue.component("lz-annotation-intervals-panel", {
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
             const finishHandler = !!!this.finishHandler ? result => this.$emit('input', result) : this.finishHandler;
             this.panelId = this.$parent.addAnnotationIntervalsPanel(
-                // TODO
                 this.annotation,
                 this.method,
                 this.scoring,
@@ -76,12 +75,6 @@ export default Vue.component("lz-annotation-intervals-panel", {
             this.updatePanel();
         },
         method() {
-            if (!!this.id) {
-                this.$parent.plot.removePanel(this.id);
-            }
-            this.updatePanel();
-        },
-        scoring() {
             if (!!this.id) {
                 this.$parent.plot.removePanel(this.id);
             }
