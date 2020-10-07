@@ -125,6 +125,8 @@
                             ></tooltip-documentation>
                         </h4>
                         <gene-finder-table
+                            :phenotypes="[$store.state.phenotype.name]"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :associations="$store.state.genes.data"
                             :per-page="10"
                         ></gene-finder-table>
