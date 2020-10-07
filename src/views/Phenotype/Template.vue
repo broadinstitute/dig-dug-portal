@@ -181,6 +181,8 @@
                         </filter-group>
 
                         <gene-finder-table
+                            :phenotypes="[$store.state.phenotype.name]"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :associations="$store.state.genes.data"
                             :per-page="10"
                             :filter="$parent.geneFinderFilter"
