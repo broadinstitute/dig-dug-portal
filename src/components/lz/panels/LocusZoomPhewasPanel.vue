@@ -121,6 +121,12 @@ export class LZPhewasPanel {
         // If there's not a lot in here it's because we're not overriding defaults
         this.locusZoomPanelOptions = {
             // ...BASE_PANEL_OPTIONS,
+            id: this.panel_id,
+            axes: {
+                y1: {
+                    label: '-log10(p)',
+                }
+            },
         };
 
         this.bioIndexToLZReader = new LZBioIndexSource({

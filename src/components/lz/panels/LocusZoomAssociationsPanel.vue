@@ -111,7 +111,8 @@ export class LZAssociationsPanel {
             y_index: 0,
             axes: {
                 y1: {
-                    label: 'log_pvalue'
+                    label: '-log10(p)',
+                    ticks: [1, 10, 100, 1000, 10000],
                 }
             },
             data_layers: [
