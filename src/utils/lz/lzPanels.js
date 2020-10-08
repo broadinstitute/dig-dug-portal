@@ -23,6 +23,25 @@ const BASE_PANEL_OPTIONS = {
     // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
     min_height: 240,
 }
+
+function makePanel(that) {
+    return {
+        id: that.panel_id,
+        panelLayoutType: that.panel_layout_type,
+        takingDataSourceName: that.datasource_namespace_symbol_for_panel,
+        forDataSourceType: that.datasource_type,
+        locusZoomPanelOptions: that.locusZoomPanelOptions,
+    }
+}
+
+function makeSource(that) {
+    return {
+        isDataSourceType: that.datasource_type,
+        givingDataSourceName: that.datasource_namespace_symbol_for_panel,
+        withDataSourceReader: that.bioIndexToLZReader,
+    }
+}
+
 export class LZAssociationsPanel {
     constructor(phenotype, { finishHandler, resolveHandler, errHandler }, initialData) {
 
@@ -61,7 +80,8 @@ export class LZAssociationsPanel {
             y_index: 0,
             axes: {
                 y1: {
-                    label: 'log_pvalue'
+                    label: '-log10(p)',
+                    ticks: [1, 10, 100, 1000, 10000],
                 }
             },
             data_layers: [
@@ -71,9 +91,7 @@ export class LZAssociationsPanel {
                         y_axis: {
                             axis: 1,
                             field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
-                            // floor: 0,
                             upper_buffer: 0.10,
-                            // min_extent: [0, 10],
                         },
                         fields: [
                             `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
@@ -111,21 +129,11 @@ export class LZAssociationsPanel {
     }
 
     get panel() {
-        return {
-            id: this.panel_id,
-            panelLayoutType: this.panel_layout_type,
-            takingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            forDataSourceType: this.datasource_type,
-            locusZoomPanelOptions: this.locusZoomPanelOptions,
-        }
+        return makePanel(this);
     }
 
     get source() {
-        return {
-            isDataSourceType: this.datasource_type,
-            givingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            withDataSourceReader: this.bioIndexToLZReader,
-        }
+        return makeSource(this);
     }
 
 }
@@ -216,21 +224,11 @@ export class LZAnnotationIntervalsPanel {
     }
 
     get panel() {
-        return {
-            id: this.panel_id,
-            panelLayoutType: this.panel_layout_type,
-            takingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            forDataSourceType: this.datasource_type,
-            locusZoomPanelOptions: this.locusZoomPanelOptions,
-        }
+        return makePanel(this);
     }
 
     get source() {
-        return {
-            isDataSourceType: this.datasource_type,
-            givingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            withDataSourceReader: this.bioIndexToLZReader,
-        }
+        return makeSource(this);
     }
 
 }
@@ -341,21 +339,11 @@ export class LZCredibleVariantsPanel {
     }
 
     get panel() {
-        return {
-            id: this.panel_id,
-            panelLayoutType: this.panel_layout_type,
-            takingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            forDataSourceType: this.datasource_type,
-            locusZoomPanelOptions: this.locusZoomPanelOptions,
-        }
+        return makePanel(this);
     }
 
     get source() {
-        return {
-            isDataSourceType: this.datasource_type,
-            givingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            withDataSourceReader: this.bioIndexToLZReader,
-        }
+        return makeSource(this);
     }
 }
 
@@ -398,7 +386,7 @@ export class LZComputedCredibleVariantsPanel {
             ...BASE_PANEL_OPTIONS,
             title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' }, x: -0.5 },
             y_index: 1,
-            margin: { bottom: 28  },
+            margin: { bottom: 28 },
             axes: {
                 x: {
                     label: 'Chromosome {{chr}} (Mb)',
@@ -457,21 +445,11 @@ export class LZComputedCredibleVariantsPanel {
     }
 
     get panel() {
-        return {
-            id: this.panel_id,
-            panelLayoutType: this.panel_layout_type,
-            takingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            forDataSourceType: this.datasource_type,
-            locusZoomPanelOptions: this.locusZoomPanelOptions,
-        }
+        return makePanel(this);
     }
 
     get source() {
-        return {
-            isDataSourceType: this.datasource_type,
-            givingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            withDataSourceReader: this.bioIndexToLZReader,
-        }
+        return makeSource(this);
     }
 }
 
@@ -498,9 +476,12 @@ export class LZPhewasPanel {
                 const phenotypeInfo = phenotypeMap[a.phenotype];
                 return {
                     id: phenotypeInfo.name,
+                    pValue: a.pValue,
                     log_pvalue: -Math.log10(a.pValue),
                     trait_group: phenotypeInfo.group,
-                    trait_label: phenotypeInfo.description
+                    trait_label: phenotypeInfo.description,
+                    phenotype: phenotypeInfo.name,
+                    beta: a.beta,
                 };
             });
             return phewas;
@@ -513,6 +494,24 @@ export class LZPhewasPanel {
         // If there's not a lot in here it's because we're not overriding defaults
         this.locusZoomPanelOptions = {
             // ...BASE_PANEL_OPTIONS,
+            data_layers: [
+                LocusZoom.Layouts.merge(
+                    {
+                        fields: [
+                            // we need to call out the fields directly since merge algorithm doesn't combine arrays
+                            `{{namespace[${this.datasource_type}]}}pValue`, // adding this piece of data irrelevant to the graphic will help us filter later
+                            `{{namespace[${this.datasource_type}]}}phenotype`, // adding this piece of data irrelevant to the graphic will help us filter later
+                            ...LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }).fields,
+                        ].concat(this.index === 'phewas-associations' ? `{{namespace[${this.datasource_type}]}}beta` : []), // concat spreading an empty list means it adds no elements
+                    },
+                    LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }),
+                ),
+            ],
+            axes: {
+                y1: {
+                    label: '-log10(p)',
+                }
+            },
         };
         this.handlers = { finishHandler, resolveHandler, errHandler };
 
@@ -531,25 +530,15 @@ export class LZPhewasPanel {
     }
 
     get panel() {
-        return {
-            id: this.panel_id,
-            panelLayoutType: this.panel_layout_type,
-            takingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            forDataSourceType: this.datasource_type,
-            locusZoomPanelOptions: this.locusZoomPanelOptions,
-        }
+        return makePanel(this);
     }
 
     get source() {
-        return {
-            isDataSourceType: this.datasource_type,
-            givingDataSourceName: this.datasource_namespace_symbol_for_panel,
-            withDataSourceReader: this.bioIndexToLZReader,
-        }
+        return makeSource(this);
     }
 }
 
-export class _LZBioIndexSource extends BaseAdapter {
+class _LZBioIndexSource extends BaseAdapter {
     constructor(params) {
         super(params)
     }

@@ -197,9 +197,8 @@
                             name="region.variantassociation.subheader"
                         ></documentation>
 
-                        <b-container fluid class="filtering-ui-wrapper">
-                            <b-row class="filtering-ui-content">
-                                <filter-widget
+
+                                <filter-group
                                     v-model="$parent.associationsFilter"
                                     :looseMatch="true"
                                 >
@@ -230,9 +229,8 @@
                                     >
                                         <div class="label">Effect (+/-)</div>
                                     </filter-effect-direction-control>
-                                </filter-widget>
-                            </b-row>
-                        </b-container>
+                                </filter-group>
+
 
                         <associations-table
                             v-if="$store.state.associations.data.length > 0"
@@ -252,76 +250,65 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <div class="filtering-ui-wrapper">
-                            <div class="row filtering-ui-content">
-                                <div class="col filter-col-lg">
-                                    <div
-                                        class="label"
-                                        style="margin-bottom: 5px"
-                                    >
-                                        Add annotation method track
-                                    </div>
-                                    <annotation-method-selectpicker
-                                        :annotations="
-                                            $parent.globalEnrichmentAnnotations
-                                        "
-                                        :clearOnSelected="true"
-                                        @annotation="
-                                            $parent.addAnnotationIntervalsPanel(
-                                                $event
-                                            )
-                                        "
-                                    />
+                        <filter-group
+                            v-model="$parent.annotationsFilter"
+                            :looseMatch="true"
+                        >
+                            <div class="col filter-col-lg">
+                                <div
+                                    class="label"
+                                    style="margin-bottom: 5px"
+                                >
+                                    Add annotation method track
                                 </div>
+                                <annotation-method-selectpicker
+                                    :annotations="
+                                        $parent.globalEnrichmentAnnotations
+                                    "
+                                    :clearOnSelected="true"
+                                    @annotation="
+                                        $parent.addAnnotationIntervalsPanel(
+                                            $event
+                                        )
+                                    "
+                                />
+                            </div>
 
-                                <!-- <div class="col divider">&nbsp;</div> -->
-                                <div class="col filter-col-lg">
-                                    <div
-                                        class="label"
-                                        style="margin-bottom: 5px"
-                                    >
-                                        Add credible sets track
-                                    </div>
-                                    <credible-sets-selectpicker
-                                        :credibleSets="$parent.credibleSets"
-                                        :clearOnSelected="true"
-                                        @credibleset="
-                                            $parent.addCredibleVariantsPanel(
-                                                $event
-                                            )
-                                        "
-                                    />
+                            <div class="col filter-col-lg">
+                                <div
+                                    class="label"
+                                    style="margin-bottom: 5px"
+                                >
+                                    Add credible sets track
                                 </div>
+                                <credible-sets-selectpicker
+                                    :credibleSets="$parent.credibleSets"
+                                    :clearOnSelected="true"
+                                    @credibleset="
+                                        $parent.addCredibleVariantsPanel(
+                                            $event
+                                        )
+                                    "
+                                />
+                            </div>
 
-                                <div class="col divider">&nbsp;</div>
+                            <div class="col divider">&nbsp;</div>
 
-                                <div class="col" style="vertical-align: top">
-                                    <filter-widget
-                                        v-model="$parent.annotationsFilter"
-                                        :looseMatch="true"
-                                    >
-                                        <template #header>
-                                            <div class="label">
-                                                Filter annotation tracks
-                                            </div>
-                                        </template>
+                            <span style="display: inline-block;">
+                                <div class="label">Filter annotation track</div>
+                                <filter-pvalue-control :field="'pValue'">
+                                    <span class="label">
+                                        P-Value (&le;)
+                                    </span>
+                                </filter-pvalue-control>
+                                <filter-greater-control :field="'fold'">
+                                    <span class="label">
+                                        Fold (&ge;)
+                                    </span>
+                                </filter-greater-control>
+                            </span>
 
-                                        <!-- 'span' leaves the label inline -->
-                                        <filter-pvalue-control
-                                            :field="'pValue'"
-                                        >
-                                            <span class="label">
-                                                P-Value (&le;)
-                                            </span>
-                                        </filter-pvalue-control>
-
-                                        <filter-greater-control :field="'fold'">
-                                            <span class="label">
-                                                Fold (&ge;)
-                                            </span>
-                                        </filter-greater-control>
-                                    </filter-widget>
-                                </div>
+                        </filter-group>
 
                                 <!-- <div class="col filter-col-lg" style="vertical-align: top;">
                                     <div class="label">View region in Variant Prioritizer</div>
@@ -332,8 +319,7 @@
                                         target="_blank"
                                     >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
                                 </div> -->
-                            </div>
-                        </div>
+
 
                         <locuszoom
                             ref="locuszoom"
@@ -345,6 +331,7 @@
                             @regionchanged="
                                 $parent.requestCredibleSets($event.data)
                             "
+                            :loglog="true"
                             :refSeq="true"
                         >
                             <lz-associations-panel

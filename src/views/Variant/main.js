@@ -30,6 +30,13 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+
 new Vue({
     store,
 
@@ -48,7 +55,14 @@ new Vue({
         LocusZoomPhewasPanel,
         ForestPlotHtml,
         DatasetAssociations,
-        UnauthorizedMessage
+        UnauthorizedMessage,
+        FilterGroup,
+        FilterControl,
+        FilterPValue,
+        FilterEffectDirection,
+        FilterEnumeration,
+        FilterGreaterThan,
+
     },
 
     created() {
@@ -61,7 +75,12 @@ new Vue({
     render(createElement, context) {
         return createElement(Template);
     },
-
+    data() {
+        return {
+            phewasFilter: id => true,
+            regionFilter: id => true,
+        }
+    },
     methods: {
         ...uiUtils,
         postAlert,
@@ -75,9 +94,8 @@ new Vue({
             let pos = this.chromPos;
 
             if (!!pos) {
-                window.location.href = `./region.html?chr=${
-                    pos.chromosome
-                }&start=${pos.position - expanded}&end=${pos.position +
+                window.location.href = `./region.html?chr=${pos.chromosome
+                    }&start=${pos.position - expanded}&end=${pos.position +
                     expanded}&variant=${this.$store.state.variant.varId}`;
             }
         }

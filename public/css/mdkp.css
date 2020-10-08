@@ -1048,6 +1048,11 @@ div.filtering-ui-content div.col .label {
     font-weight: 600;
 }
 
+span div.label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
 div.filtering-ui-content div.col .form-control,
 div.filtering-ui-content div.col select,
 div.filtering-ui-content div.col .input {
@@ -1056,7 +1061,7 @@ div.filtering-ui-content div.col .input {
     font-size: 14px;
 }
 
-div.filtering-ui-content div.col.filter-col-sm .form-control,
+div.filtering-ui-content div.filter-col-sm .form-control,
 div.filtering-ui-content div.col.filter-col-sm select,
 div.filtering-ui-content div.col.filter-col-sm .input {
     width: 110px;
@@ -1067,12 +1072,14 @@ div.filtering-ui-content div.col.filter-col-md .form-control,
 div.filtering-ui-content div.col.filter-col-md select,
 div.filtering-ui-content div.col.filter-col-md .input {
     width: 220px;
+    display: inline-block;
 }
 
 div.filtering-ui-content div.col.filter-col-lg .form-control,
 div.filtering-ui-content div.col.filter-col-lg select,
 div.filtering-ui-content div.col.filter-col-lg .input {
     width: 300px;
+    display: inline-block;
 }
 
 .help-content.filter-wrapper-help {
@@ -1282,4 +1289,119 @@ a.to-previous-page:hover {
 }
 #phewas-datasets .feature-header-item {
     background-color: #d2d2d2;
+}
+
+.phenotype-gene-association {
+    position:relative;
+}
+
+.phenotype-gene-association > .options-4-actions {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color:#fff;
+    font-weight: 400;
+    padding: 10px;
+    border-radius: 5px;
+    left:-12px;
+    top: 10px;
+    z-index: 20;
+    white-space: nowrap;
+    line-height: 1.5em;
+}
+
+.phenotype-gene-association > .options-4-actions {
+    left: 80%;
+    top: -30%;
+}
+
+.phenotype-gene-association:hover > .options-4-actions {
+    display: block;
+}
+
+.phenotype-gene-association:hover > .options-4-actions a  {
+    color: #ffffff !important;
+}
+
+.phenotype-gene-association:hover > .options-4-actions a:hover  {
+    color: #aaaaff !important;
+}
+/* for vue-bootstrap-typeahead */
+[type="search"] {
+    background: #fff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.75rem center/8px 10px;
+}
+
+[class*="filter-pill-"] {
+    margin-right: 2px;
+    margin-left: 2px;
+}
+
+.filter-pill-pValue {
+    background-color: #dc3545 !important;
+}
+
+.filter-pill-fold {
+    background-color: #dc3545 !important;
+}
+
+.filter-pill-beta {
+    background-color: #007bff !important;
+}
+
+.filter-pill-nearest {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-phenotype {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-nearest {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-gene {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-consequence {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-annotation {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-source {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-moleculeType {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-tech {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-method {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-tissue {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-ancestry {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-collection {
+    margin: 10px 0 10px 0;
+}
+
+.filter-pill-collection.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

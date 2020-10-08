@@ -64,7 +64,7 @@ export default new Vuex.Store({
 
             if (dataset && phenotype) {
                 let q = `${dataset.name},${phenotype.name}`;
-                context.dispatch('datasetAssociations/query', { q });
+                context.dispatch('datasetAssociations/query', { q, limit: 500 });
             } else {
                 context.dispatch('datasetAssociations/clear');
             }
