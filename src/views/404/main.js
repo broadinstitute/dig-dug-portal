@@ -35,14 +35,17 @@ new Vue({
     methods: {
         lookUpNewLink() {
             let oldLink = this.currentPath;
-            // check DB
-            let newLink = "";
-            window.location.href = newLink;
+            let found = this.links.path.indexOf(oldLink);
+
+            if (found != -1) window.location.href = this.links.redirect[found];
         }
     },
     computed: {
         currentPath() {
-            return window.location.href;
+            return window.location.pathname;
+        },
+        links() {
+            return this.$store.state.links;
         }
     }
 }).$mount("#app");
