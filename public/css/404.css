@@ -444,7 +444,7 @@ body {
     font-size: 2em;
 }
 .notice .btn {
-    margin: 40px 10px;
+    margin: 20px 10px 0px;
 }
 .page {
     display: flex;
