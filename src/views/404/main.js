@@ -20,11 +20,14 @@ new Vue({
     },
     created() {
         //call function to check db for new links
-        console.log("created1", window.location.href);
-        console.log("created2", window.location.pathname);
+        this.$store.dispatch("bioPortal/getLinks");
 
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+    },
+    mounted() {
+        console.log("created1", window.location.href);
+        console.log("created2", window.location.pathname);
     },
     render(createElement) {
         return createElement(Template);
