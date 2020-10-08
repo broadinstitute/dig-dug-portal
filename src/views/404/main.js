@@ -27,17 +27,20 @@ new Vue({
     },
     mounted() {
         //if new link is found, go there indstead of displaying this page
-        lookUpNewLink();
+        this.lookUpNewLink();
     },
     render(createElement) {
         return createElement(Template);
     },
     methods: {
         lookUpNewLink() {
-            let oldLink = this.currentPath;
-            let found = this.links.path.indexOf(oldLink);
+            if (this.links) {
+                let oldLink = this.currentPath;
+                let found = this.links.path.indexOf(oldLink);
 
-            if (found != -1) window.location.href = this.links.redirect[found];
+                if (found != -1)
+                    window.location.href = this.links.redirect[found];
+            }
         }
     },
     computed: {
