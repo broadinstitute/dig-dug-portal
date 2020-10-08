@@ -19,15 +19,15 @@ new Vue({
         Alert
     },
     created() {
-        //call function to check db for new links
+        //get links for redirects
         this.$store.dispatch("bioPortal/getLinks");
 
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
     },
     mounted() {
-        console.log("created1", window.location.href);
-        console.log("created2", window.location.pathname);
+        //if new link is found, go there indstead of displaying this page
+        lookUpNewLink();
     },
     render(createElement) {
         return createElement(Template);
