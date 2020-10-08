@@ -22,12 +22,12 @@ body {
     -webkit-box-direction: normal;
     flex-direction: column;
 } */
-@import url("https://fonts.googleapis.com/css2?family=Righteous&family=Sirin+Stencil&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Righteous&family=Sirin+Stencil&family=Cairo:wght@200&display=swap");
 
 .DNA {
     display: inline-block;
     position: relative;
-    margin: 0px 10px 0px 30px;
+    margin: 0px 10px;
     width: 180px;
     height: 400px;
     -webkit-perspective: 2500px;
@@ -427,10 +427,11 @@ body {
 }
 
 .number {
-    font-size: 300px;
+    font-size: 200px;
     display: inline-block;
     color: #ff6f59;
-    font-family: "Sirin Stencil", cursive;
+    /* font-family: "Sirin Stencil", cursive; */
+    font-family: "Cairo", sans-serif;
 }
 
 .notice {
@@ -448,7 +449,10 @@ body {
 .page {
     display: flex;
     justify-content: center;
-    align-items: center;
+    /* align-items: center; */
+}
+.notfound {
+    background-color: #151967;
 }
 
 .notfound .card {
@@ -457,4 +461,7 @@ body {
 }
 .notfound a.btn {
     color: white !important;
+}
+.path {
+    font-style: italic;
 }
