@@ -31,10 +31,15 @@ new Vue({
     },
     methods: {
         lookUpNewLink() {
-            let oldLink = window.location.href;
+            let oldLink = this.currentPath;
             // check DB
             let newLink = "";
             window.location.href = newLink;
+        }
+    },
+    computed: {
+        currentPath() {
+            return window.location.href;
         }
     }
 }).$mount("#app");
