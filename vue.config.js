@@ -150,6 +150,13 @@ let pages = {
         title: "HuGe Calculator",
         chunks: ["chunk-vendors", "chunk-common", "hugecalculator"]
     },
+    genefinder: {
+        entry: "src/views/GeneFinder/main.js",
+        template: "public/index.html",
+        filename: "genefinder.html",
+        title: "Gene Finder",
+        chunks: ["chunk-vendors", "chunk-common", "genefinder"]
+    },
 
 };
 
