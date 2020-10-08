@@ -43,17 +43,33 @@
                         </div>
                         <div class="notice">
                             <h4>Page Not Found</h4>
-                            <p>
-                                <div>We couldn't find the page you're looking for.</div>
-                                <div>The requested link <span class="path">{{$parent.currentPath}}</span> is not found on this site.</div>
-                                <div class="button"><b-button pill variant="primary" href="/"
-                                    >Home</b-button
-                                >
-                                <b-button pill variant="warning" href="//kp4cd.org/contact"
-                                    >Contact</b-button
-                                ></div>
-
-                            </p>
+                            <div>
+                                <div>
+                                    We couldn't find the page you're looking
+                                    for.
+                                </div>
+                                <div>
+                                    The requested link
+                                    <span class="path">{{
+                                        $parent.currentPath
+                                    }}</span>
+                                    is not found on this site.
+                                </div>
+                                <div class="button">
+                                    <b-button
+                                        pill
+                                        variant="outline-success"
+                                        href="/"
+                                        >Home</b-button
+                                    >
+                                    <b-button
+                                        pill
+                                        variant="outline-warning"
+                                        href="//kp4cd.org/contact"
+                                        >Contact</b-button
+                                    >
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
