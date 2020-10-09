@@ -40,7 +40,7 @@ export default {
     }],
     [LZ_TYPE.constraint]: ["GeneConstraintLZ",
         {
-            url: 'http://gnomad.broadinstitute.org/api',
+            url: 'https://gnomad.broadinstitute.org/api',
             params: {
                 build: HUMAN_GENOME_BUILD_VERSION,
             }
