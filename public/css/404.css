@@ -1,27 +1,3 @@
-/* ~sanitize.css */
-/* ~mixins */
-/* clearfix hack - http://nicolasgallagher.com/micro-clearfix-hack/
-*/
-/* ~vars */
-/* html,
-body {
-    height: 100%;
-    background: #161616;
-    color: #f4f4f4;
-    font-family: "Montserrat", sans-serif;
-}*/
-
-/* .page {
-    display: -webkit-box;
-    display: flex;
-    -webkit-box-align: center;
-    align-items: center;
-    -webkit-box-pack: center;
-    justify-content: center;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-    flex-direction: column;
-} */
 @import url("https://fonts.googleapis.com/css2?family=Righteous&family=Sirin+Stencil&family=Cairo:wght@200&display=swap");
 
 .DNA {
@@ -446,10 +422,20 @@ body {
 .notice .btn {
     margin: 20px 10px 0px;
 }
+/* .page {
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    flex-direction: column;
+} */
 .page {
     display: flex;
     justify-content: center;
-    /* align-items: center; */
 }
 .notfound {
     background-color: #151967;
