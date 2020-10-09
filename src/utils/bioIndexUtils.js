@@ -32,7 +32,7 @@ export function apiUrl(path) {
 export function rawUrl(path, query_params) {
     let qs = querystring.stringify(query_params, { skipNull: true });
 
-    return `${apiUrl(path)}?${qs || ""}`;
+    return `${apiUrl(path)}${qs ? "?" + qs : ""}`;
 }
 
 /* Build a generic request to a BioIndex end-point.
