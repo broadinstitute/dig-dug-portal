@@ -28,24 +28,27 @@ new Vue({
         return createElement(Template);
     },
     computed: {
+        currentPath() {
+            return window.location.pathname;
+        },
         links() {
             return this.$store.state.bioPortal.links;
+        },
+        redirectLink() {
+            if (this.links) {
+                let oldLink = this.currentPath;
+                let foundLink = this.links.find(link => link.path == oldLink);
+
+                if (!!foundLink) {
+                    return foundLink.redirect;
+                }
+            }
         }
     },
     watch: {
-        links(links) {
-            console.log(links);
-            console.log(window.location.pathname);
-
-            if (links) {
-                let oldLink = window.location.pathname;
-                let foundLink = links.find(link => link.path == oldLink);
-
-                console.log(foundLink);
-
-                if (!!foundLink) {
-                    window.location.href = foundLink.redirect;
-                }
+        redirectLink(href) {
+            if (!!href) {
+                window.location.href = href;
             }
         }
     }
