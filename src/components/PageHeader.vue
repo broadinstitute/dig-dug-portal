@@ -11,8 +11,7 @@
                     <div class="amp-banner-left">
                         <a
                             href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
-                            >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a
-                        >
+                        >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a>
                     </div>
                 </div>
             </div>
@@ -72,14 +71,10 @@
                                         diseaseGroup.name == 'v2f'
                                     "
                                 >
-                                    <a :href="'/epigeneticdatasets.html'"
-                                        >Epigenetic Datasets</a
-                                    >
+                                    <a :href="'/epigeneticdatasets.html'">Epigenetic Datasets</a>
                                 </li>
                                 <li page="data">
-                                    <a :href="'/datasets.html'"
-                                        >Genetic association datasets</a
-                                    >
+                                    <a :href="'/datasets.html'">Genetic association datasets</a>
                                 </li>
                                 <li page="data">
                                     <a :href="'/downloads.html'">Downloads</a>
@@ -102,7 +97,13 @@
                                 <!-- <li page="hugecalculator">
                                     <a href="/hugecalculator.html">HuGe Calculator</a>
                                 </li>-->
-                                <li page="hugecalculator">
+                                <li
+                                    page="hugecalculator"
+                                    v-if="
+                                        diseaseGroup.name == 'md' ||
+                                        diseaseGroup.name == 't2d'
+                                    "
+                                >
                                     <a href="/hugecalculator.html?gene=SLC30A8">HuGe Calculator</a>
                                 </li>
                                 <li
@@ -112,9 +113,7 @@
                                         diseaseGroup.name == 't2d'
                                     "
                                 >
-                                    <a href="/effectorgenes.html"
-                                        >Predicted Effector Genes</a
-                                    >
+                                    <a href="/effectorgenes.html">Predicted Effector Genes</a>
                                 </li>
                             </ul>
                         </li>
@@ -151,9 +150,7 @@
                                         diseaseGroup.name != 'sleep'
                                     "
                                 >
-                                    <a href="/publications.html"
-                                        >Publications</a
-                                    >
+                                    <a href="/publications.html">Publications</a>
                                 </li>
                                 <li page="information">
                                     <a href="/news.html">News</a>
@@ -171,16 +168,14 @@
                                 href="/logout"
                                 :class="diseaseGroup.name + 'kp-login'"
                                 :title="user"
-                                >Logout</a
-                            >
+                            >Logout</a>
                         </li>
                         <li v-else>
                             <a
                                 href="/login"
                                 @click.prevent="loginUser"
                                 :class="diseaseGroup.name + 'kp-login'"
-                                >Login</a
-                            >
+                            >Login</a>
                         </li>
                     </ul>
                 </div>
@@ -206,7 +201,7 @@ export default Vue.component("page-header", {
     mixins: [userMixin],
     data() {
         return {
-            bioindex_dev: false,
+            bioindex_dev: false
         };
     },
     created() {
@@ -225,6 +220,6 @@ export default Vue.component("page-header", {
         url2Md() {
             return host.urlWithSubdomain().href;
         }
-    },
+    }
 });
 </script>
