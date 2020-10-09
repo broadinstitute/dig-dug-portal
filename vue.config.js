@@ -21,7 +21,7 @@ let pages = {
         entry: "src/views/Phenotype/main.js",
         template: "public/index.html",
         filename: "phenotype.html",
-        title: "Phenotype Page",
+        title: "Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "phenotype"]
     },
     region: {
@@ -119,7 +119,7 @@ let pages = {
         entry: "src/views/Apis/main.js",
         template: "public/index.html",
         filename: "apis.html",
-        title: "Apis",
+        title: "APIs",
         chunks: ["chunk-vendors", "chunk-common", "apis"]
     },
     epigeneticdatasets: {
@@ -133,14 +133,14 @@ let pages = {
         entry: "src/views/EffectorGenes/main.js",
         template: "public/index.html",
         filename: "effectorgenes.html",
-        title: "Predicted effector genes research methods",
+        title: "Predicted Effector Genes Research Methods",
         chunks: ["chunk-vendors", "chunk-common", "effectorgenes"]
     },
     eglmethod: {
         entry: "src/views/EglMethod/main.js",
         template: "public/index.html",
         filename: "method.html",
-        title: "Research method",
+        title: "Research Method",
         chunks: ["chunk-vendors", "chunk-common", "eglmethod"]
     },
     hugecalculator: {
@@ -150,7 +150,13 @@ let pages = {
         title: "HuGe Calculator",
         chunks: ["chunk-vendors", "chunk-common", "hugecalculator"]
     },
-
+    page404: {
+        entry: "src/views/404/main.js",
+        template: "public/index.html",
+        filename: "404.html",
+        title: "Page Not Found",
+        chunks: ["chunk-vendors", "chunk-common", "page404"]
+    }
 };
 
 // remove the debug page in production

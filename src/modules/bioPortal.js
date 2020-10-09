@@ -25,7 +25,8 @@ export default {
             phenotypeMap: {},
             datasetMap: {},
             documentation: {},
-            user: ""
+            user: "",
+            links: [],
         };
     },
 
@@ -57,6 +58,9 @@ export default {
         },
         setUser(state, user) {
             state.user = user;
+        },
+        setLinks(state, data) {
+            state.links = data;
         }
     },
 
@@ -123,10 +127,18 @@ export default {
         async getUser(context, access_token) {
             let data = await fetch(
                 "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                    access_token
+                access_token
             ).then(response => response.json());
 
             context.commit("setUser", data.email);
+        },
+
+        // fetch all old links that need to be redirected
+        async getLinks({ state, commit }) {
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/links`
+            ).then(resp => resp.json());
+            commit("setLinks", json.data);
         }
     }
 };
