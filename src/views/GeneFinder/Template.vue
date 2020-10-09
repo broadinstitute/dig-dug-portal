@@ -2,14 +2,7 @@
     <div class="card mdkp-card">
         <div class="card-body">
             <h4 class="card-title">
-                Top
-                {{
-                $parent.intFormatter(
-                $store.state.associations.data.length
-                )
-                }}
-                associations for
-                {{ $store.state.phenotype.description }}
+                GeneFinder
                 <tooltip-documentation
                     name="phenotype.top1000.tooltip"
                     :content-fill="$parent.documentationMap"
