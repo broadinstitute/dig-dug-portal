@@ -15,6 +15,7 @@
                 </b-th>
                 <b-th
                     v-for="(phenotype, i) in phenotypes"
+                    :key="phenotype"
                     colspan="3"
                     class="reference"
                     :class="'color-' + (i + 1)"
