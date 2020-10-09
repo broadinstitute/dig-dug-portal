@@ -24,30 +24,27 @@ new Vue({
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
     },
-    mounted() {
-        //if new link is found, go there indstead of displaying this page
-        this.lookUpNewLink();
-    },
     render(createElement) {
         return createElement(Template);
-    },
-    methods: {
-        lookUpNewLink() {
-            if (this.links) {
-                let oldLink = this.currentPath;
-                let found = this.links.path.indexOf(oldLink);
-
-                if (found != -1)
-                    window.location.href = this.links.redirect[found];
-            }
-        }
     },
     computed: {
         currentPath() {
             return window.location.pathname;
         },
         links() {
-            return this.$store.state.links;
+            return this.$store.state.bioPortal.links;
+        }
+    },
+    watch: {
+        links(links) {
+            if (links) {
+                let oldLink = this.currentPath;
+                let found = links.path.indexOf(oldLink);
+
+                if (found >= 0) {
+                    window.location.href = links.redirect[found];
+                }
+            }
         }
     }
 }).$mount("#app");
