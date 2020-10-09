@@ -6,7 +6,6 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import Alert from "@/components/Alert";
 import { pageMixin } from "@/mixins/pageMixin";
-import parseUrl from "url-parse";
 
 Vue.config.productionTip = false;
 
