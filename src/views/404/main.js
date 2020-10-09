@@ -28,21 +28,23 @@ new Vue({
         return createElement(Template);
     },
     computed: {
-        currentPath() {
-            return window.location.pathname;
-        },
         links() {
             return this.$store.state.bioPortal.links;
         }
     },
     watch: {
         links(links) {
-            if (links) {
-                let oldLink = this.currentPath;
-                let found = links.path.indexOf(oldLink);
+            console.log(links);
+            console.log(window.location.pathname);
 
-                if (found >= 0) {
-                    window.location.href = links.redirect[found];
+            if (links) {
+                let oldLink = window.location.pathname;
+                let foundLink = links.find(link => link.path == oldLink);
+
+                console.log(foundLink);
+
+                if (!!foundLink) {
+                    window.location.href = foundLink.redirect;
                 }
             }
         }
