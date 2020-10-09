@@ -56,22 +56,7 @@ export default Vue.component("raw-img", {
         };
     },
     mounted() {
-        let that = this;
-        let im = this.$refs.im;
-
-        request(this.src)
-            .then((resp) => {
-                that.status = resp.status;
-
-                if (resp.status === 200) {
-                    return resp.blob();
-                }
-            })
-            .then((blob) => {
-                if (!!blob) {
-                    im.src = URL.createObjectURL(blob);
-                }
-            });
+        this.getImage();
     },
     computed: {
         loaded() {
@@ -82,6 +67,32 @@ export default Vue.component("raw-img", {
         },
         failed() {
             return !!this.status && !this.loaded && !this.unauthorized;
+        },
+    },
+    methods: {
+        getImage() {
+            let that = this;
+            let im = this.$refs.im;
+
+            request(this.src)
+                .then((resp) => {
+                    that.status = resp.status;
+
+                    if (resp.status === 200) {
+                        return resp.blob();
+                    }
+                })
+                .then((blob) => {
+                    if (!!blob) {
+                        im.src = URL.createObjectURL(blob);
+                    }
+                });
+        },
+    },
+    watch: {
+        src: {
+            handler: "getImage",
+            immediate: true,
         },
     },
 });
