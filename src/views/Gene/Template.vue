@@ -143,9 +143,30 @@
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
+
+
+                                <filter-group
+                                    v-model="$parent.associationsFilter"
+                                    :looseMatch="true">
+                                    <filter-enumeration-control
+                                        :field="'phenotype'"
+                                        :options="$store.state.associations.data.map(association => association.phenotype)"
+                                        :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
+                                        <div class="label">
+                                            Phenotypes
+                                        </div>
+                                    </filter-enumeration-control>
+                                    <filter-pvalue-control
+                                        :field="'pValue'">
+                                        <div class="label">P-Value (&le;)</div>
+                                    </filter-pvalue-control>
+                                </filter-group>
+
+
                         <locuszoom
                             v-if="$store.state.gene"
                             ref="locuszoom"
+                            :filter="$parent.associationsFilter"
                             :refSeq="false"
                         >
                             <lz-phewas-panel
@@ -206,8 +227,29 @@
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
+
+
+
+                        <filter-group v-model="$parent.referenceFilter" :inclusive="true">
+                            <filter-enumeration-control
+                                :field="'source'"
+                                :options="$parent.dbReference.map(reference => reference.source)">
+                                <div class="label">
+                                    Sources
+                                </div>
+                            </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'moleculeType'"
+                                :options="$parent.dbReference.map(reference => reference.moleculeType)">
+                                <div class="label">
+                                    Molecule Type
+                                </div>
+                            </filter-enumeration-control>
+                        </filter-group>
+
                         <uniprot-references-table
-                            v-bind:references="$parent.dbReference"
+                            :references="$parent.dbReference"
+                            :filter="$parent.referenceFilter"
                         ></uniprot-references-table>
                     </div>
                 </div>

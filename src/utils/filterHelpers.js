@@ -1,3 +1,4 @@
+import { get } from "lodash";
 
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
@@ -33,7 +34,6 @@ export function filterFromPredicates(allPredicates, inclusive) {
                 if (included === true) break;
             }
         }
-
         if (allPredicates.length > 0) {
             // if we have predicates, the burden of proof may change based on our filtering type
             if (!!!inclusive) {
@@ -63,7 +63,6 @@ export function filterFromPredicates(allPredicates, inclusive) {
                 }
             }
         }
-
         return included && innocent;
     };
 }
@@ -81,18 +80,19 @@ export function predicateFromSpec(
 
     return {
         inclusive,
-        func: datum => {
+        func: (obj) => {
             // TODO: other ways of doing matches?
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
 
-            let match = strictCase ? !!datum[field] : !!datum[field]; // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
+            let data = get(obj, field);  // NOTE: this technically supports nested fields.
+            let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {
-                if (datum[field].constructor.name === "Array") {
-                    return datum[field].some(el => predicate(el, threshold));
+                if (data.constructor.name === 'Array') {
+                    return data.some(el => predicate(el, threshold));
                 } else {
-                    return predicate(datum[field], threshold);
+                    return predicate(data, threshold);
                 }
             } else {
                 return notStrictMatch;
@@ -165,14 +165,9 @@ export function decodeNamespace(
         const [key, value] = entry;
         // TODO: replace with disjoint regex?
         // for fun: regex crosswords https://regexcrossword.com
-        const newKey = key
-            .replace(prefix, "")
-            .replace(suffix, "")
-            // TODO: using delimiters redundant/unecessary/confusing?
-            // TODO: remove everything before delimiter
-            .replace(pDelimiter, "")
-            // TODO: remove everything after delimiter
-            .replace(sDelimiter, "");
+        const newKey = key.replace(prefix, '').replace(suffix, '')
+            .replace(pDelimiter, '')
+            .replace(sDelimiter, '');
         tempObject[newKey] = value;
     });
     return tempObject;

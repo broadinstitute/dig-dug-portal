@@ -76,6 +76,12 @@ new Vue({
                     element.classList.remove('fixed-header');
                 }
             }
+        },
+        appendCss(DATASET) {
+            let file = document.createElement('link');
+            file.rel = 'stylesheet';
+            file.href = 'https://kp4cd.org/sites/default/files/vueportal/egl_data/' + DATASET + '/' + DATASET + '.css'
+            document.head.appendChild(file)
         }
     },
 
@@ -91,13 +97,12 @@ new Vue({
             return tableTop;
         },
         dataset() {
+            this.appendCss(keyParams.dataset);
             return keyParams.dataset;
         },
         trait() {
 
             let phenotypeName = null;
-
-
 
             this.$store.state.bioPortal.phenotypes.map(
                 (x) => {
@@ -170,7 +175,6 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-
         },
     }
 }).$mount("#app");

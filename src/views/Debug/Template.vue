@@ -1,232 +1,47 @@
 <template>
     <div>
-        <!-- Header -->
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <input type="checkbox" id="checkbox" v-model="$parent.inclusive" />
+        <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
 
-        <!-- Body -->
-        <div class="container-fluid mdkp-body">
-            <div class="gene-page-header card mdkp-card">
-                <div class="row card-body">
-                    <div class="col-md-12 gene-page-header-title">
-                        Gene
-                        <a
-                            class="edit-btn"
-                            @click="
-                                $parent.showHideElement(
-                                    'variantSearchHolder',
-                                    'gene_search_input'
-                                )
-                            "
-                            >Search gene</a
-                        >
-                    </div>
+        <!-- FilterGroup -->
+        <!-- "looseMatch=true" means objects that don't have all the properties will pass through by default
+             On the Region page this is necessary
+             "inclusive" means that the filter will be inclusive predicates (akin to a series of ORs) by default, unless the child controls override.
+        -->
+        <filter-group v-model="$parent.filterFunction" :looseMatch="true">
+            <filter-enumeration-control
+                :field="'consequence'"
+                :options="$parent.associationConsequences"
+            >Consequence</filter-enumeration-control>
 
-                    <div class="col-md-12 gene-page-header-body">
-                        <div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
-                            <gene-selectpicker
-                                @onGeneChange="
-                                    $store.dispatch('queryGeneName', $event)
-                                "
-                            ></gene-selectpicker>
-                        </div>
-                        <div v-if="$parent.symbolName">
-                            <span>
-                                {{ $parent.symbolName }}
-                                <span
-                                    v-if="
-                                        $parent.symbolName.toLowerCase() !==
-                                        $store.state.geneName.toLowerCase()
-                                    "
-                                    >({{ $store.state.geneName }})</span
-                                >
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <filter-enumeration-control
+                :field="'nearest'"
+                :options="$parent.associationNearestGenes"
+            >Closest Genes</filter-enumeration-control>
 
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <div class="row">
+            <filter-pvalue-control :field="'pValue'"></filter-pvalue-control>
 
-                        <div class="col-md-5">
-                            <h4>{{$store.state.geneName}} is {{"CAUSAL"}}
-                            </h4>
+            <filter-effect-direction-control :field="'beta'"></filter-effect-direction-control>
 
-                            <!-- traffic light -->
-                            <div class="gradient">
-                                <div class="arrow-up causalclass"></div>
-                                <div>
-                                    <strong>Causal</strong>
-                                </div>
-                            </div>
-                            <hr style="margin:60px" />
+            <filter-multi-control :field="'nearest'" :options="$parent.associationNearestGenes"></filter-multi-control>
+        </filter-group>
 
-                            <!-- loftee -->
-                            <documentation
-                                name="hugecal.stage3.subheader"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
-                            <div v-if="$parent.geneAssociations52k">
-                                <div
-                                    v-if="
-                                        $parent.geneAssociationsLoftee
-                                            .length > 0
-                                    "
-                                    class="border"
-                                >
-                                    <forest-plot
-                                        :data="
-                                            $parent.geneAssociationsLoftee
-                                        "
-                                    ></forest-plot>
-                                </div>
-                                <div v-else>
-                                    <strong
-                                        >There are no loss-of-function
-                                        variants detected in this
-                                        gene</strong
-                                    >
-                                </div>
-                            </div>
-                        </div>
+        <!-- Div is dummy to fit components in slot -->
+        <div>
+            <locuszoom
+                ref="locuszoom"
+                :chr="$parent.chr"
+                :start="$parent.start"
+                :end="$parent.end"
+                :refSeq="true"
+            >
+                <lz-associations-panel :phenotype="$parent.phenotypes[0].name"></lz-associations-panel>
+            </locuszoom>
 
-                        <div class="col-md-7" style="border-left: 1px dashed #444">
-
-                            <!-- stage 1 -->
-                            <h4>
-                                Common Variation
-                                <tooltip-documentation
-                                    name="gene.function.tooltip.hover"
-                                    :content-fill="$parent.documentationMap"
-                                    :isHover="true"
-                                    :noIcon="false"
-                                ></tooltip-documentation>
-                            </h4>
-                            TODO: &lt;documentation&gt; tag here...
-
-                            <!-- associations -->
-                            <p>
-                                <h5>Is {{ $store.state.geneName }} is genome-wide significant?</h5>
-                                <div id="gwasAssocHolder">
-                                    <locuszoom
-                                        v-if="$parent.region"
-                                        ref="locuszoom"
-                                        :chr="$parent.region.chromosome"
-                                        :start="$parent.region.start"
-                                        :end="$parent.region.end"
-                                        :refSeq="true"
-                                    >
-                                        <lz-associations-panel
-                                            :phenotype="
-                                                $store.state.phenotype.name
-                                            "
-                                            :finishHandler="
-                                                $parent.updateAssociationsTable
-                                            "
-                                        ></lz-associations-panel>
-                                    </locuszoom>
-                                </div>
-                            </p>
-
-                            <!-- mccarthy EGL -->
-                            <p v-if="$store.state.effectorGeneData.category">
-                                <h5>Evidence for {{ $store.state.geneName }} in {{ $store.state.phenotype.description }}...</h5>
-                                <ul>
-
-                                    <!-- genetic -->
-                                    <li v-if="$store.state.effectorGeneData.genetic">
-                                    {{$store.state.effectorGeneData.category}}
-
-                                    <span
-                                        style="
-                                            background-color: #ffc107;
-                                            padding: 5px;
-                                            border-radius: 25px;
-                                            font-weight: 700;
-                                        "
-
-                                        >{{$store.state.effectorGeneData.genetic}}</span>
-                                    </li>
-
-                                    <!-- genomic -->
-                                    <li v-if="$store.state.effectorGeneData.genomic">
-                                        Regulatory Evidence:
-                                        <span
-                                            style="
-                                                background-color: #ffc107;
-                                                padding: 5px;
-                                                border-radius: 25px;
-                                                font-weight: 700;
-                                            ">
-                                            {{$store.state.effectorGeneData.genomic}}
-                                        </span>
-                                    </li>
-
-                                    <!-- perturbational -->
-                                    <li v-if="$store.state.effectorGeneData.perturbational">
-                                        Perturbational Evidence:
-                                        <span
-                                            style="
-                                                color: #fff;
-                                                background-color: #007bff;
-                                                padding: 5px;
-                                                border-radius: 25px;
-                                                font-weight: 700;
-                                            ">
-                                                {{$store.state.effectorGeneData.perturbational}}
-                                        </span>
-                                    </li>
-                                </ul>
-                            </p>
-                            <hr style="margin:60px" />
-
-                            <!-- stage 2 -->
-                            <h4>
-                                Rare Variation
-                                <tooltip-documentation
-                                    name="gene.function.tooltip.hover"
-                                    :content-fill="$parent.documentationMap"
-                                    :isHover="true"
-                                    :noIcon="false"
-                                ></tooltip-documentation>
-                            </h4>
-                            TODO: &lt;documentation&gt; tag here...
-
-                            <!-- 52k -->
-                            <p v-if="$parent.geneAssociations52k">
-                                <h5>Posterior Probability vs. Prior Variance</h5>
-                                <div class="input-group">
-                                    Prior variance:
-                                    <input
-                                        class="form-control input-default"
-                                        v-model.number="$store.state.priorVariance"
-                                        type="number"
-                                        placeholder="Prior Variance"
-                                        id="prior_variance_input"
-                                    />
-                                </div>
-
-
-                                <strong>
-                                    {{$parent.stage2Category.category}}:{{$parent.stage2Category.Evidence}}
-                                </strong>
-                                <posterior-probability-plot
-                                    :geneAssociationsData="$parent.geneAssociations52k"
-                                    :priorVariance="$store.state.priorVariance"
-                                    :isDichotomous="true"
-                                ></posterior-probability-plot>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <associations-table
+                :associations="$parent.associations"
+                :phenotypes="$parent.phenotypes"
+            ></associations-table>
         </div>
 
         <!-- Footer-->

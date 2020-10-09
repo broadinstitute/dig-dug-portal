@@ -1,5 +1,5 @@
 <template>
-    <div class="col filter-col-sm" style="padding: 5px 7px 5px 7px;">
+    <div class="col" style="padding: 5px 7px 5px 7px;">
         <slot>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
             {{field}}
@@ -8,24 +8,23 @@
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
-        <b-form-select
+        <autocomplete
             v-if="!!options && options.length > 0"
-            :options="[{ value: null, text: '' }].concat(options.map(option => !!labelFormatter ? { text: labelFormatter(option), value: option } : option))"
-            v-model="filterThreshold"
-            @input="updateFilter(filterThreshold)"
-        ></b-form-select>
+            :matches="options"
+            :labelFormatter="labelFormatter"
+            @item-select="updateFilter($event)"
+        ></autocomplete>
         <b-form-input
             v-else
             v-model="filterThreshold"
             @keydown.enter="updateFilter(filterThreshold)"
         ></b-form-input>
-
     </div>
 </template>
 
 <script>
 import Vue from "vue";
-
+import Autocomplete from "@/components/Autocomplete.vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
 Vue.use(BootstrapVue);
@@ -34,7 +33,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-export default Vue.component("filter-widget-control", {
+export default Vue.component("filter-control", {
     props: {
         value: [ String, Number ],
         field: String,
@@ -47,7 +46,10 @@ export default Vue.component("filter-widget-control", {
             default: '#ffc107',
         },
         pillFormatter: Function,
-        labelFormatter: Function,
+        labelFormatter: {
+            type: Function,
+            default: id => id,
+        },
         splitBy: {
             type: String,
             default: ''
@@ -61,6 +63,9 @@ export default Vue.component("filter-widget-control", {
             default: true,
         }
     },
+    components: {
+        Autocomplete
+    },
     data() {
         return {
             filterDefinition: {
@@ -69,13 +74,22 @@ export default Vue.component("filter-widget-control", {
                 multiple: (!!this.multiple || !!this.splitBy) ? true : false, // if undefined, default to false
                 inclusive: (!!this.inclusive || !!this.splitBy) ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
             },
-            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterWidget we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterGroup we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
     created() {
         // set initial filter value in the widget
         if (!!this.filterThreshold) {
             this.updateFilter(this.filterThreshold);
+        }
+    },
+    computed: {
+        optionData() {
+            if (!!this.options && this.options.length > 0) {
+                return this.options.map(option => !!this.labelFormatter ? { text: this.labelFormatter(option), value: option } : option)
+            } else {
+                return [];
+            }
         }
     },
     methods: {
@@ -92,7 +106,7 @@ export default Vue.component("filter-widget-control", {
             return true;
         },
         updateFilter(newThreshold) {
-            // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterWidget
+            // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterGroup
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
                 const isValid = this.validateInput(newThreshold);

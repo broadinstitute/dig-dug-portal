@@ -1,41 +1,5 @@
 <template>
     <div>
-        <b-container fluid class="filtering-ui-wrapper">
-            <b-row class="filtering-ui-content">
-                <b-col class="filter-col-lg">
-                    <div class="label">Phenotype</div>
-                    <vue-typeahead-bootstrap
-                        v-if="phenotypeMap"
-                        v-model="phenotypeText"
-                        ref="phenotypeSelect"
-                        :data="Object.values(phenotypeMap)"
-                        :serializer="s => s.description"
-                        @hit="addPhenotype($event)"
-                    ></vue-typeahead-bootstrap>
-                </b-col>
-                <b-col class="divider">
-                    <span class="or-text">OR</span>
-                </b-col>
-                <b-col class="filter-col-sm">
-                    <div class="label">P-Value (&le;)</div>
-                    <b-form-input
-                        id="filter-pValue"
-                        type="text"
-                        @change="filterPValue($event)"
-                        v-model="pValueText"
-                    ></b-form-input>
-                </b-col>
-                <b-col class="filter-col-sm">
-                    <div class="label">Effect</div>
-                    <b-form-select
-                        @input="filterBeta()"
-                        :options="beta_options"
-                        ref="beta"
-                        v-model="beta"
-                    ></b-form-select>
-                </b-col>
-            </b-row>
-        </b-container>
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
                 v-if="selectedPhenotypes.length > 0 || pValue != '' || (beta != '' && beta != null)"
@@ -81,11 +45,11 @@
         >
             <template v-slot:cell(phenotype)="r">
                 <a
-                    :href="`/phenotype.html?phenotype=${r.item.phenotype.name}`"
-                >{{phenotypeFormatter(r.item.phenotype)}}</a>
+                    :href="`/phenotype.html?phenotype=${r.item.phenotypeName}`"
+                >{{phenotypeFormatter(r.item.phenotypeInfo)}}</a>
             </template>
             <template v-slot:cell(continuousEffect)="r">
-                <div v-if="!r.item.phenotype.dichotomous" class="effect">
+                <div v-if="!r.item.phenotypeInfo.dichotomous" class="effect">
                     <span
                         :class="`effect ${r.item.beta < 0 ? 'negative' : 'positive'}`"
                     >{{r.item.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
@@ -93,7 +57,7 @@
                 </div>
             </template>
             <template v-slot:cell(dichotomousEffect)="r">
-                <div v-if="!!r.item.phenotype.dichotomous" class="effect">
+                <div v-if="!!r.item.phenotypeInfo.dichotomous" class="effect">
                     <span
                         :class="`effect ${r.item.beta < 0 ? 'negative' : 'positive'}`"
                     >{{r.item.beta < 0 ? "&#9660;" : "&#9650;"}}</span>
@@ -128,7 +92,7 @@ import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
 export default Vue.component("phewas-table", {
-    props: ["associations", "phenotypeMap"],
+    props: ["associations", "phenotypeMap", "filter"],
     components: {
         Documentation,
         TooltipDocumentation
@@ -193,8 +157,13 @@ export default Vue.component("phewas-table", {
             }
 
             let phenotypes = this.phenotypeMap;
-            let assocs = this.associations.map(a => {
-                return { ...a, phenotype: phenotypes[a.phenotype] };
+            let assocs = this.associations.map((a) => {
+                return { ...a,
+                    phenotype: phenotypes[a.phenotype].name,
+                    phenotypeInfo: phenotypes[a.phenotype],
+                    phenotypeName: phenotypes[a.phenotype].name,
+                    phenotypeGroup: phenotypes[a.phenotype].group,
+                };
             });
 
             return assocs
@@ -203,28 +172,14 @@ export default Vue.component("phewas-table", {
         },
 
         tableData() {
-            let sourceData = this.pheWASAssociations;
-
-            let phenotypeFiltered =
-                this.selectedPhenotypes.length > 0
-                    ? Filters.filterPhenotype(
-                          this.pheWASAssociations,
-                          this.selectedPhenotypes
-                      )
-                    : this.pheWASAssociations;
-
-            let pValueFiltered =
-                this.pValue != ""
-                    ? Filters.filterPValue(phenotypeFiltered, this.pValue)
-                    : phenotypeFiltered;
-
-            let betaFiltered =
-                this.beta != "" && this.beta != null
-                    ? Filters.filterBeta(pValueFiltered, this.beta, "beta")
-                    : pValueFiltered;
-
-            return betaFiltered;
-        }
+            let dataRows = this.pheWASAssociations;
+            if (!!this.filter) {
+                dataRows = this.pheWASAssociations.filter(association => {
+                    return this.filter(association);
+                });
+            }
+            return dataRows;
+        },
     },
 
     methods: {

@@ -30,7 +30,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
 export default Vue.component("credible-variants-table", {
-    props: ["credibleVariants"],
+    props: ["credibleVariants", "filter"],
     data() {
         return {
             fields: [
@@ -61,6 +61,15 @@ export default Vue.component("credible-variants-table", {
             // TODO
             return this.crediblevariants;
             // .sort((a, b) => b.subjects - a.subjects);
+        },
+        tableData() {
+            let dataRows = this.crediblevariants;
+            if (!!this.filter) {
+                dataRows = this.crediblevariants.filter(variant => {
+                    return this.filter(variant);
+                });
+            }
+            return dataRows;
         },
     },
 });

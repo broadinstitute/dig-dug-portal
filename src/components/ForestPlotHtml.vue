@@ -20,23 +20,29 @@
                         >{{formatPvalue(significant)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(moderate)}}</span>
                     </li>
                     <li>
+                        <span class="beta-box p-weak">&nbsp;</span>
+                        <span
+                            class="label"
+                        >{{formatPvalue(moderate)}}&nbsp;&lt;&nbsp;{{sortBy}}&nbsp;&lt;&equals;&nbsp;{{formatPvalue(weak)}}</span>
+                    </li>
+                    <li>
                         <span class="beta-box">&nbsp;</span>
-                        <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(moderate)}}</span>
+                        <span class="label">{{sortBy}}&nbsp;&gt;&nbsp;{{formatPvalue(weak)}}</span>
                     </li>
                 </ul>
-                <ul v-if="!!labelMap">
+                <!--<ul v-if="!!labelMap">
                     <li>{{'Group:'}}</li>
                     <template>
-                        <li v-for="group in this.plotData.label_group">
+                        <li v-for="group in plotData.label_group">
                             <span :class="'legend-phenotype-group-dot '+group">&nbsp;</span>
                             <span class="label">{{group}}</span>
                         </li>
                     </template>
-                </ul>
+                </ul>-->
             </div>
         </div>
         <div class="forest-plot-html-wrapper row">
-            <div class="forest-plot-ui-options">
+            <!--<div class="forest-plot-ui-options">
                 <div class="show-groups-wrapper">
                     <input
                         type="checkbox"
@@ -55,29 +61,29 @@
                     />
                     <label for="sort_groups">Sort by group</label>
                 </div>
-            </div>
+            </div>-->
 
-            <div class="start-min">{{this.plotData.low_min}}</div>
-            <div class="beta-0" :style="'left:'+this.plotData.beta_0+'%;'">
+            <div class="start-min">{{plotData.low_min}}</div>
+            <div class="beta-0" :style="'left:'+plotData.beta_0+'%;'">
                 <label>0</label>
             </div>
-            <div class="end-max">{{this.plotData.high_max}}</div>
+            <div class="end-max">{{plotData.high_max}}</div>
 
             <div
-                v-for="(value,index) in this.plotData.data"
+                v-for="(value,index) in plotData.data"
                 class="forest-plot-html-row"
                 :class="index < (currentPage-1)*perPage || index >= currentPage*perPage ? 'hidden':''"
             >
-                <div
+                <!--<div
                     v-if="!!labelMap[value[labelBy]]"
                     :class="'hidden phenotype-group-dot '+labelMap[value[labelBy]].group"
                 >
                     <span class="phenotype-group-name">{{labelMap[value[labelBy]].group}}</span>
-                </div>
+                </div>-->
                 <div
                     v-if="!!labelMap[value[labelBy]]"
                     :style="'width:'+value.width+'%; left:'+value.left+'%;'"
-                    class="forest-plot-html-item"
+                    :class="'forest-plot-html-item '+(value.width > 90 ? 'too-wide-item':'')"
                 >
                     <span :class="'phenotype-name '+(value.left > value.right? 'left':'right')">
                         {{labelMap[value[labelBy]].description}}
@@ -95,17 +101,17 @@
                                 v-if="!!labelMap[value[labelBy]].group"
                             >{{'Group: '}}{{labelMap[value[labelBy]].group}}</li>
                             <li>{{sortBy + ': '}}{{formatPvalue(value[sortBy])}}</li>
-
-                            <li>{{'CI low: '}}{{value.low.toFixed(3)}}</li>
-                            <li>{{'CI high: '}}{{value.high.toFixed(3)}}</li>
+                            <li>{{'Beta: '}}{{value[bulletBy].toFixed(3)}}</li>
+                            <li>{{'95% confidence interval low: '}}{{value.low.toFixed(3)}}</li>
+                            <li>{{'95% confidence interval high: '}}{{value.high.toFixed(3)}}</li>
                         </ul>
                     </div>
                 </div>
                 <div
                     v-if="!!labelMap[value[labelBy]]"
                     class="beta-box"
-                    :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':''"
-                    :style="'left:calc('+value.beta_position+'% - 9px);'"
+                    :class="value[sortBy] < significant ? 'p-significant':value[sortBy] <= moderate ? 'p-moderate':value[sortBy] <= weak ? 'p-weak':''"
+                    :style="'left:calc('+value.beta_position+'% - 6px);'"
                 >&nbsp;</div>
             </div>
         </div>
@@ -120,6 +126,7 @@
 
 <script>
 import Vue from "vue";
+import { cloneDeep } from "lodash";
 import { BootstrapVueIcons } from "bootstrap-vue";
 import sortUtils from "@/utils/sortUtils";
 import uiUtils from "@/utils/uiUtils";
@@ -138,8 +145,10 @@ export default Vue.component("forest-plot-html", {
         "labelMap",
         "significant",
         "moderate",
+        "weak",
         "stdErr",
         "countDichotomous",
+        "filter",
     ],
     data() {
         return {
@@ -161,14 +170,13 @@ export default Vue.component("forest-plot-html", {
             }
         },
         plotData() {
-            if (!!this.forestPlotData) {
-                let content = {};
+            let content = {};
                 content["data"] = [];
-
-                this.forestPlotData.map((d) => {
+            if (!!this.forestPlotData) {
+                let forestPlotData = cloneDeep(this.forestPlotData);
+                forestPlotData.map((d) => {
                     if (!!this.labelMap[d[this.labelBy]]) {
                         content["data"].push(d);
-                        //console.log(d);
                     }
                 });
 
@@ -202,7 +210,6 @@ export default Vue.component("forest-plot-html", {
                     d["low"] = low;
                     d["measure"] = measure;
                     d["group"] = this.labelMap[d[this.labelBy]].group;
-
                     labelGroup.push(this.labelMap[d[this.labelBy]].group);
                 });
 
@@ -221,6 +228,7 @@ export default Vue.component("forest-plot-html", {
                         content["max_min_difference"]) *
                     100;
 
+                let self = this;
                 content["data"].map((item) => {
                     let updated = item;
                     let itemWidth =
@@ -244,14 +252,15 @@ export default Vue.component("forest-plot-html", {
                     updated["left"] = itemLeft;
                     updated["right"] = itemRight;
                     updated["beta_position"] = itemBeta;
-
+                    updated["phenotype"] = item.phenotype;
                     return updated;
                 });
-
-                return content;
-            } else {
-                return [];
             }
+
+            if (!!this.filter) {
+                content.data = content.data.filter(this.filter);
+            }
+            return content;
         },
         rows() {
             return this.plotData.data.length;
@@ -264,7 +273,6 @@ export default Vue.component("forest-plot-html", {
         },
         showGroups() {
             let checked = document.getElementById("show_groups").checked;
-
             let groupDots = document.querySelectorAll(".phenotype-group-dot");
 
             groupDots.forEach(function (groupDot) {

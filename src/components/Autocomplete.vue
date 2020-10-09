@@ -1,15 +1,21 @@
 <template>
     <div>
         <vue-typeahead-bootstrap
+            ref="autocomplete"
             v-model="userInput"
             :data="lookupOptions"
             :placeholder="placeholder"
+            :serializer="labelFormatter"
+            :showOnFocus="true"
+            :maxMatches="1000"
             @hit="onAutoCompleteItemSelected($event)"
             @keyup.enter="onUserEnterNonAutoCompleteItem"
         >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
-                <span v-html="htmlText"></span>&nbsp;
-                <small v-if="secondaryKey" class="text-secondary">{{ data[secondaryKey] }}</small>
+                <span v-html="formatHTML(htmlText)"></span>&nbsp;
+                <small v-if="secondaryKey" class="text-secondary">{{
+                    data[secondaryKey]
+                }}</small>
             </template>
         </vue-typeahead-bootstrap>
     </div>
@@ -32,8 +38,15 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["matches", "placeholder", "secondaryKey"],
-
+    props: {
+        matches: Array,
+        placeholder: String,
+        secondaryKey: String,
+        labelFormatter: {
+            type: Function,
+            default: (id) => id,
+        },
+    },
     data() {
         return {
             userInput: this.initialText || null,
@@ -52,6 +65,9 @@ export default Vue.component("autocomplete", {
     },
 
     methods: {
+        formatHTML(html) {
+            return this.labelFormatter(html);
+        },
         serializer(item) {
             if (!this.matchkey) {
                 return item;
@@ -60,16 +76,15 @@ export default Vue.component("autocomplete", {
             }
         },
         onAutoCompleteItemSelected(item) {
-            //return object if phenotype?
-
-            this.selectedItem = item;
-            this.userText = null;
-
+            this.userInput = null;
+            this.$refs.autocomplete.inputValue = null;
             this.$emit("item-select", item);
         },
 
         onUserEnterNonAutoCompleteItem() {
             this.$emit("keyup-enter", this.userInput);
+            this.userInput = null;
+            this.$refs.autocomplete.inputValue = null;
         },
     },
 

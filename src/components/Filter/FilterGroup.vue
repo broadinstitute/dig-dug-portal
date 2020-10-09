@@ -2,35 +2,38 @@
     <span>
         <!-- Controls and their labels -->
         <slot name="header"> </slot>
-        <EventListener @change="filterControlChange">
-            <!-- Filter Widget Control Slot -->
-            <!-- It's unnamed because multiple filter controls will be placed inside here -->
-            <slot></slot>
-        </EventListener>
-
+        <b-container fluid class="filtering-ui-wrapper">
+            <b-row class="filtering-ui-content">
+            <EventListener @change="filterControlChange">
+                <!-- Filter Widget Control Slot -->
+                <!-- It's unnamed because multiple filter controls will be placed inside here -->
+                <slot></slot>
+            </EventListener>
+            </b-row>
+        </b-container>
         <!-- Pills for everything -->
 
-        <span v-if="filterList.length > 0"
-            >Selected Filters:&nbsp;&nbsp;
+        <div v-if="filterList.length > 0" class="filter-pill-collection center">
+            Selected Filters:&nbsp;&nbsp;
             <!-- Derive pills from current filter state?
                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
-                        It would be deterministic upto the compile-time declaration of the FilterWidget controls which would lead to predicatable results at runtime
+                        It would be deterministic upto the compile-time declaration of the FilterGroup controls which would lead to predicatable results at runtime
                     -->
             <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
             <b-badge
+                :class="`filter-pill-${filter.field}`"
                 v-for="(filter, idx) in filterList"
                 :key="filter.field + filter.predicate + filter.threshold + idx"
                 pill
-                :style="`background-color:${filter.pill.color}; margin-right: 4px`"
                 @click="unsetFilter(filter, idx)"
-                class="btn"
-            >
+                class="btn">
                 {{ filter.pill.label(filter) }}
                 <span class="remove">X</span>
             </b-badge>
-        </span>
+        </div>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <br v-else />
+
     </span>
 </template>
 
@@ -58,7 +61,7 @@ const EventListener = {
      * If you want someone to blame for this, it's the Vue devs, for not allowing v-on with slots: https://github.com/vuejs/vue/issues/4781
      * And we're doing this as our response: https://github.com/vuejs/vue/issues/4781#issuecomment-501217642
      *
-     * In FilterWidget we'll use 'change' as the event share between EventListener and the child components.
+     * In FilterGroup we'll use 'change' as the event share between EventListener and the child components.
      *
      */
     render(createElement) {
@@ -72,7 +75,7 @@ const EventListener = {
     },
 };
 
-export default Vue.component("filter-widget", {
+export default Vue.component("filter-group", {
     props: ["value", "inclusive", "strictCase", "looseMatch"],
     components: {
         EventListener,
