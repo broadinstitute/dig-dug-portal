@@ -26,7 +26,7 @@ export default {
             datasetMap: {},
             documentation: {},
             user: "",
-            links: {}
+            links: [],
         };
     },
 
@@ -127,7 +127,7 @@ export default {
         async getUser(context, access_token) {
             let data = await fetch(
                 "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                    access_token
+                access_token
             ).then(response => response.json());
 
             context.commit("setUser", data.email);

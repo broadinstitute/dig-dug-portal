@@ -47,7 +47,7 @@ new Vue({
             return window.location.pathname;
         },
         links() {
-            return this.$store.state.links;
+            return this.$store.state.bioPortal.links;
         }
     }
 }).$mount("#app");
