@@ -83,7 +83,7 @@ export default Vue.component("raw-img", {
                     }
                 })
                 .then((blob) => {
-                    if (!!blob) {
+                    if (!!blob && !!im) {
                         im.src = URL.createObjectURL(blob);
                     }
                 });
