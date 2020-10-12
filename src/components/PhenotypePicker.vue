@@ -1,20 +1,40 @@
 <template>
-    <vue-typeahead-bootstrap
-        v-model="userText"
-        ref="phenotypeSelect"
-        placeholder="Type in a phenotype ..."
-        :data="phenotypeOptions"
-        :serializer="s => s.description"
-        :maxMatches="1000"
-        :minMatchingChars="0"
-        :showOnFocus="true"
-        @hit="onPhenotypeSelected($event)"
-    >
+    <div v-if="multipleselect==false">
+        <vue-typeahead-bootstrap
+            v-model="userText"
+            ref="phenotypeSelect"
+            placeholder="Type in a phenotype ..."
+            :data="phenotypeOptions"
+            :serializer="s => s.description"
+            :maxMatches="1000"
+            :minMatchingChars="0"
+            :showOnFocus="true"
+            @hit="onPhenotypeSelected($event)"
+        >
+            <template slot="suggestion" slot-scope="{ data, htmlText }">
+                <span v-html="htmlText"></span>&nbsp;
+                <small class="text-secondary">{{ data.group }}</small>
+            </template>
+        </vue-typeahead-bootstrap>
+    </div>
+
+    <div v-else-if="multipleselect == true">
+        <multiselect
+            v-model="userText"
+            tag-placeholder="Add this as new tag"
+            placeholder="Search or add a tag"
+            label="name"
+            track-by="description"
+            :options="phenotypeOptions"
+            :multiple="true"
+            :taggable="true"
+            @tag="addTag"
+        ></multiselect>
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
-            <small class="text-secondary">{{ data.group }}</small>
+            <small class="text-secondary">{{ options.group }}</small>
         </template>
-    </vue-typeahead-bootstrap>
+    </div>
 </template>
 
 <script>
@@ -22,11 +42,13 @@ import Vue from "vue";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
+import Multiselect from "vue-multiselect";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
+Vue.component("multiselect", Multiselect);
 
 export default Vue.component("phenotype-picker", {
     props: {
@@ -41,6 +63,11 @@ export default Vue.component("phenotype-picker", {
         defaultSet: {
             type: String,
             required: false
+        },
+        multipleselect: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
 
@@ -65,13 +92,17 @@ export default Vue.component("phenotype-picker", {
                 return 0;
             });
         }
+
+        // phenotypeArray() {
+        //     return this.phenotypes.map(x => x.name);
+        // }
     },
     methods: {
         onPhenotypeSelected(event) {
-          this.$emit("phenotypeAssociationGeneData", event);
+            this.$emit("phenotypeAssociationGeneData", event);
 
             if (this.clearOnSelected) {
-                this.userText = '';
+                this.userText = "";
             }
         },
 
@@ -79,7 +110,20 @@ export default Vue.component("phenotype-picker", {
             this.$nextTick(() => {
                 this.$refs.phenotypeSelect.$refs.input.focus();
             });
+        },
+
+        addTag(newTag) {
+            const tag = {
+                name: newTag,
+                code:
+                    newTag.substring(0, 2) +
+                    Math.floor(Math.random() * 10000000)
+            };
+            this.options.push(tag);
+            this.value.push(tag);
         }
     }
 });
 </script>
+
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>

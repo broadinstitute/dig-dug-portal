@@ -110,9 +110,9 @@ new Vue({
             return this.$store.state.geneFinder.data;
         },
 
-        // phenotypeNames() {
-        //     return [keyParams.phenotype];
-        // },
+        phenotypeNames() {
+            return [this.$store.state.phenotype];
+        },
 
         foundAssociations() {
 

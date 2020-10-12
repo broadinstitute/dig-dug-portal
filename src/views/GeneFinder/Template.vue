@@ -22,11 +22,12 @@
                         ></phenotype-picker>
                     </div>
                     <div class="col filter-col-lg">
-                        <div class="label" style="margin-bottom: 5px">Set secondary phenotype</div>
+                        <div style="margin-bottom: 5px">Set secondary phenotype</div>
                         <phenotype-picker
                             :phenotypes="$store.state.bioPortal.phenotypes"
                             :default-phenotype="$store.state.phenotype.description"
-                            :clearOnSelected="false"
+                            :clearOnSelected="true"
+                            :multipleselect="true"
                             @phenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
                         ></phenotype-picker>
                     </div>
@@ -35,7 +36,7 @@
 
                 <div v-if="$parent.geneFinderData">
                     <gene-finder-table
-                        :phenotypes="[this.$store.state.phenotype]"
+                        :phenotypes="$parent.phenotypeNames"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :associations="$parent.geneFinderData"
                         :per-page="10"
