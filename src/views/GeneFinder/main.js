@@ -85,8 +85,12 @@ new Vue({
         getPhenotypeAssociatedGeneFinderData(event) {
             this.$store.commit("setPhenotype", event.name)
             this.$store.dispatch("queryGeneFinder");
-
+        },
+        updateGeneFinderData(event) {
+            this.$store.commit("setSecondaryPhenotype", event.name)
+            this.$store.dispatch("queryGeneFinder");
         }
+
     },
 
     computed: {
@@ -106,11 +110,12 @@ new Vue({
             return this.$store.state.geneFinder.data;
         },
 
-        phenotypeName() {
-            return this.$store.state.phenotype.name;
-        },
+        // phenotypeNames() {
+        //     return [keyParams.phenotype];
+        // },
 
         foundAssociations() {
+
 
 
         },
@@ -118,11 +123,12 @@ new Vue({
     },
 
     watch: {
-        "$store.state.phenotype": function (phenotype) {
-            this.$store.commit("setPhenotype", phenotype)
-        },
 
 
+
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        }
 
     }
 }).$mount("#app");

@@ -17,18 +17,26 @@ export default new Vuex.Store({
     state: {
         newPhenotype: null,
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
-        geneFinderData: {}
+        geneFinderData: {},
+        secondaryPhenotype: []
     },
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
         },
+
+        setSecondaryPhenotype(state, secondaryPhenotype) {
+            state.secondaryPhenotype = secondaryPhenotype;
+        },
+
         setGeneFinderData(state, geneFinderData) {
             state.geneFinderData = geneFinderData;
         },
 
     },
     getters: {
+
+
 
     },
     actions: {
@@ -38,7 +46,6 @@ export default new Vuex.Store({
             let phenotypeQuery = { ...query, limit: 500 };
             context.commit("setPhenotype", context.state.phenotype);
             context.dispatch("geneFinder/query", phenotypeQuery);
-
         },
 
     }

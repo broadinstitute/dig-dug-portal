@@ -10,25 +10,37 @@
                     :noIcon="false"
                 ></tooltip-documentation>
 
-                <filter-group v-model="$parent.annotationsFilter" :looseMatch="true">
+                <filter-group :looseMatch="true">
+                    <!-- Primary Phenotype (single select) -->
                     <div class="col filter-col-lg">
                         <div class="label" style="margin-bottom: 5px">Set primary phenotype</div>
                         <phenotype-picker
                             :phenotypes="$store.state.bioPortal.phenotypes"
                             :default-phenotype="$store.state.phenotype.description"
-                            :clearOnSelected="true"
+                            :clearOnSelected="false"
                             @phenotypeAssociationGeneData="$parent.getPhenotypeAssociatedGeneFinderData($event)"
                         ></phenotype-picker>
                     </div>
+                    <div class="col filter-col-lg">
+                        <div class="label" style="margin-bottom: 5px">Set secondary phenotype</div>
+                        <phenotype-picker
+                            :phenotypes="$store.state.bioPortal.phenotypes"
+                            :default-phenotype="$store.state.phenotype.description"
+                            :clearOnSelected="false"
+                            @phenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
+                        ></phenotype-picker>
+                    </div>
+                    <!-- Secondary Phenotype (multi select) -->
                 </filter-group>
 
-                <gene-finder-table
-                    v-if="$parent.geneFinderData"
-                    :phenotypes="['T2D']"
-                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                    :associations="$parent.geneFinderData"
-                    :per-page="10"
-                ></gene-finder-table>
+                <div v-if="$parent.geneFinderData">
+                    <gene-finder-table
+                        :phenotypes="[this.$store.state.phenotype]"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :associations="$parent.geneFinderData"
+                        :per-page="10"
+                    ></gene-finder-table>
+                </div>
             </h4>
         </div>
     </div>
