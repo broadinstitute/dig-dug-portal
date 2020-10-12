@@ -1,24 +1,33 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
+import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import AssociationsTable from "@/components/AssociationsTable.vue";
-import GeneFinderTable from "@/components/GeneFinderTable.vue";
-import EnrichmentTable from "@/components/EnrichmentTable.vue";
-import DatasetsTable from "@/components/DatasetsTable.vue";
+import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable";
+import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
-import RawImage from "@/components/RawImage.vue";
-import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
-import { rawUrl, getAccessToken } from "@/utils/bioIndexUtils";
+import keyParams from "@/utils/keyParams";
+import Autocomplete from "@/components/Autocomplete.vue";
+import PhenotypePicker from "@/components/PhenotypePicker.vue";
 import Formatters from "@/utils/formatters";
+import GeneFinderTable from "@/components/GeneFinderTable.vue";
+import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
+
+import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterControl from "@/components/Filter/FilterControl.vue"
+import FilterPValue from "@/components/Filter/FilterPValue.vue"
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -26,20 +35,34 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
+Vue.config.productionTip = false;
+Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
+
 new Vue({
     store,
-
+    modules: {},
     components: {
         PageHeader,
         PageFooter,
         Alert,
-        PhenotypeSelectPicker,
-        GeneFinderTable,
-        AssociationsTable,
-        EnrichmentTable,
-        DatasetsTable,
+        PhenotypePicker,
         Documentation,
-        RawImage
+        GeneFinderTable,
+        UnauthorizedMessage,
+        FilterGroup,
+        FilterControl,
+        FilterPValue,
+        FilterEnumeration,
+        FilterGreaterThan,
+
+    },
+
+    data() {
+        return {
+            counter: 0,
+            geneFinderFilter: null,
+        };
     },
 
     created() {
@@ -58,17 +81,20 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        intFormatter: Formatters.intFormatter
+
+        getPhenotypeAssociatedGeneFinderData(event) {
+            this.$store.commit("setPhenotype", event.name)
+            this.$store.dispatch("queryGeneFinder");
+
+        }
     },
 
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
-
             if (contents.length === 0) {
                 return {};
             }
-
             return contents[0];
         },
 
@@ -76,28 +102,27 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
-  
-    
+        geneFinderData() {
+            return this.$store.state.geneFinder.data;
+        },
+
+        phenotypeName() {
+            return this.$store.state.phenotype.name;
+        },
+
+        foundAssociations() {
+
+
+        },
+
     },
 
     watch: {
-        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            let name = keyParams.phenotype;
-            let phenotype = phenotypeMap[name];
-
-            if (!!phenotype) {
-                this.$store.commit("setPhenotype", phenotype);
-                keyParams.set({ phenotype: phenotype.name });
-            }
-        },
-
         "$store.state.phenotype": function (phenotype) {
-            this.$store.dispatch("queryPhenotype");
-            uiUtils.hideElement("phenotypeSearchHolder");
+            this.$store.commit("setPhenotype", phenotype)
         },
 
-        diseaseGroup(group) {
-            this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        }
+
+
     }
 }).$mount("#app");

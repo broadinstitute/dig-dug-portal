@@ -12,36 +12,34 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        genes: bioIndex("gene-finder"),
+        geneFinder: bioIndex("gene-finder"),
     },
     state: {
-        // phenotypes needs to be an array so colors don't change!
-        primaryphenotype: null,
-        secondaryPhenotype:[],
-        newPhenotype: null
+        newPhenotype: null,
+        phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
+        geneFinderData: {}
     },
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
-        }
-    },
-    getters: {
-        documentationMap(state) {
-            return {
-                phenotype: state.phenotype.description
-            }
-        }
-    },
-    actions: {
-        onPrimaryPhenotypeChange(context, primaryphenotype) {
-            context.commit("setPhenotype", primaryphenotype);
-            keyParams.set({ primaryphenotype: primaryphenotype.name });
+        },
+        setGeneFinderData(state, geneFinderData) {
+            state.geneFinderData = geneFinderData;
         },
 
-        queryPhenotype(context) {
-            let query = { q: context.state.phenotype.name };
-            let geneQuery = { ...query, limit: 500 };
-            context.dispatch("genes/query", geneQuery);
-        }
+    },
+    getters: {
+
+    },
+    actions: {
+
+        queryGeneFinder(context) {
+            let query = { q: context.state.phenotype };
+            let phenotypeQuery = { ...query, limit: 500 };
+            context.commit("setPhenotype", context.state.phenotype);
+            context.dispatch("geneFinder/query", phenotypeQuery);
+
+        },
+
     }
 });

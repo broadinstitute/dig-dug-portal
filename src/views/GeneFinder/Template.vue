@@ -9,45 +9,27 @@
                     :isHover="true"
                     :noIcon="false"
                 ></tooltip-documentation>
+
+                <filter-group v-model="$parent.annotationsFilter" :looseMatch="true">
+                    <div class="col filter-col-lg">
+                        <div class="label" style="margin-bottom: 5px">Set primary phenotype</div>
+                        <phenotype-picker
+                            :phenotypes="$store.state.bioPortal.phenotypes"
+                            :default-phenotype="$store.state.phenotype.description"
+                            :clearOnSelected="true"
+                            @phenotypeAssociationGeneData="$parent.getPhenotypeAssociatedGeneFinderData($event)"
+                        ></phenotype-picker>
+                    </div>
+                </filter-group>
+
+                <gene-finder-table
+                    v-if="$parent.geneFinderData"
+                    :phenotypes="['T2D']"
+                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                    :associations="$parent.geneFinderData"
+                    :per-page="10"
+                ></gene-finder-table>
             </h4>
-
-            <filter-group v-model="$parent.associationsFilter" :looseMatch="true">
-                <filter-enumeration-control
-                    :field="'consequence'"
-                    :options="
-                                    $store.state.associations.data.map(
-                                        (association) => association.consequence
-                                    )
-                                "
-                >
-                    <div class="label">Consequence</div>
-                </filter-enumeration-control>
-                <filter-enumeration-control
-                    :field="'nearest'"
-                    :options="
-                                    $store.state.associations.data.map(
-                                        (association) => association.nearest[0]
-                                    )
-                                "
-                >
-                    <div class="label">Closest Genes</div>
-                </filter-enumeration-control>
-
-                <filter-pvalue-control :field="'pValue'">
-                    <div class="label">P-Value (&le;)</div>
-                </filter-pvalue-control>
-
-                <filter-effect-direction-control :field="'beta'">
-                    <div class="label">Effect (+/-)</div>
-                </filter-effect-direction-control>
-            </filter-group>
-
-            <associations-table
-                :phenotypes="[$store.state.phenotype]"
-                :associations="$store.state.associations.data"
-                :filter="$parent.associationsFilter"
-                :per-page="10"
-            ></associations-table>
         </div>
     </div>
 </template>
