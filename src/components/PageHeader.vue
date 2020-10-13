@@ -11,8 +11,7 @@
                     <div class="amp-banner-left">
                         <a
                             href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
-                            >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a
-                        >
+                        >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a>
                     </div>
                 </div>
             </div>
@@ -65,35 +64,24 @@
                         <li class="am-menu">
                             <a href>Data</a>
                             <ul class="am-submenu">
-                                <li
-                                    page="data"
-                                    v-if="
-                                        diseaseGroup.name &&
-                                        diseaseGroup.name == 'v2f'
-                                    "
-                                >
-                                    <a :href="'/epigeneticdatasets.html'"
-                                        >Epigenetic Datasets</a
-                                    >
-                                </li>
+                                <menu-item
+                                    :group="diseaseGroup.name"
+                                    name="page.data.epigeneticdatasets"
+                                    menu="Epigenetic Datasets"
+                                    link="/epigeneticdatasets.html"
+                                ></menu-item>
                                 <li page="data">
-                                    <a :href="'/datasets.html'"
-                                        >Genetic association datasets</a
-                                    >
+                                    <a :href="'/datasets.html'">Genetic association datasets</a>
                                 </li>
                                 <li page="data">
                                     <a :href="'/downloads.html'">Downloads</a>
                                 </li>
-                                <li
-                                    page="data"
-                                    v-if="
-                                        diseaseGroup.name &&
-                                        (diseaseGroup.name == 't2d' ||
-                                            diseaseGroup.name == 'md')
-                                    "
-                                >
-                                    <a :href="'/apis.html'">APIs</a>
-                                </li>
+                                <menu-item
+                                    :group="diseaseGroup.name"
+                                    name="page.data.apis"
+                                    menu="APIs"
+                                    link="/apis.html"
+                                ></menu-item>
                             </ul>
                         </li>
                         <li class="am-menu">
@@ -105,17 +93,12 @@
                                 <li page="hugecalculator">
                                     <a href="/hugecalculator.html?gene=SLC30A8">HuGe Calculator</a>
                                 </li>
-                                <li
-                                    page="tools"
-                                    v-if="
-                                        diseaseGroup.name == 'md' ||
-                                        diseaseGroup.name == 't2d'
-                                    "
-                                >
-                                    <a href="/effectorgenes.html"
-                                        >Predicted Effector Genes</a
-                                    >
-                                </li>
+                                <menu-item
+                                    :group="diseaseGroup.name"
+                                    name="page.egl.summaries"
+                                    menu="Predicted Effector Genes"
+                                    link="/effectorgenes.html"
+                                ></menu-item>
                             </ul>
                         </li>
                         <li class="am-menu">
@@ -124,37 +107,24 @@
                                 <li page="information">
                                     <a href="/about.html">About</a>
                                 </li>
-                                <li
-                                    page="information"
-                                    v-if="
-                                        diseaseGroup.name &&
-                                        diseaseGroup.name != 'v2f' &&
-                                        diseaseGroup.name != 'cvd' &&
-                                        diseaseGroup.name != 'cd' &&
-                                        diseaseGroup.name != 'sleep'
-                                    "
-                                >
-                                    <a href="/collaborate.html">Collaborate</a>
-                                </li>
+                                <menu-item
+                                    :group="diseaseGroup.name"
+                                    name="page.information.collaborate"
+                                    menu="Collaborate"
+                                    link="/collaborate.html"
+                                ></menu-item>
                                 <li page="information">
                                     <a href="/policies.html">Policies</a>
                                 </li>
                                 <li page="information">
                                     <a href="/resources.html">Resources</a>
                                 </li>
-                                <li
-                                    page="information"
-                                    v-if="
-                                        diseaseGroup.name &&
-                                        diseaseGroup.name != 'cvd' &&
-                                        diseaseGroup.name != 'cd' &&
-                                        diseaseGroup.name != 'sleep'
-                                    "
-                                >
-                                    <a href="/publications.html"
-                                        >Publications</a
-                                    >
-                                </li>
+                                <menu-item
+                                    :group="diseaseGroup.name"
+                                    name="page.information.publications"
+                                    menu="Publications"
+                                    link="/publications.html"
+                                ></menu-item>
                                 <li page="information">
                                     <a href="/news.html">News</a>
                                 </li>
@@ -171,16 +141,14 @@
                                 href="/logout"
                                 :class="diseaseGroup.name + 'kp-login'"
                                 :title="user"
-                                >Logout</a
-                            >
+                            >Logout</a>
                         </li>
                         <li v-else>
                             <a
                                 href="/login"
                                 @click.prevent="loginUser"
                                 :class="diseaseGroup.name + 'kp-login'"
-                                >Login</a
-                            >
+                            >Login</a>
                         </li>
                     </ul>
                 </div>
@@ -194,6 +162,7 @@ import Vue from "vue";
 import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import MenuItem from "@/components/MenuItem.vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { userMixin } from "@/mixins/userMixin";
 Vue.use(VueCookies);
@@ -201,7 +170,8 @@ Vue.use(VueCookies);
 export default Vue.component("page-header", {
     props: ["diseaseGroup", "frontContents"],
     components: {
-        GoogleAnalytics
+        GoogleAnalytics,
+        MenuItem,
     },
     mixins: [userMixin],
     data() {
@@ -224,7 +194,7 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
-        }
+        },
     },
 });
 </script>

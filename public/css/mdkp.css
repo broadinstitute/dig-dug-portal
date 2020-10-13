@@ -251,27 +251,27 @@ a:hover {
     text-align: right;
 }
 
-.mdkp-menu li,
-.cvdkp-menu li,
-.sleepkp-menu li,
-.cdkp-menu li,
-.t2dkp-menu li,
-.v2fkp-menu li,
-.t1dkp-menu li,
-.mskkp-menu li {
+.mdkp-menu > li,
+.cvdkp-menu > li,
+.sleepkp-menu > li,
+.cdkp-menu > li,
+.t2dkp-menu > li,
+.v2fkp-menu > li,
+.t1dkp-menu > li,
+.mskkp-menu > li {
     list-style: none;
     display: inline-block;
     padding-top: 15px;
 }
 
-.mdkp-menu li a,
-.cvdkp-menu li a,
-.sleepkp-menu li a,
-.cdkp-menu li a,
-.t2dkp-menu li a,
-.v2fkp-menu li a,
-.t1dkp-menu li a,
-.mskkp-menu li a {
+.mdkp-menu > li > a,
+.cvdkp-menu > li > a,
+.sleepkp-menu > li > a,
+.cdkp-menu > li > a,
+.t2dkp-menu > li > a,
+.v2fkp-menu > li > a,
+.t1dkp-menu > li > a,
+.mskkp-menu > li > a {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 5px;
@@ -359,22 +359,27 @@ a:hover {
 
 .am-submenu > li {
     width: 100%;
-    background-color: rgba(100, 100, 100, 0.85);
+    padding: 0 !important;
     font-size: 0.8em;
-    padding: 5px 15px 5px 15px;
-    border-bottom: solid 1px #666;
+    background-color: rgba(100, 100, 100, 0.85);
     text-align: left;
     list-style: none;
-    white-space: nowrap;
 }
 
 .am-submenu > li:hover {
     background-color: rgba(90, 90, 90, 1);
-    font-size: 0.8em;
+}
+
+.am-submenu > li > a {
+    display: block;
+    width: 100%;
     padding: 5px 15px 5px 15px;
     border-bottom: solid 1px #666;
-    text-align: left;
     list-style: none;
+    white-space: nowrap;
+    color: #ffffff !important;
+    font-size: 16px;
+    font-weight: 300;
 }
 
 .am-submenu > li > a {
