@@ -18,8 +18,8 @@ export function filterFromPredicates(allPredicates, inclusive) {
         // This step must run before anything else is excluded, otherwise certain exclusions might be reversed and in the worst case we just get the original set back (no information)
         // Instead we treat this as setting up the bounding conditions of the set (what we want to include for filtering)
 
-        // If there are no predicates that want to tell us whether to override the global configuration for the filter, it's irrelevant to the filter.
-        // So the default for whether or not a point is included must be "true" since the filter policy is innocent-until-guilty.
+        // If there are no predicates that tell to override the global configuration for the filter, it's irrelevant to the filter.
+        // So the default for whether or not a point is included must be "true", since the filter policy is innocent-until-guilty.
         let included = true;
         if (inclusivePredicates.length > 0) {
             // since there are some local filters doing overrides, we let them decide what's included
@@ -34,6 +34,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
                 if (included === true) break;
             }
         }
+
         if (allPredicates.length > 0) {
             // if we have predicates, the burden of proof may change based on our filtering type
             if (!!!inclusive) {
@@ -64,6 +65,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
             }
         }
         return included && innocent;
+        
     };
 }
 

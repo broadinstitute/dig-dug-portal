@@ -223,6 +223,7 @@
                                         (dataset) => dataset.ancestry
                                     )
                                 "
+                                :labelFormatter="$parent.ancestryFormatter"
                             >
                                 <div class="label">Ancestry</div>
                             </filter-enumeration-control>
@@ -297,6 +298,7 @@
                                         (annotation) => annotation.ancestry
                                     )
                                 "
+                                :labelFormatter="$parent.ancestryFormatter"
                             >
                                 <div class="label">Ancestry</div>
                             </filter-enumeration-control>

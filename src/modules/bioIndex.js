@@ -94,7 +94,6 @@ export default function (index, extend) {
                     // fetch the data
                     let data = await query(index, q, {
                         limit: limit || context.state.limit,
-
                         // updates progress
                         resolveHandler: json => {
                             profile.fetch += json.profile.fetch || 0;
@@ -104,18 +103,13 @@ export default function (index, extend) {
                             context.commit("updateCount", json);
                             context.commit("setProgress", json.progress);
                         },
-
                         // report errors
                         errHandler: error => {
                             closeAlert(alertID);
                             postAlertError(error.detail);
                             context.commit('setError', error.detail);
                         },
-
-                        finishHandler: response => {
-                            closeAlert(alertID);
-                        }
-                    });
+                    }).finally(closeAlert(alertID));
 
                     // data is loaded
                     closeAlert(alertID);
