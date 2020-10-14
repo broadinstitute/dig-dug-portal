@@ -11,7 +11,8 @@
                     <div class="amp-banner-left">
                         <a
                             href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
-                        >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a>
+                            >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a
+                        >
                     </div>
                 </div>
             </div>
@@ -56,101 +57,32 @@
                         />
                     </a>
                 </div>
-                <div :class="diseaseGroup.name + 'kp-menu-wrapper col-md-8'">
-                    <ul :class="diseaseGroup.name + 'kp-menu kp-menu'">
-                        <li class="am-menu">
-                            <a href="/">Home</a>
-                        </li>
-                        <li class="am-menu">
-                            <a href>Data</a>
-                            <ul class="am-submenu">
-                                <menu-item
-                                    :group="diseaseGroup.name"
-                                    name="page.data.epigeneticdatasets"
-                                    menu="Epigenetic Datasets"
-                                    link="/epigeneticdatasets.html"
-                                ></menu-item>
-                                <li page="data">
-                                    <a :href="'/datasets.html'">Genetic association datasets</a>
-                                </li>
-                                <li page="data">
-                                    <a :href="'/downloads.html'">Downloads</a>
-                                </li>
-                                <menu-item
-                                    :group="diseaseGroup.name"
-                                    name="page.data.apis"
-                                    menu="APIs"
-                                    link="/apis.html"
-                                ></menu-item>
-                            </ul>
-                        </li>
-                        <li class="am-menu">
-                            <a href>Tools</a>
-                            <ul class="am-submenu">
-                                <!-- <li page="hugecalculator">
-                                    <a href="/hugecalculator.html">HuGe Calculator</a>
-                                </li>-->
-                                <li page="hugecalculator">
-                                    <a href="/hugecalculator.html?gene=SLC30A8">HuGe Calculator</a>
-                                </li>
-                                <menu-item
-                                    :group="diseaseGroup.name"
-                                    name="page.tools.effectorgenes"
-                                    menu="Predicted Effector Genes"
-                                    link="/effectorgenes.html"
-                                ></menu-item>
-                            </ul>
-                        </li>
-                        <li class="am-menu">
-                            <a href>Information</a>
-                            <ul class="am-submenu">
-                                <li page="information">
-                                    <a href="/about.html">About</a>
-                                </li>
-                                <menu-item
-                                    :group="diseaseGroup.name"
-                                    name="page.information.collaborate"
-                                    menu="Collaborate"
-                                    link="/collaborate.html"
-                                ></menu-item>
-                                <li page="information">
-                                    <a href="/policies.html">Policies</a>
-                                </li>
-                                <li page="information">
-                                    <a href="/resources.html">Resources</a>
-                                </li>
-                                <menu-item
-                                    :group="diseaseGroup.name"
-                                    name="page.information.publications"
-                                    menu="Publications"
-                                    link="/publications.html"
-                                ></menu-item>
-                                <li page="information">
-                                    <a href="/news.html">News</a>
-                                </li>
-                                <!--<li page="information">
-                                    <a href="/contacts.html">Contacts</a>
-                                </li>-->
-                            </ul>
-                        </li>
-                        <li class="am-menu">
-                            <a href="//kp4cd.org/contact">Contact</a>
-                        </li>
-                        <li v-if="!!user">
-                            <a
-                                href="/logout"
-                                :class="diseaseGroup.name + 'kp-login'"
-                                :title="user"
-                            >Logout</a>
-                        </li>
-                        <li v-else>
-                            <a
-                                href="/login"
-                                @click.prevent="loginUser"
-                                :class="diseaseGroup.name + 'kp-login'"
-                            >Login</a>
-                        </li>
-                    </ul>
+                <div :class="'kp-menu-wrapper col-md-8'">
+                    <menu-item
+                        v-if="!!diseaseGroup.name"
+                        :group="diseaseGroup.name"
+                        :name="'header.menu.' + diseaseGroup.name"
+                    ></menu-item>
+                    <div class="login-menu-wrapper">
+                        <ul>
+                            <li v-if="!!user">
+                                <a
+                                    href="/logout"
+                                    :class="diseaseGroup.name + 'kp-login'"
+                                    :title="user"
+                                    >Logout</a
+                                >
+                            </li>
+                            <li v-else>
+                                <a
+                                    href="/login"
+                                    @click.prevent="loginUser"
+                                    :class="diseaseGroup.name + 'kp-login'"
+                                    >Login</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

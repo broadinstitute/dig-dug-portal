@@ -1,5 +1,5 @@
 <template>
-    <li v-html="menuContent"></li>
+    <div v-html="menuContent" class="portal-menu-wrapper"></div>
 </template>
 
 <script>
@@ -60,10 +60,7 @@ export default Vue.component("menu-item", {
     computed: {
         menuContent() {
             if (!!this.content) {
-                let menuContent = this.content.includes(this.group)
-                    ? '<a href="' + this.link + '">' + this.menu + "</a>"
-                    : undefined;
-                return menuContent;
+                return this.converter.makeHtml(this.content);
             }
         },
     },
