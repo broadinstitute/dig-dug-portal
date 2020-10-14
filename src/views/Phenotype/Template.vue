@@ -54,7 +54,7 @@
                                     <raw-img
                                         id="manhattanPlot"
                                         :src="$parent.manhattanPlot"
-                                        alt="Card image cap"
+                                        alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
                                         :content-fill="
                                             $store.getters['documentationMap']
@@ -67,7 +67,7 @@
                                     <raw-img
                                         id="qqPlot"
                                         :src="$parent.qqPlot"
-                                        alt="Card image cap"
+                                        alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
                                         :content-fill="
                                             $store.getters['documentationMap']
@@ -223,6 +223,7 @@
                                         (dataset) => dataset.ancestry
                                     )
                                 "
+                                :labelFormatter="$parent.ancestryFormatter"
                             >
                                 <div class="label">Ancestry</div>
                             </filter-enumeration-control>
@@ -297,6 +298,7 @@
                                         (annotation) => annotation.ancestry
                                     )
                                 "
+                                :labelFormatter="$parent.ancestryFormatter"
                             >
                                 <div class="label">Ancestry</div>
                             </filter-enumeration-control>

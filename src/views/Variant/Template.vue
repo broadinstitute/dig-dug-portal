@@ -206,15 +206,16 @@
                                           ].description
                                         : phenotype
                             "
+                            :multiple="true"
                         >
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
 
-                        <filter-pvalue-control :field="'pValue'">
+                        <filter-pvalue-control :field="'pValue'" :inclusive="true">
                             <div class="label">P-Value (&le;)</div>
                         </filter-pvalue-control>
 
-                        <filter-effect-direction-control :field="'beta'">
+                        <filter-effect-direction-control :field="'beta'" :inclusive="true">
                             <div class="label">Effect (+/-)</div>
                         </filter-effect-direction-control>
                     </filter-group>

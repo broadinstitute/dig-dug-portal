@@ -1,5 +1,22 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import store from "./store.js";
+
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import AssociationsTable from "@/components/AssociationsTable";
+import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
+import Documentation from "@/components/Documentation";
+
+import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
+
+import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
+import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker";
+import LunarisLink from "@/components/LunarisLink";
+import Autocomplete from "@/components/Autocomplete.vue";
+import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
 import FilterControl from "@/components/Filter/FilterControl.vue"
@@ -31,7 +48,6 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
-        FilterMulti,
 
         AssociationsTable,
         LocusZoom,
@@ -44,9 +60,11 @@ new Vue({
         ForestPlot,
         TooltipDocumentation
     },
-    render(createElement, context) {
+
+    render(createElement) {
         return createElement(Template);
     },
+
     data() {
         return {
             counter: 0,
@@ -85,8 +103,8 @@ new Vue({
     mounted() {
 
     },
-    computed: {
 
+    computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {

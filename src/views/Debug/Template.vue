@@ -1,4 +1,5 @@
 <template>
+    <!-- Header -->
     <div>
         <input type="checkbox" id="checkbox" v-model="$parent.inclusive" />
         <label for="checkbox">{{ $parent.inclusive ? "inclusive filter" : "exclusive filter" }}</label>
