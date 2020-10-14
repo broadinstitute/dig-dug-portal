@@ -24,21 +24,21 @@
                     <div class="col filter-col-lg">
                         <div style="margin-bottom: 5px">Set secondary phenotype</div>
                         <phenotype-picker
-                            :phenotypes="$store.state.bioPortal.phenotypes"
+                            :phenotypes="$parent.secondaryPhenotypeOptions"
                             :default-phenotype="$store.state.phenotype.description"
                             :clearOnSelected="true"
                             :multipleselect="true"
-                            @phenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
+                            @secphenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
                         ></phenotype-picker>
                     </div>
                     <!-- Secondary Phenotype (multi select) -->
                 </filter-group>
 
-                <div v-if="$parent.geneFinderData">
+                <div>
                     <gene-finder-table
-                        :phenotypes="$parent.phenotypeNames"
+                        :phenotypes="$parent.phenotypes"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                        :associations="$parent.geneFinderData"
+                        :associations="$parent.combined"
                         :per-page="10"
                     ></gene-finder-table>
                 </div>

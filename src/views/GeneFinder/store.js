@@ -5,6 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
 import keyParams from "@/utils/keyParams";
+import { query } from "@/utils/bioIndexUtils";
 
 Vue.use(Vuex);
 
@@ -17,36 +18,75 @@ export default new Vuex.Store({
     state: {
         newPhenotype: null,
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
-        geneFinderData: {},
-        secondaryPhenotype: []
+        geneFinderAssociations: {},
+        phenotypelist: [],
+        secondaryPhenotype: null
     },
     mutations: {
+        setPrimaryPhenotypeData(state, d = {}) {
+            let data = d.genefinderData
+            let phenotype = d.phenotype
+            state.geneFinderAssociations[phenotype] = data;
+            state.phenotypelist = [phenotype];
+        },
+        setSecondaryPhenotypeData(state, d = {}) {
+            let data = d.genefinderData
+            let phenotype = d.phenotype
+
+            state.geneFinderAssociations[phenotype] = data;
+            state.phenotypelist.push(phenotype);
+        },
+
+        setPhenotypeGeneFinderAssociations() {
+            state.geneFinderAssociations[phenotype] = data;
+            state.phenotypelist.push(phenotype);
+        },
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
         },
 
         setSecondaryPhenotype(state, secondaryPhenotype) {
-            state.secondaryPhenotype = secondaryPhenotype;
+            //let secondaryPhenotypeList = []
+            state.secondaryPhenotype = secondaryPhenotype
         },
 
-        setGeneFinderData(state, geneFinderData) {
-            state.geneFinderData = geneFinderData;
-        },
 
     },
     getters: {
-
+        phenotypeGeneFinderData(state) {
+            let phenotyped = state.phenotype;
+            if (!!state.secondaryPhenotype) {
+                phenotyped = state.secondaryPhenotype
+            }
+            let data = state.geneFinder.data
+            let m = {}
+            m[phenotyped] = data;
+            return m;
+        }
 
 
     },
     actions: {
 
-        queryGeneFinder(context) {
-            let query = { q: context.state.phenotype };
-            let phenotypeQuery = { ...query, limit: 500 };
-            context.commit("setPhenotype", context.state.phenotype);
-            context.dispatch("geneFinder/query", phenotypeQuery);
+        async queryGeneFinder(context) {
+            let phenotype = context.state.phenotype
+            let response = await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
+                let data = {}
+                data[phenotype] = bioIndexData
+                context.commit("setPhenotype", phenotype);
+                context.commit("setPrimaryPhenotypeData", { phenotype: phenotype, genefinderData: bioIndexData });
+            })
         },
+
+        async secondaryGeneFinder(context) {
+            let phenotype = context.state.secondaryPhenotype
+            let response = await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
+                let data = {}
+                data[phenotype] = bioIndexData
+                context.commit("setSecondaryPhenotype", phenotype);
+                context.commit("setSecondaryPhenotypeData", { phenotype: phenotype, genefinderData: bioIndexData });
+            })
+        }
 
     }
 });

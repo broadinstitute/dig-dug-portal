@@ -34,6 +34,7 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import { ConcatSource } from "webpack-sources";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -62,6 +63,8 @@ new Vue({
         return {
             counter: 0,
             geneFinderFilter: null,
+            phenotypelist: [],
+            geneFinderAssociations: {}
         };
     },
 
@@ -88,7 +91,8 @@ new Vue({
         },
         updateGeneFinderData(event) {
             this.$store.commit("setSecondaryPhenotype", event.name)
-            this.$store.dispatch("queryGeneFinder");
+            this.$store.dispatch("secondaryGeneFinder");
+
         }
 
     },
@@ -106,26 +110,40 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
-        geneFinderData() {
-            return this.$store.state.geneFinder.data;
+        combined() {
+            let combined = []
+            let phenotypes = this.$store.state.phenotypelist;
+            let genes = this.$store.state.geneFinderAssociations;
+
+            for (let i in phenotypes) {
+                let phenotype = phenotypes[i]
+                let data = genes[phenotype];
+                combined = combined.concat(data);
+            }
+            return combined;
+
         },
 
-        phenotypeNames() {
-            return [this.$store.state.phenotype];
+
+
+        phenotypes() {
+            let selectedPhenotypesList = []
+            selectedPhenotypesList.push(this.$store.state.phenotype)
+            if (!!this.$store.state.secondaryPhenotype) {
+                selectedPhenotypesList.push(this.$store.state.secondaryPhenotype)
+            }
+            return selectedPhenotypesList;
         },
 
-        foundAssociations() {
-
-
-
+        secondaryPhenotypeOptions() {
+            return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
         },
+
+
 
     },
 
     watch: {
-
-
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         }

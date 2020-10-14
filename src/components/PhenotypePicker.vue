@@ -23,16 +23,17 @@
             v-model="userText"
             tag-placeholder="Add this as new tag"
             placeholder="Search or add a tag"
-            label="name"
-            track-by="description"
+            label="description"
+            track-by="name"
             :options="phenotypeOptions"
             :multiple="true"
             :taggable="true"
             @tag="addTag"
+            @select="onSecondaryPhenotypeSelected($event)"
         ></multiselect>
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
-            <small class="text-secondary">{{ options.group }}</small>
+            <small class="text-secondary">{{ options.name }}</small>
         </template>
     </div>
 </template>
@@ -81,21 +82,15 @@ export default Vue.component("phenotype-picker", {
             if (!this.phenotypes) {
                 return [];
             }
-
             return this.phenotypes.sort((a, b) => {
                 if (a.group < b.group) return -1;
                 if (b.group < a.group) return 1;
 
                 if (a.description < b.description) return -1;
                 if (b.description < a.description) return 1;
-
                 return 0;
             });
         }
-
-        // phenotypeArray() {
-        //     return this.phenotypes.map(x => x.name);
-        // }
     },
     methods: {
         onPhenotypeSelected(event) {
@@ -105,7 +100,13 @@ export default Vue.component("phenotype-picker", {
                 this.userText = "";
             }
         },
+        onSecondaryPhenotypeSelected(event) {
+            this.$emit("secphenotypeAssociationGeneData", event);
 
+            if (this.clearOnSelected) {
+                this.userText = "";
+            }
+        },
         setFocus() {
             this.$nextTick(() => {
                 this.$refs.phenotypeSelect.$refs.input.focus();
