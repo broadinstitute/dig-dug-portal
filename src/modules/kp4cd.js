@@ -17,6 +17,7 @@ export default {
             newFeatures: [],
             resources: [],
             researchMethod: [],
+            eglSummaries: [],
             eglData: [],
             eglConfig: [],
             forestPlotData: {},
@@ -45,6 +46,10 @@ export default {
         },
         setResources(state, resources) {
             state.resources = resources;
+        },
+        setEglSummaries(state, eglSummaries) {
+
+            state.eglSummaries = eglSummaries;
         },
         setResearchMethod(state, researchMethod) {
             state.researchMethod = researchMethod;
@@ -137,6 +142,17 @@ export default {
             ).then(resp => resp.json());
             // set the data
             context.commit("setResearchMethod", json);
+        },
+        async getEglSummaries(context, selectedDiseaseGroup) {
+
+            let portal = selectedDiseaseGroup || "md";
+
+            let json = await fetch(
+                "https://kp4cd.org/rest/views/eglmethodsperportal?portal=" +
+                selectedDiseaseGroup
+            ).then(resp => resp.json());
+            // set the data
+            context.commit("setEglSummaries", json);
         },
         async getEglData(context, targetData) {
             let json = await fetch(
