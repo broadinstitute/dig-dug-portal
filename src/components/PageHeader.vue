@@ -95,7 +95,7 @@
                                 </li>
                                 <menu-item
                                     :group="diseaseGroup.name"
-                                    name="page.egl.summaries"
+                                    name="page.tools.effectorgenes"
                                     menu="Predicted Effector Genes"
                                     link="/effectorgenes.html"
                                 ></menu-item>
