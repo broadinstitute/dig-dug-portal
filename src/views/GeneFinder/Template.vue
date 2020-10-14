@@ -10,7 +10,7 @@
                     :noIcon="false"
                 ></tooltip-documentation>
 
-                <filter-group :looseMatch="true">
+                <filter-group v-model="$parent.geneFinderFilter" :looseMatch="true">
                     <!-- Primary Phenotype (single select) -->
                     <div class="col filter-col-lg">
                         <div class="label" style="margin-bottom: 5px">Set primary phenotype</div>
@@ -31,12 +31,16 @@
                             @secphenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
                         ></phenotype-picker>
                     </div>
+
+                    <filter-pvalue-control :field="'pValue'">
+                        <div class="label">P-Value (&le;)</div>
+                    </filter-pvalue-control>
                     <!-- Secondary Phenotype (multi select) -->
                 </filter-group>
 
                 <div>
                     <gene-finder-table
-                        :phenotypes="$parent.phenotypes"
+                        :phenotypes="$store.state.phenotypelist"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :associations="$parent.combined"
                         :per-page="10"
