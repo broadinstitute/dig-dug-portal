@@ -1,14 +1,31 @@
 <template>
-    <div class="card mdkp-card">
-        <div class="card-body">
-            <h4 class="card-title">
-                GeneFinder
-                <tooltip-documentation
-                    name="phenotype.top1000.tooltip"
-                    :content-fill="$parent.documentationMap"
-                    :isHover="true"
-                    :noIcon="false"
-                ></tooltip-documentation>
+    <div>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <div class="card mdkp-card">
+            <div class="card-body">
+                <h4 class="card-title">
+                    Gene Finder
+                    <tooltip-documentation
+                        name="phenotype.top1000.tooltip"
+                        :content-fill="$parent.documentationMap"
+                        :isHover="true"
+                        :noIcon="false"
+                    ></tooltip-documentation>
+                </h4>
+
+                <documentation style="margin-bottom: 50px" name="region.phenos_w_signal.subheader"></documentation>
+
+                <h5 class="card-title">
+                    Build search criteria
+                    <tooltip-documentation
+                        name="phenotype.top1000.tooltip"
+                        :content-fill="$parent.documentationMap"
+                        :isHover="true"
+                        :noIcon="false"
+                    ></tooltip-documentation>
+                </h5>
+
+                <documentation name="region.phenos_w_signal.subheader"></documentation>
 
                 <filter-group v-model="$parent.geneFinderFilter" :looseMatch="true">
                     <!-- Primary Phenotype (single select) -->
@@ -21,6 +38,7 @@
                             @phenotypeAssociationGeneData="$parent.getPhenotypeAssociatedGeneFinderData($event)"
                         ></phenotype-picker>
                     </div>
+                    <!-- Secondary Phenotype (multi select) -->
                     <div class="col filter-col-lg">
                         <div style="margin-bottom: 5px">Set secondary phenotype</div>
                         <phenotype-picker
@@ -31,22 +49,23 @@
                             @secphenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
                         ></phenotype-picker>
                     </div>
-
+                    <!-- pValue filter -->
                     <filter-pvalue-control :field="'pValue'">
                         <div class="label">P-Value (&le;)</div>
                     </filter-pvalue-control>
-                    <!-- Secondary Phenotype (multi select) -->
                 </filter-group>
 
                 <div>
                     <gene-finder-table
+                        v-if="$parent.combined"
                         :phenotypes="$store.state.phenotypelist"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :associations="$parent.combined"
                         :per-page="10"
                     ></gene-finder-table>
                 </div>
-            </h4>
+            </div>
         </div>
+        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
