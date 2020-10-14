@@ -77,7 +77,13 @@ import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
 export default Vue.component("gene-finder-table", {
-    props: ["associations", "phenotypes", "phenotypeMap", "filter"],
+    props: [
+        "associations",
+        "phenotypes",
+        "phenotypeMap",
+        "filter",
+        "exclusive",
+    ],
     components: {
         Documentation,
         TooltipDocumentation,
@@ -168,6 +174,15 @@ export default Vue.component("gene-finder-table", {
                 if (!!r.pValue && r.pValue < data[dataIndex].minP) {
                     data[dataIndex].minP = r.pValue;
                 }
+            }
+
+            // remove entries with missing p-values
+            if (this.exclusive) {
+                let phenotypes = this.phenotypes;
+
+                data = data.filter((row) => {
+                    return phenotypes.every((p) => !!row[`${p}:pValue`]);
+                });
             }
 
             // sort all the records by phenotype p-value
