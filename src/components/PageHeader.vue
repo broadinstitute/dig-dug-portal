@@ -61,7 +61,7 @@
                     <menu-item
                         v-if="!!diseaseGroup.name"
                         :group="diseaseGroup.name"
-                        :name="'header.menu.' + diseaseGroup.name"
+                        name="header.menu"
                     ></menu-item>
                     <div class="login-menu-wrapper">
                         <ul>
