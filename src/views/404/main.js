@@ -33,17 +33,22 @@ new Vue({
         },
         links() {
             return this.$store.state.bioPortal.links;
+        },
+        redirectLink() {
+            if (this.links) {
+                let oldLink = this.currentPath;
+                let foundLink = this.links.find(link => link.path == oldLink);
+
+                if (!!foundLink) {
+                    return foundLink.redirect;
+                }
+            }
         }
     },
     watch: {
-        links(links) {
-            if (links) {
-                let oldLink = this.currentPath;
-                let found = links.path.indexOf(oldLink);
-
-                if (found >= 0) {
-                    window.location.href = links.redirect[found];
-                }
+        redirectLink(href) {
+            if (!!href) {
+                window.location.href = href;
             }
         }
     }

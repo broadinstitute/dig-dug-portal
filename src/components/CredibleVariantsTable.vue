@@ -4,7 +4,7 @@
             hover
             small
             responsive="sm"
-            :items="sortedCredibleVariants"
+            :items="tableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"

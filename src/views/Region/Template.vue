@@ -338,7 +338,7 @@
                         >
                             <lz-associations-panel
                                 :phenotype="$store.state.phenotype.name"
-                                :finishHandler="$parent.updateAssociationsTable"
+                                @input="$parent.updateAssociationsTable"
                             ></lz-associations-panel>
                         </locuszoom>
                     </div>

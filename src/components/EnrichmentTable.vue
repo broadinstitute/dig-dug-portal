@@ -83,18 +83,6 @@ export default Vue.component("enrichment-table", {
                     formatter: Formatters.ancestryFormatter,
                 },
             ],
-            select_annotations: [],
-            select_annotations_text: "",
-            select_methods: [],
-            select_methods_text: "",
-            select_tissues: [],
-            select_tissues_text: "",
-            select_ancestry: "",
-            select_ancestry_text: "",
-            select_pValue: "",
-            select_pValue_text: "",
-            select_ratio: "",
-            select_ratio_text: "",
         };
     },
 
@@ -208,23 +196,6 @@ export default Vue.component("enrichment-table", {
                 });
             }
             return dataRows;
-        },
-    },
-    methods: {
-        addFilter(event, obj) {
-            this[obj].push(event);
-            this[obj + "_text"] = "";
-        },
-        removeFilter(index, obj) {
-            this[obj].splice(index, 1);
-        },
-        setFilter(event, obj) {
-            this[obj] = event;
-            this[obj + "_text"] = "";
-            this.$refs[obj].$el.value = "";
-        },
-        unsetFilter(obj) {
-            this[obj] = "";
         },
     },
 });

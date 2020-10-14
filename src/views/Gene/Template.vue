@@ -145,22 +145,22 @@
                         </h4>
 
 
-                                <filter-group
-                                    v-model="$parent.associationsFilter"
-                                    :looseMatch="true">
-                                    <filter-enumeration-control
-                                        :field="'phenotype'"
-                                        :options="$store.state.associations.data.map(association => association.phenotype)"
-                                        :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
-                                        <div class="label">
-                                            Phenotypes
-                                        </div>
-                                    </filter-enumeration-control>
-                                    <filter-pvalue-control
-                                        :field="'pValue'">
-                                        <div class="label">P-Value (&le;)</div>
-                                    </filter-pvalue-control>
-                                </filter-group>
+                        <filter-group
+                            v-model="$parent.associationsFilter"
+                            :looseMatch="true">
+                            <filter-enumeration-control
+                                :field="'phenotype'"
+                                :options="$store.state.associations.data.map(association => association.phenotype)"
+                                :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
+                                <div class="label">
+                                    Phenotypes
+                                </div>
+                            </filter-enumeration-control>
+                            <filter-pvalue-control
+                                :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
+                        </filter-group>
 
 
                         <locuszoom
