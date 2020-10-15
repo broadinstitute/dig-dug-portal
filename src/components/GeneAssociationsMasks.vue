@@ -164,15 +164,6 @@
                     :class="`feature-plot-${i}`"
                     :key="`plot_${i}`"
                 >
-                    <b-col>Forest Plot</b-col>
-                    <!-- <div :id="`plot_${i}`" class="plots"></div> -->
-                    <forest-plot
-                        :data="row.masks"
-                        :id="`fplot_${i}`"
-                        :element="`fplot_${i}`"
-                        :dichotomous="!!phenotypeMap[row.phenotype].dichotomous"
-                        :ref="`fplot_${i}`"
-                    ></forest-plot>
                 </div>
             </template>
         </b-container>
@@ -186,16 +177,10 @@ import Formatters from "@/utils/formatters";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import ForestPlot from "@/components/ForestPlot";
 
-import * as am4core from "@amcharts/amcharts4/core";
-import * as am4charts from "@amcharts/amcharts4/charts";
-import am4themes_animated from "@amcharts/amcharts4/themes/animated";
-am4core.useTheme(am4themes_animated);
 
 export default Vue.component("gene-associations-masks", {
     props: ["associations", "phenotypeMap"],
-    component: ForestPlot,
     data() {
         return {
             colNames: [

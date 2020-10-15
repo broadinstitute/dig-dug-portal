@@ -1,6 +1,10 @@
 /* We define all the pages first in an object that can be modified BEFORE being
  * exported so we can add/remove pages based on build type.
  */
+const SpeedMeasurePlugin = require("speed-measure-webpack-plugin");
+const smp = new SpeedMeasurePlugin({
+    granularLoaderData: true
+});
 
 let pages = {
     index: {
@@ -168,38 +172,7 @@ module.exports = {
     devServer: {
         writeToDisk: true // https://webpack.js.org/configuration/dev-server/#devserverwritetodisk-
     },
-    configureWebpack: config => {
-        let bioindex_dev = process.env.BIOINDEX_DEV;
-        let bioindex_host = "https://bioindex.hugeamp.org"; // production by default
-
-        if (!!bioindex_dev) {
-            bioindex_host =
-                bioindex_dev == "localhost"
-                    ? "http://localhost:5000"
-                    : "https://bioindex-dev.hugeamp.org";
-        }
-
-        // output which bioindex is being used
-        console.log(
-            `BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`
-        );
-
-        // add the transform rule for bioindex
-        config.module.rules.push({
-            test: /bioIndexUtils\.js$/,
-            loader: "string-replace-loader",
-            options: {
-                search: "SERVER_IP_ADDRESS",
-                replace: bioindex_host,
-                flags: "g"
-            }
-        });
-
-        // create inline maps for dev builds
-        if (process.env.NODE_ENV !== "production") {
-            config.devtool = "inline-source-map";
-        }
-    },
+    configureWebpack: smp.wrap({}),
     productionSourceMap: false,
     pages
 };

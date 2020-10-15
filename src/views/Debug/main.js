@@ -3,19 +3,10 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
-import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
-import Documentation from "@/components/Documentation";
 
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
-
-import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
-import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker";
-import LunarisLink from "@/components/LunarisLink";
-import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
@@ -24,8 +15,6 @@ import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
-import FilterMulti from "@/components/Filter/FilterMulti.vue"
-
 
 import Alert, {
     postAlert,
@@ -57,7 +46,6 @@ new Vue({
         AssociationsTable,
         PosteriorProbabilityPlot,
         ConfidenceIntervalPlot,
-        ForestPlot,
         TooltipDocumentation
     },
 

@@ -887,10 +887,10 @@
                             >
                                 <div class="col-md-6">
                                     <!-- loftee -->
-                                    <forest-plot
+                                    <!-- <forest-plot
                                         :data="$parent.geneAssociationsLoftee"
                                         class="border"
-                                    ></forest-plot>
+                                    ></forest-plot> -->
                                 </div>
                                 <div class="col-md-6">
                                     <documentation
