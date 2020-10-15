@@ -156,6 +156,13 @@ let pages = {
         filename: "404.html",
         title: "Page Not Found",
         chunks: ["chunk-vendors", "chunk-common", "page404"]
+    },
+    gait: {
+        entry: "src/views/GAIT/main.js",
+        template: "public/index.html",
+        filename: "gait.html",
+        title: "Genetic Association Interactive Tool",
+        chunks: ["chunk-vendors", "chunk-common", "page404"]
     }
 };
 
