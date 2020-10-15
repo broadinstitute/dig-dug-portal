@@ -14,14 +14,8 @@ import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
-import keyParams from "@/utils/keyParams";
-import Autocomplete from "@/components/Autocomplete.vue";
 import PhenotypePicker from "@/components/PhenotypePicker.vue";
-import Formatters from "@/utils/formatters";
 import GeneFinderTable from "@/components/GeneFinderTable.vue";
-import LocusZoom from "@/components/lz/LocusZoom";
-import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
-
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
 import FilterControl from "@/components/Filter/FilterControl.vue"
 import FilterPValue from "@/components/Filter/FilterPValue.vue"
@@ -56,7 +50,6 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
-
     },
 
     data() {
@@ -92,8 +85,17 @@ new Vue({
         updateGeneFinderData(event) {
             this.$store.commit("setSecondaryPhenotype", event.name)
             this.$store.dispatch("secondaryGeneFinder");
+        },
+
+        updatePhenotypeList(event) {
+            console.log("he")
+            let plist = this.$store.state.phenotypelist;
+            plist = plist.filter(item => item != event.name)
+            this.$store.commit("setPhenotypelist", plist)
 
         }
+
+
 
     },
 

@@ -20,9 +20,9 @@
 
     <div v-else-if="multipleselect == true">
         <multiselect
+            style="padding: 5px 7px 5px 7px;"
             v-model="userText"
-            tag-placeholder="Add this as new tag"
-            placeholder="Search or add a tag"
+            placeholder="Select secondary phenotypes"
             label="description"
             track-by="name"
             :options="phenotypeOptions"
@@ -30,10 +30,15 @@
             :taggable="true"
             @tag="addTag"
             @select="onSecondaryPhenotypeSelected($event)"
+            @remove="onSecondaryPhenotypeRemoved($event)"
         ></multiselect>
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
-            <small class="text-secondary">{{ options.name }}</small>
+            <!-- <small class="text-secondary">{{ options.name }}</small> -->
+            <b-badge :class="`filter-pill-primaryphenotype`">
+                {{ options.name }}
+                <span class="remove">X</span>
+            </b-badge>
         </template>
     </div>
 </template>
@@ -102,6 +107,14 @@ export default Vue.component("phenotype-picker", {
         },
         onSecondaryPhenotypeSelected(event) {
             this.$emit("secphenotypeAssociationGeneData", event);
+
+            if (this.clearOnSelected) {
+                this.userText = "";
+            }
+        },
+
+         onSecondaryPhenotypeRemoved(event) {
+            this.$emit("updatePhenotypeList", event);
 
             if (this.clearOnSelected) {
                 this.userText = "";

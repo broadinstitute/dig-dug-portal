@@ -13,7 +13,7 @@
                     ></tooltip-documentation>
                 </h4>
 
-                <documentation style="margin-bottom: 50px" name="region.phenos_w_signal.subheader"></documentation>
+                <documentation style="margin-bottom: 30px" name="tools.genefinder.subheader"></documentation>
 
                 <h5 class="card-title">
                     Build search criteria
@@ -25,28 +25,40 @@
                     ></tooltip-documentation>
                 </h5>
 
-                <documentation name="region.phenos_w_signal.subheader"></documentation>
+                <div class="labele" id="req">Multiple phenotypes ccan be selected.</div>
+                <div
+                    style="margin-bottom: 30px"
+                    class="labelee"
+                    id="req"
+                >Required for search, otherwise returns genes with p-value<=0.05.</div>
+
+                <!-- <documentation name="tools.genefinder.buildcriteria.subheader"></documentation> -->
 
                 <filter-group v-model="$parent.geneFinderFilter" :looseMatch="true">
                     <!-- Primary Phenotype (single select) -->
-                    <div class="col filter-col-lg">
-                        <div class="label" style="margin-bottom: 5px">Set primary phenotype</div>
+                    <!-- <div class="col filter-col-lg">
+                        <div class="labele" style="margin-bottom: 5px">
+                            <strong>Set primary phenotype</strong>
+                        </div>
                         <phenotype-picker
                             :phenotypes="$store.state.bioPortal.phenotypes"
                             :default-phenotype="$store.state.phenotype.description"
                             :clearOnSelected="false"
                             @phenotypeAssociationGeneData="$parent.getPhenotypeAssociatedGeneFinderData($event)"
                         ></phenotype-picker>
-                    </div>
+                    </div>-->
                     <!-- Secondary Phenotype (multi select) -->
                     <div class="col filter-col-lg">
-                        <div style="margin-bottom: 5px">Set secondary phenotype</div>
+                        <div class="labelee" style="margin-bottom: 5px">
+                            <strong>Select phenotypes</strong>
+                        </div>
                         <phenotype-picker
                             :phenotypes="$parent.secondaryPhenotypeOptions"
                             :default-phenotype="$store.state.phenotype.description"
                             :clearOnSelected="true"
                             :multipleselect="true"
                             @secphenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
+                            @updatePhenotypeList="$parent.updatePhenotypeList($event)"
                         ></phenotype-picker>
                     </div>
                     <!-- pValue filter -->
@@ -57,11 +69,12 @@
 
                 <div>
                     <gene-finder-table
-                        v-if="$parent.combined"
+                        v-if="$store.state.secondaryPhenotype"
                         :phenotypes="$store.state.phenotypelist"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :associations="$parent.combined"
                         :per-page="10"
+                        :exclusive="true"
                     ></gene-finder-table>
                 </div>
             </div>
@@ -69,3 +82,14 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<style>
+.labele:before {
+    content: "*";
+    color: red;
+}
+.labelee:before {
+    content: "**";
+    color: red;
+}
+</style>

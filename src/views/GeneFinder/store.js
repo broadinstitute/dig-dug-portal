@@ -49,6 +49,9 @@ export default new Vuex.Store({
             //let secondaryPhenotypeList = []
             state.secondaryPhenotype = secondaryPhenotype
         },
+        setPhenotypelist(state, phenotypelist) {
+            state.phenotypelist = phenotypelist
+        }
 
 
     },
