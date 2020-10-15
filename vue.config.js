@@ -162,7 +162,7 @@ let pages = {
         template: "public/index.html",
         filename: "gait.html",
         title: "Genetic Association Interactive Tool",
-        chunks: ["chunk-vendors", "chunk-common", "page404"]
+        chunks: ["chunk-vendors", "chunk-common", "gait"]
     }
 };
 
