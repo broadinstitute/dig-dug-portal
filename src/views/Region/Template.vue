@@ -251,7 +251,6 @@
                             name="region.igv.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
-
                         <filter-group
                             v-model="$parent.annotationsFilter"
                             :looseMatch="true"
