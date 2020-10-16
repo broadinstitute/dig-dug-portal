@@ -47,6 +47,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
+import { isEqual, cloneDeep } from "lodash";
 import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers";
 
 const EventListener = {
@@ -76,20 +77,43 @@ const EventListener = {
 };
 
 export default Vue.component("filter-group", {
-    props: ["value", "inclusive", "strictCase", "looseMatch"],
+    props: {
+        value: null,  // any type, since filterMaker might return any time even though by default it should return a function
+        inclusive: Boolean,
+        strictCase: Boolean,
+        looseMatch: Boolean,
+        filterMaker: {
+            type: Function,
+            default: filterFromPredicates
+        },
+        predicateMaker: {
+            type: Function,
+            default: predicateFromSpec
+        },
+    },
     components: {
         EventListener,
     },
     data() {
         return {
             filterList: [],
+
+            // Vue doesn't identify anonymous functions of the same form with one another,
+            // so we need are turning these two props into data to prevent infinite loops that result
+            // from passing in anonymous functions which become reidentified under each tick.
+            // So if we use these functions in a computed property, it will keep on refreshing even when the output looks the same.
+            // This will work as long as we don't want to update the filterMaker and predicateMaker at runtime,
+            // which quite frankly seems unlikely.
+            makeFilter: this.filterMaker,
+            makePredicate: this.predicateMaker,
+            
         };
     },
 
     computed: {
         filterFunction() {
             const predicates = this.filterList.map((obj) =>
-                predicateFromSpec(
+                this.makePredicate(
                     { ...obj },
                     {
                         strictCase: this.strictCase,
@@ -97,7 +121,9 @@ export default Vue.component("filter-group", {
                     }
                 )
             );
-            return filterFromPredicates(predicates, !!this.inclusive);
+            // console.log(predicates, this.filterMaker(predicates))
+            return this.makeFilter(predicates, !!this.inclusive);
+            // return id => true;
         },
     },
 
@@ -154,9 +180,12 @@ export default Vue.component("filter-group", {
         },
     },
     watch: {
-        filterFunction(newFilterFunction) {
-            this.$emit("input", newFilterFunction);
-        },
+        filterFunction: {
+            handler: function (newFilterFunction, oldFilterFunction) {
+                this.$emit("input", newFilterFunction);
+            },
+            deep: true
+        }
     },
 });
 </script>
