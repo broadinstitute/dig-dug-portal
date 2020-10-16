@@ -48,10 +48,23 @@
                         </filter-pvalue-control>
                     </filter-group>
 
-                    <b-button v-b-toggle.covariates
-                        >Set covariates (Optional)</b-button
+                    <a
+                        href="#"
+                        @click="
+                            $parent.set_covariates = !$parent.set_covariates
+                        "
+                        ><b-icon-chevron-right
+                            v-show="!$parent.set_covariates"
+                        ></b-icon-chevron-right>
+                        <b-icon-chevron-down
+                            v-show="$parent.set_covariates"
+                        ></b-icon-chevron-down>
+                        Set covariates (Optional)</a
                     >
-                    <b-collapse id="covariates">principal</b-collapse>
+
+                    <b-collapse :visible="$parent.set_covariates"
+                        >principal</b-collapse
+                    >
 
                     <b-form-checkbox
                         v-model="$parent.auto_select"
