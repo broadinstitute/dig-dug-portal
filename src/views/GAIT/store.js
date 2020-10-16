@@ -26,13 +26,13 @@ export default new Vuex.Store({
             state.phenotype = phenotype;
         }
     },
-    getters: {
-        documentationMap(state) {
-            return {
-                phenotype: state.phenotype.description
-            };
-        }
-    },
+    // getters: {
+    //     documentationMap(state) {
+    //         return {
+    //             phenotype: state.phenotype.description
+    //         };
+    //     }
+    // },
     actions: {
         onPhenotypeChange(context, phenotype) {
             context.commit("setPhenotype", phenotype);
