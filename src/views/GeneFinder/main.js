@@ -85,6 +85,7 @@ new Vue({
         updateGeneFinderData(event) {
             this.$store.commit("setSecondaryPhenotype", event.name)
             this.$store.dispatch("secondaryGeneFinder");
+            this.$store.commit("setFilterBadges", true);
         },
 
         updatePhenotypeList(event) {
@@ -93,7 +94,10 @@ new Vue({
             plist = plist.filter(item => item != event.name)
             this.$store.commit("setPhenotypelist", plist)
 
-        }
+        },
+        removeFilter(index, obj) {
+            this[obj].splice(index, 1);
+        },
 
 
 

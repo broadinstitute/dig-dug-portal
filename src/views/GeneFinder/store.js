@@ -20,7 +20,8 @@ export default new Vuex.Store({
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
         geneFinderAssociations: {},
         phenotypelist: [],
-        secondaryPhenotype: null
+        secondaryPhenotype: null,
+        filterbadges: false
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
@@ -43,6 +44,9 @@ export default new Vuex.Store({
         },
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
+        },
+        setFilterBadges(state, filterbadges) {
+            state.filterbadges = filterbadges;
         },
 
         setSecondaryPhenotype(state, secondaryPhenotype) {

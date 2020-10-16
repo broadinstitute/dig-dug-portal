@@ -1,5 +1,5 @@
 <template>
-    <div v-if="multipleselect==false">
+    <div>
         <vue-typeahead-bootstrap
             v-model="userText"
             ref="phenotypeSelect"
@@ -9,7 +9,7 @@
             :maxMatches="1000"
             :minMatchingChars="0"
             :showOnFocus="true"
-            @hit="onPhenotypeSelected($event)"
+            @hit="onSecondaryPhenotypeSelected($event)"
         >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
@@ -18,10 +18,10 @@
         </vue-typeahead-bootstrap>
     </div>
 
-    <div v-else-if="multipleselect == true">
+    <!-- <div v-else-if="multipleselect == true">
         <multiselect
             v-model="userText"
-            placeholder="Select secondary phenotypes"
+            placeholder="Type in a phenotype ..."
             label="description"
             track-by="name"
             :options="phenotypeOptions"
@@ -32,7 +32,7 @@
             @select="onSecondaryPhenotypeSelected($event)"
             @remove="onSecondaryPhenotypeRemoved($event)"
         ></multiselect>
-    </div>
+    </div>-->
 </template>
 
 <script>
@@ -66,6 +66,11 @@ export default Vue.component("phenotype-picker", {
             type: Boolean,
             required: false,
             default: false
+        },
+        filterbadges: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
 
@@ -90,16 +95,9 @@ export default Vue.component("phenotype-picker", {
         }
     },
     methods: {
-        onPhenotypeSelected(event) {
-            this.$emit("phenotypeAssociationGeneData", event);
-
-            if (this.clearOnSelected) {
-                this.userText = "";
-            }
-        },
         onSecondaryPhenotypeSelected(event) {
             this.$emit("secphenotypeAssociationGeneData", event);
-
+            this.filterbadges = true;
             if (this.clearOnSelected) {
                 this.userText = "";
             }

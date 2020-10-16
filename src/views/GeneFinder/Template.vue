@@ -44,6 +44,7 @@
                             :default-phenotype="$store.state.phenotype.description"
                             :clearOnSelected="true"
                             :multipleselect="true"
+                            :filterbadges="$store.state.filterbadges"
                             @secphenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
                             @updatePhenotypeList="$parent.updatePhenotypeList"
                         ></phenotype-picker>
@@ -55,7 +56,18 @@
                         </div>
                     </filter-pvalue-control>
                 </filter-group>
-
+                <template v-if="$store.state.filterbadges">
+                    <b-badge
+                        pill
+                        variant="success"
+                        v-for="(v, i) in $store.state.phenotypelist"
+                        :key="v"
+                        @click="$parent.updatePhenotypeList(i, $store.state.phenotypelist)"
+                        class="btn"
+                    >
+                        <span class="remove">X</span>
+                    </b-badge>
+                </template>
                 <div>
                     <gene-finder-table
                         v-if="$store.state.secondaryPhenotype"
