@@ -35,21 +35,8 @@
                 <!-- <documentation name="tools.genefinder.buildcriteria.subheader"></documentation> -->
 
                 <filter-group v-model="$parent.geneFinderFilter" :looseMatch="true">
-                    <!-- Primary Phenotype (single select) -->
-                    <!-- <div class="col filter-col-lg">
-                        <div class="labele" style="margin-bottom: 5px">
-                            <strong>Set primary phenotype</strong>
-                        </div>
-                        <phenotype-picker
-                            :phenotypes="$store.state.bioPortal.phenotypes"
-                            :default-phenotype="$store.state.phenotype.description"
-                            :clearOnSelected="false"
-                            @phenotypeAssociationGeneData="$parent.getPhenotypeAssociatedGeneFinderData($event)"
-                        ></phenotype-picker>
-                    </div>-->
-                    <!-- Secondary Phenotype (multi select) -->
                     <div class="col filter-col-lg">
-                        <div class="labelee" style="margin-bottom: 5px">
+                        <div class="labele" style="margin-bottom: 0px">
                             <strong>Select phenotypes</strong>
                         </div>
                         <phenotype-picker
@@ -58,12 +45,14 @@
                             :clearOnSelected="true"
                             :multipleselect="true"
                             @secphenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
-                            @updatePhenotypeList="$parent.updatePhenotypeList($event)"
+                            @updatePhenotypeList="$parent.updatePhenotypeList"
                         ></phenotype-picker>
                     </div>
                     <!-- pValue filter -->
-                    <filter-pvalue-control :field="'pValue'">
-                        <div class="label">P-Value (&le;)</div>
+                    <filter-pvalue-control class="filter-col-lg" :field="'pValue'">
+                        <div class="labelee">
+                            <strong>P-Value (&le;)</strong>
+                        </div>
                     </filter-pvalue-control>
                 </filter-group>
 
