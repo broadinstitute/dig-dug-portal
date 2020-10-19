@@ -30,9 +30,6 @@
                     r.item.gene
                 }}</a>
             </template>
-            <template v-slot:cell(combined)="r">
-                {{ pValueFormatter(chiSquared(r.item)) }}
-            </template>
             <template
                 v-slot:[phenotypePValueColumn(p)]="r"
                 v-for="p in phenotypes"
@@ -101,8 +98,9 @@ export default Vue.component("gene-finder-table", {
                     label: "Gene",
                 },
                 {
-                    key: "combined",
+                    key: "chiSquared",
                     label: "Χ²",
+                    formatter: this.floatFormatter,
                 },
             ],
         };
@@ -192,8 +190,11 @@ export default Vue.component("gene-finder-table", {
                 });
             }
 
+            // calculate the chiSquared for each row
+            data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
+
             // sort all the records by phenotype p-value
-            data.sort((a, b) => a.minP - b.minP);
+            data.sort((a, b) => b.chiSquared - a.chiSquared);
 
             return data;
         },
@@ -201,6 +202,7 @@ export default Vue.component("gene-finder-table", {
 
     methods: {
         intFormatter: Formatters.intFormatter,
+        floatFormatter: Formatters.floatFormatter,
         pValueFormatter: Formatters.pValueFormatter,
 
         phenotypePValueColumn(phenotype) {
