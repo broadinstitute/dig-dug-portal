@@ -534,7 +534,7 @@ a.edit-btn:hover {
     position: absolute;
     top: 0;
     left: 0;
-    height: 65px;
+    /*height: 65px;*/
     width: 100%;
     background-color: #fff;
     font-size: 16px;
@@ -542,10 +542,13 @@ a.edit-btn:hover {
 }
 
 .gene-page-header-body {
-    height: 65px;
+    /*height: 65px;*/
     font-size: 25px;
     padding: 12px 0 12px 5px;
     border-left: solid 1px #eee;
+}
+
+.gene-page-header-search-holder   {
 }
 
 div.filtering-tools {

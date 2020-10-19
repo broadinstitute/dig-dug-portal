@@ -12,7 +12,7 @@
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">
                         Chromosome: Start position - End position
-                        <a
+                        <!--<a
                             class="edit-btn"
                             v-on:click="
                                 () =>
@@ -22,11 +22,11 @@
                                     )
                             "
                             >Edit position / Search gene</a
-                        >
+                        >-->
                     </div>
                     <div class="col-md-4 gene-page-header-title">
                         Phenotype
-                        <a
+                        <!--<a
                             class="edit-btn"
                             v-on:click="
                                 () =>
@@ -35,13 +35,39 @@
                                     )
                             "
                             >Select phenotype</a
-                        >
+                        >-->
                     </div>
+                </div>
+                <div class="row card-body">
                     <div class="col-md-8 gene-page-header-body regionInfo">
-                        <div
-                            id="regionSearchHolder"
-                            class="gene-page-header-search-holder hidden"
+                        {{ $parent.regionString }}
+                        <button
+                            class="btn btn-primary text-nowrap text-right explore-region-btn"
+                            style="margin-left: 20px"
+                            @click="$parent.exploreExpanded()"
                         >
+                            Expand &plusmn; 50 kb
+                        </button>
+                        <lunaris-link
+                            :diseaseGroup="$parent.diseaseGroup"
+                            :chr="$store.state.chr"
+                            :begin="$store.state.start"
+                            :end="$store.state.end"
+                            :trait="$store.state.phenotype"
+                            :dataContent="
+                                this.$store.state.lunaris.dataFromLunaris
+                            "
+                        ></lunaris-link>
+                    </div>
+                    <div class="col-md-4 gene-page-header-body">
+                        <span v-if="$store.state.phenotype">{{
+                            $store.state.phenotype.description
+                        }}</span>
+                    </div>
+                </div>
+                <div class="row card-body">
+                    <div class="col-md-8">
+                        <div class="gene-page-header-search-holder">
                             <div class="region-search">
                                 <div class="col-md-1 input-wrapper">
                                     <input
@@ -90,30 +116,9 @@
                                 </div>
                             </div>
                         </div>
-                        {{ $parent.regionString }}
-                        <button
-                            class="btn btn-primary text-nowrap text-right explore-region-btn"
-                            style="margin-left: 20px"
-                            @click="$parent.exploreExpanded()"
-                        >
-                            Expand &plusmn; 50 kb
-                        </button>
-                        <lunaris-link
-                            :diseaseGroup="$parent.diseaseGroup"
-                            :chr="$store.state.chr"
-                            :begin="$store.state.start"
-                            :end="$store.state.end"
-                            :trait="$store.state.phenotype"
-                            :dataContent="
-                                this.$store.state.lunaris.dataFromLunaris
-                            "
-                        ></lunaris-link>
                     </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <div
-                            id="phenotypeSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
+                    <div class="col-md-4">
+                        <div class="gene-page-header-search-holder">
                             <phenotype-selectpicker
                                 v-if="$store.state.phenotype"
                                 :phenotypes="$store.state.bioPortal.phenotypes"
@@ -122,9 +127,6 @@
                                 "
                             ></phenotype-selectpicker>
                         </div>
-                        <span v-if="$store.state.phenotype">{{
-                            $store.state.phenotype.description
-                        }}</span>
                     </div>
                 </div>
             </div>
@@ -197,42 +199,34 @@
                             name="region.variantassociation.subheader"
                         ></documentation>
 
+                        <filter-group
+                            v-model="$parent.associationsFilter"
+                            :looseMatch="true"
+                        >
+                            <filter-enumeration-control
+                                :field="'consequence'"
+                                :options="$parent.associationConsequences"
+                                :inclusive="true"
+                            >
+                                <div class="label">Consequence</div>
+                            </filter-enumeration-control>
 
-                                <filter-group
-                                    v-model="$parent.associationsFilter"
-                                    :looseMatch="true"
-                                >
-                                    <filter-enumeration-control
-                                        :field="'consequence'"
-                                        :options="
-                                            $parent.associationConsequences
-                                        "
-                                        :inclusive="true"
-                                    >
-                                        <div class="label">Consequence</div>
-                                    </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'nearest'"
+                                :options="$parent.associationNearestGenes"
+                                :inclusive="true"
+                            >
+                                <div class="label">Closest Genes</div>
+                            </filter-enumeration-control>
 
-                                    <filter-enumeration-control
-                                        :field="'nearest'"
-                                        :options="
-                                            $parent.associationNearestGenes
-                                        "
-                                        :inclusive="true"
-                                    >
-                                        <div class="label">Closest Genes</div>
-                                    </filter-enumeration-control>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
 
-                                    <filter-pvalue-control :field="'pValue'">
-                                        <div class="label">P-Value (&le;)</div>
-                                    </filter-pvalue-control>
-
-                                    <filter-effect-direction-control
-                                        :field="'beta'"
-                                    >
-                                        <div class="label">Effect (+/-)</div>
-                                    </filter-effect-direction-control>
-                                </filter-group>
-
+                            <filter-effect-direction-control :field="'beta'">
+                                <div class="label">Effect (+/-)</div>
+                            </filter-effect-direction-control>
+                        </filter-group>
 
                         <associations-table
                             v-if="$store.state.associations.data.length > 0"
@@ -257,10 +251,7 @@
                             :looseMatch="true"
                         >
                             <div class="col filter-col-lg">
-                                <div
-                                    class="label"
-                                    style="margin-bottom: 5px"
-                                >
+                                <div class="label" style="margin-bottom: 5px">
                                     Add annotation method track
                                 </div>
                                 <annotation-method-selectpicker
@@ -277,42 +268,32 @@
                             </div>
 
                             <div class="col filter-col-lg">
-                                <div
-                                    class="label"
-                                    style="margin-bottom: 5px"
-                                >
+                                <div class="label" style="margin-bottom: 5px">
                                     Add credible sets track
                                 </div>
                                 <credible-sets-selectpicker
                                     :credibleSets="$parent.credibleSets"
                                     :clearOnSelected="true"
                                     @credibleset="
-                                        $parent.addCredibleVariantsPanel(
-                                            $event
-                                        )
+                                        $parent.addCredibleVariantsPanel($event)
                                     "
                                 />
                             </div>
 
                             <div class="col divider">&nbsp;</div>
 
-                            <span style="display: inline-block;">
+                            <span style="display: inline-block">
                                 <div class="label">Filter annotation track</div>
                                 <filter-pvalue-control :field="'pValue'">
-                                    <span class="label">
-                                        P-Value (&le;)
-                                    </span>
+                                    <span class="label"> P-Value (&le;) </span>
                                 </filter-pvalue-control>
                                 <filter-greater-control :field="'fold'">
-                                    <span class="label">
-                                        Fold (&ge;)
-                                    </span>
+                                    <span class="label"> Fold (&ge;) </span>
                                 </filter-greater-control>
                             </span>
-
                         </filter-group>
 
-                                <!-- <div class="col filter-col-lg" style="vertical-align: top;">
+                        <!-- <div class="col filter-col-lg" style="vertical-align: top;">
                                     <div class="label">View region in Variant Prioritizer</div>
                                     <b-button
                                         v-if="!!$store.state.phenotype"
@@ -321,7 +302,6 @@
                                         target="_blank"
                                     >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
                                 </div> -->
-
 
                         <locuszoom
                             ref="locuszoom"
