@@ -10,7 +10,7 @@
             :current-page="currentPage"
         >
             <template v-slot:thead-top="data">
-                <b-th colspan="1">
+                <b-th colspan="2">
                     <span class="sr-only">Gene</span>
                 </b-th>
                 <b-th
@@ -29,6 +29,9 @@
                 <a :href="`/gene.html?gene=${r.item.gene}`">{{
                     r.item.gene
                 }}</a>
+            </template>
+            <template v-slot:cell(combined)="r">
+                {{ pValueFormatter(chiSquared(r.item)) }}
             </template>
             <template
                 v-slot:[phenotypePValueColumn(p)]="r"
@@ -96,6 +99,10 @@ export default Vue.component("gene-finder-table", {
                 {
                     key: "geneName",
                     label: "Gene",
+                },
+                {
+                    key: "combined",
+                    label: "Χ²",
                 },
             ],
         };
@@ -206,6 +213,20 @@ export default Vue.component("gene-finder-table", {
 
         phenotypeSubjectsColumn(phenotype) {
             return `cell(${phenotype}:subjects)`;
+        },
+
+        chiSquared(row) {
+            let W = 0.0;
+
+            for (let i in this.phenotypes) {
+                let p = row[`${this.phenotypes[i]}:pValue`];
+
+                if (!!p) {
+                    W += -2 * Math.log(p);
+                }
+            }
+
+            return W;
         },
     },
 });

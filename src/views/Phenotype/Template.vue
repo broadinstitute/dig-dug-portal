@@ -152,6 +152,7 @@
                             }}
                             genes associated with
                             {{ $store.state.phenotype.description }}
+                            with P-Value &le; 1e-5
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
                                 :content-fill="$parent.documentationMap"

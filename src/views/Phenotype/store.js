@@ -42,7 +42,7 @@ export default new Vuex.Store({
         queryPhenotype(context) {
             let query = { q: context.state.phenotype.name };
             let assocQuery = { ...query, limit: 1000 };
-            let geneQuery = { ...query, limit: 500 };
+            let geneQuery = { ...query, limitWhile: r => r.pValue <= 1e-5 };
 
             context.dispatch("associations/query", assocQuery);
             context.dispatch("annotations/query", query);
