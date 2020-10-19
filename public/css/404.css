@@ -412,7 +412,7 @@
 
 .notice {
     text-align: center;
-    color: #6b82ff;
+    color: #ffffff;
     font-size: 1.2rem;
 }
 .notice h4 {
@@ -438,7 +438,7 @@
     justify-content: center;
 }
 .notfound {
-    background-color: #151967;
+    background-color: #000000;
 }
 
 .notfound .card {
