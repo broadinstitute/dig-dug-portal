@@ -541,6 +541,12 @@ a.edit-btn:hover {
     z-index: 10;
 }
 
+.shorten-when-full {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .gene-page-header-body {
     /*height: 65px;*/
     font-size: 25px;
@@ -618,8 +624,36 @@ div.filtering-tools table th {
     padding-left: 40px;
 }
 
+.search-header {
+    margin-top: -10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    background-color: #666666;
+    font-size: 14px !important;
+    padding: 5px;
+}
+
+.search-header .row {
+    padding: 0 1.25rem;
+}
+
+.search-header div[class^="col-md-"] {
+    padding: 0;
+}
+
+.search-header .input-wrapper input[type="text"] {
+    border: none;
+    border-radius: 0;
+    border-right: solid 1px #ddd;
+    display: inline-block;
+}
+
 #regionSearchHolder .region-search {
     height: 100%;
+}
+
+.region-search > .input-wrapper {
+    display: inline-block !important;
 }
 
 .region-search-examples {
