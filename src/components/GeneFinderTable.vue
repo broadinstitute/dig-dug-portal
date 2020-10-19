@@ -1,65 +1,74 @@
 <template>
     <div>
-        <div>
-            <div v-if="tableData.length > 0">
-                <b-table
-                    hover
-                    small
-                    responsive="sm"
-                    :items="groupedAssociations"
-                    :fields="fields"
-                    :per-page="perPage"
-                    :current-page="currentPage"
-                >
-                    <template v-slot:thead-top="data">
-                        <b-th colspan="1">
-                            <span class="sr-only">Gene</span>
-                        </b-th>
-                        <b-th
-                            v-for="(phenotype, i) in phenotypes"
-                            :key="phenotype"
-                            colspan="3"
-                            class="reference"
-                            :class="'color-' + (i + 1)"
+        <cylinder-plot
+            :cylinderPlotData="groupedAssociations"
+            renderBy="pValue"
+            plotLabel="P-Value (-log10)"
+            :per-page="perPage"
+            :current-page="currentPage"
+            :cylinderItems="phenotypes"
+        >
+        </cylinder-plot>
+        <div v-if="tableData.length > 0">
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :items="groupedAssociations"
+                :fields="fields"
+                :per-page="perPage"
+                :current-page="currentPage"
+            >
+                <template v-slot:thead-top="data">
+                    <b-th colspan="1">
+                        <span class="sr-only">Gene</span>
+                    </b-th>
+                    <b-th
+                        v-for="(phenotype, i) in phenotypes"
+                        :key="phenotype"
+                        colspan="3"
+                        class="reference"
+                        :class="'color-' + (i + 1)"
+                    >
+                        <span
+                            v-if="phenotypeMap[phenotype]"
+                            style="color: white"
                         >
-                            <span v-if="phenotypeMap[phenotype]" style="color: white">
-                                {{
-                                phenotypeMap[phenotype].description
-                                }}
-                            </span>
-                        </b-th>
-                    </template>
-                    <template v-slot:cell(geneName)="r">
-                        <a :href="`/gene.html?gene=${r.item.gene}`">
-                            {{
-                            r.item.gene
-                            }}
-                        </a>
-                    </template>
-                    <template
-                        v-slot:[phenotypePValueColumn(p)]="r"
-                        v-for="p in phenotypes"
-                    >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template>
-                    <template
-                        v-slot:[phenotypeVariantsColumn(p)]="r"
-                        v-for="p in phenotypes"
-                    >{{ intFormatter(r.item[`${p}:nParam`]) }}</template>
-                    <template
-                        v-slot:[phenotypeSubjectsColumn(p)]="r"
-                        v-for="p in phenotypes"
-                    >{{ intFormatter(r.item[`${p}:subjects`]) }}</template>
-                </b-table>
-                <b-pagination
-                    class="pagination-sm justify-content-center"
-                    v-model="currentPage"
-                    :total-rows="tableData.length"
-                    :per-page="perPage"
-                ></b-pagination>
-            </div>
-            <div v-else>
-                <h4 v-if="associations.length > 0">No overlapping associations</h4>
-                <h4 v-else>No associations</h4>
-            </div>
+                            {{ phenotypeMap[phenotype].description }}
+                        </span>
+                    </b-th>
+                </template>
+                <template v-slot:cell(geneName)="r">
+                    <a :href="`/gene.html?gene=${r.item.gene}`">
+                        {{ r.item.gene }}
+                    </a>
+                </template>
+                <template
+                    v-slot:[phenotypePValueColumn(p)]="r"
+                    v-for="p in phenotypes"
+                    >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
+                >
+                <template
+                    v-slot:[phenotypeVariantsColumn(p)]="r"
+                    v-for="p in phenotypes"
+                    >{{ intFormatter(r.item[`${p}:nParam`]) }}</template
+                >
+                <template
+                    v-slot:[phenotypeSubjectsColumn(p)]="r"
+                    v-for="p in phenotypes"
+                    >{{ intFormatter(r.item[`${p}:subjects`]) }}</template
+                >
+            </b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="tableData.length"
+                :per-page="perPage"
+            ></b-pagination>
+        </div>
+        <div v-else>
+            <h4 v-if="associations.length > 0">No overlapping associations</h4>
+            <h4 v-else>No associations</h4>
         </div>
     </div>
 </template>
@@ -79,6 +88,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
+import CylinderPlot from "@/components/CylinderPlot";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
 export default Vue.component("gene-finder-table", {
@@ -87,22 +97,23 @@ export default Vue.component("gene-finder-table", {
         "phenotypes",
         "phenotypeMap",
         "filter",
-        "exclusive"
+        "exclusive",
     ],
     components: {
         Documentation,
-        TooltipDocumentation
+        TooltipDocumentation,
+        CylinderPlot,
     },
     data() {
         return {
-            perPage: 10,
+            perPage: 25,
             currentPage: 1,
             baseFields: [
                 {
                     key: "geneName",
-                    label: "Gene"
-                }
-            ]
+                    label: "Gene",
+                },
+            ],
         };
     },
 
@@ -133,16 +144,16 @@ export default Vue.component("gene-finder-table", {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
                                 : "";
-                        }
+                        },
                     },
                     {
                         key: `${p}:nParam`,
-                        label: "Variants"
+                        label: "Variants",
                     },
                     {
                         key: `${p}:subjects`,
-                        label: "Samples"
-                    }
+                        label: "Samples",
+                    },
                 ]);
             }
 
@@ -165,7 +176,7 @@ export default Vue.component("gene-finder-table", {
                     data.push({
                         phenotype: r.phenotype,
                         gene: r.gene,
-                        minP: 1.0
+                        minP: 1.0,
                     });
                 }
 
@@ -185,8 +196,8 @@ export default Vue.component("gene-finder-table", {
             if (this.exclusive) {
                 let phenotypes = this.phenotypes;
 
-                data = data.filter(row => {
-                    return phenotypes.every(p => !!row[`${p}:pValue`]);
+                data = data.filter((row) => {
+                    return phenotypes.every((p) => !!row[`${p}:pValue`]);
                 });
             }
 
@@ -194,7 +205,7 @@ export default Vue.component("gene-finder-table", {
             data.sort((a, b) => a.minP - b.minP);
 
             return data;
-        }
+        },
     },
 
     methods: {
@@ -211,7 +222,10 @@ export default Vue.component("gene-finder-table", {
 
         phenotypeSubjectsColumn(phenotype) {
             return `cell(${phenotype}:subjects)`;
-        }
-    }
+        },
+    },
 });
 </script>
+<style>
+@import url("/css/cylinderPlot.css");
+</style>
