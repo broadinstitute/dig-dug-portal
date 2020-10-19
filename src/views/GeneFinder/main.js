@@ -56,8 +56,8 @@ new Vue({
         return {
             counter: 0,
             geneFinderFilter: null,
+            geneFinderCriterion: [],
             phenotypelist: [],
-            geneFinderAssociations: {}
         };
     },
 
@@ -77,7 +77,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
+        
         getPhenotypeAssociatedGeneFinderData(event) {
             this.$store.commit("setPhenotype", event.name)
             this.$store.dispatch("queryGeneFinder");
@@ -117,9 +117,10 @@ new Vue({
         },
 
         combined() {
+
             let combined = []
-            let phenotypes = this.$store.state.phenotypelist;
-            let genes = this.$store.state.geneFinderAssociations;
+            let phenotypes = this.geneFinderPhenotypes;
+            let genes = this.geneFinderAssociations;
 
             for (let i in phenotypes) {
                 let phenotype = phenotypes[i]
@@ -144,7 +145,15 @@ new Vue({
         secondaryPhenotypeOptions() {
             return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
         },
-
+        geneFinderPhenotypes() {
+            return this.geneFinderCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+        },
+        geneFinderPhenotype() {
+            return this.geneFinderPhenotypes[0]
+        },
+        geneFinderAssociations() {
+            return this.$store.state.geneFinderAssociations;
+        },
 
 
     },
@@ -152,7 +161,11 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+        geneFinderPhenotypes(newPhenotypes, prevPhenotypes) {
+            newPhenotypes.forEach(phenotype => {
+                this.$store.dispatch("secondaryGeneFinder", phenotype)
+            })
         }
-
     }
 }).$mount("#app");

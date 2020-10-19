@@ -85,14 +85,31 @@ export default new Vuex.Store({
             })
         },
 
-        async secondaryGeneFinder(context) {
-            let phenotype = context.state.secondaryPhenotype
-            let response = await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
+        async secondaryGeneFinder(context, phenotype) {
+            await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
+                let data = {}
+                data[phenotype] = bioIndexData
+                context.commit("setSecondaryPhenotype", phenotype);
+                context.commit("setSecondaryPhenotypeData", { phenotype, genefinderData: bioIndexData });
+            })
+        },
+
+        async getGenes(context, { phenotype }) {
+            await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
                 let data = {}
                 data[phenotype] = bioIndexData
                 context.commit("setSecondaryPhenotype", phenotype);
                 context.commit("setSecondaryPhenotypeData", { phenotype: phenotype, genefinderData: bioIndexData });
             })
+        },
+
+        async removeGenes(context, { phenotype }) {
+            // await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
+            //     let data = {}
+            //     data[phenotype] = bioIndexData
+            //     context.commit("setSecondaryPhenotype", phenotype);
+            //     context.commit("setSecondaryPhenotypeData", { phenotype: phenotype, genefinderData: bioIndexData });
+            // })
         }
 
     }
