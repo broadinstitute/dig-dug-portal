@@ -57,7 +57,7 @@ new Vue({
         return {
             counter: 0,
             phenotypelist: [],
-            geneFinderCriterion: [],
+            geneFinderSearchCriterion: [],
             geneFinderAssociations: [],
         };
     },
@@ -83,6 +83,7 @@ new Vue({
             this.$store.commit("setPhenotype", event.name)
             this.$store.dispatch("queryGeneFinder");
         },
+
         updateGeneFinderData(event) {
             this.$store.commit("setSecondaryPhenotype", event.name)
             this.$store.dispatch("secondaryGeneFinder");
@@ -90,12 +91,11 @@ new Vue({
         },
 
         updatePhenotypeList(event) {
-            console.log("he")
             let plist = this.$store.state.phenotypelist;
             plist = plist.filter(item => item != event.name)
             this.$store.commit("setPhenotypelist", plist)
-
         },
+
         removeFilter(index, obj) {
             this[obj].splice(index, 1);
         },
@@ -122,12 +122,12 @@ new Vue({
             }
             return selectedPhenotypesList;
         },
-        
+
         secondaryPhenotypeOptions() {
             return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
         },
         geneFinderPhenotypes() {
-            return this.geneFinderCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            return this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
         },
         geneFinderPhenotype() {
             return this.geneFinderPhenotypes[0]
@@ -135,9 +135,7 @@ new Vue({
         combined() {
             return this.geneFinderAssociations.flatMap(geneFinderItem => geneFinderItem[1]);
         },
-        geneFinderFilter() {
-            return filterFromPredicates(this.geneFinderCriterion.map(predicateFromSpec))
-        },
+       
 
     },
 

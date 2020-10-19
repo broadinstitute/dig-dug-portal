@@ -34,29 +34,12 @@
 
                 <!-- <documentation name="tools.genefinder.buildcriteria.subheader"></documentation> -->
 
-
-
                 <filter-group
-                    v-model="$parent.geneFinderCriterion"
+                    v-model="$parent.geneFinderSearchCriterion"
                     :looseMatch="true"
                     :filterMaker="id=>id"
-                    :predicateMaker="id=>id">
-
-                    <!-- <div class="col filter-col-lg">
-                        <div class="labele" style="margin-bottom: 0px">
-                            <strong>Select phenotypes</strong>
-                        </div>
-                        <phenotype-picker
-                            :phenotypes="$parent.secondaryPhenotypeOptions"
-                            :default-phenotype="$store.state.phenotype.description"
-                            :clearOnSelected="true"
-                            :multipleselect="true"
-                            :filterbadges="$store.state.filterbadges"
-                            @secphenotypeAssociationGeneData="$parent.updateGeneFinderData($event)"
-                            @updatePhenotypeList="$parent.updatePhenotypeList"
-                        ></phenotype-picker>
-                    </div> -->
-
+                    :predicateMaker="id=>id"
+                >
                     <!-- Phenotype Selector -->
                     <filter-enumeration-control
                         class="filter-col-lg"
@@ -72,12 +55,12 @@
                                             phenotype
                                         ].description
                                     : phenotype
-                        ">
+                        "
+                    >
                         <div class="labelee">
                             <strong>Select phenotypes</strong>
                         </div>
                     </filter-enumeration-control>
-
 
                     <!-- pValue filter -->
                     <filter-pvalue-control class="filter-col-lg" :field="'pValue'">
@@ -85,13 +68,11 @@
                             <strong>P-Value (&le;)</strong>
                         </div>
                     </filter-pvalue-control>
-
                 </filter-group>
 
                 <div>
                     <gene-finder-table
                         v-if="$parent.geneFinderPhenotypes.length > 0 && $parent.combined.length > 0"
-                        :filter="$parent.geneFinderFilter"
                         :phenotypes="$parent.geneFinderPhenotypes"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :associations="$parent.combined"
@@ -99,10 +80,7 @@
                         :exclusive="true"
                     ></gene-finder-table>
                 </div>
-
-
             </div>
-
         </div>
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
