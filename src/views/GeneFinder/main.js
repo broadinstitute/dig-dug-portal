@@ -28,7 +28,8 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
-import { ConcatSource } from "webpack-sources";
+import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers"
+import { query } from "@/utils/bioIndexUtils";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -55,9 +56,9 @@ new Vue({
     data() {
         return {
             counter: 0,
-            geneFinderFilter: null,
-            geneFinderCriterion: [],
             phenotypelist: [],
+            geneFinderCriterion: [],
+            geneFinderAssociations: [],
         };
     },
 
@@ -77,7 +78,7 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        
+
         getPhenotypeAssociatedGeneFinderData(event) {
             this.$store.commit("setPhenotype", event.name)
             this.$store.dispatch("queryGeneFinder");
@@ -100,7 +101,6 @@ new Vue({
         },
 
 
-
     },
 
     computed: {
@@ -111,28 +111,9 @@ new Vue({
             }
             return contents[0];
         },
-
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
-
-        combined() {
-
-            let combined = []
-            let phenotypes = this.geneFinderPhenotypes;
-            let genes = this.geneFinderAssociations;
-
-            for (let i in phenotypes) {
-                let phenotype = phenotypes[i]
-                let data = genes[phenotype];
-                combined = combined.concat(data);
-            }
-            return combined;
-
-        },
-
-
-
         phenotypes() {
             let selectedPhenotypesList = []
             selectedPhenotypesList.push(this.$store.state.phenotype)
@@ -141,7 +122,7 @@ new Vue({
             }
             return selectedPhenotypesList;
         },
-
+        
         secondaryPhenotypeOptions() {
             return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
         },
@@ -151,10 +132,12 @@ new Vue({
         geneFinderPhenotype() {
             return this.geneFinderPhenotypes[0]
         },
-        geneFinderAssociations() {
-            return this.$store.state.geneFinderAssociations;
+        combined() {
+            return this.geneFinderAssociations.flatMap(geneFinderItem => geneFinderItem[1]);
         },
-
+        geneFinderFilter() {
+            return filterFromPredicates(this.geneFinderCriterion.map(predicateFromSpec))
+        },
 
     },
 
@@ -162,10 +145,10 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        geneFinderPhenotypes(newPhenotypes, prevPhenotypes) {
-            newPhenotypes.forEach(phenotype => {
-                this.$store.dispatch("secondaryGeneFinder", phenotype)
-            })
+        geneFinderPhenotypes(phenotypes) {
+            phenotypes.forEach(async phenotype => await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
+                this.geneFinderAssociations.push([phenotype, bioIndexData])
+            }))
         }
     }
 }).$mount("#app");

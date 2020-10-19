@@ -36,8 +36,8 @@
 
 
 
-                <filter-group 
-                    v-model="$parent.geneFinderCriterion" 
+                <filter-group
+                    v-model="$parent.geneFinderCriterion"
                     :looseMatch="true"
                     :filterMaker="id=>id"
                     :predicateMaker="id=>id">
@@ -58,10 +58,11 @@
                     </div> -->
 
                     <!-- Phenotype Selector -->
-                    <filter-enumeration-control 
+                    <filter-enumeration-control
                         class="filter-col-lg"
                         :field="'phenotype'"
                         :options="$parent.secondaryPhenotypeOptions.map(phenotype => phenotype.name)"
+                        :multiple="true"
                         :labelFormatter="
                             (phenotype) =>
                                 !!$store.state.bioPortal.phenotypeMap[
@@ -89,7 +90,8 @@
 
                 <div>
                     <gene-finder-table
-                        v-if="$parent.geneFinderPhenotypes.length > 0"
+                        v-if="$parent.geneFinderPhenotypes.length > 0 && $parent.combined.length > 0"
+                        :filter="$parent.geneFinderFilter"
                         :phenotypes="$parent.geneFinderPhenotypes"
                         :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                         :associations="$parent.combined"
@@ -98,7 +100,7 @@
                     ></gene-finder-table>
                 </div>
 
-                
+
             </div>
 
         </div>

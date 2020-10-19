@@ -106,7 +106,7 @@ export default Vue.component("filter-group", {
             // which quite frankly seems unlikely.
             makeFilter: this.filterMaker,
             makePredicate: this.predicateMaker,
-            
+
         };
     },
 
@@ -185,7 +185,7 @@ export default Vue.component("filter-group", {
                 this.$emit("input", newFilterFunction);
             },
             deep: true
-        }
+        },
     },
 });
 </script>
