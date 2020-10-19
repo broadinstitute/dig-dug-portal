@@ -626,11 +626,23 @@ div.filtering-tools table th {
 
 .search-header {
     margin-top: -10px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    background-color: #666666;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    background-color: #bbbbbb !important;
     font-size: 14px !important;
-    padding: 5px;
+    padding: 5px !important;
+    color: #333333;
+    font-weight: 300 !important;
+    border: none !important;
+}
+
+.search-header.fixed-header {
+    position: fixed;
+    top: 0;
+    width: calc(100% - 30px);
+    background-color: #fff;
+    left: 15px;
+    z-index: 10;
 }
 
 .search-header .row {
