@@ -65,6 +65,7 @@ import $ from "jquery";
 
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 import Filters from "@/utils/filters";
 
@@ -99,8 +100,8 @@ export default Vue.component("gene-finder-table", {
                 },
                 {
                     key: "chiSquared",
-                    label: "Χ²",
-                    formatter: this.floatFormatter,
+                    label: "P-Value(Χ²)",
+                    formatter: this.pValueFormatter,
                 },
             ],
         };
@@ -193,8 +194,8 @@ export default Vue.component("gene-finder-table", {
             // calculate the chiSquared for each row
             data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
 
-            // sort all the records by phenotype p-value
-            data.sort((a, b) => b.chiSquared - a.chiSquared);
+            // sort all the records by combined p-value
+            data.sort((a, b) => a.chiSquared - b.chiSquared);
 
             return data;
         },
@@ -218,17 +219,20 @@ export default Vue.component("gene-finder-table", {
         },
 
         chiSquared(row) {
-            let W = 0.0;
+            let X = 0.0;
 
             for (let i in this.phenotypes) {
                 let p = row[`${this.phenotypes[i]}:pValue`];
 
                 if (!!p) {
-                    W += -2 * Math.log(p);
+                    X += -2 * Math.log(p);
                 }
             }
 
-            return W;
+            // calculate the combined p-value
+            let pdf = Chi.pdf(X, 2 * this.phenotypes.length);
+
+            return pdf;
         },
     },
 });
