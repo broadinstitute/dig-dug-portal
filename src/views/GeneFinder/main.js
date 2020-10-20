@@ -165,7 +165,6 @@ new Vue({
                 // if the phenotypes update, we only need to get new data based on latest phenotype
                 // NOTE: this will maintain some data in the the geneFinderAssociationsMap
                 const updatingPhenotypes = difference(newCriterion.phenotypes, oldCriterion.phenotypes);
-                console.log(updatingPhenotypes)
                 if (updatingPhenotypes.length > 0) {
                     this.updateAssociations(updatingPhenotypes, this.geneFinderPValue);
                 }
