@@ -69,7 +69,7 @@ const logErrorEvent = async function (context, message, page) {
     );
 }
 
-const logPageView = async function () {
+const logPageView = async function (page) {
     return await fetch(`/pageview`)
         .then(response => {
             if (response) {
