@@ -3,8 +3,11 @@
         <div v-if="showPlot">
             <manhattan-plot
                 :associations="combinedAssociations"
-                style="margin-bottom: 20px"
+                style="margin-bottom: 10px"
             ></manhattan-plot>
+            <center style="margin-bottom: 30px">
+                <b>Combined P-Value(Χ²) Across Phenotypes</b>
+            </center>
         </div>
         <div v-if="tableData.length > 0">
             <b-table
@@ -35,25 +38,25 @@
                     </b-th>
                 </template>
                 <template v-slot:cell(geneName)="r">
-                    <a :href="`/gene.html?gene=${r.item.gene}`">{{
-                        r.item.gene
-                    }}</a>
+                    <a :href="`/gene.html?gene=${r.item.gene}`">
+                        {{ r.item.gene }}
+                    </a>
                 </template>
                 <template
                     v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
-                    >{{ pValueFormatter(r.item[`${p}:pValue`]) }}
-                </template>
+                    >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
+                >
                 <template
                     v-slot:[phenotypeVariantsColumn(p)]="r"
                     v-for="p in phenotypes"
-                    >{{ intFormatter(r.item[`${p}:nParam`]) }}
-                </template>
+                    >{{ intFormatter(r.item[`${p}:nParam`]) }}</template
+                >
                 <template
                     v-slot:[phenotypeSubjectsColumn(p)]="r"
                     v-for="p in phenotypes"
-                    >{{ intFormatter(r.item[`${p}:subjects`]) }}
-                </template>
+                    >{{ intFormatter(r.item[`${p}:subjects`]) }}</template
+                >
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
@@ -121,7 +124,7 @@ export default Vue.component("gene-finder-table", {
 
     computed: {
         rows() {
-            return this.tableData.length;
+            return this.groupedAssociations.length;
         },
 
         tableData() {
