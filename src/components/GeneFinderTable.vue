@@ -1,65 +1,65 @@
 <template>
     <div>
-        <div>
-            <div v-if="tableData.length > 0">
-                <b-table
-                    hover
-                    small
-                    responsive="sm"
-                    :items="groupedAssociations"
-                    :fields="fields"
-                    :per-page="perPage"
-                    :current-page="currentPage"
-                >
-                    <template v-slot:thead-top="data">
-                        <b-th colspan="1">
-                            <span class="sr-only">Gene</span>
-                        </b-th>
-                        <b-th
-                            v-for="(phenotype, i) in phenotypes"
-                            :key="phenotype"
-                            colspan="3"
-                            class="reference"
-                            :class="'color-' + (i + 1)"
-                        >
-                            <span v-if="phenotypeMap[phenotype]" style="color: white">
-                                {{
-                                phenotypeMap[phenotype].description
-                                }}
-                            </span>
-                        </b-th>
-                    </template>
-                    <template v-slot:cell(geneName)="r">
-                        <a :href="`/gene.html?gene=${r.item.gene}`">
-                            {{
-                            r.item.gene
-                            }}
-                        </a>
-                    </template>
-                    <template
-                        v-slot:[phenotypePValueColumn(p)]="r"
-                        v-for="p in phenotypes"
-                    >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template>
-                    <template
-                        v-slot:[phenotypeVariantsColumn(p)]="r"
-                        v-for="p in phenotypes"
-                    >{{ intFormatter(r.item[`${p}:nParam`]) }}</template>
-                    <template
-                        v-slot:[phenotypeSubjectsColumn(p)]="r"
-                        v-for="p in phenotypes"
-                    >{{ intFormatter(r.item[`${p}:subjects`]) }}</template>
-                </b-table>
-                <b-pagination
-                    class="pagination-sm justify-content-center"
-                    v-model="currentPage"
-                    :total-rows="tableData.length"
-                    :per-page="perPage"
-                ></b-pagination>
-            </div>
-            <div v-else>
-                <h4 v-if="associations.length > 0">No overlapping associations</h4>
-                <h4 v-else>No associations</h4>
-            </div>
+        <div v-if="showPlot">
+            <manhattan-plot :associations="combinedAssociations" style="margin-bottom: 20px"></manhattan-plot>
+        </div>
+        <div v-if="tableData.length > 0">
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :items="groupedAssociations"
+                :fields="fields"
+                :per-page="perPage"
+                :current-page="currentPage"
+            >
+                <template v-slot:thead-top="data">
+                    <b-th colspan="2">
+                        <span class="sr-only">Gene</span>
+                    </b-th>
+                    <b-th
+                        v-for="(phenotype, i) in phenotypes"
+                        :key="phenotype"
+                        colspan="3"
+                        class="reference"
+                        :class="'color-' + (i + 1)"
+                    >
+                        <span
+                            v-if="phenotypeMap[phenotype]"
+                            style="color: white"
+                        >{{ phenotypeMap[phenotype].description }}</span>
+                    </b-th>
+                </template>
+                <template v-slot:cell(geneName)="r">
+                    <a :href="`/gene.html?gene=${r.item.gene}`">
+                        {{
+                        r.item.gene
+                        }}
+                    </a>
+                </template>
+                <template
+                    v-slot:[phenotypePValueColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template>
+                <template
+                    v-slot:[phenotypeVariantsColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >{{ intFormatter(r.item[`${p}:nParam`]) }}</template>
+                <template
+                    v-slot:[phenotypeSubjectsColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >{{ intFormatter(r.item[`${p}:subjects`]) }}</template>
+            </b-table>
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="tableData.length"
+                :per-page="perPage"
+            ></b-pagination>
+        </div>
+        <div v-else>
+            <h4 v-if="associations.length > 0">No overlapping associations</h4>
+            <h4 v-else>No associations</h4>
         </div>
     </div>
 </template>
@@ -69,7 +69,9 @@ import Vue from "vue";
 import $ from "jquery";
 
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 import Filters from "@/utils/filters";
 
@@ -87,7 +89,8 @@ export default Vue.component("gene-finder-table", {
         "phenotypes",
         "phenotypeMap",
         "filter",
-        "exclusive"
+        "exclusive",
+        "showPlot"
     ],
     components: {
         Documentation,
@@ -101,6 +104,11 @@ export default Vue.component("gene-finder-table", {
                 {
                     key: "geneName",
                     label: "Gene"
+                },
+                {
+                    key: "chiSquared",
+                    label: "P-Value(Χ²)",
+                    formatter: this.pValueFormatter
                 }
             ]
         };
@@ -165,6 +173,9 @@ export default Vue.component("gene-finder-table", {
                     data.push({
                         phenotype: r.phenotype,
                         gene: r.gene,
+                        chromosome: r.chromosome,
+                        start: r.start,
+                        end: r.end,
                         minP: 1.0
                     });
                 }
@@ -190,15 +201,29 @@ export default Vue.component("gene-finder-table", {
                 });
             }
 
-            // sort all the records by phenotype p-value
-            data.sort((a, b) => a.minP - b.minP);
+            // calculate the chiSquared for each row
+            data.forEach(r => (r.chiSquared = this.chiSquared(r)));
+
+            // sort all the records by combined p-value
+            data.sort((a, b) => a.chiSquared - b.chiSquared);
 
             return data;
+        },
+
+        combinedAssociations() {
+            return this.groupedAssociations.map(a => {
+                return {
+                    pValue: a.chiSquared,
+                    chromosome: a.chromosome,
+                    position: (a.start + a.end) / 2
+                };
+            });
         }
     },
 
     methods: {
         intFormatter: Formatters.intFormatter,
+        floatFormatter: Formatters.floatFormatter,
         pValueFormatter: Formatters.pValueFormatter,
 
         phenotypePValueColumn(phenotype) {
@@ -211,6 +236,23 @@ export default Vue.component("gene-finder-table", {
 
         phenotypeSubjectsColumn(phenotype) {
             return `cell(${phenotype}:subjects)`;
+        },
+
+        chiSquared(row) {
+            let X = 0.0;
+
+            for (let i in this.phenotypes) {
+                let p = row[`${this.phenotypes[i]}:pValue`];
+
+                if (!!p) {
+                    X += -2 * Math.log(p);
+                }
+            }
+
+            // calculate the combined p-value
+            let pdf = Chi.pdf(X, 2 * this.phenotypes.length);
+
+            return 2 * pdf;
         }
     }
 });

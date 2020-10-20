@@ -13,6 +13,7 @@
     "bootstrap": "^4.5.2",
     "bootstrap-vue": "^2.17.3",
     "c3": "0.7.7",
+    "chi-squared": "^1.1.0",
     "cookie": "^0.4.1",
     "core-js": "3",
     "d3": "^5.16.0",
@@ -28,7 +29,8 @@
     "url-parse": "^1.4.7",
     "vue": "^2.6.12",
     "vue-cookies": "^1.7.4",
-    "vue-multiselect": "^2.1.6",
+    "vue-fragment": "^1.5.1",
+    "vue-select": "^3.10.8",
     "vue-typeahead-bootstrap": "^2.5.0",
     "vuex": "^3.5.1",
     "xml-js": "^1.6.11"
