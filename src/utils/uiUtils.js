@@ -134,7 +134,6 @@ let showHideByClass = function (CLASS) {
 let onScroll = function (e) {
     let windowTop = window.top.scrollY;
 
-
     let element = document.getElementsByClassName("search-header")[0];
     if (windowTop > this.tableTop) {
         if (!element.classList.contains('fixed-header')) {

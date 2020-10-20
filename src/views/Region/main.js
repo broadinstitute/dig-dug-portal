@@ -27,6 +27,8 @@ import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
@@ -68,7 +70,9 @@ new Vue({
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
-        FilterGreaterThan
+        FilterGreaterThan,
+
+        SearchHeaderWrapper
     },
 
     created() {
@@ -88,12 +92,6 @@ new Vue({
             annotationsFilter: null
         };
     },
-    mounted() {
-        window.addEventListener("scroll", this.onScroll)
-    },
-    beforeDestroy() {
-        window.removeEventListener("scroll", this.onScroll)
-    },
 
     methods: {
         ...uiUtils,
@@ -101,22 +99,6 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
-        onScroll(e) {
-            let windowTop = window.top.scrollY;
-
-
-            let element = document.getElementsByClassName("search-header")[0];
-            if (windowTop > this.tableTop) {
-                if (!element.classList.contains('fixed-header')) {
-                    element.classList.add('fixed-header');
-                }
-            } else {
-                if (element.classList.contains('fixed-header')) {
-                    element.classList.remove('fixed-header');
-                }
-            }
-        },
 
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
@@ -176,16 +158,7 @@ new Vue({
     },
 
     computed: {
-        tableTop() {
-            let eglTable = document.getElementsByClassName("search-header")[0];
-            let rect = eglTable.getBoundingClientRect();
-            let scrollTop = document.documentElement.scrollTop ?
-                document.documentElement.scrollTop : document.body.scrollTop;
 
-            let tableTop = rect.top + scrollTop;
-
-            return tableTop;
-        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {

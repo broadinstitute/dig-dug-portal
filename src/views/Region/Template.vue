@@ -8,108 +8,76 @@
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
-            <div class="filtering-ui-wrapper container-fluid search-header">
-                <div
-                    class="row filtering-ui-content search-header-content hidden"
-                >
-                    <div>
-                        <div class="region-search col filter-col-sm">
-                            <div class="label">Chromosome</div>
-                            <input
-                                v-model="$store.state.newChr"
-                                type="text"
-                                class="form-control"
-                                placeholder="Chromosome"
-                            />
-                        </div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Start</div>
-                            <input
-                                v-model="$store.state.newStart"
-                                type="text"
-                                class="form-control input-default"
-                                placeholder="Start position"
-                            />
-                        </div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">End</div>
-                            <input
-                                v-model="$store.state.newEnd"
-                                type="text"
-                                class="form-control input-default"
-                                placeholder="End position"
-                            />
-                        </div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Search region</div>
-                            <button
-                                id="regionSearchGo"
-                                class="btn btn-light btn-sm"
-                                type="button"
-                                @click="$store.dispatch('queryRegion')"
-                            >
-                                Search
-                            </button>
-                        </div>
-
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Search gene</div>
-                            <gene-selectpicker
-                                @onGeneChange="
-                                    $store.dispatch('onGeneChange', $event)
-                                "
-                            ></gene-selectpicker>
-                        </div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Search phenotype</div>
-                            <phenotype-selectpicker
-                                v-if="$store.state.phenotype"
-                                :phenotypes="$store.state.bioPortal.phenotypes"
-                                :default-phenotype="
-                                    $store.state.phenotype.description
-                                "
-                            ></phenotype-selectpicker>
-                        </div>
+            <search-header-wrapper></search-header-wrapper>
+            <!-- Wrap page level searchs with "pageSearchParameters" div -->
+            <div id="pageSearchParameters">
+                <div>
+                    <div class="region-search col filter-col-sm">
+                        <div class="label">Chromosome</div>
+                        <input
+                            v-model="$store.state.newChr"
+                            type="text"
+                            class="form-control"
+                            placeholder="Chromosome"
+                        />
                     </div>
-                </div>
-                <div
-                    v-on:click="
-                        () => $parent.showHideElement('search-header-content')
-                    "
-                    class="reset-page-parameters"
-                >
-                    Reset page parameters
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Start</div>
+                        <input
+                            v-model="$store.state.newStart"
+                            type="text"
+                            class="form-control input-default"
+                            placeholder="Start position"
+                        />
+                    </div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">End</div>
+                        <input
+                            v-model="$store.state.newEnd"
+                            type="text"
+                            class="form-control input-default"
+                            placeholder="End position"
+                        />
+                    </div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Search region</div>
+                        <button
+                            id="regionSearchGo"
+                            class="btn btn-light btn-sm"
+                            type="button"
+                            @click="$store.dispatch('queryRegion')"
+                        >
+                            Search
+                        </button>
+                    </div>
+
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Search gene</div>
+                        <gene-selectpicker
+                            @onGeneChange="
+                                $store.dispatch('onGeneChange', $event)
+                            "
+                        ></gene-selectpicker>
+                    </div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Search phenotype</div>
+                        <phenotype-selectpicker
+                            v-if="$store.state.phenotype"
+                            :phenotypes="$store.state.bioPortal.phenotypes"
+                            :default-phenotype="
+                                $store.state.phenotype.description
+                            "
+                            ref="dktest"
+                        ></phenotype-selectpicker>
+                    </div>
                 </div>
             </div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">
                         Chromosome: Start position - End position
-                        <!--<a
-                            class="edit-btn"
-                            v-on:click="
-                                () =>
-                                    $parent.showHideElement(
-                                        'regionSearchHolder',
-                                        'region_gene_search'
-                                    )
-                            "
-                            >Edit position / Search gene</a
-                        >-->
                     </div>
-                    <div class="col-md-4 gene-page-header-title">
-                        Phenotype
-                        <!--<a
-                            class="edit-btn"
-                            v-on:click="
-                                () =>
-                                    $parent.showHideElement(
-                                        'phenotypeSearchHolder'
-                                    )
-                            "
-                            >Select phenotype</a
-                        >-->
-                    </div>
+                    <div class="col-md-4 gene-page-header-title">Phenotype</div>
                 </div>
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-body regionInfo">
