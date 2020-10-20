@@ -116,10 +116,7 @@ new Vue({
         },
         phenotypes() {
             let selectedPhenotypesList = []
-            selectedPhenotypesList.push(this.$store.state.phenotype)
-            if (!!this.$store.state.secondaryPhenotype) {
-                selectedPhenotypesList.push(this.$store.state.secondaryPhenotype)
-            }
+            selectedPhenotypesList = this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
             return selectedPhenotypesList;
         },
 
@@ -135,8 +132,10 @@ new Vue({
         combined() {
             return this.geneFinderAssociations.flatMap(geneFinderItem => geneFinderItem[1]);
         },
-       
 
+        geneFinderPValue() {
+            return this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'pValue').map(criterion => criterion.threshold);
+        }
     },
 
     watch: {
@@ -144,7 +143,14 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         geneFinderPhenotypes(phenotypes) {
-            phenotypes.forEach(async phenotype => await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
+            let thresholdPValue = 0.05;
+            phenotypes.forEach(async phenotype => await query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < thresholdPValue }).then(bioIndexData => {
+                this.geneFinderAssociations.push([phenotype, bioIndexData])
+            }))
+        },
+        geneFinderPValue(thresholdPValue) {
+            let phenotypes = this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            phenotypes.forEach(async phenotype => await query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < thresholdPValue[0] }).then(bioIndexData => {
                 this.geneFinderAssociations.push([phenotype, bioIndexData])
             }))
         }
