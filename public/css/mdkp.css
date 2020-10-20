@@ -1386,6 +1386,12 @@ a.to-previous-page:hover {
 .filter-pill-phenotype {
     background-color: #28a745 !important;
 }
+.filter-pill-primaryphenotype {
+    background-color: #28a745 !important;
+}
+.filter-pill-secondaryphenotype {
+    background-color: #007bff !important;
+}
 
 .filter-pill-nearest {
     background-color: #28a745 !important;

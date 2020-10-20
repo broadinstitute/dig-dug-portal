@@ -89,7 +89,15 @@ export default Vue.component("manhattan-plot", {
 
     watch: {
         columns(columns) {
-            this.chart.load({ columns });
+            if (!!this.chart) {
+                this.chart.load({ columns });
+            }
+        },
+
+        chart(chart) {
+            if (!!chart && !!this.columns) {
+                chart.load({ columns: this.columns });
+            }
         },
     },
 });
