@@ -187,6 +187,7 @@
                             :associations="$store.state.genes.data"
                             :per-page="10"
                             :filter="$parent.geneFinderFilter"
+                            :showPlot="true"
                         ></gene-finder-table>
                     </div>
                 </div>
