@@ -39,6 +39,7 @@
                     :looseMatch="true"
                     :filterMaker="id=>id"
                     :predicateMaker="id=>id"
+                    :header="'Search Criterion'"
                 >
                     <!-- Phenotype Selector -->
                     <filter-enumeration-control
