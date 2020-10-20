@@ -9,7 +9,9 @@
         <!-- body -->
         <div class="container-fluid mdkp-body">
             <div class="filtering-ui-wrapper container-fluid search-header">
-                <div class="row filtering-ui-content">
+                <div
+                    class="row filtering-ui-content search-header-content hidden"
+                >
                     <div>
                         <div class="region-search col filter-col-sm">
                             <div class="label">Chromosome</div>
@@ -69,6 +71,14 @@
                             ></phenotype-selectpicker>
                         </div>
                     </div>
+                </div>
+                <div
+                    v-on:click="
+                        () => $parent.showHideElement('search-header-content')
+                    "
+                    class="reset-page-parameters"
+                >
+                    Reset page parameters
                 </div>
             </div>
             <div class="gene-page-header card mdkp-card">

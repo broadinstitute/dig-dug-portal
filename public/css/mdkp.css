@@ -634,15 +634,25 @@ div.filtering-tools table th {
     color: #333333;
     font-weight: 300 !important;
     border: none !important;
+    position: relative;
+    z-index: 10;
 }
 
 .search-header.fixed-header {
     position: fixed;
     top: 0;
     width: calc(100% - 30px);
-    background-color: #fff;
+    background-color: #bbbbbb;
     left: 15px;
-    z-index: 10;
+
+}
+
+.search-header .filtering-ui-content {
+    /*display: none;*/
+}
+
+.search-header:hover .filtering-ui-content {
+    /*display: block;*/
 }
 
 .search-header .row {
@@ -658,6 +668,18 @@ div.filtering-tools table th {
     border-radius: 0;
     border-right: solid 1px #ddd;
     display: inline-block;
+}
+
+.reset-page-parameters {
+    position: absolute;
+    bottom: -25px;
+    right: 20px;
+    padding: 5px 15px;
+    background-color:#bbbbbb;
+    border-bottom-left-radius: 5px !important;
+    border-bottom-right-radius: 5px !important;
+    color: #fff;
+    font-weight: 400;
 }
 
 #regionSearchHolder .region-search {
