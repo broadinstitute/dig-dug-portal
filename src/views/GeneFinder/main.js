@@ -157,7 +157,6 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         criterion(newCriterion, oldCriterion) {
-            console.log(newCriterion, oldCriterion)
             if (newCriterion.pValue !== oldCriterion.pValue) {
                 // if the pValue updates, all phenotype associations must be updated to reflect the new bound
                 // this will override all data in the geneFinderAssociationsMap
