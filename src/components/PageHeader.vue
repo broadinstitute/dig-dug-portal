@@ -11,8 +11,7 @@
                     <div class="amp-banner-left">
                         <a
                             href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
-                            >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a
-                        >
+                        >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a>
                     </div>
                 </div>
             </div>
@@ -108,7 +107,7 @@ export default Vue.component("page-header", {
     mixins: [userMixin],
     data() {
         return {
-            bioindex_dev: false,
+            bioindex_dev: false
         };
     },
     created() {
@@ -126,7 +125,7 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
-        },
-    },
+        }
+    }
 });
 </script>

@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import store from "./store.js";
 
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
 import FilterControl from "@/components/Filter/FilterControl.vue"
@@ -7,7 +8,8 @@ import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
-import FilterMulti from "@/components/Filter/FilterMulti.vue"
+
+import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers";
 
 
 import Alert, {
@@ -18,8 +20,6 @@ import Alert, {
 } from "@/components/Alert";
 
 Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
@@ -31,26 +31,17 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
-        FilterMulti,
-
-        AssociationsTable,
-        LocusZoom,
-        LocusZoomAssociationsPanel,
-        GeneSelectPicker,
-        PhenotypeSelectPicker,
-        AssociationsTable,
-        PosteriorProbabilityPlot,
-        ConfidenceIntervalPlot,
-        ForestPlot,
-        TooltipDocumentation
     },
-    render(createElement, context) {
+
+    render(createElement) {
         return createElement(Template);
     },
+
     data() {
         return {
             counter: 0,
             showAssociations: false,
+            filters: null,
             trait: "T2D"
         };
     },
@@ -67,7 +58,13 @@ new Vue({
     },
 
     methods: {
-        ...uiUtils,
+        filterFromPredicates,
+        predicateMethod(predicate) {
+            return predicate
+        },
+        testMethod(predicates) {
+            this.filters = predicates;
+        },
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -85,8 +82,8 @@ new Vue({
     mounted() {
 
     },
-    computed: {
 
+    computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {

@@ -207,6 +207,7 @@
                                         :options="
                                             $parent.associationConsequences
                                         "
+                                        :inclusive="true"
                                     >
                                         <div class="label">Consequence</div>
                                     </filter-enumeration-control>
@@ -216,6 +217,7 @@
                                         :options="
                                             $parent.associationNearestGenes
                                         "
+                                        :inclusive="true"
                                     >
                                         <div class="label">Closest Genes</div>
                                     </filter-enumeration-control>
@@ -249,7 +251,6 @@
                             name="region.igv.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
-
                         <filter-group
                             v-model="$parent.annotationsFilter"
                             :looseMatch="true"
@@ -336,7 +337,7 @@
                         >
                             <lz-associations-panel
                                 :phenotype="$store.state.phenotype.name"
-                                :finishHandler="$parent.updateAssociationsTable"
+                                @input="$parent.updateAssociationsTable"
                             ></lz-associations-panel>
                         </locuszoom>
                     </div>

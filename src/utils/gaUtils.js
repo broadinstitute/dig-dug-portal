@@ -69,8 +69,22 @@ const logErrorEvent = async function (context, message, page) {
     );
 }
 
+const logPageView = async function (page) {
+    return await fetch(`/pageview`)
+        .then(response => {
+            if (response) {
+                return response.data
+            } else {
+                throw new Error("Unknown outcome of Google Analytics Pageview Logging?")
+            }
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
 
 export default {
     logAnalyticsEvent,
     logErrorEvent,
+    logPageView,
 }

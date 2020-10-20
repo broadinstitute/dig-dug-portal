@@ -17,7 +17,7 @@ import Documentation from "@/components/Documentation.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
-import { rawUrl, getAccessToken } from "@/utils/bioIndexUtils";
+
 import Formatters from "@/utils/formatters";
 import Alert, {
     postAlert,
@@ -82,7 +82,8 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-        intFormatter: Formatters.intFormatter
+        intFormatter: Formatters.intFormatter,
+        ancestryFormatter: Formatters.ancestryFormatter,
     },
 
     computed: {

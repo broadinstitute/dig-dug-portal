@@ -7,8 +7,8 @@
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${labelFormatter(filterDefinition.threshold)}`"
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
-        :multiple="true"
-        :inclusive="true">
+        :multiple="!!multiple"
+        :inclusive="!!inclusive || !!multiple">
         <slot>
         </slot>
     </filter-control>
@@ -25,11 +25,11 @@ export default Vue.component('filter-enumeration-control', {
         color: String,
         multiple: {
             type: Boolean,
-            default: true
+            default: false
         },
         inclusive: {
             type: Boolean,
-            default: true,
+            default: false,
         },
         labelFormatter: {
             type: Function,

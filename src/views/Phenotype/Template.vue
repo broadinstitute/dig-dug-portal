@@ -54,7 +54,7 @@
                                     <raw-img
                                         id="manhattanPlot"
                                         :src="$parent.manhattanPlot"
-                                        alt="Card image cap"
+                                        alt="Manhattan Plot"
                                         :documentation="'phenotype.associationplots.manhattan'"
                                         :content-fill="
                                             $store.getters['documentationMap']
@@ -67,7 +67,7 @@
                                     <raw-img
                                         id="qqPlot"
                                         :src="$parent.qqPlot"
-                                        alt="Card image cap"
+                                        alt="QQ Plot"
                                         :documentation="'phenotype.associationplots.qq'"
                                         :content-fill="
                                             $store.getters['documentationMap']
@@ -152,6 +152,7 @@
                             }}
                             genes associated with
                             {{ $store.state.phenotype.description }}
+                            with P-Value &le; 1e-5
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
                                 :content-fill="$parent.documentationMap"
@@ -186,6 +187,7 @@
                             :associations="$store.state.genes.data"
                             :per-page="10"
                             :filter="$parent.geneFinderFilter"
+                            :showPlot="true"
                         ></gene-finder-table>
                     </div>
                 </div>
@@ -223,6 +225,7 @@
                                         (dataset) => dataset.ancestry
                                     )
                                 "
+                                :labelFormatter="$parent.ancestryFormatter"
                             >
                                 <div class="label">Ancestry</div>
                             </filter-enumeration-control>
@@ -297,6 +300,7 @@
                                         (annotation) => annotation.ancestry
                                     )
                                 "
+                                :labelFormatter="$parent.ancestryFormatter"
                             >
                                 <div class="label">Ancestry</div>
                             </filter-enumeration-control>

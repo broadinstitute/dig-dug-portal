@@ -81,7 +81,7 @@ export default Vue.component("transcript-consequence-table", {
 
     computed: {
         rows() {
-            return this.transcriptConsequences.length;
+            return this.tableData.length;
         },
         sortedTranscriptConsequences() {
             let picked = this.transcriptConsequences.filter((a) => a.pick == 1);
