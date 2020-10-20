@@ -33,7 +33,7 @@ import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
 import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
 
-
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 new Vue({
     store,
 
@@ -54,7 +54,9 @@ new Vue({
         FilterPValue,
         FilterGreaterThan,
         FilterEnumeration,
-        FilterEffectDirection
+        FilterEffectDirection,
+
+        SearchHeaderWrapper
     },
 
     data() {

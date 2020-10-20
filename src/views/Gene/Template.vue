@@ -8,22 +8,31 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+            <search-header-wrapper></search-header-wrapper>
+            <!-- Wrap page level searchs with "pageSearchParameters" div -->
+            <div id="pageSearchParameters">
+                <div class="col filter-col-md">
+                    <gene-selectpicker
+                        @onGeneChange="$store.dispatch('queryGeneName', $event)"
+                    ></gene-selectpicker>
+                </div>
+            </div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">
                         Gene
-                        <a
+                        <!--<a
                             class="edit-btn"
                             v-on:click="
                                 $parent.showHideElement('variantSearchHolder')
                             "
                             >Select gene</a
-                        >
+                        >-->
                     </div>
                     <div class="col-md-4 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div
+                        <!--<div
                             id="variantSearchHolder"
                             class="gene-page-header-search-holder hidden"
                         >
@@ -32,7 +41,7 @@
                                     $store.dispatch('queryGeneName', $event)
                                 "
                             ></gene-selectpicker>
-                        </div>
+                        </div>-->
                         <div v-if="$parent.symbolName">
                             <span>
                                 {{ $parent.symbolName }}
@@ -144,24 +153,34 @@
                             ></tooltip-documentation>
                         </h4>
 
-
                         <filter-group
                             v-model="$parent.associationsFilter"
-                            :looseMatch="true">
+                            :looseMatch="true"
+                        >
                             <filter-enumeration-control
                                 :field="'phenotype'"
-                                :options="$store.state.associations.data.map(association => association.phenotype)"
-                                :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
-                                <div class="label">
-                                    Phenotypes
-                                </div>
+                                :options="
+                                    $store.state.associations.data.map(
+                                        (association) => association.phenotype
+                                    )
+                                "
+                                :labelFormatter="
+                                    (phenotype) =>
+                                        !!$store.state.bioPortal.phenotypeMap[
+                                            phenotype
+                                        ]
+                                            ? $store.state.bioPortal
+                                                  .phenotypeMap[phenotype]
+                                                  .description
+                                            : phenotype
+                                "
+                            >
+                                <div class="label">Phenotypes</div>
                             </filter-enumeration-control>
-                            <filter-pvalue-control
-                                :field="'pValue'">
+                            <filter-pvalue-control :field="'pValue'">
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
                         </filter-group>
-
 
                         <locuszoom
                             v-if="$store.state.gene"
@@ -228,22 +247,29 @@
                             ></tooltip-documentation>
                         </h4>
 
-
-
-                        <filter-group v-model="$parent.referenceFilter" :inclusive="true">
+                        <filter-group
+                            v-model="$parent.referenceFilter"
+                            :inclusive="true"
+                        >
                             <filter-enumeration-control
                                 :field="'source'"
-                                :options="$parent.dbReference.map(reference => reference.source)">
-                                <div class="label">
-                                    Sources
-                                </div>
+                                :options="
+                                    $parent.dbReference.map(
+                                        (reference) => reference.source
+                                    )
+                                "
+                            >
+                                <div class="label">Sources</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'moleculeType'"
-                                :options="$parent.dbReference.map(reference => reference.moleculeType)">
-                                <div class="label">
-                                    Molecule Type
-                                </div>
+                                :options="
+                                    $parent.dbReference.map(
+                                        (reference) => reference.moleculeType
+                                    )
+                                "
+                            >
+                                <div class="label">Molecule Type</div>
                             </filter-enumeration-control>
                         </filter-group>
 
