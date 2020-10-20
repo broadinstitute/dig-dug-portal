@@ -232,7 +232,7 @@ export default Vue.component("gene-finder-table", {
             // calculate the combined p-value
             let pdf = Chi.pdf(X, 2 * this.phenotypes.length);
 
-            return pdf;
+            return 2 * pdf;
         },
     },
 });
