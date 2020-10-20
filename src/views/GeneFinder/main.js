@@ -90,15 +90,15 @@ new Vue({
             this.$store.commit("setFilterBadges", true);
         },
 
-        updatePhenotypeList(event) {
-            let plist = this.$store.state.phenotypelist;
-            plist = plist.filter(item => item != event.name)
-            this.$store.commit("setPhenotypelist", plist)
-        },
+        // updatePhenotypeList(event) {
+        //     let plist = this.$store.state.phenotypelist;
+        //     plist = plist.filter(item => item != event.name)
+        //     this.$store.commit("setPhenotypelist", plist)
+        // },
 
-        removeFilter(index, obj) {
-            this[obj].splice(index, 1);
-        },
+        // removeFilter(index, obj) {
+        //     this[obj].splice(index, 1);
+        // },
 
 
     },
@@ -134,7 +134,18 @@ new Vue({
         },
 
         geneFinderPValue() {
-            return this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'pValue').map(criterion => criterion.threshold);
+            let pval = 0.05
+
+            for (let i in this.geneFinderSearchCriterion) {
+                if (this.geneFinderSearchCriterion[i].field == 'pValue') {
+                    pval = this.geneFinderSearchCriterion[i].threshold
+                }
+            }
+            // if (this.geneFinderSearchCriterion.filter(criterion => criterion.field == 'pValue')) {
+            //     pval = this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'pValue').map(criterion => criterion.threshold);
+            // }
+            return pval
+
         }
     },
 
@@ -143,8 +154,8 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         geneFinderPhenotypes(phenotypes) {
-            let thresholdPValue = 0.05;
-            phenotypes.forEach(async phenotype => await query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < thresholdPValue }).then(bioIndexData => {
+
+            phenotypes.forEach(async phenotype => await query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < this.geneFinderPValue }).then(bioIndexData => {
                 this.geneFinderAssociations.push([phenotype, bioIndexData])
             }))
         },
