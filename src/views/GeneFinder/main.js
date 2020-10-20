@@ -79,25 +79,17 @@ new Vue({
         postAlertError,
         closeAlert,
 
-        getPhenotypeAssociatedGeneFinderData(event) {
-            this.$store.commit("setPhenotype", event.name)
-            this.$store.dispatch("queryGeneFinder");
-        },
 
-        updateGeneFinderData(event) {
-            this.$store.commit("setSecondaryPhenotype", event.name)
-            this.$store.dispatch("secondaryGeneFinder");
-            this.$store.commit("setFilterBadges", true);
-        },
+
 
         updateAssociations(updatedPhenotypes, pValue, flush) {
             updatedPhenotypes
                 .forEach(async phenotype => {
                     if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
-                        await query(`gene-finder`, phenotype, { limit:500, limitWhile: record => record.pValue < pValue })
-                        .then(bioIndexData => {
-                            Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
-                        })
+                        await query(`gene-finder`, phenotype, { limit: 500, limitWhile: record => record.pValue < pValue })
+                            .then(bioIndexData => {
+                                Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
+                            })
                     }
                 });
             ;

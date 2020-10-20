@@ -79,6 +79,7 @@
                         :associations="$parent.combined"
                         :per-page="10"
                         :exclusive="true"
+                        :showPlot="true"
                     ></gene-finder-table>
                 </div>
             </div>
