@@ -181,7 +181,7 @@ export default Vue.component("gene-finder-table", {
             let groups = {};
             let associations = this.tableData;
 
-            console.log("this.tableData.length", this.tableData.length);
+            //console.log("this.tableData.length", this.tableData);
 
             for (let i in associations) {
                 let r = associations[i];
@@ -230,6 +230,8 @@ export default Vue.component("gene-finder-table", {
 
             return data;
         },
+
+        genesPerPhenotypes() {},
 
         combinedAssociations() {
             return this.groupedAssociations.map((a) => {
