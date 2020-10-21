@@ -6,7 +6,15 @@
                 style="margin-bottom: 10px"
             ></manhattan-plot>
             <center style="margin-bottom: 30px">
-                <b>Combined P-Value(Χ²) Across Phenotypes</b>
+                <b
+                    >Combined P-Value(Χ²) Across
+                    <a
+                        v-for="p in phenotypes"
+                        class="item"
+                        :href="`/phenotype.html?phenotype=${p}`"
+                        >{{ phenotypeMap[p].description }}</a
+                    >
+                </b>
             </center>
         </div>
         <div v-if="tableData.length > 0">

@@ -86,7 +86,7 @@ new Vue({
             updatedPhenotypes
                 .forEach(async phenotype => {
                     if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
-                        await query(`gene-finder`, phenotype, { limit: 500, limitWhile: record => record.pValue < pValue })
+                        await query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
                             .then(bioIndexData => {
                                 Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
                             })
