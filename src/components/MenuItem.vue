@@ -21,7 +21,8 @@ export default Vue.component("menu-item", {
     mounted() {
         if (!!this.name) {
             // fetch the documentation data and resolve it in data
-            let docGroup = !!this.group ? this.group.name : "md";
+            let docGroup = !!this.group ? this.group : "md";
+
             let qs = queryString.stringify({
                 q: this.name,
                 group: docGroup, //get this from state
