@@ -69,8 +69,15 @@ const logErrorEvent = async function (context, message, page) {
     );
 }
 
-const logPageView = async function () {
-    return await fetch(`/pageview`)
+const logPageView = async function (uri) {
+    const qs = queryString.stringify({ uri }, { skipNull: true });
+    return await fetch(`/pageview`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ uri: uri }),
+        })
         .then(response => {
             if (response) {
                 return response.data
