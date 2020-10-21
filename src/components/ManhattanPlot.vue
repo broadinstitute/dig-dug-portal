@@ -4,6 +4,12 @@
     </div>
 </template>
 
+<style>
+.c3-circle {
+    opacity: 1 !important;
+}
+</style>
+
 <script>
 import Vue from "vue";
 import c3 from "c3";
@@ -32,6 +38,9 @@ export default Vue.component("manhattan-plot", {
                 columns: [["x"], ["pValue"]],
                 type: "scatter",
                 order: null,
+                color: function (color, d) {
+                    return positionColors.find((c) => d.x < c[0])[1];
+                },
             },
             legend: {
                 show: false,
@@ -41,7 +50,13 @@ export default Vue.component("manhattan-plot", {
                 rescale: false,
             },
             point: {
-                r: 4,
+                r: 5,
+                focus: {
+                    expand: {
+                        enabled: true,
+                        r: 7,
+                    },
+                },
             },
             tooltip: {
                 show: true,
@@ -57,7 +72,11 @@ export default Vue.component("manhattan-plot", {
                     min: 0,
                     max: chromosomeStart.Y + chromosomeLength.Y,
                     tick: {
-                        values: chromosomes.map((c) => chromosomeStart[c]),
+                        values: chromosomes.map(
+                            (c) =>
+                                chromosomeStart[c] +
+                                Math.floor(chromosomeLength[c] / 2)
+                        ),
                         format: (pos) => chromosomePos[pos],
                     },
                 },
@@ -90,13 +109,13 @@ export default Vue.component("manhattan-plot", {
     watch: {
         columns(columns) {
             if (!!this.chart) {
-                this.chart.load({ columns });
+                this.chart.load({ columns, unload: ["x", "pValue"] });
             }
         },
 
         chart(chart) {
             if (!!chart && !!this.columns) {
-                chart.load({ columns: this.columns });
+                chart.load({ columns: this.columns, unload: ["x", "pValue"] });
             }
         },
     },
@@ -160,12 +179,31 @@ let chromosomes = [
 let chromosomeStart = {};
 let chromosomePos = {};
 
+let chromosomeColors = [
+    "#08306b",
+    "#41ab5d",
+    "#000000",
+    "#f16913",
+    "#3f007d",
+    "#cb181d",
+];
+
+let positionColors = [];
+
 let start = 0;
 for (let i in chromosomes) {
     let chrom = chromosomes[i];
+    let len = chromosomeLength[chrom];
     chromosomeStart[chrom] = start;
-    chromosomePos[start] = chrom;
 
-    start += chromosomeLength[chrom];
+    // assign the start and middle of the chromosome
+    chromosomePos[start] = chrom;
+    chromosomePos[start + Math.floor(len / 2)] = chrom;
+
+    // advance to next chromosome start
+    start += len;
+
+    // round-robin the colors for each chromosome
+    positionColors.push([start, chromosomeColors[i % chromosomeColors.length]]);
 }
 </script>
