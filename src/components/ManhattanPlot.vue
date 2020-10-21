@@ -7,6 +7,7 @@
 <style>
 .c3-circle {
     opacity: 1 !important;
+    fill: currentColor;
 }
 </style>
 
@@ -50,7 +51,7 @@ export default Vue.component("manhattan-plot", {
                 rescale: false,
             },
             point: {
-                r: 5,
+                r: 4,
                 focus: {
                     expand: {
                         enabled: true,
