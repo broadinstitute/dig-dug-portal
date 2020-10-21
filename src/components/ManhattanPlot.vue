@@ -103,6 +103,15 @@ export default Vue.component("manhattan-plot", {
         associations(associations) {
             let n = (associations || []).length;
 
+            // remove if no associations
+            if (n == 0) {
+                if (!!this.chart) {
+                    this.chart.unload(["x", "pValue"]);
+                }
+
+                return;
+            }
+
             let x = new Array(n + 1);
             let y = new Array(n + 1);
 
