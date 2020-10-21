@@ -73,8 +73,7 @@ const logErrorEvent = async function (context, message, page) {
  * Issue an Pageview notification for Google Analytics (GA) reporting, to the server.
  * `URI` is passed in by whoever is logging the pageview. Should usually be equal to whatever `window.location.href` returns.
  *
- * @param {string} [context]
- * @param {string} [message]
+ * @param {string} [uri]
  * @return null
  * @public
  */
