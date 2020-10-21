@@ -72,7 +72,7 @@
             <b-pagination
                 class="pagination-sm justify-content-center"
                 v-model="currentPage"
-                :total-rows="tableData.length"
+                :total-rows="groupedAssociations.length"
                 :per-page="rowsPerPage"
             ></b-pagination>
         </div>
