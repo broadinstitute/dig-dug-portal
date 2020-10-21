@@ -7,7 +7,7 @@
             ></manhattan-plot>
             <center style="margin-bottom: 30px">
                 <b v-show="!!this.showChiSquared"
-                    >Combined P-Value(Χ²) Across
+                    >Combined P-Value(Χ²) across
                     <a
                         v-for="p in phenotypes"
                         class="item"

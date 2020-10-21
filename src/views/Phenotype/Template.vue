@@ -185,7 +185,7 @@
                             :phenotypes="[$store.state.phenotype.name]"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :associations="$store.state.genes.data"
-                            :per-page="10"
+                            :rows-per-page="10"
                             :filter="$parent.geneFinderFilter"
                             :showPlot="true"
                         ></gene-finder-table>
