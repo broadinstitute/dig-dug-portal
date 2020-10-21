@@ -79,20 +79,18 @@ new Vue({
         postAlertError,
         closeAlert,
 
-
-
-
         updateAssociations(updatedPhenotypes, pValue, flush) {
-            updatedPhenotypes
-                .forEach(async phenotype => {
-                    if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
-                        await query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
-                            .then(bioIndexData => {
-                                Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
-                            })
-                    }
-                });
-            ;
+            let promises = updatedPhenotypes.map(phenotype => {
+                if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
+                    query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
+                        .then(bioIndexData => {
+                            Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
+                        })
+                }
+            });
+
+            // may await on this in the future if needed...
+            Promise.all(promises);
         }
 
     },
