@@ -198,41 +198,41 @@
                         ></documentation>
 
 
-                                <filter-group
-                                    v-model="$parent.associationsFilter"
-                                    :looseMatch="true"
-                                >
-                                    <filter-enumeration-control
-                                        :field="'consequence'"
-                                        :options="
-                                            $parent.associationConsequences
-                                        "
-                                        :inclusive="true"
-                                    >
-                                        <div class="label">Consequence</div>
-                                    </filter-enumeration-control>
+                        <filter-group
+                            v-model="$parent.associationsFilter"
+                            :looseMatch="true"
+                        >
+                            <filter-enumeration-control
+                                :field="'consequence'"
+                                :options="
+                                    $parent.associationConsequences
+                                "
+                                :inclusive="true"
+                            >
+                                <div class="label">Consequence</div>
+                            </filter-enumeration-control>
 
-                                    <filter-enumeration-control
-                                        :field="'nearest'"
-                                        :options="
-                                            $parent.associationNearestGenes
-                                        "
-                                        :inclusive="true"
-                                    >
-                                        <div class="label">Closest Genes</div>
-                                    </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'nearest'"
+                                :options="
+                                    $parent.associationNearestGenes
+                                "
+                                :inclusive="true"
+                            >
+                                <div class="label">Closest Genes</div>
+                            </filter-enumeration-control>
 
-                                    <filter-pvalue-control :field="'pValue'">
-                                        <div class="label">P-Value (&le;)</div>
-                                    </filter-pvalue-control>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
 
-                                    <filter-effect-direction-control
-                                        :field="'beta'"
-                                    >
-                                        <div class="label">Effect (+/-)</div>
-                                    </filter-effect-direction-control>
-                                </filter-group>
+                            <filter-effect-direction-control
+                                :field="'beta'"
+                            >
+                                <div class="label">Effect (+/-)</div>
+                            </filter-effect-direction-control>
 
+                        </filter-group>
 
                         <associations-table
                             v-if="$store.state.associations.data.length > 0"
@@ -251,6 +251,7 @@
                             name="region.igv.subheader"
                             :content-fill="$parent.documentationMap"
                         ></documentation>
+
                         <filter-group
                             v-model="$parent.annotationsFilter"
                             :looseMatch="true"
@@ -311,17 +312,6 @@
 
                         </filter-group>
 
-                                <!-- <div class="col filter-col-lg" style="vertical-align: top;">
-                                    <div class="label">View region in Variant Prioritizer</div>
-                                    <b-button
-                                        v-if="!!$store.state.phenotype"
-                                        class="btn btn-sm btn-2-vptz"
-                                        :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
-                                        target="_blank"
-                                    >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
-                                </div> -->
-
-
                         <locuszoom
                             ref="locuszoom"
                             :chr="$store.state.chr"
@@ -333,13 +323,13 @@
                                 $parent.requestCredibleSets($event.data)
                             "
                             :loglog="true"
-                            :refSeq="true"
-                        >
+                            :refSeq="true">
                             <lz-associations-panel
                                 :phenotype="$store.state.phenotype.name"
                                 @input="$parent.updateAssociationsTable"
                             ></lz-associations-panel>
                         </locuszoom>
+                        
                     </div>
                 </div>
             </div>

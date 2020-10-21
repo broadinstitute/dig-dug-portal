@@ -146,7 +146,6 @@
 
 
                         <filter-group
-                            v-model="$parent.associationsFilter"
                             :looseMatch="true">
                             <filter-enumeration-control
                                 :field="'phenotype'"
@@ -160,34 +159,36 @@
                                 :field="'pValue'">
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <locuszoom
+                                    v-if="$store.state.gene"
+                                    ref="locuszoom"
+                                    :filter="filter"
+                                    :refSeq="false">
+                                    <lz-phewas-panel
+                                        v-if="$store.state.geneName"
+                                        :id="$store.state.geneName"
+                                        :type="'gene'"
+                                        :phenotypeMap="
+                                            $store.state.bioPortal.phenotypeMap
+                                        "
+                                    ></lz-phewas-panel>
+                                </locuszoom>
+                                <unauthorized-message
+                                    :restricted="$store.state.associations.restricted"
+                                ></unauthorized-message>
+                                <gene-associations-table
+                                    v-if="$store.state.gene.data.length > 0"
+                                    :gene="$store.state.gene.data[0]"
+                                    :associations="$store.state.associations.data"
+                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    :filter="filter"
+                                ></gene-associations-table>
+                            </template>
+
                         </filter-group>
 
-
-                        <locuszoom
-                            v-if="$store.state.gene"
-                            ref="locuszoom"
-                            :filter="$parent.associationsFilter"
-                            :refSeq="false"
-                        >
-                            <lz-phewas-panel
-                                v-if="$store.state.geneName"
-                                :id="$store.state.geneName"
-                                :type="'gene'"
-                                :phenotypeMap="
-                                    $store.state.bioPortal.phenotypeMap
-                                "
-                            ></lz-phewas-panel>
-                        </locuszoom>
-                        <unauthorized-message
-                            :restricted="$store.state.associations.restricted"
-                        ></unauthorized-message>
-                        <gene-associations-table
-                            v-if="$store.state.gene.data.length > 0"
-                            :gene="$store.state.gene.data[0]"
-                            :associations="$store.state.associations.data"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            :filter="$parent.associationsFilter"
-                        ></gene-associations-table>
                     </div>
                 </div>
             </div>
@@ -230,7 +231,7 @@
 
 
 
-                        <filter-group v-model="$parent.referenceFilter" :inclusive="true">
+                        <filter-group :inclusive="true">
                             <filter-enumeration-control
                                 :field="'source'"
                                 :options="$parent.dbReference.map(reference => reference.source)">
@@ -245,12 +246,16 @@
                                     Molecule Type
                                 </div>
                             </filter-enumeration-control>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <uniprot-references-table
+                                    :references="$parent.dbReference"
+                                    :filter="filter"
+                                ></uniprot-references-table>
+                            </template>
                         </filter-group>
 
-                        <uniprot-references-table
-                            :references="$parent.dbReference"
-                            :filter="$parent.referenceFilter"
-                        ></uniprot-references-table>
+
                     </div>
                 </div>
             </div>

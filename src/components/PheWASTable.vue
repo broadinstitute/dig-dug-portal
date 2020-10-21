@@ -174,7 +174,7 @@ export default Vue.component("phewas-table", {
         tableData() {
             let dataRows = this.pheWASAssociations;
             if (!!this.filter) {
-                dataRows = this.pheWASAssociations.filter(association => {
+                dataRows = dataRows.filter(association => {
                     return this.filter(association);
                 });
             }

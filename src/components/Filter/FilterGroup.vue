@@ -34,6 +34,7 @@
         </div>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <br v-else />
+        <slot name="filtered" :filter="filterFunction"></slot>
     </span>
 </template>
 

@@ -186,7 +186,6 @@
                     ></unauthorized-message>
 
                     <filter-group
-                        v-model="$parent.phewasFilter"
                         :looseMatch="true"
                     >
                         <filter-enumeration-control
@@ -218,61 +217,64 @@
                         <filter-effect-direction-control :field="'beta'" :inclusive="true">
                             <div class="label">Effect (+/-)</div>
                         </filter-effect-direction-control>
-                    </filter-group>
 
-                    <!--<h4 class="card-title">Visualization</h4>-->
-                    <b-tabs content-class="mt-3" align="center">
-                        <b-tab title="LocusZoom" active>
-                            <locuszoom
-                                ref="locuszoom"
-                                :chr="$store.state.chr"
-                                :start="$store.state.start"
-                                :end="$store.state.end"
-                                :filter="$parent.phewasFilter"
-                                :refSeq="false"
-                            >
-                                <lz-phewas-panel
-                                    v-if="$store.state.variant"
-                                    :id="$store.state.variant.varId"
-                                    :type="'variant'"
-                                    :phenotypeMap="
-                                        $store.state.bioPortal.phenotypeMap
-                                    "
-                                ></lz-phewas-panel>
-                            </locuszoom>
-                        </b-tab>
-                        <b-tab title="Forest plot">
-                            <forest-plot-html
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <!--<h4 class="card-title">Visualization</h4>-->
+                            <b-tabs content-class="mt-3" align="center">
+                                <b-tab title="LocusZoom" active>
+                                    <locuszoom
+                                        ref="locuszoom"
+                                        :chr="$store.state.chr"
+                                        :start="$store.state.start"
+                                        :end="$store.state.end"
+                                        :filter="filter"
+                                        :refSeq="false"
+                                    >
+                                        <lz-phewas-panel
+                                            v-if="$store.state.variant"
+                                            :id="$store.state.variant.varId"
+                                            :type="'variant'"
+                                            :phenotypeMap="
+                                                $store.state.bioPortal.phenotypeMap
+                                            "
+                                        ></lz-phewas-panel>
+                                    </locuszoom>
+                                </b-tab>
+                                <b-tab title="Forest plot">
+                                    <forest-plot-html
+                                        v-if="$store.state.phewas.data"
+                                        :forestPlotData="$store.state.phewas.data"
+                                        :labelMap="$store.state.bioPortal.phenotypeMap"
+                                        :sortBy="'pValue'"
+                                        :significant="5e-8"
+                                        :moderate="2.5e-6"
+                                        :weak="0.05"
+                                        :bulletBy="'beta'"
+                                        :stdErr="'stdErr'"
+                                        :labelBy="'phenotype'"
+                                        :countDichotomous="0"
+                                        :filter="filter"
+                                    ></forest-plot-html>
+                                </b-tab>
+                            </b-tabs>
+
+                            <unauthorized-message
+                                :restricted="
+                                    $store.state.datasetAssociations.restricted
+                                "
+                            ></unauthorized-message>
+
+                            <phewas-datasets
                                 v-if="$store.state.phewas.data"
-                                :forestPlotData="$store.state.phewas.data"
-                                :labelMap="$store.state.bioPortal.phenotypeMap"
-                                :sortBy="'pValue'"
-                                :significant="5e-8"
-                                :moderate="2.5e-6"
-                                :weak="0.05"
-                                :bulletBy="'beta'"
-                                :stdErr="'stdErr'"
-                                :labelBy="'phenotype'"
-                                :countDichotomous="0"
-                                :filter="$parent.phewasFilter"
-                            ></forest-plot-html>
-                        </b-tab>
-                    </b-tabs>
+                                :associations="$store.state.phewas.data"
+                                :datasets="$store.state.datasetAssociations.data"
+                                :datasetMap="$store.state.bioPortal.datasetMap"
+                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                :filter="filter"
+                            ></phewas-datasets>
+                        </template>
 
-                    <unauthorized-message
-                        :restricted="
-                            $store.state.datasetAssociations.restricted
-                        "
-                    ></unauthorized-message>
-
-                    <phewas-datasets
-                        v-if="$store.state.phewas.data"
-                        :associations="$store.state.phewas.data"
-                        :datasets="$store.state.datasetAssociations.data"
-                        :datasetMap="$store.state.bioPortal.datasetMap"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                        :filter="$parent.phewasFilter"
-                    ></phewas-datasets>
+                    </filter-group>
                 </div>
             </div>
 
@@ -330,7 +332,6 @@
                     ></unauthorized-message>
 
                     <filter-group
-                        v-model="$parent.regionFilter"
                         :looseMatch="true"
                     >
                         <filter-enumeration-control
@@ -361,12 +362,13 @@
                         >
                             <div class="label">Tissues</div>
                         </filter-enumeration-control>
+                        <template slot="filtered" slot-scope="{ filter }">
+                            <regions-table
+                                :regions="$parent.regions"
+                                :filter="filter"
+                            ></regions-table>
+                        </template>
                     </filter-group>
-
-                    <regions-table
-                        :regions="$parent.regions"
-                        :filter="$parent.regionFilter"
-                    ></regions-table>
                 </div>
             </div>
         </div>

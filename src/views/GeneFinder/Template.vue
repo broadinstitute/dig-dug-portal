@@ -44,13 +44,10 @@
 
                     <!-- <documentation name="tools.genefinder.buildcriteria.subheader"></documentation> -->
 
-                    <filter-group
+                    <filter-list-group
                         v-model="$parent.geneFinderSearchCriterion"
                         :looseMatch="true"
-                        :filterMaker="(id) => id"
-                        :predicateMaker="(id) => id"
-                        :header="'Search Criterion'"
-                    >
+                        :header="'Search Criterion'">
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             class="filter-col-lg"
@@ -86,7 +83,7 @@
                                 <strong>P-Value (&le;)</strong>
                             </div>
                         </filter-pvalue-control>
-                    </filter-group>
+                    </filter-list-group>
 
                     <div>
                         <gene-finder-table

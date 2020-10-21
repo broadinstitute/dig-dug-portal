@@ -64,8 +64,6 @@ new Vue({
     data() {
         return {
             counter: 0,
-            associationsFilter: null,
-            referenceFilter: null,
             externalResources: {
                 ensembl:
                     "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",

@@ -99,7 +99,6 @@
                         </h4>
 
                         <filter-group
-                            v-model="$parent.associationsFilter"
                             :looseMatch="true"
                         >
                             <filter-enumeration-control
@@ -130,14 +129,17 @@
                             <filter-effect-direction-control :field="'beta'">
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <associations-table
+                                    :phenotypes="[$store.state.phenotype]"
+                                    :associations="$store.state.associations.data"
+                                    :filter="filter"
+                                    :per-page="10"
+                                ></associations-table>
+                            </template>
                         </filter-group>
 
-                        <associations-table
-                            :phenotypes="[$store.state.phenotype]"
-                            :associations="$store.state.associations.data"
-                            :filter="$parent.associationsFilter"
-                            :per-page="10"
-                        ></associations-table>
                     </div>
                 </div>
 
@@ -162,7 +164,6 @@
                         </h4>
 
                         <filter-group
-                            v-model="$parent.geneFinderFilter"
                             :looseMatch="true"
                         >
                             <filter-enumeration-control
@@ -179,16 +180,19 @@
                             <filter-pvalue-control :field="'pValue'">
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <gene-finder-table
+                                    :phenotypes="[$store.state.phenotype.name]"
+                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    :associations="$store.state.genes.data"
+                                    :rows-per-page="10"
+                                    :filter="filter"
+                                    :showPlot="true"
+                                ></gene-finder-table>
+                            </template>
                         </filter-group>
 
-                        <gene-finder-table
-                            :phenotypes="[$store.state.phenotype.name]"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            :associations="$store.state.genes.data"
-                            :rows-per-page="10"
-                            :filter="$parent.geneFinderFilter"
-                            :showPlot="true"
-                        ></gene-finder-table>
                     </div>
                 </div>
 
@@ -204,7 +208,6 @@
                         ></documentation>
 
                         <filter-group
-                            v-model="$parent.phenotypeFilter"
                             :looseMatch="true"
                         >
                             <filter-enumeration-control
@@ -229,13 +232,17 @@
                             >
                                 <div class="label">Ancestry</div>
                             </filter-enumeration-control>
+
+                            <template slot="filtered" slot-scope={filter}>
+                                <datasets-table
+                                    :datasets="$store.state.bioPortal.datasets"
+                                    :phenotype="$store.state.phenotype"
+                                    :filter="filter"
+                                ></datasets-table>
+                            </template>
+
                         </filter-group>
 
-                        <datasets-table
-                            :datasets="$store.state.bioPortal.datasets"
-                            :phenotype="$store.state.phenotype"
-                            :filter="$parent.phenotypeFilter"
-                        ></datasets-table>
                     </div>
                 </div>
 
@@ -257,7 +264,7 @@
                         ></documentation>
 
                         <filter-group
-                            v-model="$parent.annotationsFilter"
+                            v-model="$parent.enrichmentFilter"
                             :looseMatch="true"
                         >
                             <filter-enumeration-control
@@ -312,14 +319,20 @@
                             <filter-greater-control :field="'fold'">
                                 <div class="label">Fold (&ge;)</div>
                             </filter-greater-control>
-                        </filter-group>
 
+                            <!-- <template slot="filtered" slot-scope="{ filter }">
+
+                            </template> -->
+
+                        </filter-group>
                         <enrichment-table
                             :phenotypes="[$store.state.phenotype]"
                             :annotations="$store.state.annotations.data"
-                            :filter="$parent.annotationsFilter"
+                            :filter="$parent.enrichmentFilter"
                             :per-page="10"
                         ></enrichment-table>
+
+
                     </div>
                 </div>
             </div>
