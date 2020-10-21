@@ -6,7 +6,7 @@
                 style="margin-bottom: 10px"
             ></manhattan-plot>
             <center style="margin-bottom: 30px">
-                <b
+                <b v-show="!!this.showChiSquared"
                     >Combined P-Value(Χ²) Across
                     <a
                         v-for="p in phenotypes"
@@ -17,6 +17,7 @@
                 </b>
             </center>
         </div>
+
         <div v-if="tableData.length > 0">
             <b-table
                 hover
@@ -28,7 +29,7 @@
                 :current-page="currentPage"
             >
                 <template v-slot:thead-top="data">
-                    <b-th colspan="2">
+                    <b-th :colspan="!!showChiSquared ? 2 : 1">
                         <span
                             >Matching genes:
                             {{ groupedAssociations.length }}</span
@@ -44,7 +45,8 @@
                         <span
                             v-if="phenotypeMap[phenotype]"
                             style="color: white"
-                            >{{ phenotypeMap[phenotype].description }}</span
+                            >{{ phenotypeMap[phenotype].description
+                            }}{{ ": " + genesPerPhenotypes[phenotype] }}</span
                         >
                     </b-th>
                 </template>
@@ -110,6 +112,7 @@ export default Vue.component("gene-finder-table", {
         "filter",
         "exclusive",
         "showPlot",
+        "showChiSquared",
         "rowsPerPage",
     ],
     components: {
@@ -123,11 +126,6 @@ export default Vue.component("gene-finder-table", {
                 {
                     key: "geneName",
                     label: "Gene",
-                },
-                {
-                    key: "chiSquared",
-                    label: "P-Value(Χ²)",
-                    formatter: this.pValueFormatter,
                 },
             ],
         };
@@ -147,6 +145,15 @@ export default Vue.component("gene-finder-table", {
 
         fields() {
             let fields = this.baseFields;
+
+            // add the chi squared column
+            if (!!this.showChiSquared) {
+                fields.push({
+                    key: "chiSquared",
+                    label: "P-Value(Χ²)",
+                    formatter: this.pValueFormatter,
+                });
+            }
 
             // add phenotype-specific columns
             for (let i in this.phenotypes) {
@@ -231,7 +238,20 @@ export default Vue.component("gene-finder-table", {
             return data;
         },
 
-        genesPerPhenotypes() {},
+        genesPerPhenotypes() {
+            let content = {};
+            let data = this.tableData;
+            let phenotypes = this.phenotypes;
+
+            phenotypes.map((p) => {
+                content[p] = 0;
+            });
+            data.map((g) => {
+                content[g.phenotype]++;
+            });
+
+            return content;
+        },
 
         combinedAssociations() {
             return this.groupedAssociations.map((a) => {

@@ -90,7 +90,7 @@
 
                     <div>
                         <gene-finder-table
-                            v-if="
+                            v-show="
                                 $parent.geneFinderPhenotypes.length > 0 &&
                                 $parent.combined.length > 0
                             "
@@ -100,6 +100,7 @@
                             :rowsPerPage="20"
                             :exclusive="true"
                             :showPlot="true"
+                            :showChiSquared="true"
                         ></gene-finder-table>
                     </div>
                 </div>

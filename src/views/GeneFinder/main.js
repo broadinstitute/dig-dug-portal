@@ -82,10 +82,12 @@ new Vue({
         updateAssociations(updatedPhenotypes, pValue, flush) {
             let promises = updatedPhenotypes.map(phenotype => {
                 if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
-                    query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
+                    return query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
                         .then(bioIndexData => {
                             Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
                         })
+                } else {
+                    return Promise.resolve();
                 }
             });
 
