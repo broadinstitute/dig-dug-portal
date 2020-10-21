@@ -7,22 +7,27 @@
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">
+                    <h1 class="card-title">
                         Gene Finder
-                        <tooltip-documentation
-                            name="phenotype.top1000.tooltip"
-                            :content-fill="$parent.documentationMap"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation>
-                    </h4>
+                        <!--<small
+                            ><tooltip-documentation
+                                name="phenotype.top1000.tooltip"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation
+                        ></small>-->
+                    </h1>
 
-                    <!-- <documentation style="margin-bottom: 30px" name="tools.genefinder.subheader"></documentation> -->
+                    <documentation
+                        style="margin-bottom: 30px"
+                        name="tools.genefinder.subheader"
+                    ></documentation>
 
                     <h5 class="card-title">
                         Build search criteria
                         <tooltip-documentation
-                            name="phenotype.top1000.tooltip"
+                            name="tools.genefinder.buildcriteria.subheader"
                             :content-fill="$parent.documentationMap"
                             :isHover="true"
                             :noIcon="false"
@@ -67,7 +72,7 @@
                                         : phenotype
                             "
                         >
-                            <div class="labelee">
+                            <div class="labele">
                                 <strong>Select phenotypes</strong>
                             </div>
                         </filter-enumeration-control>
@@ -92,7 +97,7 @@
                             :phenotypes="$parent.geneFinderPhenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :associations="$parent.combined"
-                            :per-page="10"
+                            :rowsPerPage="20"
                             :exclusive="true"
                             :showPlot="true"
                         ></gene-finder-table>

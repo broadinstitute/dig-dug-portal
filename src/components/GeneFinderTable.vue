@@ -16,12 +16,15 @@
                 responsive="sm"
                 :items="groupedAssociations"
                 :fields="fields"
-                :per-page="perPage"
+                :per-page="rowsPerPage"
                 :current-page="currentPage"
             >
                 <template v-slot:thead-top="data">
                     <b-th colspan="2">
-                        <span class="sr-only">Gene</span>
+                        <span
+                            >Matching genes:
+                            {{ groupedAssociations.length }}</span
+                        >
                     </b-th>
                     <b-th
                         v-for="(phenotype, i) in phenotypes"
@@ -62,7 +65,7 @@
                 class="pagination-sm justify-content-center"
                 v-model="currentPage"
                 :total-rows="tableData.length"
-                :per-page="perPage"
+                :per-page="rowsPerPage"
             ></b-pagination>
         </div>
         <div v-else>
@@ -99,6 +102,7 @@ export default Vue.component("gene-finder-table", {
         "filter",
         "exclusive",
         "showPlot",
+        "rowsPerPage",
     ],
     components: {
         Documentation,
@@ -106,7 +110,6 @@ export default Vue.component("gene-finder-table", {
     },
     data() {
         return {
-            perPage: 10,
             currentPage: 1,
             baseFields: [
                 {
@@ -169,6 +172,8 @@ export default Vue.component("gene-finder-table", {
             let data = [];
             let groups = {};
             let associations = this.tableData;
+
+            console.log("this.tableData.length", this.tableData.length);
 
             for (let i in associations) {
                 let r = associations[i];
