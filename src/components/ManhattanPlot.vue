@@ -6,7 +6,7 @@
 
 <style>
 .c3-circle {
-    opacity: 1 !important;
+    opacity: 0.65 !important;
 }
 </style>
 
