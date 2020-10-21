@@ -17,6 +17,7 @@
                 </b>
             </center>
         </div>
+
         <div v-if="tableData.length > 0">
             <b-table
                 hover
@@ -24,12 +25,15 @@
                 responsive="sm"
                 :items="groupedAssociations"
                 :fields="fields"
-                :per-page="perPage"
+                :per-page="rowsPerPage"
                 :current-page="currentPage"
             >
                 <template v-slot:thead-top="data">
                     <b-th :colspan="!!showChiSquared ? 2 : 1">
-                        <span class="sr-only">Gene</span>
+                        <span
+                            >Matching genes:
+                            {{ groupedAssociations.length }}</span
+                        >
                     </b-th>
                     <b-th
                         v-for="(phenotype, i) in phenotypes"
@@ -41,7 +45,8 @@
                         <span
                             v-if="phenotypeMap[phenotype]"
                             style="color: white"
-                            >{{ phenotypeMap[phenotype].description }}</span
+                            >{{ phenotypeMap[phenotype].description
+                            }}{{ ": " + genesPerPhenotypes[phenotype] }}</span
                         >
                     </b-th>
                 </template>
@@ -69,8 +74,8 @@
             <b-pagination
                 class="pagination-sm justify-content-center"
                 v-model="currentPage"
-                :total-rows="tableData.length"
-                :per-page="perPage"
+                :total-rows="groupedAssociations.length"
+                :per-page="rowsPerPage"
             ></b-pagination>
         </div>
         <div v-else>
@@ -108,6 +113,7 @@ export default Vue.component("gene-finder-table", {
         "exclusive",
         "showPlot",
         "showChiSquared",
+        "rowsPerPage",
     ],
     components: {
         Documentation,
@@ -115,7 +121,6 @@ export default Vue.component("gene-finder-table", {
     },
     data() {
         return {
-            perPage: 10,
             currentPage: 1,
             baseFields: [
                 {
@@ -183,6 +188,8 @@ export default Vue.component("gene-finder-table", {
             let groups = {};
             let associations = this.tableData;
 
+            //console.log("this.tableData.length", this.tableData);
+
             for (let i in associations) {
                 let r = associations[i];
                 let dataIndex = groups[r.gene];
@@ -229,6 +236,21 @@ export default Vue.component("gene-finder-table", {
             data.sort((a, b) => a.chiSquared - b.chiSquared);
 
             return data;
+        },
+
+        genesPerPhenotypes() {
+            let content = {};
+            let data = this.tableData;
+            let phenotypes = this.phenotypes;
+
+            phenotypes.map((p) => {
+                content[p] = 0;
+            });
+            data.map((g) => {
+                content[g.phenotype]++;
+            });
+
+            return content;
         },
 
         combinedAssociations() {
