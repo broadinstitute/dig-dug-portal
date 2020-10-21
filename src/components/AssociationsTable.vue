@@ -119,7 +119,7 @@ import TooltipDocumentation from "@/components/TooltipDocumentation";
 import { decodeNamespace } from "@/utils/filterHelpers";
 
 export default Vue.component("associations-table", {
-    props: ["associations", "phenotypes", "filter"],
+    props: ["associations", "phenotypes", "filter", "exclusive"],
     components: {
         Documentation,
         TooltipDocumentation,
@@ -231,6 +231,15 @@ export default Vue.component("associations-table", {
 
                 return true;
             });
+
+            // remove entries with missing p-values
+            if (this.exclusive) {
+                let phenotypes = this.phenotypes;
+
+                data = data.filter((row) => {
+                    return phenotypes.every((p) => !!row[`${p.name}:pValue`]);
+                });
+            }
 
             // sort all the records by phenotype p-value
             data.sort((a, b) => a.minP - b.minP);

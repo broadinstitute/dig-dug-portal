@@ -152,6 +152,7 @@
                             }}
                             genes associated with
                             {{ $store.state.phenotype.description }}
+                            with P-Value &le; 0.05
                             <tooltip-documentation
                                 name="phenotype.genes.tooltip"
                                 :content-fill="$parent.documentationMap"
@@ -184,8 +185,9 @@
                             :phenotypes="[$store.state.phenotype.name]"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :associations="$store.state.genes.data"
-                            :per-page="10"
+                            :rows-per-page="10"
                             :filter="$parent.geneFinderFilter"
+                            :showPlot="true"
                         ></gene-finder-table>
                     </div>
                 </div>
