@@ -26,71 +26,82 @@ export default Vue.component("manhattan-plot", {
     },
 
     mounted() {
-        this.chart = c3.generate({
-            bindto: "#manhattan",
-            size: {
-                height: 300,
-            },
-            interaction: {
-                enabled: false,
-            },
-            data: {
-                x: "x",
-                columns: [["x"], ["pValue"]],
-                type: "scatter",
-                order: null,
-                color: function (color, d) {
-                    return positionColors.find((c) => d.x < c[0])[1];
-                },
-            },
-            legend: {
-                show: false,
-            },
-            zoom: {
-                enabled: false,
-                rescale: false,
-            },
-            point: {
-                r: 4,
-                focus: {
-                    expand: {
-                        enabled: true,
-                        r: 7,
-                    },
-                },
-            },
-            tooltip: {
-                show: true,
-                focus: {
-                    expand: {
-                        enabled: false,
-                    },
-                },
-            },
-            axis: {
-                x: {
-                    label: "Chromosome",
-                    min: 0,
-                    max: chromosomeStart.Y + chromosomeLength.Y,
-                    tick: {
-                        values: chromosomes.map(
-                            (c) =>
-                                chromosomeStart[c] +
-                                Math.floor(chromosomeLength[c] / 2)
-                        ),
-                        format: (pos) => chromosomePos[pos],
-                    },
-                },
-                y: {
-                    label: "-log10(p)",
-                },
-            },
-        });
+        this.createChart();
     },
 
-    computed: {
-        columns() {
-            let n = this.associations.length;
+    methods: {
+        createChart(columns = []) {
+            if (!!this.chart) {
+                return;
+            }
+
+            // attach to the dom
+            this.chart = c3.generate({
+                bindto: "#manhattan",
+                size: {
+                    height: 300,
+                },
+                interaction: {
+                    enabled: false,
+                },
+                data: {
+                    x: "x",
+                    columns: columns,
+                    type: "scatter",
+                    order: null,
+                    color: function (color, d) {
+                        return positionColors.find((c) => d.x < c[0])[1];
+                    },
+                },
+                legend: {
+                    show: false,
+                },
+                zoom: {
+                    enabled: false,
+                    rescale: false,
+                },
+                point: {
+                    r: 4,
+                    focus: {
+                        expand: {
+                            enabled: true,
+                            r: 7,
+                        },
+                    },
+                },
+                tooltip: {
+                    show: true,
+                    focus: {
+                        expand: {
+                            enabled: false,
+                        },
+                    },
+                },
+                axis: {
+                    x: {
+                        label: "Chromosome",
+                        min: 0,
+                        max: chromosomeStart.Y + chromosomeLength.Y,
+                        tick: {
+                            values: chromosomes.map(
+                                (c) =>
+                                    chromosomeStart[c] +
+                                    Math.floor(chromosomeLength[c] / 2)
+                            ),
+                            format: (pos) => chromosomePos[pos],
+                        },
+                    },
+                    y: {
+                        label: "-log10(p)",
+                    },
+                },
+            });
+        },
+    },
+
+    watch: {
+        associations(associations) {
+            let n = (associations || []).length;
 
             let x = new Array(n + 1);
             let y = new Array(n + 1);
@@ -103,20 +114,12 @@ export default Vue.component("manhattan-plot", {
                 y[i + 1] = -Math.log10(r.pValue);
             });
 
-            return [x, y];
-        },
-    },
+            let columns = [x, y];
 
-    watch: {
-        columns(columns) {
-            if (!!this.chart) {
+            if (!this.chart) {
+                this.createChart(columns);
+            } else {
                 this.chart.load({ columns, unload: ["x", "pValue"] });
-            }
-        },
-
-        chart(chart) {
-            if (!!chart && !!this.columns) {
-                chart.load({ columns: this.columns, unload: ["x", "pValue"] });
             }
         },
     },
