@@ -264,7 +264,6 @@
                         ></documentation>
 
                         <filter-group
-                            v-model="$parent.enrichmentFilter"
                             :looseMatch="true"
                         >
                             <filter-enumeration-control
@@ -320,17 +319,16 @@
                                 <div class="label">Fold (&ge;)</div>
                             </filter-greater-control>
 
-                            <!-- <template slot="filtered" slot-scope="{ filter }">
-
-                            </template> -->
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <enrichment-table
+                                    :phenotypes="[$store.state.phenotype]"
+                                    :annotations="$store.state.annotations.data"
+                                    :filter="filter"
+                                    :per-page="10"
+                                ></enrichment-table>
+                            </template>
 
                         </filter-group>
-                        <enrichment-table
-                            :phenotypes="[$store.state.phenotype]"
-                            :annotations="$store.state.annotations.data"
-                            :filter="$parent.enrichmentFilter"
-                            :per-page="10"
-                        ></enrichment-table>
 
 
                     </div>
