@@ -169,6 +169,7 @@
             v-model="currentPage"
             :total-rows="rows"
             :per-page="perPage"
+            @page-click="closeAllDatasets()"
         ></b-pagination>
     </div>
 </template>
@@ -236,7 +237,13 @@ export default Vue.component("phewas-datasets", {
             uiUtils.showHideElement("features_" + index);
         },
         closeAllDatasets() {
-            uiUtils.hideElement("feature_content_wrapper");
+            let datasets = document.getElementsByClassName(
+                "feature-content-wrapper"
+            );
+
+            Array.from(datasets).forEach((element) => {
+                element.classList.add("hidden");
+            });
         },
     },
 });
