@@ -218,7 +218,10 @@ export default Vue.component("phewas-datasets", {
 
             if (!!this.filter) {
                 dataRows = dataRows.filter((association) => {
-                    const regularAssociation = Object.assign(cloneDeep(association), { phenotype: association.phenotype.name });
+                    const regularAssociation = Object.assign(
+                        cloneDeep(association),
+                        { phenotype: association.phenotype.name }
+                    );
                     return this.filter(regularAssociation);
                 });
             }
@@ -231,6 +234,9 @@ export default Vue.component("phewas-datasets", {
         intFormatter: Formatters.intFormatter,
         showDatasets(index) {
             uiUtils.showHideElement("features_" + index);
+        },
+        closeAllDatasets() {
+            uiUtils.hideElement("feature_content_wrapper");
         },
     },
 });
