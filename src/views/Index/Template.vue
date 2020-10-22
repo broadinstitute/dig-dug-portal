@@ -56,7 +56,7 @@
                                                 class="col-md-12 input-wrapper"
                                             >
                                                 <autocomplete
-                                                    :placeholder="'Gene symbol'"
+                                                    :placeholder="'Search'"
                                                     :matches="
                                                         $parent.matchingGenes
                                                     "
