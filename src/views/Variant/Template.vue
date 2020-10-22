@@ -185,9 +185,7 @@
                         :restricted="$store.state.phewas.restricted"
                     ></unauthorized-message>
 
-                    <filter-group
-                        :looseMatch="true"
-                    >
+                    <filter-group :looseMatch="true">
                         <filter-enumeration-control
                             :field="'phenotype'"
                             :options="
@@ -210,11 +208,17 @@
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
 
-                        <filter-pvalue-control :field="'pValue'" :inclusive="true">
+                        <filter-pvalue-control
+                            :field="'pValue'"
+                            :inclusive="true"
+                        >
                             <div class="label">P-Value (&le;)</div>
                         </filter-pvalue-control>
 
-                        <filter-effect-direction-control :field="'beta'" :inclusive="true">
+                        <filter-effect-direction-control
+                            :field="'beta'"
+                            :inclusive="true"
+                        >
                             <div class="label">Effect (+/-)</div>
                         </filter-effect-direction-control>
 
@@ -235,7 +239,8 @@
                                             :id="$store.state.variant.varId"
                                             :type="'variant'"
                                             :phenotypeMap="
-                                                $store.state.bioPortal.phenotypeMap
+                                                $store.state.bioPortal
+                                                    .phenotypeMap
                                             "
                                         ></lz-phewas-panel>
                                     </locuszoom>
@@ -243,8 +248,12 @@
                                 <b-tab title="Forest plot">
                                     <forest-plot-html
                                         v-if="$store.state.phewas.data"
-                                        :forestPlotData="$store.state.phewas.data"
-                                        :labelMap="$store.state.bioPortal.phenotypeMap"
+                                        :forestPlotData="
+                                            $store.state.phewas.data
+                                        "
+                                        :labelMap="
+                                            $store.state.bioPortal.phenotypeMap
+                                        "
                                         :sortBy="'pValue'"
                                         :significant="5e-8"
                                         :moderate="2.5e-6"
@@ -263,17 +272,19 @@
                                     $store.state.datasetAssociations.restricted
                                 "
                             ></unauthorized-message>
-
                             <phewas-datasets
                                 v-if="$store.state.phewas.data"
                                 :associations="$store.state.phewas.data"
-                                :datasets="$store.state.datasetAssociations.data"
+                                :datasets="
+                                    $store.state.datasetAssociations.data
+                                "
                                 :datasetMap="$store.state.bioPortal.datasetMap"
-                                :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                :phenotypeMap="
+                                    $store.state.bioPortal.phenotypeMap
+                                "
                                 :filter="filter"
                             ></phewas-datasets>
                         </template>
-
                     </filter-group>
                 </div>
             </div>
@@ -331,9 +342,7 @@
                         :restricted="$store.state.regions.restricted"
                     ></unauthorized-message>
 
-                    <filter-group
-                        :looseMatch="true"
-                    >
+                    <filter-group :looseMatch="true">
                         <filter-enumeration-control
                             :field="'annotation'"
                             :options="

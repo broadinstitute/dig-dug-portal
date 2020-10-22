@@ -85,6 +85,12 @@
     left: calc(100% + 5px);
 }
 
+.forest-plot-html-item .phenotype-name.off-chart {
+    right: 0;
+    left: 0;
+    top: 1px;
+}
+
 .forest-plot-html-item.too-wide-item .phenotype-name {
     display: block;
     overflow: hidden;
