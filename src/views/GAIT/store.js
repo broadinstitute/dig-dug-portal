@@ -11,7 +11,8 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     modules: {
         bioPortal,
-        kp4cd
+        kp4cd,
+        burden: bioIndex("burden")
         // associations: bioIndex("global-associations"),
         // annotations: bioIndex("global-enrichment"),
         // genes: bioIndex("gene-finder")
