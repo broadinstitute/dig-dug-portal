@@ -91,6 +91,11 @@
     top: 1px;
 }
 
+.forest-plot-html-item .phenotype-name.off-chart::before {
+    content: "*";
+    color: #ff0000;
+}
+
 .forest-plot-html-item.too-wide-item .phenotype-name {
     display: block;
     overflow: hidden;
@@ -273,6 +278,11 @@
 
 .forest-plot-html-item .forest-plot-more-info.right {
     right: calc(100% + 5px);
+}
+
+.forest-plot-html-item .forest-plot-more-info.off-chart {
+    left: 0;
+    width: auto !important;
 }
 
 .forest-plot-html-item.too-wide-item .forest-plot-more-info.left {

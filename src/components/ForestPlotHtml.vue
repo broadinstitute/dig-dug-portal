@@ -44,6 +44,15 @@
                         >
                     </li>
                 </ul>
+                <ul>
+                    <li>
+                        <span style="color: #f00">*</span> 95% confidence
+                        interval low &nbsp;&lt;&nbsp; -1 or 95% confidence
+                        interval high &nbsp;&gt;&nbsp; 1. Hover phenotype name
+                        for data.
+                    </li>
+                </ul>
+
                 <!--<ul v-if="!!labelMap">
                     <li>{{'Group:'}}</li>
                     <template>
@@ -127,7 +136,11 @@
                     <div
                         :class="
                             'forest-plot-more-info ' +
-                            (value.left > value.right ? 'right' : 'left')
+                            (value.left == 0 && value.width == 100
+                                ? 'off-chart'
+                                : value.left > value.right
+                                ? 'right'
+                                : 'left')
                         "
                         v-if="!!labelMap[value[labelBy]]"
                     >
