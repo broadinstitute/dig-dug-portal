@@ -7,7 +7,7 @@
         :serializer="s => s.credibleSetId"
         :showOnFocus="true"
         :minMatchingChars="0"
-        :maxMatches="30"
+        :maxMatches="1000"
         @hit="onCredibleSetSelected($event)">
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
