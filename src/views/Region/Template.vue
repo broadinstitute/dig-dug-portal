@@ -164,10 +164,13 @@
                             <div
                                 href="javascript:;"
                                 v-on:click="
-                                    $parent.switchViews([
-                                        'pws-merged-view',
-                                        'pws-bar-view',
-                                    ])
+                                    $parent.switchViews(
+                                        ['pws-merged-view', 'pws-bar-view'],
+                                        [
+                                            'View associations by phenotype group',
+                                            'View associations by individual phenotype',
+                                        ]
+                                    )
                                 "
                                 class="switch-view btn btn-secondary btn-sm"
                             >
@@ -197,16 +200,13 @@
                             name="region.variantassociation.subheader"
                         ></documentation>
 
-
                         <filter-group
                             v-model="$parent.associationsFilter"
                             :looseMatch="true"
                         >
                             <filter-enumeration-control
                                 :field="'consequence'"
-                                :options="
-                                    $parent.associationConsequences
-                                "
+                                :options="$parent.associationConsequences"
                                 :inclusive="true"
                             >
                                 <div class="label">Consequence</div>
@@ -214,9 +214,7 @@
 
                             <filter-enumeration-control
                                 :field="'nearest'"
-                                :options="
-                                    $parent.associationNearestGenes
-                                "
+                                :options="$parent.associationNearestGenes"
                                 :inclusive="true"
                             >
                                 <div class="label">Closest Genes</div>
@@ -226,12 +224,9 @@
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
 
-                            <filter-effect-direction-control
-                                :field="'beta'"
-                            >
+                            <filter-effect-direction-control :field="'beta'">
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
-
                         </filter-group>
 
                         <associations-table
@@ -257,10 +252,7 @@
                             :looseMatch="true"
                         >
                             <div class="col filter-col-lg">
-                                <div
-                                    class="label"
-                                    style="margin-bottom: 5px"
-                                >
+                                <div class="label" style="margin-bottom: 5px">
                                     Add annotation method track
                                 </div>
                                 <annotation-method-selectpicker
@@ -277,39 +269,29 @@
                             </div>
 
                             <div class="col filter-col-lg">
-                                <div
-                                    class="label"
-                                    style="margin-bottom: 5px"
-                                >
+                                <div class="label" style="margin-bottom: 5px">
                                     Add credible sets track
                                 </div>
                                 <credible-sets-selectpicker
                                     :credibleSets="$parent.credibleSets"
                                     :clearOnSelected="true"
                                     @credibleset="
-                                        $parent.addCredibleVariantsPanel(
-                                            $event
-                                        )
+                                        $parent.addCredibleVariantsPanel($event)
                                     "
                                 />
                             </div>
 
                             <div class="col divider">&nbsp;</div>
 
-                            <span style="display: inline-block;">
+                            <span style="display: inline-block">
                                 <div class="label">Filter annotation track</div>
                                 <filter-pvalue-control :field="'pValue'">
-                                    <span class="label">
-                                        P-Value (&le;)
-                                    </span>
+                                    <span class="label"> P-Value (&le;) </span>
                                 </filter-pvalue-control>
                                 <filter-greater-control :field="'fold'">
-                                    <span class="label">
-                                        Fold (&ge;)
-                                    </span>
+                                    <span class="label"> Fold (&ge;) </span>
                                 </filter-greater-control>
                             </span>
-
                         </filter-group>
 
                         <locuszoom
@@ -323,13 +305,13 @@
                                 $parent.requestCredibleSets($event.data)
                             "
                             :loglog="true"
-                            :refSeq="true">
+                            :refSeq="true"
+                        >
                             <lz-associations-panel
                                 :phenotype="$store.state.phenotype.name"
                                 @input="$parent.updateAssociationsTable"
                             ></lz-associations-panel>
                         </locuszoom>
-                        
                     </div>
                 </div>
             </div>

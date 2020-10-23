@@ -87,7 +87,7 @@ let getOffset = function (ELEMENT) {
 }
 
 
-let switchViews = function (VIEWS) {
+let switchViews = function (VIEWS, BUTTONTEXT) {
     let x = VIEWS.length;
     var currentElement;
 
@@ -100,6 +100,7 @@ let switchViews = function (VIEWS) {
     }
 
     let celement = checkExist(VIEWS[currentElement]);
+    event.target.innerHTML = BUTTONTEXT[currentElement];
     celement.classList.remove("hidden");
 }
 
