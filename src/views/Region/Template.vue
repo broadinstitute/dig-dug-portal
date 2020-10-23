@@ -231,15 +231,16 @@
                             >
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
-
+                            <template slot="filtered" slot-scope="{filter}">
+                                <associations-table
+                                    v-if="$store.state.associations.data.length > 0"
+                                    :phenotypes="$parent.phenotypes"
+                                    :associations="$store.state.associations.data"
+                                    :filter="filter"
+                                ></associations-table>
+                            </template>
                         </filter-group>
 
-                        <associations-table
-                            v-if="$store.state.associations.data.length > 0"
-                            :phenotypes="$parent.phenotypes"
-                            :associations="$store.state.associations.data"
-                            :filter="$parent.associationsFilter"
-                        ></associations-table>
 
                         <br />
                         <documentation
@@ -253,7 +254,6 @@
                         ></documentation>
 
                         <filter-group
-                            v-model="$parent.annotationsFilter"
                             :looseMatch="true"
                         >
                             <div class="col filter-col-lg">
@@ -310,26 +310,31 @@
                                 </filter-greater-control>
                             </span>
 
+                            <template slot="filtered" slot-scope="{filter}">
+                                <locuszoom
+                                    v-if="$parent.tissueScoring !== null"
+                                    ref="locuszoom"
+                                    :chr="$store.state.chr"
+                                    :start="$store.state.start"
+                                    :end="$store.state.end"
+                                    :filterAssociations="$parent.associationsFilter"
+                                    :filterAnnotations="filter"
+                                    @regionchanged="
+                                        $parent.requestCredibleSets($event.data)
+                                    "
+                                    :loglog="true"
+                                    :refSeq="true">
+                                    <lz-associations-panel
+                                        :phenotype="$store.state.phenotype.name"
+                                        @input="$parent.updateAssociationsTable"
+                                    ></lz-associations-panel>
+                                </locuszoom>
+                            </template>
+
                         </filter-group>
 
-                        <locuszoom
-                            ref="locuszoom"
-                            :chr="$store.state.chr"
-                            :start="$store.state.start"
-                            :end="$store.state.end"
-                            :filterAssociations="$parent.associationsFilter"
-                            :filterAnnotations="$parent.annotationsFilter"
-                            @regionchanged="
-                                $parent.requestCredibleSets($event.data)
-                            "
-                            :loglog="true"
-                            :refSeq="true">
-                            <lz-associations-panel
-                                :phenotype="$store.state.phenotype.name"
-                                @input="$parent.updateAssociationsTable"
-                            ></lz-associations-panel>
-                        </locuszoom>
-                        
+
+
                     </div>
                 </div>
             </div>

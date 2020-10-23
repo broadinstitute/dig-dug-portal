@@ -71,7 +71,7 @@ new Vue({
         FilterGreaterThan
     },
 
-    created() {
+    async created() {
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -85,7 +85,7 @@ new Vue({
     data() {
         return {
             associationsFilter: null,
-            annotationsFilter: null
+            tissueScoring: null,
         };
     },
 
@@ -145,6 +145,7 @@ new Vue({
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
+            console.log('tissueScoring', this.tissueScoring)
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
                 annotation,
                 method,
@@ -232,52 +233,6 @@ new Vue({
                     )
             );
         },
-
-        // TODO: eliminate using colorUtils
-        tissues() {
-            // an array of tissue
-            return (
-                this.$store.state.globalEnrichment.data
-                    .filter(interval => !!interval.tissue)
-                    .map(interval => interval.tissue)
-                    // unique
-                    .filter(function (value, index, self) {
-                        return self.indexOf(value) === index;
-                    })
-            );
-        },
-        tissueColorScheme() {
-            return d3
-                .scaleOrdinal()
-                .domain(this.tissues)
-                .range(d3.schemeSet1);
-        },
-
-        tissueScoring() {
-            let groups = {};
-
-            for (let i in this.$store.state.globalEnrichment.data) {
-                let r = this.$store.state.globalEnrichment.data[i];
-                let t = r.tissueId || "NA";
-                let m = r.method || "NA";
-
-                let key = `${t}_${m}_${r.annotation}`;
-                let group = groups[key];
-                let fold = r.SNPs / r.expectedSNPs;
-
-                if (!group) {
-                    groups[key] = {
-                        minP: r.pValue,
-                        maxFold: fold
-                    };
-                } else {
-                    group.minP = Math.min(group.minP, r.pValue);
-                    group.maxFold = Math.max(group.maxFold, fold);
-                }
-            }
-
-            return groups;
-        },
         associationConsequences() {
             return this.$store.state.associations.data.map(v => v.consequence);
         },
@@ -314,7 +269,31 @@ new Vue({
                 });
             }
         },
+        "$store.state.globalEnrichment.data": {
+            handler(enrichment) {
+                let groups = {};
+                for (let i in enrichment) {
+                    let r = enrichment[i];
+                    let t = r.tissueId || "NA";
+                    let m = r.method || "NA";
 
+                    let key = `${t}_${m}_${r.annotation}`;
+                    let group = groups[key];
+                    let fold = r.SNPs / r.expectedSNPs;
+
+                    if (!group) {
+                        groups[key] = {
+                            minP: r.pValue,
+                            maxFold: fold
+                        };
+                    } else {
+                        group.minP = Math.min(group.minP, r.pValue);
+                        group.maxFold = Math.max(group.maxFold, fold);
+                    }
+                }
+                this.tissueScoring = groups;
+            },
+        },
         topAssociations(top) {
             // If no phenotype is selected, pick the top phenotype from assocations
             if (!this.$store.state.phenotype && top.length > 0) {
