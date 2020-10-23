@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueCookies from "vue-cookies";
 import host from "@/utils/hostUtils";
+import ga from "@/utils/gaUtils";
 Vue.use(VueCookies);
 
 export const userMixin = {
@@ -15,6 +16,8 @@ export const userMixin = {
         },
         loginUser() {
             this.saveCurrentPage();
+            console.log('login', location.href)
+            ga.logPageView(location.href, "/login");
             window.location.href = "/login";
         }
     }
