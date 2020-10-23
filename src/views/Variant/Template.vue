@@ -233,6 +233,7 @@
                                         :end="$store.state.end"
                                         :filter="filter"
                                         :refSeq="false"
+                                        :loglog="true"
                                     >
                                         <lz-phewas-panel
                                             v-if="$store.state.variant"

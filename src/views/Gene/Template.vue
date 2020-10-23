@@ -175,6 +175,7 @@
                                     ref="locuszoom"
                                     :filter="filter"
                                     :refSeq="false"
+                                    :loglog="true"
                                 >
                                     <lz-phewas-panel
                                         v-if="$store.state.geneName"
