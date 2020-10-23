@@ -45,7 +45,7 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            Genome-wide associations for
+                            Genome-wide single-variant associations for
                             {{ $store.state.phenotype.description }}
                         </h4>
                         <div class="row">
@@ -82,25 +82,17 @@
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            Top
-                            {{
-                                $parent.intFormatter(
-                                    $store.state.associations.data.length
-                                )
-                            }}
-                            associations for
+                            Top single-variant associations for
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
-                                name="phenotype.top1000.tooltip"
+                                name="phenotype.topvariants.tooltip"
                                 :content-fill="$parent.documentationMap"
                                 :isHover="true"
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-group
-                            :looseMatch="true"
-                        >
+                        <filter-group :looseMatch="true">
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="
@@ -133,26 +125,21 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <associations-table
                                     :phenotypes="[$store.state.phenotype]"
-                                    :associations="$store.state.associations.data"
+                                    :associations="
+                                        $store.state.associations.data
+                                    "
                                     :filter="filter"
                                     :per-page="10"
                                 ></associations-table>
                             </template>
                         </filter-group>
-
                     </div>
                 </div>
 
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            Top
-                            {{
-                                $parent.intFormatter(
-                                    $store.state.genes.data.length
-                                )
-                            }}
-                            genes associated with
+                            Top common variant gene-level associations for
                             {{ $store.state.phenotype.description }}
                             with P-Value &le; 0.05
                             <tooltip-documentation
@@ -163,9 +150,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-group
-                            :looseMatch="true"
-                        >
+                        <filter-group :looseMatch="true">
                             <filter-enumeration-control
                                 :field="'gene'"
                                 :options="
@@ -184,7 +169,9 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <gene-finder-table
                                     :phenotypes="[$store.state.phenotype.name]"
-                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    :phenotypeMap="
+                                        $store.state.bioPortal.phenotypeMap
+                                    "
                                     :associations="$store.state.genes.data"
                                     :rows-per-page="10"
                                     :filter="filter"
@@ -192,14 +179,13 @@
                                 ></gene-finder-table>
                             </template>
                         </filter-group>
-
                     </div>
                 </div>
 
                 <div class="card mdkp-card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            Datasets contributing to meta-analysis for
+                            Datasets with genetic associations for
                             {{ $store.state.phenotype.description }}
                         </h4>
                         <documentation
@@ -207,9 +193,7 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-group
-                            :looseMatch="true"
-                        >
+                        <filter-group :looseMatch="true">
                             <filter-enumeration-control
                                 :field="'tech'"
                                 :options="
@@ -233,16 +217,14 @@
                                 <div class="label">Ancestry</div>
                             </filter-enumeration-control>
 
-                            <template slot="filtered" slot-scope={filter}>
+                            <template slot="filtered" slot-scope="{ filter }">
                                 <datasets-table
                                     :datasets="$store.state.bioPortal.datasets"
                                     :phenotype="$store.state.phenotype"
                                     :filter="filter"
                                 ></datasets-table>
                             </template>
-
                         </filter-group>
-
                     </div>
                 </div>
 
@@ -263,9 +245,7 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-group
-                            :looseMatch="true"
-                        >
+                        <filter-group :looseMatch="true">
                             <filter-enumeration-control
                                 :field="'annotation'"
                                 :options="
@@ -327,10 +307,7 @@
                                     :per-page="10"
                                 ></enrichment-table>
                             </template>
-
                         </filter-group>
-
-
                     </div>
                 </div>
             </div>

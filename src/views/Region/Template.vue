@@ -188,7 +188,7 @@
                 <div class="card-body">
                     <div v-if="!!$store.state.phenotype">
                         <h4 class="card-title">
-                            Top Associations for
+                            Top associations for
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="region.topassoc.tooltip"
@@ -256,7 +256,7 @@
                         <filter-group :looseMatch="true">
                             <div class="col filter-col-lg">
                                 <div class="label" style="margin-bottom: 5px">
-                                    Add annotation method track
+                                    Add annotation
                                 </div>
                                 <annotation-method-selectpicker
                                     :annotations="
@@ -273,7 +273,7 @@
 
                             <div class="col filter-col-lg">
                                 <div class="label" style="margin-bottom: 5px">
-                                    Add credible sets track
+                                    Add credible set
                                 </div>
                                 <credible-sets-selectpicker
                                     :credibleSets="$parent.credibleSets"
@@ -287,7 +287,9 @@
                             <div class="col divider">&nbsp;</div>
 
                             <span style="display: inline-block">
-                                <div class="label">Filter annotation track</div>
+                                <div class="label">
+                                    Filter annotations by global enrichment
+                                </div>
                                 <filter-pvalue-control :field="'pValue'">
                                     <span class="label"> P-Value (&le;) </span>
                                 </filter-pvalue-control>
