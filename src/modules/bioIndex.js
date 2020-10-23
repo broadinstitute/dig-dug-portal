@@ -107,8 +107,8 @@ export default function (index, extend) {
                         // report errors
                         errHandler: error => {
                             closeAlert(alertID);
-                            postAlertError(error.detail);
-                            context.commit('setError', error.detail);
+                            postAlertError(error.message);
+                            context.commit('setError', error.message);
                         },
                     }).finally(closeAlert(alertID));
 
