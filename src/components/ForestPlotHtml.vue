@@ -52,6 +52,12 @@
                         for data.
                     </li>
                 </ul>
+                <ul>
+                    <li>
+                        <span style="color: #0f0">*</span> Beta &nbsp;&lt;&nbsp;
+                        -1 or beta &nbsp;&gt;&nbsp; 1
+                    </li>
+                </ul>
 
                 <!--<ul v-if="!!labelMap">
                     <li>{{'Group:'}}</li>
@@ -125,9 +131,15 @@
                                 ? 'off-chart'
                                 : value.left > value.right
                                 ? 'left'
-                                : 'right')
+                                : 'right') +
+                            ' ' +
+                            (value.beta_position > 100 ? 'beta-off-chart' : '')
                         "
-                    >
+                        ><span
+                            v-if="value.beta_position > 100"
+                            style="color: #00ff00"
+                            >*</span
+                        >
                         {{ labelMap[value[labelBy]].description }}
                         <!--<span
                             class="order-value"
@@ -180,7 +192,12 @@
                             ? 'p-weak'
                             : ''
                     "
-                    :style="'left:calc(' + value.beta_position + '% - 6px);'"
+                    :style="
+                        (value.beta_position > 100 ? 'display:none; ' : '') +
+                        'left:calc(' +
+                        value.beta_position +
+                        '% - 6px);'
+                    "
                 >
                     &nbsp;
                 </div>
