@@ -1,10 +1,7 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -21,8 +18,7 @@
                                         'dataset_search'
                                     )
                             "
-                            >Select datasets</a
-                        >
+                        >Select datasets</a>
                     </div>
                     <div class="col-md-4 gene-page-header-title">
                         Phenotype
@@ -34,23 +30,21 @@
                                         'phenotypeSearchHolder'
                                     )
                             "
-                            >Select phenotype</a
-                        >
+                        >Select phenotype</a>
                     </div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div
-                            id="datasetSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
+                        <div id="datasetSearchHolder" class="gene-page-header-search-holder hidden">
                             <dataset-selectpicker
                                 v-if="$store.state.bioPortal.datasetMap"
                                 :datasets="$store.state.bioPortal.datasets"
                             ></dataset-selectpicker>
                         </div>
-                        <span v-if="$store.state.selectedDataset">{{
+                        <span v-if="$store.state.selectedDataset">
+                            {{
                             $store.state.selectedDataset.description
-                        }}</span>
+                            }}
+                        </span>
                     </div>
 
                     <div class="col-md-4 gene-page-header-body">
@@ -63,9 +57,11 @@
                                 :phenotypes="$parent.datasetPhenotypes"
                             ></phenotype-selectpicker>
                         </div>
-                        <span v-if="$store.state.selectedPhenotype">{{
+                        <span v-if="$store.state.selectedPhenotype">
+                            {{
                             $store.state.selectedPhenotype.description
-                        }}</span>
+                            }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -93,11 +89,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div
-                                v-if="$parent.qqPlot"
-                                class="card"
-                                style="width: 95%; border: 0"
-                            >
+                            <div v-if="$parent.qqPlot" class="card" style="width: 95%; border: 0">
                                 <raw-img
                                     :src="$parent.qqPlot"
                                     alt="Card image cap"
@@ -115,13 +107,20 @@
                     <h4 v-if="$store.state.selectedDataset" class="card-title">
                         Top
                         {{
-                            $parent.intFormatter(
-                                $store.state.datasetAssociations.data.length
-                            )
+                        $parent.intFormatter(
+                        $store.state.datasetAssociations.data.length
+                        )
                         }}
                         variants for
                         {{ $store.state.selectedDataset.description }}
+                        <tooltip-documentation
+                            name="dinspector.top500Associations.tooltip.hover"
+                            :content-fill="$parent.documentationMap"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
                     </h4>
+
                     <associations-table
                         :phenotypes="[$store.state.selectedPhenotype]"
                         :associations="$store.state.datasetAssociations.data"
@@ -136,9 +135,7 @@
             </div>
             <div v-else class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">
-                        Select phenotype for associations
-                    </h4>
+                    <h4 class="card-title">Select phenotype for associations</h4>
                 </div>
             </div>
 
@@ -147,9 +144,7 @@
                     <h4 class="card-title">Dataset Description</h4>
                     <div class="row">
                         <div class="col-md-12">
-                            <dataset-info-section
-                                :datasetInfo="$parent.datasetInfo"
-                            ></dataset-info-section>
+                            <dataset-info-section :datasetInfo="$parent.datasetInfo"></dataset-info-section>
                         </div>
                     </div>
                 </div>
