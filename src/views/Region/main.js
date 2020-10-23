@@ -145,7 +145,6 @@ new Vue({
         },
         addAnnotationIntervalsPanel(event) {
             const { annotation, method } = event;
-            console.log('tissueScoring', this.tissueScoring)
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
                 annotation,
                 method,
