@@ -209,7 +209,7 @@ export default Vue.component("locuszoom", {
                 new LZCredibleVariantsPanel(
                     phenotype,
                     credibleSetId,
-                    { finishHandler, resolveHandler, errHandler },
+                    finishHandler, resolveHandler, errHandler,
                     initialData
                 )
             );
