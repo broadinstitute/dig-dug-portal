@@ -7,7 +7,7 @@
         :serializer="s => s.annotation"
         :showOnFocus="true"
         :minMatchingChars="0"
-        :maxMatches="1000"
+        :maxMatches="30"
         @hit="onAnnotationSelect($event)"
     >
         <template slot="suggestion" slot-scope="{ data, htmlText }">

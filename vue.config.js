@@ -178,7 +178,7 @@ module.exports = {
     },
     configureWebpack: config => {
         let bioindex_dev = process.env.BIOINDEX_DEV;
-        let bioindex_host = "https://bioindex-dev.hugeamp.org"; // production by default
+        let bioindex_host = "https://bioindex.hugeamp.org"; // production by default
 
         if (!!bioindex_dev) {
             bioindex_host =
