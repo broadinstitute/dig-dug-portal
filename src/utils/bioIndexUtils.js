@@ -97,7 +97,7 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler, li
     if (resp.status === 200) {
         data = limitRecordsWhile(json, limitWhile);
 
-        if (!!resolveHandler && typeof errHandler === 'function') {
+        if (!!resolveHandler) {
             resolveHandler(json);
         }
 
@@ -119,14 +119,13 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler, li
         }
 
         // done
-        if (!!finishHandler && typeof finishHandler === 'function'
-        ) {
+        if (!!finishHandler) {
             finishHandler(json);
         }
     }
 
     if (resp.status !== 200) {
-        if (!!errHandler && typeof errHandler === 'function') {
+        if (!!errHandler) {
             errHandler(json);
         }
     }
