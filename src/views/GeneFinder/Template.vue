@@ -1,30 +1,14 @@
 <template>
     <div>
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h1 class="card-title">
-                        Gene Finder
-                        <!--<small
-                            ><tooltip-documentation
-                                name="phenotype.top1000.tooltip"
-                                :content-fill="$parent.documentationMap"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation
-                        ></small>-->
-                    </h1>
+                    <h1 class="card-title">Gene Finder</h1>
 
-                    <documentation
-                        style="margin-bottom: 30px"
-                        name="tools.genefinder.subheader"
-                    ></documentation>
+                    <documentation style="margin-bottom: 30px" name="tools.genefinder.subheader"></documentation>
 
-                    <h5 class="card-title">
+                    <h4 class="card-title">
                         Build search criteria
                         <tooltip-documentation
                             name="tools.genefinder.buildcriteria.subheader"
@@ -32,14 +16,17 @@
                             :isHover="true"
                             :noIcon="false"
                         ></tooltip-documentation>
-                    </h5>
+                    </h4>
 
-                    <div class="labele" id="req">
-                        Multiple phenotypes can be selected.
+                    <div>
+                        <documentation name="tools.genefinder.searchcriteria.subheader1"></documentation>
                     </div>
-                    <div style="margin-bottom: 30px" class="labelee" id="req">
-                        Required for search, otherwise returns genes with
-                        p-value<=0.05.
+
+                    <div style="margin-bottom: 30px">
+                        <documentation
+                            style="margin-bottom: 30px"
+                            name="tools.genefinder.searchcriteria.subheader2"
+                        ></documentation>
                     </div>
 
                     <!-- <documentation name="tools.genefinder.buildcriteria.subheader"></documentation> -->
@@ -47,7 +34,8 @@
                     <filter-list-group
                         v-model="$parent.geneFinderSearchCriterion"
                         :looseMatch="true"
-                        :header="'Search Criterion'">
+                        :header="'Search Criterion'"
+                    >
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             class="filter-col-lg"
@@ -75,10 +63,7 @@
                         </filter-enumeration-control>
 
                         <!-- pValue filter -->
-                        <filter-pvalue-control
-                            class="filter-col-sm"
-                            :field="'pValue'"
-                        >
+                        <filter-pvalue-control class="filter-col-sm" :field="'pValue'">
                             <div class="labelee">
                                 <strong>P-Value (&le;)</strong>
                             </div>
