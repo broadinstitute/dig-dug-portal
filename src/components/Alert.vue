@@ -9,14 +9,16 @@ import logErrorEvent from "@/utils/gaUtils";
 export default Vue.component("alert", {
     data() {
         return {
-            message: null
+            message: null,
+            alertQueue: [],
         };
     },
     mounted() {
-        EventBus.$on("ALERT", this.showAlert);
-        EventBus.$on("CLOSE_ALERT", this.closeAlert);
-        EventBus.$on("UPDATE_ALERT", this.updateAlert);
+        EventBus.$on("ALERT", this.pushAlert);
+        EventBus.$on("CLOSE_ALERT", this.popAlert);
+        EventBus.$on("UPDATE_ALERT", this.processAlertQueue);
     },
+
     methods: {
         showAlert(alert) {
             const title = {
@@ -46,10 +48,24 @@ export default Vue.component("alert", {
              * never close. By waiting 100 ms, the DOM has enough time
              * to add it, and then we can close it.
              */
-            setTimeout((() => this.$bvToast.hide(id)).bind(this), 500);
+            this.$bvToast.hide(id);
+        },
+        pushAlert(alert) {
+            alertQueue.push(() => this.showAlert(alert))
+        },
+        popAlert(id) {
+            alertQueue.push(() => this.closeAlert(id))
+        },
+        processAlertQueue() {
+            alertQueue.forEach(f => f());
+            alertQueue = [];
         }
     }
 });
+
+let alertQueue = [];
+// https://stackoverflow.com/a/5927432
+setInterval(() =>{ updateAlert(); requestAnimationFrame(); }, 1000);
 
 const postAlert = function(type, message, params) {
     EventBus.$emit("ALERT", { type, message, params });
@@ -90,10 +106,10 @@ const postAlertNotice = function(message) {
 const closeAlert = function(id) {
     EventBus.$emit("CLOSE_ALERT", id);
 };
-//TO DO
-// const updateAlert = function(id, message) {
-//     EventBus.$emit("UPDATE_ALERT", { id, message });
-// };
+
+const updateAlert = function() {
+    EventBus.$emit("UPDATE_ALERT");
+};
 
 export { postAlert, postAlertError, postAlertNotice, closeAlert };
 </script>
