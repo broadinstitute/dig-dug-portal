@@ -10,7 +10,6 @@ export default Vue.component("alert", {
     data() {
         return {
             message: null,
-            alertQueue: [],
         };
     },
     mounted() {
@@ -65,7 +64,7 @@ export default Vue.component("alert", {
 
 let alertQueue = [];
 // https://stackoverflow.com/a/5927432
-setInterval(() =>{ updateAlert(); requestAnimationFrame(); }, 1000);
+setInterval(() =>{ updateAlert(); requestAnimationFrame(); }, 500);
 
 const postAlert = function(type, message, params) {
     EventBus.$emit("ALERT", { type, message, params });
