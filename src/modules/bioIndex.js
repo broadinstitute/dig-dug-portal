@@ -110,10 +110,9 @@ export default function (index, extend) {
                             postAlertError(error.message);
                             context.commit('setError', error.message);
                         },
-                    }).finally(closeAlert(alertID));
+                    }).finally(() => closeAlert(alertID))
 
                     // data is loaded
-                    closeAlert(alertID);
                     context.commit("setResponse", { data, profile });
                 }
             }

@@ -54,12 +54,12 @@ export class LZBioIndexSource extends BaseAdapter {
     }
     fetchRequest(state, chain, fields) {
         const self = this;
-        const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
         return new Promise((resolve, reject) => {
             if (!!self.initialData) {
                 resolve(self.translator(self.initialData));
                 self.initialData = null;
             } else {
+                const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
                 query(self.index, self.queryStringMaker(state.chr, state.start, state.end), {
                     finishHandler: self.finishHandler,
                     resolveHandler: self.resolveHandler,
@@ -72,7 +72,8 @@ export class LZBioIndexSource extends BaseAdapter {
                     postAlertError(error.message);
                     reject(new Error(error));
                 })
+                .finally(() => closeAlert(alertID))
             }
-        }).finally(closeAlert(alertID));
+        });
     };
 }
