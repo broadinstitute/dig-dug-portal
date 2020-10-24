@@ -64,9 +64,15 @@ export default Vue.component("alert", {
 
 let alertQueue = [];
 // https://stackoverflow.com/a/5927432
-setInterval(() =>{ updateAlert(); 
-// requestAnimationFrame(); 
-}, 500);
+// http://www.javascriptkit.com/javatutors/requestanimationframe.shtml (cf "Slowing down or cancelling requestAnimationFrame")
+var fps = 45 // magic
+function animateAlert(){
+    updateAlert()
+    setTimeout(function(){ //throttle requestAnimationFrame to 20fps
+        requestAnimationFrame(animateAlert)
+    }, 1000/fps)
+}
+requestAnimationFrame(animateAlert)
 
 const postAlert = function(type, message, params) {
     EventBus.$emit("ALERT", { type, message, params });
