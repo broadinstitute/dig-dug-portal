@@ -68,7 +68,7 @@ let alertQueue = [];
 var fps = 45 // magic
 function animateAlert(){
     updateAlert()
-    setTimeout(function(){ //throttle requestAnimationFrame to 20fps
+    setTimeout(function(){ //throttle requestAnimationFrame to 45fps
         requestAnimationFrame(animateAlert)
     }, 1000/fps)
 }
