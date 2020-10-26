@@ -18,19 +18,6 @@
                         ></tooltip-documentation>
                     </h4>
 
-                    <div>
-                        <documentation name="tools.genefinder.searchcriteria.subheader1"></documentation>
-                    </div>
-
-                    <div style="margin-bottom: 30px">
-                        <documentation
-                            style="margin-bottom: 30px"
-                            name="tools.genefinder.searchcriteria.subheader2"
-                        ></documentation>
-                    </div>
-
-                    <!-- <documentation name="tools.genefinder.buildcriteria.subheader"></documentation> -->
-
                     <filter-list-group
                         v-model="$parent.geneFinderSearchCriterion"
                         :looseMatch="true"
@@ -57,14 +44,14 @@
                                         : phenotype
                             "
                         >
-                            <div class="labele">
+                            <div>
                                 <strong>Select phenotypes</strong>
                             </div>
                         </filter-enumeration-control>
 
                         <!-- pValue filter -->
                         <filter-pvalue-control class="filter-col-sm" :field="'pValue'">
-                            <div class="labelee">
+                            <div>
                                 <strong>P-Value (&le;)</strong>
                             </div>
                         </filter-pvalue-control>
