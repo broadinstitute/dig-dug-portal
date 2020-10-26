@@ -8,15 +8,7 @@
 
                     <documentation style="margin-bottom: 30px" name="tools.genefinder.subheader"></documentation>
 
-                    <h4 class="card-title">
-                        Build search criteria
-                        <tooltip-documentation
-                            name="tools.genefinder.buildcriteria.subheader"
-                            :content-fill="$parent.documentationMap"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation>
-                    </h4>
+                    <h4 class="card-title">Build search criteria</h4>
 
                     <filter-list-group
                         v-model="$parent.geneFinderSearchCriterion"
