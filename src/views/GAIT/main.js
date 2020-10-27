@@ -29,6 +29,15 @@ new Vue({
     },
     data() {
         return {
+            masks: [
+                { LoF_HC: "bin1_7" },
+                { "15of15 ": "bin2_7" },
+                { "11of11 ": "bin3_7" },
+                { "5of5": "bin4_7" },
+                { "5of5_LoF_LC_1pct": "bin5_7" },
+                { "1of5_1pct": "bin6_7" },
+                { "0of5_1pct": "bin7_7" }
+            ],
             auto_select: true,
             set_covariates: false
         };
@@ -37,6 +46,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("ldServer/getPhenotypes");
     },
     methods: {}
 }).$mount("#app");

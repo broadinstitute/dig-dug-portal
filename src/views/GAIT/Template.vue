@@ -26,7 +26,7 @@
                         <filter-enumeration-control
                             :field="'phenotype'"
                             :options="
-                                $store.state.bioPortal.phenotypes.map(
+                                $store.state.ldServer.phenotypes.map(
                                     (phenotype) => phenotype.name
                                 )
                             "
@@ -46,6 +46,11 @@
                         <filter-pvalue-control :field="'pValue'">
                             <div class="label">P-Value (&le;)</div>
                         </filter-pvalue-control>
+                        <filter-enumeration-control
+                            :options="$parent.masks.map((mask) => mask.name)"
+                            :labelFormatter="(value) => $parent.masks[value]"
+                        ></filter-enumeration-control>
+                        <b-form-select :options="$parent.masks"></b-form-select>
                     </filter-group>
 
                     <a

@@ -4,6 +4,7 @@ import Vuex from "vuex";
 import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
+import ldServer from "@/modules/ldServer";
 import keyParams from "@/utils/keyParams";
 
 Vue.use(Vuex);
@@ -12,10 +13,8 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
+        ldServer,
         burden: bioIndex("burden")
-        // associations: bioIndex("global-associations"),
-        // annotations: bioIndex("global-enrichment"),
-        // genes: bioIndex("gene-finder")
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
