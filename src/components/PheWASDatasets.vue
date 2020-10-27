@@ -169,13 +169,14 @@
             v-model="currentPage"
             :total-rows="rows"
             :per-page="perPage"
+            @page-click="closeAllDatasets()"
         ></b-pagination>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
-import { orderBy, groupBy } from "lodash";
+import { orderBy, groupBy, cloneDeep } from "lodash";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 
@@ -211,14 +212,18 @@ export default Vue.component("phewas-datasets", {
                 .sort((a, b) => a.pValue - b.pValue);
         },
         rows() {
-            return this.pheWASAssociations.length;
+            return this.tableData.length;
         },
         tableData() {
             let dataRows = this.pheWASAssociations;
 
             if (!!this.filter) {
                 dataRows = dataRows.filter((association) => {
-                    return this.filter(association);
+                    const regularAssociation = Object.assign(
+                        cloneDeep(association),
+                        { phenotype: association.phenotype.name }
+                    );
+                    return this.filter(regularAssociation);
                 });
             }
             return dataRows;
@@ -230,6 +235,15 @@ export default Vue.component("phewas-datasets", {
         intFormatter: Formatters.intFormatter,
         showDatasets(index) {
             uiUtils.showHideElement("features_" + index);
+        },
+        closeAllDatasets() {
+            let datasets = document.getElementsByClassName(
+                "feature-content-wrapper"
+            );
+
+            Array.from(datasets).forEach((element) => {
+                element.classList.add("hidden");
+            });
         },
     },
 });

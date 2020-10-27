@@ -72,8 +72,6 @@ export default Vue.component("datasets-table", {
             currentPage: 1,
             sortName: "subjects",
             sortOrder: "desc",
-            tech: "",
-            ancestry: ""
         };
     },
     computed: {
@@ -96,18 +94,13 @@ export default Vue.component("datasets-table", {
         tableData() {
             let dataRows = this.sortedDatasets;
             if (!!this.filter) {
-                dataRows = this.sortedDatasets.filter(dataset => {
+                dataRows = dataRows.filter(dataset => {
                     return this.filter(dataset);
                 });
             }
             return dataRows;
         },
     },
-    methods: {
-        clearFilter(obj) {
-            this[obj] = "";
-        }
-    }
 });
 </script>
 

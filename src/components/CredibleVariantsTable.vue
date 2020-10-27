@@ -4,7 +4,7 @@
             hover
             small
             responsive="sm"
-            :items="sortedCredibleVariants"
+            :items="tableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -55,7 +55,7 @@ export default Vue.component("credible-variants-table", {
     },
     computed: {
         rows() {
-            return this.crediblevariants.length;
+            return this.tableData.length;
         },
         sortedCredibleVariants() {
             // TODO
@@ -65,7 +65,7 @@ export default Vue.component("credible-variants-table", {
         tableData() {
             let dataRows = this.crediblevariants;
             if (!!this.filter) {
-                dataRows = this.crediblevariants.filter(variant => {
+                dataRows = dataRows.filter(variant => {
                     return this.filter(variant);
                 });
             }

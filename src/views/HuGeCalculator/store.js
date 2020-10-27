@@ -79,7 +79,8 @@ export default new Vuex.Store({
 
             let dataset = 'mccarthy'
             let trait = this.state.phenotype.name.toLowerCase();
-            let json = fetch(`http://kp4cd.org/egldata/dataset?dataset=${dataset}&trait=${trait}`)
+
+            fetch(`https://kp4cd.org/egldata/dataset?dataset=${dataset}&trait=${trait}`)
                 .then(resp => {
                     if (resp.status === 422) {
                         throw Error("missing parameters");

@@ -75,7 +75,7 @@ export default Vue.component("uniprot-references-table", {
         tableData() {
             let dataRows = this.references;
             if (!!this.filter) {
-                dataRows = this.references.filter(this.filter);
+                dataRows = dataRows.filter(this.filter);
             }
             return dataRows;
         }

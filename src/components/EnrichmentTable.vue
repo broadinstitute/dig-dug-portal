@@ -5,7 +5,7 @@
                 hover
                 small
                 responsive="sm"
-                :items="tableData"
+                :items="groupedAnnotations"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -83,18 +83,6 @@ export default Vue.component("enrichment-table", {
                     formatter: Formatters.ancestryFormatter,
                 },
             ],
-            select_annotations: [],
-            select_annotations_text: "",
-            select_methods: [],
-            select_methods_text: "",
-            select_tissues: [],
-            select_tissues_text: "",
-            select_ancestry: "",
-            select_ancestry_text: "",
-            select_pValue: "",
-            select_pValue_text: "",
-            select_ratio: "",
-            select_ratio_text: "",
         };
     },
 
@@ -128,71 +116,74 @@ export default Vue.component("enrichment-table", {
         },
 
         rows() {
-            return this.tableData.length;
+            return this.groupedAnnotations.length;
         },
 
         groupedAnnotations() {
             let data = [];
             let groups = {};
-
+            let annotations = this.tableData
             // get all the data from all phenotypes
-            for (let i in this.annotations) {
-                let r = this.annotations[i];
-                let t = r.tissueId || "NA";
-                let m = r.method || "NA";
-                let group = `${t}_${m}_${r.annotation}_${r.ancestry}`;
-                let dataIndex = groups[group];
-                let fold = r.SNPs / r.expectedSNPs;
+            for (let i in annotations) {
+                let r = annotations[i];
+                if (!!r.pValue) {
+                    let t = r.tissueId || "NA";
+                    let m = r.method || "NA";
+                    let group = `${t}_${m}_${r.annotation}_${r.ancestry}`;
+                    let dataIndex = groups[group];
+                    let fold = r.SNPs / r.expectedSNPs;
 
-                if (!dataIndex) {
-                    dataIndex = data.length;
-                    groups[group] = dataIndex;
+                    if (!dataIndex) {
+                        dataIndex = data.length;
+                        groups[group] = dataIndex;
 
-                    data.push({
-                        tissue: r.tissue,
-                        method: r.method,
-                        annotation: r.annotation,
-                        ancestry: r.ancestry,
-                        minP: null,
-                        maxFold: null,
-                        phenotype: r.phenotype
-                    });
-                }
-
-                // add the columns for each phenotype
-                data[dataIndex][`${r.phenotype}_pValue`] = r.pValue;
-                data[dataIndex][`${r.phenotype}_fold`] = fold;
-
-                // lowest p-value across all phenotypes
-                if (r.pValue) {
-                    let minP = data[dataIndex].minP;
-
-                    if (!minP || r.pValue < minP) {
-                        data[dataIndex].minP = r.pValue;
+                        data.push({
+                            tissue: r.tissue,
+                            method: r.method,
+                            annotation: r.annotation,
+                            ancestry: r.ancestry,
+                            minP: null,
+                            maxFold: null,
+                            phenotype: r.phenotype
+                        });
                     }
-                }
 
-                // maximum fold across all phenotypes
-                let maxFold = data[dataIndex].maxFold;
+                    // add the columns for each phenotype
+                    data[dataIndex][`${r.phenotype}_pValue`] = r.pValue;
+                    data[dataIndex][`${r.phenotype}_fold`] = fold;
 
-                if (!maxFold || fold > maxFold) {
-                    data[dataIndex].maxFold = fold;
+                    // lowest p-value across all phenotypes
+                    if (r.pValue) {
+                        let minP = data[dataIndex].minP;
+
+                        if (!minP || r.pValue < minP) {
+                            data[dataIndex].minP = r.pValue;
+                        }
+                    }
+
+                    // maximum fold across all phenotypes
+                    let maxFold = data[dataIndex].maxFold;
+
+                    if (!maxFold || fold > maxFold) {
+                        data[dataIndex].maxFold = fold;
+                    }
                 }
             }
 
             // remove non-overlapping enrichment
-            data = data.filter((row) => {
-                for (let i in this.phenotypes) {
-                    let phenotype = this.phenotypes[i];
+            // REMOVED because double loop
+            // data = data.filter((row) => {
+            //     for (let i in this.phenotypes) {
+            //         let phenotype = this.phenotypes[i];
 
-                    // ensure a p-value exists for each phenotype
-                    if (!row[`${phenotype.name}_pValue`]) {
-                        return false;
-                    }
-                }
+            //         // ensure a p-value exists for each phenotype
+            //         if (!row[`${phenotype.name}_pValue`]) {
+            //             return false;
+            //         }
+            //     }
 
-                return true;
-            });
+            //     return true;
+            // });
 
             // sort all the records by phenotype p-value
             data.sort((a, b) => a.minP - b.minP);
@@ -200,31 +191,12 @@ export default Vue.component("enrichment-table", {
             return data;
         },
         tableData() {
-            let dataRows = this.groupedAnnotations;
-            if (!!this.filter) {
-                dataRows = this.groupedAnnotations.filter(annotation => {
-                    const regularAnnotation = decodeNamespace(annotation, { prefix: `${annotation.phenotype}_` });
-                    return this.filter(regularAnnotation);
-                });
+            let dataRows = this.annotations;
+            let filter = this.filter;  // TODO: can we detect if not id=>true
+            if (!!filter) {
+                dataRows = dataRows.filter(filter);
             }
             return dataRows;
-        },
-    },
-    methods: {
-        addFilter(event, obj) {
-            this[obj].push(event);
-            this[obj + "_text"] = "";
-        },
-        removeFilter(index, obj) {
-            this[obj].splice(index, 1);
-        },
-        setFilter(event, obj) {
-            this[obj] = event;
-            this[obj + "_text"] = "";
-            this.$refs[obj].$el.value = "";
-        },
-        unsetFilter(obj) {
-            this[obj] = "";
         },
     },
 });

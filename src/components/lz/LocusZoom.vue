@@ -27,14 +27,12 @@ import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
-import LZDataSources from "@/utils/lz/lzDataSources";
-import {
-    LZAssociationsPanel,
-    LZAnnotationIntervalsPanel,
-    LZCredibleVariantsPanel,
-    LZPhewasPanel,
-    LZComputedCredibleVariantsPanel,
-} from "@/utils/lz/lzPanels";
+import { LZAssociationsPanel } from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnnotationsPanel";
+import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
+import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
+import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
+import { makeSource, makeLayout } from "@/utils/lzUtils";
 
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
@@ -86,6 +84,19 @@ export default Vue.component("locuszoom", {
         });
         this.locuszoommounted = true;
 
+        // event listeners
+        let self = this;
+
+        this.plot.on("panel_removed", function (event) {
+            self.$emit("panelremoved", event);
+        });
+
+        // region change handler
+        this.plot.on("state_changed", function (event) {
+            // NOTE: doesn't pass out chromosome!
+            self.$emit("regionchanged", event);
+        });
+
         if (this.refSeq) {
             // adding default panel for gene reference track
             this.plot.addPanel(
@@ -100,29 +111,17 @@ export default Vue.component("locuszoom", {
                 })
             );
         }
-
-        // event listeners
-        let self = this;
-
-        this.plot.on("panel_removed", function (event) {
-            self.$emit("panelremoved", event);
-        });
-
-        // region change handler
-        this.plot.on("state_changed", function (event) {
-            // TODO: doesn't pass out chromosome!
-            const { start, end } = event; // coordinates are in decimals
-            self.$emit("regionchanged", event);
-        });
     },
     methods: {
         addPanelAndDataSource: function (panelClass) {
             // DataSources and Panels/Layouts are linked together via namespaces.
             // A DataSource name is given to the panel, for a particular data type
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
-            // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <panel.takingDataSourceName>
+            // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
 
-            const { panel, source } = panelClass;
+            const layout = makeLayout(panelClass);
+            const source = makeSource(panelClass);
+
             this.dataSources.add(
                 source.givingDataSourceName,
                 source.withDataSourceReader
@@ -130,23 +129,23 @@ export default Vue.component("locuszoom", {
 
             let panelOptions = {
                 namespace: {
-                    [panel.forDataSourceType]: panel.takingDataSourceName,
+                    [layout.forDataSourceType]: layout.takingDataSourceName,
                 },
-                id: panel.id,
-                ...panel.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
+                id: layout.id,
+                ...layout.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
             };
 
             this.plot
                 .addPanel(
                     LocusZoom.Layouts.get(
                         "panel",
-                        panel.panelLayoutType,
+                        layout.panelLayoutType,
                         panelOptions
                     )
                 )
                 .addBasicLoader();
 
-            // TODO: make this better abstracted
+            // TODO: make this more abstract
             if (!!this.filter) this.applyFilter(this.filter);
             if (!!this.filterAssociations)
                 this.applyFilter(this.filterAssociations, "associations");
@@ -154,26 +153,8 @@ export default Vue.component("locuszoom", {
                 this.applyFilter(this.filterAnnotations, "intervals");
 
             // so we can figure out how to remove it later
-            return panel.id;
+            return layout.id;
         },
-
-        // TODO: component system for LocusZoom
-        addLZComponent: function (PanelComponentType, panelConfig) {
-            if (this.plot != null) {
-                let LZPanelConstructor = Vue.extend(PanelComponentType);
-
-                let vueContainer = document.createElement("div");
-                this.$el.appendChild(vueContainer);
-
-                const trackComponentInstance = new LZPanelConstructor({
-                    propsData: panelConfig,
-                    parent: this,
-                }).$mount(vueContainer);
-            } else {
-                console.log("lz is null right now");
-            }
-        },
-
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
         addAssociationsPanel: function (
@@ -186,7 +167,9 @@ export default Vue.component("locuszoom", {
             const panelId = this.addPanelAndDataSource(
                 new LZAssociationsPanel(
                     phenotype,
-                    { finishHandler, resolveHandler, errHandler },
+                    finishHandler,
+                    resolveHandler,
+                    errHandler,
                     initialData
                 )
             );
@@ -205,7 +188,9 @@ export default Vue.component("locuszoom", {
                 new LZAnnotationIntervalsPanel(
                     annotation,
                     method,
-                    { finishHandler, resolveHandler, errHandler },
+                    finishHandler,
+                    resolveHandler,
+                    errHandler,
                     initialData,
                     scoring
                 )
@@ -224,7 +209,7 @@ export default Vue.component("locuszoom", {
                 new LZCredibleVariantsPanel(
                     phenotype,
                     credibleSetId,
-                    { finishHandler, resolveHandler, errHandler },
+                    finishHandler, resolveHandler, errHandler,
                     initialData
                 )
             );
@@ -250,7 +235,9 @@ export default Vue.component("locuszoom", {
                     varOrGeneId,
                     index,
                     phenotypeMap,
-                    { finishHandler, resolveHandler, errHandler },
+                    finishHandler,
+                    resolveHandler,
+                    errHandler,
                     initialData
                 )
             );
@@ -316,6 +303,13 @@ export default Vue.component("locuszoom", {
                         );
                         data_layer.parent.layout.axes.y1.label =
                             "-log10(log10(p))";
+                        data_layer.parent.layout.axes.y1.ticks = [
+                            1,
+                            10,
+                            100,
+                            1000,
+                            10000,
+                        ];
                     } else if (
                         data_layer.layout.y_axis.field.includes("log_pvalue") &&
                         data_layer.layout.y_axis.field.includes("|log10")
@@ -324,6 +318,7 @@ export default Vue.component("locuszoom", {
                             "|log10"
                         )[0];
                         data_layer.parent.layout.axes.y1.label = "-log10(p)";
+                        data_layer.parent.layout.axes.y1.ticks = undefined;
                     }
                 }
             });
@@ -358,4 +353,47 @@ export default Vue.component("locuszoom", {
         },
     },
 });
+
+const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
+const LZDataSources = {
+    gene: [
+        "GeneLZ",
+        {
+            url: "https://portaldev.sph.umich.edu/api/v1/annotation/genes/",
+            params: {
+                build: HUMAN_GENOME_BUILD_VERSION,
+            },
+        },
+    ],
+    ld: [
+        "LDLZ2",
+        {
+            url: "https://portaldev.sph.umich.edu/ld/",
+            params: {
+                source: "1000G",
+                build: HUMAN_GENOME_BUILD_VERSION,
+                population: "ALL",
+            },
+        },
+    ],
+    recomb: [
+        "RecombLZ",
+        {
+            url:
+                "https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/",
+            params: {
+                build: HUMAN_GENOME_BUILD_VERSION,
+            },
+        },
+    ],
+    constraint: [
+        "GeneConstraintLZ",
+        {
+            url: "https://gnomad.broadinstitute.org/api",
+            params: {
+                build: HUMAN_GENOME_BUILD_VERSION,
+            },
+        },
+    ],
+};
 </script>

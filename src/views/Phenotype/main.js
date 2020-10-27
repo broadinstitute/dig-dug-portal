@@ -17,7 +17,7 @@ import Documentation from "@/components/Documentation.vue";
 import RawImage from "@/components/RawImage.vue";
 import keyParams from "@/utils/keyParams";
 import uiUtils from "@/utils/uiUtils";
-import { rawUrl, getAccessToken } from "@/utils/bioIndexUtils";
+
 import Formatters from "@/utils/formatters";
 import Alert, {
     postAlert,
@@ -31,6 +31,7 @@ import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
 import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
 
 
@@ -50,20 +51,12 @@ new Vue({
         RawImage,
 
         FilterGroup,
+        FilterListGroup,
         FilterControl,
         FilterPValue,
         FilterGreaterThan,
         FilterEnumeration,
         FilterEffectDirection
-    },
-
-    data() {
-        return {
-            phenotypeFilter: null,
-            annotationsFilter: null,
-            associationsFilter: null,
-            geneFinderFilter: null,
-        }
     },
 
     created() {
@@ -75,14 +68,19 @@ new Vue({
     render(createElement, context) {
         return createElement(Template);
     },
-
+    data() {
+        return {
+            enrichmentFilter: null,
+        }
+    },
     methods: {
         ...uiUtils,
         postAlert,
         postAlertNotice,
         postAlertError,
         closeAlert,
-        intFormatter: Formatters.intFormatter
+        intFormatter: Formatters.intFormatter,
+        ancestryFormatter: Formatters.ancestryFormatter,
     },
 
     computed: {

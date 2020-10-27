@@ -7,8 +7,8 @@
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${labelFormatter(filterDefinition.threshold)}`"
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
-        :multiple="true"
-        :inclusive="true">
+        :multiple="!!multiple"
+        :inclusive="!!inclusive || !!multiple">
         <slot>
         </slot>
     </filter-control>
@@ -17,7 +17,7 @@
 import Vue from "vue";
 import FilterControl from "./FilterControl"
 import Formatter from "@/utils/formatters"
-import { capitalize } from "@amcharts/amcharts4/.internal/core/utils/Utils";
+
 export default Vue.component('filter-enumeration-control', {
     props: {
         field: String,
@@ -25,11 +25,11 @@ export default Vue.component('filter-enumeration-control', {
         color: String,
         multiple: {
             type: Boolean,
-            default: true
+            default: false
         },
         inclusive: {
             type: Boolean,
-            default: true,
+            default: false,
         },
         labelFormatter: {
             type: Function,

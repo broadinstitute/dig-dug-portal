@@ -48,9 +48,9 @@
                                 :datasets="$store.state.bioPortal.datasets"
                             ></dataset-selectpicker>
                         </div>
-                        <span v-if="$store.state.selectedDataset">{{
-                            $store.state.selectedDataset.description
-                        }}</span>
+                        <span v-if="$store.state.selectedDataset">
+                            {{ $store.state.selectedDataset.description }}
+                        </span>
                     </div>
 
                     <div class="col-md-4 gene-page-header-body">
@@ -63,9 +63,9 @@
                                 :phenotypes="$parent.datasetPhenotypes"
                             ></phenotype-selectpicker>
                         </div>
-                        <span v-if="$store.state.selectedPhenotype">{{
-                            $store.state.selectedPhenotype.description
-                        }}</span>
+                        <span v-if="$store.state.selectedPhenotype">
+                            {{ $store.state.selectedPhenotype.description }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -73,8 +73,8 @@
             <div v-if="$store.state.selectedPhenotype" class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
+                        Genome-wide single-variant associations for
                         {{ $store.state.selectedPhenotype.description }}
-                        association plots
                     </h4>
                     <!-- TODO: phenotype select -->
                     <div class="row">
@@ -113,15 +113,16 @@
             <div v-if="$store.state.selectedPhenotype" class="card mdkp-card">
                 <div class="card-body">
                     <h4 v-if="$store.state.selectedDataset" class="card-title">
-                        Top
-                        {{
-                            $parent.intFormatter(
-                                $store.state.datasetAssociations.data.length
-                            )
-                        }}
-                        variants for
+                        Top single-variant associations for
                         {{ $store.state.selectedDataset.description }}
+                        <tooltip-documentation
+                            name="dinspector.topAssociations.tooltip.hover"
+                            :content-fill="$parent.documentationMap"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
                     </h4>
+
                     <associations-table
                         :phenotypes="[$store.state.selectedPhenotype]"
                         :associations="$store.state.datasetAssociations.data"

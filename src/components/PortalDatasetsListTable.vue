@@ -334,7 +334,7 @@ export default Vue.component("portal-datasets-list-table", {
         tableData() {
             let dataRows = this.groupedAnnotations;
             if (!!this.filter) {
-                dataRows = this.groupedAnnotations.filter(annotation => {
+                dataRows = dataRows.filter(annotation => {
                     const regularAnnotation = decodeNamespace(annotation, { prefix: `${annotation.phenotype}_` });
                     return this.filter(regularAnnotation);
                 });

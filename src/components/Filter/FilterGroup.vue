@@ -1,24 +1,24 @@
 <template>
     <span>
         <!-- Controls and their labels -->
-        <slot name="header"> </slot>
+        <slot name="header"></slot>
         <b-container fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
-            <EventListener @change="filterControlChange">
-                <!-- Filter Widget Control Slot -->
-                <!-- It's unnamed because multiple filter controls will be placed inside here -->
-                <slot></slot>
-            </EventListener>
+                <EventListener @change="filterControlChange">
+                    <!-- Filter Widget Control Slot -->
+                    <!-- It's unnamed because multiple filter controls will be placed inside here -->
+                    <slot></slot>
+                </EventListener>
             </b-row>
         </b-container>
         <!-- Pills for everything -->
 
         <div v-if="filterList.length > 0" class="filter-pill-collection center">
-            Selected Filters:&nbsp;&nbsp;
+            {{this.header}}:&nbsp;&nbsp;
             <!-- Derive pills from current filter state?
                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
                         It would be deterministic upto the compile-time declaration of the FilterGroup controls which would lead to predicatable results at runtime
-                    -->
+            -->
             <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
             <b-badge
                 :class="`filter-pill-${filter.field}`"
@@ -26,14 +26,15 @@
                 :key="filter.field + filter.predicate + filter.threshold + idx"
                 pill
                 @click="unsetFilter(filter, idx)"
-                class="btn">
+                class="btn"
+            >
                 {{ filter.pill.label(filter) }}
                 <span class="remove">X</span>
             </b-badge>
         </div>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <br v-else />
-
+        <slot name="filtered" :filter="filterFunction"></slot>
     </span>
 </template>
 
@@ -47,6 +48,7 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
+import { isEqual, cloneDeep } from "lodash";
 import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers";
 
 const EventListener = {
@@ -72,33 +74,61 @@ const EventListener = {
         // https://stackoverflow.com/a/58859267
 
         return createElement("div", this.$scopedSlots.default());
-    },
+    }
 };
 
 export default Vue.component("filter-group", {
-    props: ["value", "inclusive", "strictCase", "looseMatch"],
+    props: {
+        value: null, // any type, since filterMaker might return any time even though by default it should return a function
+        inclusive: Boolean,
+        strictCase: Boolean,
+        looseMatch: Boolean,
+        header: {
+            type: String,
+            default: "Selected Filters"
+        },
+        filterMaker: {
+            type: Function,
+            default: filterFromPredicates
+        },
+        predicateMaker: {
+            type: Function,
+            default: predicateFromSpec
+        }
+    },
     components: {
-        EventListener,
+        EventListener
     },
     data() {
         return {
             filterList: [],
+
+            // Vue doesn't identify anonymous functions of the same form with one another,
+            // so we need are turning these two props into data to prevent infinite loops that result
+            // from passing in anonymous functions which become reidentified under each tick.
+            // So if we use these functions in a computed property, it will keep on refreshing even when the output looks the same.
+            // This will work as long as we don't want to update the filterMaker and predicateMaker at runtime,
+            // which quite frankly seems unlikely.
+            makeFilter: this.filterMaker,
+            makePredicate: this.predicateMaker
         };
     },
 
     computed: {
         filterFunction() {
-            const predicates = this.filterList.map((obj) =>
-                predicateFromSpec(
+            const predicates = this.filterList.map(obj =>
+                this.makePredicate(
                     { ...obj },
                     {
                         strictCase: this.strictCase,
-                        notStrictMatch: this.looseMatch,
+                        notStrictMatch: this.looseMatch
                     }
                 )
             );
-            return filterFromPredicates(predicates, !!this.inclusive);
-        },
+            // console.log(predicates, this.filterMaker(predicates))
+            return this.makeFilter(predicates, !!this.inclusive);
+            // return id => true;
+        }
     },
 
     methods: {
@@ -106,25 +136,32 @@ export default Vue.component("filter-group", {
             if (
                 threshold !== null &&
                 !this.filterList
-                    .map((filter) => filter.field)
+                    .map(filter => filter.field)
                     .includes(filterDefinition.field)
             ) {
                 this.filterList.push({
                     ...filterDefinition,
-                    threshold,
+                    threshold
                 });
             } else {
                 // if the definition already exists, and it's a multiple, then just push, since we can allow for multiple instances of the same filter
                 if (filterDefinition.multiple) {
-                    this.filterList.push({
-                        ...filterDefinition,
-                        threshold,
-                    });
-
+                    // check if value is unique
+                    if (
+                        threshold !== null &&
+                        !this.filterList
+                            .map(filter => filter.threshold)
+                            .includes(threshold)
+                    ) {
+                        this.filterList.push({
+                            ...filterDefinition,
+                            threshold
+                        });
+                    }
                     // if the definition already exists, and it's a not a multiple, then modify the existing definition in filterList that matches the field
                     // TODO: would be faster if we maintain a normalized version of filterList against the filter ID, refactor towards this for performance
                 } else if (!filterDefinition.multiple) {
-                    this.filterList = this.filterList.map((filter) => {
+                    this.filterList = this.filterList.map(filter => {
                         if (filter.field === filterDefinition.field) {
                             const tempFilter = filter;
                             tempFilter.threshold = threshold;
@@ -146,12 +183,15 @@ export default Vue.component("filter-group", {
             this.filterList = this.filterList
                 .slice(0, idx)
                 .concat(this.filterList.slice(idx + 1, this.filterList.length));
-        },
+        }
     },
     watch: {
-        filterFunction(newFilterFunction) {
-            this.$emit("input", newFilterFunction);
-        },
-    },
+        filterFunction: {
+            handler: function(newFilterFunction, oldFilterFunction) {
+                this.$emit("input", newFilterFunction);
+            },
+            deep: true
+        }
+    }
 });
 </script>

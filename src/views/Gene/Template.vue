@@ -134,7 +134,7 @@
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
-                            Phenotypes associated with
+                            Common variant gene-level associations for
                             {{ $store.state.geneName }}
                             <tooltip-documentation
                                 name="gene.associations.tooltip.hover"
@@ -144,50 +144,66 @@
                             ></tooltip-documentation>
                         </h4>
 
-
-                                <filter-group
-                                    v-model="$parent.associationsFilter"
-                                    :looseMatch="true">
-                                    <filter-enumeration-control
-                                        :field="'phenotype'"
-                                        :options="$store.state.associations.data.map(association => association.phenotype)"
-                                        :labelFormatter="phenotype => !!$store.state.bioPortal.phenotypeMap[phenotype] ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype">
-                                        <div class="label">
-                                            Phenotypes
-                                        </div>
-                                    </filter-enumeration-control>
-                                    <filter-pvalue-control
-                                        :field="'pValue'">
-                                        <div class="label">P-Value (&le;)</div>
-                                    </filter-pvalue-control>
-                                </filter-group>
-
-
-                        <locuszoom
-                            v-if="$store.state.gene"
-                            ref="locuszoom"
-                            :filter="$parent.associationsFilter"
-                            :refSeq="false"
-                        >
-                            <lz-phewas-panel
-                                v-if="$store.state.geneName"
-                                :id="$store.state.geneName"
-                                :type="'gene'"
-                                :phenotypeMap="
-                                    $store.state.bioPortal.phenotypeMap
+                        <filter-group :looseMatch="true">
+                            <filter-enumeration-control
+                                :field="'phenotype'"
+                                :options="
+                                    $store.state.associations.data.map(
+                                        (association) => association.phenotype
+                                    )
                                 "
-                            ></lz-phewas-panel>
-                        </locuszoom>
-                        <unauthorized-message
-                            :restricted="$store.state.associations.restricted"
-                        ></unauthorized-message>
-                        <gene-associations-table
-                            v-if="$store.state.gene.data.length > 0"
-                            :gene="$store.state.gene.data[0]"
-                            :associations="$store.state.associations.data"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            :filter="$parent.associationsFilter"
-                        ></gene-associations-table>
+                                :labelFormatter="
+                                    (phenotype) =>
+                                        !!$store.state.bioPortal.phenotypeMap[
+                                            phenotype
+                                        ]
+                                            ? $store.state.bioPortal
+                                                  .phenotypeMap[phenotype]
+                                                  .description
+                                            : phenotype
+                                "
+                            >
+                                <div class="label">Phenotypes</div>
+                            </filter-enumeration-control>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <locuszoom
+                                    v-if="$store.state.gene"
+                                    ref="locuszoom"
+                                    :filter="filter"
+                                    :refSeq="false"
+                                    :loglog="true"
+                                >
+                                    <lz-phewas-panel
+                                        v-if="$store.state.geneName"
+                                        :id="$store.state.geneName"
+                                        :type="'gene'"
+                                        :phenotypeMap="
+                                            $store.state.bioPortal.phenotypeMap
+                                        "
+                                    ></lz-phewas-panel>
+                                </locuszoom>
+                                <unauthorized-message
+                                    :restricted="
+                                        $store.state.associations.restricted
+                                    "
+                                ></unauthorized-message>
+                                <gene-associations-table
+                                    v-if="$store.state.gene.data.length > 0"
+                                    :gene="$store.state.gene.data[0]"
+                                    :associations="
+                                        $store.state.associations.data
+                                    "
+                                    :phenotypeMap="
+                                        $store.state.bioPortal.phenotypeMap
+                                    "
+                                    :filter="filter"
+                                ></gene-associations-table>
+                            </template>
+                        </filter-group>
                     </div>
                 </div>
             </div>
@@ -195,7 +211,8 @@
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
-                            Gene associations with masks (52K)
+                            Rare variant gene-level associations for
+                            {{ $store.state.geneName }}
                             <tooltip-documentation
                                 name="gene.52k.tooltip.hover"
                                 :content-fill="$parent.documentationMap"
@@ -228,29 +245,35 @@
                             ></tooltip-documentation>
                         </h4>
 
-
-
-                        <filter-group v-model="$parent.referenceFilter" :inclusive="true">
+                        <filter-group :inclusive="true">
                             <filter-enumeration-control
                                 :field="'source'"
-                                :options="$parent.dbReference.map(reference => reference.source)">
-                                <div class="label">
-                                    Sources
-                                </div>
+                                :options="
+                                    $parent.dbReference.map(
+                                        (reference) => reference.source
+                                    )
+                                "
+                            >
+                                <div class="label">Sources</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'moleculeType'"
-                                :options="$parent.dbReference.map(reference => reference.moleculeType)">
-                                <div class="label">
-                                    Molecule Type
-                                </div>
+                                :options="
+                                    $parent.dbReference.map(
+                                        (reference) => reference.moleculeType
+                                    )
+                                "
+                            >
+                                <div class="label">Molecule Type</div>
                             </filter-enumeration-control>
-                        </filter-group>
 
-                        <uniprot-references-table
-                            :references="$parent.dbReference"
-                            :filter="$parent.referenceFilter"
-                        ></uniprot-references-table>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <uniprot-references-table
+                                    :references="$parent.dbReference"
+                                    :filter="filter"
+                                ></uniprot-references-table>
+                            </template>
+                        </filter-group>
                     </div>
                 </div>
             </div>

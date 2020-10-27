@@ -164,10 +164,13 @@
                             <div
                                 href="javascript:;"
                                 v-on:click="
-                                    $parent.switchViews([
-                                        'pws-merged-view',
-                                        'pws-bar-view',
-                                    ])
+                                    $parent.switchViews(
+                                        ['pws-merged-view', 'pws-bar-view'],
+                                        [
+                                            'View associations by phenotype group',
+                                            'View associations by individual phenotype',
+                                        ]
+                                    )
                                 "
                                 class="switch-view btn btn-secondary btn-sm"
                             >
@@ -185,7 +188,7 @@
                 <div class="card-body">
                     <div v-if="!!$store.state.phenotype">
                         <h4 class="card-title">
-                            Top Associations for
+                            Top associations for
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="region.topassoc.tooltip"
@@ -197,47 +200,47 @@
                             name="region.variantassociation.subheader"
                         ></documentation>
 
+                        <filter-group
+                            v-model="$parent.associationsFilter"
+                            :looseMatch="true"
+                        >
+                            <filter-enumeration-control
+                                :field="'consequence'"
+                                :options="$parent.associationConsequences"
+                                :inclusive="true"
+                            >
+                                <div class="label">Consequence</div>
+                            </filter-enumeration-control>
 
-                                <filter-group
-                                    v-model="$parent.associationsFilter"
-                                    :looseMatch="true"
-                                >
-                                    <filter-enumeration-control
-                                        :field="'consequence'"
-                                        :options="
-                                            $parent.associationConsequences
-                                        "
-                                    >
-                                        <div class="label">Consequence</div>
-                                    </filter-enumeration-control>
+                            <filter-enumeration-control
+                                :field="'nearest'"
+                                :options="$parent.associationNearestGenes"
+                                :inclusive="true"
+                            >
+                                <div class="label">Closest Genes</div>
+                            </filter-enumeration-control>
 
-                                    <filter-enumeration-control
-                                        :field="'nearest'"
-                                        :options="
-                                            $parent.associationNearestGenes
-                                        "
-                                    >
-                                        <div class="label">Closest Genes</div>
-                                    </filter-enumeration-control>
+                            <filter-pvalue-control :field="'pValue'">
+                                <div class="label">P-Value (&le;)</div>
+                            </filter-pvalue-control>
 
-                                    <filter-pvalue-control :field="'pValue'">
-                                        <div class="label">P-Value (&le;)</div>
-                                    </filter-pvalue-control>
-
-                                    <filter-effect-direction-control
-                                        :field="'beta'"
-                                    >
-                                        <div class="label">Effect (+/-)</div>
-                                    </filter-effect-direction-control>
-                                </filter-group>
-
-
-                        <associations-table
-                            v-if="$store.state.associations.data.length > 0"
-                            :phenotypes="$parent.phenotypes"
-                            :associations="$store.state.associations.data"
-                            :filter="$parent.associationsFilter"
-                        ></associations-table>
+                            <filter-effect-direction-control :field="'beta'">
+                                <div class="label">Effect (+/-)</div>
+                            </filter-effect-direction-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <associations-table
+                                    v-if="
+                                        $store.state.associations.data.length >
+                                        0
+                                    "
+                                    :phenotypes="$parent.phenotypes"
+                                    :associations="
+                                        $store.state.associations.data
+                                    "
+                                    :filter="filter"
+                                ></associations-table>
+                            </template>
+                        </filter-group>
 
                         <br />
                         <documentation
@@ -250,16 +253,10 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-group
-                            v-model="$parent.annotationsFilter"
-                            :looseMatch="true"
-                        >
+                        <filter-group :looseMatch="true">
                             <div class="col filter-col-lg">
-                                <div
-                                    class="label"
-                                    style="margin-bottom: 5px"
-                                >
-                                    Add annotation method track
+                                <div class="label" style="margin-bottom: 5px">
+                                    Add annotation
                                 </div>
                                 <annotation-method-selectpicker
                                     :annotations="
@@ -275,70 +272,56 @@
                             </div>
 
                             <div class="col filter-col-lg">
-                                <div
-                                    class="label"
-                                    style="margin-bottom: 5px"
-                                >
-                                    Add credible sets track
+                                <div class="label" style="margin-bottom: 5px">
+                                    Add credible set
                                 </div>
                                 <credible-sets-selectpicker
                                     :credibleSets="$parent.credibleSets"
                                     :clearOnSelected="true"
                                     @credibleset="
-                                        $parent.addCredibleVariantsPanel(
-                                            $event
-                                        )
+                                        $parent.addCredibleVariantsPanel($event)
                                     "
                                 />
                             </div>
 
                             <div class="col divider">&nbsp;</div>
 
-                            <span style="display: inline-block;">
-                                <div class="label">Filter annotation track</div>
+                            <span style="display: inline-block">
+                                <div class="label">
+                                    Filter annotations by global enrichment
+                                </div>
                                 <filter-pvalue-control :field="'pValue'">
-                                    <span class="label">
-                                        P-Value (&le;)
-                                    </span>
+                                    <span class="label"> P-Value (&le;) </span>
                                 </filter-pvalue-control>
                                 <filter-greater-control :field="'fold'">
-                                    <span class="label">
-                                        Fold (&ge;)
-                                    </span>
+                                    <span class="label"> Fold (&ge;) </span>
                                 </filter-greater-control>
                             </span>
 
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <locuszoom
+                                    v-if="$parent.tissueScoring !== null"
+                                    ref="locuszoom"
+                                    :chr="$store.state.chr"
+                                    :start="$store.state.start"
+                                    :end="$store.state.end"
+                                    :filterAssociations="
+                                        $parent.associationsFilter
+                                    "
+                                    :filterAnnotations="filter"
+                                    @regionchanged="
+                                        $parent.requestCredibleSets($event.data)
+                                    "
+                                    :loglog="true"
+                                    :refSeq="true"
+                                >
+                                    <lz-associations-panel
+                                        :phenotype="$store.state.phenotype.name"
+                                        :finishHandler="$parent.updateAssociationsTable"
+                                    ></lz-associations-panel>
+                                </locuszoom>
+                            </template>
                         </filter-group>
-
-                                <!-- <div class="col filter-col-lg" style="vertical-align: top;">
-                                    <div class="label">View region in Variant Prioritizer</div>
-                                    <b-button
-                                        v-if="!!$store.state.phenotype"
-                                        class="btn btn-sm btn-2-vptz"
-                                        :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
-                                        target="_blank"
-                                    >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
-                                </div> -->
-
-
-                        <locuszoom
-                            ref="locuszoom"
-                            :chr="$store.state.chr"
-                            :start="$store.state.start"
-                            :end="$store.state.end"
-                            :filterAssociations="$parent.associationsFilter"
-                            :filterAnnotations="$parent.annotationsFilter"
-                            @regionchanged="
-                                $parent.requestCredibleSets($event.data)
-                            "
-                            :loglog="true"
-                            :refSeq="true"
-                        >
-                            <lz-associations-panel
-                                :phenotype="$store.state.phenotype.name"
-                                :finishHandler="$parent.updateAssociationsTable"
-                            ></lz-associations-panel>
-                        </locuszoom>
                     </div>
                 </div>
             </div>

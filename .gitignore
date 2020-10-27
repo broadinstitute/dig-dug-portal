@@ -24,6 +24,7 @@ node_modules
 .eslintrc.json
 
 package-lock.json
+pnpm-lock.yaml
 
 public/data/
 .vs/

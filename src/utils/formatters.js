@@ -19,9 +19,9 @@ function ancestryFormatter(s) {
         EU: "European",
         HS: "Hispanic/Latin",
         SA: "South Asian",
+        Mixed: "Mixed",
     }
-
-    return ancestries[s] || "Mixed";
+    return ancestries[s];
 }
 
 function annotationFormatter(s) {

@@ -79,7 +79,7 @@ export default function (index, extend) {
             async clear(context) {
                 context.commit("clearData");
             },
-            async query(context, { q, limit }) {
+            async query(context, { q, limit, limitWhile }) {
                 context.commit("clearData");
                 let profile = {
                     fetch: 0,
@@ -94,7 +94,7 @@ export default function (index, extend) {
                     // fetch the data
                     let data = await query(index, q, {
                         limit: limit || context.state.limit,
-
+                        limitWhile: limitWhile,
                         // updates progress
                         resolveHandler: json => {
                             profile.fetch += json.profile.fetch || 0;
@@ -104,21 +104,15 @@ export default function (index, extend) {
                             context.commit("updateCount", json);
                             context.commit("setProgress", json.progress);
                         },
-
                         // report errors
                         errHandler: error => {
                             closeAlert(alertID);
                             postAlertError(error.detail);
                             context.commit('setError', error.detail);
                         },
-
-                        finishHandler: response => {
-                            closeAlert(alertID);
-                        }
-                    });
+                    }).finally(() => closeAlert(alertID))
 
                     // data is loaded
-                    closeAlert(alertID);
                     context.commit("setResponse", { data, profile });
                 }
             }

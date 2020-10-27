@@ -90,7 +90,7 @@ export default {
         proteinExistence(state) {
             let doc = state.uniprotDoc
             let references = []
-            // eliminated lodash here in a quest to remove dependencies
+            // eliminated lodash here in to remove dependencies
             // previously was _.get
             references.push(!!doc.uniprot.entry.dbReference ? doc.uniprot.entry.dbReference : '_text');
             return references
@@ -112,8 +112,7 @@ export default {
             let uniprotDoc = await fetch(`https://www.uniprot.org/uniprot/?${qs}`)
                 .then(response => response.text())
                 .then(responseJson => JSON.parse(convert.xml2json(responseJson, { compact: true, spaces: 4 })))
-
-            closeAlert(alertID);
+                .finally(() => closeAlert(alertID))
 
             if (!!uniprotDoc) {
                 context.commit('setUniprotDoc', uniprotDoc)
