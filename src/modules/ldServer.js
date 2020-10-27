@@ -23,7 +23,10 @@ export default {
             ).then(resp => resp.json());
 
             // phenotypes for dataset
-            commit("setPhenotypes", json.data.phenotypeDatasets.phenotypes);
+            commit(
+                "setPhenotypes",
+                json.data[0].phenotypeDatasets[0].phenotypes
+            );
         }
     }
 };
