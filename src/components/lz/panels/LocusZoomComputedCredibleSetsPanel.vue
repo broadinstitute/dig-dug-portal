@@ -195,12 +195,12 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
     };
     fetchRequest(state, chain, fields) {
         const self = this;
-        const alertID = postAlertNotice(`Loading computed credset; please wait ...`);
         return new Promise((resolve) => {
             if (!!self.initialData) {
                 resolve(self.translator(self.initialData));
                 self.initialData = null;
             } else {
+                const alertID = postAlertNotice(`Loading computed credset; please wait ...`);
                 // decide whether or not to use a precomputed credset
                 const phenoRegionQuery = `${self.phenotype},${state.chr}:${state.start}-${state.end}`;
                 query('associations', phenoRegionQuery).then(results => {
@@ -244,9 +244,9 @@ class _LZComputedCredibleSetSource extends BaseAdapter {
                         console.error(e);
                     }
                     resolve(credset_data);
-                })
+                }).finally(() => closeAlert(alertID))
             }
-        }).finally(closeAlert(alertID));
+        });
     };
 }
 
