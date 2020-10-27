@@ -32,9 +32,9 @@ export default Vue.component("lz-associations-panel", {
     mounted() {
         this.updatePanel();
         this.$parent.plot.on("panel_removed", panel => {
-            if (panel.data === this.id) {
-                this.$destroy();
-            }
+            // if (panel.data === this.id) {
+            //     this.$destroy();
+            // }
         });
     },
     methods: {
@@ -63,7 +63,7 @@ export default Vue.component("lz-associations-panel", {
                 this.updatePanel();
             }
         },
-        phenotype(newPhenotype) {
+        phenotype(newPhenotype, oldPhenotype) {
             if (!!this.id) {
                 this.$parent.plot.removePanel(this.id);
             }
