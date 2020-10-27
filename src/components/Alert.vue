@@ -65,7 +65,7 @@ export default Vue.component("alert", {
 let alertQueue = [];
 // https://stackoverflow.com/a/5927432
 // http://www.javascriptkit.com/javatutors/requestanimationframe.shtml (cf "Slowing down or cancelling requestAnimationFrame")
-var fps = 45 // magic
+const fps = 60
 function animateAlert(){
     updateAlert()
     setTimeout(function(){ //throttle requestAnimationFrame to 45fps
