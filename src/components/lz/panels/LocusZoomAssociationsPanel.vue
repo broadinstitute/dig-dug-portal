@@ -32,9 +32,9 @@ export default Vue.component("lz-associations-panel", {
     mounted() {
         this.updatePanel();
         this.$parent.plot.on("panel_removed", panel => {
-            if (panel.data === this.id) {
-                this.$destroy();
-            }
+            // if (panel.data === this.id) {
+            //     this.$destroy();
+            // }
         });
     },
     methods: {
@@ -42,6 +42,7 @@ export default Vue.component("lz-associations-panel", {
             // TODO: what *should* happen when this.finishHandler and this.value are both defined?
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
             const finishHandler = !!!this.finishHandler ? result => this.$emit('input', result) : this.finishHandler;
+            console.log(this.finishHandler)
             this.id = this.$parent.addAssociationsPanel(
                 this.phenotype,
                 this.value,
@@ -63,7 +64,8 @@ export default Vue.component("lz-associations-panel", {
                 this.updatePanel();
             }
         },
-        phenotype(newPhenotype) {
+        phenotype(newPhenotype, oldPhenotype) {
+            console.log('phenotype change', newPhenotype, oldPhenotype)
             if (!!this.id) {
                 this.$parent.plot.removePanel(this.id);
             }

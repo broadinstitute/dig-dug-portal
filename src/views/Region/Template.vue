@@ -315,10 +315,12 @@
                                     :loglog="true"
                                     :refSeq="true"
                                 >
+                                    <keep-alive>
                                     <lz-associations-panel
                                         :phenotype="$store.state.phenotype.name"
                                         :finishHandler="$parent.updateAssociationsTable"
                                     ></lz-associations-panel>
+                                    </keep-alive>
                                 </locuszoom>
                             </template>
                         </filter-group>
