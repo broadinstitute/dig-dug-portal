@@ -213,7 +213,15 @@
                             </div>
                         </div>
 
-                        <div class="col-md-5"></div>
+                        <div class="col-md-5">
+                            <div v-if="$parent.finalCategory == 'No Evidence'">
+                                <forest-plot
+                                    v-if="$parent.geneAssociationsLoftee.length > 0"
+                                    :data="$parent.geneAssociationsLoftee"
+                                    class="border"
+                                ></forest-plot>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
