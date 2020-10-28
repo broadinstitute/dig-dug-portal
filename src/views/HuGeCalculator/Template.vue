@@ -1,10 +1,7 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -20,8 +17,7 @@
                                     'gene_search_input'
                                 )
                             "
-                            >Search gene</a
-                        >
+                        >Search gene</a>
                     </div>
                     <div class="col-md-6 gene-page-header-title">
                         Phenotype
@@ -33,15 +29,11 @@
                                     'phenotype_search_input'
                                 )
                             "
-                            >Select Phenotype</a
-                        >
+                        >Select Phenotype</a>
                     </div>
 
                     <div class="col-md-6 gene-page-header-body">
-                        <div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <gene-selectpicker
                                 @onGeneChange="
                                     $store.dispatch('queryGeneName', $event)
@@ -56,8 +48,7 @@
                                         $parent.symbolName.toLowerCase() !==
                                         $store.state.geneName.toLowerCase()
                                     "
-                                    >({{ $store.state.geneName }})</span
-                                >
+                                >({{ $store.state.geneName }})</span>
                             </span>
                         </div>
                     </div>
@@ -76,9 +67,7 @@
                                 "
                             ></phenotype-selectpicker>
                         </div>
-                        <span v-if="$store.state.phenotype">
-                            {{ $store.state.phenotype.description }}
-                        </span>
+                        <span v-if="$store.state.phenotype">{{ $store.state.phenotype.description }}</span>
                     </div>
                 </div>
             </div>
@@ -112,7 +101,7 @@
 
                             <h5>
                                 {{ $store.state.geneName }} has
-                                {{ $parent.finalCategory }} Evidence of a
+                                {{ $parent.finalCategory }} evidence of a
                                 disease-susceptibility.
                             </h5>
 
@@ -199,35 +188,23 @@
                                 <div>
                                     <div class="container">
                                         <div class="row">
-                                            <div
-                                                class="col-sm combinedVariationCausal"
-                                            >
+                                            <div class="col-sm combinedVariationCausal">
                                                 <strong>Causal</strong>
                                             </div>
-                                            <div
-                                                class="col-sm combinedVariationStrong"
-                                            >
+                                            <div class="col-sm combinedVariationStrong">
                                                 <strong>Strong</strong>
                                             </div>
-                                            <div
-                                                class="col-sm combinedVariationModerate"
-                                            >
+                                            <div class="col-sm combinedVariationModerate">
                                                 <strong>Moderate</strong>
                                             </div>
-                                            <div
-                                                class="col-sm combinedVariationPossible"
-                                            >
+                                            <div class="col-sm combinedVariationPossible">
                                                 <strong>Possible</strong>
                                             </div>
-                                            <div
-                                                class="col-sm combinedVariationWeak"
-                                            >
+                                            <div class="col-sm combinedVariationWeak">
                                                 <strong>Weak</strong>
                                             </div>
 
-                                            <div
-                                                class="col- combinedVariationNoEvidence"
-                                            >
+                                            <div class="col- combinedVariationNoEvidence">
                                                 <strong>No Evidence</strong>
                                             </div>
                                         </div>
@@ -236,12 +213,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-5">
-                            <documentation
-                                name="hugecal.combinedscore.help"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
-                        </div>
+                        <div class="col-md-5"></div>
                     </div>
                 </div>
             </div>
@@ -271,9 +243,7 @@
                             </h5>
                             <ul>
                                 <!-- genetic -->
-                                <li
-                                    v-if="$store.state.effectorGeneData.genetic"
-                                >
+                                <li v-if="$store.state.effectorGeneData.genetic">
                                     Genetic Evidence:
                                     <span
                                         v-if="
@@ -281,28 +251,28 @@
                                                 .genetic == '1C'
                                         "
                                         class="codingEvidence1C"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .genetic
-                                        }}</span
                                     >
+                                        {{
+                                        $store.state.effectorGeneData
+                                        .genetic
+                                        }}
+                                    </span>
                                     <span
                                         v-else-if="
                                             $store.state.effectorGeneData
                                                 .genetic == '2C'
                                         "
                                         class="codingEvidence2C"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .genetic
-                                        }}</span
                                     >
+                                        {{
+                                        $store.state.effectorGeneData
+                                        .genetic
+                                        }}
+                                    </span>
                                 </li>
 
                                 <!-- genomic -->
-                                <li
-                                    v-if="$store.state.effectorGeneData.genomic"
-                                >
+                                <li v-if="$store.state.effectorGeneData.genomic">
                                     Regulatory Evidence:
                                     <span
                                         v-if="
@@ -310,22 +280,24 @@
                                                 .genomic == '2R'
                                         "
                                         class="regulatoryEvidence2R"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .genomic
-                                        }}</span
                                     >
+                                        {{
+                                        $store.state.effectorGeneData
+                                        .genomic
+                                        }}
+                                    </span>
                                     <span
                                         v-if="
                                             $store.state.effectorGeneData
                                                 .genomic == '3R'
                                         "
                                         class="regulatoryEvidence3R"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .genomic
-                                        }}</span
                                     >
+                                        {{
+                                        $store.state.effectorGeneData
+                                        .genomic
+                                        }}
+                                    </span>
                                 </li>
 
                                 <!-- perturbational -->
@@ -342,40 +314,40 @@
                                                 .perturbational == '1P'
                                         "
                                         class="perturbationalEvidence1P"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .perturbational
-                                        }}</span
                                     >
+                                        {{
+                                        $store.state.effectorGeneData
+                                        .perturbational
+                                        }}
+                                    </span>
                                     <span
                                         v-if="
                                             $store.state.effectorGeneData
                                                 .perturbational == '2P'
                                         "
                                         class="perturbationalEvidence2P"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .perturbational
-                                        }}</span
                                     >
+                                        {{
+                                        $store.state.effectorGeneData
+                                        .perturbational
+                                        }}
+                                    </span>
                                     <span
                                         v-if="
                                             $store.state.effectorGeneData
                                                 .perturbational == '3P'
                                         "
                                         class="perturbationalEvidence3P"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .perturbational
-                                        }}</span
                                     >
+                                        {{
+                                        $store.state.effectorGeneData
+                                        .perturbational
+                                        }}
+                                    </span>
                                 </li>
                             </ul>
 
-                            <div
-                                style="width: 600px"
-                                v-if="$store.state.effectorGeneData"
-                            >
+                            <div style="width: 600px" v-if="$store.state.effectorGeneData">
                                 <br />
                                 <div
                                     v-if="
@@ -423,35 +395,23 @@
                                 <div>
                                     <div class="container">
                                         <div class="row">
-                                            <div
-                                                class="col-sm commonVariationCausal"
-                                            >
+                                            <div class="col-sm commonVariationCausal">
                                                 <strong>Causal</strong>
                                             </div>
-                                            <div
-                                                class="col-sm commonVariationStrong"
-                                            >
+                                            <div class="col-sm commonVariationStrong">
                                                 <strong>Strong</strong>
                                             </div>
-                                            <div
-                                                class="col-sm commonVariationModerate"
-                                            >
+                                            <div class="col-sm commonVariationModerate">
                                                 <strong>Moderate</strong>
                                             </div>
-                                            <div
-                                                class="col-sm commonVariationPossible"
-                                            >
+                                            <div class="col-sm commonVariationPossible">
                                                 <strong>Possible</strong>
                                             </div>
-                                            <div
-                                                class="col-sm commonVariationWeak"
-                                            >
+                                            <div class="col-sm commonVariationWeak">
                                                 <strong>Weak</strong>
                                             </div>
 
-                                            <div
-                                                class="col- commonVariationNoEvidence"
-                                            >
+                                            <div class="col- commonVariationNoEvidence">
                                                 <strong>No Evidence</strong>
                                             </div>
                                         </div>
@@ -547,10 +507,7 @@
                             </div>
                         </div>
 
-                        <div
-                            class="col-md-5"
-                            style="border-left: 1px dashed #444"
-                        >
+                        <div class="col-md-5" style="border-left: 1px dashed #444">
                             <!-- </p> -->
 
                             <!-- Start Rare Variation -->
@@ -577,24 +534,25 @@
                                 <ul>
                                     <li>
                                         Genetic Evidence
-                                        <span class="codingEvidence1C">{{
+                                        <span class="codingEvidence1C">
+                                            {{
                                             $store.state.effectorGeneData
-                                                .genetic
-                                        }}</span>
+                                            .genetic
+                                            }}
+                                        </span>
                                     </li>
                                     <li>
                                         <span>
-                                            <strong>{{
+                                            <strong>
+                                                {{
                                                 $parent.stage2Category.evidence
-                                            }}</strong>
+                                                }}
+                                            </strong>
                                         </span>
                                     </li>
                                 </ul>
                                 <!-- Traffic Light for rare variation when gene is exome significant -->
-                                <div
-                                    style="width: 600px"
-                                    v-if="$parent.stage2Category"
-                                >
+                                <div style="width: 600px" v-if="$parent.stage2Category">
                                     <br />
                                     <div
                                         v-if="
@@ -641,35 +599,23 @@
                                     <div>
                                         <div class="container">
                                             <div class="row">
-                                                <div
-                                                    class="col-sm rareVariationCausal"
-                                                >
+                                                <div class="col-sm rareVariationCausal">
                                                     <strong>Causal</strong>
                                                 </div>
-                                                <div
-                                                    class="col-sm rareVariationStrong"
-                                                >
+                                                <div class="col-sm rareVariationStrong">
                                                     <strong>Strong</strong>
                                                 </div>
-                                                <div
-                                                    class="col-sm rareVariationModerate"
-                                                >
+                                                <div class="col-sm rareVariationModerate">
                                                     <strong>Moderate</strong>
                                                 </div>
-                                                <div
-                                                    class="col-sm rareVariationPossible"
-                                                >
+                                                <div class="col-sm rareVariationPossible">
                                                     <strong>Possible</strong>
                                                 </div>
-                                                <div
-                                                    class="col-sm rareVariationWeak"
-                                                >
+                                                <div class="col-sm rareVariationWeak">
                                                     <strong>Weak</strong>
                                                 </div>
 
-                                                <div
-                                                    class="col- rareVariationNoEvidence"
-                                                >
+                                                <div class="col- rareVariationNoEvidence">
                                                     <strong>No Evidence</strong>
                                                 </div>
                                             </div>
@@ -772,35 +718,23 @@
                                     <div>
                                         <div class="container">
                                             <div class="row">
-                                                <div
-                                                    class="col-sm rareVariationCausal"
-                                                >
+                                                <div class="col-sm rareVariationCausal">
                                                     <strong>Causal</strong>
                                                 </div>
-                                                <div
-                                                    class="col-sm rareVariationStrong"
-                                                >
+                                                <div class="col-sm rareVariationStrong">
                                                     <strong>Strong</strong>
                                                 </div>
-                                                <div
-                                                    class="col-sm rareVariationModerate"
-                                                >
+                                                <div class="col-sm rareVariationModerate">
                                                     <strong>Moderate</strong>
                                                 </div>
-                                                <div
-                                                    class="col-sm rareVariationPossible"
-                                                >
+                                                <div class="col-sm rareVariationPossible">
                                                     <strong>Possible</strong>
                                                 </div>
-                                                <div
-                                                    class="col-sm rareVariationWeak"
-                                                >
+                                                <div class="col-sm rareVariationWeak">
                                                     <strong>Weak</strong>
                                                 </div>
 
-                                                <div
-                                                    class="col- rareVariationNoEvidence"
-                                                >
+                                                <div class="col- rareVariationNoEvidence">
                                                     <strong>No Evidence</strong>
                                                 </div>
                                             </div>
@@ -882,9 +816,7 @@
                     </h5>
                     <div class="row">
                         <div v-if="$parent.geneAssociations52k">
-                            <div
-                                v-if="$parent.geneAssociationsLoftee.length > 0"
-                            >
+                            <div v-if="$parent.geneAssociationsLoftee.length > 0">
                                 <div class="col-md-6">
                                     <!-- loftee -->
                                     <forest-plot
@@ -940,7 +872,7 @@ export default Vue.component("test", {
 
     computed: {},
 
-    methods: {},
+    methods: {}
 });
 // window.onload = function() {
 //     document.getElementById("fademe2s").style.opacity = 1;
