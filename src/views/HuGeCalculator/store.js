@@ -98,11 +98,14 @@ export default new Vuex.Store({
                                 effectorGeneData = json.data[i];
                                 let p = effectorGeneData.perturbational.split("")[0] - 1;
                                 effectorGeneData.perturbational = p.toString() + "P";
+                                if (effectorGeneData.category == "(T2D_related)") {
+                                    effectorGeneData.category = "No"
+                                }
                                 break;
                             }
-                            else {
-                                effectorGeneData = { "perturbational": "3P", "category": "No", "message": "is in GWAS but only one line of perturbational evidence found" }
-                            }
+                            // else {
+                            //     effectorGeneData = { "perturbational": "3P", "category": "No", "message": "is in GWAS but only one line of perturbational evidence found" }
+                            // }
                         }
                         context.commit('setEffectorGeneData', effectorGeneData);
                     } else {
