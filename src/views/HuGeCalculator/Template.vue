@@ -354,77 +354,10 @@
                                     </span>
                                 </li>
                             </ul>
-
+                            <!-- Common variation color bar plot -->
                             <div style="width: 600px" v-if="$store.state.effectorGeneData">
                                 <br />
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'CAUSAL'
-                                    "
-                                    class="arrow-up causalclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'STRONG'
-                                    "
-                                    class="arrow-up strongclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'MODERATE'
-                                    "
-                                    class="arrow-up moderateclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'POSSIBLE'
-                                    "
-                                    class="arrow-up possibleclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'WEAK'
-                                    "
-                                    class="arrow-up weakclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'No'
-                                    "
-                                    class="arrow-up noEvidenceclass"
-                                ></div>
-                                <!-- traffic light for common varation when gene is and is not genome wide significant -->
-                                <div>
-                                    <div class="container">
-                                        <div class="row">
-                                            <div class="col-sm commonVariationCausal">
-                                                <strong>Causal</strong>
-                                            </div>
-                                            <div class="col-sm commonVariationStrong">
-                                                <strong>Strong</strong>
-                                            </div>
-                                            <div class="col-sm commonVariationModerate">
-                                                <strong>Moderate</strong>
-                                            </div>
-                                            <div class="col-sm commonVariationPossible">
-                                                <strong>Possible</strong>
-                                            </div>
-                                            <div class="col-sm commonVariationWeak">
-                                                <strong>Weak</strong>
-                                            </div>
-
-                                            <div class="col- commonVariationNoEvidence">
-                                                <strong>No Evidence</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <color-bar-plot :category="$store.state.effectorGeneData.category"></color-bar-plot>
                             </div>
                             <hr style="margin: 40px" />
                             <!-- End of common variation evidence -->
