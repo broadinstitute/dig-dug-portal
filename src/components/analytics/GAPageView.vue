@@ -3,11 +3,12 @@
 <script>
 import Vue from "vue";
 import gaUtils from "@/utils/gaUtils";
-import { url, domain, subDomain } from "@/utils/hostUtils";
+import VueCookies from "vue-cookies";
+Vue.use(VueCookies);
 
 export default Vue.component("ga-pageview", {
     async created() {
-        await gaUtils.logPageView(window.location.href);
+        await gaUtils.logPageView(window.location.href, document.referrer);
     }
 });
 </script>

@@ -8,15 +8,14 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
-import GeneAssociationsTable from "@/components/GeneAssociationsTable";
-import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
+
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypePicker from "@/components/PhenotypePicker.vue";
 import GeneFinderTable from "@/components/GeneFinderTable.vue";
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
 import FilterControl from "@/components/Filter/FilterControl.vue"
 import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
@@ -47,6 +46,7 @@ new Vue({
         GeneFinderTable,
         UnauthorizedMessage,
         FilterGroup,
+        FilterListGroup,
         FilterControl,
         FilterPValue,
         FilterEnumeration,

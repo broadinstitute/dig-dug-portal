@@ -17,7 +17,7 @@
 import Vue from "vue";
 import FilterControl from "./FilterControl"
 import Formatter from "@/utils/formatters"
-import { capitalize } from "@amcharts/amcharts4/.internal/core/utils/Utils";
+
 export default Vue.component('filter-enumeration-control', {
     props: {
         field: String,

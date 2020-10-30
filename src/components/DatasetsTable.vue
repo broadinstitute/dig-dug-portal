@@ -94,7 +94,7 @@ export default Vue.component("datasets-table", {
         tableData() {
             let dataRows = this.sortedDatasets;
             if (!!this.filter) {
-                dataRows = this.sortedDatasets.filter(dataset => {
+                dataRows = dataRows.filter(dataset => {
                     return this.filter(dataset);
                 });
             }

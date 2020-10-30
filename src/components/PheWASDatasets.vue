@@ -169,6 +169,7 @@
             v-model="currentPage"
             :total-rows="rows"
             :per-page="perPage"
+            @page-click="closeAllDatasets()"
         ></b-pagination>
     </div>
 </template>
@@ -218,7 +219,10 @@ export default Vue.component("phewas-datasets", {
 
             if (!!this.filter) {
                 dataRows = dataRows.filter((association) => {
-                    const regularAssociation = Object.assign(cloneDeep(association), { phenotype: association.phenotype.name });
+                    const regularAssociation = Object.assign(
+                        cloneDeep(association),
+                        { phenotype: association.phenotype.name }
+                    );
                     return this.filter(regularAssociation);
                 });
             }
@@ -231,6 +235,15 @@ export default Vue.component("phewas-datasets", {
         intFormatter: Formatters.intFormatter,
         showDatasets(index) {
             uiUtils.showHideElement("features_" + index);
+        },
+        closeAllDatasets() {
+            let datasets = document.getElementsByClassName(
+                "feature-content-wrapper"
+            );
+
+            Array.from(datasets).forEach((element) => {
+                element.classList.add("hidden");
+            });
         },
     },
 });
