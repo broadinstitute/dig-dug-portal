@@ -43,9 +43,12 @@
                         >
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
-                        <filter-pvalue-control :field="'pValue'">
-                            <div class="label">P-Value (&le;)</div>
-                        </filter-pvalue-control>
+                        <input
+                            type="text"
+                            class="form-control"
+                            :fields="'gene'"
+                        />
+
                         <filter-enumeration-control
                             :options="$parent.masks.map((mask) => mask.name)"
                             :labelFormatter="(value) => $parent.masks[value]"
