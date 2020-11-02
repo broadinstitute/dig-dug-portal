@@ -102,9 +102,21 @@
                     <div class="row">results</div>
                     <div id="variants">
                         <div v-for="row in $parent.tableData" :key="row.varId">
-                            {{ row.varId }} - {{ row.impact }} - {{ row.maf }}
+                            &Sigma;&chi;&sup2; - {{ row.varId }} -
+                            {{ row.impact }} -
+                            {{ row.maf }}
                         </div>
                     </div>
+                    <b-table striped hover :items="$parent.tableData">
+                        <template #cell(selected)="data">
+                            <b-form-group>
+                                <input
+                                    type="checkbox"
+                                    v-model="data.item.selected"
+                                />
+                            </b-form-group>
+                        </template>
+                    </b-table>
                 </div>
             </div>
         </div>

@@ -51,6 +51,9 @@ new Vue({
     computed: {
         tableData() {
             return this.$store.state.burden.data;
+        },
+        selectedVariants() {
+            return this.tableData.map(v => v.varId);
         }
     },
     methods: {
