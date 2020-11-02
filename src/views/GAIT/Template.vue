@@ -87,7 +87,11 @@
                     >
 
                     <div style="text-align: center">
-                        <b-button variant="primary">Search Variants</b-button>
+                        <b-button
+                            variant="primary"
+                            @click="$parent.searchVariants"
+                            >Search Variants</b-button
+                        >
                     </div>
 
                     <div class="row">results</div>

@@ -18,21 +18,17 @@ export default new Vuex.Store({
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
-        phenotype: null,
-        newPhenotype: null
+        gene: "slc30a8", //!static for test
+        binID: "bin1_7" //!can move to data prop later
     },
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
+        },
+        setBurden(state, data) {
+            state.burden = data;
         }
     },
-    // getters: {
-    //     documentationMap(state) {
-    //         return {
-    //             phenotype: state.phenotype.description
-    //         };
-    //     }
-    // },
     actions: {
         onPhenotypeChange(context, phenotype) {
             context.commit("setPhenotype", phenotype);
@@ -47,6 +43,15 @@ export default new Vuex.Store({
             context.dispatch("associations/query", assocQuery);
             context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
+        },
+
+        queryBurden(context) {
+            let gene = context.state.gene;
+            let binID = context.state.binID;
+            let q = `${gene},${binID}`;
+
+            //TODO: set url params for bookmark
+            context.dispatch("burden/query", { q });
         }
     }
 });

@@ -48,5 +48,9 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
     },
-    methods: {}
+    methods: {
+        searchVariants() {
+            this.$store.dispatch("queryBurden");
+        }
+    }
 }).$mount("#app");
