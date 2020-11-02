@@ -92,9 +92,19 @@
                             @click="$parent.searchVariants"
                             >Search Variants</b-button
                         >
+                        <b-button
+                            variant="primary"
+                            @click="$parent.searchCovariances"
+                            >Search Covariances</b-button
+                        >
                     </div>
 
                     <div class="row">results</div>
+                    <div id="variants">
+                        <div v-for="row in $parent.tableData" :key="row.varId">
+                            {{ row.varId }} - {{ row.impact }} - {{ row.maf }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
