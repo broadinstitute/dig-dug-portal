@@ -61,6 +61,9 @@ new Vue({
             this.$store.dispatch("queryBurden");
         },
         searchCovariances() {
+            this.$store.dispatch("gene/query", {
+                q: this.$store.state.searchGene
+            });
             this.$store.dispatch("ldServer/getCovariances");
         }
     }

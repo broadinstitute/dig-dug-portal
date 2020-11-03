@@ -14,11 +14,12 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         ldServer,
+        gene: bioIndex("gene"),
         burden: bioIndex("burden")
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
-        gene: "slc30a8", //!static for test
+        searchGene: "slc30a8", //!static for test
         binID: "bin1_7" //!can move to data prop later
     },
     mutations: {
@@ -27,6 +28,21 @@ export default new Vuex.Store({
         },
         setBurden(state, data) {
             state.burden = data;
+        }
+    },
+    getters: {
+        region(state) {
+            let data = state.gene.data;
+
+            if (data.length > 0) {
+                let gene = data[0];
+
+                return {
+                    chromosome: gene.chromosome,
+                    start: gene.start,
+                    end: gene.end
+                };
+            }
         }
     },
     actions: {
@@ -46,7 +62,7 @@ export default new Vuex.Store({
         },
 
         queryBurden(context) {
-            let gene = context.state.gene;
+            let gene = context.state.searchGene;
             let binID = context.state.binID;
             let q = `${gene},${binID}`;
 
