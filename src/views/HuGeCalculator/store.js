@@ -74,47 +74,7 @@ export default new Vuex.Store({
     },
 
     actions: {
-        //Common Variation, Stage 1
-        async getEffectorGeneData(context, geneSymbol) {
 
-            let dataset = 'mccarthy'
-            let trait = this.state.phenotype.name.toLowerCase();
-
-            fetch(`https://kp4cd.org/egldata/dataset?dataset=${dataset}&trait=${trait}`)
-                .then(resp => {
-                    if (resp.status === 422) {
-                        throw Error("missing parameters");
-                    }
-                    if (resp.status === 200) {
-                        return resp;
-                    }
-                })
-                .then(resp => resp.json())
-                .then(json => {
-                    if (json.data.length > 0) {
-                        let effectorGeneData = {}
-                        for (var i = 0; i < json.data.length; ++i) {
-                            if (json.data[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
-                                effectorGeneData = json.data[i];
-                                let p = effectorGeneData.perturbational.split("")[0] - 1;
-                                effectorGeneData.perturbational = p.toString() + "P";
-                                if (effectorGeneData.category == "(T2D_related)") {
-                                    effectorGeneData.category = "No"
-                                }
-                                break;
-                            }
-                            // else {
-                            //     effectorGeneData = { "perturbational": "3P", "category": "No", "message": "is in GWAS but only one line of perturbational evidence found" }
-                            // }
-                        }
-                        context.commit('setEffectorGeneData', effectorGeneData);
-                    } else {
-                        throw new Error(
-                            "No content returned for given gene "
-                        );
-                    }
-                });
-        },
 
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
@@ -126,7 +86,7 @@ export default new Vuex.Store({
 
             if (!!name) {
                 context.dispatch('gene/query', { q: name });
-                context.dispatch('getEffectorGeneData', name);
+                context.dispatch("kp4cd/getEglData", { dataset, phenotype });
                 context.dispatch('associations/query', query);
                 context.dispatch('geneAssociations52k/query', { q: name });
 

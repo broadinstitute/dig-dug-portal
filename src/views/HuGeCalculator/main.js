@@ -240,7 +240,29 @@ new Vue({
             }
         },
 
-
+        eglData() {
+            let effectordata = this.$store.state.kp4cd.eglData;
+            if (effectordata.data.length > 0) {
+                let effectorGeneData = {}
+                for (var i = 0; i < effectordata.data.length; ++i) {
+                    if (effectordata.data[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
+                        effectorGeneData = effectordata.data[i];
+                        let p = effectorGeneData.perturbational.split("")[0] - 1;
+                        effectorGeneData.perturbational = p.toString() + "P";
+                        if (effectorGeneData.category == "(T2D_related)") {
+                            effectorGeneData.category = "No"
+                        }
+                        break;
+                    }
+                }
+                return effectorGeneData;
+            } else {
+                throw new Error(
+                    "No content returned for given gene "
+                );
+            }
+        }
+        ,
 
         //when the gene has significant association  (if exome wide significant)
         //(Rare Variation), that means there is Strong coding evidence
