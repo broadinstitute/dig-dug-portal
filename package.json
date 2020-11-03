@@ -42,6 +42,7 @@
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "cache-loader": "^4.1.0",
+    "cypress": "^5.5.0",
     "regenerator-runtime": "^0.13.7",
     "vue-template-compiler": "^2.6.12"
   }
