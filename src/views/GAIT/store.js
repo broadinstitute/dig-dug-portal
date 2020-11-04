@@ -15,6 +15,7 @@ export default new Vuex.Store({
         kp4cd,
         ldServer,
         gene: bioIndex("gene"),
+        genes: bioIndex("gene-finder"),
         burden: bioIndex("burden")
     },
     state: {
@@ -53,11 +54,11 @@ export default new Vuex.Store({
 
         queryPhenotype(context) {
             let query = { q: context.state.phenotype.name };
-            let assocQuery = { ...query, limit: 1000 };
+            //let assocQuery = { ...query, limit: 1000 };
             let geneQuery = { ...query, limit: 500 };
 
-            context.dispatch("associations/query", assocQuery);
-            context.dispatch("annotations/query", query);
+            //context.dispatch("associations/query", assocQuery);
+            //context.dispatch("annotations/query", query);
             context.dispatch("genes/query", geneQuery);
         },
 

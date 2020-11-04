@@ -25,6 +25,7 @@
                     >
                         <filter-enumeration-control
                             :field="'phenotype'"
+                            :multiple="true"
                             :options="
                                 $store.state.ldServer.phenotypes.map(
                                     (phenotype) => phenotype.name
@@ -43,17 +44,28 @@
                         >
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
-                        <input
-                            type="text"
-                            class="form-control"
-                            :fields="'gene'"
-                        />
+                        <filter-enumeration-control
+                            :field="'gene'"
+                            :options="
+                                $store.state.genes.data.map((gene) => gene.gene)
+                            "
+                        >
+                            <div class="label">Gene</div>
+                        </filter-enumeration-control>
 
                         <filter-enumeration-control
-                            :options="$parent.masks.map((mask) => mask.name)"
-                            :labelFormatter="(value) => $parent.masks[value]"
-                        ></filter-enumeration-control>
-                        <b-form-select :options="$parent.masks"></b-form-select>
+                            :field="'mask'"
+                            :multiple="true"
+                            :options="$parent.masks.map((v) => v.value)"
+                            :labelFormatter="
+                                (v) =>
+                                    $parent.masks.find((o) => o.value === v)
+                                        .text
+                            "
+                            ><div class="label">
+                                Masks
+                            </div></filter-enumeration-control
+                        >
                     </filter-group>
 
                     <a
@@ -92,11 +104,6 @@
                             @click="$parent.searchVariants"
                             >Search Variants</b-button
                         >
-                        <b-button
-                            variant="primary"
-                            @click="$parent.searchCovariances"
-                            >Search Covariances</b-button
-                        >
                     </div>
 
                     <div class="row">results</div>
@@ -117,6 +124,24 @@
                             </b-form-group>
                         </template>
                     </b-table>
+
+                    <div style="text-align: center">
+                        <b-button
+                            variant="primary"
+                            @click="$parent.searchCovariances"
+                            >Search Covariances</b-button
+                        >
+                    </div>
+                    <b-table
+                        striped
+                        hover
+                        :items="$store.state.ldServer.covariances.variants"
+                    >
+                    </b-table>
+                    <div v-if="$store.state.ldServer.covariances">
+                        groups
+                        {{ $store.state.ldServer.covariances.groups }}
+                    </div>
                 </div>
             </div>
         </div>

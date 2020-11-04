@@ -30,13 +30,13 @@ new Vue({
     data() {
         return {
             masks: [
-                { LoF_HC: "bin1_7" },
-                { "15of15 ": "bin2_7" },
-                { "11of11 ": "bin3_7" },
-                { "5of5": "bin4_7" },
-                { "5of5_LoF_LC_1pct": "bin5_7" },
-                { "1of5_1pct": "bin6_7" },
-                { "0of5_1pct": "bin7_7" }
+                { text: "LoF_HC", value: "bin1_7" },
+                { text: "15of15 ", value: "bin2_7" },
+                { text: "11of11 ", value: "bin3_7" },
+                { text: "5of5", value: "bin4_7" },
+                { text: "5of5_LoF_LC_1pct", value: "bin5_7" },
+                { text: "1of5_1pct", value: "bin6_7" },
+                { text: "0of5_1pct", value: "bin7_7" }
             ],
             auto_select: true,
             set_covariates: false
