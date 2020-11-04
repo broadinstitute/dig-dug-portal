@@ -50,10 +50,14 @@ new Vue({
     },
     computed: {
         tableData() {
-            return this.$store.state.burden.data;
+            return this.$store.state.burden.data.map(v => ({
+                selected: true, //add selected column for manual selection
+                ...v
+            }));
         },
         selectedVariants() {
-            return this.tableData.map(v => v.varId);
+            //get only the varIDs for selected rows
+            return this.tableData.filter(v => v.selected).map(v => v.varId);
         }
     },
     methods: {
