@@ -47,15 +47,16 @@ export default {
                 genomeBuild: "GRCh37",
                 maskDefinitions: [
                     {
-                        id: 10,
-                        name: "On-the-fly mask",
+                        id: 10, //integer, required
+                        name: "On-the-fly mask", //required
                         description:
-                            "Mask created on the fly, potentially by using a browser UI",
+                            "Mask created on the fly, potentially by using a browser UI", //required
                         genome_build: "GRCh37",
                         group_type: "GENE",
                         identifier_type: "ENSEMBL",
                         groups: {
                             CRELD2: [
+                                //name of group, required
                                 "22:50312454_C/T",
                                 "22:50313452_C/T",
                                 "22:50313465_C/A",
