@@ -42,7 +42,8 @@ Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
 Vue.use(BootstrapVueIcons);
 
-new Vue({
+// POSSIBLE: change to export to make it testable?
+export default page = {
     store,
     components: {
         PageHeader,
@@ -309,4 +310,5 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         }
     }
-}).$mount("#app");
+}
+new Vue(page).$mount("#app");
