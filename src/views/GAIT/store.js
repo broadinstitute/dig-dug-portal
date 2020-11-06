@@ -24,7 +24,7 @@ export default new Vuex.Store({
         // phenotypes needs to be an array so colors don't change!
         searchGene: "slc30a8", //!static for test
         //binID: "bin1_7" //!can move to data prop later
-        binID: ["bin1_7", "bin7_7"],
+        binID: ["bin1_7"],
         variants: []
     },
     mutations: {
@@ -75,13 +75,13 @@ export default new Vuex.Store({
             // //TODO: set url params for bookmark
             // context.dispatch("burden/query", { q });
             let queries = binID.map(bin => query("burden", `${gene},${bin}`));
-            let data = await Promise.all(queries).then(results =>
-                results.flatMap(data => data)
-            );
+            let data = await Promise.all(queries)
+                .then(results => results.flatMap(data => data))
+                .then(data => uniqBy(data, "varId"));
 
-            let unique = uniqBy(data, "varId");
+            //let unique = uniqBy(data, "varId");
 
-            context.commit("setVariants", unique);
+            context.commit("setVariants", data);
             //console.log("data", unique);
         }
     }
