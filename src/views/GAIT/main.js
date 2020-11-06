@@ -39,7 +39,9 @@ new Vue({
                 { text: "0of5_1pct", value: "bin7_7" }
             ],
             auto_select: true,
-            set_covariates: false
+            set_covariates: false,
+            perPage: 10,
+            currentPage: 1
         };
     },
     created() {
@@ -50,7 +52,7 @@ new Vue({
     },
     computed: {
         tableData() {
-            return this.$store.state.burden.data.map(v => ({
+            return this.$store.state.variants.map(v => ({
                 selected: true, //add selected column for manual selection
                 ...v
             }));

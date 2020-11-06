@@ -46,6 +46,7 @@
                         </filter-enumeration-control>
                         <filter-enumeration-control
                             :field="'gene'"
+                            :color="'orange'"
                             :options="
                                 $store.state.genes.data.map((gene) => gene.gene)
                             "
@@ -66,6 +67,8 @@
                                 Masks
                             </div></filter-enumeration-control
                         >
+                        <template slot="filtered" slot-scope="{ filter }">
+                        </template>
                     </filter-group>
 
                     <a
@@ -107,14 +110,14 @@
                     </div>
 
                     <div class="row">results</div>
-                    <div id="variants">
-                        <div v-for="row in $parent.tableData" :key="row.varId">
-                            &Sigma;&chi;&sup2; - {{ row.varId }} -
-                            {{ row.impact }} -
-                            {{ row.maf }}
-                        </div>
-                    </div>
-                    <b-table striped hover :items="$parent.tableData">
+
+                    <b-table
+                        striped
+                        hover
+                        :items="$parent.tableData"
+                        :per-page="$parent.perPage"
+                        :current-page="$parent.currentPage"
+                    >
                         <template #cell(selected)="data">
                             <b-form-group>
                                 <input
@@ -124,6 +127,12 @@
                             </b-form-group>
                         </template>
                     </b-table>
+                    <b-pagination
+                        v-model="$parent.currentPage"
+                        :total-rows="$parent.tableData.length"
+                        :per-page="$parent.perPage"
+                        aria-controls="variant-table"
+                    ></b-pagination>
 
                     <div style="text-align: center">
                         <b-button
