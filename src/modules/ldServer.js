@@ -21,6 +21,13 @@ export default {
             state.covariances = data;
         }
     },
+    getters: {
+        covarianceCount(state) {
+            return state.covariances.groups
+                ? state.covariances.groups[0].variants.length
+                : 0;
+        }
+    },
     actions: {
         // fetch all the phenotypes available
         async getPhenotypes({ state, commit }) {
@@ -34,15 +41,25 @@ export default {
                 json.data[0].phenotypeDatasets[0].phenotypes
             );
         },
-        async getCovariances({ state, commit }) {
-            let variants = state.variants;
+        async getCovariances(context, variants) {
+            //console.log("state", state);
+            //let variants = state.variants;
+            // let gene = await state.gene.data[0];
+            // let chrom = gene.chromosome;
+            // let start = gene.start;
+            // let stop = gene.end;
+
+            //console.log("variants", variants);
+            //console.log("gene", gene);
+            console.log("context", context);
+            let region = context.rootGetters.region;
             let query = {
-                chrom: "22",
-                start: 50276998,
-                stop: 50357719,
+                chrom: region.chromosome,
+                start: region.start,
+                stop: region.end,
                 genotypeDataset: 1,
                 phenotypeDataset: 1,
-                phenotype: "LDL",
+                phenotype: "t2d",
                 samples: "ALL",
                 genomeBuild: "GRCh37",
                 maskDefinitions: [
@@ -55,29 +72,12 @@ export default {
                         group_type: "GENE",
                         identifier_type: "ENSEMBL",
                         groups: {
-                            CRELD2: [
-                                //name of group, required
-                                "22:50312454_C/T",
-                                "22:50313452_C/T",
-                                "22:50313465_C/A",
-                                "22:50315537_A/G",
-                                "22:50315971_C/G",
-                                "22:50316015_C/T",
-                                "22:50316301_A/G",
-                                "22:50316902_G/A",
-                                "22:50316906_C/T",
-                                "22:50317418_C/T",
-                                "22:50318061_G/C",
-                                "22:50318402_C/T",
-                                "22:50318757_C/T",
-                                "22:50319373_C/T",
-                                "22:50319968_G/A",
-                                "22:50320921_G/A"
-                            ]
+                            CRELD2: variants
                         }
                     }
                 ]
             };
+            console.log("query", query);
             let json = await fetch(
                 "https://ld.hugeamp.org/aggregation/covariance",
                 {
@@ -90,7 +90,7 @@ export default {
                 }
             ).then(resp => resp.json());
 
-            commit("setCovariances", json.data);
+            context.commit("setCovariances", json.data);
         }
     }
 };
