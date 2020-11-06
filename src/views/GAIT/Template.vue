@@ -19,9 +19,10 @@
                 <div class="card-body">
                     <h4 class="card-title">Search Criteria</h4>
 
-                    <filter-group
-                        v-model="$parent.associationsFilter"
+                    <filter-list-group
+                        v-model="$parent.geneFinderSearchCriterion"
                         :looseMatch="true"
+                        :header="'Search Criterion'"
                     >
                         <filter-enumeration-control
                             :field="'phenotype'"
@@ -69,7 +70,7 @@
                         >
                         <template slot="filtered" slot-scope="{ filter }">
                         </template>
-                    </filter-group>
+                    </filter-list-group>
 
                     <a
                         href="#"
@@ -141,15 +142,38 @@
                             >Search Covariances</b-button
                         >
                     </div>
-                    <b-table
-                        striped
-                        hover
-                        :items="$store.state.ldServer.covariances.variants"
+                    <div
+                        id="covariances"
+                        v-if="$store.state.ldServer.covariances"
                     >
-                    </b-table>
-                    <div v-if="$store.state.ldServer.covariances">
-                        groups
-                        {{ $store.state.ldServer.covariances.groups }}
+                        <b-table
+                            striped
+                            hover
+                            :items="$store.state.ldServer.covariances.variants"
+                            :per-page="$parent.perPage"
+                            :current-page="$parent.currentPage2"
+                        >
+                        </b-table>
+                        <b-pagination
+                            v-if="$store.state.ldServer.covariances.variants"
+                            v-model="$parent.currentPage2"
+                            :total-rows="
+                                $store.state.ldServer.covariances.variants
+                                    ? $store.state.ldServer.covariances.variants
+                                          .length
+                                    : 0
+                            "
+                            :per-page="$parent.perPage"
+                            aria-controls="covariances-table"
+                        ></b-pagination>
+                    </div>
+
+                    <div v-if="$store.state.ldServer.covariances.groups">
+                        <strong>Covariances:</strong>
+                        {{
+                            $store.state.ldServer.covariances.groups[0]
+                                .covariance
+                        }}
                     </div>
                 </div>
             </div>

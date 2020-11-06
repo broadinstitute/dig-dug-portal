@@ -4,11 +4,12 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import FilterGroup from "@/components/Filter/FilterGroup.vue";
+import FilterListGroup from "@/components/Filter/FilterListGroup.vue";
 import FilterControl from "@/components/Filter/FilterControl.vue";
 import FilterPValue from "@/components/Filter/FilterPValue.vue";
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue";
-
+import variantUtils from "@/utils/variantUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 
 Vue.use(BootstrapVue);
@@ -20,6 +21,7 @@ new Vue({
     components: {
         FilterGroup,
         FilterControl,
+        FilterListGroup,
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan
@@ -41,7 +43,9 @@ new Vue({
             auto_select: true,
             set_covariates: false,
             perPage: 10,
-            currentPage: 1
+            currentPage: 1,
+            currentPage2: 1,
+            geneFinderSearchCriterion: []
         };
     },
     created() {
@@ -59,18 +63,23 @@ new Vue({
         },
         selectedVariants() {
             //get only the varIDs for selected rows
-            return this.tableData.filter(v => v.selected).map(v => v.varId);
+            return this.tableData
+                .filter(v => v.selected)
+                .map(v => variantUtils.gaitVariant(v.varId));
         }
     },
     methods: {
         searchVariants() {
             this.$store.dispatch("queryBurden");
-        },
-        searchCovariances() {
             this.$store.dispatch("gene/query", {
                 q: this.$store.state.searchGene
             });
-            this.$store.dispatch("ldServer/getCovariances");
+        },
+        searchCovariances() {
+            this.$store.dispatch(
+                "ldServer/getCovariances",
+                this.selectedVariants
+            );
         }
     }
 }).$mount("#app");
