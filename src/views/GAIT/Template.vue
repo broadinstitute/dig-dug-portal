@@ -109,30 +109,30 @@
                         >
                     </div>
 
-                    <div class="row">results</div>
-
-                    <b-table
-                        striped
-                        hover
-                        :items="$parent.tableData"
-                        :per-page="$parent.perPage"
-                        :current-page="$parent.currentPage"
-                    >
-                        <template #cell(selected)="data">
-                            <b-form-group>
-                                <input
-                                    type="checkbox"
-                                    v-model="data.item.selected"
-                                />
-                            </b-form-group>
-                        </template>
-                    </b-table>
-                    <b-pagination
-                        v-model="$parent.currentPage"
-                        :total-rows="$parent.tableData.length"
-                        :per-page="$parent.perPage"
-                        aria-controls="variant-table"
-                    ></b-pagination>
+                    <div class="variants" v-if="$parent.tableData.length > 0">
+                        <b-table
+                            striped
+                            hover
+                            :items="$parent.tableData"
+                            :per-page="$parent.perPage"
+                            :current-page="$parent.currentPage"
+                        >
+                            <template #cell(selected)="data">
+                                <b-form-group>
+                                    <input
+                                        type="checkbox"
+                                        v-model="data.item.selected"
+                                    />
+                                </b-form-group>
+                            </template>
+                        </b-table>
+                        <b-pagination
+                            v-model="$parent.currentPage"
+                            :total-rows="$parent.tableData.length"
+                            :per-page="$parent.perPage"
+                            aria-controls="variant-table"
+                        ></b-pagination>
+                    </div>
 
                     <div style="text-align: center">
                         <b-button
