@@ -68,6 +68,19 @@
                                 Masks
                             </div></filter-enumeration-control
                         >
+
+                        <filter-enumeration-control
+                            :field="'dataset'"
+                            :options="$parent.datasets.map((v) => v.value)"
+                            :labelFormatter="
+                                (v) =>
+                                    $parent.datasets.find((o) => o.value === v)
+                                        .text
+                            "
+                            ><div class="label">
+                                Dataset
+                            </div></filter-enumeration-control
+                        >
                         <template slot="filtered" slot-scope="{ filter }">
                         </template>
                     </filter-list-group>

@@ -40,6 +40,10 @@ new Vue({
                 { text: "1of5_1pct", value: "bin6_7" },
                 { text: "0of5_1pct", value: "bin7_7" }
             ],
+            datasets: [
+                { text: "52K", value: "52K" },
+                { text: "TopMed", value: "TopMed" }
+            ],
             auto_select: true,
             set_covariates: false,
             perPage: 10,
