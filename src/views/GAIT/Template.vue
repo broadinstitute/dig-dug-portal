@@ -106,6 +106,11 @@
                         <b-button
                             variant="primary"
                             @click="$parent.searchVariants"
+                            :disabled="
+                                $parent.selectedPhenotypes.length == 0 ||
+                                $parent.selectedGene.length == 0 ||
+                                $parent.selectedMasks.length == 0
+                            "
                             >Search Variants</b-button
                         >
                     </div>
