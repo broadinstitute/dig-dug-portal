@@ -66,9 +66,9 @@ export default new Vuex.Store({
             context.dispatch("genes/query", geneQuery);
         },
 
-        async queryBurden(context) {
-            let gene = context.state.searchGene;
-            let binID = context.state.binID;
+        async queryBurden(context, { gene, binID }) {
+            //let gene = context.state.searchGene;
+            //let binID = context.state.binID;
 
             // let q = `${gene},${binID}`;
 

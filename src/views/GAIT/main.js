@@ -66,13 +66,37 @@ new Vue({
             return this.tableData
                 .filter(v => v.selected)
                 .map(v => variantUtils.gaitVariant(v.varId));
+        },
+        selectedPhenotypes() {
+            return this.geneFinderSearchCriterion
+                .filter(v => {
+                    return v.field === "phenotype";
+                })
+                .map(v => v.threshold);
+        },
+        selectedGene() {
+            return this.geneFinderSearchCriterion
+                .filter(v => {
+                    return v.field === "gene";
+                })
+                .map(v => v.threshold);
+        },
+        selectedMasks() {
+            return this.geneFinderSearchCriterion
+                .filter(v => {
+                    return v.field === "mask";
+                })
+                .map(v => v.threshold);
         }
     },
     methods: {
         searchVariants() {
-            this.$store.dispatch("queryBurden");
+            this.$store.dispatch("queryBurden", {
+                gene: this.selectedGene,
+                binID: this.selectedMasks
+            });
             this.$store.dispatch("gene/query", {
-                q: this.$store.state.searchGene
+                q: this.selectedGene
             });
         },
         searchCovariances() {
