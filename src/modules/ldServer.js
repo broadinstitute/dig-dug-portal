@@ -51,7 +51,7 @@ export default {
 
             //console.log("variants", variants);
             //console.log("gene", gene);
-            console.log("context", context);
+            //console.log("context", context);
             let region = context.rootGetters.region;
             let query = {
                 chrom: region.chromosome,
@@ -77,7 +77,7 @@ export default {
                     }
                 ]
             };
-            console.log("query", query);
+            //console.log("query", query);
             let json = await fetch(
                 "https://ld.hugeamp.org/aggregation/covariance",
                 {

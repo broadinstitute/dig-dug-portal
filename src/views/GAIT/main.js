@@ -47,6 +47,8 @@ new Vue({
             ],
             auto_select: true,
             set_covariates: false,
+            loadingVariants: false,
+            loadingCovariances: false,
             perPage: 10,
             currentPage: 1,
             currentPage2: 1,
@@ -96,6 +98,7 @@ new Vue({
     },
     methods: {
         searchVariants() {
+            this.loadingVariants = true;
             this.$store.dispatch("queryBurden", {
                 gene: this.selectedGene,
                 binID: this.selectedMasks
@@ -105,6 +108,7 @@ new Vue({
             });
         },
         searchCovariances() {
+            this.loadingCovariances = true;
             this.$store.dispatch(
                 "ldServer/getCovariances",
                 this.selectedVariants
@@ -117,6 +121,14 @@ new Vue({
             if (!isEqual(newPhenotypes, oldPhenotypes)) {
                 this.$store.dispatch("onPhenotypeChange", newPhenotypes);
             }
+        },
+        "$store.state.variants": function() {
+            console.log("change1");
+            this.loadingVariants = false;
+        },
+        "$store.state.ldServer.covariances": function() {
+            console.log("change2");
+            this.loadingCovariances = false;
         }
     }
 }).$mount("#app");

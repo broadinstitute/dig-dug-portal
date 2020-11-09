@@ -57,7 +57,8 @@ export default new Vuex.Store({
     actions: {
         onPhenotypeChange(context, phenotypes) {
             context.commit("setPhenotype", phenotypes);
-            keyParams.set({ phenotypes: phenotypes.join(",") });
+            //TODO: set url params for bookmark
+            //keyParams.set({ phenotypes: phenotypes.join(",") });
             context.dispatch("queryGenes", phenotypes);
         },
 
@@ -91,6 +92,7 @@ export default new Vuex.Store({
             //let unique = uniqBy(data, "varId");
 
             context.commit("setVariants", data);
+
             //console.log("data", unique);
         }
     }

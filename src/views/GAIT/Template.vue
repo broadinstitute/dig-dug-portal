@@ -17,14 +17,15 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Search Criteria</h4>
+                    <h4 class="card-title">Build Search Criteria</h4>
 
                     <filter-list-group
                         v-model="$parent.geneFinderSearchCriterion"
                         :looseMatch="true"
-                        :header="'Search Criterion'"
+                        :header="'Search Criteria'"
                     >
                         <filter-enumeration-control
+                            ref="phenotype"
                             :field="'phenotype'"
                             :multiple="true"
                             :options="
@@ -47,6 +48,7 @@
                         </filter-enumeration-control>
 
                         <filter-enumeration-control
+                            ref="dataset"
                             :field="'dataset'"
                             :options="$parent.datasets.map((v) => v.value)"
                             :labelFormatter="
@@ -60,6 +62,7 @@
                         >
 
                         <filter-enumeration-control
+                            ref="mask"
                             :field="'mask'"
                             :multiple="true"
                             :options="$parent.masks.map((v) => v.value)"
@@ -74,6 +77,7 @@
                         >
 
                         <filter-enumeration-control
+                            ref="gene"
                             :field="'gene'"
                             :color="'orange'"
                             :options="
@@ -126,72 +130,102 @@
                             >Search Variants</b-button
                         >
                     </div>
+                    <b-skeleton-wrapper :loading="$parent.loadingVariants">
+                        <template #loading>
+                            <b-skeleton-table
+                                :rows="3"
+                                :columns="6"
+                                :table-props="{ bordered: true, striped: true }"
+                            ></b-skeleton-table>
+                        </template>
 
-                    <div class="variants" v-if="$parent.tableData.length > 0">
-                        <b-table
-                            striped
-                            hover
-                            :items="$parent.tableData"
-                            :per-page="$parent.perPage"
-                            :current-page="$parent.currentPage"
+                        <div
+                            class="variants"
+                            v-if="$parent.tableData.length > 0"
                         >
-                            <template #cell(selected)="data">
-                                <b-form-group>
-                                    <input
-                                        type="checkbox"
-                                        v-model="data.item.selected"
-                                    />
-                                </b-form-group>
-                            </template>
-                        </b-table>
-                        <b-pagination
-                            v-model="$parent.currentPage"
-                            :total-rows="$parent.tableData.length"
-                            :per-page="$parent.perPage"
-                            aria-controls="variant-table"
-                        ></b-pagination>
-                    </div>
+                            <b-table
+                                striped
+                                hover
+                                :items="$parent.tableData"
+                                :per-page="$parent.perPage"
+                                :current-page="$parent.currentPage"
+                            >
+                                <template #cell(selected)="data">
+                                    <b-form-group>
+                                        <input
+                                            type="checkbox"
+                                            v-model="data.item.selected"
+                                        />
+                                    </b-form-group>
+                                </template>
+                            </b-table>
+                            <b-pagination
+                                v-model="$parent.currentPage"
+                                :total-rows="$parent.tableData.length"
+                                :per-page="$parent.perPage"
+                                aria-controls="variant-table"
+                            ></b-pagination>
+                        </div>
 
-                    <div style="text-align: center">
-                        <b-button
-                            variant="primary"
-                            @click="$parent.searchCovariances"
-                            >Search Covariances</b-button
+                        <div
+                            style="text-align: center"
+                            v-if="$parent.tableData.length > 0"
                         >
-                    </div>
-                    <div
-                        id="covariances"
-                        v-if="$store.state.ldServer.covariances"
-                    >
-                        <b-table
-                            striped
-                            hover
-                            :items="$store.state.ldServer.covariances.variants"
-                            :per-page="$parent.perPage"
-                            :current-page="$parent.currentPage2"
-                        >
-                        </b-table>
-                        <b-pagination
-                            v-if="$store.state.ldServer.covariances.variants"
-                            v-model="$parent.currentPage2"
-                            :total-rows="
-                                $store.state.ldServer.covariances.variants
-                                    ? $store.state.ldServer.covariances.variants
-                                          .length
-                                    : 0
-                            "
-                            :per-page="$parent.perPage"
-                            aria-controls="covariances-table"
-                        ></b-pagination>
-                    </div>
+                            <b-button
+                                variant="primary"
+                                @click="$parent.searchCovariances"
+                                >Run Analysis</b-button
+                            >
+                        </div>
+                    </b-skeleton-wrapper>
 
-                    <div v-if="$store.state.ldServer.covariances.groups">
-                        <strong>Covariances:</strong>
-                        {{
-                            $store.state.ldServer.covariances.groups[0]
-                                .covariance
-                        }}
-                    </div>
+                    <b-skeleton-wrapper :loading="$parent.loadingCovariances">
+                        <template #loading>
+                            <b-skeleton-table
+                                :rows="3"
+                                :columns="6"
+                                :table-props="{ bordered: true, striped: true }"
+                            ></b-skeleton-table>
+                        </template>
+
+                        <div
+                            id="covariances"
+                            v-if="$store.state.ldServer.covariances"
+                        >
+                            <b-table
+                                striped
+                                hover
+                                :items="
+                                    $store.state.ldServer.covariances.variants
+                                "
+                                :per-page="$parent.perPage"
+                                :current-page="$parent.currentPage2"
+                            >
+                            </b-table>
+                            <b-pagination
+                                v-if="
+                                    $store.state.ldServer.covariances.variants
+                                "
+                                v-model="$parent.currentPage2"
+                                :total-rows="
+                                    $store.state.ldServer.covariances.variants
+                                        ? $store.state.ldServer.covariances
+                                              .variants.length
+                                        : 0
+                                "
+                                :per-page="$parent.perPage"
+                                aria-controls="covariances-table"
+                            ></b-pagination>
+                        </div>
+
+                        <div v-if="$store.state.ldServer.covariances.groups">
+                            <strong>Covariances:</strong>
+                            {{
+                                $store.state.ldServer.covariances.groups[0]
+                                    .covariance
+                            }}
+                        </div>
+                    </b-skeleton-wrapper>
                 </div>
             </div>
         </div>
