@@ -9,6 +9,7 @@ import FilterControl from "@/components/Filter/FilterControl.vue";
 import FilterPValue from "@/components/Filter/FilterPValue.vue";
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue";
+import { isEqual } from "lodash";
 import variantUtils from "@/utils/variantUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 
@@ -112,8 +113,11 @@ new Vue({
     },
     watch: {
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
+            console.log("new", newPhenotypes);
+            console.log("old", oldPhenotypes);
             //check value change first otherwise it gets triggered everytime filter change forced a recompute
-            if (newPhenotypes !== oldPhenotypes) {
+            if (!isEqual(newPhenotypes, oldPhenotypes)) {
+                console.log("running");
                 this.$store.dispatch("onPhenotypeChange", newPhenotypes);
             }
         }
