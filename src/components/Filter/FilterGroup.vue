@@ -11,8 +11,8 @@
                 </EventListener>
             </b-row>
         </b-container>
+        
         <!-- Pills for everything -->
-
         <div v-if="filterList.length > 0" class="filter-pill-collection center">
             {{this.header}}:&nbsp;&nbsp;
             <!-- Derive pills from current filter state?
@@ -101,7 +101,7 @@ export default Vue.component("filter-group", {
     },
     data() {
         return {
-            filterList: [],
+            filterList: this.value !== null && Array.isArray(this.value) ? this.value : [],
 
             // Vue doesn't identify anonymous functions of the same form with one another,
             // so we need are turning these two props into data to prevent infinite loops that result
