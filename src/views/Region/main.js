@@ -116,6 +116,7 @@ new Vue({
 
         // TODO: refactor this away in favor of v-model
         updateAssociationsTable(data) {
+            this.$store.commit(`associations/clearData`);
             this.$store.commit(`associations/setResponse`, data);
         },
 
