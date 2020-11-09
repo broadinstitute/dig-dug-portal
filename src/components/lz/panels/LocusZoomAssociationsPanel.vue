@@ -114,6 +114,14 @@ export class LZAssociationsPanel {
                     label: '-log10(p)',
                 }
             },
+            toolbar: {
+                widgets: [
+                    {
+                        type: "toggle_legend",
+                        position: "right"
+                    }
+                ]
+            },
             data_layers: [
                 // this works
                 LocusZoom.Layouts.merge(

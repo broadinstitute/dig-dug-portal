@@ -32,7 +32,7 @@ import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnno
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
-import { makeSource, makeLayout } from "@/utils/lzUtils";
+import { makeSource, makeLayout, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
 
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
@@ -42,6 +42,8 @@ import { decodeNamespace } from "@/utils/filterHelpers";
 LocusZoom.use(intervalTracks);
 LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
+
+LocusZoom.Widgets.add('toggleloglog', );
 
 export default Vue.component("locuszoom", {
     props: [
@@ -81,8 +83,19 @@ export default Vue.component("locuszoom", {
                 start: this.start,
                 end: this.end,
             },
+            toolbar: {
+                widgets: [
+                    {
+                        type: "download_png",
+                        color: "green",
+                        position: "right"
+                    }
+                ]
+            },
         });
         this.locuszoommounted = true;
+
+        console.log(this.plot);
 
         // event listeners
         let self = this;
@@ -146,6 +159,7 @@ export default Vue.component("locuszoom", {
                 .addBasicLoader();
 
             // TODO: make this more abstract
+                // CAN USE NAMED V-MODEL/BINDINGS in Vue3?
             if (!!this.filter) this.applyFilter(this.filter);
             if (!!this.filterAssociations)
                 this.applyFilter(this.filterAssociations, "associations");
