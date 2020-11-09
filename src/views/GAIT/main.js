@@ -109,5 +109,13 @@ new Vue({
                 this.selectedVariants
             );
         }
+    },
+    watch: {
+        selectedPhenotypes(newPhenotypes, oldPhenotypes) {
+            //check value change first otherwise it gets triggered everytime filter change forced a recompute
+            if (newPhenotypes !== oldPhenotypes) {
+                this.$store.dispatch("onPhenotypeChange", newPhenotypes);
+            }
+        }
     }
 }).$mount("#app");

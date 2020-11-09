@@ -16,8 +16,8 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         ldServer,
-        gene: bioIndex("gene"),
-        genes: bioIndex("gene-finder")
+        gene: bioIndex("gene")
+        //genes: bioIndex("gene-finder")
         //burden: bioIndex("burden")
     },
     state: {
@@ -25,14 +25,18 @@ export default new Vuex.Store({
         searchGene: "slc30a8", //!static for test
         //binID: "bin1_7" //!can move to data prop later
         binID: ["bin1_7"],
-        variants: []
+        variants: [],
+        genes: [] //list of genes for autocomplete select
     },
     mutations: {
         setPhenotype(state, phenotype) {
-            state.phenotype = phenotype;
+            state.phenotypes = phenotype;
         },
         setVariants(state, data) {
             state.variants = data;
+        },
+        setGenes(state, data) {
+            state.genes = data;
         }
     },
     getters: {
@@ -51,19 +55,24 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        onPhenotypeChange(context, phenotype) {
-            context.commit("setPhenotype", phenotype);
-            keyParams.set({ phenotype: phenotype.name });
+        onPhenotypeChange(context, phenotypes) {
+            context.commit("setPhenotype", phenotypes);
+            keyParams.set({ phenotypes: phenotypes.join(",") });
+            context.dispatch("queryGenes", phenotypes);
         },
 
-        queryPhenotype(context) {
-            let query = { q: context.state.phenotype.name };
-            //let assocQuery = { ...query, limit: 1000 };
-            let geneQuery = { ...query, limit: 500 };
+        async queryGenes(context, phenotypes) {
+            //let query = { q: context.state.phenotype.name };
+            //let geneQuery = { ...query, limit: 500 };
 
-            //context.dispatch("associations/query", assocQuery);
-            //context.dispatch("annotations/query", query);
-            context.dispatch("genes/query", geneQuery);
+            let queries = phenotypes.map(phenotype =>
+                query("gene-finder", phenotype)
+            );
+            let data = await Promise.all(queries)
+                .then(results => results.flatMap(data => data))
+                .then(data => uniqBy(data, "gene"));
+            //context.dispatch("genes/query", geneQuery);
+            context.commit("setGenes", data);
         },
 
         async queryBurden(context, { gene, binID }) {

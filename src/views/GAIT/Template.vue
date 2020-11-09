@@ -49,7 +49,7 @@
                             :field="'gene'"
                             :color="'orange'"
                             :options="
-                                $store.state.genes.data.map((gene) => gene.gene)
+                                $store.state.genes.map((gene) => gene.gene)
                             "
                         >
                             <div class="label">Gene</div>
