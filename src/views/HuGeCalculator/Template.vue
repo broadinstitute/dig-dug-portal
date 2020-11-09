@@ -450,7 +450,7 @@
                                         Genetic Evidence
                                         <span class="codingEvidence1C">
                                             {{
-                                            $parent.eglData.genetic
+                                            $parent.stage2Category.genetic
                                             }}
                                         </span>
                                     </li>
