@@ -83,7 +83,6 @@ export default Vue.component("lz-annotation-intervals-panel", {
     },
 });
 
-
 export class LZAnnotationIntervalsPanel {
     constructor(annotation, method, finishHandler, resolveHandler, errHandler, initialData, scoring) {
 
@@ -98,47 +97,37 @@ export class LZAnnotationIntervalsPanel {
 
         this.index = 'annotated-regions';
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
-
-
         this.translator = function (intervals) {
             const tissues = intervals.map(interval => interval.tissue);
             const colorScheme = scaleOrdinal().domain(tissues).range(schemeSet1);
 
-            const tissueIntervals = !!intervals ?
-                intervals
-                    .map((interval) => {
-                        const { r, g, b } = rgb(colorScheme(interval.tissue));
-                        let t = interval.tissueId || "NA";
-                        let m = interval.method || "NA";
-                        let key = `${t}_${m}_${interval.annotation}`;
+            const tissueIntervals = !!intervals ? intervals
+                .map((interval) => {
+                    const { r, g, b } = rgb(colorScheme(interval.tissue));
 
-                        return !!scoring[key] ? {
-                            name: interval.tissue || interval.tissueId,
-                            // some data (not displayed by default)
-                            // region information
-                            chr: interval.chromosome,
-                            start: interval.start,
-                            end: interval.end,
-                            pValue: scoring[key].minP,
-                            fold: scoring[key].maxFold,
-                            state_id: `${interval.tissueId}`,
-                            // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
-                            state_name: `${interval.tissue}`,
-                            // a string-encoded list of RGB coords, e.g. '255,0,128'
-                            itemRgb: [r, g, b].join(),
-                        } : null;
-
-                        // filter nulls (which represent elements we can't score)
-                })
-            : [];
-
+                    let t = interval.tissueId || "NA";
+                    let m = interval.method || "NA";
+                    let key = `${t}_${m}_${interval.annotation}`;
+                    return !!scoring[key] ? {
+                        name: interval.tissue || interval.tissueId,
+                        // some data (not displayed by default)
+                        // region information
+                        chr: interval.chromosome,
+                        start: interval.start,
+                        end: interval.end,
+                        pValue: scoring[key].minP,
+                        fold: scoring[key].maxFold,
+                        state_id: `${interval.tissueId}`,
+                        // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
+                        state_name: `${interval.tissue}`,
+                        // a string-encoded list of RGB coords, e.g. '255,0,128'
+                        itemRgb: [r, g, b].join(),
+                    } : null;
+                    // filter nulls (which represent elements we can't score)
+                }).filter(el => !!el) : [];
+                
             return tissueIntervals;
         }
-
-
-
-
-
         this.initialData = initialData;
 
         // LocusZoom Layout configuration options

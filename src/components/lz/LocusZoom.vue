@@ -160,11 +160,14 @@ export default Vue.component("locuszoom", {
 
             // TODO: make this more abstract
                 // CAN USE NAMED V-MODEL/BINDINGS in Vue3?
+            // This is optimized to only run filters that are actually associated with the layout being added
+            // applyState runs on the end so we don't refresh this multiple times on accident.
             if (!!this.filter) this.applyFilter(this.filter);
-            if (!!this.filterAssociations)
+            if (!!this.filterAssociations && layout.panelLayoutType === "association")
                 this.applyFilter(this.filterAssociations, "associations");
-            if (!!this.filterAnnotations)
+            if (!!this.filterAnnotations && layout.panelLayoutType === "intervals")
                 this.applyFilter(this.filterAnnotations, "intervals");
+            this.plot.applyState();
 
             // so we can figure out how to remove it later
             return layout.id;
@@ -300,9 +303,7 @@ export default Vue.component("locuszoom", {
                 });
             });
 
-            // refresh the plot in place
-            // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
-            this.plot.applyState();
+
         },
         toggleLogLog: function () {
             let data_layers = this.getDataLayers();
@@ -358,12 +359,21 @@ export default Vue.component("locuszoom", {
         },
         filter(filter) {
             this.applyFilter(filter);
+            // refresh the plot in place
+            // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
+            this.plot.applyState();
         },
         filterAssociations(associationsFilter) {
             this.applyFilter(associationsFilter, "association");
+            // refresh the plot in place
+            // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
+            this.plot.applyState();
         },
         filterAnnotations(annotationsFilter) {
             this.applyFilter(annotationsFilter, "intervals");
+            // refresh the plot in place
+            // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
+            this.plot.applyState();
         },
     },
 });
