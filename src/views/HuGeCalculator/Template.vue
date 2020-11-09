@@ -450,8 +450,7 @@
                                         Genetic Evidence
                                         <span class="codingEvidence1C">
                                             {{
-                                            $store.state.effectorGeneData
-                                            .genetic
+                                            $parent.eglData.genetic
                                             }}
                                         </span>
                                     </li>

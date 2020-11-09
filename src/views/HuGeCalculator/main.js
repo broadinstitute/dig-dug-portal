@@ -249,8 +249,7 @@ new Vue({
                 for (var i = 0; i < effectordata.length; ++i) {
                     if (effectordata[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
                         effectorGeneData = effectordata[i];
-                        let p = effectorGeneData.perturbational.split("")[0] - 1;
-                        effectorGeneData.perturbational = p.toString() + "P";
+
                         if (effectorGeneData.category == "(T2D_related)") {
                             effectorGeneData.category = "No"
                         }
