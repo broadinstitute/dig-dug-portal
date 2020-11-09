@@ -45,15 +45,19 @@
                         >
                             <div class="label">Phenotypes</div>
                         </filter-enumeration-control>
+
                         <filter-enumeration-control
-                            :field="'gene'"
-                            :color="'orange'"
-                            :options="
-                                $store.state.genes.map((gene) => gene.gene)
+                            :field="'dataset'"
+                            :options="$parent.datasets.map((v) => v.value)"
+                            :labelFormatter="
+                                (v) =>
+                                    $parent.datasets.find((o) => o.value === v)
+                                        .text
                             "
+                            ><div class="label">
+                                Dataset
+                            </div></filter-enumeration-control
                         >
-                            <div class="label">Gene</div>
-                        </filter-enumeration-control>
 
                         <filter-enumeration-control
                             :field="'mask'"
@@ -70,19 +74,14 @@
                         >
 
                         <filter-enumeration-control
-                            :field="'dataset'"
-                            :options="$parent.datasets.map((v) => v.value)"
-                            :labelFormatter="
-                                (v) =>
-                                    $parent.datasets.find((o) => o.value === v)
-                                        .text
+                            :field="'gene'"
+                            :color="'orange'"
+                            :options="
+                                $store.state.genes.map((gene) => gene.gene)
                             "
-                            ><div class="label">
-                                Dataset
-                            </div></filter-enumeration-control
                         >
-                        <template slot="filtered" slot-scope="{ filter }">
-                        </template>
+                            <div class="label">Gene</div>
+                        </filter-enumeration-control>
                     </filter-list-group>
 
                     <a
