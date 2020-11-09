@@ -241,12 +241,14 @@ new Vue({
         },
 
         eglData() {
-            let effectordata = this.$store.state.kp4cd.eglData;
-            if (effectordata.data.length > 0) {
+            let geneSymbol = this.$store.state.geneName;
+            if (!!this.$store.state.kp4cd.eglData.data) {
+                let effectordata = this.$store.state.kp4cd.eglData.data;
                 let effectorGeneData = {}
-                for (var i = 0; i < effectordata.data.length; ++i) {
-                    if (effectordata.data[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
-                        effectorGeneData = effectordata.data[i];
+
+                for (var i = 0; i < effectordata.length; ++i) {
+                    if (effectordata[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
+                        effectorGeneData = effectordata[i];
                         let p = effectorGeneData.perturbational.split("")[0] - 1;
                         effectorGeneData.perturbational = p.toString() + "P";
                         if (effectorGeneData.category == "(T2D_related)") {
@@ -256,10 +258,6 @@ new Vue({
                     }
                 }
                 return effectorGeneData;
-            } else {
-                throw new Error(
-                    "No content returned for given gene "
-                );
             }
         }
         ,

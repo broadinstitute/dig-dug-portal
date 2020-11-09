@@ -79,6 +79,7 @@ export default new Vuex.Store({
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
             let phenotype = this.state.phenotype.name;
+            let dataset = "mccarthy"
             context.commit('setGeneName', name);
             let query = {
                 q: `${phenotype},${name}`
@@ -86,7 +87,8 @@ export default new Vuex.Store({
 
             if (!!name) {
                 context.dispatch('gene/query', { q: name });
-                context.dispatch("kp4cd/getEglData", { dataset, phenotype });
+                let trait = phenotype.toLowerCase(); //for egldata
+                context.dispatch("kp4cd/getEglData", { dataset, trait });
                 context.dispatch('associations/query', query);
                 context.dispatch('geneAssociations52k/query', { q: name });
 

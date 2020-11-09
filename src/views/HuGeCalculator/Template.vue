@@ -251,59 +251,39 @@
                             </h5>
                             <ul>
                                 <!-- genetic -->
-                                <li v-if="$store.state.effectorGeneData.genetic">
+                                <li v-if="$parent.eglData">
                                     Genetic Evidence:
                                     <span
-                                        v-if="
-                                            $store.state.effectorGeneData
-                                                .genetic == '1C'
-                                        "
+                                        v-if="$parent.eglData.genetic == '1C'"
                                         class="codingEvidence1C"
-                                    >
-                                        {{
-                                        $store.state.effectorGeneData
-                                        .genetic
-                                        }}
-                                    </span>
+                                    >{{$parent.eglData.genetic}}</span>
                                     <span
-                                        v-else-if="
-                                            $store.state.effectorGeneData
-                                                .genetic == '2C'
+                                        v-else-if="$parent.eglData.genetic == '2C'
                                         "
                                         class="codingEvidence2C"
-                                    >
-                                        {{
-                                        $store.state.effectorGeneData
-                                        .genetic
-                                        }}
-                                    </span>
+                                    >{{$parent.eglData.genetic}}</span>
                                 </li>
-
                                 <!-- genomic -->
-                                <li v-if="$store.state.effectorGeneData.genomic">
+                                <li v-if="$parent.eglData.genomic">
                                     Regulatory Evidence:
                                     <span
                                         v-if="
-                                            $store.state.effectorGeneData
-                                                .genomic == '2R'
+                                            $parent.eglData.genomic == '2R'
                                         "
                                         class="regulatoryEvidence2R"
                                     >
                                         {{
-                                        $store.state.effectorGeneData
-                                        .genomic
+                                        $parent.eglData.genomic
                                         }}
                                     </span>
                                     <span
                                         v-if="
-                                            $store.state.effectorGeneData
-                                                .genomic == '3R'
+                                            $parent.eglData.genomic == '3R'
                                         "
                                         class="regulatoryEvidence3R"
                                     >
                                         {{
-                                        $store.state.effectorGeneData
-                                        .genomic
+                                        $parent.eglData.genomic
                                         }}
                                     </span>
                                 </li>
@@ -311,53 +291,46 @@
                                 <!-- perturbational -->
                                 <li
                                     v-if="
-                                        $store.state.effectorGeneData
-                                            .perturbational
+                                        $parent.eglData.perturbational
                                     "
                                 >
                                     Perturbational Evidence:
                                     <span
                                         v-if="
-                                            $store.state.effectorGeneData
-                                                .perturbational == '1P'
+                                           $parent.eglData.perturbational == '1P'
                                         "
                                         class="perturbationalEvidence1P"
                                     >
                                         {{
-                                        $store.state.effectorGeneData
-                                        .perturbational
+                                        $parent.eglData.perturbational
                                         }}
                                     </span>
                                     <span
                                         v-if="
-                                            $store.state.effectorGeneData
-                                                .perturbational == '2P'
+                                            $parent.eglData.perturbational == '2P'
                                         "
                                         class="perturbationalEvidence2P"
                                     >
                                         {{
-                                        $store.state.effectorGeneData
-                                        .perturbational
+                                        $parent.eglData.perturbational
                                         }}
                                     </span>
                                     <span
                                         v-if="
-                                            $store.state.effectorGeneData
-                                                .perturbational == '3P'
+                                            $parent.eglData.perturbational == '3P'
                                         "
                                         class="perturbationalEvidence3P"
                                     >
                                         {{
-                                        $store.state.effectorGeneData
-                                        .perturbational
+                                        $parent.eglData.perturbational
                                         }}
                                     </span>
                                 </li>
                             </ul>
                             <!-- Common variation color bar plot -->
-                            <div style="width: 600px" v-if="$store.state.effectorGeneData">
+                            <div style="width: 600px" v-if="$parent.eglData">
                                 <br />
-                                <color-bar-plot :category="$store.state.effectorGeneData.category"></color-bar-plot>
+                                <color-bar-plot :category="$parent.eglData.category"></color-bar-plot>
                             </div>
                             <hr style="margin: 40px" />
                             <!-- End of common variation evidence -->
