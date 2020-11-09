@@ -352,7 +352,7 @@ new Vue({
             return categorymap;
         },
         commonVariationCategoryAndScore() {
-            let category = this.$store.state.effectorGeneData.category;
+            let category = this.eglData.category;
             let categoryScore = this.calculateCategoryScore(category);
             return { "category": category, "categoryScore": categoryScore };
         },

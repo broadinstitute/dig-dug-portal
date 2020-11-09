@@ -449,17 +449,13 @@
                                     <li>
                                         Genetic Evidence
                                         <span class="codingEvidence1C">
-                                            {{
-                                            $parent.stage2Category.genetic
-                                            }}
+                                            {{$parent.stage2Category.genetic}}
                                         </span>
                                     </li>
                                     <li>
                                         <span>
                                             <strong>
-                                                {{
-                                                $parent.stage2Category.evidence
-                                                }}
+                                                {{$parent.stage2Category.evidence }}
                                             </strong>
                                         </span>
                                     </li>
