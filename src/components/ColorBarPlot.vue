@@ -7,6 +7,7 @@
             <div v-if="this.category == 'MODERATE'" class="arrow-up moderateclass"></div>
             <div v-if="this.category == 'POSSIBLE'" class="arrow-up possibleclass"></div>
             <div v-if="this.category == 'WEAK'" class="arrow-up weakclass"></div>
+            <div v-if="this.category == 'in GWAS'" class="arrow-up inGWASclass"></div>
             <div v-if="this.category == 'No'" class="arrow-up noEvidenceclass"></div>
             <div>
                 <div class="container">
@@ -25,6 +26,10 @@
                         </div>
                         <div class="col-sm combinedVariationWeak">
                             <strong>Weak</strong>
+                        </div>
+
+                        <div class="col- combinedVariationInGWAS">
+                            <strong>In GWAS</strong>
                         </div>
 
                         <div class="col- combinedVariationNoEvidence">

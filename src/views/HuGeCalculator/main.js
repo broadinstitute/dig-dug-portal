@@ -255,6 +255,9 @@ new Vue({
                         }
                         break;
                     }
+                    else {
+                        effectorGeneData["category"] = "in GWAS"
+                    }
                 }
                 return effectorGeneData;
             }
@@ -352,9 +355,13 @@ new Vue({
             return categorymap;
         },
         commonVariationCategoryAndScore() {
-            let category = this.eglData.category;
-            let categoryScore = this.calculateCategoryScore(category);
-            return { "category": category, "categoryScore": categoryScore };
+            if (!!this.eglData) {
+                let category = this.eglData.category;
+                let categoryScore = this.calculateCategoryScore(category);
+                return { "category": category, "categoryScore": categoryScore };
+            }
+
+
         },
 
         finalCategory() {
@@ -427,7 +434,6 @@ new Vue({
         // the canonical symbol was found
         symbolName(symbol) {
             this.$store.dispatch("query52kGeneAssociations", symbol);
-
         }
 
     }

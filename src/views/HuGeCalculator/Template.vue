@@ -251,7 +251,7 @@
                             </h5>
                             <ul>
                                 <!-- genetic -->
-                                <li v-if="$parent.eglData">
+                                <li v-if="$parent.eglData.category !='in GWAS'">
                                     Genetic Evidence:
                                     <span
                                         v-if="$parent.eglData.genetic == '1C'"
@@ -448,15 +448,13 @@
                                 <ul>
                                     <li>
                                         Genetic Evidence
-                                        <span class="codingEvidence1C">
-                                            {{$parent.stage2Category.genetic}}
-                                        </span>
+                                        <span
+                                            class="codingEvidence1C"
+                                        >{{$parent.stage2Category.genetic}}</span>
                                     </li>
                                     <li>
                                         <span>
-                                            <strong>
-                                                {{$parent.stage2Category.evidence }}
-                                            </strong>
+                                            <strong>{{$parent.stage2Category.evidence }}</strong>
                                         </span>
                                     </li>
                                 </ul>
@@ -857,6 +855,10 @@ export default Vue.component("test", {
     background-color: #abebc6;
 }
 .combinedVariationNoEvidence {
+    background-color: #f8fdfa;
+}
+
+.combinedVariationInGWAS {
     background-color: #d5f5e3;
 }
 
@@ -883,6 +885,10 @@ export default Vue.component("test", {
 .noEvidenceclass {
     position: absolute;
     left: 560px;
+}
+.inGWASclass {
+    position: absolute;
+    left: 500px;
 }
 .codingEvidence1C {
     background-color: #ffd62e;
