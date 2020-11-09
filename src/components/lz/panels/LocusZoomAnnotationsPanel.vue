@@ -108,7 +108,7 @@ export class LZAnnotationIntervalsPanel {
                     let t = interval.tissueId || "NA";
                     let m = interval.method || "NA";
                     let key = `${t}_${m}_${interval.annotation}`;
-                    return !!scoring[key] ? {
+                    return (t || m !== "NA") && !!scoring[key] ? {
                         name: interval.tissue || interval.tissueId,
                         // some data (not displayed by default)
                         // region information
@@ -123,9 +123,10 @@ export class LZAnnotationIntervalsPanel {
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
                         itemRgb: [r, g, b].join(),
                     } : null;
+
                     // filter nulls (which represent elements we can't score)
                 }).filter(el => !!el) : [];
-                
+
             return tissueIntervals;
         }
         this.initialData = initialData;
