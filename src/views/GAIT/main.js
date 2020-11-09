@@ -9,9 +9,9 @@ import FilterControl from "@/components/Filter/FilterControl.vue";
 import FilterPValue from "@/components/Filter/FilterPValue.vue";
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue";
-import { isEqual } from "lodash";
 import variantUtils from "@/utils/variantUtils";
 import { pageMixin } from "@/mixins/pageMixin";
+import { isEqual } from "lodash";
 
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
@@ -33,13 +33,13 @@ new Vue({
     data() {
         return {
             masks: [
-                { text: "LoF_HC", value: "bin1_7" },
-                { text: "15of15 ", value: "bin2_7" },
-                { text: "11of11 ", value: "bin3_7" },
-                { text: "5of5", value: "bin4_7" },
-                { text: "5of5_LoF_LC_1pct", value: "bin5_7" },
-                { text: "1of5_1pct", value: "bin6_7" },
-                { text: "0of5_1pct", value: "bin7_7" }
+                { text: "LofTee", value: "LoF_HC" },
+                { text: "16/16", value: "16of16" },
+                { text: "11/11 ", value: "11of11" },
+                { text: "5/5", value: "5of5" },
+                { text: "5/5 + LofTee LC", value: "5of5_LoF_LC" },
+                { text: "5/5 + 1/5 1%", value: "1of5_1pct" },
+                { text: "5/5 + 0/5 1%", value: "0of5_1pct" }
             ],
             datasets: [
                 { text: "52K", value: "52K" },
@@ -113,11 +113,8 @@ new Vue({
     },
     watch: {
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
-            console.log("new", newPhenotypes);
-            console.log("old", oldPhenotypes);
             //check value change first otherwise it gets triggered everytime filter change forced a recompute
             if (!isEqual(newPhenotypes, oldPhenotypes)) {
-                console.log("running");
                 this.$store.dispatch("onPhenotypeChange", newPhenotypes);
             }
         }
