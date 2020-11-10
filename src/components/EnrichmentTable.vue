@@ -5,7 +5,7 @@
                 hover
                 small
                 responsive="sm"
-                :items="groupedAnnotations"
+                :items="tableData"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
@@ -122,7 +122,7 @@ export default Vue.component("enrichment-table", {
         groupedAnnotations() {
             let data = [];
             let groups = {};
-            let annotations = this.tableData
+            let annotations = this.annotations
             // get all the data from all phenotypes
             for (let i in annotations) {
                 let r = annotations[i];
@@ -191,10 +191,13 @@ export default Vue.component("enrichment-table", {
             return data;
         },
         tableData() {
-            let dataRows = this.annotations;
+            let dataRows = this.groupedAnnotations;
             let filter = this.filter;  // TODO: can we detect if not id=>true
             if (!!filter) {
-                dataRows = dataRows.filter(filter);
+                dataRows = dataRows.filter(row => {
+                    const regularizedRow = decodeNamespace(row, { prefix: `${row.phenotype}_` });
+                    return filter(regularizedRow)
+                });
             }
             return dataRows;
         },
