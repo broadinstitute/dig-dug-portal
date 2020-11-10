@@ -75,7 +75,6 @@ export default new Vuex.Store({
 
     actions: {
 
-
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
             let phenotype = this.state.phenotype.name;

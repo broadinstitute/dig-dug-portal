@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div style="width: 600px">
+        <div style="width: 700px">
             <br />
             <div v-if="this.category == 'CAUSAL' " class="arrow-up causalclass"></div>
             <div v-if="this.category == 'STRONG'" class="arrow-up strongclass"></div>
@@ -28,7 +28,7 @@
                             <strong>Weak</strong>
                         </div>
 
-                        <div class="col- combinedVariationInGWAS">
+                        <div class="col-sm combinedVariationInGWAS">
                             <strong>In GWAS</strong>
                         </div>
 

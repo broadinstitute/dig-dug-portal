@@ -882,14 +882,15 @@ export default Vue.component("test", {
     position: absolute;
     left: 460px;
 }
-.noEvidenceclass {
-    position: absolute;
-    left: 560px;
-}
 .inGWASclass {
     position: absolute;
-    left: 500px;
+    left: 550px;
 }
+.noEvidenceclass {
+    position: absolute;
+    left: 640px;
+}
+
 .codingEvidence1C {
     background-color: #ffd62e;
     padding: 5px;

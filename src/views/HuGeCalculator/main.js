@@ -261,8 +261,62 @@ new Vue({
                 }
                 return effectorGeneData;
             }
-        }
-        ,
+        },
+
+        //if GWAS Significant? -> yes -> Mccarthy list in T2D -> get the eglData (get the evidence and category)  ->Mccarthy list as T2D_unrelated -> "in GWAS"
+        // if not GWAS Significant -> category -> No Evidence: 
+        //now calculate the ABF based on this.         
+        commonVariationABF() {
+            let commonVariationABF = 1;
+            if (this.isSignificantAssociationCommonVariation) {
+                let abf1 = 1;
+                let abf2 = 1;
+                let abf3 = 1;
+                if (this.eglData.genetic == "1C") {
+                    abf1 = 500;
+                }
+                if (this.eglData.genetic == "2C" || this.eglData.regulatory == "2R") {
+                    abf2 = 5;
+                }
+                if (this.eglData.perturbational == "3P" || this.eglData.regulatory == "3R") {
+                    abf3 = 2.2
+                }
+                commonVariationABF = abf1 * abf2 * abf3
+            }
+            return commonVariationABF;
+
+
+            // if (!!this.eglData) {
+            //     let category = this.eglData.category;
+            //     let categoryScore = this.calculateCategoryScore(category);
+            //     return { "category": category, "categoryScore": categoryScore };
+            // }
+
+
+        },
+        commonVariationCategory() {
+            if (this.commonVariationABF < 3.3) {
+                return category = "No"
+            }
+            if (this.commonVariationABF < 7.26) {
+                return category = "in GWAS"
+            }
+            if (this.commonVariationABF < 16.5) {
+                return category = "Weak"
+            }
+            if (this.commonVariationABF < 36.3) {
+                return category = "Possible"
+            }
+            if (this.commonVariationABF < 82.5) {
+                return category = "Moderate"
+            }
+            if (this.commonVariationABF < 1650) {
+                return category = "Strong"
+            }
+            if (this.commonVariationABF > 1650) {
+                return category = "Causal"
+            }
+        },
 
         //when the gene has significant association  (if exome wide significant)
         //(Rare Variation), that means there is Strong coding evidence
@@ -354,15 +408,7 @@ new Vue({
 
             return categorymap;
         },
-        commonVariationCategoryAndScore() {
-            if (!!this.eglData) {
-                let category = this.eglData.category;
-                let categoryScore = this.calculateCategoryScore(category);
-                return { "category": category, "categoryScore": categoryScore };
-            }
 
-
-        },
 
         finalCategory() {
             let finalCategory = "";
