@@ -146,9 +146,8 @@
                             <b-table
                                 striped
                                 hover
+                                sticky-header="600px"
                                 :items="$parent.tableData"
-                                :per-page="$parent.perPage"
-                                :current-page="$parent.currentPage"
                             >
                                 <template #cell(selected)="data">
                                     <b-form-group>
@@ -159,12 +158,6 @@
                                     </b-form-group>
                                 </template>
                             </b-table>
-                            <b-pagination
-                                v-model="$parent.currentPage"
-                                :total-rows="$parent.tableData.length"
-                                :per-page="$parent.perPage"
-                                aria-controls="variant-table"
-                            ></b-pagination>
                         </div>
 
                         <div
