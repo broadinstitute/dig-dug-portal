@@ -52,7 +52,36 @@ new Vue({
             perPage: 10,
             currentPage: 1,
             currentPage2: 1,
-            geneFinderSearchCriterion: []
+            searchCriteria: [],
+            baseFields: [
+                {
+                    key: "selected",
+                    label: "Selected",
+                    visible: true,
+                    stickyColumn: true
+                },
+                {
+                    key: "varId",
+                    label: "Variant ID",
+                    visible: true
+                },
+                {
+                    key: "burdenBinId",
+                    label: "Mask",
+                    visible: true
+                },
+                {
+                    key: "impact",
+                    label: "Impact",
+                    visible: true
+                },
+                {
+                    key: "maf",
+                    label: "Minor Allele Frequency",
+                    visible: true
+                }
+            ],
+            hiddenFields: ["gene", "pick", "transcript_id"]
         };
     },
     created() {
@@ -62,6 +91,24 @@ new Vue({
         this.$store.dispatch("ldServer/getPhenotypes");
     },
     computed: {
+        fields() {
+            let fields = this.baseFields;
+            Object.keys(this.tableData[0]).forEach(k => {
+                if (
+                    this.baseFields.indexOf(k) < 0 &&
+                    this.hiddenFields.indexOf(k) < 0
+                ) {
+                    fields = fields.concat([
+                        {
+                            key: k,
+                            visible: false
+                        }
+                    ]);
+                }
+            });
+
+            return fields;
+        },
         tableData() {
             return this.$store.state.variants.map(v => ({
                 selected: true, //add selected column for manual selection
@@ -75,21 +122,21 @@ new Vue({
                 .map(v => variantUtils.gaitVariant(v.varId));
         },
         selectedPhenotypes() {
-            return this.geneFinderSearchCriterion
+            return this.searchCriteria
                 .filter(v => {
                     return v.field === "phenotype";
                 })
                 .map(v => v.threshold);
         },
         selectedGene() {
-            return this.geneFinderSearchCriterion
+            return this.searchCriteria
                 .filter(v => {
                     return v.field === "gene";
                 })
                 .map(v => v.threshold);
         },
         selectedMasks() {
-            return this.geneFinderSearchCriterion
+            return this.searchCriteria
                 .filter(v => {
                     return v.field === "mask";
                 })

@@ -20,7 +20,7 @@
                     <h4 class="card-title">Build Search Criteria</h4>
 
                     <filter-list-group
-                        v-model="$parent.geneFinderSearchCriterion"
+                        v-model="$parent.searchCriteria"
                         :looseMatch="true"
                         :header="'Search Criteria'"
                     >
@@ -148,6 +148,7 @@
                                 hover
                                 sticky-header="600px"
                                 :items="$parent.tableData"
+                                :fields="$parent.fields"
                             >
                                 <template #cell(selected)="data">
                                     <b-form-group>
@@ -156,6 +157,19 @@
                                             v-model="data.item.selected"
                                         />
                                     </b-form-group>
+                                </template>
+                                <template #cell(burdenBinId)="data">
+                                    {{
+                                        $parent.masks.find(
+                                            (o) => o.value === data.value
+                                        ).text
+                                    }}
+                                </template>
+                                <template #cell(varId)="data">
+                                    <a
+                                        :href="`/variant.html?variant=${data.value}`"
+                                        >{{ data.value }}</a
+                                    >
                                 </template>
                             </b-table>
                         </div>
