@@ -11,7 +11,7 @@ import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue";
 import variantUtils from "@/utils/variantUtils";
 import { pageMixin } from "@/mixins/pageMixin";
-import { isEqual } from "lodash";
+import { isEqual, startCase } from "lodash";
 
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
@@ -81,7 +81,18 @@ new Vue({
                     visible: true
                 }
             ],
-            hiddenFields: ["gene", "pick", "transcript_id"]
+            hiddenFields: [
+                //custom predefined and hidden fields
+                "selected",
+                "varId",
+                "burdenBinId",
+                "impact",
+                "maf",
+                "gene",
+                "pick",
+                "transcript_id"
+            ],
+            newFields: []
         };
     },
     created() {
@@ -94,20 +105,19 @@ new Vue({
         fields() {
             let fields = this.baseFields;
             Object.keys(this.tableData[0]).forEach(k => {
-                if (
-                    this.baseFields.indexOf(k) < 0 &&
-                    this.hiddenFields.indexOf(k) < 0
-                ) {
-                    fields = fields.concat([
-                        {
-                            key: k,
-                            visible: false
-                        }
-                    ]);
+                if (this.hiddenFields.indexOf(k) < 0) {
+                    fields.push({
+                        key: k,
+                        label: startCase(k),
+                        visible: false
+                    });
                 }
             });
 
             return fields;
+        },
+        visibleFields() {
+            return this.fields.filter(field => !!field.visible);
         },
         tableData() {
             return this.$store.state.variants.map(v => ({

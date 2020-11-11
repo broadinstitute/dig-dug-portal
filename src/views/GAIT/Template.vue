@@ -143,12 +143,32 @@
                             class="variants"
                             v-if="$parent.tableData.length > 0"
                         >
+                            <strong>View optional columns </strong>
+                            <template v-for="field in $parent.fields">
+                                <b-checkbox
+                                    v-if="
+                                        $parent.hiddenFields.indexOf(
+                                            field.key
+                                        ) < 0
+                                    "
+                                    :disabled="
+                                        $parent.visibleFields.length == 1 &&
+                                        field.visible
+                                    "
+                                    :key="field.key"
+                                    v-model="field.visible"
+                                    inline
+                                >
+                                    {{ field.label }}
+                                </b-checkbox>
+                            </template>
+
                             <b-table
                                 striped
                                 hover
                                 sticky-header="600px"
                                 :items="$parent.tableData"
-                                :fields="$parent.fields"
+                                :fields="$parent.visibleFields"
                             >
                                 <template #cell(selected)="data">
                                     <b-form-group>
