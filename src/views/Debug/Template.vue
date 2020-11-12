@@ -2,7 +2,7 @@
     <!-- Header -->
     <div>
         <filter-list-group
-            v-model="$parent.geneFinderSearchCriterion"
+            v-model="$parent.searchCriterionList"
             :looseMatch="true"
             :header="'Search Criterion'"
         >
