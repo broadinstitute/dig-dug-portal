@@ -47,10 +47,6 @@ new Vue({
                 {
                     field: 'phenotype',
                     threshold: 'T2D',
-                    pill: {
-                        label: () => "hello",
-                    },
-
                 }
             ],
         };

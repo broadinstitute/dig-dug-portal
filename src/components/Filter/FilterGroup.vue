@@ -21,15 +21,13 @@
             -->
             <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
             <b-badge
-                :class="`filter-pill-${filter.field}`"
-                :style="{ 'background-color': `${ !!filter.pill.color ? `${filter.pill.color} !important` : '' }` }"
+                pill
                 v-for="(filter, idx) in filterList"
                 :key="filter.field + filter.predicate + filter.threshold + idx"
-                pill
-                @click="unsetFilter(filter, idx)"
-                class="btn"
-            >
-                {{ filter.pill.label(filter) }}
+                :class="`btn filter-pill-${filter.field}`"
+                :style="{ 'background-color': `${ !!filter.pill && !!filter.pill.color ? `${filter.pill.color} !important` : '' }` }"
+                @click="unsetFilter(filter, idx)">
+                {{ !!filter.pill && !!filter.pill.label ? filter.pill.label(filter) : `${filter.field} = ${filter.threshold}` }}
                 <span class="remove">X</span>
             </b-badge>
         </div>

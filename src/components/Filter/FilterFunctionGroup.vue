@@ -9,10 +9,10 @@
 </template>
 <script>
 import Vue from "vue"
-import FilterControl from "./FilterControl.vue"
+import FilterGroup from "./FilterGroup.vue"
 export default Vue.component('filter-list-group', {
     props: ['value', 'looseMatch', 'header'],
-    components:{ FilterControl },
+    components:{ FilterGroup },
     methods: {
         emitInput(value) {
             this.$emit('input', value)

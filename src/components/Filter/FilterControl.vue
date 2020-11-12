@@ -45,7 +45,10 @@ export default Vue.component("filter-control", {
         color: {
             type: String,
         },
-        pillFormatter: Function,
+        pillFormatter: {
+            type: Function,
+            default: filterDefinition => `${filterDefinition.field} = ${filterDefinition.threshold}`
+        },
         labelFormatter: {
             type: Function,
             default: id => id,

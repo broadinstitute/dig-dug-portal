@@ -21,9 +21,10 @@ export default Vue.component('filter-list-group', {
                     if (predicateSpecs.length > 0) {
                         return predicateSpecs.every(predicateSpec => {
                             return typeof predicateSpec.field !== 'undefined' &&
-                                    typeof predicateSpec.threshold !== 'undefined' &&
-                                    typeof predicateSpec.pill !== 'undefined' &&
-                                    typeof predicateSpec.pill.label !== 'undefined';
+                                    typeof predicateSpec.threshold !== 'undefined'
+                                    // &&
+                                    // typeof predicateSpec.pill !== 'undefined' &&
+                                    // typeof predicateSpec.pill.label !== 'undefined';
                         });
                     } else {
                         return true;
