@@ -4,27 +4,14 @@
         <filter-list-group
             v-model="$parent.searchCriterionList"
             :looseMatch="true"
-            :header="'Search Criterion'"
-        >
+            :header="'Search Criterion'">
             <!-- Phenotype Selector -->
             <filter-enumeration-control
                 class="filter-col-lg"
                 :field="'phenotype'"
-                :options="
-                    []
-                "
-                :multiple="true"
-                :labelFormatter="
-                    (phenotype) =>
-                        !!$store.state.bioPortal.phenotypeMap[
-                            phenotype
-                        ]
-                            ? $store.state.bioPortal.phenotypeMap[
-                                    phenotype
-                                ].description
-                            : phenotype
-                "
-            >
+                :options="['hi', 'hello']"
+                :disableSort="true"
+                :multiple="true">
                 <div>
                     <strong>Select phenotypes</strong>
                 </div>

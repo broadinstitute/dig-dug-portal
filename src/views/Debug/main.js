@@ -1,6 +1,5 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
 
 import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
 import FilterControl from "@/components/Filter/FilterControl.vue"

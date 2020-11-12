@@ -8,7 +8,6 @@
             :serializer="labelFormatter"
             :showOnFocus="true"
             :maxMatches="1000"
-            :disableSort="disableSort"
             @hit="onAutoCompleteItemSelected($event)"
             @keyup.enter="onUserEnterNonAutoCompleteItem"
         >
@@ -47,9 +46,6 @@ export default Vue.component("autocomplete", {
         labelFormatter: {
             type: Function,
             default: (id) => id,
-        },
-        disableSort: {
-            default: false,
         },
     },
     data() {
