@@ -7,8 +7,8 @@
             <div v-if="this.category == 'MODERATE'" class="arrow-up moderateclass"></div>
             <div v-if="this.category == 'POSSIBLE'" class="arrow-up possibleclass"></div>
             <div v-if="this.category == 'WEAK'" class="arrow-up weakclass"></div>
-            <div v-if="this.category == 'in GWAS'" class="arrow-up inGWASclass"></div>
-            <div v-if="this.category == 'No'" class="arrow-up noEvidenceclass"></div>
+            <div v-if="this.category == 'IN GWAS'" class="arrow-up inGWASclass"></div>
+            <div v-if="this.category == 'NO'" class="arrow-up noEvidenceclass"></div>
             <div>
                 <div class="container">
                     <div class="row">
