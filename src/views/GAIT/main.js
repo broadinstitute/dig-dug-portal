@@ -92,7 +92,8 @@ new Vue({
                 "pick",
                 "transcript_id"
             ],
-            newFields: []
+            fields: [],
+            optionalFields: []
         };
     },
     created() {
@@ -102,20 +103,6 @@ new Vue({
         this.$store.dispatch("ldServer/getPhenotypes");
     },
     computed: {
-        fields() {
-            let fields = this.baseFields;
-            Object.keys(this.tableData[0]).forEach(k => {
-                if (this.hiddenFields.indexOf(k) < 0) {
-                    fields.push({
-                        key: k,
-                        label: startCase(k),
-                        visible: false
-                    });
-                }
-            });
-
-            return fields;
-        },
         visibleFields() {
             return this.fields.filter(field => !!field.visible);
         },
@@ -170,6 +157,21 @@ new Vue({
                 "ldServer/getCovariances",
                 this.selectedVariants
             );
+        },
+        updateFields() {
+            let addFields = [];
+            Object.keys(this.tableData[0]).forEach(k => {
+                if (this.hiddenFields.indexOf(k) < 0) {
+                    addFields.push({
+                        key: k,
+                        label: startCase(k),
+                        visible: false
+                    });
+                }
+            });
+
+            this.optionalFields = addFields;
+            this.fields = this.baseFields.concat(addFields);
         }
     },
     watch: {
@@ -182,6 +184,7 @@ new Vue({
         "$store.state.variants": function() {
             console.log("change1");
             this.loadingVariants = false;
+            this.updateFields();
         },
         "$store.state.ldServer.covariances": function() {
             console.log("change2");

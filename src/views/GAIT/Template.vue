@@ -144,7 +144,7 @@
                             v-if="$parent.tableData.length > 0"
                         >
                             <strong>View optional columns </strong>
-                            <template v-for="field in $parent.fields">
+                            <template v-for="field in $parent.optionalFields">
                                 <b-checkbox
                                     v-if="
                                         $parent.hiddenFields.indexOf(
