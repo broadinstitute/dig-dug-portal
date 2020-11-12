@@ -50,6 +50,7 @@
                         <filter-enumeration-control
                             ref="dataset"
                             :field="'dataset'"
+                            :color="'#8A2BE2'"
                             :options="$parent.datasets.map((v) => v.value)"
                             :labelFormatter="
                                 (v) =>
@@ -79,7 +80,7 @@
                         <filter-enumeration-control
                             ref="gene"
                             :field="'gene'"
-                            :color="'orange'"
+                            :color="'#FF8C00'"
                             :options="
                                 $store.state.genes.map((gene) => gene.gene)
                             "

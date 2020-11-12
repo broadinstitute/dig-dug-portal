@@ -41,7 +41,7 @@ export default {
                 json.data[0].phenotypeDatasets[0].phenotypes
             );
         },
-        async getCovariances(context, variants) {
+        async getCovariances(context, { variants, phenotype }) {
             //console.log("state", state);
             //let variants = state.variants;
             // let gene = await state.gene.data[0];
@@ -59,20 +59,19 @@ export default {
                 stop: region.end,
                 genotypeDataset: 1,
                 phenotypeDataset: 1,
-                phenotype: "t2d",
+                phenotype: phenotype, //string only, no array
                 samples: "ALL",
                 genomeBuild: "GRCh37",
                 maskDefinitions: [
                     {
-                        id: 10, //integer, required
-                        name: "On-the-fly mask", //required
-                        description:
-                            "Mask created on the fly, potentially by using a browser UI", //required
+                        id: 1, //integer, required
+                        name: "Fetch Data", //required
+                        description: "Default", //required
                         genome_build: "GRCh37",
                         group_type: "GENE",
                         identifier_type: "ENSEMBL",
                         groups: {
-                            CRELD2: variants
+                            VARIANTS: variants
                         }
                     }
                 ]

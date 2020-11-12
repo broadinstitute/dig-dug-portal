@@ -153,10 +153,10 @@ new Vue({
         },
         searchCovariances() {
             this.loadingCovariances = true;
-            this.$store.dispatch(
-                "ldServer/getCovariances",
-                this.selectedVariants
-            );
+            this.$store.dispatch("ldServer/getCovariances", {
+                variants: this.selectedVariants,
+                phenotype: this.selectedPhenotypes[0] //test with one for now
+            });
         },
         updateFields() {
             let addFields = [];
