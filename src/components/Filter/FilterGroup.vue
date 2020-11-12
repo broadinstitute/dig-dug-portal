@@ -11,7 +11,7 @@
                 </EventListener>
             </b-row>
         </b-container>
-        
+
         <!-- Pills for everything -->
         <div v-if="filterList.length > 0" class="filter-pill-collection center">
             {{this.header}}:&nbsp;&nbsp;
@@ -22,6 +22,7 @@
             <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
             <b-badge
                 :class="`filter-pill-${filter.field}`"
+                :style="{ 'background-color': `${ !!filter.pill.color ? `${filter.pill.color} !important` : '' }` }"
                 v-for="(filter, idx) in filterList"
                 :key="filter.field + filter.predicate + filter.threshold + idx"
                 pill
@@ -128,7 +129,7 @@ export default Vue.component("filter-group", {
             // console.log(predicates, this.filterMaker(predicates))
             return this.makeFilter(predicates, !!this.inclusive);
             // return id => true;
-        }
+        },
     },
 
     methods: {

@@ -12,6 +12,7 @@
             v-if="!!options && options.length > 0"
             :matches="options"
             :labelFormatter="labelFormatter"
+            :disableSort="true"
             @item-select="updateFilter($event)"
         ></autocomplete>
         <b-form-input
@@ -43,7 +44,6 @@ export default Vue.component("filter-control", {
         inclusive: Boolean,
         color: {
             type: String,
-            default: '#ffc107',
         },
         pillFormatter: Function,
         labelFormatter: {

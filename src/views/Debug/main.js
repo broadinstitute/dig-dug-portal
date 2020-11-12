@@ -2,7 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
 import FilterControl from "@/components/Filter/FilterControl.vue"
 import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
@@ -25,7 +25,7 @@ new Vue({
     store,
     modules: {},
     components: {
-        FilterGroup,
+        FilterListGroup,
         FilterControl,
         FilterPValue,
         FilterEffectDirection,
@@ -42,7 +42,17 @@ new Vue({
             counter: 0,
             showAssociations: false,
             filters: null,
-            trait: "T2D"
+            trait: "T2D",
+            geneFinderSearchCriterion: [
+                {
+                    field: 'phenotype',
+                    threshold: 'T2D',
+                    pill: {
+                        label: () => "hello",
+                    },
+
+                }
+            ],
         };
     },
 
