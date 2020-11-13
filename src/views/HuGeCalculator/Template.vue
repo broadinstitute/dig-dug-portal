@@ -108,7 +108,7 @@
                             <!-- traffic light -->
                             <div style="width: 600px">
                                 <br />
-                                <div
+                                <!-- <div
                                     v-if="
                                         $parent.rareVariationCategoryAndScore
                                             .categoryScore +
@@ -118,8 +118,8 @@
                                         5
                                     "
                                     class="arrow-up causalclass"
-                                ></div>
-                                <div
+                                ></div>-->
+                                <!-- <div
                                     v-if="
                                         $parent.rareVariationCategoryAndScore
                                             .categoryScore +
@@ -129,8 +129,8 @@
                                         4
                                     "
                                     class="arrow-up strongclass"
-                                ></div>
-                                <div
+                                ></div>-->
+                                <!-- <div
                                     v-if="
                                         $parent.rareVariationCategoryAndScore
                                             .categoryScore +
@@ -140,8 +140,8 @@
                                         3
                                     "
                                     class="arrow-up moderateclass"
-                                ></div>
-                                <div
+                                ></div>-->
+                                <!-- <div
                                     v-if="
                                         $parent.rareVariationCategoryAndScore
                                             .categoryScore +
@@ -151,8 +151,8 @@
                                         2
                                     "
                                     class="arrow-up possibleclass"
-                                ></div>
-                                <div
+                                ></div>-->
+                                <!-- <div
                                     v-if="
                                         $parent.rareVariationCategoryAndScore
                                             .categoryScore +
@@ -162,8 +162,8 @@
                                         1
                                     "
                                     class="arrow-up weakclass"
-                                ></div>
-                                <div
+                                ></div>-->
+                                <!-- <div
                                     v-if="
                                         $parent.rareVariationCategoryAndScore
                                             .categoryScore +
@@ -173,8 +173,8 @@
                                         1
                                     "
                                     class="arrow-up noEvidenceclass"
-                                ></div>
-                                <div
+                                ></div>-->
+                                <!-- <div
                                     v-if="
                                         $parent.rareVariationCategoryAndScore
                                             .categoryScore +
@@ -184,7 +184,7 @@
                                         0
                                     "
                                     class="arrow-up noEvidenceclass"
-                                ></div>
+                                ></div>-->
                                 <div>
                                     <div class="container">
                                         <div class="row">
@@ -330,7 +330,7 @@
                             <!-- Common variation color bar plot -->
                             <div style="width: 600px" v-if="$parent.eglData">
                                 <br />
-                                <color-bar-plot :category="$parent.eglData.category"></color-bar-plot>
+                                <color-bar-plot :category="$parent.commonVariationCategory"></color-bar-plot>
                             </div>
                             <hr style="margin: 40px" />
                             <!-- End of common variation evidence -->
@@ -840,7 +840,7 @@ export default Vue.component("test", {
 }
 
 .combinedVariationCausal {
-    background-color: #28b463;
+    background-color: red;
 }
 .combinedVariationStrong {
     background-color: #2ecc71;

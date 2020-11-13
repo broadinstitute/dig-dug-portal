@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :id="elementid">
         <div style="width: 700px">
             <br />
             <div v-if="this.category == 'CAUSAL' " class="arrow-up causalclass"></div>
@@ -12,27 +12,27 @@
             <div>
                 <div class="container">
                     <div class="row">
-                        <div class="col-sm combinedVariationCausal">
+                        <div class="col-sm variationCausal">
                             <strong>Causal</strong>
                         </div>
-                        <div class="col-sm combinedVariationStrong">
+                        <div class="col-sm variationStrong">
                             <strong>Strong</strong>
                         </div>
-                        <div class="col-sm combinedVariationModerate">
+                        <div class="col-sm variationModerate">
                             <strong>Moderate</strong>
                         </div>
-                        <div class="col-sm combinedVariationPossible">
+                        <div class="col-sm variationPossible">
                             <strong>Possible</strong>
                         </div>
-                        <div class="col-sm combinedVariationWeak">
+                        <div class="col-sm variationWeak">
                             <strong>Weak</strong>
                         </div>
 
-                        <div class="col-sm combinedVariationInGWAS">
+                        <div class="col-sm variationInGWAS">
                             <strong>In GWAS</strong>
                         </div>
 
-                        <div class="col- combinedVariationNoEvidence">
+                        <div class="col- variationNoEvidence">
                             <strong>No Evidence</strong>
                         </div>
                     </div>
@@ -47,7 +47,16 @@
 import Vue from "vue";
 
 export default Vue.component("color-bar-plot", {
-    props: ["category"],
+    props: {
+        category: {
+            type: String,
+            required: true,
+            default: "NO"
+        },
+        elementid: {
+            type: String
+        }
+    },
 
     data() {
         return {};

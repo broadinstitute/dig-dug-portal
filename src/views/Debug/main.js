@@ -334,12 +334,19 @@ new Vue({
             return commonVariationABF;
 
 
-            // if (!!this.eglData) {
-            //     let category = this.eglData.category;
-            //     let categoryScore = this.calculateCategoryScore(category);
-            //     return { "category": category, "categoryScore": categoryScore };
-            // }
+        },
 
+        combinedVariationABF(rareVariationABF, commonVariationABF) {
+            let combinedVariationABF = 1;
+            combinedVariationABF = rareVariationABF * commonVariationABF;
+            return combinedVariationABF;
+        },
+
+        combinedVariationCategory() {
+            let bayes_factor = this.combinedVariationABF
+            let categorymap = {}
+            categorymap = this.determineCategory(bayes_factor);
+            return categorymap;
 
         },
 

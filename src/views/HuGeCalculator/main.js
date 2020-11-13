@@ -295,6 +295,7 @@ new Vue({
 
         },
         commonVariationCategory() {
+            let category = ""
             if (this.commonVariationABF < 3.3) {
                 return category = "No"
             }
@@ -310,7 +311,7 @@ new Vue({
             if (this.commonVariationABF < 82.5) {
                 return category = "Moderate"
             }
-            if (this.commonVariationABF < 1650) {
+            if (this.commonVariationABF <= 1650) {
                 return category = "Strong"
             }
             if (this.commonVariationABF > 1650) {
@@ -410,60 +411,57 @@ new Vue({
         },
 
 
-        finalCategory() {
-            let finalCategory = "";
-            if (
-                this.rareVariationCategoryAndScore.categoryScore +
-                this.commonVariationCategoryAndScore.categoryScore >=
-                5
-            ) {
-                finalCategory = "CAUSAL";
-                return finalCategory;
-            }
-            else if (
-                this.rareVariationCategoryAndScore.categoryScore +
-                this.commonVariationCategoryAndScore.categoryScore ==
-                4
-            ) {
-                finalCategory = "STRONG";
-                return finalCategory;
-            }
-            else if (
-                this.rareVariationCategoryAndScore.categoryScore +
-                this.commonVariationCategoryAndScore.categoryScore ==
-                3
-            ) {
-                finalCategory = "MODERATE";
-                return finalCategory;
-            }
-            else if (
-                this.rareVariationCategoryAndScore.categoryScore +
-                this.commonVariationCategoryAndScore.categoryScore ==
-                2
-            ) {
-                finalCategory = "POSSIBLE";
-                return finalCategory;
-            }
-            else if (
-                this.rareVariationCategoryAndScore.categoryScore +
-                this.commonVariationCategoryAndScore.categoryScore ==
-                1
-            ) {
-                finalCategory = "WEAK";
-                return finalCategory;
-            }
-            else if (
-                this.rareVariationCategoryAndScore.categoryScore +
-                this.commonVariationCategoryAndScore.categoryScore ==
-                0
-            ) {
-                finalCategory = "No";
-                return finalCategory;
-            }
-
-        }
-
-
+        // finalCategory() {
+        //     let finalCategory = "";
+        //     if (
+        //         this.rareVariationCategoryAndScore.categoryScore +
+        //         this.commonVariationCategoryAndScore.categoryScore >=
+        //         5
+        //     ) {
+        //         finalCategory = "CAUSAL";
+        //         return finalCategory;
+        //     }
+        //     else if (
+        //         this.rareVariationCategoryAndScore.categoryScore +
+        //         this.commonVariationCategoryAndScore.categoryScore ==
+        //         4
+        //     ) {
+        //         finalCategory = "STRONG";
+        //         return finalCategory;
+        //     }
+        //     else if (
+        //         this.rareVariationCategoryAndScore.categoryScore +
+        //         this.commonVariationCategoryAndScore.categoryScore ==
+        //         3
+        //     ) {
+        //         finalCategory = "MODERATE";
+        //         return finalCategory;
+        //     }
+        //     else if (
+        //         this.rareVariationCategoryAndScore.categoryScore +
+        //         this.commonVariationCategoryAndScore.categoryScore ==
+        //         2
+        //     ) {
+        //         finalCategory = "POSSIBLE";
+        //         return finalCategory;
+        //     }
+        //     else if (
+        //         this.rareVariationCategoryAndScore.categoryScore +
+        //         this.commonVariationCategoryAndScore.categoryScore ==
+        //         1
+        //     ) {
+        //         finalCategory = "WEAK";
+        //         return finalCategory;
+        //     }
+        //     else if (
+        //         this.rareVariationCategoryAndScore.categoryScore +
+        //         this.commonVariationCategoryAndScore.categoryScore ==
+        //         0
+        //     ) {
+        //         finalCategory = "No";
+        //         return finalCategory;
+        //     }
+        // }
     },
 
 

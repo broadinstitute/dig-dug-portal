@@ -61,7 +61,7 @@
                             <!-- change the input of phenotypes to bioportal.phenotypes when we have data for all the phenotypes -->
                             <phenotype-selectpicker
                                 v-if="$store.state.phenotype"
-                                :phenotypes="$store.state.phenotypes"
+                                :phenotypes="$store.state.bioPortal.phenotypes"
                                 :default-phenotype="$store.state.phenotype.description"
                             ></phenotype-selectpicker>
                         </div>
@@ -175,7 +175,7 @@
                                 <br />
                                 <color-bar-plot
                                     :category="$parent.commonVariationCategory.category.toUpperCase()"
-                                    :elementid="['commonVariation1', 'slide 2', 'slide 3', 'slide 4', 'slide 5']"
+                                    :elementid="'commonVariation'"
                                 ></color-bar-plot>
                             </div>
                             <hr style="margin: 40px" />
@@ -453,68 +453,70 @@ export default Vue.component("test", {
     animation: moveright 1s alternate 1s;
 }
 
-#commonVariation1.commonVariationCausal {
+#commonVariation .variationCausal {
     background-color: #884ea0;
 }
-#commonVariation2.commonVariationStrong {
+#commonVariation .variationStrong {
     background-color: #9b59b6;
 }
-#commonVariation3.commonVariationModerate {
+#commonVariation .variationModerate {
     background-color: #af7ac5;
 }
-#commonVariation4.commonVariationPossible {
+#commonVariation .variationPossible {
     background-color: #c39bd3;
 }
-#commonVariation5.commonVariationWeak {
-    background-color: #d7bde2;
+#commonVariation .variationWeak {
+    background-color: #deb3f1;
 }
-#commonVariation6.commonVariationINGWAS {
-    background-color: #d7bde2;
+#commonVariation .variationInGWAS {
+    background-color: #e6c7f3;
 }
-#commonVariation7.commonVariationNoEvidence {
-    background-color: #ebdef0;
-}
-
-#rareVariation rareVariationCausal {
-    background-color: #f1c40f;
-}
-#rareVariation.rareVariationStrong {
-    background-color: #f4d03f;
-}
-#rareVariation.rareVariationModerate {
-    background-color: #f7dc6f;
-}
-#rareVariation.rareVariationPossible {
-    background-color: #f9e79f;
-}
-#rareVariation.rareVariationWeak {
-    background-color: #fcf3cf;
-}
-#rareVariation.rareVariationNoEvidence {
-    background-color: #fef9e7;
+#commonVariation .variationNoEvidence {
+    background-color: #eaddee;
 }
 
-.combinedVariationCausal {
-    background-color: #28b463;
+#rareVariation .variationCausal {
+    background-color: #f1c206;
 }
-.combinedVariationStrong {
-    background-color: #2ecc71;
+#rareVariation .variationStrong {
+    background-color: #f3d14a;
 }
-.combinedVariationModerate {
-    background-color: #58d68d;
+#rareVariation .variationModerate {
+    background-color: #f5db74;
 }
-.combinedVariationPossible {
-    background-color: #82e0aa;
+#rareVariation .variationPossible {
+    background-color: #f6e5a0;
 }
-.combinedVariationWeak {
-    background-color: #99ebba;
+#rareVariation .variationWeak {
+    background-color: #f3e3a4;
 }
-.combinedVariationNoEvidence {
-    background-color: #addbc0;
+#rareVariation .variationInGWAS {
+    background-color: #f3e9c5;
+}
+#rareVariation .variationNoEvidence {
+    background-color: #ebe8de;
 }
 
-.combinedVariationInGWAS {
-    background-color: #abeec8;
+#combinedVariation .variationCausal {
+    background-color: rgb(9, 85, 79);
+}
+#combinedVariation .variationStrong {
+    background-color: rgb(22, 92, 86);
+}
+#combinedVariation .variationModerate {
+    background-color: rgb(29, 109, 102);
+}
+#combinedVariation .variationPossible {
+    background-color: rgb(35, 134, 126);
+}
+#combinedVariation .variationWeak {
+    background-color: rgb(50, 160, 151);
+}
+#combinedVariation .variationInGWAS {
+    background-color: rgb(70, 182, 173);
+}
+#combinedVariation .variationNoEvidence {
+    background-color: rgb(109, 212, 204);
 }
 
 .causalclass {
