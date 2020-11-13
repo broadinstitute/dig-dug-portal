@@ -77,7 +77,7 @@ const EventListener = {
 
 export default Vue.component("filter-group", {
     props: {
-        value: null, // any type, since filterMaker might return any time even though by default it should return a function
+        value: null, // any type, since filterMaker might return any type even though by default it should return a function
         inclusive: Boolean,
         strictCase: Boolean,
         looseMatch: Boolean,
