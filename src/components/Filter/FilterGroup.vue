@@ -99,11 +99,12 @@ export default Vue.component("filter-group", {
     },
     data() {
         return {
-            filterList: this.value !== null && Array.isArray(this.value) ? this.value : [],
+            filterList: (this.value !== null && Array.isArray(this.value) ? this.value : []).filter(filterDefinition => !!filterDefinition.field && !!filterDefinition.threshold),
 
             // Vue doesn't identify anonymous functions of the same form with one another,
-            // so we need are turning these two props into data to prevent infinite loops that result
+            // so we are turning these two props into data to prevent infinite loops that result
             // from passing in anonymous functions which become reidentified under each tick.
+
             // So if we use these functions in a computed property, it will keep on refreshing even when the output looks the same.
             // This will work as long as we don't want to update the filterMaker and predicateMaker at runtime,
             // which quite frankly seems unlikely.
@@ -123,9 +124,7 @@ export default Vue.component("filter-group", {
                     }
                 )
             );
-            // console.log(predicates, this.filterMaker(predicates))
             return this.makeFilter(predicates, !!this.inclusive);
-            // return id => true;
         },
     },
 
