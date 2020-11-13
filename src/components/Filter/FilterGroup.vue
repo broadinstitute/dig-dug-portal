@@ -99,6 +99,7 @@ export default Vue.component("filter-group", {
     },
     data() {
         return {
+            // the filter on the end prevents malformed initial values from being used in the component
             filterList: (this.value !== null && Array.isArray(this.value) ? this.value : []).filter(filterDefinition => !!filterDefinition.field && !!filterDefinition.threshold),
 
             // Vue doesn't identify anonymous functions of the same form with one another,
