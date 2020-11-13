@@ -106,13 +106,30 @@ export class LZAssociationsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults
         this.locusZoomPanelOptions = {
-            ...BASE_PANEL_OPTIONS,
             id: this.panel_id,
             y_index: 0,
             axes: {
                 y1: {
                     label: '-log10(p)',
                 }
+            },
+            toolbar: {
+                widgets: [
+                    {
+                        type: "remove_panel",
+                        color: "red",
+                        position: "right"
+                    },
+                    {
+                        type: "toggle_legend",
+                        position: "right"
+                    },
+                    {
+                        type: "toggleloglog",
+                        color: "gray",
+                        position: "right"
+                    },
+                ]
             },
             data_layers: [
                 // this works

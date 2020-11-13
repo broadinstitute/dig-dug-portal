@@ -5,7 +5,7 @@
         :type="Number"
         :predicate="(number, upperBound) => number <= upperBound"
         :pillFormatter="filterDefinition => `${filterDefinition.field} <= ${filterDefinition.threshold}`"
-        :color="'#dc3545'"
+        :color="color"
         :multiple="false">
         <slot>
             {{field}}

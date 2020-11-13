@@ -11,10 +11,31 @@
 </template>
 <script>
 import Vue from "vue"
-import FilterControl from "./FilterControl.vue"
+import FilterGroup from "./FilterGroup.vue"
 export default Vue.component('filter-list-group', {
-    props: ['value', 'looseMatch', 'header'],
-    components:{ FilterControl },
+    props: {
+        value: {
+            type: Array,
+            validator: function (predicateSpecs) {
+                if (Array.isArray(predicateSpecs)) {
+                    if (predicateSpecs.length > 0) {
+                        return predicateSpecs.every(predicateSpec => {
+                            return typeof predicateSpec.field !== 'undefined' &&
+                                    typeof predicateSpec.threshold !== 'undefined'
+                                    // &&
+                                    // typeof predicateSpec.pill !== 'undefined' &&
+                                    // typeof predicateSpec.pill.label !== 'undefined';
+                        });
+                    } else {
+                        return true;
+                    }
+                }
+            }
+        },
+        looseMatch: Boolean,
+        header: String,
+    },
+    components:{ FilterGroup },
     methods: {
         emitInput(value) {
             this.$emit('input', value)

@@ -11,24 +11,22 @@
                 </EventListener>
             </b-row>
         </b-container>
-        <!-- Pills for everything -->
 
+        <!-- Pills for everything -->
         <div v-if="filterList.length > 0" class="filter-pill-collection center">
             {{this.header}}:&nbsp;&nbsp;
             <!-- Derive pills from current filter state?
                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
                         It would be deterministic upto the compile-time declaration of the FilterGroup controls which would lead to predicatable results at runtime
             -->
-            <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
             <b-badge
-                :class="`filter-pill-${filter.field}`"
+                pill
                 v-for="(filter, idx) in filterList"
                 :key="filter.field + filter.predicate + filter.threshold + idx"
-                pill
-                @click="unsetFilter(filter, idx)"
-                class="btn"
-            >
-                {{ filter.pill.label(filter) }}
+                :class="`btn filter-pill-${filter.field}`"
+                :style="{ 'background-color': `${ !!filter.pill && !!filter.pill.color ? `${filter.pill.color} !important` : '' }` }"
+                @click="unsetFilter(filter, idx)">
+                {{ !!filter.pill && !!filter.pill.label ? filter.pill.label(filter) : `${filter.field} = ${filter.threshold}` }}
                 <span class="remove">X</span>
             </b-badge>
         </div>
@@ -79,7 +77,7 @@ const EventListener = {
 
 export default Vue.component("filter-group", {
     props: {
-        value: null, // any type, since filterMaker might return any time even though by default it should return a function
+        value: null, // any type, since filterMaker might return any type even though by default it should return a function
         inclusive: Boolean,
         strictCase: Boolean,
         looseMatch: Boolean,
@@ -101,11 +99,13 @@ export default Vue.component("filter-group", {
     },
     data() {
         return {
-            filterList: [],
+            // the filter on the end prevents malformed initial values from being used in the component
+            filterList: (this.value !== null && Array.isArray(this.value) ? this.value : []).filter(filterDefinition => !!filterDefinition.field && !!filterDefinition.threshold),
 
             // Vue doesn't identify anonymous functions of the same form with one another,
-            // so we need are turning these two props into data to prevent infinite loops that result
+            // so we are turning these two props into data to prevent infinite loops that result
             // from passing in anonymous functions which become reidentified under each tick.
+
             // So if we use these functions in a computed property, it will keep on refreshing even when the output looks the same.
             // This will work as long as we don't want to update the filterMaker and predicateMaker at runtime,
             // which quite frankly seems unlikely.
@@ -125,10 +125,8 @@ export default Vue.component("filter-group", {
                     }
                 )
             );
-            // console.log(predicates, this.filterMaker(predicates))
             return this.makeFilter(predicates, !!this.inclusive);
-            // return id => true;
-        }
+        },
     },
 
     methods: {
