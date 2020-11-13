@@ -294,6 +294,54 @@ new Vue({
 
 
         },
+        //determine categories using cutoffs for bayes factor - can be used for rare of common or combined
+        determineCategory(commonVariationABF) {
+            let category;
+            let categorymap = {};
+            if (commonVariationABF < 3.3) {
+                category = "No"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 7.26) {
+                category = "in GWAS"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 16.5) {
+                category = "Weak"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 36.3) {
+                category = "Possible"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 82.5) {
+                category = "Moderate"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF <= 1650) {
+                category = "Strong"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF > 1650) {
+                category = "Causal"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            return categorymap;
+        },
         commonVariationCategory() {
             let categorymap = {};
             let category = ""
