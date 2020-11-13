@@ -89,36 +89,6 @@
                         </filter-enumeration-control>
                     </filter-list-group>
 
-                    <a
-                        href="#"
-                        @click="
-                            $parent.set_covariates = !$parent.set_covariates
-                        "
-                        ><b-icon-chevron-right
-                            v-show="!$parent.set_covariates"
-                        ></b-icon-chevron-right>
-                        <b-icon-chevron-down
-                            v-show="$parent.set_covariates"
-                        ></b-icon-chevron-down>
-                        Set covariates (Optional)</a
-                    >
-
-                    <b-collapse :visible="$parent.set_covariates"
-                        >principal</b-collapse
-                    >
-
-                    <b-form-checkbox
-                        v-model="$parent.auto_select"
-                        name="auto_select"
-                    >
-                        Auto select variants
-                        <b>(Checked: {{ $parent.auto_select }})</b>
-                    </b-form-checkbox>
-
-                    <b-collapse :visible="!$parent.auto_select"
-                        >manual select</b-collapse
-                    >
-
                     <div style="text-align: center">
                         <b-button
                             variant="primary"
