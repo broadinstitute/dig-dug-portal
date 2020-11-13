@@ -45,8 +45,8 @@ new Vue({
                 { text: "52K", value: "52K" },
                 { text: "TopMed", value: "TopMed" }
             ],
-            auto_select: true,
-            set_covariates: false,
+            showVariants: false,
+            showCovariances: false,
             loadingVariants: false,
             loadingCovariances: false,
             perPage: 10,
@@ -142,6 +142,7 @@ new Vue({
     },
     methods: {
         searchVariants() {
+            this.showVariants = true;
             this.loadingVariants = true;
             this.$store.dispatch("queryBurden", {
                 gene: this.selectedGene,
@@ -152,6 +153,7 @@ new Vue({
             });
         },
         searchCovariances() {
+            this.showCovariances = true;
             this.loadingCovariances = true;
             this.$store.dispatch("ldServer/getCovariances", {
                 variants: this.selectedVariants,

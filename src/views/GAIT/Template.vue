@@ -117,7 +117,7 @@
                             </b-card-header>
                             <b-collapse
                                 id="accordion-1"
-                                visible
+                                v-model="$parent.showVariants"
                                 accordion="my-accordion"
                                 role="tabpanel"
                             >
@@ -128,7 +128,7 @@
                                         <template #loading>
                                             <b-skeleton-table
                                                 :rows="3"
-                                                :columns="6"
+                                                :columns="5"
                                                 :table-props="{
                                                     bordered: true,
                                                     striped: true,
@@ -168,7 +168,7 @@
                                             <b-table
                                                 striped
                                                 hover
-                                                sticky-header="600px"
+                                                sticky-header="500px"
                                                 :items="$parent.tableData"
                                                 :fields="$parent.visibleFields"
                                             >
@@ -237,6 +237,7 @@
                             </b-card-header>
                             <b-collapse
                                 id="accordion-2"
+                                v-model="$parent.showCovariances"
                                 accordion="my-accordion"
                                 role="tabpanel"
                             >
@@ -247,7 +248,7 @@
                                         <template #loading>
                                             <b-skeleton-table
                                                 :rows="3"
-                                                :columns="6"
+                                                :columns="4"
                                                 :table-props="{
                                                     bordered: true,
                                                     striped: true,
