@@ -131,129 +131,217 @@
                             >Search Variants</b-button
                         >
                     </div>
-                    <b-skeleton-wrapper :loading="$parent.loadingVariants">
-                        <template #loading>
-                            <b-skeleton-table
-                                :rows="3"
-                                :columns="6"
-                                :table-props="{ bordered: true, striped: true }"
-                            ></b-skeleton-table>
-                        </template>
-
-                        <div
-                            class="variants"
-                            v-if="$parent.tableData.length > 0"
-                        >
-                            <strong>View optional columns </strong>
-                            <template v-for="field in $parent.optionalFields">
-                                <b-checkbox
-                                    v-if="
-                                        $parent.hiddenFields.indexOf(
-                                            field.key
-                                        ) < 0
-                                    "
-                                    :disabled="
-                                        $parent.visibleFields.length == 1 &&
-                                        field.visible
-                                    "
-                                    :key="field.key"
-                                    v-model="field.visible"
-                                    inline
+                    <div class="accordion" role="tablist">
+                        <b-card no-body class="mb-1">
+                            <b-card-header
+                                header-tag="header"
+                                class="p-1"
+                                role="tab"
+                            >
+                                <b-button
+                                    block
+                                    v-b-toggle.accordion-1
+                                    variant="secondary"
+                                    >Variants</b-button
                                 >
-                                    {{ field.label }}
-                                </b-checkbox>
-                            </template>
-
-                            <b-table
-                                striped
-                                hover
-                                sticky-header="600px"
-                                :items="$parent.tableData"
-                                :fields="$parent.visibleFields"
+                            </b-card-header>
+                            <b-collapse
+                                id="accordion-1"
+                                visible
+                                accordion="my-accordion"
+                                role="tabpanel"
                             >
-                                <template #cell(selected)="data">
-                                    <b-form-group>
-                                        <input
-                                            type="checkbox"
-                                            v-model="data.item.selected"
-                                        />
-                                    </b-form-group>
-                                </template>
-                                <template #cell(burdenBinId)="data">
-                                    {{
-                                        $parent.masks.find(
-                                            (o) => o.value === data.value
-                                        ).text
-                                    }}
-                                </template>
-                                <template #cell(varId)="data">
-                                    <a
-                                        :href="`/variant.html?variant=${data.value}`"
-                                        >{{ data.value }}</a
+                                <b-card-body>
+                                    <b-skeleton-wrapper
+                                        :loading="$parent.loadingVariants"
                                     >
-                                </template>
-                            </b-table>
-                        </div>
+                                        <template #loading>
+                                            <b-skeleton-table
+                                                :rows="3"
+                                                :columns="6"
+                                                :table-props="{
+                                                    bordered: true,
+                                                    striped: true,
+                                                }"
+                                            ></b-skeleton-table>
+                                        </template>
 
-                        <div
-                            style="text-align: center"
-                            v-if="$parent.tableData.length > 0"
-                        >
-                            <b-button
-                                variant="primary"
-                                @click="$parent.searchCovariances"
-                                >Run Analysis</b-button
+                                        <div
+                                            class="variants"
+                                            v-if="$parent.tableData.length > 0"
+                                        >
+                                            <strong
+                                                >View optional columns
+                                            </strong>
+                                            <template
+                                                v-for="field in $parent.optionalFields"
+                                            >
+                                                <b-checkbox
+                                                    v-if="
+                                                        $parent.hiddenFields.indexOf(
+                                                            field.key
+                                                        ) < 0
+                                                    "
+                                                    :disabled="
+                                                        $parent.visibleFields
+                                                            .length == 1 &&
+                                                        field.visible
+                                                    "
+                                                    :key="field.key"
+                                                    v-model="field.visible"
+                                                    inline
+                                                >
+                                                    {{ field.label }}
+                                                </b-checkbox>
+                                            </template>
+
+                                            <b-table
+                                                striped
+                                                hover
+                                                sticky-header="600px"
+                                                :items="$parent.tableData"
+                                                :fields="$parent.visibleFields"
+                                            >
+                                                <template
+                                                    #cell(selected)="data"
+                                                >
+                                                    <b-form-group>
+                                                        <input
+                                                            type="checkbox"
+                                                            v-model="
+                                                                data.item
+                                                                    .selected
+                                                            "
+                                                        />
+                                                    </b-form-group>
+                                                </template>
+                                                <template
+                                                    #cell(burdenBinId)="data"
+                                                >
+                                                    {{
+                                                        $parent.masks.find(
+                                                            (o) =>
+                                                                o.value ===
+                                                                data.value
+                                                        ).text
+                                                    }}
+                                                </template>
+                                                <template #cell(varId)="data">
+                                                    <a
+                                                        :href="`/variant.html?variant=${data.value}`"
+                                                        >{{ data.value }}</a
+                                                    >
+                                                </template>
+                                            </b-table>
+                                        </div>
+
+                                        <div
+                                            style="text-align: center"
+                                            v-if="$parent.tableData.length > 0"
+                                        >
+                                            <b-button
+                                                variant="primary"
+                                                @click="
+                                                    $parent.searchCovariances
+                                                "
+                                                >Run Analysis</b-button
+                                            >
+                                        </div>
+                                    </b-skeleton-wrapper>
+                                </b-card-body>
+                            </b-collapse>
+                        </b-card>
+
+                        <b-card no-body class="mb-1">
+                            <b-card-header
+                                header-tag="header"
+                                class="p-1"
+                                role="tab"
                             >
-                        </div>
-                    </b-skeleton-wrapper>
-
-                    <b-skeleton-wrapper :loading="$parent.loadingCovariances">
-                        <template #loading>
-                            <b-skeleton-table
-                                :rows="3"
-                                :columns="6"
-                                :table-props="{ bordered: true, striped: true }"
-                            ></b-skeleton-table>
-                        </template>
-
-                        <div
-                            id="covariances"
-                            v-if="$store.state.ldServer.covariances"
-                        >
-                            <b-table
-                                striped
-                                hover
-                                :items="
-                                    $store.state.ldServer.covariances.variants
-                                "
-                                :per-page="$parent.perPage"
-                                :current-page="$parent.currentPage2"
+                                <b-button
+                                    block
+                                    v-b-toggle.accordion-2
+                                    variant="secondary"
+                                    >Covariances</b-button
+                                >
+                            </b-card-header>
+                            <b-collapse
+                                id="accordion-2"
+                                accordion="my-accordion"
+                                role="tabpanel"
                             >
-                            </b-table>
-                            <b-pagination
-                                v-if="
-                                    $store.state.ldServer.covariances.variants
-                                "
-                                v-model="$parent.currentPage2"
-                                :total-rows="
-                                    $store.state.ldServer.covariances.variants
-                                        ? $store.state.ldServer.covariances
-                                              .variants.length
-                                        : 0
-                                "
-                                :per-page="$parent.perPage"
-                                aria-controls="covariances-table"
-                            ></b-pagination>
-                        </div>
+                                <b-card-body>
+                                    <b-skeleton-wrapper
+                                        :loading="$parent.loadingCovariances"
+                                    >
+                                        <template #loading>
+                                            <b-skeleton-table
+                                                :rows="3"
+                                                :columns="6"
+                                                :table-props="{
+                                                    bordered: true,
+                                                    striped: true,
+                                                }"
+                                            ></b-skeleton-table>
+                                        </template>
 
-                        <div v-if="$store.state.ldServer.covariances.groups">
-                            <strong>Covariances:</strong>
-                            {{
-                                $store.state.ldServer.covariances.groups[0]
-                                    .covariance
-                            }}
-                        </div>
-                    </b-skeleton-wrapper>
+                                        <div
+                                            id="covariances"
+                                            v-if="
+                                                $store.state.ldServer
+                                                    .covariances
+                                            "
+                                        >
+                                            <b-table
+                                                striped
+                                                hover
+                                                :items="
+                                                    $store.state.ldServer
+                                                        .covariances.variants
+                                                "
+                                                :per-page="$parent.perPage"
+                                                :current-page="
+                                                    $parent.currentPage2
+                                                "
+                                            >
+                                            </b-table>
+                                            <b-pagination
+                                                v-if="
+                                                    $store.state.ldServer
+                                                        .covariances.variants
+                                                "
+                                                v-model="$parent.currentPage2"
+                                                :total-rows="
+                                                    $store.state.ldServer
+                                                        .covariances.variants
+                                                        ? $store.state.ldServer
+                                                              .covariances
+                                                              .variants.length
+                                                        : 0
+                                                "
+                                                :per-page="$parent.perPage"
+                                                aria-controls="covariances-table"
+                                            ></b-pagination>
+                                        </div>
+
+                                        <div
+                                            v-if="
+                                                $store.state.ldServer
+                                                    .covariances.groups
+                                            "
+                                        >
+                                            <strong>Covariances:</strong>
+                                            {{
+                                                $store.state.ldServer
+                                                    .covariances.groups[0]
+                                                    .covariance
+                                            }}
+                                        </div>
+                                    </b-skeleton-wrapper>
+                                </b-card-body>
+                            </b-collapse>
+                        </b-card>
+                    </div>
                 </div>
             </div>
         </div>
