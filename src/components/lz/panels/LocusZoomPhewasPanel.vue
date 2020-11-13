@@ -137,6 +137,15 @@ export class LZPhewasPanel {
                     LocusZoom.Layouts.get('data_layer', 'phewas_pvalues', { unnamespaced: true }),
                 ),
             ],
+            toolbar: {
+                widgets: [
+                    {
+                        type: "toggleloglog",
+                        color: "gray",
+                        position: "right"
+                    },
+                ]
+            },
             axes: {
                 y1: {
                     label: '-log10(p)',

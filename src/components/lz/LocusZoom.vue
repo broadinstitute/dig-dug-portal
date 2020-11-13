@@ -1,17 +1,5 @@
 <template>
     <span>
-        <div
-            v-if="!!loglog"
-            style="float: right; font-size: 12px"
-            class="lz-panel-toolbar"
-        >
-            <button
-                class="lz-toolbar-button lz-toolbar-button-gray"
-                @click="toggleLogLog"
-            >
-                Toggle LogLog
-            </button>
-        </div>
         <div :id="`lz_${salt}`">
             <slot v-if="locuszoommounted"></slot>
         </div>
@@ -32,7 +20,9 @@ import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnno
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
+
 import { makeSource, makeLayout, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
+import { ToggleLogLog } from "./widgets"
 
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
@@ -43,7 +33,7 @@ LocusZoom.use(intervalTracks);
 LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
 
-LocusZoom.Widgets.add('toggleloglog', );
+LocusZoom.Widgets.add('toggleloglog', ToggleLogLog);
 
 export default Vue.component("locuszoom", {
     props: [
@@ -52,7 +42,6 @@ export default Vue.component("locuszoom", {
         "end",
         "scoring",
         "refSeq",
-        "loglog",
         "filter",
         "filterAssociations",
         "filterAnnotations",
@@ -304,40 +293,6 @@ export default Vue.component("locuszoom", {
             });
 
 
-        },
-        toggleLogLog: function () {
-            let data_layers = this.getDataLayers();
-            data_layers.forEach((data_layer) => {
-                if (!!data_layer.layout.y_axis.field) {
-                    if (
-                        data_layer.layout.y_axis.field.includes("log_pvalue") &&
-                        !data_layer.layout.y_axis.field.includes("|log10")
-                    ) {
-                        data_layer.layout.y_axis.field = data_layer.layout.y_axis.field.concat(
-                            "|log10"
-                        );
-                        data_layer.parent.layout.axes.y1.label =
-                            "-log10(log10(p))";
-                        data_layer.parent.layout.axes.y1.ticks = [
-                            1,
-                            10,
-                            100,
-                            1000,
-                            10000,
-                        ];
-                    } else if (
-                        data_layer.layout.y_axis.field.includes("log_pvalue") &&
-                        data_layer.layout.y_axis.field.includes("|log10")
-                    ) {
-                        data_layer.layout.y_axis.field = data_layer.layout.y_axis.field.split(
-                            "|log10"
-                        )[0];
-                        data_layer.parent.layout.axes.y1.label = "-log10(p)";
-                        data_layer.parent.layout.axes.y1.ticks = undefined;
-                    }
-                }
-            });
-            this.plot.applyState();
         },
     },
     computed: {
