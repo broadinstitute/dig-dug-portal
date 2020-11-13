@@ -422,14 +422,14 @@ export default Vue.component("test", {
     background-color: #82e0aa;
 }
 .combinedVariationWeak {
-    background-color: #abebc6;
+    background-color: #99ebba;
 }
 .combinedVariationNoEvidence {
-    background-color: #f8fdfa;
+    background-color: #addbc0;
 }
 
 .combinedVariationInGWAS {
-    background-color: #d5f5e3;
+    background-color: #abeec8;
 }
 
 .causalclass {
@@ -458,7 +458,7 @@ export default Vue.component("test", {
 }
 .noEvidenceclass {
     position: absolute;
-    left: 640px;
+    left: 650px;
 }
 
 .codingEvidence1C {
