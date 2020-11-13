@@ -1346,6 +1346,7 @@ a.to-previous-page:hover {
     margin-left: 2px;
 }
 
+/* !important is required to override the default pill styling from Bootstrap */
 .filter-pill-pValue {
     background-color: #dc3545 !important;
 }
