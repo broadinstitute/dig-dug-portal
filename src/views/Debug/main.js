@@ -127,6 +127,54 @@ new Vue({
             }
 
         },
+        //determine categories using cutoffs for bayes factor - can be used for rare of common or combined
+        determineCategory(commonVariationABF) {
+            let category;
+            let categorymap = {};
+            if (commonVariationABF < 3.3) {
+                category = "No"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 7.26) {
+                category = "in GWAS"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 16.5) {
+                category = "Weak"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 36.3) {
+                category = "Possible"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 82.5) {
+                category = "Moderate"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF <= 1650) {
+                category = "Strong"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF > 1650) {
+                category = "Causal"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            return categorymap;
+        },
 
     },
     mounted() {
@@ -294,100 +342,15 @@ new Vue({
 
 
         },
-        //determine categories using cutoffs for bayes factor - can be used for rare of common or combined
-        determineCategory(commonVariationABF) {
-            let category;
-            let categorymap = {};
-            if (commonVariationABF < 3.3) {
-                category = "No"
-                categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
-                }
-            }
-            else if (commonVariationABF < 7.26) {
-                category = "in GWAS"
-                categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
-                }
-            }
-            else if (commonVariationABF < 16.5) {
-                category = "Weak"
-                categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
-                }
-            }
-            else if (commonVariationABF < 36.3) {
-                category = "Possible"
-                categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
-                }
-            }
-            else if (commonVariationABF < 82.5) {
-                category = "Moderate"
-                categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
-                }
-            }
-            else if (commonVariationABF <= 1650) {
-                category = "Strong"
-                categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
-                }
-            }
-            else if (commonVariationABF > 1650) {
-                category = "Causal"
-                categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
-                }
-            }
-            return categorymap;
-        },
+
         commonVariationCategory() {
             let categorymap = {};
             let category = ""
-            if (!!this.eglData)
-                if (this.commonVariationABF < 3.3) {
-                    category = "No"
-                    categorymap = {
-                        "category": category, "categoryScore": this.commonVariationABF
-                    }
-                }
-                else if (this.commonVariationABF < 7.26) {
-                    category = "in GWAS"
-                    categorymap = {
-                        "category": category, "categoryScore": this.commonVariationABF
-                    }
-                }
-                else if (this.commonVariationABF < 16.5) {
-                    category = "Weak"
-                    categorymap = {
-                        "category": category, "categoryScore": this.commonVariationABF
-                    }
-                }
-                else if (this.commonVariationABF < 36.3) {
-                    category = "Possible"
-                    categorymap = {
-                        "category": category, "categoryScore": this.commonVariationABF
-                    }
-                }
-                else if (this.commonVariationABF < 82.5) {
-                    category = "Moderate"
-                    categorymap = {
-                        "category": category, "categoryScore": this.commonVariationABF
-                    }
-                }
-                else if (this.commonVariationABF <= 1650) {
-                    category = "Strong"
-                    categorymap = {
-                        "category": category, "categoryScore": this.commonVariationABF
-                    }
-                }
-                else if (this.commonVariationABF > 1650) {
-                    category = "Causal"
-                    categorymap = {
-                        "category": category, "categoryScore": this.commonVariationABF
-                    }
-                }
+            if (!!this.eglData) {
+                let bayes_factor = this.commonVariationABF
+                categorymap = this.determineCategory(bayes_factor);
+            }
+
             return categorymap;
         },
 
@@ -423,7 +386,7 @@ new Vue({
         rareVariationCategoryAndScore() {
             let masks = [];
             let category = "No";
-            let ppa = "";
+
             let bayes_factor = "";
             let categoryScore = 0;
             let categorymap = {};
@@ -442,41 +405,11 @@ new Vue({
                 } else {
                     beta = Math.log(mostSignificantMask.oddsRatio);
                 }
-                ppa = this.posteriorProbability(prior, beta, stdErr).ppa;
+
                 bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
 
-                if (bayes_factor > 1) {
-                    if (ppa < 0.30) {
-                        category = "WEAK"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                    else if (ppa < 0.50) {
-                        category = "POSSIBLE"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                    else if (ppa < 0.70) {
-                        category = "MODERATE"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                    else if (ppa < 0.90) {
-                        category = "STRONG"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                    else {
-                        category = "CAUSAL"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                }
-                else {
-                    category = "No"
-                    categoryScore = this.calculateCategoryScore(category);
-                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                }
+                categorymap = this.determineCategory(bayes_factor);
+
             }
 
             return categorymap;
