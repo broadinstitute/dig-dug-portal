@@ -19,7 +19,6 @@
                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
                         It would be deterministic upto the compile-time declaration of the FilterGroup controls which would lead to predicatable results at runtime
             -->
-            <!-- TODO: Color Scheme for Pills via Variant => use the colorUtils instead? -->
             <b-badge
                 pill
                 v-for="(filter, idx) in filterList"
