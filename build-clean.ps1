@@ -4,4 +4,4 @@ if (Test-Path $cache) {
     Remove-Item $cache -Recurse -Force
 }
 
-pnpm run ($Args -join " ")
+npm run ($Args -join " ")
