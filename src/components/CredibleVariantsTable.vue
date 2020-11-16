@@ -65,7 +65,7 @@ export default Vue.component("credible-variants-table", {
         tableData() {
             let dataRows = this.crediblevariants;
             if (!!this.filter) {
-                dataRows = this.crediblevariants.filter(variant => {
+                dataRows = dataRows.filter(variant => {
                     return this.filter(variant);
                 });
             }

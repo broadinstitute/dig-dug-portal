@@ -79,12 +79,7 @@ new Vue({
     render(createElement, context) {
         return createElement(Template);
     },
-    data() {
-        return {
-            phewasFilter: id => true,
-            regionFilter: id => true,
-        }
-    },
+
     methods: {
         ...uiUtils,
         postAlert,

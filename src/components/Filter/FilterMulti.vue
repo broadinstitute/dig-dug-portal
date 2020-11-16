@@ -5,7 +5,7 @@
         :predicate="(string, selection) => string === selection"
         :pillFormatter="filterDefinition => `${filterDefinition.field} == ${filterDefinition.threshold}`"
         :options="options"
-        :color="'#ffc107'"
+        :color="color"
         :multiple="true"
         :inclusive="inclusive"
         :splitBy="splitBy">

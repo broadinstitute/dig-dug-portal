@@ -8,79 +8,88 @@
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper></search-header-wrapper>
-            <!-- Wrap page level searchs with "pageSearchParameters" div -->
-            <div id="pageSearchParameters">
-                <div>
-                    <div class="region-search col filter-col-sm">
-                        <div class="label">Chromosome</div>
-                        <input
-                            v-model="$store.state.newChr"
-                            type="text"
-                            class="form-control"
-                            placeholder="Chromosome"
-                        />
-                    </div>
-                    <div class="region-search col filter-col-md">
-                        <div class="label">Start</div>
-                        <input
-                            v-model="$store.state.newStart"
-                            type="text"
-                            class="form-control input-default"
-                            placeholder="Start position"
-                        />
-                    </div>
-                    <div class="region-search col filter-col-md">
-                        <div class="label">End</div>
-                        <input
-                            v-model="$store.state.newEnd"
-                            type="text"
-                            class="form-control input-default"
-                            placeholder="End position"
-                        />
-                    </div>
-                    <div class="region-search col filter-col-md">
-                        <div class="label">Search region</div>
-                        <button
-                            id="regionSearchGo"
-                            class="btn btn-light btn-sm"
-                            type="button"
-                            @click="$store.dispatch('queryRegion')"
-                        >
-                            Search
-                        </button>
-                    </div>
-
-                    <div class="region-search col filter-col-md">
-                        <div class="label">Search gene</div>
-                        <gene-selectpicker
-                            @onGeneChange="
-                                $store.dispatch('onGeneChange', $event)
-                            "
-                        ></gene-selectpicker>
-                    </div>
-                    <div class="region-search col filter-col-md">
-                        <div class="label">Search phenotype</div>
-                        <phenotype-selectpicker
-                            v-if="$store.state.phenotype"
-                            :phenotypes="$store.state.bioPortal.phenotypes"
-                            :default-phenotype="
-                                $store.state.phenotype.description
-                            "
-                            ref="dktest"
-                        ></phenotype-selectpicker>
-                    </div>
-                </div>
-            </div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">
                         Chromosome: Start position - End position
+                        <a
+                            class="edit-btn"
+                            v-on:click="
+                                () =>
+                                    $parent.showHideElement(
+                                        'regionSearchHolder',
+                                        'region_gene_search'
+                                    )
+                            "
+                            >Edit position / Search gene</a
+                        >
                     </div>
-                    <div class="col-md-4 gene-page-header-title">Phenotype</div>
-                </div>
-                <div class="row card-body">
+                    <div class="col-md-4 gene-page-header-title">
+                        Phenotype
+                        <a
+                            class="edit-btn"
+                            v-on:click="
+                                () =>
+                                    $parent.showHideElement(
+                                        'phenotypeSearchHolder'
+                                    )
+                            "
+                            >Select phenotype</a
+                        >
+                    </div>
                     <div class="col-md-8 gene-page-header-body regionInfo">
+                        <div
+                            id="regionSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
+                            <div class="region-search">
+                                <div class="col-md-1 input-wrapper">
+                                    <input
+                                        v-model="$store.state.newChr"
+                                        type="text"
+                                        class="form-control input-default"
+                                        placeholder="Chromosome"
+                                    />
+                                </div>
+                                <div class="col-md-3 input-wrapper">
+                                    <input
+                                        v-model="$store.state.newStart"
+                                        type="text"
+                                        class="form-control input-default"
+                                        placeholder="Start position"
+                                    />
+                                </div>
+                                <div class="col-md-3 input-wrapper">
+                                    <input
+                                        v-model="$store.state.newEnd"
+                                        type="text"
+                                        class="form-control input-default"
+                                        placeholder="End position"
+                                    />
+                                </div>
+                                <div class="col-md-3 input-wrapper">
+                                    <gene-selectpicker
+                                        @onGeneChange="
+                                            $store.dispatch(
+                                                'onGeneChange',
+                                                $event
+                                            )
+                                        "
+                                    ></gene-selectpicker>
+                                </div>
+
+                                <div class="col-md-2 input-wrapper">
+                                    <button
+                                        id="regionSearchGo"
+                                        class="btn btn-primary"
+                                        type="button"
+                                        @click="$store.dispatch('queryRegion')"
+                                    >
+                                        GO
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         {{ $parent.regionString }}
                         <button
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
@@ -100,9 +109,19 @@
                             "
                         ></lunaris-link>
                     </div>
-                    <div
-                        class="col-md-4 gene-page-header-body shorten-when-full"
-                    >
+                    <div class="col-md-4 gene-page-header-body">
+                        <div
+                            id="phenotypeSearchHolder"
+                            class="gene-page-header-search-holder hidden"
+                        >
+                            <phenotype-selectpicker
+                                v-if="$store.state.phenotype"
+                                :phenotypes="$store.state.bioPortal.phenotypes"
+                                :default-phenotype="
+                                    $store.state.phenotype.description
+                                "
+                            ></phenotype-selectpicker>
+                        </div>
                         <span v-if="$store.state.phenotype">{{
                             $store.state.phenotype.description
                         }}</span>
@@ -145,10 +164,13 @@
                             <div
                                 href="javascript:;"
                                 v-on:click="
-                                    $parent.switchViews([
-                                        'pws-merged-view',
-                                        'pws-bar-view',
-                                    ])
+                                    $parent.switchViews(
+                                        ['pws-merged-view', 'pws-bar-view'],
+                                        [
+                                            'View associations by phenotype group',
+                                            'View associations by individual phenotype',
+                                        ]
+                                    )
                                 "
                                 class="switch-view btn btn-secondary btn-sm"
                             >
@@ -166,7 +188,7 @@
                 <div class="card-body">
                     <div v-if="!!$store.state.phenotype">
                         <h4 class="card-title">
-                            Top Associations for
+                            Top associations for
                             {{ $store.state.phenotype.description }}
                             <tooltip-documentation
                                 name="region.topassoc.tooltip"
@@ -205,14 +227,20 @@
                             <filter-effect-direction-control :field="'beta'">
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <associations-table
+                                    v-if="
+                                        $store.state.associations.data.length >
+                                        0
+                                    "
+                                    :phenotypes="$parent.phenotypes"
+                                    :associations="
+                                        $store.state.associations.data
+                                    "
+                                    :filter="filter"
+                                ></associations-table>
+                            </template>
                         </filter-group>
-
-                        <associations-table
-                            v-if="$store.state.associations.data.length > 0"
-                            :phenotypes="$parent.phenotypes"
-                            :associations="$store.state.associations.data"
-                            :filter="$parent.associationsFilter"
-                        ></associations-table>
 
                         <br />
                         <documentation
@@ -225,13 +253,10 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-group
-                            v-model="$parent.annotationsFilter"
-                            :looseMatch="true"
-                        >
+                        <filter-group :looseMatch="true">
                             <div class="col filter-col-lg">
                                 <div class="label" style="margin-bottom: 5px">
-                                    Add annotation method track
+                                    Add annotation
                                 </div>
                                 <annotation-method-selectpicker
                                     :annotations="
@@ -248,7 +273,7 @@
 
                             <div class="col filter-col-lg">
                                 <div class="label" style="margin-bottom: 5px">
-                                    Add credible sets track
+                                    Add credible set
                                 </div>
                                 <credible-sets-selectpicker
                                     :credibleSets="$parent.credibleSets"
@@ -262,7 +287,9 @@
                             <div class="col divider">&nbsp;</div>
 
                             <span style="display: inline-block">
-                                <div class="label">Filter annotation track</div>
+                                <div class="label">
+                                    Filter annotations by global enrichment
+                                </div>
                                 <filter-pvalue-control :field="'pValue'">
                                     <span class="label"> P-Value (&le;) </span>
                                 </filter-pvalue-control>
@@ -270,36 +297,33 @@
                                     <span class="label"> Fold (&ge;) </span>
                                 </filter-greater-control>
                             </span>
+
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <locuszoom
+                                    v-if="$parent.tissueScoring !== null"
+                                    ref="locuszoom"
+                                    :chr="$store.state.chr"
+                                    :start="$store.state.start"
+                                    :end="$store.state.end"
+                                    :filterAssociations="
+                                        $parent.associationsFilter
+                                    "
+                                    :filterAnnotations="filter"
+                                    @regionchanged="
+                                        $parent.requestCredibleSets($event.data)
+                                    "
+                                    :loglog="true"
+                                    :refSeq="true"
+                                >
+                                    <lz-associations-panel
+                                        :phenotype="$store.state.phenotype.name"
+                                        :finishHandler="
+                                            $parent.updateAssociationsTable
+                                        "
+                                    ></lz-associations-panel>
+                                </locuszoom>
+                            </template>
                         </filter-group>
-
-                        <!-- <div class="col filter-col-lg" style="vertical-align: top;">
-                                    <div class="label">View region in Variant Prioritizer</div>
-                                    <b-button
-                                        v-if="!!$store.state.phenotype"
-                                        class="btn btn-sm btn-2-vptz"
-                                        :href="`http://v2f-pancakeplot.broadinstitute.org/pancakeplot/index.html?phenotype=${$store.state.phenotype.name}&chr=${$store.state.chr}&start=${$store.state.start}&end=${$store.state.end}`"
-                                        target="_blank"
-                                    >{{`Trait: ${$store.state.phenotype.name}, Region: ${$parent.regionString}`}}</b-button>
-                                </div> -->
-
-                        <locuszoom
-                            ref="locuszoom"
-                            :chr="$store.state.chr"
-                            :start="$store.state.start"
-                            :end="$store.state.end"
-                            :filterAssociations="$parent.associationsFilter"
-                            :filterAnnotations="$parent.annotationsFilter"
-                            @regionchanged="
-                                $parent.requestCredibleSets($event.data)
-                            "
-                            :loglog="true"
-                            :refSeq="true"
-                        >
-                            <lz-associations-panel
-                                :phenotype="$store.state.phenotype.name"
-                                @input="$parent.updateAssociationsTable"
-                            ></lz-associations-panel>
-                        </locuszoom>
                     </div>
                 </div>
             </div>

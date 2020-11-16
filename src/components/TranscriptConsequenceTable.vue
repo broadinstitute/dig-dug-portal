@@ -100,7 +100,7 @@ export default Vue.component("transcript-consequence-table", {
         tableData() {
             let dataRows = this.sortedTranscriptConsequences;
             if (!!this.filter) {
-                dataRows = this.sortedTranscriptConsequences.filter(association => {
+                dataRows = dataRows.filter(association => {
                     return this.filter(association);
                 });
             }

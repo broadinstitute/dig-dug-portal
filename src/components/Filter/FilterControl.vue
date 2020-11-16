@@ -43,9 +43,11 @@ export default Vue.component("filter-control", {
         inclusive: Boolean,
         color: {
             type: String,
-            default: '#ffc107',
         },
-        pillFormatter: Function,
+        pillFormatter: {
+            type: Function,
+            default: filterDefinition => `${filterDefinition.field} = ${filterDefinition.threshold}`
+        },
         labelFormatter: {
             type: Function,
             default: id => id,
@@ -61,7 +63,7 @@ export default Vue.component("filter-control", {
         clear: {
             type: Boolean,
             default: true,
-        }
+        },
     },
     components: {
         Autocomplete
@@ -81,15 +83,6 @@ export default Vue.component("filter-control", {
         // set initial filter value in the widget
         if (!!this.filterThreshold) {
             this.updateFilter(this.filterThreshold);
-        }
-    },
-    computed: {
-        optionData() {
-            if (!!this.options && this.options.length > 0) {
-                return this.options.map(option => !!this.labelFormatter ? { text: this.labelFormatter(option), value: option } : option)
-            } else {
-                return [];
-            }
         }
     },
     methods: {

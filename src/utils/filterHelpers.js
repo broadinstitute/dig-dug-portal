@@ -1,10 +1,27 @@
 import { get } from "lodash";
 
+export function aos2soa(aos) {
+    // const keys = Object.keys(aos[0]);
+    // let soa = keys.reduce((acc, item) => {
+    //     acc[item] = []
+    //     return acc;
+    // },{});
+    // aos.forEach(s => {
+    //     keys.forEach(k => {
+    //         soa[k].push(s[k])
+    //     });
+    // });
+    // return soa;
+    // return zip(aos)
+}
+
+export function soa2aos(soa) {
+
+}
+
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
-    const inclusivePredicates = allPredicates.filter(
-        predicate => predicate.inclusive
-    );
+    const inclusivePredicates = allPredicates.filter(predicate => predicate.inclusive);
     const predicates = allPredicates.filter(predicate => !predicate.inclusive);
 
     return function filterFunction(object) {
@@ -65,7 +82,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
             }
         }
         return included && innocent;
-        
+
     };
 }
 

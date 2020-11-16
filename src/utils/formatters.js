@@ -21,7 +21,6 @@ function ancestryFormatter(s) {
         SA: "South Asian",
         Mixed: "Mixed",
     }
-    console.log('ancestry', s, ancestries[s]);
     return ancestries[s];
 }
 

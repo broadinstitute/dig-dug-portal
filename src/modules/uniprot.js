@@ -112,8 +112,7 @@ export default {
             let uniprotDoc = await fetch(`https://www.uniprot.org/uniprot/?${qs}`)
                 .then(response => response.text())
                 .then(responseJson => JSON.parse(convert.xml2json(responseJson, { compact: true, spaces: 4 })))
-
-            closeAlert(alertID);
+                .finally(() => closeAlert(alertID));
 
             if (!!uniprotDoc) {
                 context.commit('setUniprotDoc', uniprotDoc)

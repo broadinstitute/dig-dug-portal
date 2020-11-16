@@ -31,6 +31,7 @@ import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 import FilterGroup from "@/components/Filter/FilterGroup.vue"
+import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
 import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
@@ -50,6 +51,7 @@ new Vue({
         RawImage,
 
         FilterGroup,
+        FilterListGroup,
         FilterControl,
         FilterPValue,
         FilterGreaterThan,
@@ -57,15 +59,6 @@ new Vue({
         FilterEffectDirection,
 
         SearchHeaderWrapper
-    },
-
-    data() {
-        return {
-            phenotypeFilter: null,
-            annotationsFilter: null,
-            associationsFilter: null,
-            geneFinderFilter: null,
-        }
     },
 
     created() {
@@ -77,7 +70,11 @@ new Vue({
     render(createElement, context) {
         return createElement(Template);
     },
-
+    data() {
+        return {
+            enrichmentFilter: null,
+        }
+    },
     methods: {
         ...uiUtils,
         postAlert,

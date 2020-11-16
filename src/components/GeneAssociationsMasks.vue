@@ -203,7 +203,7 @@ export default Vue.component("gene-associations-masks", {
                 "P-Value",
                 "Combined AF",
                 "Passing Variants",
-                "Single Variants",
+                "Singleton Variants",
                 "Standard Error",
                 "Sample Size",
             ],
