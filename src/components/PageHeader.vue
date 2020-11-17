@@ -11,7 +11,8 @@
                     <div class="amp-banner-left">
                         <a
                             href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
-                        >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a>
+                            >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a
+                        >
                     </div>
                 </div>
             </div>
@@ -107,7 +108,7 @@ export default Vue.component("page-header", {
     mixins: [userMixin],
     data() {
         return {
-            bioindex_dev: false
+            bioindex_dev: false,
         };
     },
     created() {
@@ -125,7 +126,25 @@ export default Vue.component("page-header", {
         },
         url2Md() {
             return host.urlWithSubdomain().href;
-        }
-    }
+        },
+    },
+    watch: {
+        diseaseGroup(group) {
+            if (!!group && !!group.title) {
+                document.title = group.title;
+
+                // find the shortcut icon
+                let links = document.getElementsByTagName("link");
+
+                for (let i = 0; i < links.length; i++) {
+                    if (links[i].rel == "shortcut icon") {
+                        links[
+                            i
+                        ].href = `https://kp4cd.org/icon/${group.name}/favicon.png`;
+                    }
+                }
+            }
+        },
+    },
 });
 </script>
