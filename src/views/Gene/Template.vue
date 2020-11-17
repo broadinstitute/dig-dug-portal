@@ -8,31 +8,21 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+            <search-header-wrapper></search-header-wrapper>
+            <!-- Wrap page level searchs with "pageSearchParameters" div -->
+            <div id="pageSearchParameters">
+                <div class="col filter-col-md">
+                    <gene-selectpicker
+                        @onGeneChange="$store.dispatch('queryGeneName', $event)"
+                    ></gene-selectpicker>
+                </div>
+            </div>
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">
-                        Gene
-                        <a
-                            class="edit-btn"
-                            v-on:click="
-                                $parent.showHideElement('variantSearchHolder')
-                            "
-                            >Select gene</a
-                        >
-                    </div>
+                    <div class="col-md-8 gene-page-header-title">Gene</div>
                     <div class="col-md-4 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
-                            <gene-selectpicker
-                                @onGeneChange="
-                                    $store.dispatch('queryGeneName', $event)
-                                "
-                            ></gene-selectpicker>
-                        </div>
                         <div v-if="$parent.symbolName">
                             <span>
                                 {{ $parent.symbolName }}

@@ -623,7 +623,6 @@ div.filtering-tools table th {
     width: calc(100% - 30px);
     background-color: #bbbbbb;
     left: 15px;
-
 }
 
 .search-header .row {
@@ -1114,6 +1113,38 @@ div.filtering-ui-content .divider.col .or-text {
     color: #fff;
     padding: 2px 2px 1px 2px;
     border-radius: 14px;
+}
+
+#pageSearchParameters .divider.col {
+    width: 1px !important;
+    height: 61px;
+    padding: 0 1px 0 0;
+    background-color: #FFF;
+    margin-bottom: -17px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+#pageSearchParameters .divider.col .or-text {
+    display: block;
+    position: absolute;
+    left: -6px;
+    top: 35%;
+    font-size: 10px;
+    background-color: #666;
+    color: #fff;
+    padding: 2px 2px 1px 2px;
+    border-radius: 14px;
+    width: 18px;
+    font-weight: 500;
+    height: 18px;
+}
+
+#pageSearchParameters .btn.go {
+    border: 1px solid #ced4da;
+    border-radius: 0.25em;
+    height: 30px;
+    margin-top: -2px !important;
 }
 
 div.filtering-ui-content div.col {
