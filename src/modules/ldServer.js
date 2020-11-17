@@ -3,6 +3,7 @@
 */
 
 import { lowerCase } from "lodash";
+import "raremetal.js/dist/raremetal.js";
 
 export default {
     namespaced: true,
@@ -122,9 +123,30 @@ export default {
                     },
                     body: JSON.stringify(query)
                 }
-            ).then(resp => resp.json());
+            )
+                .then(resp => resp.json())
+                .then(json => {
+                    // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
+                    const [
+                        groups,
+                        variants
+                    ] = raremetal.helpers.parsePortalJSON(json);
+                    const runner = new raremetal.helpers.PortalTestRunner(
+                        groups,
+                        variants,
+                        [
+                            // One or more test names can be specified!
+                            "burden"
+                            //"skat"
+                            // 'vt'
+                        ]
+                    );
+                    console.log("here run");
+                    return runner.run();
+                })
+                .then(resp => resp);
 
-            context.commit("setCovariances", json.data);
+            context.commit("setCovariances", json);
         }
     }
 };
