@@ -140,7 +140,7 @@ export default Vue.component("page-header", {
                     if (links[i].rel == "shortcut icon") {
                         links[
                             i
-                        ].href = `https://kp4cd.org/icon/${group.name}/favicon.png`;
+                        ].href = `https://kp4cd.org/sites/default/files/vueportal/favicon/${group.name}/favicon.png`;
                     }
                 }
             }
