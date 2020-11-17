@@ -24,16 +24,13 @@
                         :looseMatch="true"
                         :header="'Search Criteria'"
                     >
-                        <filter-enumeration-control
+                        <filter-basic-control
                             ref="gene"
                             :field="'gene'"
                             :color="'#FF8C00'"
-                            :options="
-                                $store.state.genes.map((gene) => gene.gene)
-                            "
                         >
                             <div class="label">Gene</div>
-                        </filter-enumeration-control>
+                        </filter-basic-control>
 
                         <filter-enumeration-control
                             ref="dataset"
