@@ -114,9 +114,7 @@ new Vue({
         },
         selectedVariants() {
             //get only the varIDs for selected rows
-            return this.tableData
-                .filter(v => v.selected)
-                .map(v => variantUtils.gaitVariant(v.varId));
+            return this.tableData.filter(v => v.selected).map(v => v.varId);
         },
         selectedPhenotypes() {
             return this.searchCriteria

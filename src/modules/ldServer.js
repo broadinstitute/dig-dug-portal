@@ -67,6 +67,7 @@ export default {
                     stop: region.end,
                     genotypeDataset: 1,
                     phenotypeDataset: 1,
+                    variantFormat: "COLONS", //optinal, input and output format for requests
                     phenotype: phenotype, //string only, no array
                     samples: "ALL",
                     genomeBuild: "GRCh37",
@@ -91,6 +92,7 @@ export default {
                     start: region.start,
                     stop: region.end,
                     summaryStatisticDataset: 1,
+                    variantFormat: "COLONS",
                     samples: "ALL",
                     genomeBuild: "GRCh37",
                     maskDefinitions: [
