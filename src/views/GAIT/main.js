@@ -9,7 +9,9 @@ import FilterControl from "@/components/Filter/FilterControl.vue";
 import FilterPValue from "@/components/Filter/FilterPValue.vue";
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue";
+import FilterBasic from "@/components/Filter/FilterBasic";
 import variantUtils from "@/utils/variantUtils";
+import keyParams from "@/utils/keyParams";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 
@@ -25,7 +27,8 @@ new Vue({
         FilterListGroup,
         FilterPValue,
         FilterEnumeration,
-        FilterGreaterThan
+        FilterGreaterThan,
+        FilterBasic
     },
     render(createElement, context) {
         return createElement(Template);
@@ -52,7 +55,6 @@ new Vue({
             perPage: 10,
             currentPage: 1,
             currentPage2: 1,
-            searchCriteria: [],
             baseFields: [
                 {
                     key: "selected",
@@ -93,7 +95,25 @@ new Vue({
                 "transcript_id"
             ],
             fields: [],
-            optionalFields: []
+            optionalFields: [],
+            searchCriteria: [
+                {
+                    field: "gene",
+                    threshold: keyParams.gene
+                },
+                {
+                    field: "dataset",
+                    threshold: keyParams.dataset
+                },
+                {
+                    field: "phenotype",
+                    threshold: keyParams.phenotype
+                },
+                {
+                    field: "masks",
+                    threshold: keyParams.masks
+                }
+            ]
         };
     },
     created() {
