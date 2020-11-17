@@ -25,6 +25,32 @@
                         :header="'Search Criteria'"
                     >
                         <filter-enumeration-control
+                            ref="gene"
+                            :field="'gene'"
+                            :color="'#FF8C00'"
+                            :options="
+                                $store.state.genes.map((gene) => gene.gene)
+                            "
+                        >
+                            <div class="label">Gene</div>
+                        </filter-enumeration-control>
+
+                        <filter-enumeration-control
+                            ref="dataset"
+                            :field="'dataset'"
+                            :color="'#8A2BE2'"
+                            :options="$parent.datasets.map((v) => v.value)"
+                            :labelFormatter="
+                                (v) =>
+                                    $parent.datasets.find((o) => o.value === v)
+                                        .text
+                            "
+                            ><div class="label">
+                                Dataset
+                            </div></filter-enumeration-control
+                        >
+
+                        <filter-enumeration-control
                             ref="phenotype"
                             :field="'phenotype'"
                             :multiple="true"
@@ -48,24 +74,10 @@
                         </filter-enumeration-control>
 
                         <filter-enumeration-control
-                            ref="dataset"
-                            :field="'dataset'"
-                            :color="'#8A2BE2'"
-                            :options="$parent.datasets.map((v) => v.value)"
-                            :labelFormatter="
-                                (v) =>
-                                    $parent.datasets.find((o) => o.value === v)
-                                        .text
-                            "
-                            ><div class="label">
-                                Dataset
-                            </div></filter-enumeration-control
-                        >
-
-                        <filter-enumeration-control
                             ref="mask"
                             :field="'mask'"
                             :multiple="true"
+                            :disableSort="true"
                             :options="$parent.masks.map((v) => v.value)"
                             :labelFormatter="
                                 (v) =>
@@ -76,17 +88,6 @@
                                 Masks
                             </div></filter-enumeration-control
                         >
-
-                        <filter-enumeration-control
-                            ref="gene"
-                            :field="'gene'"
-                            :color="'#FF8C00'"
-                            :options="
-                                $store.state.genes.map((gene) => gene.gene)
-                            "
-                        >
-                            <div class="label">Gene</div>
-                        </filter-enumeration-control>
                     </filter-list-group>
 
                     <div style="text-align: center">
@@ -232,7 +233,7 @@
                                     block
                                     v-b-toggle.accordion-2
                                     variant="secondary"
-                                    >Covariances</b-button
+                                    >Covariance Matrices</b-button
                                 >
                             </b-card-header>
                             <b-collapse
