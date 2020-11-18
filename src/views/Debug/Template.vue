@@ -104,6 +104,26 @@
 
                             <!-- //ppa plot goes here. -->
                         </div>
+                        <div class="col-md-6" style="border-left: 1px dashed #444">
+                            <div v-if="$parent.geneAssociations52k">
+                                <div style="margin-block-end: 10px">
+                                    Prior variance:
+                                    <input
+                                        v-model.number="$store.state.priorVariance"
+                                        type="number"
+                                        placeholder="Prior Variance"
+                                        id="prior_variance_input"
+                                    />
+                                </div>
+
+                                <posterior-probability-plot
+                                    :geneAssociationsData="$parent.geneAssociations52k"
+                                    :priorVariance="$store.state.priorVariance"
+                                    :bayes_factor="$parent.combinedVariationCategory"
+                                    :isDichotomous="true"
+                                ></posterior-probability-plot>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -399,23 +419,6 @@
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h6>
-                                <div v-if="$parent.geneAssociations52k">
-                                    <div style="margin-block-end: 10px">
-                                        Prior variance:
-                                        <input
-                                            v-model.number="$store.state.priorVariance"
-                                            type="number"
-                                            placeholder="Prior Variance"
-                                            id="prior_variance_input"
-                                        />
-                                    </div>
-
-                                    <posterior-probability-plot
-                                        :geneAssociationsData="$parent.geneAssociations52k"
-                                        :priorVariance="$store.state.priorVariance"
-                                        :isDichotomous="true"
-                                    ></posterior-probability-plot>
-                                </div>
                             </div>
                             <!-- Close Rare Variation -->
                         </div>
