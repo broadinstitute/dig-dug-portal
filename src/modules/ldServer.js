@@ -2,8 +2,7 @@
 ! LD Server specific data
 */
 
-import { lowerCase } from "lodash";
-const raremetal = require("raremetal.js/dist/raremetal.js");
+import * as raremetal from "raremetal.js";
 
 export default {
     namespaced: true,
@@ -124,7 +123,13 @@ export default {
                     body: JSON.stringify(query)
                 }
             )
-                .then(resp => resp.json())
+                .then(resp => {
+                    if (resp.ok) {
+                        return resp.json();
+                    } else {
+                        throw new Error("Request to LD server failed");
+                    }
+                })
                 .then(json => {
                     // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
                     const [
