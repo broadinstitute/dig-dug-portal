@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import store from "./store.js";
 
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
@@ -33,6 +34,8 @@ Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
 new Vue({
+    store,
+    modules: {},
     components: {
         PageHeader,
         PageFooter,
@@ -124,6 +127,11 @@ new Vue({
             }
 
         },
+        combinedVariationABF(rareVariationABF, commonVariationABF) {
+            let combinedVariationABF = 1;
+            combinedVariationABF = rareVariationABF * commonVariationABF;
+            return combinedVariationABF;
+        },
         //determine categories using cutoffs for bayes factor - can be used for rare of common or combined
         determineCategory(commonVariationABF) {
             let category;
@@ -172,12 +180,6 @@ new Vue({
             }
             return categorymap;
         },
-        combinedVariationABF(rareVariationABF, commonVariationABF) {
-            let combinedVariationABF = 1;
-            combinedVariationABF = rareVariationABF * commonVariationABF;
-            return combinedVariationABF;
-        },
-
 
     },
     mounted() {
@@ -326,7 +328,7 @@ new Vue({
                 if (this.eglData.genetic == "1C") {
                     abf1 = 500;
                 }
-                if (this.eglData.perturbational == "2P" || this.eglData.genetic == "2C" || this.eglData.regulatory == "2R") {
+                if (this.eglData.genetic == "2C" || this.eglData.regulatory == "2R" || this.eglData.perturbational == "2P") {
                     abf2 = 5;
                 }
                 if (this.eglData.perturbational == "3P" || this.eglData.regulatory == "3R") {
@@ -336,15 +338,14 @@ new Vue({
             }
             return commonVariationABF;
 
-
         },
+
         rareVariationABF() {
             let masks = [];
-            let category = "No";
+
 
             let rare_bayes_factor = 1;
-            let categoryScore = 0;
-            let categorymap = {};
+
 
             if (!!this.$store.state.geneAssociations52k.data[0]) {
                 masks = this.$store.state.geneAssociations52k.data[0].masks
@@ -364,10 +365,7 @@ new Vue({
                 rare_bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
             }
             return rare_bayes_factor;
-
         },
-
-
 
         combinedVariationCategory() {
             let bayes_factor = this.combinedVariationABF(this.rareVariationABF, this.commonVariationABF)
@@ -424,6 +422,7 @@ new Vue({
                 // abf: abf
             }
         },
+
 
     },
 
