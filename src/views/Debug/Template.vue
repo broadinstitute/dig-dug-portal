@@ -70,6 +70,45 @@
                 </div>
             </div>
 
+            <!-- Card for combined Evidence -->
+            <div class="card mdkp-card">
+                <div class="card-body" style="margin-block-end: 20px">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>
+                                Combined Evidence
+                                <tooltip-documentation
+                                    name="gene.function.tooltip.hover"
+                                    :content-fill="$parent.documentationMap"
+                                    :isHover="true"
+                                    :noIcon="false"
+                                ></tooltip-documentation>
+                            </h4>
+
+                            <h5>
+                                {{ $store.state.geneName }} has
+                                {{$parent.combinedVariationCategory.category}}evidence of a
+                                disease-susceptibility.
+                            </h5>
+
+                            <!-- traffic light -->
+
+                            <div style="width: 700px" v-if="$parent.eglData">
+                                <br />
+                                <color-bar-plot
+                                    v-if="$parent.eglData"
+                                    :category="$parent.combinedVariationCategory.category"
+                                    :elementid="'combinedVariation'"
+                                ></color-bar-plot>
+                            </div>
+
+                            <!-- //ppa plot goes here. -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of combined evidence -->
+
             <!-- card for Common and Rare Variation -->
             <div class="card mdkp-card">
                 <div class="card-body" style="margin-block-end: 20px">
@@ -171,7 +210,7 @@
                                 </li>
                             </ul>
                             <!-- Common variation color bar plot -->
-                            <div style="width: 600px" v-if="$parent.eglData">
+                            <div style="width: 700px" v-if="$parent.eglData">
                                 <br />
                                 <color-bar-plot
                                     :category="$parent.commonVariationCategory.category.toUpperCase()"
@@ -279,11 +318,7 @@
                                     :noIcon="false"
                                 ></tooltip-documentation>
                             </h4>
-                            <div
-                                v-if="
-                                    $parent.isSignificant52kAssociationRareVariation
-                                "
-                            >
+                            <div v-if="$parent.isSignificant52kAssociationRareVariation">
                                 <h5>
                                     <documentation
                                         name="hugecal.rareVaration.header"
@@ -305,7 +340,7 @@
                                 </ul>
                                 <!-- Traffic Light for rare variation when gene is exome significant -->
                                 <color-bar-plot
-                                    :category="$parent.rareVariationCategoryAndScore.category.toUpperCase()"
+                                    :category="$parent.rareVariationCategory.category.toUpperCase()"
                                     :elementid="'rareVariation'"
                                 ></color-bar-plot>
 
@@ -326,10 +361,7 @@
 
                             <!-- Rare variation when NOT Exome wide significant -->
                             <div
-                                v-else-if="
-                                    $parent.isSignificant52kAssociationRareVariation ==
-                                    false
-                                "
+                                v-else-if="$parent.isSignificant52kAssociationRareVariation ==false"
                             >
                                 <h5>
                                     <documentation
@@ -346,29 +378,21 @@
 
                                 <!-- Traffic Light -->
                                 <color-bar-plot
-                                    :category="$parent.rareVariationCategoryAndScore.category.toUpperCase()"
+                                    :category="$parent.rareVariationCategory.category.toUpperCase()"
                                     :elementid="'rareVariation'"
                                 ></color-bar-plot>
 
                                 <hr style="margin: 40px" />
                                 <h5>
                                     <documentation
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category
-                                        "
+                                        v-if="$parent.rareVariationCategory.category"
                                         name="hugecal.priorVariance.header.notExomeSignificant"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h5>
                                 <h6>
                                     <documentation
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category
-                                        "
+                                        v-if="$parent.rareVariationCategory.category"
                                         name="hugecal.priorVariance.notExomeSignificant"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
@@ -377,9 +401,7 @@
                                     <div style="margin-block-end: 10px">
                                         Prior variance:
                                         <input
-                                            v-model.number="
-                                                $store.state.priorVariance
-                                            "
+                                            v-model.number="$store.state.priorVariance"
                                             type="number"
                                             placeholder="Prior Variance"
                                             id="prior_variance_input"
@@ -387,12 +409,8 @@
                                     </div>
 
                                     <posterior-probability-plot
-                                        :geneAssociationsData="
-                                            $parent.geneAssociations52k
-                                        "
-                                        :priorVariance="
-                                            $store.state.priorVariance
-                                        "
+                                        :geneAssociationsData="$parent.geneAssociations52k"
+                                        :priorVariance="$store.state.priorVariance"
                                         :isDichotomous="true"
                                     ></posterior-probability-plot>
                                 </div>

@@ -175,6 +175,12 @@ new Vue({
             }
             return categorymap;
         },
+        combinedVariationABF(rareVariationABF, commonVariationABF) {
+            let combinedVariationABF = 1;
+            combinedVariationABF = rareVariationABF * commonVariationABF;
+            return combinedVariationABF;
+        },
+
 
     },
     mounted() {
@@ -335,66 +341,11 @@ new Vue({
 
 
         },
-
-        combinedVariationABF(rareVariationABF, commonVariationABF) {
-            let combinedVariationABF = 1;
-            combinedVariationABF = rareVariationABF * commonVariationABF;
-            return combinedVariationABF;
-        },
-
-        combinedVariationCategory() {
-            let bayes_factor = this.combinedVariationABF
-            let categorymap = {}
-            categorymap = this.determineCategory(bayes_factor);
-            return categorymap;
-
-        },
-
-        commonVariationCategory() {
-            let categorymap = {};
-            let category = ""
-            if (!!this.eglData) {
-                let bayes_factor = this.commonVariationABF
-                categorymap = this.determineCategory(bayes_factor);
-            }
-
-            return categorymap;
-        },
-
-        //when the gene has significant association  (if exome wide significant)
-        //(Rare Variation), that means there is Strong coding evidence
-        //show the following instead of stage 2 plot
-        stage2Category() {
-            return { "category": "CAUSAL", "evidence": "Strong Coding Evidence", "genetic": "1C" }
-        },
-        documentationMap() {
-            let gene = this.$store.state.geneName;
-            let phenotype = this.$store.state.phenotype.description;
-            let rareVariationEvidence;
-            let ppa;
-            let abf;
-            if (!!this.$store.state.geneAssociations52k.data[0]) {
-                rareVariationEvidence = this.rareVariationCategoryAndScore.category;
-                ppa = this.rareVariationCategoryAndScore.ppa;
-                abf = this.rareVariationCategoryAndScore.abf;
-            }
-
-            return {
-                gene: gene,
-                phenotype: phenotype,
-                category: rareVariationEvidence,
-                ppa: ppa,
-                abf: abf
-            }
-        },
-
-
-
-        rareVariationCategoryAndScore() {
+        rareVariationABF() {
             let masks = [];
             let category = "No";
 
-            let bayes_factor = "";
+            let rare_bayes_factor = 1;
             let categoryScore = 0;
             let categorymap = {};
 
@@ -413,14 +364,73 @@ new Vue({
                     beta = Math.log(mostSignificantMask.oddsRatio);
                 }
 
-                bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
+                rare_bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
+            }
+            return rare_bayes_factor;
 
+        },
+
+
+
+        combinedVariationCategory() {
+            let bayes_factor = this.combinedVariationABF(this.rareVariationABF, this.commonVariationABF)
+            let categorymap = {}
+            categorymap = this.determineCategory(bayes_factor);
+            return categorymap;
+
+        },
+        commonVariationCategory() {
+            let categorymap = {};
+
+            if (!!this.eglData) {
+                let bayes_factor = this.commonVariationABF
                 categorymap = this.determineCategory(bayes_factor);
-
             }
 
             return categorymap;
         },
+
+        rareVariationCategory() {
+            let categorymap = {};
+            let bayes_factor = this.rareVariationABF
+            if (!!this.$store.state.geneAssociations52k.data[0]) {
+                categorymap = this.determineCategory(bayes_factor);
+            }
+
+            return categorymap;
+        },
+
+
+        //when the gene has significant association  (if exome wide significant)
+        //(Rare Variation), that means there is Strong coding evidence
+        //show the following instead of stage 2 plot
+        stage2Category() {
+            return { "category": "CAUSAL", "evidence": "Strong Coding Evidence", "genetic": "1C" }
+        },
+        documentationMap() {
+            let gene = this.$store.state.geneName;
+            let phenotype = this.$store.state.phenotype.description;
+            let rareVariationEvidence;
+            let ppa;
+            let abf;
+            if (!!this.$store.state.geneAssociations52k.data[0]) {
+                rareVariationEvidence = this.rareVariationCategory.category;
+                // ppa = this.rareVariationCategoryAndScore.ppa;
+                // abf = this.rareVariationCategoryAndScore.abf;
+            }
+
+            return {
+                gene: gene,
+                phenotype: phenotype,
+                category: rareVariationEvidence,
+                // ppa: ppa,
+                // abf: abf
+            }
+        },
+
+
+
+
 
 
         // finalCategory() {
