@@ -127,6 +127,59 @@ new Vue({
             }
 
         },
+        combinedVariationABF(rareVariationABF, commonVariationABF) {
+            let combinedVariationABF = 1;
+            combinedVariationABF = rareVariationABF * commonVariationABF;
+            return combinedVariationABF;
+        },
+        //determine categories using cutoffs for bayes factor - can be used for rare of common or combined
+        determineCategory(commonVariationABF) {
+            let category;
+            let categorymap = {};
+            if (commonVariationABF < 3.3) {
+                category = "No"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 7.26) {
+                category = "in GWAS"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 16.5) {
+                category = "Weak"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 36.3) {
+                category = "Possible"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF < 82.5) {
+                category = "Moderate"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF <= 1650) {
+                category = "Strong"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            else if (commonVariationABF > 1650) {
+                category = "Causal"
+                categorymap = {
+                    "category": category, "categoryScore": commonVariationABF
+                }
+            }
+            return categorymap;
+        },
 
     },
     mounted() {
@@ -294,30 +347,34 @@ new Vue({
 
 
         },
-        commonVariationCategory() {
-            let category = ""
-            if (this.commonVariationABF < 3.3) {
-                return category = "No"
-            }
-            if (this.commonVariationABF < 7.26) {
-                return category = "in GWAS"
-            }
-            if (this.commonVariationABF < 16.5) {
-                return category = "Weak"
-            }
-            if (this.commonVariationABF < 36.3) {
-                return category = "Possible"
-            }
-            if (this.commonVariationABF < 82.5) {
-                return category = "Moderate"
-            }
-            if (this.commonVariationABF <= 1650) {
-                return category = "Strong"
-            }
-            if (this.commonVariationABF > 1650) {
-                return category = "Causal"
-            }
+        combinedVariationCategory() {
+            let bayes_factor = this.combinedVariationABF(this.rareVariationABF, this.commonVariationABF)
+            let categorymap = {}
+            categorymap = this.determineCategory(bayes_factor);
+            return categorymap;
+
         },
+        commonVariationCategory() {
+            let categorymap = {};
+
+            if (!!this.eglData) {
+                let bayes_factor = this.commonVariationABF
+                categorymap = this.determineCategory(bayes_factor);
+            }
+
+            return categorymap;
+        },
+
+        rareVariationCategory() {
+            let categorymap = {};
+            let bayes_factor = this.rareVariationABF
+            if (!!this.$store.state.geneAssociations52k.data[0]) {
+                categorymap = this.determineCategory(bayes_factor);
+            }
+
+            return categorymap;
+        },
+
 
         //when the gene has significant association  (if exome wide significant)
         //(Rare Variation), that means there is Strong coding evidence
@@ -332,136 +389,21 @@ new Vue({
             let ppa;
             let abf;
             if (!!this.$store.state.geneAssociations52k.data[0]) {
-                rareVariationEvidence = this.rareVariationCategoryAndScore.category;
-                ppa = this.rareVariationCategoryAndScore.ppa;
-                abf = this.rareVariationCategoryAndScore.abf;
+                rareVariationEvidence = this.rareVariationCategory.category;
+                // ppa = this.rareVariationCategoryAndScore.ppa;
+                // abf = this.rareVariationCategoryAndScore.abf;
             }
 
             return {
                 gene: gene,
                 phenotype: phenotype,
                 category: rareVariationEvidence,
-                ppa: ppa,
-                abf: abf
+                // ppa: ppa,
+                // abf: abf
             }
         },
 
 
-
-        rareVariationCategoryAndScore() {
-            let masks = [];
-            let category = "No";
-            let ppa = "";
-            let bayes_factor = "";
-            let categoryScore = 0;
-            let categorymap = {};
-
-            if (!!this.$store.state.geneAssociations52k.data[0]) {
-                masks = this.$store.state.geneAssociations52k.data[0].masks
-                let prior = 0.20;
-                let d = masks.sort(
-                    (a, b) => a.pValue - b.pValue
-                );
-                let mostSignificantMask = d[0];
-                let stdErr = mostSignificantMask.stdErr;
-                let beta;
-                if (this.$store.state.phenotype.isDichotomous) {
-                    beta = mostSignificantMask.beta;
-                } else {
-                    beta = Math.log(mostSignificantMask.oddsRatio);
-                }
-                ppa = this.posteriorProbability(prior, beta, stdErr).ppa;
-                bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
-
-                if (bayes_factor > 1) {
-                    if (ppa < 0.30) {
-                        category = "WEAK"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                    else if (ppa < 0.50) {
-                        category = "POSSIBLE"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                    else if (ppa < 0.70) {
-                        category = "MODERATE"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                    else if (ppa < 0.90) {
-                        category = "STRONG"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                    else {
-                        category = "CAUSAL"
-                        categoryScore = this.calculateCategoryScore(category);
-                        categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                    }
-                }
-                else {
-                    category = "No"
-                    categoryScore = this.calculateCategoryScore(category);
-                    categorymap = { "category": category, "categoryScore": categoryScore, "ppa": ppa, "abf": bayes_factor };
-                }
-            }
-
-            return categorymap;
-        },
-
-
-        // finalCategory() {
-        //     let finalCategory = "";
-        //     if (
-        //         this.rareVariationCategoryAndScore.categoryScore +
-        //         this.commonVariationCategoryAndScore.categoryScore >=
-        //         5
-        //     ) {
-        //         finalCategory = "CAUSAL";
-        //         return finalCategory;
-        //     }
-        //     else if (
-        //         this.rareVariationCategoryAndScore.categoryScore +
-        //         this.commonVariationCategoryAndScore.categoryScore ==
-        //         4
-        //     ) {
-        //         finalCategory = "STRONG";
-        //         return finalCategory;
-        //     }
-        //     else if (
-        //         this.rareVariationCategoryAndScore.categoryScore +
-        //         this.commonVariationCategoryAndScore.categoryScore ==
-        //         3
-        //     ) {
-        //         finalCategory = "MODERATE";
-        //         return finalCategory;
-        //     }
-        //     else if (
-        //         this.rareVariationCategoryAndScore.categoryScore +
-        //         this.commonVariationCategoryAndScore.categoryScore ==
-        //         2
-        //     ) {
-        //         finalCategory = "POSSIBLE";
-        //         return finalCategory;
-        //     }
-        //     else if (
-        //         this.rareVariationCategoryAndScore.categoryScore +
-        //         this.commonVariationCategoryAndScore.categoryScore ==
-        //         1
-        //     ) {
-        //         finalCategory = "WEAK";
-        //         return finalCategory;
-        //     }
-        //     else if (
-        //         this.rareVariationCategoryAndScore.categoryScore +
-        //         this.commonVariationCategoryAndScore.categoryScore ==
-        //         0
-        //     ) {
-        //         finalCategory = "No";
-        //         return finalCategory;
-        //     }
-        // }
     },
 
 
