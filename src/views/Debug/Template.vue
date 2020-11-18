@@ -87,17 +87,17 @@
 
                             <h5>
                                 {{ $store.state.geneName }} has
-                                {{$parent.combinedVariationCategory.category}}evidence of a
+                                {{$parent.combinedVariationCategory.category}} evidence of a
                                 disease-susceptibility.
                             </h5>
 
                             <!-- traffic light -->
 
-                            <div style="width: 700px" v-if="$parent.eglData">
+                            <div style="width: 700px">
                                 <br />
                                 <color-bar-plot
-                                    v-if="$parent.eglData"
-                                    :category="$parent.combinedVariationCategory.category"
+                                    v-if="$parent.combinedVariationCategory"
+                                    :category="$parent.combinedVariationCategory.category.toUpperCase()"
                                     :elementid="'combinedVariation'"
                                 ></color-bar-plot>
                             </div>
@@ -340,6 +340,7 @@
                                 </ul>
                                 <!-- Traffic Light for rare variation when gene is exome significant -->
                                 <color-bar-plot
+                                    v-if="$parent.rareVariationCategory"
                                     :category="$parent.rareVariationCategory.category.toUpperCase()"
                                     :elementid="'rareVariation'"
                                 ></color-bar-plot>
@@ -378,6 +379,7 @@
 
                                 <!-- Traffic Light -->
                                 <color-bar-plot
+                                    v-if="$parent.rareVariationCategory"
                                     :category="$parent.rareVariationCategory.category.toUpperCase()"
                                     :elementid="'rareVariation'"
                                 ></color-bar-plot>
@@ -514,27 +516,26 @@ export default Vue.component("test", {
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
 }
-
 #combinedVariation .variationCausal {
-    background-color: rgb(9, 85, 79);
+    background-color: rgb(20, 110, 103);
 }
 #combinedVariation .variationStrong {
-    background-color: rgb(22, 92, 86);
+    background-color: rgb(39, 148, 139);
 }
 #combinedVariation .variationModerate {
-    background-color: rgb(29, 109, 102);
+    background-color: rgb(48, 175, 164);
 }
 #combinedVariation .variationPossible {
-    background-color: rgb(35, 134, 126);
+    background-color: rgb(69, 192, 182);
 }
 #combinedVariation .variationWeak {
-    background-color: rgb(50, 160, 151);
+    background-color: rgb(78, 209, 198);
 }
 #combinedVariation .variationInGWAS {
-    background-color: rgb(70, 182, 173);
+    background-color: rgb(120, 228, 219);
 }
 #combinedVariation .variationNoEvidence {
-    background-color: rgb(109, 212, 204);
+    background-color: rgb(168, 240, 234);
 }
 
 .causalclass {
