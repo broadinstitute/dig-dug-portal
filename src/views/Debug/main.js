@@ -1,6 +1,5 @@
 import Vue from "vue";
 import Template from "./Template.vue";
-import store from "./store.js";
 
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
@@ -34,8 +33,6 @@ Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
 
 new Vue({
-    store,
-    modules: {},
     components: {
         PageHeader,
         PageFooter,

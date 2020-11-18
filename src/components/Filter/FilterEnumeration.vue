@@ -7,6 +7,7 @@
         :pillFormatter="filterDefinition => `${filterDefinition.field} = ${labelFormatter(filterDefinition.threshold)}`"
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
+        :color="color"
         :multiple="!!multiple"
         :inclusive="!!inclusive || !!multiple">
         <slot>
@@ -34,6 +35,9 @@ export default Vue.component('filter-enumeration-control', {
         labelFormatter: {
             type: Function,
             default: Formatter.capitalizedFormatter,
+        },
+        disableSort: {
+            default: false
         }
     },
     components: {
@@ -43,10 +47,13 @@ export default Vue.component('filter-enumeration-control', {
         // Make options unique and sorted by default, and always
         // NOTE: Assumes that they are just strings! change?
         selectionOptions() {
-            return this.options
+            let options = this.options
                 .filter((v, i, arr) => arr.indexOf(v) == i)
                 .filter(v => v != undefined)
-                .sort()
+            if (!this.disableSort) {
+                options = options.sort();
+            }
+            return options;
         }
     }
 })
