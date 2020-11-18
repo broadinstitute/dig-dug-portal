@@ -3,7 +3,7 @@
 */
 
 import { lowerCase } from "lodash";
-import "raremetal.js/dist/raremetal.js";
+const raremetal = require("raremetal.js/dist/raremetal.js");
 
 export default {
     namespaced: true,
@@ -24,13 +24,13 @@ export default {
             state.covariances = data;
         }
     },
-    getters: {
-        covarianceCount(state) {
-            return state.covariances.groups
-                ? state.covariances.groups[0].variants.length
-                : 0;
-        }
-    },
+    // getters: {
+    //     covarianceCount(state) {
+    //         return state.covariances.groups
+    //             ? state.covariances.groups[0].variants.length
+    //             : 0;
+    //     }
+    // },
     actions: {
         // fetch all the phenotypes available
         async getPhenotypes({ state, commit }) {
@@ -136,15 +136,15 @@ export default {
                         variants,
                         [
                             // One or more test names can be specified!
-                            "burden"
-                            //"skat"
-                            // 'vt'
+                            "burden",
+                            "skat"
+                            //"vt"
                         ]
                     );
                     console.log("here run");
                     return runner.run();
-                })
-                .then(resp => resp);
+                });
+            //.then(resp => resp);
 
             context.commit("setCovariances", json);
         }
