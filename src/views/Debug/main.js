@@ -367,6 +367,9 @@ new Vue({
             return rare_bayes_factor;
         },
 
+        combinedVariationABF() {
+            return this.combinedVariationABF(this.rareVariationABF, this.commonVariationABF)
+        },
         combinedVariationCategory() {
             let bayes_factor = this.combinedVariationABF(this.rareVariationABF, this.commonVariationABF)
             let categorymap = {}
