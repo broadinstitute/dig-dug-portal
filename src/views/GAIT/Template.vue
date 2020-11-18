@@ -50,6 +50,7 @@
                         <filter-enumeration-control
                             ref="phenotype"
                             :field="'phenotype'"
+                            :disableSort="true"
                             :multiple="true"
                             :options="
                                 $store.state.ldServer.phenotypes.map(
@@ -230,7 +231,7 @@
                                     block
                                     v-b-toggle.accordion-2
                                     variant="secondary"
-                                    >Covariance Matrices</b-button
+                                    >Covariance</b-button
                                 >
                             </b-card-header>
                             <b-collapse
@@ -266,7 +267,7 @@
                                                 hover
                                                 :items="
                                                     $store.state.ldServer
-                                                        .covariances.variants
+                                                        .covariances
                                                 "
                                                 :per-page="$parent.perPage"
                                                 :current-page="
@@ -277,7 +278,7 @@
                                             <b-pagination
                                                 v-if="
                                                     $store.state.ldServer
-                                                        .covariances.variants
+                                                        .covariances
                                                 "
                                                 v-model="$parent.currentPage2"
                                                 :total-rows="
@@ -291,20 +292,6 @@
                                                 :per-page="$parent.perPage"
                                                 aria-controls="covariances-table"
                                             ></b-pagination>
-                                        </div>
-
-                                        <div
-                                            v-if="
-                                                $store.state.ldServer
-                                                    .covariances.groups
-                                            "
-                                        >
-                                            <strong>Covariances:</strong>
-                                            {{
-                                                $store.state.ldServer
-                                                    .covariances.groups[0]
-                                                    .covariance
-                                            }}
                                         </div>
                                     </b-skeleton-wrapper>
                                 </b-card-body>
