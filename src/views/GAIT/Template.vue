@@ -53,9 +53,11 @@
                             :disableSort="true"
                             :multiple="true"
                             :options="
-                                $store.state.ldServer.phenotypes.map(
-                                    (phenotype) => phenotype.name
-                                )
+                                $parent.selectedDataset == '52k'
+                                    ? $store.state.ldServer.phenotypes.map(
+                                          (phenotype) => phenotype.name
+                                      )
+                                    : ['T2D']
                             "
                             :labelFormatter="
                                 (phenotype) =>

@@ -45,7 +45,7 @@ new Vue({
                 { text: "5/5 + 0/5 1%", value: "0of5_1pct" }
             ],
             datasets: [
-                { text: "52K", value: "52K" },
+                { text: "52K", value: "52k" },
                 { text: "TopMed", value: "TopMed" }
             ],
             showVariants: false,
@@ -156,6 +156,13 @@ new Vue({
                     return v.field === "mask";
                 })
                 .map(v => v.threshold);
+        },
+        selectedDataset() {
+            return this.searchCriteria
+                .filter(v => {
+                    return v.field === "dataset";
+                })
+                .map(v => v.threshold);
         }
     },
     methods: {
@@ -195,8 +202,17 @@ new Vue({
         }
     },
     watch: {
+        selectedDataset(newDataset, oldDataset) {
+            if (!isEqual(newDataset, oldDataset)) {
+                console.log("change");
+                this.searchCriteria = this.searchCriteria.filter(v => {
+                    return v.field !== "phenotype";
+                });
+                //TODO: clear pill when clear phenotype
+            }
+        },
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
-            //check value change first otherwise it gets triggered everytime filter change forced a recompute
+            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newPhenotypes, oldPhenotypes)) {
                 this.$store.dispatch("onPhenotypeChange", newPhenotypes);
             }
