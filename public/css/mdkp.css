@@ -71,6 +71,13 @@ a:hover {
     background-position: 120% 100px, top left;
 }
 
+
+.front-top-banner-lungkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/lungkp_front_bg.png),
+        linear-gradient(#7ACCC8, #08B89D);
+    background-position: 120% 100px, top left;
+}
+
 .front-top-banner {
     font-size: 16px;
     background-repeat: no-repeat;
@@ -168,6 +175,10 @@ a:hover {
     transform: translate(0%, 25%);
 }
 
+.front-logo-tagline-lungkp {
+    transform: translate(0%, 85%);
+}
+
 .front-banner-ui-tabs {
     width: 800px;
     margin-left: auto;
@@ -240,6 +251,10 @@ a:hover {
     height: 50px;
 }
 
+.lungkp-logo {
+    height: 50px;
+}
+
 .mdkp-header,
 .mdkp-footer {
     background-color: #0097d6;
@@ -285,6 +300,12 @@ a:hover {
 .mskkp-header,
 .mskkp-footer {
     background-color: #BCAFD6;
+    height: 50px;
+}
+
+.lungkp-header,
+.lungkp-footer {
+    background-color: #7ACCC8;
     height: 50px;
 }
 
@@ -371,7 +392,8 @@ a:hover {
 .cdkp-footer,
 .v2fkp-footer,
 .t1dkp-footer,
-.mskkp-footer {
+.mskkp-footer,
+.lungkp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -386,7 +408,8 @@ a:hover {
 .cdkp-body,
 .v2fkp-body,
 .t1dkp-body,
-.mskkp-body {
+.mskkp-body,
+.lungkp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -399,7 +422,8 @@ a:hover {
 .cdkp-card,
 .v2fkp-card,
 .t1dkp-card,
-.mskkp-card {
+.mskkp-card,
+.lungkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
