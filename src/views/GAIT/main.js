@@ -48,6 +48,13 @@ new Vue({
                 { text: "52K", value: "52k" },
                 { text: "TopMed", value: "TopMed" }
             ],
+            testMethods: [
+                { text: "Collapsing Burden", value: "burden" },
+                { text: "Variable Threshold", value: "vt" },
+                { text: "SKAT", value: "skat" },
+                { text: "SKAT Optimal", value: "skat-o" }
+            ],
+            selectedMethods: [],
             showVariants: false,
             showCovariances: false,
             loadingVariants: false,
@@ -163,6 +170,13 @@ new Vue({
                     return v.field === "dataset";
                 })
                 .map(v => v.threshold);
+        },
+        selectedTests() {
+            return this.selectedMethods
+                .filter(v => {
+                    return v.field === "test";
+                })
+                .map(v => v.threshold);
         }
     },
     methods: {
@@ -182,8 +196,9 @@ new Vue({
             this.loadingCovariances = true;
             this.$store.dispatch("ldServer/runTests", {
                 variants: this.selectedVariants,
-                phenotypes: this.selectedPhenotypes, //test with one for now
-                dataset: this.selectedDataset
+                phenotypes: this.selectedPhenotypes,
+                dataset: this.selectedDataset,
+                tests: this.selectedTests
             });
         },
         updateFields() {

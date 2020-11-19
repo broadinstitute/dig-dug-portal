@@ -43,7 +43,7 @@ export default {
                 json.data[0].phenotypeDatasets[0].phenotypes
             );
         },
-        async getCovariances(context, { variants, phenotype, dataset }) {
+        async getCovariances(context, { variants, phenotype, dataset, tests }) {
             //console.log("state", state);
             //let variants = state.variants;
             // let gene = await state.gene.data[0];
@@ -136,12 +136,13 @@ export default {
                     const runner = new raremetal.helpers.PortalTestRunner(
                         groups,
                         variants,
-                        [
-                            // One or more test names can be specified!
-                            "burden",
-                            //"skat",
-                            "vt"
-                        ]
+                        tests
+                        //[
+                        // One or more test names can be specified!
+                        //"burden",
+                        //"skat-o"
+                        //"vt"
+                        //]
                     );
                     console.log("here run");
                     return runner.run();
@@ -150,14 +151,18 @@ export default {
 
             return [{ phenotype: phenotype }, { data: json }];
         },
-        async runTests(context, { variants, phenotypes, dataset }) {
+        async runTests(context, { variants, phenotypes, dataset, tests }) {
             console.log("running tests");
             console.log("p", phenotypes);
+            if (!tests || !tests.length) {
+                tests = ["burden"]; //if no test is selected, just run burden by default
+            }
             let queries = phenotypes.map(phenotype =>
                 context.dispatch("getCovariances", {
                     variants,
                     phenotype,
-                    dataset
+                    dataset,
+                    tests
                 })
             );
             let data = await Promise.all(queries);

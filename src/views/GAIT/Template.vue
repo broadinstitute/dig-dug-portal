@@ -206,6 +206,32 @@
                                             </b-table>
                                         </div>
 
+                                        <filter-list-group
+                                            v-model="$parent.selectedMethods"
+                                            :looseMatch="true"
+                                            :header="'Test(s) Selected'"
+                                            ><filter-enumeration-control
+                                                ref="test"
+                                                :field="'test'"
+                                                :multiple="true"
+                                                :disableSort="true"
+                                                :options="
+                                                    $parent.testMethods.map(
+                                                        (v) => v.value
+                                                    )
+                                                "
+                                                :labelFormatter="
+                                                    (v) =>
+                                                        $parent.testMethods.find(
+                                                            (o) => o.value === v
+                                                        ).text
+                                                "
+                                                ><div class="label">
+                                                    Test Methods
+                                                </div></filter-enumeration-control
+                                            >
+                                        </filter-list-group>
+
                                         <div
                                             style="text-align: center"
                                             v-if="$parent.tableData.length > 0"
@@ -233,7 +259,7 @@
                                     block
                                     v-b-toggle.accordion-2
                                     variant="secondary"
-                                    >Covariance</b-button
+                                    >Results</b-button
                                 >
                             </b-card-header>
                             <b-collapse
