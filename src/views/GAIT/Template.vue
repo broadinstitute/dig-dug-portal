@@ -149,7 +149,7 @@
                                             >
                                                 <b-checkbox
                                                     v-if="
-                                                        $parent.hiddenFields.indexOf(
+                                                        $parent.defaultFields.indexOf(
                                                             field.key
                                                         ) < 0
                                                     "
@@ -294,6 +294,13 @@
                                                 :per-page="$parent.perPage"
                                                 aria-controls="covariances-table"
                                             ></b-pagination>
+                                            <div>
+                                                RAW DATA:
+                                                {{
+                                                    $store.state.ldServer
+                                                        .covariances
+                                                }}
+                                            </div>
                                         </div>
                                     </b-skeleton-wrapper>
                                 </b-card-body>

@@ -83,7 +83,7 @@ new Vue({
                     visible: true
                 }
             ],
-            hiddenFields: [
+            defaultFields: [
                 //custom predefined and hidden fields
                 "selected",
                 "varId",
@@ -180,15 +180,16 @@ new Vue({
         searchCovariances() {
             this.showCovariances = true;
             this.loadingCovariances = true;
-            this.$store.dispatch("ldServer/getCovariances", {
+            this.$store.dispatch("ldServer/runTests", {
                 variants: this.selectedVariants,
-                phenotype: this.selectedPhenotypes[0] //test with one for now
+                phenotypes: this.selectedPhenotypes, //test with one for now
+                dataset: this.selectedDataset
             });
         },
         updateFields() {
             let addFields = [];
             Object.keys(this.tableData[0]).forEach(k => {
-                if (this.hiddenFields.indexOf(k) < 0) {
+                if (this.defaultFields.indexOf(k) < 0) {
                     addFields.push({
                         key: k,
                         label: startCase(k),

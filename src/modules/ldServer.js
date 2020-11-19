@@ -43,10 +43,7 @@ export default {
                 json.data[0].phenotypeDatasets[0].phenotypes
             );
         },
-        async getCovariances(
-            context,
-            { variants, phenotype, dataset = "52k" }
-        ) {
+        async getCovariances(context, { variants, phenotype, dataset }) {
             //console.log("state", state);
             //let variants = state.variants;
             // let gene = await state.gene.data[0];
@@ -142,8 +139,8 @@ export default {
                         [
                             // One or more test names can be specified!
                             "burden",
-                            "skat"
-                            //"vt"
+                            //"skat",
+                            "vt"
                         ]
                     );
                     console.log("here run");
@@ -151,7 +148,21 @@ export default {
                 });
             //.then(resp => resp);
 
-            context.commit("setCovariances", json);
+            return [{ phenotype: phenotype }, { data: json }];
+        },
+        async runTests(context, { variants, phenotypes, dataset }) {
+            console.log("running tests");
+            console.log("p", phenotypes);
+            let queries = phenotypes.map(phenotype =>
+                context.dispatch("getCovariances", {
+                    variants,
+                    phenotype,
+                    dataset
+                })
+            );
+            let data = await Promise.all(queries);
+
+            context.commit("setCovariances", data);
         }
     }
 };
