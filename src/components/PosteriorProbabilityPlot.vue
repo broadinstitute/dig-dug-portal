@@ -11,7 +11,7 @@ import Vue from "vue";
 import * as d3 from "d3";
 
 export default Vue.component("posterior-probability-plot", {
-    props: ["geneAssociationsData", "priorVariance", "isDichotomous"],
+    props: ["geneAssociationsData", "priorVariance", "isDichotomous","bayes_factor"],
 
     data() {
         return {};
@@ -212,15 +212,15 @@ export default Vue.component("posterior-probability-plot", {
             }
         },
 
-        posteriorProbability(p, beta, stdErr) {
-            let w = this.priorVariance;
-            let v = Math.pow(stdErr, 2);
-            let f1 = v / (v + w);
-            let sqrt_f1 = Math.sqrt(f1);
-            let f2 = w * Math.pow(beta, 2);
-            let f3 = 2 * v * (v + w);
-            let f4 = f2 / f3;
-            let bayes_factor = sqrt_f1 * Math.exp(f4);
+        posteriorProbability(p) {
+            // let w = this.priorVariance; // from the user
+            // let v = Math.pow(stdErr, 2);
+            // let f1 = v / (v + w);
+            // let sqrt_f1 = Math.sqrt(f1);
+            // let f2 = w * Math.pow(beta, 2);
+            // let f3 = 2 * v * (v + w);
+            // let f4 = f2 / f3;
+            let bayes_factor = this.bayes_factor; //combined bayes factor
             let f5 = p / (1 - p);
             let p0 = bayes_factor * f5;
             let ppa = p0 / (1 + p0);
@@ -251,7 +251,7 @@ export default Vue.component("posterior-probability-plot", {
             prior.forEach((r, i) => {
                 let m = {};
                 x[i] = r;
-                y[i] = this.posteriorProbability(r, beta, stdErr);
+                y[i] = this.posteriorProbability(r);
                 m["prior"] = x[i];
                 m["ppa"] = y[i];
                 l.push(m);
