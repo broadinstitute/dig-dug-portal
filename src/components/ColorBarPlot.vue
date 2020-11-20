@@ -25,11 +25,11 @@
                             <strong>Possible</strong>
                         </div>
                         <div class="col-sm variationWeak">
-                            <strong>Weak</strong>
+                            <strong>Potential</strong>
                         </div>
 
                         <div class="col-sm variationInGWAS">
-                            <strong>In GWAS</strong>
+                            <strong>Weak</strong>
                         </div>
 
                         <div class="col- variationNoEvidence">
