@@ -106,20 +106,12 @@
                         </div>
                         <div class="col-md-6" style="border-left: 1px dashed #444">
                             <div v-if="$parent.geneAssociations52k">
-                                <div style="margin-block-end: 10px">
-                                    Prior variance:
-                                    <input
-                                        v-model.number="$store.state.priorVariance"
-                                        type="number"
-                                        placeholder="Prior Variance"
-                                        id="prior_variance_input"
-                                    />
-                                </div>
+                               
 
                                 <posterior-probability-plot
                                     :geneAssociationsData="$parent.geneAssociations52k"
                                     :priorVariance="$store.state.priorVariance"
-                                    :bayes_factor="$parent.combinedVariationCategory"
+                                    :bayes_factor="$parent.combinedVariationABF"
                                     :isDichotomous="true"
                                 ></posterior-probability-plot>
                             </div>
@@ -186,45 +178,6 @@
                                     >
                                         {{
                                         $parent.eglData.genomic
-                                        }}
-                                    </span>
-                                </li>
-
-                                <!-- perturbational -->
-                                <li
-                                    v-if="
-                                        $parent.eglData.perturbational
-                                    "
-                                >
-                                    Perturbational Evidence:
-                                    <span
-                                        v-if="
-                                           $parent.eglData.perturbational == '1P'
-                                        "
-                                        class="perturbationalEvidence1P"
-                                    >
-                                        {{
-                                        $parent.eglData.perturbational
-                                        }}
-                                    </span>
-                                    <span
-                                        v-if="
-                                            $parent.eglData.perturbational == '2P'
-                                        "
-                                        class="perturbationalEvidence2P"
-                                    >
-                                        {{
-                                        $parent.eglData.perturbational
-                                        }}
-                                    </span>
-                                    <span
-                                        v-if="
-                                            $parent.eglData.perturbational == '3P'
-                                        "
-                                        class="perturbationalEvidence3P"
-                                    >
-                                        {{
-                                        $parent.eglData.perturbational
                                         }}
                                     </span>
                                 </li>
@@ -347,17 +300,12 @@
                                 </h5>
                                 <ul>
                                     <li>
-                                        Genetic Evidence
-                                        <span
-                                            class="codingEvidence1C"
-                                        >{{$parent.stage2Category.genetic}}</span>
-                                    </li>
-                                    <li>
                                         <span>
                                             <strong>{{$parent.stage2Category.evidence }}</strong>
                                         </span>
                                     </li>
                                 </ul>
+
                                 <!-- Traffic Light for rare variation when gene is exome significant -->
                                 <color-bar-plot
                                     v-if="$parent.rareVariationCategory"
