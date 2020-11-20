@@ -84,8 +84,8 @@ new Vue({
 
             this.$store.commit(`associations/setResponse`, data);
         },
-        posteriorProbability(prior, beta, stdErr) {
-            let w = this.$store.state.priorVariance
+        bayes_factor(beta, stdErr) {
+            let w = 0.3696;
             let v = Math.pow(stdErr, 2);
             let f1 = v / (v + w);
             let sqrt_f1 = Math.sqrt(f1);
@@ -93,10 +93,7 @@ new Vue({
             let f3 = 2 * v * (v + w);
             let f4 = f2 / f3;
             let bayes_factor = sqrt_f1 * Math.exp(f4);
-            let f5 = prior / (1 - prior);
-            let p0 = bayes_factor * f5;
-            let ppa = p0 / (1 + p0);
-            return { "ppa": ppa, "bayes_factor": bayes_factor };
+            return bayes_factor;
         },
 
         calculateCategoryScore(category) {
@@ -127,7 +124,7 @@ new Vue({
             }
 
         },
-        combinedVariationABF(rareVariationABF, commonVariationABF) {
+        calculateCombinedVariationABF(rareVariationABF, commonVariationABF) {
             let combinedVariationABF = 1;
             combinedVariationABF = rareVariationABF * commonVariationABF;
             return combinedVariationABF;
@@ -136,14 +133,14 @@ new Vue({
         determineCategory(commonVariationABF) {
             let category;
             let categorymap = {};
-            if (commonVariationABF < 3.3) {
+            if (commonVariationABF < 2.1) {
                 category = "No"
                 categorymap = {
                     "category": category, "categoryScore": commonVariationABF
                 }
             }
             else if (commonVariationABF < 7.26) {
-                category = "in GWAS"
+                category = "Potential"
                 categorymap = {
                     "category": category, "categoryScore": commonVariationABF
                 }
@@ -166,13 +163,13 @@ new Vue({
                     "category": category, "categoryScore": commonVariationABF
                 }
             }
-            else if (commonVariationABF <= 1650) {
+            else if (commonVariationABF < 1650) {
                 category = "Strong"
                 categorymap = {
                     "category": category, "categoryScore": commonVariationABF
                 }
             }
-            else if (commonVariationABF > 1650) {
+            else if (commonVariationABF >= 1650) {
                 category = "Causal"
                 categorymap = {
                     "category": category, "categoryScore": commonVariationABF
@@ -325,31 +322,30 @@ new Vue({
                 let abf1 = 1;
                 let abf2 = 1;
                 let abf3 = 1;
+                //abf = 3 if its in GWAS (essentially it has significant common variation)
                 if (this.eglData.genetic == "1C") {
-                    abf1 = 500;
+                    abf1 = 500 * 3.3;
                 }
-                if (this.eglData.genetic == "2C" || this.eglData.regulatory == "2R" || this.eglData.perturbational == "2P") {
-                    abf2 = 5;
+                if (this.eglData.genetic == "2C" || this.eglData.regulatory == "2R") {
+                    abf2 = 5 * 3.3;
                 }
                 if (this.eglData.perturbational == "3P" || this.eglData.regulatory == "3R") {
-                    abf3 = 2.2
+                    abf3 = 2.2 * 3.3
                 }
                 commonVariationABF = abf1 * abf2 * abf3
             }
             return commonVariationABF;
-
         },
 
+        //calculate only if its not exome wide significant
+        //if ABF is <1, then we will set the ABF =1 - which means no change (when multiplied by common abf)
         rareVariationABF() {
             let masks = [];
 
-
             let rare_bayes_factor = 1;
-
 
             if (!!this.$store.state.geneAssociations52k.data[0]) {
                 masks = this.$store.state.geneAssociations52k.data[0].masks
-                let prior = 0.20;
                 let d = masks.sort(
                     (a, b) => a.pValue - b.pValue
                 );
@@ -362,16 +358,16 @@ new Vue({
                     beta = Math.log(mostSignificantMask.oddsRatio);
                 }
 
-                rare_bayes_factor = this.posteriorProbability(prior, beta, stdErr).bayes_factor;
+                rare_bayes_factor = this.bayes_factor(beta, stdErr);
             }
             return rare_bayes_factor;
         },
 
         combinedVariationABF() {
-            return this.combinedVariationABF(this.rareVariationABF, this.commonVariationABF)
+            return this.calculateCombinedVariationABF(this.rareVariationABF, this.commonVariationABF)
         },
         combinedVariationCategory() {
-            let bayes_factor = this.combinedVariationABF(this.rareVariationABF, this.commonVariationABF)
+            let bayes_factor = this.calculateCombinedVariationABF(this.rareVariationABF, this.commonVariationABF)
             let categorymap = {}
             categorymap = this.determineCategory(bayes_factor);
             return categorymap;
@@ -413,8 +409,8 @@ new Vue({
             let abf;
             if (!!this.$store.state.geneAssociations52k.data[0]) {
                 rareVariationEvidence = this.rareVariationCategory.category;
-                // ppa = this.rareVariationCategoryAndScore.ppa;
-                // abf = this.rareVariationCategoryAndScore.abf;
+
+                abf = this.rareVariationABF;
             }
 
             return {
@@ -422,7 +418,7 @@ new Vue({
                 phenotype: phenotype,
                 category: rareVariationEvidence,
                 // ppa: ppa,
-                // abf: abf
+                abf: abf
             }
         },
 
