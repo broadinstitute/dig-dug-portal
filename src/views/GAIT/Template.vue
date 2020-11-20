@@ -112,7 +112,7 @@
                                 <b-button
                                     block
                                     v-b-toggle.accordion-1
-                                    variant="secondary"
+                                    variant="outline-secondary"
                                     >Variants</b-button
                                 >
                             </b-card-header>
@@ -258,7 +258,7 @@
                                 <b-button
                                     block
                                     v-b-toggle.accordion-2
-                                    variant="secondary"
+                                    variant="outline-secondary"
                                     >Results</b-button
                                 >
                             </b-card-header>
@@ -303,23 +303,7 @@
                                                 "
                                             >
                                             </b-table>
-                                            <b-pagination
-                                                v-if="
-                                                    $store.state.ldServer
-                                                        .covariances
-                                                "
-                                                v-model="$parent.currentPage2"
-                                                :total-rows="
-                                                    $store.state.ldServer
-                                                        .covariances.variants
-                                                        ? $store.state.ldServer
-                                                              .covariances
-                                                              .variants.length
-                                                        : 0
-                                                "
-                                                :per-page="$parent.perPage"
-                                                aria-controls="covariances-table"
-                                            ></b-pagination>
+
                                             <div>
                                                 RAW DATA:
                                                 {{
@@ -341,3 +325,9 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<style scoped>
+.accordion .card.mb-1 {
+    overflow: unset;
+}
+</style>

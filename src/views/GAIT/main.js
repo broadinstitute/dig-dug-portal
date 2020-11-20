@@ -61,7 +61,6 @@ new Vue({
             loadingCovariances: false,
             perPage: 10,
             currentPage: 1,
-            currentPage2: 1,
             baseFields: [
                 {
                     key: "selected",
