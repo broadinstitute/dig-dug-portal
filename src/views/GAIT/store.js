@@ -59,7 +59,9 @@ export default new Vuex.Store({
             context.commit("setPhenotype", phenotypes);
             //TODO: set url params for bookmark
             //keyParams.set({ phenotypes: phenotypes.join(",") });
-            context.dispatch("queryGenes", phenotypes);
+
+            //not needed for autocomplete anymore
+            //context.dispatch("queryGenes", phenotypes);
         },
 
         async queryGenes(context, phenotypes) {

@@ -297,10 +297,6 @@
                                                     $store.state.ldServer
                                                         .covariances
                                                 "
-                                                :per-page="$parent.perPage"
-                                                :current-page="
-                                                    $parent.currentPage2
-                                                "
                                             >
                                             </b-table>
 
@@ -311,7 +307,63 @@
                                                         .covariances
                                                 }}
                                             </div>
+
+                                            <b-table
+                                                v-if="
+                                                    $store.state.ldServer
+                                                        .covariances[0]
+                                                "
+                                                striped
+                                                hover
+                                                :items="
+                                                    $parent.formatTestData(
+                                                        $store.state.ldServer
+                                                            .covariances[0][1]
+                                                            .data
+                                                    )
+                                                "
+                                            >
+                                                <template
+                                                    v-slot:thead-top="data"
+                                                >
+                                                    <b-th colspan="4">
+                                                        <span>{{
+                                                            $store.state
+                                                                .ldServer
+                                                                .covariances[0][0]
+                                                                .phenotype
+                                                        }}</span>
+                                                    </b-th>
+                                                </template>
+                                            </b-table>
+                                            <div
+                                                v-if="
+                                                    $store.state.ldServer
+                                                        .covariances[0]
+                                                "
+                                            >
+                                                formatted:
+                                                {{
+                                                    $parent.formatTestData(
+                                                        $store.state.ldServer
+                                                            .covariances[0][1]
+                                                            .data
+                                                    )
+                                                }}
+                                            </div>
                                         </div>
+                                        <!-- <b-alert
+                                            show
+                                            variant="danger"
+                                            v-if="
+                                                $store.state.ldServer
+                                                    .runTestsError
+                                            "
+                                            >{{
+                                                $store.state.ldServer
+                                                    .runTestsError
+                                            }}</b-alert
+                                        > -->
                                     </b-skeleton-wrapper>
                                 </b-card-body>
                             </b-collapse>

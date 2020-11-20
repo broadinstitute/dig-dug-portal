@@ -197,7 +197,10 @@ new Vue({
                 variants: this.selectedVariants,
                 phenotypes: this.selectedPhenotypes,
                 dataset: this.selectedDataset,
-                tests: this.selectedTests
+                tests:
+                    this.selectedTests.length > 0
+                        ? this.selectedTests
+                        : ["burden"]
             });
         },
         updateFields() {
@@ -214,6 +217,18 @@ new Vue({
 
             this.optionalFields = addFields;
             this.fields = this.baseFields.concat(addFields);
+        },
+        formatTestData(data) {
+            let formatted = [];
+            data.map(test => {
+                formatted.push({
+                    test: test.test,
+                    variants: test.variants.length,
+                    "z-score": test.stat,
+                    "p-value": test.pvalue
+                });
+            });
+            return formatted;
         }
     },
     watch: {
@@ -241,5 +256,9 @@ new Vue({
             console.log("change2");
             this.loadingCovariances = false;
         }
+        // "$store.state.ldServer.runTestsError": function() {
+        //     console.log("change3");
+        //     this.loadingCovariances = false;
+        // }
     }
 }).$mount("#app");

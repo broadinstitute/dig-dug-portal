@@ -2,6 +2,7 @@
 ! LD Server specific data
 */
 
+import { postAlertError } from "@/components/Alert";
 import * as raremetal from "raremetal.js";
 
 export default {
@@ -12,7 +13,8 @@ export default {
             phenotypes: [],
             variants: [],
             masks: [],
-            covariances: []
+            covariances: [],
+            runTestsError: "" //error to display if test failed
         };
     },
     mutations: {
@@ -21,6 +23,9 @@ export default {
         },
         setCovariances(state, data) {
             state.covariances = data;
+        },
+        setError(state, data) {
+            state.runTestsError = data;
         }
     },
     // getters: {
@@ -152,11 +157,10 @@ export default {
             return [{ phenotype: phenotype }, { data: json }];
         },
         async runTests(context, { variants, phenotypes, dataset, tests }) {
+            context.commit("setError", "");
             console.log("running tests");
             console.log("p", phenotypes);
-            if (!tests || !tests.length) {
-                tests = ["burden"]; //if no test is selected, just run burden by default
-            }
+
             let queries = phenotypes.map(phenotype =>
                 context.dispatch("getCovariances", {
                     variants,
@@ -165,9 +169,14 @@ export default {
                     tests
                 })
             );
-            let data = await Promise.all(queries);
 
-            context.commit("setCovariances", data);
+            try {
+                let data = await Promise.all(queries);
+                context.commit("setCovariances", data);
+            } catch (e) {
+                console.error(e);
+                context.commit("setError", e);
+            }
         }
     }
 };
