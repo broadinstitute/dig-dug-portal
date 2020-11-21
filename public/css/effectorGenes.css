@@ -918,3 +918,77 @@ span.weight-blue {
     font-size: 12px;
     font-weight: 600;
 }
+
+
+/* EGL M-Plot */
+.egl-m-plot-wrapper {
+    height: 300px;
+}
+
+.egl-m-plot-content {
+    height: 100%;
+}
+
+#egl_m_plot_y {
+    width: 50px;
+    height: calc(100% - 30px);
+    border-right: solid 1px #000;
+    display: inline-block;
+}
+
+.egl-m-plot {
+    width: calc(100% - 50px);
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+    font-size: 14px;
+}
+
+.egl-m-plot .chr_wrapper {
+    display: inline-block;
+    height: 100%;
+}
+
+.egl-m-plot .chr_wrapper .chr_dots_wrapper {
+    height: calc(100% - 35px);
+    border-right: solid 1px #eee;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.egl-m-plot .chr_wrapper .chr_number {
+    width: 100%;
+    border-top: solid 1px #000;
+    height: 30px;
+    vertical-align: bottom;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot {
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 15px;
+    background-color: #00000050;
+    display: block;
+    position: absolute;
+}
+
+.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot .dot-content {
+    position: absolute;
+    display: none;
+}
+
+.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot:hover .dot-content {
+    display: block;
+    cursor: pointer;
+    color: #fff;
+    background-color: #333;
+    padding: 0 10px;
+    top: -6px;
+    left: 12px;
+    z-index: 10;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
