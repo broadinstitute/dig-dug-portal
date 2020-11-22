@@ -112,7 +112,7 @@
                                 <b-button
                                     block
                                     v-b-toggle.accordion-1
-                                    variant="outline-secondary"
+                                    variant="outline-primary"
                                     >Variants</b-button
                                 >
                             </b-card-header>
@@ -258,7 +258,7 @@
                                 <b-button
                                     block
                                     v-b-toggle.accordion-2
-                                    variant="outline-secondary"
+                                    variant="outline-primary"
                                     >Results</b-button
                                 >
                             </b-card-header>
