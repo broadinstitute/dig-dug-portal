@@ -51,6 +51,7 @@
                             ref="phenotype"
                             :field="'phenotype'"
                             :disableSort="true"
+                            :disabled="$parent.selectedDataset.length == 0"
                             :multiple="true"
                             :options="
                                 $parent.selectedDataset == '52k'
@@ -381,6 +382,15 @@
 .accordion .card.mb-1 {
     overflow: unset;
 }
+.accordion .card-body {
+    border-left: 1px solid #007bff;
+    margin-left: 4px;
+}
+
+/* .accordion #accordion-2 .card-body {
+    border-left: 1px solid #fd4040;
+} */
+
 .reference > span {
     color: white;
 }
