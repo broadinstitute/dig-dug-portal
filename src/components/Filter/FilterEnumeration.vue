@@ -4,29 +4,35 @@
         :field="field"
         :type="'string'"
         :predicate="(string, selection) => string === selection"
-        :pillFormatter="filterDefinition => `${filterDefinition.field} = ${labelFormatter(filterDefinition.threshold)}`"
+        :pillFormatter="
+            (filterDefinition) =>
+                `${filterDefinition.field} = ${labelFormatter(
+                    filterDefinition.threshold
+                )}`
+        "
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
         :color="color"
         :multiple="!!multiple"
-        :inclusive="!!inclusive || !!multiple">
-        <slot>
-        </slot>
+        :inclusive="!!inclusive || !!multiple"
+        :disabled="disabled"
+    >
+        <slot> </slot>
     </filter-control>
 </template>
 <script>
 import Vue from "vue";
-import FilterControl from "./FilterControl"
-import Formatter from "@/utils/formatters"
+import FilterControl from "./FilterControl";
+import Formatter from "@/utils/formatters";
 
-export default Vue.component('filter-enumeration-control', {
+export default Vue.component("filter-enumeration-control", {
     props: {
         field: String,
         options: Array,
         color: String,
         multiple: {
             type: Boolean,
-            default: false
+            default: false,
         },
         inclusive: {
             type: Boolean,
@@ -37,8 +43,13 @@ export default Vue.component('filter-enumeration-control', {
             default: Formatter.capitalizedFormatter,
         },
         disableSort: {
-            default: false
-        }
+            type: Boolean,
+            default: false,
+        },
+        disabled: {
+            type: Boolean,
+            default: false,
+        },
     },
     components: {
         FilterControl,
@@ -49,12 +60,12 @@ export default Vue.component('filter-enumeration-control', {
         selectionOptions() {
             let options = this.options
                 .filter((v, i, arr) => arr.indexOf(v) == i)
-                .filter(v => v != undefined)
+                .filter((v) => v != undefined);
             if (!this.disableSort) {
                 options = options.sort();
             }
             return options;
-        }
-    }
-})
+        },
+    },
+});
 </script>
