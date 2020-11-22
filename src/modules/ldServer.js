@@ -115,7 +115,8 @@ export default {
 
             //console.log("query", query);
             let json = await fetch(
-                "https://ld.hugeamp.org/aggregation/covariance",
+                //"https://ld.hugeamp.org/aggregation/covariance",
+                "http://ec2-18-233-76-234.compute-1.amazonaws.com:5000/aggregation/covariance",
                 {
                     method: "POST",
                     headers: {
