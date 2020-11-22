@@ -149,18 +149,14 @@ export default {
                         //"vt"
                         //]
                     );
-                    console.log("here run");
                     return runner.run();
                 });
             //.then(resp => resp);
 
-            return [{ phenotype: phenotype }, { data: json }];
+            return { phenotype: phenotype, data: json };
         },
         async runTests(context, { variants, phenotypes, dataset, tests }) {
             context.commit("setError", "");
-            console.log("running tests");
-            console.log("p", phenotypes);
-
             let queries = phenotypes.map(phenotype =>
                 context.dispatch("getCovariances", {
                     variants,
@@ -172,6 +168,12 @@ export default {
 
             try {
                 let data = await Promise.all(queries);
+                // .then(results => {
+                //     return [].concat.apply([], results);
+                // })
+                // .then(data => {
+
+                // });
                 context.commit("setCovariances", data);
             } catch (e) {
                 console.error(e);

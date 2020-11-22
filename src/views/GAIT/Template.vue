@@ -237,6 +237,16 @@
                                             v-if="$parent.tableData.length > 0"
                                         >
                                             <b-button
+                                                :disabled="
+                                                    $parent.selectedVariants
+                                                        .length == 0 ||
+                                                    $parent.selectedPhenotypes
+                                                        .length == 0 ||
+                                                    $parent.selectedDataset
+                                                        .length == 0 ||
+                                                    $parent.selectedTests
+                                                        .length == 0
+                                                "
                                                 variant="primary"
                                                 @click="
                                                     $parent.searchCovariances
@@ -290,67 +300,56 @@
                                                     .covariances
                                             "
                                         >
-                                            <b-table
-                                                striped
-                                                hover
-                                                :items="
-                                                    $store.state.ldServer
-                                                        .covariances
-                                                "
-                                            >
-                                            </b-table>
-
-                                            <div>
-                                                RAW DATA:
-                                                {{
-                                                    $store.state.ldServer
-                                                        .covariances
-                                                }}
-                                            </div>
-
-                                            <b-table
+                                            <template
                                                 v-if="
                                                     $store.state.ldServer
-                                                        .covariances[0]
-                                                "
-                                                striped
-                                                hover
-                                                :items="
-                                                    $parent.formatTestData(
-                                                        $store.state.ldServer
-                                                            .covariances[0][1]
-                                                            .data
-                                                    )
+                                                        .covariances.length > 0
                                                 "
                                             >
-                                                <template
-                                                    v-slot:thead-top="data"
+                                                <b-table
+                                                    v-for="(p, i) in $store
+                                                        .state.ldServer
+                                                        .covariances"
+                                                    :key="p.phenotype"
+                                                    striped
+                                                    hover
+                                                    :items="
+                                                        $parent.formatTestData(
+                                                            p.data
+                                                        )
+                                                    "
                                                 >
-                                                    <b-th colspan="4">
-                                                        <span>{{
-                                                            $store.state
-                                                                .ldServer
-                                                                .covariances[0][0]
-                                                                .phenotype
-                                                        }}</span>
-                                                    </b-th>
-                                                </template>
-                                            </b-table>
-                                            <div
-                                                v-if="
-                                                    $store.state.ldServer
-                                                        .covariances[0]
-                                                "
-                                            >
-                                                formatted:
-                                                {{
-                                                    $parent.formatTestData(
-                                                        $store.state.ldServer
-                                                            .covariances[0][1]
-                                                            .data
-                                                    )
-                                                }}
-                                            </div>
+                                                    <template
+                                                        v-slot:thead-top="data"
+                                                    >
+                                                        <b-th
+                                                            colspan="4"
+                                                            class="reference"
+                                                            :class="
+                                                                'color-' +
+                                                                (i + 1)
+                                                            "
+                                                        >
+                                                            <span>{{
+                                                                !!$store.state
+                                                                    .bioPortal
+                                                                    .phenotypeMap[
+                                                                    p.phenotype
+                                                                ]
+                                                                    ? $store
+                                                                          .state
+                                                                          .bioPortal
+                                                                          .phenotypeMap[
+                                                                          p
+                                                                              .phenotype
+                                                                      ]
+                                                                          .description
+                                                                    : p.phenotype
+                                                            }}</span>
+                                                        </b-th>
+                                                    </template>
+                                                </b-table>
+                                            </template>
                                         </div>
                                         <!-- <b-alert
                                             show
@@ -381,5 +380,8 @@
 <style scoped>
 .accordion .card.mb-1 {
     overflow: unset;
+}
+.reference > span {
+    color: white;
 }
 </style>
