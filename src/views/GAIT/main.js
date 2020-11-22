@@ -256,10 +256,10 @@ new Vue({
         "$store.state.ldServer.covariances": function() {
             console.log("change2");
             this.loadingCovariances = false;
+        },
+        "$store.state.ldServer.runTestsError": function() {
+            console.log("change3");
+            this.loadingCovariances = false;
         }
-        // "$store.state.ldServer.runTestsError": function() {
-        //     console.log("change3");
-        //     this.loadingCovariances = false;
-        // }
     }
 }).$mount("#app");

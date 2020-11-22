@@ -157,7 +157,6 @@ export default {
             return { phenotype: phenotype, data: json };
         },
         async runTests(context, { variants, phenotypes, dataset, tests }) {
-            context.commit("setError", "");
             let queries = phenotypes.map(phenotype =>
                 context.dispatch("getCovariances", {
                     variants,
@@ -175,6 +174,7 @@ export default {
                 // .then(data => {
 
                 // });
+                context.commit("setError", "");
                 context.commit("setCovariances", data);
             } catch (e) {
                 console.error(e);

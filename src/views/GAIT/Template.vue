@@ -91,7 +91,7 @@
                         >
                     </filter-list-group>
 
-                    <div style="text-align: center">
+                    <div class="function">
                         <b-button
                             variant="primary"
                             @click="$parent.searchVariants"
@@ -234,7 +234,7 @@
                                         </filter-list-group>
 
                                         <div
-                                            style="text-align: center"
+                                            class="function"
                                             v-if="$parent.tableData.length > 0"
                                         >
                                             <b-button
@@ -298,7 +298,9 @@
                                             id="covariances"
                                             v-if="
                                                 $store.state.ldServer
-                                                    .covariances
+                                                    .covariances &&
+                                                !$store.state.ldServer
+                                                    .runTestsError
                                             "
                                         >
                                             <template
@@ -352,7 +354,7 @@
                                                 </b-table>
                                             </template>
                                         </div>
-                                        <!-- <b-alert
+                                        <b-alert
                                             show
                                             variant="danger"
                                             v-if="
@@ -363,7 +365,7 @@
                                                 $store.state.ldServer
                                                     .runTestsError
                                             }}</b-alert
-                                        > -->
+                                        >
                                     </b-skeleton-wrapper>
                                 </b-card-body>
                             </b-collapse>
@@ -393,5 +395,9 @@
 
 .reference > span {
     color: white;
+}
+.function {
+    text-align: center;
+    margin: 20px auto 30px;
 }
 </style>
