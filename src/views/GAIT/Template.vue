@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div id="gait">
         <!-- Header -->
         <page-header
             :disease-group="$parent.diseaseGroup"
@@ -24,18 +24,13 @@
                         :looseMatch="true"
                         :header="'Search Criteria'"
                     >
-                        <filter-basic-control
-                            ref="gene"
-                            :field="'gene'"
-                            :color="'#FF8C00'"
-                        >
+                        <filter-basic-control ref="gene" :field="'gene'">
                             <div class="label">Gene</div>
                         </filter-basic-control>
 
                         <filter-enumeration-control
                             ref="dataset"
                             :field="'dataset'"
-                            :color="'#8A2BE2'"
                             :options="$parent.datasets.map((v) => v.value)"
                             :labelFormatter="
                                 (v) =>
@@ -380,25 +375,3 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
-
-<style scoped>
-.accordion .card.mb-1 {
-    overflow: unset;
-}
-.accordion .card-body {
-    border-left: 1px solid #007bff;
-    margin-left: 4px;
-}
-
-/* .accordion #accordion-2 .card-body {
-    border-left: 1px solid #fd4040;
-} */
-
-.reference > span {
-    color: white;
-}
-.function {
-    text-align: center;
-    margin: 20px auto 30px;
-}
-</style>
