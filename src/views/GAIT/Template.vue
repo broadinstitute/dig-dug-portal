@@ -207,6 +207,7 @@
                                         </div>
 
                                         <filter-list-group
+                                            v-if="$parent.tableData.length > 0"
                                             v-model="$parent.selectedMethods"
                                             :looseMatch="true"
                                             :header="'Test(s) Selected'"
