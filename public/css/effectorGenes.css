@@ -949,6 +949,17 @@ span.weight-blue {
     height: 100%;
 }
 
+.egl-m-plot .chr_wrapper.collapsed-chr {
+    width: 1.5% !important;
+    transition: width 0.05s;
+}
+
+.egl-m-plot .chr_wrapper.collapsed-chr.expanded-chr {
+    width: 65% !important;
+    background-color: #fffeb9;
+    transition: width 0.05s;
+}
+
 .egl-m-plot .chr_wrapper .chr_dots_wrapper {
     height: calc(100% - 35px);
     border-right: solid 1px #eee;
@@ -963,6 +974,12 @@ span.weight-blue {
     vertical-align: bottom;
     text-align: center;
     white-space: nowrap;
+    cursor: pointer;
+    color: #0067A6;
+}
+
+.egl-m-plot .chr_wrapper.expanded-chr .chr_number {
+    font-weight: 500;
 }
 
 .egl-m-plot .chr_wrapper .chr_dots_wrapper .dot {
@@ -984,11 +1001,12 @@ span.weight-blue {
     cursor: pointer;
     color: #fff;
     background-color: #333;
-    padding: 0 10px;
+    padding: 5px 10px;
     top: -6px;
     left: 12px;
     z-index: 10;
     border-radius: 5px;
-    font-size: 12px;
+    font-size: 13px;
+    white-space: nowrap;
 }
 

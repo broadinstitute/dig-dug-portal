@@ -60,22 +60,25 @@
                 ></b-badge>
             </div>
         </b-container>
+
         <b-container
             fluid
             v-if="
                 !!config &&
-                !!tableData &&
+                !!filteredData &&
                 config[dataset]['render_m_plot'] == true
             "
             class="egl-m-plot-wrapper"
         >
             <effector-genes-m-plot
-                :plotData="tableData"
+                :plotData="filteredData"
                 :locusKey="config[dataset]['m_plot_config']['locusKey']"
                 :scoreKey="config[dataset]['m_plot_config']['scoreKey']"
                 :renderBy="config[dataset]['m_plot_config']['renderBy']"
+                :popUpContent="config[dataset]['m_plot_config']['hoverContent']"
             ></effector-genes-m-plot>
         </b-container>
+
         <b-container
             fluid
             v-if="!!config && !!tableData"
