@@ -22,11 +22,11 @@ export default new Vuex.Store({
     },
     state: {
         // phenotypes needs to be an array so colors don't change!
-        searchGene: "slc30a8", //!static for test
+        //searchGene: "slc30a8", //!static for test
         //binID: "bin1_7" //!can move to data prop later
-        binID: ["bin1_7"],
-        variants: [],
-        genes: [] //list of genes for autocomplete select
+        //binID: ["bin1_7"],
+        variants: []
+        //genes: [] //list of genes for autocomplete select
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -34,10 +34,10 @@ export default new Vuex.Store({
         },
         setVariants(state, data) {
             state.variants = data;
-        },
-        setGenes(state, data) {
-            state.genes = data;
         }
+        // setGenes(state, data) {
+        //     state.genes = data;
+        // }
     },
     getters: {
         region(state) {
