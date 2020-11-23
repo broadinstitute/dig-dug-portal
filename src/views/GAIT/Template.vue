@@ -12,6 +12,10 @@
                 <div class="row card-body">
                     <div class="col-md-12">
                         <h2>Genetic Association Interactive Tool</h2>
+                        <documentation
+                            style="margin-top: 20px"
+                            name="tools.gait.subheader"
+                        ></documentation>
                     </div>
                 </div>
             </div>

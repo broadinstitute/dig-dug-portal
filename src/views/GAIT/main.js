@@ -3,6 +3,7 @@ import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
+import Documentation from "@/components/Documentation.vue";
 import FilterGroup from "@/components/Filter/FilterGroup.vue";
 import FilterListGroup from "@/components/Filter/FilterListGroup.vue";
 import FilterControl from "@/components/Filter/FilterControl.vue";
@@ -22,6 +23,7 @@ new Vue({
     store,
     mixins: [pageMixin],
     components: {
+        Documentation,
         FilterGroup,
         FilterControl,
         FilterListGroup,
