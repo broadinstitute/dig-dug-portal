@@ -10,7 +10,7 @@ import FilterPValue from "@/components/Filter/FilterPValue.vue";
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue";
 import FilterBasic from "@/components/Filter/FilterBasic";
-import variantUtils from "@/utils/variantUtils";
+import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
@@ -179,6 +179,7 @@ new Vue({
         }
     },
     methods: {
+        intFormatter: Formatters.intFormatter,
         searchVariants() {
             this.showVariants = true;
             this.loadingVariants = true;
@@ -218,7 +219,7 @@ new Vue({
             this.optionalFields = addFields;
             this.fields = this.baseFields.concat(addFields);
         },
-        formatTestData(data) {
+        formatTestData(samples, data) {
             let formatted = [];
             data.map(test => {
                 formatted.push({
@@ -226,7 +227,8 @@ new Vue({
                         .text,
                     variants: test.variants.length,
                     "z-score": test.stat,
-                    "p-value": test.pvalue
+                    "p-value": test.pvalue,
+                    "Sample Size": this.intFormatter(samples)
                 });
             });
             return formatted;

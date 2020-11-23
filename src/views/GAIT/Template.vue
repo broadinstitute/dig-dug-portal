@@ -286,7 +286,7 @@
                                         <template #loading>
                                             <b-skeleton-table
                                                 :rows="3"
-                                                :columns="4"
+                                                :columns="5"
                                                 :table-props="{
                                                     bordered: true,
                                                     striped: true,
@@ -318,6 +318,7 @@
                                                     hover
                                                     :items="
                                                         $parent.formatTestData(
+                                                            p.samples,
                                                             p.data
                                                         )
                                                     "
@@ -326,7 +327,7 @@
                                                         v-slot:thead-top="data"
                                                     >
                                                         <b-th
-                                                            colspan="4"
+                                                            colspan="5"
                                                             class="reference"
                                                             :class="
                                                                 'color-' +

@@ -59,6 +59,7 @@ export default {
             //console.log("variants", variants);
             //console.log("gene", gene);
             //console.log("context", context);
+            let samples = {};
             let query = {};
             let region = context.rootGetters.region;
 
@@ -115,8 +116,8 @@ export default {
 
             //console.log("query", query);
             let json = await fetch(
-                //"https://ld.hugeamp.org/aggregation/covariance",
-                "http://ec2-18-233-76-234.compute-1.amazonaws.com:5000/aggregation/covariance",
+                "https://ld.hugeamp.org/aggregation/covariance",
+                //"http://ec2-18-233-76-234.compute-1.amazonaws.com:5000/aggregation/covariance",
                 {
                     method: "POST",
                     headers: {
@@ -134,6 +135,7 @@ export default {
                     }
                 })
                 .then(json => {
+                    samples = json.data.nSamples;
                     // Use the returned covariance data to run aggregation tests and return results (note that runner.run() returns a Promise)
                     const [
                         groups,
@@ -154,7 +156,7 @@ export default {
                 });
             //.then(resp => resp);
 
-            return { phenotype: phenotype, data: json };
+            return { phenotype, samples, data: json };
         },
         async runTests(context, { variants, phenotypes, dataset, tests }) {
             let queries = phenotypes.map(phenotype =>
