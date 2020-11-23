@@ -182,6 +182,7 @@ new Vue({
     },
     methods: {
         intFormatter: Formatters.intFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
         searchVariants() {
             this.showVariants = true;
             this.loadingVariants = true;
@@ -229,7 +230,7 @@ new Vue({
                         .text,
                     variants: test.variants.length,
                     "z-score": test.stat,
-                    "p-value": test.pvalue,
+                    "p-value": this.pValueFormatter(test.pvalue),
                     "Sample Size": this.intFormatter(samples)
                 });
             });
