@@ -318,7 +318,6 @@
                                                     hover
                                                     :items="
                                                         $parent.formatTestData(
-                                                            p.phenotype,
                                                             p.samples,
                                                             p.data
                                                         )
@@ -353,6 +352,75 @@
                                                             }}</span>
                                                         </b-th>
                                                     </template>
+
+                                                    <template #head(zscore)>
+                                                        Z-Score
+                                                    </template>
+                                                    <template
+                                                        #cell(zscore)="data"
+                                                    >
+                                                        {{
+                                                            $parent.zScoreFormatter(
+                                                                data.value
+                                                            )
+                                                        }}
+                                                    </template>
+
+                                                    <template #head(pvalue)>
+                                                        P-Value
+                                                    </template>
+                                                    <template
+                                                        #cell(pvalue)="data"
+                                                    >
+                                                        {{
+                                                            $parent.pValueFormatter(
+                                                                data.value
+                                                            )
+                                                        }}
+                                                    </template>
+
+                                                    <template #head(effect)>
+                                                        {{
+                                                            !!$parent
+                                                                .phenotypeMap[
+                                                                p.phenotype
+                                                            ].dichotomous
+                                                                ? "Odds Ratio"
+                                                                : "Beta"
+                                                        }}
+                                                    </template>
+                                                    <template
+                                                        #cell(effect)="data"
+                                                    >
+                                                        {{
+                                                            !!$parent
+                                                                .phenotypeMap[
+                                                                p.phenotype
+                                                            ].dichotomous &&
+                                                            !!data.value
+                                                                ? $parent.effectFormatter(
+                                                                      Math.exp(
+                                                                          data.value
+                                                                      )
+                                                                  )
+                                                                : $parent.effectFormatter(
+                                                                      data.value
+                                                                  )
+                                                        }}
+                                                    </template>
+
+                                                    <template #head(samples)>
+                                                        Sample Size
+                                                    </template>
+                                                    <template
+                                                        #cell(samples)="data"
+                                                    >
+                                                        {{
+                                                            $parent.intFormatter(
+                                                                data.value
+                                                            )
+                                                        }}
+                                                    </template>
                                                 </b-table>
                                             </template>
                                         </div>
@@ -368,6 +436,26 @@
                                                     .runTestsError
                                             }}</b-alert
                                         >
+                                        <b-alert
+                                            v-if="
+                                                $store.state.ldServer
+                                                    .covariances.length > 0 &&
+                                                $store.state.ldServer
+                                                    .covariances[0].data
+                                                    .length == 0 &&
+                                                !$store.state.ldServer
+                                                    .runTestsError
+                                            "
+                                            show
+                                            variant="warning"
+                                        >
+                                            <b-icon
+                                                icon="exclamation-triangle"
+                                            ></b-icon>
+                                            There is no data available for your
+                                            search criteria, please check your
+                                            query and try again.
+                                        </b-alert>
                                     </b-skeleton-wrapper>
                                 </b-card-body>
                             </b-collapse>

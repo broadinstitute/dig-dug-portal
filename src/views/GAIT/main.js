@@ -131,6 +131,9 @@ new Vue({
         this.$store.dispatch("ldServer/getPhenotypes");
     },
     computed: {
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
         visibleFields() {
             return this.fields.filter(field => !!field.visible);
         },
@@ -184,6 +187,12 @@ new Vue({
         intFormatter: Formatters.intFormatter,
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
+        zScoreFormatter(value) {
+            if (!value) {
+                return "-";
+            }
+            return Number.parseFloat(value).toFixed(7);
+        },
         searchVariants() {
             this.showVariants = true;
             this.loadingVariants = true;
@@ -223,21 +232,17 @@ new Vue({
             this.optionalFields = addFields;
             this.fields = this.baseFields.concat(addFields);
         },
-        formatTestData(phenotype, samples, data) {
+        formatTestData(samples, data) {
             let formatted = [];
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-            let effectName = !!phenotypeMap[phenotype].dichotomous
-                ? "Odds Ratio"
-                : "Beta";
             data.map(test => {
                 formatted.push({
                     test: this.testMethods.find(t => t.value === test.test)
                         .text,
                     variants: test.variants.length,
-                    "z-score": test.stat,
-                    "p-value": this.pValueFormatter(test.pvalue),
-                    [effectName]: this.effectFormatter(test.effect),
-                    "Sample Size": this.intFormatter(samples)
+                    zscore: test.stat,
+                    pvalue: test.pvalue,
+                    effect: test.effect,
+                    samples
                 });
             });
             return formatted;
