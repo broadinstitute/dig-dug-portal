@@ -147,12 +147,16 @@ export default Vue.component("effector-genes-m-plot", {
 
                 if (p[LKey] != "") {
                     let chrNum = p[LKey].split(":")[0].trim();
-                    let bpNum;
+                    let bpNum, startPos, endPos;
                     if (LType == "region") {
                         let bps = p[LKey].split(":")[1].split("-");
-                        bpNum = Number(bps[0]);
+                        bpNum = (Number(bps[0]) + Number(bps[1])) / 2;
+                        startPos = Number(bps[0]);
+                        endPos = Number(bps[1]);
                     } else {
-                        bpNum = p[LKey].split(":")[1];
+                        bpNum = Number(p[LKey].split(":")[1]);
+                        startPos = bpNum - 50000;
+                        endPos = bpNum + 50000;
                     }
 
                     let bpHLoc = (bpNum / chromosomeLength[chrNum]) * 100;
@@ -196,7 +200,13 @@ export default Vue.component("effector-genes-m-plot", {
                     let dotOppacity = "75";
 
                     document.getElementById("chr_dots_" + chrNum).innerHTML +=
-                        '<span class="dot" style="left:calc(' +
+                        '<a href="/region.html?chr=' +
+                        chrNum +
+                        "&end=" +
+                        endPos +
+                        "&start=" +
+                        startPos +
+                        '" class="dot" target="_blank" style="left:calc(' +
                         bpHLoc +
                         "% - 6px);top:calc(" +
                         bpVLoc +
@@ -205,7 +215,7 @@ export default Vue.component("effector-genes-m-plot", {
                         dotOppacity +
                         '">' +
                         dotContent +
-                        "</span>";
+                        "</a>";
                 }
             });
         },

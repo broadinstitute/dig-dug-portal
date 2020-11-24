@@ -982,8 +982,13 @@ span.weight-blue {
 
 .egl-m-plot .chr_wrapper.collapsed-chr.expanded-chr {
     width: 65% !important;
-    background-color: #fffeb9;
+    /*background-color: #fffeb9;*/
     transition: width 0.05s;
+}
+
+.egl-m-plot .chr_wrapper.collapsed-chr.expanded-chr .chr_number {
+    border-top: solid 2px #999;
+    background-color: #fffeb9;
 }
 
 .egl-m-plot .chr_wrapper .chr_dots_wrapper {
