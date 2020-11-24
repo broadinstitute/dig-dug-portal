@@ -183,6 +183,7 @@ new Vue({
     methods: {
         intFormatter: Formatters.intFormatter,
         pValueFormatter: Formatters.pValueFormatter,
+        effectFormatter: Formatters.effectFormatter,
         searchVariants() {
             this.showVariants = true;
             this.loadingVariants = true;
@@ -222,8 +223,12 @@ new Vue({
             this.optionalFields = addFields;
             this.fields = this.baseFields.concat(addFields);
         },
-        formatTestData(samples, data) {
+        formatTestData(phenotype, samples, data) {
             let formatted = [];
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            let effectName = !!phenotypeMap[phenotype].dichotomous
+                ? "Odds Ratio"
+                : "Beta";
             data.map(test => {
                 formatted.push({
                     test: this.testMethods.find(t => t.value === test.test)
@@ -231,6 +236,7 @@ new Vue({
                     variants: test.variants.length,
                     "z-score": test.stat,
                     "p-value": this.pValueFormatter(test.pvalue),
+                    [effectName]: this.effectFormatter(test.effect),
                     "Sample Size": this.intFormatter(samples)
                 });
             });
