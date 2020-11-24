@@ -1460,6 +1460,9 @@ a.to-previous-page:hover {
     border-left: 1px solid #007bff;
     margin-left: 4px;
 }
+#gait .accordion .alert {
+    text-align: center;
+}
 #gait .reference > span {
     color: white;
 }
