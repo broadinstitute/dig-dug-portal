@@ -75,6 +75,7 @@
                 :locusKey="config[dataset]['m_plot_config']['locusKey']"
                 :scoreKey="config[dataset]['m_plot_config']['scoreKey']"
                 :renderBy="config[dataset]['m_plot_config']['renderBy']"
+                :yAxisLabel="config[dataset]['m_plot_config']['yAxisLabel']"
                 :popUpContent="config[dataset]['m_plot_config']['hoverContent']"
             ></effector-genes-m-plot>
         </b-container>

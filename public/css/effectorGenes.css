@@ -927,6 +927,17 @@ span.weight-blue {
 
 .egl-m-plot-content {
     height: 100%;
+    position: relative;
+}
+
+.y-axis-label {
+    position: absolute;
+    transform: rotate(-90deg);
+    top: 150px;
+    left: -150px;
+    width: 300px;
+    text-align: center;
+    font-size: 12px;
 }
 
 #egl_m_plot_y {
@@ -934,6 +945,21 @@ span.weight-blue {
     height: calc(100% - 30px);
     border-right: solid 1px #000;
     display: inline-block;
+    font-size: 12px;
+    position: relative;
+}
+
+#egl_m_plot_y .tick {
+    text-align: right;
+    height: 25%;
+    position: relative;
+}
+
+#egl_m_plot_y .tick span.tick-num {
+    display:block;
+    position: absolute;
+    top: -12px;
+    right: 6px;
 }
 
 .egl-m-plot {

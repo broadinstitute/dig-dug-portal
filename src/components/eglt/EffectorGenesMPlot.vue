@@ -1,5 +1,6 @@
 <template>
     <div class="egl-m-plot-content">
+        <div class="y-axis-label">{{ yAxisLabel }}</div>
         <div id="egl_m_plot_y"></div>
         <div class="egl-m-plot" id="egl_m_plot"></div>
     </div>
@@ -14,7 +15,14 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("effector-genes-m-plot", {
-    props: ["plotData", "locusKey", "scoreKey", "renderBy", "popUpContent"],
+    props: [
+        "plotData",
+        "locusKey",
+        "scoreKey",
+        "renderBy",
+        "popUpContent",
+        "yAxisLabel",
+    ],
     data() {
         return {};
     },
@@ -105,14 +113,34 @@ export default Vue.component("effector-genes-m-plot", {
             this.plotData.map(function (p) {
                 scores.push(Number(p[SKey]));
             });
-            scores.sort();
+            scores.sort(function (a, b) {
+                return b - a;
+            });
 
-            let hScore = scores[scores.length - 1];
-            let lScore = scores[0];
+            let hScore = scores[0];
+            let lScore = scores[scores.length - 1];
 
             let popUpContentPaths = this.popUpContent;
 
-            //console.log(hScore, lScore);
+            // render y axis
+            let yAxisContent = "";
+            let hScoreLabel = hScore % 1 != 0 ? hScore.toFixed(3) : hScore;
+            yAxisContent +=
+                "<div class='tick'><span class='tick-num'>" +
+                hScoreLabel +
+                "</span></div>";
+
+            for (let i = 1; i < 5; i++) {
+                let countUnit = (hScore - lScore) / 4;
+                let unitNum = hScore - countUnit * i;
+                let unitLabel = unitNum % 1 != 0 ? unitNum.toFixed(3) : unitNum;
+                yAxisContent +=
+                    "<div class='tick'><span class='tick-num'>" +
+                    unitLabel +
+                    "</span></div>";
+            }
+
+            document.getElementById("egl_m_plot_y").innerHTML = yAxisContent;
 
             this.plotData.map(function (p) {
                 let LType = p[LKey].includes("-") == true ? "region" : "snp";
