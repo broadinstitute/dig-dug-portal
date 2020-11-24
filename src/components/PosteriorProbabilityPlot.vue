@@ -9,6 +9,7 @@
 import Vue from "vue";
 
 import * as d3 from "d3";
+import Formatters from "@/utils/formatters";
 
 export default Vue.component("posterior-probability-plot", {
     props: ["geneAssociationsData", "priorVariance", "isDichotomous","bayes_factor"],
@@ -43,7 +44,7 @@ export default Vue.component("posterior-probability-plot", {
         generateChart() {
             document.getElementById("posteriorpriorplot").innerHTML = "";
             var margin = { top: 10, right: 30, bottom: 30, left: 60 },
-                width = 460 - margin.left - margin.right,
+                width = 480 - margin.left - margin.right,
                 height = 400 - margin.top - margin.bottom;
 
             var svg = d3
@@ -74,7 +75,7 @@ export default Vue.component("posterior-probability-plot", {
                 .append("g")
                 .attr("class", "lineLegend")
                 .attr("transform", function(d, i) {
-                    return "translate(" + 100 + "," + i * 30 + ")";
+                    return "translate(" + 150 + "," + i * 30 + ")";
                 });
             //placing of the legened text inside the legend box
             lineLegend
@@ -181,6 +182,7 @@ export default Vue.component("posterior-probability-plot", {
                 focus.style("opacity", 1);
                 focusText.style("opacity", 1);
                 focus.style("visibility", "visible");
+                focusText.style("visibility", "visible");
                 focus.attr("fill", "red")
             }
 
@@ -188,18 +190,18 @@ export default Vue.component("posterior-probability-plot", {
                 // recover coordinate we need
                 var x0 = xScale.invert(d3.mouse(this)[0]);
                 var i = bisect(data, x0, 1);
-                var selectedData = data[i];
+                var selectedData = data[i-1];
                 focus
                     .attr("cx", xScale(selectedData.prior))
                     .attr("cy", yScale(selectedData.ppa));
                 focusText
                     .html(
                         "Prior:" +
-                            selectedData.prior +
+                            Number.parseFloat(selectedData.prior).toFixed(2) +
                             "  -  " +
                             
                             "PPA:" +
-                            selectedData.ppa
+                            Number.parseFloat(selectedData.ppa).toFixed(2)
                     )
     
                     .attr("x", xScale(selectedData.prior) + 15)
@@ -207,7 +209,9 @@ export default Vue.component("posterior-probability-plot", {
             }
             function mouseout() {
                 focus.style("opacity", 0);
-                focus.style("visibility","hidden")
+                focus.style("visibility","hidden");
+                focusText.style("visibility","hidden");
+                
                 
             }
         },
