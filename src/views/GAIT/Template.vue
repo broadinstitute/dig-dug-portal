@@ -392,6 +392,50 @@
                                                     <template
                                                         #cell(effect)="data"
                                                     >
+                                                        <template
+                                                            v-if="!!data.value"
+                                                        >
+                                                            <span
+                                                                v-if="
+                                                                    !!$parent
+                                                                        .phenotypeMap[
+                                                                        p
+                                                                            .phenotype
+                                                                    ]
+                                                                        .dichotomous
+                                                                "
+                                                                :class="`effect ${
+                                                                    data.value <
+                                                                    1
+                                                                        ? 'negative'
+                                                                        : 'positive'
+                                                                }`"
+                                                                >{{
+                                                                    data.value <
+                                                                    1
+                                                                        ? "&#9660;"
+                                                                        : "&#9650;"
+                                                                }}</span
+                                                            >
+                                                            <span
+                                                                v-else
+                                                                :class="`effect ${
+                                                                    !!data.value &&
+                                                                    data.value <
+                                                                        0
+                                                                        ? 'negative'
+                                                                        : 'positive'
+                                                                }`"
+                                                                >{{
+                                                                    !!data.value &&
+                                                                    data.value <
+                                                                        0
+                                                                        ? "&#9660;"
+                                                                        : "&#9650;"
+                                                                }}</span
+                                                            >
+                                                        </template>
+
                                                         {{
                                                             !!$parent
                                                                 .phenotypeMap[
