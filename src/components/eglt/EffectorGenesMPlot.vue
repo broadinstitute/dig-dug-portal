@@ -1,5 +1,32 @@
 <template>
     <div class="egl-m-plot-content">
+        <div class="bunch-by-locus">
+            <div class="bunch-ui">
+                <input
+                    type="checkbox"
+                    id="groupByLocusCheck"
+                    class="form-control"
+                    @click="renderPlot()"
+                />
+                Render by region
+            </div>
+            <div class="bunch-ui">
+                Count region by:
+                <select
+                    id="mergeByNumber"
+                    @change="renderPlot()"
+                    class="form-control"
+                >
+                    <option value="1">1</option>
+                    <option value="1000">1K</option>
+                    <option value="10000">10K</option>
+                    <option value="100000">100K</option>
+                    <option value="1000000">1M</option>
+                    <option value="10000000">10M</option>
+                </select>
+                bp
+            </div>
+        </div>
         <div class="y-axis-label">{{ yAxisLabel }}</div>
         <div id="egl_m_plot_y"></div>
         <div class="egl-m-plot" id="egl_m_plot"></div>
@@ -32,13 +59,15 @@ export default Vue.component("effector-genes-m-plot", {
     computed: {},
     watch: {
         plotData() {
-            console.log("call");
+            //console.log("call");
             this.renderPlot();
         },
     },
     methods: {
         ...uiUtils,
         renderPlot() {
+            let grouped = document.getElementById("groupByLocusCheck").checked;
+
             document.getElementById("egl_m_plot").innerHTML = "";
             let chromosomeLength = {
                 //chromosome name, length
@@ -142,82 +171,245 @@ export default Vue.component("effector-genes-m-plot", {
 
             document.getElementById("egl_m_plot_y").innerHTML = yAxisContent;
 
-            this.plotData.map(function (p) {
-                let LType = p[LKey].includes("-") == true ? "region" : "snp";
+            if (grouped == false) {
+                this.plotData.map(function (p) {
+                    let LType =
+                        p[LKey].includes("-") == true ? "region" : "snp";
 
-                if (p[LKey] != "") {
-                    let chrNum = p[LKey].split(":")[0].trim();
-                    let bpNum, startPos, endPos;
-                    if (LType == "region") {
-                        let bps = p[LKey].split(":")[1].split("-");
-                        bpNum = (Number(bps[0]) + Number(bps[1])) / 2;
-                        startPos = Number(bps[0]);
-                        endPos = Number(bps[1]);
-                    } else {
-                        bpNum = Number(p[LKey].split(":")[1]);
-                        startPos = bpNum - 50000;
-                        endPos = bpNum + 50000;
-                    }
+                    if (p[LKey] != "") {
+                        let chrNum = p[LKey].split(":")[0].trim();
+                        let bpNum, startPos, endPos;
+                        if (LType == "region") {
+                            let bps = p[LKey].split(":")[1].split("-");
+                            bpNum = (Number(bps[0]) + Number(bps[1])) / 2;
+                            startPos = Number(bps[0]);
+                            endPos = Number(bps[1]);
+                        } else {
+                            bpNum = Number(p[LKey].split(":")[1]);
+                            startPos = bpNum - 50000;
+                            endPos = bpNum + 50000;
+                        }
 
-                    let bpHLoc = (bpNum / chromosomeLength[chrNum]) * 100;
-                    let bpVLoc =
-                        100 -
-                        ((Number(p[SKey]) - lScore) / (hScore - lScore)) * 100;
+                        let bpHLoc = (bpNum / chromosomeLength[chrNum]) * 100;
+                        let bpVLoc =
+                            100 -
+                            ((Number(p[SKey]) - lScore) / (hScore - lScore)) *
+                                100;
 
-                    let dotContent =
-                        '<div class="dot-content"><strong>' +
-                        p[renderKey] +
-                        "</strong>";
-                    if (popUpContentPaths != null) {
-                        popUpContentPaths.map(function (pc) {
-                            if (pc.includes("features") == true) {
-                                let featurePath =
-                                    p.features[pc.split(":")[1]][0];
-                                //
-                                for (const featureProperty in featurePath) {
+                        let dotContent =
+                            '<div class="dot-content"><strong>' +
+                            p[renderKey] +
+                            "</strong>";
+                        if (popUpContentPaths != null) {
+                            popUpContentPaths.map(function (pc) {
+                                if (pc.includes("features") == true) {
+                                    let featurePath =
+                                        p.features[pc.split(":")[1]][0];
+                                    //
+                                    for (const featureProperty in featurePath) {
+                                        dotContent +=
+                                            "<div><strong class='property-key'>" +
+                                            featureProperty +
+                                            "</strong>: " +
+                                            featurePath[featureProperty] +
+                                            "</div>";
+                                    }
+                                } else {
                                     dotContent +=
                                         "<div><strong class='property-key'>" +
-                                        featureProperty +
+                                        pc +
                                         "</strong>: " +
-                                        featurePath[featureProperty] +
+                                        p[pc] +
                                         "</div>";
                                 }
-                            } else {
-                                dotContent +=
-                                    "<div><strong class='property-key'>" +
-                                    pc +
-                                    "</strong>: " +
-                                    p[pc] +
-                                    "</div>";
-                            }
-                        });
+                            });
+                        }
+
+                        dotContent += "</div>";
+
+                        let dotColor =
+                            chromosomeColors[chrNum % chromosomeColors.length];
+                        let dotOppacity = "75";
+
+                        document.getElementById(
+                            "chr_dots_" + chrNum
+                        ).innerHTML +=
+                            '<a href="/region.html?chr=' +
+                            chrNum +
+                            "&end=" +
+                            endPos +
+                            "&start=" +
+                            startPos +
+                            '" class="dot" target="_blank" style="left:calc(' +
+                            bpHLoc +
+                            "% - 6px);top:calc(" +
+                            bpVLoc +
+                            "% - 6px); background-color:" +
+                            dotColor +
+                            dotOppacity +
+                            '">' +
+                            dotContent +
+                            "</a>";
+                    }
+                });
+            } else if (grouped == true) {
+                let groupByChr = {};
+                let groupNum = document.getElementById("mergeByNumber").value;
+
+                for (const chr in chromosomeLength) {
+                    groupByChr[chr] = {};
+                }
+
+                groupByChr["NA"] = {};
+
+                this.plotData.map(function (p) {
+                    let locusArr = p[LKey].split(":");
+                    //console.log("locusArr[0]", locusArr[0]);
+                    let chr =
+                        locusArr[0] == null ||
+                        locusArr[0] == "" ||
+                        locusArr[0] == undefined
+                            ? "NA"
+                            : locusArr[0].trim();
+                    let bpNum;
+                    if (!!locusArr[1]) {
+                        bpNum =
+                            locusArr[1].includes("-") == true
+                                ? Math.round(
+                                      (Number(
+                                          locusArr[1].split("-")[0].trim()
+                                      ) +
+                                          Number(
+                                              locusArr[1].split("-")[1].trim()
+                                          )) /
+                                          2 /
+                                          groupNum
+                                  )
+                                : Math.round(Number(locusArr[1]) / groupNum);
+                    } else {
+                        bpNum = 0;
                     }
 
-                    dotContent += "</div>";
+                    if (!!groupByChr[chr][bpNum]) {
+                        groupByChr[chr][bpNum].push(p);
+                    } else {
+                        groupByChr[chr][bpNum] = [];
+                        groupByChr[chr][bpNum].push(p);
+                    }
+                });
 
-                    let dotColor =
-                        chromosomeColors[chrNum % chromosomeColors.length];
-                    let dotOppacity = "75";
+                console.log(groupByChr);
 
-                    document.getElementById("chr_dots_" + chrNum).innerHTML +=
-                        '<a href="/region.html?chr=' +
-                        chrNum +
-                        "&end=" +
-                        endPos +
-                        "&start=" +
-                        startPos +
-                        '" class="dot" target="_blank" style="left:calc(' +
-                        bpHLoc +
-                        "% - 6px);top:calc(" +
-                        bpVLoc +
-                        "% - 6px); background-color:" +
-                        dotColor +
-                        dotOppacity +
-                        '">' +
-                        dotContent +
-                        "</a>";
+                for (const chr in groupByChr) {
+                    let chrGroup = groupByChr[chr];
+                    if (chr != "NA") {
+                        for (const bpNum in chrGroup) {
+                            let startPos =
+                                bpNum * groupNum - Math.round(groupNum / 2);
+                            let endPos =
+                                bpNum * groupNum + Math.round(groupNum / 2);
+                            let bpHLoc =
+                                ((bpNum * groupNum) / chromosomeLength[chr]) *
+                                100;
+
+                            let bpVLocArr = [];
+
+                            chrGroup[bpNum].map(function (p) {
+                                bpVLocArr.push(p[SKey]);
+                            });
+
+                            bpVLocArr.sort(function (a, b) {
+                                return b - a;
+                            });
+                            console.log(bpVLocArr);
+
+                            let bpVLoc =
+                                100 -
+                                ((Number(bpVLocArr[0]) - lScore) /
+                                    (hScore - lScore)) *
+                                    100;
+
+                            let bpSpread =
+                                100 -
+                                ((Number(bpVLocArr[bpVLocArr.length - 1]) -
+                                    lScore) /
+                                    (hScore - lScore)) *
+                                    100 -
+                                bpVLoc;
+
+                            console.log("bpSpread", bpSpread);
+
+                            let bpHeight =
+                                bpSpread < 5
+                                    ? "10px !important"
+                                    : "calc(" +
+                                      bpSpread +
+                                      "% + 10px) !important";
+
+                            let dotColor =
+                                chromosomeColors[chr % chromosomeColors.length];
+                            let dotOppacity = "75";
+
+                            let dotContent = '<div class="dot-content">';
+                            chrGroup[bpNum].map(function (p) {
+                                //console.log(l[renderKey]);
+                                dotContent +=
+                                    "<strong>" + p[renderKey] + "</strong>";
+                                if (popUpContentPaths != null) {
+                                    popUpContentPaths.map(function (pc) {
+                                        if (pc.includes("features") == true) {
+                                            let featurePath =
+                                                p.features[pc.split(":")[1]][0];
+                                            //
+                                            for (const featureProperty in featurePath) {
+                                                dotContent +=
+                                                    "<div><strong class='property-key'>" +
+                                                    featureProperty +
+                                                    "</strong>: " +
+                                                    featurePath[
+                                                        featureProperty
+                                                    ] +
+                                                    "</div>";
+                                            }
+                                        } else {
+                                            dotContent +=
+                                                "<div><strong class='property-key'>" +
+                                                pc +
+                                                "</strong>: " +
+                                                p[pc] +
+                                                "</div>";
+                                        }
+                                    });
+                                }
+                            });
+
+                            dotContent += "</div>";
+
+                            document.getElementById(
+                                "chr_dots_" + chr
+                            ).innerHTML +=
+                                '<a  href="/region.html?chr=' +
+                                chr +
+                                "&end=" +
+                                endPos +
+                                "&start=" +
+                                startPos +
+                                '" target="_blank" class="dot" style="left:calc(' +
+                                bpHLoc +
+                                "% - 6px);top:calc(" +
+                                bpVLoc +
+                                "% - 6px); height:" +
+                                bpHeight +
+                                "; background-color:" +
+                                dotColor +
+                                dotOppacity +
+                                '">' +
+                                dotContent +
+                                "</a>";
+                        }
+                    }
                 }
-            });
+            }
         },
     },
 });

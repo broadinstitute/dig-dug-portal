@@ -542,6 +542,7 @@
 .legend-wrapper {
     padding-top: 20px;
     padding-bottom: 10px;
+    margin-bottom: 0px !important;
 }
 
 .legend-wrapper .each-legend {
@@ -923,6 +924,40 @@ span.weight-blue {
 /* EGL M-Plot */
 .egl-m-plot-wrapper {
     height: 300px;
+    margin-top: 10px !important;
+    margin-bottom: 30px !important;
+    position: relative;
+}
+
+.bunch-by-locus {
+    position: absolute;
+    right: 0;
+    top: -30px;
+    z-index: 10;
+}
+
+.bunch-by-locus .bunch-ui {
+    display: inline-block;
+    padding-right: 10px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.bunch-by-locus .bunch-ui input.form-control {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+    display: inline-block;
+    vertical-align: text-bottom;
+}
+
+.bunch-by-locus .bunch-ui select.form-control {
+    font-size: 12px;
+    height: 20px;
+    width: 60px;
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding: 0 3px;
 }
 
 .egl-m-plot-content {
@@ -1025,19 +1060,47 @@ span.weight-blue {
 .egl-m-plot .chr_wrapper .chr_dots_wrapper .dot .dot-content {
     position: absolute;
     display: none;
+    color: #fff;
+    background-color: #333;
+    padding: 5px 10px;
+    top: -6px;
+    left: 9px;
+    z-index: 10;
+    border-radius: 5px;
+    font-size: 13px;
+    white-space: nowrap;
+    max-height: 300px;
+    overflow-y: auto;
+    border: solid 1px #666;
 }
 
 .egl-m-plot .chr_wrapper .chr_dots_wrapper .dot:hover .dot-content {
     display: block;
     cursor: pointer;
-    color: #fff;
-    background-color: #333;
-    padding: 5px 10px;
-    top: -6px;
-    left: 12px;
-    z-index: 10;
-    border-radius: 5px;
-    font-size: 13px;
-    white-space: nowrap;
 }
 
+.egl-m-plot .dot-content > strong {
+    color: #cccc00;
+    border-radius: 10px;
+    margin-top: 3px;
+}
+
+html {
+    --scrollbarBG: #666666;
+    --thumbBG: #bbbbbb;
+  }
+  .egl-m-plot .dot-content::-webkit-scrollbar {
+    width: 11px;
+  }
+  .egl-m-plot .dot-content {
+    scrollbar-width: thin;
+    scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+  }
+  .egl-m-plot .dot-content::-webkit-scrollbar-track {
+    background: var(--scrollbarBG);
+  }
+  .egl-m-plot .dot-content::-webkit-scrollbar-thumb {
+    background-color: var(--thumbBG) ;
+    border-radius: 6px;
+    border: 3px solid var(--scrollbarBG);
+  }

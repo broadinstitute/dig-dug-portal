@@ -323,14 +323,64 @@ export default Vue.component("effector-genes-table", {
             return options.sort();
         },
         applySorting(key) {
-            let filtered = this.filteredData;
-            let sortDirection = this.sortDirection == "asc" ? false : true;
-            this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
-            let keyData = filtered[0][key];
-            let isNumeric = typeof keyData != "number" ? false : true;
+            if (key != this.config[this.dataset]["locus_key"]) {
+                let filtered = this.filteredData;
+                let sortDirection = this.sortDirection == "asc" ? false : true;
+                this.sortDirection =
+                    this.sortDirection == "asc" ? "desc" : "asc";
+                let keyData = filtered[0][key];
+                let isNumeric = typeof keyData != "number" ? false : true;
 
-            sortUtils.sortEGLTableData(filtered, key, isNumeric, sortDirection);
-            this.$store.dispatch("filteredData", filtered);
+                sortUtils.sortEGLTableData(
+                    filtered,
+                    key,
+                    isNumeric,
+                    sortDirection
+                );
+                this.$store.dispatch("filteredData", filtered);
+            } else if (key == this.config[this.dataset]["locus_key"]) {
+                let sortKey = this.config[this.dataset]["locus_key"];
+                let filtered = this.filteredData;
+                let sortDirection = this.sortDirection == "asc" ? false : true;
+                this.sortDirection =
+                    this.sortDirection == "asc" ? "desc" : "asc";
+
+                filtered.map(function (g) {
+                    let locusArr = g[sortKey].split(":");
+                    let chrNum = locusArr[0].trim();
+                    let bpNum;
+                    if (!!locusArr[1]) {
+                        bpNum =
+                            locusArr[1].includes("-") == true
+                                ? (Number(locusArr[1].split("-")[0].trim()) +
+                                      Number(
+                                          locusArr[1].split("-")[1].trim()
+                                      )) /
+                                  2
+                                : Number(locusArr[1]);
+                    } else {
+                        bpNum = 0;
+                    }
+
+                    g["chr"] =
+                        chrNum != "X" || chrNum != "Y"
+                            ? Number(chrNum)
+                            : chrNum == "X"
+                            ? 23
+                            : 24;
+
+                    g["bp"] = bpNum;
+                });
+
+                sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+                sortUtils.sortEGLTableData(
+                    filtered,
+                    "chr",
+                    true,
+                    sortDirection
+                );
+                this.$store.dispatch("filteredData", filtered);
+            }
         },
         filterData(EVENT, FIELD, TYPE) {
             let searchValue = EVENT.target.value;
