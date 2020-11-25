@@ -169,6 +169,8 @@
                                             <b-table
                                                 striped
                                                 hover
+                                                small
+                                                responsive="sm"
                                                 sticky-header="500px"
                                                 :items="$parent.tableData"
                                                 :fields="$parent.visibleFields"
@@ -316,6 +318,8 @@
                                                     :key="p.phenotype"
                                                     striped
                                                     hover
+                                                    small
+                                                    responsive="sm"
                                                     :items="
                                                         $parent.formatTestData(
                                                             p.samples,

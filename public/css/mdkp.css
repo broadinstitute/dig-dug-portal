@@ -1479,3 +1479,6 @@ a.to-previous-page:hover {
 #gait .filter-pill-test {
     background-color: #dc3545 !important;
 }
+#gait .form-group {
+    margin-bottom: auto;
+}
