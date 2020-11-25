@@ -94,7 +94,7 @@ export default {
                     chrom: region.chromosome,
                     start: region.start,
                     stop: region.end,
-                    summaryStatisticDataset: 1,
+                    summaryStatisticDataset: 7, //for different version
                     variantFormat: "COLONS",
                     samples: "ALL",
                     genomeBuild: "GRCh37",
