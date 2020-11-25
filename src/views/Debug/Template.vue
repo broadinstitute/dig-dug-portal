@@ -106,8 +106,6 @@
                         </div>
                         <div class="col-md-6" style="border-left: 1px dashed #444">
                             <div v-if="$parent.geneAssociations52k">
-                               
-
                                 <posterior-probability-plot
                                     :geneAssociationsData="$parent.geneAssociations52k"
                                     :priorVariance="$store.state.priorVariance"
@@ -336,14 +334,21 @@
                                     <documentation
                                         name="hugecal.rareVaration.header"
                                         :content-fill="$parent.documentationMap"
-                                    ></documentation>
+                                    >
+                                        <tooltip-documentation
+                                            name="hugecal.rareVaration.evidence.description"
+                                            :content-fill="$parent.documentationMap"
+                                            :isHover="true"
+                                            :noIcon="false"
+                                        ></tooltip-documentation>
+                                    </documentation>
                                 </h5>
-                                <h6>
+                                <!-- <h6>
                                     <documentation
                                         name="hugecal.rareVaration.evidence.description"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
-                                </h6>
+                                </h6>-->
 
                                 <!-- Traffic Light -->
                                 <color-bar-plot
