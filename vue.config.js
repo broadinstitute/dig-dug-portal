@@ -212,7 +212,10 @@ module.exports = {
 
         // create inline maps for dev builds
         if (process.env.NODE_ENV !== "production") {
-            config.devtool = "inline-source-map";
+            //config.devtool = "inline-source-map";
+
+            //https://stackoverflow.com/questions/48047150/chrome-extension-compiled-by-webpack-throws-unsafe-eval-error
+            config.devtool = "cheap-module-source-map";
         }
     },
     productionSourceMap: false,
