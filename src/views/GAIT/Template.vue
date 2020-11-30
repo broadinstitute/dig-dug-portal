@@ -91,6 +91,29 @@
                     </filter-list-group>
 
                     <div class="function">
+                        <b-alert
+                            show
+                            v-if="
+                                $parent.selectedGene.length == 0 ||
+                                $parent.selectedGene[0] === undefined
+                            "
+                            >Please select a gene.</b-alert
+                        >
+                        <b-alert
+                            show
+                            v-else-if="$parent.selectedDataset.length == 0"
+                            >Please select a dataset</b-alert
+                        >
+                        <b-alert
+                            show
+                            v-else-if="$parent.selectedPhenotypes.length == 0"
+                            >Please select one or more phenotypes.</b-alert
+                        >
+                        <b-alert
+                            show
+                            v-else-if="$parent.selectedMasks.length == 0"
+                            >Please select one or more masks.</b-alert
+                        >
                         <b-button
                             variant="primary"
                             @click="$parent.searchVariants"
@@ -239,6 +262,17 @@
                                             class="function"
                                             v-if="$parent.tableData.length > 0"
                                         >
+                                            <b-alert
+                                                show
+                                                v-if="
+                                                    $parent.selectedTests
+                                                        .length == 0 ||
+                                                    $parent.selectedTests[0] ===
+                                                        undefined
+                                                "
+                                                >Please select one or more tests
+                                                to run.</b-alert
+                                            >
                                             <b-button
                                                 :disabled="
                                                     $parent.selectedVariants
