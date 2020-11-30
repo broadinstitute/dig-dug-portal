@@ -8,43 +8,45 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper></search-header-wrapper>
-            <!-- Wrap page level searchs with "pageSearchParameters" div -->
-            <div id="pageSearchParameters">
-                <div class="col filter-col-md">
-                    <div class="label">Variant</div>
-                    <input
-                        v-model="$store.state.newVariantId"
-                        type="text"
-                        class="form-control"
-                        placeholder="Search Variant"
-                        id="variant_search_input"
-                    />
-                </div>
-                <div class="col filter-col-sm">
-                    <button
-                        id="variantSearchGo"
-                        class="btn btn-light btn-sm go"
-                        type="button"
-                        @click="
-                            $store.dispatch(
-                                'queryVariant',
-                                $store.state.newVariantId
-                            )
-                        "
-                    >
-                        GO
-                    </button>
-                </div>
-                <div class="col divider"></div>
-                <div class="col filter-col-md search-example">
-                    <div class="label">Search format examples</div>
-                    <div>
-                        rs11716727, chr3:12489012_C_T, 3_12489012:C/T,
-                        chr3_12489012-C-T
+            <search-header-wrapper>
+                <!-- Wrap page level searchs with "pageSearchParameters" div -->
+                <div id="pageSearchParameters">
+                    <div class="col filter-col-md">
+                        <div class="label">Variant</div>
+                        <input
+                            v-model="$store.state.newVariantId"
+                            type="text"
+                            class="form-control"
+                            placeholder="Search Variant"
+                            id="variant_search_input"
+                        />
+                    </div>
+                    <div class="col filter-col-sm">
+                        <button
+                            id="variantSearchGo"
+                            class="btn btn-light btn-sm go"
+                            type="button"
+                            @click="
+                                $store.dispatch(
+                                    'queryVariant',
+                                    $store.state.newVariantId
+                                )
+                            "
+                        >
+                            GO
+                        </button>
+                    </div>
+                    <div class="col divider"></div>
+                    <div class="col filter-col-md search-example">
+                        <div class="label">Search format examples</div>
+                        <div>
+                            rs11716727, chr3:12489012_C_T, 3_12489012:C/T,
+                            chr3_12489012-C-T
+                        </div>
                     </div>
                 </div>
-            </div>
+            </search-header-wrapper>
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-9 gene-page-header-title">
@@ -53,54 +55,10 @@
                             name="variant.alleles.tooltip.hover"
                             :isHover="true"
                         ></tooltip-documentation>
-                        <!--<a
-                            class="edit-btn"
-                            v-on:click="
-                                $parent.showHideElement(
-                                    'variantSearchHolder',
-                                    'variant_search_input'
-                                )
-                            "
-                            >Set variant</a
-                        >-->
                     </div>
                     <div class="col-md-3 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-9 gene-page-header-body">
-                        <!--<div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
-                            <div class="col-md-5">
-                                <input
-                                    v-model="$store.state.newVariantId"
-                                    type="text"
-                                    class="form-control input-default"
-                                    placeholder="Search Variant"
-                                    id="variant_search_input"
-                                />
-                            </div>
-                            <div class="col-md-1 input-wrapper">
-                                <button
-                                    id="variantSearchGo"
-                                    class="btn btn-primary"
-                                    type="button"
-                                    @click="
-                                        $store.dispatch(
-                                            'queryVariant',
-                                            $store.state.newVariantId
-                                        )
-                                    "
-                                >
-                                    GO
-                                </button>
-                            </div>
-                            <div class="col-md-6 search-example">
-                                <strong>Search format examples</strong>
-                                <br />rs11716727, chr3:12489012_C_T,
-                                3_12489012:C/T, chr3_12489012-C-T
-                            </div>
-                        </div>-->
                         <span>
                             {{ $parent.varId }}
                             <span v-if="$parent.dbSNP">

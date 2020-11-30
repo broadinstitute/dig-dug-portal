@@ -3,7 +3,9 @@
         <div
             id="pageSearchHeaderContent"
             class="row filtering-ui-content search-header-content hidden"
-        ></div>
+        >
+            <slot></slot>
+        </div>
         <a
             v-on:click="() => this.showHideElement('search-header-content')"
             class="reset-page-parameters"
@@ -23,8 +25,6 @@ export default Vue.component("search-header-wrapper", {
     props: ["datasetInfo"],
 
     mounted() {
-        var node = document.getElementById("pageSearchParameters");
-        document.getElementById("pageSearchHeaderContent").appendChild(node);
         window.addEventListener("scroll", this.onScroll);
     },
     beforeDestroy() {

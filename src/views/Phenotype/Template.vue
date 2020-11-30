@@ -8,29 +8,25 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper></search-header-wrapper>
-            <!-- Wrap page level searchs with "pageSearchParameters" div -->
-            <div id="pageSearchParameters">
-                <div class="col filter-col-md hidden">
-                    <div class="label">Search phenotype</div>
-                    <phenotype-selectpicker
-                        v-if="$store.state.phenotype"
-                        :phenotypes="$store.state.bioPortal.phenotypes"
-                        :default-phenotype="$store.state.phenotype.description"
-                    ></phenotype-selectpicker>
-                </div>
-            </div>
+            <search-header-wrapper
+                ><!-- Wrap page level searchs with "pageSearchParameters" div -->
+                <div id="pageSearchParameters">
+                    <div class="col filter-col-lg hidden">
+                        <div class="label">Search phenotype</div>
+                        <phenotype-selectpicker
+                            v-if="$store.state.phenotype"
+                            :phenotypes="$store.state.bioPortal.phenotypes"
+                            :default-phenotype="
+                                $store.state.phenotype.description
+                            "
+                        ></phenotype-selectpicker>
+                    </div></div
+            ></search-header-wrapper>
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">
                         Phenotype
-                        <!--<a
-                            class="edit-btn"
-                            v-on:click="
-                                $parent.showHideElement('phenotypeSearchHolder')
-                            "
-                            >Set phenotype</a
-                        >-->
                     </div>
 
                     <div class="col-md-12 gene-page-header-body">

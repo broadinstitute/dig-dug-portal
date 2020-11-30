@@ -8,15 +8,18 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper></search-header-wrapper>
-            <!-- Wrap page level searchs with "pageSearchParameters" div -->
-            <div id="pageSearchParameters">
-                <div class="col filter-col-md">
-                    <gene-selectpicker
-                        @onGeneChange="$store.dispatch('queryGeneName', $event)"
-                    ></gene-selectpicker>
-                </div>
-            </div>
+            <search-header-wrapper
+                ><!-- Wrap page level searchs with "pageSearchParameters" div -->
+                <div id="pageSearchParameters">
+                    <div class="col filter-col-md">
+                        <gene-selectpicker
+                            @onGeneChange="
+                                $store.dispatch('queryGeneName', $event)
+                            "
+                        ></gene-selectpicker>
+                    </div></div
+            ></search-header-wrapper>
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title">Gene</div>
