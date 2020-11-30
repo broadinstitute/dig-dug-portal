@@ -1456,9 +1456,8 @@ a.to-previous-page:hover {
 #gait .accordion .card.mb-1 {
     overflow: unset;
 }
-#gait .accordion .card-body {
-    border-left: 1px solid #007bff;
-    margin-left: 4px;
+#gait .accordion .btn-block.btn-outline-primary {
+    border-color: transparent;
 }
 #gait .accordion .alert {
     text-align: center;
