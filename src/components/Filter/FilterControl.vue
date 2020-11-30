@@ -1,8 +1,8 @@
 <template>
-    <div class="col" style="padding: 5px 7px 5px 7px;">
+    <div class="col" style="padding: 5px 7px 5px 7px">
         <slot>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
-            {{field}}
+            {{ field }}
         </slot>
         <!--
             Go between a select component or a simple text input based on whether or not we have options
@@ -13,11 +13,13 @@
             :matches="options"
             :labelFormatter="labelFormatter"
             @item-select="updateFilter($event)"
+            :disabled="disabled"
         ></autocomplete>
         <b-form-input
             v-else
             v-model="filterThreshold"
             @keydown.enter="updateFilter(filterThreshold)"
+            :disabled="disabled"
         ></b-form-input>
     </div>
 </template>
@@ -35,7 +37,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("filter-control", {
     props: {
-        value: [ String, Number ],
+        value: [String, Number],
         field: String,
         predicate: Function,
         options: Array,
@@ -46,15 +48,16 @@ export default Vue.component("filter-control", {
         },
         pillFormatter: {
             type: Function,
-            default: filterDefinition => `${filterDefinition.field} = ${filterDefinition.threshold}`
+            default: (filterDefinition) =>
+                `${filterDefinition.field} = ${filterDefinition.threshold}`,
         },
         labelFormatter: {
             type: Function,
-            default: id => id,
+            default: (id) => id,
         },
         splitBy: {
             type: String,
-            default: ''
+            default: "",
         },
         type: {
             type: String,
@@ -64,17 +67,18 @@ export default Vue.component("filter-control", {
             type: Boolean,
             default: true,
         },
+        disabled: Boolean,
     },
     components: {
-        Autocomplete
+        Autocomplete,
     },
     data() {
         return {
             filterDefinition: {
                 field: this.field,
                 predicate: this.predicate,
-                multiple: (!!this.multiple || !!this.splitBy) ? true : false, // if undefined, default to false
-                inclusive: (!!this.inclusive || !!this.splitBy) ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
+                multiple: !!this.multiple || !!this.splitBy ? true : false, // if undefined, default to false
+                inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
             },
             filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterGroup we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
@@ -90,7 +94,7 @@ export default Vue.component("filter-control", {
             // TODO: elaborate validation cases here
             // TODO: validation utils?
             if (!!this.type) {
-                if (this.type === 'number') {
+                if (this.type === "number") {
                     return !isNaN(newInput);
                 } else if (typeof newInput !== this.type) {
                     return false;
@@ -106,23 +110,43 @@ export default Vue.component("filter-control", {
                 if (isValid) {
                     // if the filter is a splitter (because a char to splitBy is given)
                     if (this.splitBy) {
-                        newThreshold.split(',')
-                            .forEach(thresholdElement =>
-                                this.$parent.$parent.$emit('change', thresholdElement.trim(),
-                                    { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } }))
+                        newThreshold.split(",").forEach((thresholdElement) =>
+                            this.$parent.$parent.$emit(
+                                "change",
+                                thresholdElement.trim(),
+                                {
+                                    ...this.filterDefinition,
+                                    pill: {
+                                        label: this.pillFormatter,
+                                        color: this.color,
+                                    },
+                                }
+                            )
+                        );
                     } else {
                         // double parent since we're only using this component as a template inside of another component
-                        this.$parent.$parent.$emit('change', newThreshold, { ...this.filterDefinition, pill: { label: this.pillFormatter, color: this.color } });
+                        this.$parent.$parent.$emit("change", newThreshold, {
+                            ...this.filterDefinition,
+                            pill: {
+                                label: this.pillFormatter,
+                                color: this.color,
+                            },
+                        });
                     }
                 } else {
                     // TODO: handle error in here, or go silent?
-                    console.warn('invalid input given for type', this.type, ':', newThreshold);
+                    console.warn(
+                        "invalid input given for type",
+                        this.type,
+                        ":",
+                        newThreshold
+                    );
                 }
             }
             if (this.clear) {
                 this.filterThreshold = null;
             }
-        }
-    }
+        },
+    },
 });
 </script>

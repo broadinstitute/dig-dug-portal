@@ -4,6 +4,7 @@
             ref="autocomplete"
             v-model="userInput"
             :data="lookupOptions"
+            :disabled="disabled"
             :placeholder="placeholder"
             :serializer="labelFormatter"
             :showOnFocus="true"
@@ -47,11 +48,12 @@ export default Vue.component("autocomplete", {
             type: Function,
             default: (id) => id,
         },
+        disabled: Boolean,
     },
     data() {
         return {
-            userInput: this.initialText || '',
-            selectedItem: '',
+            userInput: this.initialText || "",
+            selectedItem: "",
         };
     },
 
@@ -78,14 +80,14 @@ export default Vue.component("autocomplete", {
         },
         onAutoCompleteItemSelected(item) {
             this.$emit("item-select", item);
-            this.userInput = '';
-            this.$refs.autocomplete.inputValue = '';
+            this.userInput = "";
+            this.$refs.autocomplete.inputValue = "";
         },
 
         onUserEnterNonAutoCompleteItem() {
             this.$emit("keyup-enter", this.userInput);
-            this.userInput = '';
-            this.$refs.autocomplete.inputValue = '';
+            this.userInput = "";
+            this.$refs.autocomplete.inputValue = "";
         },
     },
 

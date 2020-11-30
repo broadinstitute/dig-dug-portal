@@ -13,13 +13,12 @@ a:hover {
 }
 
 /*huge calculator*/
-#posteriorpriorplot
-.center-posterior-prior-plot {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  border: 3px solid green;
+#posteriorpriorplot .center-posterior-prior-plot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    border: 3px solid green;
 }
 
 /* front page */
@@ -67,7 +66,13 @@ a:hover {
 
 .front-top-banner-mskkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/mskkp_front_bg.png),
-        linear-gradient(#BCAFD6, #918BC3);
+        linear-gradient(#bcafd6, #918bc3);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-lungkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/lungkp_front_bg.png),
+        linear-gradient(#7accc8, #08b89d);
     background-position: 120% 100px, top left;
 }
 
@@ -168,6 +173,10 @@ a:hover {
     transform: translate(0%, 25%);
 }
 
+.front-logo-tagline-lungkp {
+    transform: translate(0%, 85%);
+}
+
 .front-banner-ui-tabs {
     width: 800px;
     margin-left: auto;
@@ -240,6 +249,10 @@ a:hover {
     height: 50px;
 }
 
+.lungkp-logo {
+    height: 50px;
+}
+
 .mdkp-header,
 .mdkp-footer {
     background-color: #0097d6;
@@ -284,7 +297,13 @@ a:hover {
 
 .mskkp-header,
 .mskkp-footer {
-    background-color: #BCAFD6;
+    background-color: #bcafd6;
+    height: 50px;
+}
+
+.lungkp-header,
+.lungkp-footer {
+    background-color: #7accc8;
     height: 50px;
 }
 
@@ -292,27 +311,33 @@ a:hover {
     text-align: right;
 }
 
-.portal-menu-wrapper, .login-menu-wrapper {
+.portal-menu-wrapper,
+.login-menu-wrapper {
     display: inline-block;
 }
 
-.portal-menu-wrapper ul, .login-menu-wrapper ul, .portal-menu-wrapper , .login-menu-wrapper  {
+.portal-menu-wrapper ul,
+.login-menu-wrapper ul,
+.portal-menu-wrapper,
+.login-menu-wrapper {
     list-style: none;
-    margin:0;
-    padding:0;
+    margin: 0;
+    padding: 0;
 }
 
-.portal-menu-wrapper > ul > li, .login-menu-wrapper  > ul > li  {
+.portal-menu-wrapper > ul > li,
+.login-menu-wrapper > ul > li {
     display: inline-block;
     position: relative;
     padding-top: 15px;
 }
 
-.login-menu-wrapper  > ul > li >a {
+.login-menu-wrapper > ul > li > a {
     border-left: solid 1px #fff;
 }
 
-.portal-menu-wrapper > ul > li > a, .login-menu-wrapper  > ul > li > a {
+.portal-menu-wrapper > ul > li > a,
+.login-menu-wrapper > ul > li > a {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 5px;
@@ -338,8 +363,7 @@ a:hover {
     display: block;
 }
 
-
-.portal-menu-wrapper > ul > li > ul  > li {
+.portal-menu-wrapper > ul > li > ul > li {
     width: 100%;
     padding: 0 !important;
     font-size: 0.8em;
@@ -348,11 +372,11 @@ a:hover {
     list-style: none;
 }
 
-.portal-menu-wrapper > ul > li > ul  > li:hover {
+.portal-menu-wrapper > ul > li > ul > li:hover {
     background-color: rgba(90, 90, 90, 1);
 }
 
-.portal-menu-wrapper > ul > li > ul  > li > a {
+.portal-menu-wrapper > ul > li > ul > li > a {
     display: block;
     width: 100%;
     padding: 5px 15px 5px 15px;
@@ -371,7 +395,8 @@ a:hover {
 .cdkp-footer,
 .v2fkp-footer,
 .t1dkp-footer,
-.mskkp-footer {
+.mskkp-footer,
+.lungkp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -386,7 +411,8 @@ a:hover {
 .cdkp-body,
 .v2fkp-body,
 .t1dkp-body,
-.mskkp-body {
+.mskkp-body,
+.lungkp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -399,7 +425,8 @@ a:hover {
 .cdkp-card,
 .v2fkp-card,
 .t1dkp-card,
-.mskkp-card {
+.mskkp-card,
+.lungkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
@@ -1402,18 +1429,18 @@ a.to-previous-page:hover {
 }
 
 .phenotype-gene-association {
-    position:relative;
+    position: relative;
 }
 
 .phenotype-gene-association > .options-4-actions {
     display: none;
     position: absolute;
     background-color: #000000;
-    color:#fff;
+    color: #fff;
     font-weight: 400;
     padding: 10px;
     border-radius: 5px;
-    left:-12px;
+    left: -12px;
     top: 10px;
     z-index: 20;
     white-space: nowrap;
@@ -1429,16 +1456,18 @@ a.to-previous-page:hover {
     display: block;
 }
 
-.phenotype-gene-association:hover > .options-4-actions a  {
+.phenotype-gene-association:hover > .options-4-actions a {
     color: #ffffff !important;
 }
 
-.phenotype-gene-association:hover > .options-4-actions a:hover  {
+.phenotype-gene-association:hover > .options-4-actions a:hover {
     color: #aaaaff !important;
 }
 /* for vue-bootstrap-typeahead */
 [type="search"] {
-    background: #fff url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.75rem center/8px 10px;
+    background: #fff
+        url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")
+        no-repeat right 0.75rem center/8px 10px;
 }
 
 [class*="filter-pill-"] {
@@ -1521,4 +1550,35 @@ a.to-previous-page:hover {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* GAIT specific */
+#gait .accordion .card.mb-1 {
+    overflow: unset;
+}
+#gait .accordion .card-body {
+    border-left: 1px solid #007bff;
+    margin-left: 4px;
+}
+#gait .accordion .alert {
+    text-align: center;
+}
+#gait .reference > span {
+    color: white;
+}
+#gait .function {
+    text-align: center;
+    margin: 20px auto 30px;
+}
+#gait .filter-pill-dataset {
+    background-color: #8a2be2 !important;
+}
+#gait .filter-pill-gene {
+    background-color: #ff8c00 !important;
+}
+#gait .filter-pill-test {
+    background-color: #dc3545 !important;
+}
+#gait .form-group {
+    margin-bottom: auto;
 }
