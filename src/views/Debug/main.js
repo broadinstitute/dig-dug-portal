@@ -2,7 +2,7 @@ import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
+import { BootstrapVue, BootstrapVueIcons, BIconMouse2 } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
@@ -130,49 +130,55 @@ new Vue({
             return combinedVariationABF;
         },
         //determine categories using cutoffs for bayes factor - can be used for rare of common or combined
-        determineCategory(commonVariationABF) {
+        // Weak: ABF >= 2.1
+        // Potential: ABF >= 7.26
+        // Possible: ABF >= 16.5
+        // Moderate: ABF >= 36.3
+        // Strong: ABF > 82.5
+        // Causal: ABF > 1, 650
+        determineCategory(bayes_factor) {
             let category;
             let categorymap = {};
-            if (commonVariationABF < 2.1) {
+            if (bayes_factor < 2.1) {
                 category = "No"
                 categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
+                    "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (commonVariationABF < 7.26) {
-                category = "Potential"
-                categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
-                }
-            }
-            else if (commonVariationABF < 16.5) {
+            else if (bayes_factor >= 2.1) {
                 category = "Weak"
                 categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
+                    "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (commonVariationABF < 36.3) {
+            else if (bayes_factor >= 7.26) {
+                category = "Potential"
+                categorymap = {
+                    "category": category, "categoryScore": bayes_factor
+                }
+            }
+            else if (bayes_factor >= 16.5) {
                 category = "Possible"
                 categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
+                    "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (commonVariationABF < 82.5) {
+            else if (bayes_factor >= 36.3) {
                 category = "Moderate"
                 categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
+                    "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (commonVariationABF < 1650) {
+            else if (bayes_factor >= 82.5) {
                 category = "Strong"
                 categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
+                    "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (commonVariationABF >= 1650) {
+            else if (bayes_factor >= 1650) {
                 category = "Causal"
                 categorymap = {
-                    "category": category, "categoryScore": commonVariationABF
+                    "category": category, "categoryScore": bayes_factor
                 }
             }
             return categorymap;
@@ -332,6 +338,10 @@ new Vue({
                 if (this.eglData.perturbational == "3P" || this.eglData.regulatory == "3R") {
                     abf3 = 2.2 * 3.3
                 }
+                else if (!!this.eglData) {
+                    commonVariationABF = 3.3
+                    return commonVariationABF;
+                }
                 commonVariationABF = abf1 * abf2 * abf3
             }
             return commonVariationABF;
@@ -343,23 +353,28 @@ new Vue({
             let masks = [];
 
             let rare_bayes_factor = 1;
-
-            if (!!this.$store.state.geneAssociations52k.data[0]) {
-                masks = this.$store.state.geneAssociations52k.data[0].masks
-                let d = masks.sort(
-                    (a, b) => a.pValue - b.pValue
-                );
-                let mostSignificantMask = d[0];
-                let stdErr = mostSignificantMask.stdErr;
-                let beta;
-                if (this.$store.state.phenotype.isDichotomous) {
-                    beta = mostSignificantMask.beta;
-                } else {
-                    beta = Math.log(mostSignificantMask.oddsRatio);
-                }
-
-                rare_bayes_factor = this.bayes_factor(beta, stdErr);
+            if (this.isSignificant52kAssociationRareVariation) {
+                rare_bayes_factor = 1650;
             }
+            else {
+                if (!!this.$store.state.geneAssociations52k.data[0]) {
+                    masks = this.$store.state.geneAssociations52k.data[0].masks
+                    let d = masks.sort(
+                        (a, b) => a.pValue - b.pValue
+                    );
+                    let mostSignificantMask = d[0];
+                    let stdErr = mostSignificantMask.stdErr;
+                    let beta;
+                    if (this.$store.state.phenotype.isDichotomous) {
+                        beta = mostSignificantMask.beta;
+                    } else {
+                        beta = Math.log(mostSignificantMask.oddsRatio);
+                    }
+
+                    rare_bayes_factor = this.bayes_factor(beta, stdErr);
+                }
+            }
+
             return rare_bayes_factor;
         },
 
@@ -405,7 +420,8 @@ new Vue({
             let gene = this.$store.state.geneName;
             let phenotype = this.$store.state.phenotype.description;
             let rareVariationEvidence;
-            let ppa;
+            let priorVariance = this.$store.state.priorVariance;
+
             let abf;
             if (!!this.$store.state.geneAssociations52k.data[0]) {
                 rareVariationEvidence = this.rareVariationCategory.category;
@@ -417,8 +433,8 @@ new Vue({
                 gene: gene,
                 phenotype: phenotype,
                 category: rareVariationEvidence,
-                // ppa: ppa,
-                abf: abf
+                abf: abf,
+                priorVariance: priorVariance
             }
         },
 
@@ -439,7 +455,11 @@ new Vue({
         // the canonical symbol was found
         symbolName(symbol) {
             this.$store.dispatch("query52kGeneAssociations", symbol);
-        }
+        },
+        "$store.state.phenotype": function (phenotype) {
+            this.$store.dispatch("queryGeneName");
+            uiUtils.hideElement("phenotypeSearchHolder");
+        },
 
     }
 }).$mount("#app");
