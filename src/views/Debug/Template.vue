@@ -96,7 +96,7 @@
                             <div style="width: 700px">
                                 <br />
                                 <color-bar-plot
-                                    v-if="$parent.combinedVariationCategory"
+                                    v-if="$parent.combinedVariationCategory.category"
                                     :category="$parent.combinedVariationCategory.category.toUpperCase()"
                                     :elementid="'combinedVariation'"
                                 ></color-bar-plot>
@@ -184,6 +184,7 @@
                             <div style="width: 700px" v-if="$parent.eglData">
                                 <br />
                                 <color-bar-plot
+                                    v-if="$parent.commonVariationCategory.category"
                                     :category="$parent.commonVariationCategory.category.toUpperCase()"
                                     :elementid="'commonVariation'"
                                 ></color-bar-plot>
