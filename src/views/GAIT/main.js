@@ -61,6 +61,8 @@ new Vue({
             showCovariances: false,
             loadingVariants: false,
             loadingCovariances: false,
+            criteriaChanged: false,
+            testChanged: false,
             perPage: 10,
             currentPage: 1,
             baseFields: [
@@ -203,6 +205,8 @@ new Vue({
             this.$store.dispatch("gene/query", {
                 q: this.selectedGene
             });
+            this.criteriaChanged = false;
+            this.$store.commit("ldServer/setCovariances", []);
         },
         searchCovariances() {
             this.showCovariances = true;
@@ -216,6 +220,7 @@ new Vue({
                         ? this.selectedTests
                         : ["burden"]
             });
+            this.testChanged = false;
         },
         updateFields() {
             let addFields = [];
@@ -249,6 +254,16 @@ new Vue({
         }
     },
     watch: {
+        searchCriteria(newData, oldData) {
+            if (!isEqual(newData, oldData)) {
+                this.criteriaChanged = true;
+            }
+        },
+        selectedTests(newData, oldData) {
+            if (!isEqual(newData, oldData)) {
+                this.testChanged = true;
+            }
+        },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
                 console.log("change");

@@ -102,7 +102,7 @@
                         <b-alert
                             show
                             v-else-if="$parent.selectedDataset.length == 0"
-                            >Please select a dataset</b-alert
+                            >Please select a dataset.</b-alert
                         >
                         <b-alert
                             show
@@ -135,7 +135,12 @@
                                 <b-button
                                     block
                                     v-b-toggle.accordion-1
-                                    variant="outline-primary"
+                                    :variant="
+                                        $parent.criteriaChanged &&
+                                        $parent.tableData.length > 0
+                                            ? 'outline-warning'
+                                            : 'outline-primary'
+                                    "
                                     >Variants</b-button
                                 >
                             </b-card-header>
@@ -164,6 +169,20 @@
                                             class="variants"
                                             v-if="$parent.tableData.length > 0"
                                         >
+                                            <b-alert
+                                                show
+                                                variant="warning"
+                                                v-if="$parent.criteriaChanged"
+                                                >Search criteria changed. Run
+                                                <b-button
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    disabled="true"
+                                                    >Search Variants</b-button
+                                                >
+                                                again to update variant
+                                                list.</b-alert
+                                            >
                                             <strong
                                                 >View optional columns
                                             </strong>
@@ -305,7 +324,16 @@
                                 <b-button
                                     block
                                     v-b-toggle.accordion-2
-                                    variant="outline-primary"
+                                    :variant="
+                                        ($parent.criteriaChanged &&
+                                            $store.state.ldServer.covariances
+                                                .length > 0) ||
+                                        ($parent.testChanged &&
+                                            $store.state.ldServer.covariances
+                                                .length > 0)
+                                            ? 'outline-warning'
+                                            : 'outline-primary'
+                                    "
                                     >Results</b-button
                                 >
                             </b-card-header>
@@ -345,6 +373,41 @@
                                                         .covariances.length > 0
                                                 "
                                             >
+                                                <b-alert
+                                                    show
+                                                    variant="warning"
+                                                    v-if="
+                                                        $parent.criteriaChanged
+                                                    "
+                                                    >Search criteria changed.
+                                                    Click
+                                                    <b-button
+                                                        variant="outline-primary"
+                                                        size="sm"
+                                                        disabled="true"
+                                                        >Search
+                                                        Variants</b-button
+                                                    >
+                                                    again to update variant
+                                                    list.</b-alert
+                                                >
+                                                <b-alert
+                                                    show
+                                                    variant="warning"
+                                                    v-else-if="
+                                                        $parent.testChanged
+                                                    "
+                                                    >Selected test(s) changed.
+                                                    Click
+                                                    <b-button
+                                                        variant="outline-primary"
+                                                        size="sm"
+                                                        disabled="true"
+                                                        >Run Analysis</b-button
+                                                    >
+                                                    again to update the
+                                                    results.</b-alert
+                                                >
                                                 <b-table
                                                     v-for="(p, i) in $store
                                                         .state.ldServer
