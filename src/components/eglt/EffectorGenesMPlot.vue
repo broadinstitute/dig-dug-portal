@@ -300,7 +300,7 @@ export default Vue.component("effector-genes-m-plot", {
                     }
                 });
 
-                console.log(groupByChr);
+                //console.log(groupByChr);
 
                 for (const chr in groupByChr) {
                     let chrGroup = groupByChr[chr];
@@ -323,7 +323,7 @@ export default Vue.component("effector-genes-m-plot", {
                             bpVLocArr.sort(function (a, b) {
                                 return b - a;
                             });
-                            console.log(bpVLocArr);
+                            //console.log(bpVLocArr);
 
                             let bpVLoc =
                                 100 -
@@ -339,7 +339,7 @@ export default Vue.component("effector-genes-m-plot", {
                                     100 -
                                 bpVLoc;
 
-                            console.log("bpSpread", bpSpread);
+                            //console.log("bpSpread", bpSpread);
 
                             let bpHeight =
                                 bpSpread < 5
