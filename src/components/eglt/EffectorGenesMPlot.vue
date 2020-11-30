@@ -151,6 +151,8 @@ export default Vue.component("effector-genes-m-plot", {
 
             let popUpContentPaths = this.popUpContent;
 
+            //console.log(this.plotData);
+
             // render y axis
             let yAxisContent = "";
             let hScoreLabel = hScore % 1 != 0 ? hScore.toFixed(3) : hScore;

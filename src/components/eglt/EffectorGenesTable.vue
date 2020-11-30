@@ -27,7 +27,12 @@
                         <select
                             :id="'filter_' + filter.field"
                             @change="
-                                filterData($event, filter.field, filter.type)
+                                filterData(
+                                    $event,
+                                    filter.field,
+                                    filter.type,
+                                    filter.dataType
+                                )
                             "
                             class="custom-select"
                         >
@@ -382,7 +387,7 @@ export default Vue.component("effector-genes-table", {
                 this.$store.dispatch("filteredData", filtered);
             }
         },
-        filterData(EVENT, FIELD, TYPE) {
+        filterData(EVENT, FIELD, TYPE, DATATYPE) {
             let searchValue = EVENT.target.value;
             let id = "#filter_" + FIELD.replace(/ /g, "");
             let inputField = document.querySelector(id);
@@ -398,10 +403,16 @@ export default Vue.component("effector-genes-table", {
             } else if (TYPE == "search_gt" || TYPE == "search_lt") {
                 this.filtersIndex[FIELD]["search"] = [searchValue];
             } else {
-                this.filtersIndex[FIELD]["search"].push(searchValue);
+                if (DATATYPE == "number") {
+                    this.filtersIndex[FIELD]["search"].push(
+                        Number(searchValue)
+                    );
+                } else {
+                    this.filtersIndex[FIELD]["search"].push(searchValue);
+                }
             }
 
-            //console.log(this.filtersIndex);
+            //console.log("filtersIndex", this.filtersIndex);
 
             this.applyFilters();
         },
