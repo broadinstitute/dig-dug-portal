@@ -1085,6 +1085,14 @@ span.weight-blue {
     margin-top: 3px;
 }
 
+.num-of-genes {
+    color: #fff;
+    font-size: 9px;
+    display: block;
+    text-align: center;
+    margin-top: -1px;
+}
+
 html {
     --scrollbarBG: #666666;
     --thumbBG: #bbbbbb;

@@ -387,6 +387,8 @@ export default Vue.component("effector-genes-m-plot", {
 
                             dotContent += "</div>";
 
+                            let numOfGenes = chrGroup[bpNum].length;
+
                             document.getElementById(
                                 "chr_dots_" + chr
                             ).innerHTML +=
@@ -406,6 +408,9 @@ export default Vue.component("effector-genes-m-plot", {
                                 dotColor +
                                 dotOppacity +
                                 '">' +
+                                "<span class='num-of-genes'>" +
+                                numOfGenes +
+                                "</span>" +
                                 dotContent +
                                 "</a>";
                         }
