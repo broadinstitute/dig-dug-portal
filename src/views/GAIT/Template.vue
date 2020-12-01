@@ -50,7 +50,10 @@
                             ref="phenotype"
                             :field="'phenotype'"
                             :disableSort="true"
-                            :disabled="$parent.selectedDataset.length == 0"
+                            :disabled="
+                                $parent.selectedDataset.length == 0 ||
+                                $parent.selectedDataset[0] === undefined
+                            "
                             :multiple="true"
                             :options="
                                 $parent.selectedDataset == '52k'
@@ -173,7 +176,7 @@
                                                 show
                                                 variant="warning"
                                                 v-if="$parent.criteriaChanged"
-                                                >Search criteria changed. Run
+                                                >Search criteria changed. Click
                                                 <b-button
                                                     variant="outline-primary"
                                                     size="sm"
