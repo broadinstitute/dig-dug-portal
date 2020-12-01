@@ -307,7 +307,7 @@
 
                                 <!-- Traffic Light for rare variation when gene is exome significant -->
                                 <color-bar-plot
-                                    v-if="$parent.rareVariationCategory"
+                                    v-if="$parent.rareVariationCategory.category"
                                     :category="$parent.rareVariationCategory.category.toUpperCase()"
                                     :elementid="'rareVariation'"
                                 ></color-bar-plot>
