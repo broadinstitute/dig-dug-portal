@@ -24,5 +24,7 @@
                 </div>
             </filter-pvalue-control>
         </filter-list-group>
+        <button @click="$parent.clear">Clear</button>
+        {{$parent.searchCriterionList}}
     </div>
 </template>

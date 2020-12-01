@@ -35,4 +35,10 @@ new Vue({
         };
     },
 
+    methods: {
+        clear() {
+            this.searchCriterionList = []
+        }
+    }
+
 }).$mount("#app");
