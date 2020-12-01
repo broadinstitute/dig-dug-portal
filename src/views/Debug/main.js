@@ -145,31 +145,31 @@ new Vue({
                     "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (bayes_factor >= 2.1) {
+            else if (bayes_factor >= 2.1 && bayes_factor < 7.26) {
                 category = "Weak"
                 categorymap = {
                     "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (bayes_factor >= 7.26) {
+            else if (bayes_factor >= 7.26 && bayes_factor < 16.5) {
                 category = "Potential"
                 categorymap = {
                     "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (bayes_factor >= 16.5) {
+            else if (bayes_factor >= 16.5 && bayes_factor < 36.3) {
                 category = "Possible"
                 categorymap = {
                     "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (bayes_factor >= 36.3) {
+            else if (bayes_factor >= 36.3 && bayes_factor < 82.5) {
                 category = "Moderate"
                 categorymap = {
                     "category": category, "categoryScore": bayes_factor
                 }
             }
-            else if (bayes_factor >= 82.5) {
+            else if (bayes_factor >= 82.5 && bayes_factor < 1650) {
                 category = "Strong"
                 categorymap = {
                     "category": category, "categoryScore": bayes_factor
@@ -338,9 +338,9 @@ new Vue({
                 if (this.eglData.perturbational == "3P" || this.eglData.regulatory == "3R") {
                     abf3 = 2.2 * 3.3
                 }
-                else if (!!this.eglData) {
-                    commonVariationABF = 3.3
-                    return commonVariationABF;
+                else if (!this.eglData) {
+                    abf1 = 3.3
+                    //return commonVariationABF;
                 }
                 commonVariationABF = abf1 * abf2 * abf3
             }
@@ -425,10 +425,8 @@ new Vue({
             let abf;
             if (!!this.$store.state.geneAssociations52k.data[0]) {
                 rareVariationEvidence = this.rareVariationCategory.category;
-
                 abf = this.rareVariationABF;
             }
-
             return {
                 gene: gene,
                 phenotype: phenotype,
