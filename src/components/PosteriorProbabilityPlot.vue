@@ -197,7 +197,7 @@ export default Vue.component("posterior-probability-plot", {
                 focusText
                     .html(
                         "Prior:" +
-                            Number.parseFloat(selectedData.prior).toFixed(2) +
+                            selectedData.prior+
                             "  -  " +
                             
                             "PPA:" +
