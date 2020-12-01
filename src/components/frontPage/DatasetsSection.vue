@@ -83,7 +83,7 @@ export default Vue.component("datasets-section", {
                     let infoLabel =
                         '<div class="info-label">' +
                         t.label +
-                        ": <strong>" +
+                        " KP: <strong>" +
                         t.value +
                         "</strong></div>";
 
