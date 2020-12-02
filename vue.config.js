@@ -158,6 +158,14 @@ let pages = {
         chunks: ["chunk-vendors", "chunk-common", "genefinder"]
     },
 
+    complicationsviewer: {
+        entry: "src/views/ComplicationsViewer/main.js",
+        template: "public/index.html",
+        filename: "complicationsviewer.html",
+        title: "Complications Viewer",
+        chunks: ["chunk-vendors", "chunk-common", "complicationsviewer"]
+    },
+
     page404: {
         entry: "src/views/404/main.js",
         template: "public/index.html",
