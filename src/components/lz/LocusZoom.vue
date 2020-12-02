@@ -84,8 +84,6 @@ export default Vue.component("locuszoom", {
         });
         this.locuszoommounted = true;
 
-        console.log(this.plot);
-
         // event listeners
         let self = this;
 
