@@ -96,12 +96,23 @@
                             <div style="width: 700px">
                                 <br />
                                 <color-bar-plot
-                                    :category="$parent.combinedVariationCategory.category"
+                                    v-if="$parent.combinedVariationCategory.category"
+                                    :category="$parent.combinedVariationCategory.category.toUpperCase()"
                                     :elementid="'combinedVariation'"
                                 ></color-bar-plot>
                             </div>
 
                             <!-- //ppa plot goes here. -->
+                        </div>
+                        <div class="col-md-6" style="border-left: 1px dashed #444">
+                            <div v-if="$parent.geneAssociations52k">
+                                <posterior-probability-plot
+                                    :geneAssociationsData="$parent.geneAssociations52k"
+                                    :priorVariance="$store.state.priorVariance"
+                                    :bayes_factor="$parent.combinedVariationABF"
+                                    :isDichotomous="true"
+                                ></posterior-probability-plot>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -168,50 +179,12 @@
                                         }}
                                     </span>
                                 </li>
-
-                                <!-- perturbational -->
-                                <li
-                                    v-if="
-                                        $parent.eglData.perturbational
-                                    "
-                                >
-                                    Perturbational Evidence:
-                                    <span
-                                        v-if="
-                                           $parent.eglData.perturbational == '1P'
-                                        "
-                                        class="perturbationalEvidence1P"
-                                    >
-                                        {{
-                                        $parent.eglData.perturbational
-                                        }}
-                                    </span>
-                                    <span
-                                        v-if="
-                                            $parent.eglData.perturbational == '2P'
-                                        "
-                                        class="perturbationalEvidence2P"
-                                    >
-                                        {{
-                                        $parent.eglData.perturbational
-                                        }}
-                                    </span>
-                                    <span
-                                        v-if="
-                                            $parent.eglData.perturbational == '3P'
-                                        "
-                                        class="perturbationalEvidence3P"
-                                    >
-                                        {{
-                                        $parent.eglData.perturbational
-                                        }}
-                                    </span>
-                                </li>
                             </ul>
                             <!-- Common variation color bar plot -->
                             <div style="width: 700px" v-if="$parent.eglData">
                                 <br />
                                 <color-bar-plot
+                                    v-if="$parent.commonVariationCategory.category"
                                     :category="$parent.commonVariationCategory.category.toUpperCase()"
                                     :elementid="'commonVariation'"
                                 ></color-bar-plot>
@@ -326,19 +299,15 @@
                                 </h5>
                                 <ul>
                                     <li>
-                                        Genetic Evidence
-                                        <span
-                                            class="codingEvidence1C"
-                                        >{{$parent.stage2Category.genetic}}</span>
-                                    </li>
-                                    <li>
                                         <span>
                                             <strong>{{$parent.stage2Category.evidence }}</strong>
                                         </span>
                                     </li>
                                 </ul>
+
                                 <!-- Traffic Light for rare variation when gene is exome significant -->
                                 <color-bar-plot
+                                    v-if="$parent.rareVariationCategory.category"
                                     :category="$parent.rareVariationCategory.category.toUpperCase()"
                                     :elementid="'rareVariation'"
                                 ></color-bar-plot>
@@ -366,17 +335,25 @@
                                     <documentation
                                         name="hugecal.rareVaration.header"
                                         :content-fill="$parent.documentationMap"
-                                    ></documentation>
+                                    >
+                                        <tooltip-documentation
+                                            name="hugecal.rareVaration.evidence.description"
+                                            :content-fill="$parent.documentationMap"
+                                            :isHover="true"
+                                            :noIcon="false"
+                                        ></tooltip-documentation>
+                                    </documentation>
                                 </h5>
-                                <h6>
+                                <!-- <h6>
                                     <documentation
                                         name="hugecal.rareVaration.evidence.description"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
-                                </h6>
+                                </h6>-->
 
                                 <!-- Traffic Light -->
                                 <color-bar-plot
+                                    v-if="$parent.rareVariationCategory"
                                     :category="$parent.rareVariationCategory.category.toUpperCase()"
                                     :elementid="'rareVariation'"
                                 ></color-bar-plot>
@@ -396,23 +373,6 @@
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h6>
-                                <div v-if="$parent.geneAssociations52k">
-                                    <div style="margin-block-end: 10px">
-                                        Prior variance:
-                                        <input
-                                            v-model.number="$store.state.priorVariance"
-                                            type="number"
-                                            placeholder="Prior Variance"
-                                            id="prior_variance_input"
-                                        />
-                                    </div>
-
-                                    <posterior-probability-plot
-                                        :geneAssociationsData="$parent.geneAssociations52k"
-                                        :priorVariance="$store.state.priorVariance"
-                                        :isDichotomous="true"
-                                    ></posterior-probability-plot>
-                                </div>
                             </div>
                             <!-- Close Rare Variation -->
                         </div>
@@ -513,27 +473,26 @@ export default Vue.component("test", {
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
 }
-
 #combinedVariation .variationCausal {
     background-color: rgb(20, 110, 103);
 }
 #combinedVariation .variationStrong {
-    background-color: rgb(35, 131, 123);
+    background-color: rgb(39, 148, 139);
 }
 #combinedVariation .variationModerate {
-    background-color: rgb(42, 138, 130);
+    background-color: rgb(48, 175, 164);
 }
 #combinedVariation .variationPossible {
-    background-color: rgb(50, 163, 154);
+    background-color: rgb(69, 192, 182);
 }
 #combinedVariation .variationWeak {
-    background-color: rgb(68, 185, 175);
+    background-color: rgb(78, 209, 198);
 }
 #combinedVariation .variationInGWAS {
-    background-color: rgb(88, 195, 186);
+    background-color: rgb(120, 228, 219);
 }
 #combinedVariation .variationNoEvidence {
-    background-color: rgb(128, 238, 229);
+    background-color: rgb(168, 240, 234);
 }
 
 .causalclass {
