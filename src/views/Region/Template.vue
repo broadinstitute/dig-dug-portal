@@ -12,6 +12,17 @@
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
                 <div id="pageSearchParameters">
                     <div>
+                        <div class="region-search col filter-col-md">
+                            <div class="label">Search gene</div>
+                            <gene-selectpicker
+                                @onGeneChange="
+                                    $store.dispatch('onGeneChange', $event)
+                                "
+                            ></gene-selectpicker>
+                        </div>
+                        <div class="col divider" style="background: none">
+                            <span class="or-text">or</span>
+                        </div>
                         <div class="region-search col filter-col-sm">
                             <div class="label">Chromosome</div>
                             <input
@@ -50,17 +61,6 @@
                             >
                                 GO
                             </button>
-                        </div>
-                        <div class="col divider">
-                            <span class="or-text">or</span>
-                        </div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Search gene</div>
-                            <gene-selectpicker
-                                @onGeneChange="
-                                    $store.dispatch('onGeneChange', $event)
-                                "
-                            ></gene-selectpicker>
                         </div>
                         <div class="col divider"></div>
                         <div class="region-search col filter-col-md">
