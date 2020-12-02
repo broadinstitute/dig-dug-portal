@@ -20,7 +20,7 @@ export default new Vuex.Store({
         geneAssociations52k: bioIndex("gene-associations-52k"),
     },
     state: {
-        geneName: keyParams.gene,
+        geneName: keyParams.gene || "SLC30A8",
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
         phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
         effectorGeneData: [],
@@ -45,6 +45,9 @@ export default new Vuex.Store({
 
         setPriorVariance(state, priorVariance) {
             state.priorVariance = priorVariance;
+        },
+        setPhenotype(state, phenotype) {
+            state.phenotype = phenotype
         }
     },
 
@@ -71,9 +74,14 @@ export default new Vuex.Store({
                 }
             }
         },
+
     },
 
     actions: {
+        onPhenotypeChange(context, phenotype) {
+            context.commit("setPhenotype", phenotype);
+            keyParams.set({ phenotype: phenotype.name });
+        },
 
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
