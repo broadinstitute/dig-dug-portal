@@ -27,6 +27,8 @@ import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
 
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -59,6 +61,7 @@ new Vue({
         FilterGreaterThan,
         LocusZoom,
         LocusZoomPhewasPanel,
+        SearchHeaderWrapper,
     },
 
     data() {
