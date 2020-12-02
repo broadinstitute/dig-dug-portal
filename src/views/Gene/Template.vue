@@ -305,21 +305,27 @@
                             :key="gene.name"
                         >
                             <a
-                                :href="
-                                    $parent.externalResources[gene.source] +
-                                    gene.name
-                                "
                                 v-if="gene.source != 'ucsc'"
+                                :href="
+                                    $parent.externalResources[gene.source]
+                                        .link + gene.name
+                                "
                                 target="_blank"
+                                :title="
+                                    $parent.externalResources[gene.source].title
+                                "
                                 >{{ gene.source.toUpperCase() }}</a
                             >
                             <a
+                                v-else
                                 :href="
-                                    $parent.externalResources[gene.source] +
-                                    $parent.symbolName
+                                    $parent.externalResources[gene.source]
+                                        .link + $parent.symbolName
                                 "
                                 target="_blank"
-                                v-else
+                                :title="
+                                    $parent.externalResources[gene.source].title
+                                "
                                 >{{ gene.source.toUpperCase() }}</a
                             >
                         </div>
