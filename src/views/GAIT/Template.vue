@@ -362,7 +362,7 @@
                                         <template #loading>
                                             <b-skeleton-table
                                                 :rows="3"
-                                                :columns="6"
+                                                :columns="7"
                                                 :table-props="{
                                                     bordered: true,
                                                     striped: true,
@@ -440,7 +440,7 @@
                                                         v-slot:thead-top="data"
                                                     >
                                                         <b-th
-                                                            colspan="6"
+                                                            colspan="7"
                                                             class="reference"
                                                             :class="
                                                                 'color-' +
@@ -563,6 +563,17 @@
                                                                 : $parent.effectFormatter(
                                                                       data.value
                                                                   )
+                                                        }}
+                                                    </template>
+
+                                                    <template #head(se)>
+                                                        Standard Error
+                                                    </template>
+                                                    <template #cell(se)="data">
+                                                        {{
+                                                            $parent.zScoreFormatter(
+                                                                data.value
+                                                            )
                                                         }}
                                                     </template>
 

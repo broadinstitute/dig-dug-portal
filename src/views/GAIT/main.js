@@ -247,6 +247,7 @@ new Vue({
                     zscore: test.stat,
                     pvalue: test.pvalue,
                     effect: test.effect,
+                    se: test.se,
                     samples
                 });
             });
