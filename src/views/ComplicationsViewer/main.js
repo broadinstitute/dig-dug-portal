@@ -66,6 +66,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("bioPortal/getComplications");
     },
 
     render(createElement, context) {
@@ -119,6 +120,11 @@ new Vue({
 
         secondaryPhenotypeOptions() {
             return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+        },
+
+        complicationPhenotypes() {
+            let x = this.$store.state.bioPortal.complications.filter(x => x.name != this.$store.state.phenotype);
+            return x;
         },
 
         geneFinderPhenotypes() {
