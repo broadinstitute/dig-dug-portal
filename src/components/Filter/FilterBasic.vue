@@ -9,7 +9,7 @@
         "
         :options="options"
         :color="color"
-        :multiple="true"
+        :multiple="false"
         :inclusive="inclusive"
         :splitBy="splitBy"
     >
@@ -19,7 +19,7 @@
 <script>
 import Vue from "vue";
 import FilterControl from "./FilterControl";
-export default Vue.component("filter-multi-control", {
+export default Vue.component("filter-basic-control", {
     props: {
         field: String,
         options: {
