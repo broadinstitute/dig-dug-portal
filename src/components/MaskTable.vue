@@ -132,8 +132,10 @@ export default Vue.component("mask-table", {
                 if (this.masks[b.mask].sort < this.masks[a.mask].sort) return 1;
                 return 0;
             });
-            return sorted;
-            // return sorted.map((m) => this.masks[m.mask].description);
+            return sorted.map((m) => ({
+                ...m,
+                mask: this.masks[m.mask].description,
+            }));
         },
     },
     methods: {
