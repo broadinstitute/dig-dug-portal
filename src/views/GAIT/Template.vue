@@ -180,7 +180,7 @@
                                                 <b-button
                                                     variant="outline-primary"
                                                     size="sm"
-                                                    disabled="true"
+                                                    disabled
                                                     >Search Variants</b-button
                                                 >
                                                 again to update variant
@@ -387,7 +387,7 @@
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        disabled="true"
+                                                        disabled
                                                         >Search
                                                         Variants</b-button
                                                     >
@@ -405,7 +405,7 @@
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        disabled="true"
+                                                        disabled
                                                         >Run Analysis</b-button
                                                     >
                                                     again to update the
