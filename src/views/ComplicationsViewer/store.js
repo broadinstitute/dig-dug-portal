@@ -21,7 +21,8 @@ export default new Vuex.Store({
         geneFinderAssociations: {},
         phenotypelist: [],
         secondaryPhenotype: null,
-        filterbadges: false
+        filterbadges: false,
+        complicationsPhenotype:null
     },
     mutations: {
         setPrimaryPhenotypeData(state, d = {}) {
