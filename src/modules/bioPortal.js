@@ -21,9 +21,10 @@ export default {
             host,
             diseaseGroups: [],
             phenotypes: [],
-            complicaitons: [],
+            complications: [],
             datasets: [],
             phenotypeMap: {},
+            complicationsMap: {},
             datasetMap: {},
             documentation: {},
             user: "",
@@ -45,6 +46,15 @@ export default {
                     state.phenotypes[i];
             }
         },
+        setComplications(state, data) {
+            state.complications = data;
+            state.complicationsMap = {};
+            // create a map of the phenotypes by name for fast lookup
+            for (let i in state.complications) {
+                state.complicationsMap[state.complications[i].name] =
+                    state.complications[i];
+            }
+        },
         setDatasets(state, data) {
             state.datasets = data;
             state.datasetMap = {};
@@ -63,15 +73,7 @@ export default {
         setLinks(state, data) {
             state.links = data;
         },
-        setComplications(state, data) {
-            state.complications = data;
-            state.complicationsMap = {};
-            // create a map of the phenotypes by name for fast lookup
-            for (let i in state.complications) {
-                state.complicationsMap[state.complications[i].name] =
-                    state.complications[i];
-            }
-        }
+
     },
 
     getters: {
@@ -127,7 +129,7 @@ export default {
                 { skipNull: true }
             );
             let json = await fetch(
-                `${BIO_INDEX_HOST}/api/portal/complications?${qs}`
+                `${BIO_INDEX_HOST}/api/portal/complications`
             ).then(resp => resp.json());
 
             // set the list of phenotypes
