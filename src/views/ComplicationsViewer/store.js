@@ -69,6 +69,11 @@ export default new Vuex.Store({
             let m = {}
             m[phenotyped] = data;
             return m;
+        },
+        documentationMap(state) {
+            return {
+                phenotype: state.phenotype.description
+            }
         }
 
 
