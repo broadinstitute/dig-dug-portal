@@ -57,7 +57,7 @@ new Vue({
         return {
             counter: 0,
             phenotypelist: [],
-            geneFinderSearchCriterion: [],
+            complicationsViewerSearchCriterion: [],
             geneFinderAssociationsMap: {},
         };
     },
@@ -114,7 +114,7 @@ new Vue({
         },
         phenotypes() {
             let selectedPhenotypesList = []
-            selectedPhenotypesList = this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            selectedPhenotypesList = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
             return selectedPhenotypesList;
         },
 
@@ -127,7 +127,7 @@ new Vue({
         // },
 
         geneFinderPhenotypes() {
-            return this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            return this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
         },
         geneFinderPhenotype() {
             return this.geneFinderPhenotypes[0]
@@ -137,9 +137,9 @@ new Vue({
         },
         geneFinderPValue() {
             let pval = 0.05
-            for (let i in this.geneFinderSearchCriterion) {
-                if (this.geneFinderSearchCriterion[i].field == 'pValue') {
-                    pval = Number(this.geneFinderSearchCriterion[i].threshold)
+            for (let i in this.complicationsViewerSearchCriterion) {
+                if (this.complicationsViewerSearchCriterion[i].field == 'pValue') {
+                    pval = Number(this.complicationsViewerSearchCriterion[i].threshold)
                 }
             }
             return pval;

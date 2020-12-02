@@ -11,7 +11,7 @@
                     <h4 class="card-title">Build search criteria</h4>
 
                     <filter-list-group
-                        v-model="$parent.geneFinderSearchCriterion"
+                        v-model="$parent.complicationsViewerSearchCriterion"
                         :looseMatch="true"
                         :header="'Search Criterion'"
                     >
@@ -28,7 +28,7 @@
                                         : phenotype"
                         >
                             <div>
-                                <strong>Select phenotypes</strong>
+                                <strong>Complication phenotypes</strong>
                             </div>
                         </filter-enumeration-control>
 
