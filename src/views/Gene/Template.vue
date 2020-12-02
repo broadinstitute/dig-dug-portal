@@ -277,22 +277,6 @@
                     </div>
                 </div>
             </div>
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <div v-if="$parent.accession">
-                        <h4 class="card-title">Swiss Prot Accesssion IDs</h4>
-                        <div
-                            v-for="row in $parent.accession"
-                            class="gene-with-signal none"
-                        >
-                            <a
-                                :href="`https://www.uniprot.org/uniprot/${row}`"
-                                >{{ row }}</a
-                            >
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
