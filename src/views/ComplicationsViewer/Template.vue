@@ -11,45 +11,24 @@
                     <h4 class="card-title">Build search criteria</h4>
 
                     <filter-list-group
-                        v-model="$parent.complicationsViewerSearchCriterion"
+                        v-model="$parent.geneFinderSearchCriterion"
                         :looseMatch="true"
                         :header="'Search Criterion'"
                     >
-                        <!-- Complication Phenotype Selector -->
-                        <filter-enumeration-control
-                            class="filter-col-lg"
-                            :field="'complicationsphenotype'"
-                            :options="
-                                $parent.complicationPhenotypes.map((complicationsphenotype) => complicationsphenotype.withComplication)"
-                            :multiple="true"
-                            :labelFormatter="
-                                (complicationsphenotype) =>
-                                    !!$store.state.bioPortal.complicationsMap[complicationsphenotype]
-                                        ? $store.state.bioPortal.complicationsMap[complicationsphenotype].name
-                                        : complicationsphenotype"
-                        >
-                            <div>
-                                <strong>Primary phenotypes</strong>
-                            </div>
-                        </filter-enumeration-control>
-                        <!-- Secondary Phenotype selector -->
+                        <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             class="filter-col-lg"
                             :field="'phenotype'"
-                            :options="
-                                $parent.secondaryPhenotypeOptions.map(
-                                    (phenotype) => phenotype.name
-                                )
-                            "
+                            :options="$parent.secondaryPhenotypeOptions.map((phenotype) => phenotype.withComplication)"
                             :multiple="true"
                             :labelFormatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[phenotype]
-                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description
+                                    !!$store.state.bioPortal.complicationsMap[phenotype]
+                                        ? $store.state.bioPortal.complicationsMap[phenotype].name
                                         : phenotype"
                         >
                             <div>
-                                <strong>Secondary phenotypes</strong>
+                                <strong>Select phenotypes</strong>
                             </div>
                         </filter-enumeration-control>
 
