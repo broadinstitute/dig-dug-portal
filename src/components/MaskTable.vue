@@ -1,7 +1,97 @@
-<template></template>
+<template>
+    <div>
+        <div
+            :class="`feature-headers-${index}`"
+            class="feature-content-wrapper hidden"
+            :key="`features_${index}`"
+        >
+            <b-row class="feature-header">
+                <b-col
+                    class="feature-header-item"
+                    v-for="col in colNames"
+                    :key="col"
+                    >{{ col }}</b-col
+                >
+                <b-col class="feature-header-item" v-if="!dichotomous"
+                    >Beta</b-col
+                >
+                <b-col class="feature-header-item" v-if="!!dichotomous"
+                    >Odds Ratio</b-col
+                >
+            </b-row>
+            <template v-for="(mask, j) in formattedMasks">
+                <b-row
+                    class="features"
+                    :class="`features_${index}_${j}`"
+                    :key="`features_${index}_${j}`"
+                >
+                    <b-col class="feature-content-item">{{ mask.mask }}</b-col>
+                    <b-col class="feature-content-item">{{
+                        pValueFormatter(mask.pValue)
+                    }}</b-col>
+                    <b-col class="feature-content-item">{{
+                        Number.parseFloat(mask.combinedAF).toFixed(7)
+                    }}</b-col>
+                    <b-col class="feature-content-item">{{
+                        mask.passingVariants
+                    }}</b-col>
+                    <b-col class="feature-content-item">{{
+                        mask.singleVariants
+                    }}</b-col>
+                    <b-col class="feature-content-item">{{
+                        Number.parseFloat(mask.stdErr).toFixed(5)
+                    }}</b-col>
+                    <b-col class="feature-content-item">{{
+                        intFormatter(mask.n)
+                    }}</b-col>
+                    <b-col class="feature-content-item" v-if="!dichotomous">
+                        <span
+                            :class="
+                                mask.beta < 0
+                                    ? 'effect negative'
+                                    : 'effect positive'
+                            "
+                            >{{ mask.beta < 0 ? "&#9660;" : "&#9650;" }}</span
+                        >
+                        {{ effectFormatter(mask.beta) }}
+                    </b-col>
+                    <b-col class="feature-content-item" v-if="!!dichotomous">
+                        <span
+                            :class="
+                                Math.exp(mask.beta) < 1
+                                    ? 'effect negative'
+                                    : 'effect positive'
+                            "
+                            >{{
+                                Math.exp(mask.beta) < 1 ? "&#9660;" : "&#9650;"
+                            }}</span
+                        >
+                        {{ effectFormatter(Math.exp(mask.beta)) }}
+                    </b-col>
+                </b-row>
+            </template>
+        </div>
+        <div
+            class="feature-plot-wrapper hidden"
+            :class="`feature-plot-${index}`"
+            :key="`plot_${index}`"
+        >
+            <b-col>Forest Plot</b-col>
+            <!-- <div :id="`plot_${index}`" class="plots"></div> -->
+            <forest-plot
+                :data="formattedMasks"
+                :id="`fplot_${index}`"
+                :element="`fplot_${index}`"
+                :dichotomous="dichotomous"
+                :ref="`fplot_${index}`"
+            ></forest-plot>
+        </div>
+    </div>
+</template>
 
 <script>
 import Vue from "vue";
+import Formatters from "@/utils/formatters";
 import ForestPlot from "@/components/ForestPlot";
 
 import * as am4core from "@amcharts/amcharts4/core";
@@ -9,11 +99,20 @@ import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 am4core.useTheme(am4themes_animated);
 
-export default Vue.component("gene-associations-masks", {
-    props: ["masks", "dichotomous"],
+export default Vue.component("mask-table", {
+    props: ["maskData", "index", "dichotomous"],
     component: ForestPlot,
     data() {
         return {
+            colNames: [
+                "Mask",
+                "P-Value",
+                "Combined AF",
+                "Passing Variants",
+                "Singleton Variants",
+                "Standard Error",
+                "Sample Size",
+            ],
             masks: {
                 LoF_HC: { description: "LofTee", sort: 0 },
                 "16of16": { description: "16/16", sort: 1 },
@@ -26,14 +125,22 @@ export default Vue.component("gene-associations-masks", {
         };
     },
     computed: {
-        sortedMasks() {
-            return this.masks.sort((a, b) => {
+        formattedMasks() {
+            let sorted = this.maskData.sort((a, b) => {
                 if (this.masks[a.mask].sort < this.masks[b.mask].sort)
                     return -1;
                 if (this.masks[b.mask].sort < this.masks[a.mask].sort) return 1;
                 return 0;
             });
+            return sorted;
+            // return sorted.map((m) => this.masks[m.mask].description);
         },
+    },
+    methods: {
+        capitalizedFormatter: Formatters.capitalizedFormatter,
+        pValueFormatter: Formatters.pValueFormatter,
+        effectFormatter: Formatters.effectFormatter,
+        intFormatter: Formatters.intFormatter,
     },
 });
 </script>

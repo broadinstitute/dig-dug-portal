@@ -70,110 +70,12 @@
                         >
                     </b-col>
                 </b-row>
-                <div
-                    v-if="phenotypeMap[row.phenotype]"
-                    :class="`feature-headers-${i}`"
-                    class="feature-content-wrapper hidden"
-                    :key="`features_${i}`"
-                >
-                    <b-row class="feature-header">
-                        <b-col
-                            class="feature-header-item"
-                            v-for="col in colNames"
-                            :key="col"
-                            >{{ col }}</b-col
-                        >
-                        <b-col
-                            class="feature-header-item"
-                            v-if="!phenotypeMap[row.phenotype].dichotomous"
-                            >Beta</b-col
-                        >
-                        <b-col
-                            class="feature-header-item"
-                            v-if="!!phenotypeMap[row.phenotype].dichotomous"
-                            >Odds Ratio</b-col
-                        >
-                    </b-row>
-                    <template v-for="(mask, j) in row.masks">
-                        <b-row
-                            class="features"
-                            :class="`features_${i}_${j}`"
-                            :key="`features_${i}_${j}`"
-                        >
-                            <b-col class="feature-content-item">{{
-                                masks[mask.mask].description
-                            }}</b-col>
-                            <b-col class="feature-content-item">{{
-                                pValueFormatter(mask.pValue)
-                            }}</b-col>
-                            <b-col class="feature-content-item">{{
-                                Number.parseFloat(mask.combinedAF).toFixed(7)
-                            }}</b-col>
-                            <b-col class="feature-content-item">{{
-                                mask.passingVariants
-                            }}</b-col>
-                            <b-col class="feature-content-item">{{
-                                mask.singleVariants
-                            }}</b-col>
-                            <b-col class="feature-content-item">{{
-                                Number.parseFloat(mask.stdErr).toFixed(5)
-                            }}</b-col>
-                            <b-col class="feature-content-item">{{
-                                intFormatter(mask.n)
-                            }}</b-col>
-                            <b-col
-                                class="feature-content-item"
-                                v-if="!phenotypeMap[row.phenotype].dichotomous"
-                            >
-                                <span
-                                    :class="
-                                        mask.beta < 0
-                                            ? 'effect negative'
-                                            : 'effect positive'
-                                    "
-                                    >{{
-                                        mask.beta < 0 ? "&#9660;" : "&#9650;"
-                                    }}</span
-                                >
-                                {{ effectFormatter(mask.beta) }}
-                            </b-col>
-                            <b-col
-                                class="feature-content-item"
-                                v-if="!!phenotypeMap[row.phenotype].dichotomous"
-                            >
-                                <span
-                                    :class="
-                                        Math.exp(mask.beta) < 1
-                                            ? 'effect negative'
-                                            : 'effect positive'
-                                    "
-                                    >{{
-                                        Math.exp(mask.beta) < 1
-                                            ? "&#9660;"
-                                            : "&#9650;"
-                                    }}</span
-                                >
-                                {{ effectFormatter(Math.exp(mask.beta)) }}
-                            </b-col>
-                        </b-row>
-                    </template>
-                </div>
-                <div
-                    v-if="phenotypeMap[row.phenotype]"
-                    class="feature-plot-wrapper hidden"
-                    :class="`feature-plot-${i}`"
-                    :key="`plot_${i}`"
-                >
-                    <b-col>Forest Plot</b-col>
-                    <!-- <div :id="`plot_${i}`" class="plots"></div> -->
-                    <forest-plot
-                        :data="row.masks"
-                        :id="`fplot_${i}`"
-                        :element="`fplot_${i}`"
-                        :dichotomous="!!phenotypeMap[row.phenotype].dichotomous"
-                        :ref="`fplot_${i}`"
-                    ></forest-plot>
-                </div>
+                <mask-table
+                    :maskData="row.masks"
+                    :key="i"
+                    :index="i"
+                    :dichotomous="!!phenotypeMap[row.phenotype].dichotomous"
+                ></mask-table>
             </template>
         </b-container>
     </div>
@@ -186,22 +88,13 @@ import Formatters from "@/utils/formatters";
 import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-import ForestPlot from "@/components/ForestPlot";
+import MaskTable from "@/components/MaskTable";
 
 export default Vue.component("gene-associations-masks", {
     props: ["associations", "phenotypeMap"],
-    component: ForestPlot,
+    component: MaskTable,
     data() {
         return {
-            colNames: [
-                "Mask",
-                "P-Value",
-                "Combined AF",
-                "Passing Variants",
-                "Singleton Variants",
-                "Standard Error",
-                "Sample Size",
-            ],
             visible: false,
         };
     },
