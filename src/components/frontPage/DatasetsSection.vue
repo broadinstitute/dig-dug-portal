@@ -38,27 +38,6 @@ export default Vue.component("datasets-section", {
     methods: {
         renderCharts: function (DATASETS) {
             var renderTable = function (TABLEDATA, TABLETYPE) {
-                let datasetsColors = [
-                    "#00b9f2ff",
-                    "#00b9f2dd",
-                    "#00b9f2bb",
-                    "#00b9f299",
-                    "#00b9f277",
-                    "#00b9f255",
-                    "#00b9f233",
-                    "#00b9f211",
-                ];
-
-                let phenotypesColors = [
-                    "#80c342ff",
-                    "#80c342dd",
-                    "#80c342bb",
-                    "#80c34299",
-                    "#80c34277",
-                    "#80c34255",
-                    "#80c34233",
-                    "#80c34211",
-                ];
                 let tableContent =
                     '<div class="front-' + TABLETYPE + '-graph">';
 
