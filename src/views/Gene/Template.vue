@@ -311,7 +311,7 @@
                                 "
                                 v-if="gene.source != 'ucsc'"
                                 target="_blank"
-                                >{{ gene.name }}</a
+                                >{{ gene.source.toUpperCase() }}</a
                             >
                             <a
                                 :href="
@@ -320,7 +320,7 @@
                                 "
                                 target="_blank"
                                 v-else
-                                >{{ gene.name }}</a
+                                >{{ gene.source.toUpperCase() }}</a
                             >
                         </div>
                     </div>
