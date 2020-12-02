@@ -94,6 +94,15 @@
                     </filter-list-group>
 
                     <div class="function">
+                        <b-progress
+                            max="4"
+                            height="3rem"
+                            variant="info"
+                            class="mt-2"
+                        >
+                            <b-progress-bar value="3"> </b-progress-bar>
+                            <div class="progress-bar-title">Something</div>
+                        </b-progress>
                         <b-alert
                             show
                             v-if="

@@ -560,7 +560,7 @@ a.edit-btn:hover {
     border-left: solid 1px #eee;
 }
 
-.gene-page-header-search-holder   {
+.gene-page-header-search-holder {
 }
 
 div.filtering-tools {
@@ -675,7 +675,7 @@ div.filtering-tools table th {
     margin-right: auto;
     margin-bottom: -25px;
     padding: 5px 15px;
-    background-color:#bbbbbb;
+    background-color: #bbbbbb;
     border-bottom-left-radius: 5px !important;
     border-bottom-right-radius: 5px !important;
     font-weight: 400;
@@ -1146,7 +1146,7 @@ div.filtering-ui-content .divider.col .or-text {
     width: 1px !important;
     height: 61px;
     padding: 0 1px 0 0;
-    background-color: #FFF;
+    background-color: #fff;
     margin-bottom: -17px;
     margin-left: 8px;
     margin-right: 8px;
@@ -1580,4 +1580,18 @@ a.to-previous-page:hover {
 }
 #gait .form-group {
     margin-bottom: auto;
+}
+#gait .progress {
+    position: relative;
+}
+#gait .progress-bar-title {
+    position: absolute;
+    text-align: center;
+    line-height: 3rem; /* line-height should be equal to bar height */
+    overflow: hidden;
+    color: #0c5460;
+    font-size: 1rem;
+    right: 0;
+    left: 0;
+    top: 0;
 }
