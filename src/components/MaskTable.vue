@@ -139,7 +139,6 @@ export default Vue.component("mask-table", {
         },
     },
     methods: {
-        capitalizedFormatter: Formatters.capitalizedFormatter,
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
         intFormatter: Formatters.intFormatter,

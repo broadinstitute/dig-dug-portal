@@ -101,10 +101,8 @@ export default Vue.component("gene-associations-masks", {
     },
     mounted() {},
     methods: {
-        capitalizedFormatter: Formatters.capitalizedFormatter,
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
-        intFormatter: Formatters.intFormatter,
         showFeatures(index) {
             //console.log("index: ", index);
             uiUtils.showHideElement("feature-headers-" + index);
