@@ -19,7 +19,7 @@
                         <filter-enumeration-control
                             class="filter-col-lg"
                             :field="'phenotype'"
-                            :options="$parent.secondaryPhenotypeOptions.map((phenotype) => phenotype.withComplication)"
+                            :options="$parent.complicationPhenotypeOptions.map((phenotype) => phenotype.withComplication)"
                             :multiple="true"
                             :labelFormatter="
                                 (phenotype) =>
@@ -41,12 +41,52 @@
                     </filter-list-group>
 
                     <div>
+                        <div
+                            v-if="$parent.complicationViewerPhenotypes.length > 0 &&
+                                $parent.combined.length > 0"
+                            class="card mdkp-card"
+                        >
+                            <div class="card-body">
+                                <h4 class="card-title">
+                                    Genome-wide single-variant associations for
+                                    {{ $parent.complicationsViewerPhenotype }}
+                                </h4>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card" style="width: 95%; border: 0">
+                                            <raw-img
+                                                id="manhattanPlot"
+                                                :src="$parent.manhattanPlot"
+                                                alt="Manhattan Plot"
+                                                :documentation="'phenotype.associationplots.manhattan'"
+                                                :content-fill="
+                                            $store.getters['documentationMap']
+                                        "
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card" style="width: 95%; border: 0">
+                                            <raw-img
+                                                id="qqPlot"
+                                                :src="$parent.qqPlot"
+                                                alt="QQ Plot"
+                                                :documentation="'phenotype.associationplots.qq'"
+                                                :content-fill="
+                                            $store.getters['documentationMap']
+                                        "
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <gene-finder-table
                             v-show="
-                                $parent.geneFinderPhenotypes.length > 0 &&
+                                $parent.complicationViewerPhenotypes.length > 0 &&
                                 $parent.combined.length > 0
                             "
-                            :phenotypes="$parent.geneFinderPhenotypes"
+                            :phenotypes="$parent.complicationViewerPhenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :associations="$parent.combined"
                             :rowsPerPage="20"

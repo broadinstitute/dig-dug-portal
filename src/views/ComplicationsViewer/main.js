@@ -20,6 +20,7 @@ import FilterControl from "@/components/Filter/FilterControl.vue"
 import FilterPValue from "@/components/Filter/FilterPValue.vue"
 import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import RawImage from "@/components/RawImage.vue";
 
 import Alert, {
     postAlert,
@@ -51,6 +52,7 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
+        RawImage,
     },
 
     data() {
@@ -118,7 +120,25 @@ new Vue({
             return selectedPhenotypesList;
         },
 
-        secondaryPhenotypeOptions() {
+        manhattanPlot() {
+            let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let phenotype = search[0];
+
+            if (!!phenotype) {
+                return `/api/raw/plot/phenotype/${phenotype}/manhattan.png`;
+            }
+        },
+
+        qqPlot() {
+            let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let phenotype = search[0];
+
+            if (!!phenotype) {
+                return `/api/raw/plot/phenotype/${phenotype}/qq.png`;
+            }
+        },
+
+        complicationPhenotypeOptions() {
             return this.$store.state.bioPortal.complications.filter(x => x.name != this.$store.state.phenotype);
         },
 
@@ -126,11 +146,11 @@ new Vue({
 
         // },
 
-        geneFinderPhenotypes() {
+        complicationViewerPhenotypes() {
             return this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
         },
-        geneFinderPhenotype() {
-            return this.geneFinderPhenotypes[0]
+        complicationsViewerPhenotype() {
+            return this.complicationViewerPhenotypes[0]
         },
         combined() {
             return Object.entries(this.geneFinderAssociationsMap).flatMap(geneFinderItem => geneFinderItem[1]);
@@ -147,7 +167,7 @@ new Vue({
         criterion() {
             return {
                 pValue: this.geneFinderPValue,
-                phenotypes: this.geneFinderPhenotypes,
+                phenotypes: this.complicationViewerPhenotypes,
             }
         }
     },
@@ -160,7 +180,7 @@ new Vue({
             if (newCriterion.pValue !== oldCriterion.pValue) {
                 // if the pValue updates, all phenotype associations must be updated to reflect the new bound
                 // this will override all data in the geneFinderAssociationsMap
-                this.updateAssociations(this.geneFinderPhenotypes, this.geneFinderPValue, true);
+                this.updateAssociations(this.complicationViewerPhenotypes, this.geneFinderPValue, true);
             } else {
                 // if the phenotypes update, we only need to get new data based on latest phenotype
                 // NOTE: this will maintain some data in the the geneFinderAssociationsMap
