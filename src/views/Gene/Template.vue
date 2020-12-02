@@ -299,6 +299,22 @@
                     <div v-if="$parent.geneNames">
                         <h4 class="card-title">External resources</h4>
                         <div
+                            v-if="$parent.accession.length > 0"
+                            class="gene-with-signal none"
+                        >
+                            <a
+                                :href="
+                                    $parent.externalResources['uniprot'].link +
+                                    $parent.accession[0]
+                                "
+                                target="_blank"
+                                :title="
+                                    $parent.externalResources['uniprot'].title
+                                "
+                                >UNIPROT</a
+                            >
+                        </div>
+                        <div
                             v-for="gene in $parent.alternateNames"
                             v-if="gene.source != 'alias'"
                             class="gene-with-signal none"

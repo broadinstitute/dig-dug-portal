@@ -87,6 +87,10 @@ new Vue({
                     title: "USSC Genome Browser",
                     link:
                         "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+                },
+                uniprot: {
+                    title: "Universal Protein Resource",
+                    link: "https://www.uniprot.org/uniprot/"
                 }
             }
         };
