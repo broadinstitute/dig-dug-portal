@@ -132,6 +132,21 @@ let showHideByClass = function (CLASS) {
     }
 };
 
+let onScroll = function (e) {
+    let windowTop = window.top.scrollY;
+
+    let element = document.getElementsByClassName("search-header")[0];
+    if (windowTop > this.tableTop) {
+        if (!element.classList.contains('fixed-header')) {
+            element.classList.add('fixed-header');
+        }
+    } else {
+        if (element.classList.contains('fixed-header')) {
+            element.classList.remove('fixed-header');
+        }
+    }
+}
+
 
 export default {
     popOutElement,
@@ -143,4 +158,5 @@ export default {
     showHideByClass,
     switchViews,
     getToolTipPosition,
+    onScroll,
 }

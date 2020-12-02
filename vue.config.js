@@ -164,6 +164,13 @@ let pages = {
         filename: "404.html",
         title: "Page Not Found",
         chunks: ["chunk-vendors", "chunk-common", "page404"]
+    },
+    gait: {
+        entry: "src/views/GAIT/main.js",
+        template: "public/index.html",
+        filename: "gait.html",
+        title: "Genetic Association Interactive Tool",
+        chunks: ["chunk-vendors", "chunk-common", "gait"]
     }
 };
 
@@ -205,7 +212,10 @@ module.exports = {
 
         // create inline maps for dev builds
         if (process.env.NODE_ENV !== "production") {
-            config.devtool = "inline-source-map";
+            //config.devtool = "inline-source-map";
+
+            //https://stackoverflow.com/questions/48047150/chrome-extension-compiled-by-webpack-throws-unsafe-eval-error
+            config.devtool = "cheap-module-source-map";
         }
     },
     productionSourceMap: false,

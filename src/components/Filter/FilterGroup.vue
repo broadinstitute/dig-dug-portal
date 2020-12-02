@@ -184,6 +184,14 @@ export default Vue.component("filter-group", {
         }
     },
     watch: {
+        value: {
+            handler: function(newFilterValue, oldFilterValue) {
+                if (!_.isEqual(newFilterValue, oldFilterValue)) {
+                    this.filterList = this.value;
+                }
+            },
+            deep: true,
+        },
         filterFunction: {
             handler: function(newFilterFunction, oldFilterFunction) {
                 this.$emit("input", newFilterFunction);

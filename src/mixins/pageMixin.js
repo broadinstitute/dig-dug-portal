@@ -4,6 +4,16 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
+
+import PageHeader from "@/components/PageHeader.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
+
 export const pageMixin = {
     computed: {
         frontContents() {
