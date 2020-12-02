@@ -119,13 +119,12 @@ new Vue({
         },
 
         secondaryPhenotypeOptions() {
-            return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.phenotype);
+            return this.$store.state.bioPortal.complications.filter(x => x.name != this.$store.state.phenotype);
         },
 
-        complicationPhenotypes() {
-            let x = this.$store.state.bioPortal.complications.filter(x => x.name != this.$store.state.phenotype);
-            return x;
-        },
+        // complicationPhenotypes() {
+
+        // },
 
         geneFinderPhenotypes() {
             return this.geneFinderSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
