@@ -21,11 +21,11 @@ import Formatters from "@/utils/formatters";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import FilterGroup from "@/components/Filter/FilterGroup.vue";
+import FilterControl from "@/components/Filter/FilterControl.vue";
+import FilterPValue from "@/components/Filter/FilterPValue.vue";
+import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue";
 
 import Alert, {
     postAlert,
@@ -58,20 +58,36 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
         LocusZoom,
-        LocusZoomPhewasPanel,
+        LocusZoomPhewasPanel
     },
 
     data() {
         return {
             counter: 0,
             externalResources: {
-                ensembl:
-                    "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
-                hgnc:
-                    "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
-                mgd: "http://www.informatics.jax.org/marker/",
-                rgd: "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=",
-                ucsc: "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+                ensembl: {
+                    title: "Ensembl",
+                    link:
+                        "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g="
+                },
+                hgnc: {
+                    title: "HUGO Gene Nomenclature Committee",
+                    link:
+                        "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/"
+                },
+                mgd: {
+                    title: "Mouse Genome Database",
+                    link: "http://www.informatics.jax.org/marker/"
+                },
+                rgd: {
+                    title: "Rat Genome Database",
+                    link: "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id="
+                },
+                ucsc: {
+                    title: "USSC Genome Browser",
+                    link:
+                        "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+                }
             }
         };
     },
@@ -100,8 +116,9 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                window.location.href = `./region.html?chr=${r.chromosome
-                    }&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${
+                    r.chromosome
+                }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         }
     },
