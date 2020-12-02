@@ -99,7 +99,6 @@ export default Vue.component("gene-associations-masks", {
             visible: false,
         };
     },
-    mounted() {},
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
