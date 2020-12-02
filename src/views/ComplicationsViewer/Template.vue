@@ -4,7 +4,7 @@
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h1 class="card-title">Gene Finder</h1>
+                    <h1 class="card-title">Complications Viewer</h1>
 
                     <documentation style="margin-bottom: 30px" name="tools.genefinder.subheader"></documentation>
 
