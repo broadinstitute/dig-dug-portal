@@ -71,6 +71,7 @@
                     </b-col>
                 </b-row>
                 <mask-table
+                    v-if="!!phenotypeMap[row.phenotype]"
                     :maskData="row.masks"
                     :key="i"
                     :index="i"
