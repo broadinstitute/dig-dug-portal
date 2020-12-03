@@ -268,7 +268,7 @@ new Vue({
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
                 console.log("change");
-                this.searchCriteria = this.searchCriteria.filter(v => {
+                this.selectedMethods = this.selectedMethods.filter(v => {
                     return v.field !== "phenotype";
                 });
                 //TODO: clear pill when clear phenotype
