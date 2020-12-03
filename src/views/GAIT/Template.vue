@@ -171,7 +171,7 @@
                                                 hover
                                                 small
                                                 responsive="sm"
-                                                sticky-header="500px"
+                                                sticky-header="400px"
                                                 :items="$parent.tableData"
                                                 :fields="$parent.visibleFields"
                                             >
@@ -208,148 +208,172 @@
                                             </b-table>
                                         </div>
 
-                                        <filter-list-group
-                                            v-if="$parent.tableData.length > 0"
-                                            v-model="$parent.selectedMethods"
-                                            :looseMatch="true"
-                                            :header="'Test Criteria'"
+                                        <b-card
+                                            header="Association statistics for selected variants"
+                                            class="text-center"
+                                            border-variant="info"
+                                            header-bg-variant="info"
+                                            header-text-variant="white"
                                         >
-                                            <filter-enumeration-control
-                                                ref="dataset"
-                                                :field="'dataset'"
-                                                :options="
-                                                    $parent.datasets.map(
-                                                        (v) => v.value
-                                                    )
+                                            <filter-list-group
+                                                v-if="
+                                                    $parent.tableData.length > 0
                                                 "
-                                                :labelFormatter="
-                                                    (v) =>
-                                                        $parent.datasets.find(
-                                                            (o) => o.value === v
-                                                        ).text
+                                                v-model="
+                                                    $parent.selectedMethods
                                                 "
-                                                ><div class="label">
-                                                    Dataset
-                                                </div></filter-enumeration-control
+                                                :looseMatch="true"
+                                                :header="'Test Criteria'"
                                             >
+                                                <filter-enumeration-control
+                                                    ref="dataset"
+                                                    :field="'dataset'"
+                                                    :options="
+                                                        $parent.datasets.map(
+                                                            (v) => v.value
+                                                        )
+                                                    "
+                                                    :labelFormatter="
+                                                        (v) =>
+                                                            $parent.datasets.find(
+                                                                (o) =>
+                                                                    o.value ===
+                                                                    v
+                                                            ).text
+                                                    "
+                                                    ><div class="label">
+                                                        Dataset
+                                                    </div></filter-enumeration-control
+                                                >
 
-                                            <filter-enumeration-control
-                                                ref="phenotype"
-                                                :field="'phenotype'"
-                                                :disableSort="true"
-                                                :disabled="
-                                                    $parent.selectedDataset
-                                                        .length == 0 ||
-                                                    $parent
-                                                        .selectedDataset[0] ===
-                                                        undefined
-                                                "
-                                                :multiple="true"
-                                                :options="
-                                                    $parent.selectedDataset ==
-                                                    '52k'
-                                                        ? $store.state.ldServer.phenotypes.map(
-                                                              (phenotype) =>
-                                                                  phenotype.name
-                                                          )
-                                                        : ['T2D']
-                                                "
-                                                :labelFormatter="
-                                                    (phenotype) =>
-                                                        !!$store.state.bioPortal
-                                                            .phenotypeMap[
-                                                            phenotype
-                                                        ]
-                                                            ? $store.state
-                                                                  .bioPortal
-                                                                  .phenotypeMap[
-                                                                  phenotype
-                                                              ].description
-                                                            : phenotype
-                                                "
-                                            >
-                                                <div class="label">
-                                                    Phenotypes
-                                                </div>
-                                            </filter-enumeration-control>
-
-                                            <filter-enumeration-control
-                                                ref="test"
-                                                :field="'test'"
-                                                :multiple="true"
-                                                :disableSort="true"
-                                                :options="
-                                                    $parent.testMethods.map(
-                                                        (v) => v.value
-                                                    )
-                                                "
-                                                :labelFormatter="
-                                                    (v) =>
-                                                        $parent.testMethods.find(
-                                                            (o) => o.value === v
-                                                        ).text
-                                                "
-                                                ><div class="label">
-                                                    Test Methods
-                                                </div></filter-enumeration-control
-                                            >
-                                        </filter-list-group>
-
-                                        <div
-                                            class="function"
-                                            v-if="$parent.tableData.length > 0"
-                                        >
-                                            <transition name="fade">
-                                                <b-alert
-                                                    show
-                                                    v-if="
+                                                <filter-enumeration-control
+                                                    ref="phenotype"
+                                                    :field="'phenotype'"
+                                                    :disableSort="true"
+                                                    :disabled="
                                                         $parent.selectedDataset
-                                                            .length == 0
-                                                    "
-                                                    >Please select a
-                                                    dataset.</b-alert
-                                                >
-                                                <b-alert
-                                                    show
-                                                    v-else-if="
-                                                        $parent
-                                                            .selectedPhenotypes
-                                                            .length == 0
-                                                    "
-                                                    >Please select one or more
-                                                    phenotypes.</b-alert
-                                                >
-                                                <b-alert
-                                                    show
-                                                    v-else-if="
-                                                        $parent.selectedTests
                                                             .length == 0 ||
                                                         $parent
-                                                            .selectedTests[0] ===
+                                                            .selectedDataset[0] ===
                                                             undefined
                                                     "
-                                                    >Please select one or more
-                                                    tests to run.</b-alert
-                                                ></transition
-                                            >
-                                            <b-button
-                                                :disabled="
-                                                    $parent.selectedVariants
-                                                        .length == 0 ||
-                                                    $parent.selectedPhenotypes
-                                                        .length == 0 ||
-                                                    $parent.selectedDataset
-                                                        .length == 0 ||
-                                                    $parent.selectedTests
-                                                        .length == 0
+                                                    :multiple="true"
+                                                    :options="
+                                                        $parent.selectedDataset ==
+                                                        '52k'
+                                                            ? $store.state.ldServer.phenotypes.map(
+                                                                  (phenotype) =>
+                                                                      phenotype.name
+                                                              )
+                                                            : ['T2D']
+                                                    "
+                                                    :labelFormatter="
+                                                        (phenotype) =>
+                                                            !!$store.state
+                                                                .bioPortal
+                                                                .phenotypeMap[
+                                                                phenotype
+                                                            ]
+                                                                ? $store.state
+                                                                      .bioPortal
+                                                                      .phenotypeMap[
+                                                                      phenotype
+                                                                  ].description
+                                                                : phenotype
+                                                    "
+                                                >
+                                                    <div class="label">
+                                                        Phenotypes
+                                                    </div>
+                                                </filter-enumeration-control>
+
+                                                <filter-enumeration-control
+                                                    ref="test"
+                                                    :field="'test'"
+                                                    :multiple="true"
+                                                    :disableSort="true"
+                                                    :options="
+                                                        $parent.testMethods.map(
+                                                            (v) => v.value
+                                                        )
+                                                    "
+                                                    :labelFormatter="
+                                                        (v) =>
+                                                            $parent.testMethods.find(
+                                                                (o) =>
+                                                                    o.value ===
+                                                                    v
+                                                            ).text
+                                                    "
+                                                    ><div class="label">
+                                                        Test Methods
+                                                    </div></filter-enumeration-control
+                                                >
+                                            </filter-list-group>
+
+                                            <div
+                                                class="function"
+                                                v-if="
+                                                    $parent.tableData.length > 0
                                                 "
-                                                variant="primary"
-                                                @click="
-                                                    $parent.searchCovariances
-                                                "
-                                                >Run Analysis</b-button
                                             >
-                                        </div>
+                                                <transition name="fade">
+                                                    <b-alert
+                                                        show
+                                                        v-if="
+                                                            $parent
+                                                                .selectedDataset
+                                                                .length == 0
+                                                        "
+                                                        >Please select a
+                                                        dataset.</b-alert
+                                                    >
+                                                    <b-alert
+                                                        show
+                                                        v-else-if="
+                                                            $parent
+                                                                .selectedPhenotypes
+                                                                .length == 0
+                                                        "
+                                                        >Please select one or
+                                                        more
+                                                        phenotypes.</b-alert
+                                                    >
+                                                    <b-alert
+                                                        show
+                                                        v-else-if="
+                                                            $parent
+                                                                .selectedTests
+                                                                .length == 0 ||
+                                                            $parent
+                                                                .selectedTests[0] ===
+                                                                undefined
+                                                        "
+                                                        >Please select one or
+                                                        more tests to
+                                                        run.</b-alert
+                                                    ></transition
+                                                >
+                                                <b-button
+                                                    :disabled="
+                                                        $parent.selectedVariants
+                                                            .length == 0 ||
+                                                        $parent
+                                                            .selectedPhenotypes
+                                                            .length == 0 ||
+                                                        $parent.selectedDataset
+                                                            .length == 0 ||
+                                                        $parent.selectedTests
+                                                            .length == 0
+                                                    "
+                                                    variant="primary"
+                                                    @click="
+                                                        $parent.searchCovariances
+                                                    "
+                                                    >Run Analysis</b-button
+                                                >
+                                            </div>
+                                        </b-card>
                                     </b-skeleton-wrapper>
                                 </b-card-body>
                             </b-collapse>
