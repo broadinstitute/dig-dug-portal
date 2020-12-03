@@ -27,7 +27,7 @@ new Vue({
 
     data() {
         return {
-            searchCriterionList: [ { "field": "phenotype", "multiple": true, "inclusive": true, "pill": {}, "threshold": "hello" } ],
+            searchCriterionList: [ { "field": "phenotype", "multiple": true, label: 'override', color: '#00FF00', "inclusive": true, "threshold": "hello" } ],
             searchCriterionFunction: id => true,
         };
     },

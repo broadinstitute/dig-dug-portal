@@ -2,8 +2,8 @@
     <!-- Header -->
     <div>
 
-        <filter-function-group
-            v-model="$parent.searchCriterionFunction"
+        <filter-list-group
+            v-model="$parent.searchCriterionList"
             :header="'Search Criterion'">
 
             <!-- Phenotype Selector -->
@@ -29,7 +29,7 @@
                 {{filter}}
             </template>
 
-        </filter-function-group>
+        </filter-list-group>
 
     </div>
 </template>
