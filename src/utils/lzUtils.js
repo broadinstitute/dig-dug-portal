@@ -61,14 +61,18 @@ export class LZBioIndexSource extends BaseAdapter {
             } else {
                 const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
                 query(self.index, self.queryStringMaker(state.chr, state.start, state.end), {
-                    finishHandler: self.finishHandler,
-                    resolveHandler: self.resolveHandler,
-                    errHandler: self.errHandler,
+                    // resolveHandler: self.resolveHandler,
                 })
-                .then(async resultData => {
-                    resolve(self.translator(resultData));
+                .then(async bioIndexResults => {
+                    if(!!self.finishHandler) {
+                        self.finishHandler({ data: bioIndexResults });
+                    }
+                    resolve(self.translator(bioIndexResults));
                 })
                 .catch(async error => {
+                    if(!!self.errHandler) {
+                        self.errHandler(error);
+                    }
                     postAlertError(error.message);
                     reject(new Error(error));
                 })
