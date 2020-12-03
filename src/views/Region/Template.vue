@@ -211,12 +211,12 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <associations-table
                                     v-if="
-                                        $store.state.associations.data.length >
+                                        $parent.pageAssociations.length >
                                         0
                                     "
                                     :phenotypes="$parent.phenotypes"
                                     :associations="
-                                        $store.state.associations.data
+                                        $parent.pageAssociations
                                     "
                                     :filter="filter"
                                 ></associations-table>
@@ -299,7 +299,7 @@
                                     <lz-associations-panel
                                         :phenotype="$store.state.phenotype.name"
                                         :finishHandler="
-                                            $parent.updateAssociationsTable
+                                            $parent.updatePageAssociations
                                         "
                                     ></lz-associations-panel>
                                 </locuszoom>

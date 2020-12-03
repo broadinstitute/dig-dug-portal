@@ -65,14 +65,11 @@ export class LZBioIndexSource extends BaseAdapter {
                 })
                 .then(async bioIndexResults => {
                     if(!!self.finishHandler) {
-                        self.finishHandler({ data: bioIndexResults });
+                        self.finishHandler(bioIndexResults);
                     }
                     resolve(self.translator(bioIndexResults));
                 })
                 .catch(async error => {
-                    if(!!self.errHandler) {
-                        self.errHandler(error);
-                    }
                     postAlertError(error.message);
                     reject(new Error(error));
                 })
