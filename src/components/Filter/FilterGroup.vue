@@ -1,5 +1,5 @@
 <template>
-    <span>
+    <div class="filters">
         <!-- Controls and their labels -->
         <slot name="header"></slot>
         <b-container fluid class="filtering-ui-wrapper">
@@ -14,7 +14,7 @@
 
         <!-- Pills for everything -->
         <div v-if="filterList.length > 0" class="filter-pill-collection center">
-            {{this.header}}:&nbsp;&nbsp;
+            {{ this.header }}:&nbsp;&nbsp;
             <!-- Derive pills from current filter state?
                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
                         It would be deterministic upto the compile-time declaration of the FilterGroup controls which would lead to predicatable results at runtime
@@ -24,16 +24,27 @@
                 v-for="(filter, idx) in filterList"
                 :key="filter.field + filter.predicate + filter.threshold + idx"
                 :class="`btn filter-pill-${filter.field}`"
-                :style="{ 'background-color': `${ !!filter.pill && !!filter.pill.color ? `${filter.pill.color} !important` : '' }` }"
-                @click="unsetFilter(filter, idx)">
-                {{ !!filter.pill && !!filter.pill.label ? filter.pill.label(filter) : `${filter.field} = ${filter.threshold}` }}
+                :style="{
+                    'background-color': `${
+                        !!filter.pill && !!filter.pill.color
+                            ? `${filter.pill.color} !important`
+                            : ''
+                    }`,
+                }"
+                @click="unsetFilter(filter, idx)"
+            >
+                {{
+                    !!filter.pill && !!filter.pill.label
+                        ? filter.pill.label(filter)
+                        : `${filter.field} = ${filter.threshold}`
+                }}
                 <span class="remove">X</span>
             </b-badge>
         </div>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <br v-else />
         <slot name="filtered" :filter="filterFunction"></slot>
-    </span>
+    </div>
 </template>
 
 <script>
@@ -72,7 +83,7 @@ const EventListener = {
         // https://stackoverflow.com/a/58859267
 
         return createElement("div", this.$scopedSlots.default());
-    }
+    },
 };
 
 export default Vue.component("filter-group", {
@@ -83,24 +94,30 @@ export default Vue.component("filter-group", {
         looseMatch: Boolean,
         header: {
             type: String,
-            default: "Selected Filters"
+            default: "Selected Filters",
         },
         filterMaker: {
             type: Function,
-            default: filterFromPredicates
+            default: filterFromPredicates,
         },
         predicateMaker: {
             type: Function,
-            default: predicateFromSpec
-        }
+            default: predicateFromSpec,
+        },
     },
     components: {
-        EventListener
+        EventListener,
     },
     data() {
         return {
             // the filter on the end prevents malformed initial values from being used in the component
-            filterList: (this.value !== null && Array.isArray(this.value) ? this.value : []).filter(filterDefinition => !!filterDefinition.field && !!filterDefinition.threshold),
+            filterList: (this.value !== null && Array.isArray(this.value)
+                ? this.value
+                : []
+            ).filter(
+                (filterDefinition) =>
+                    !!filterDefinition.field && !!filterDefinition.threshold
+            ),
 
             // Vue doesn't identify anonymous functions of the same form with one another,
             // so we are turning these two props into data to prevent infinite loops that result
@@ -110,18 +127,18 @@ export default Vue.component("filter-group", {
             // This will work as long as we don't want to update the filterMaker and predicateMaker at runtime,
             // which quite frankly seems unlikely.
             makeFilter: this.filterMaker,
-            makePredicate: this.predicateMaker
+            makePredicate: this.predicateMaker,
         };
     },
 
     computed: {
         filterFunction() {
-            const predicates = this.filterList.map(obj =>
+            const predicates = this.filterList.map((obj) =>
                 this.makePredicate(
                     { ...obj },
                     {
                         strictCase: this.strictCase,
-                        notStrictMatch: this.looseMatch
+                        notStrictMatch: this.looseMatch,
                     }
                 )
             );
@@ -134,12 +151,12 @@ export default Vue.component("filter-group", {
             if (
                 threshold !== null &&
                 !this.filterList
-                    .map(filter => filter.field)
+                    .map((filter) => filter.field)
                     .includes(filterDefinition.field)
             ) {
                 this.filterList.push({
                     ...filterDefinition,
-                    threshold
+                    threshold,
                 });
             } else {
                 // if the definition already exists, and it's a multiple, then just push, since we can allow for multiple instances of the same filter
@@ -148,18 +165,18 @@ export default Vue.component("filter-group", {
                     if (
                         threshold !== null &&
                         !this.filterList
-                            .map(filter => filter.threshold)
+                            .map((filter) => filter.threshold)
                             .includes(threshold)
                     ) {
                         this.filterList.push({
                             ...filterDefinition,
-                            threshold
+                            threshold,
                         });
                     }
                     // if the definition already exists, and it's a not a multiple, then modify the existing definition in filterList that matches the field
                     // TODO: would be faster if we maintain a normalized version of filterList against the filter ID, refactor towards this for performance
                 } else if (!filterDefinition.multiple) {
-                    this.filterList = this.filterList.map(filter => {
+                    this.filterList = this.filterList.map((filter) => {
                         if (filter.field === filterDefinition.field) {
                             const tempFilter = filter;
                             tempFilter.threshold = threshold;
@@ -181,11 +198,11 @@ export default Vue.component("filter-group", {
             this.filterList = this.filterList
                 .slice(0, idx)
                 .concat(this.filterList.slice(idx + 1, this.filterList.length));
-        }
+        },
     },
     watch: {
         value: {
-            handler: function(newFilterValue, oldFilterValue) {
+            handler: function (newFilterValue, oldFilterValue) {
                 if (!_.isEqual(newFilterValue, oldFilterValue)) {
                     this.filterList = this.value;
                 }
@@ -193,11 +210,11 @@ export default Vue.component("filter-group", {
             deep: true,
         },
         filterFunction: {
-            handler: function(newFilterFunction, oldFilterFunction) {
+            handler: function (newFilterFunction, oldFilterFunction) {
                 this.$emit("input", newFilterFunction);
             },
-            deep: true
-        }
-    }
+            deep: true,
+        },
+    },
 });
 </script>
