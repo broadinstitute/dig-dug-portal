@@ -1,7 +1,5 @@
 These Vue components, here called Criterion components, are used for search, selecting and filtering for data based on... criterion.
 
-Filters are Criterion components, of a specific kind. They're used mainly to build filter functions for a given field and predicate, but can also be used for populating a list of Criterion when placed inside of a `<criterion-list-group>`.
-
 A piece of Criterion is an object that looks like this:
 ```js
 {
@@ -17,6 +15,8 @@ A piece of Criterion is an object that looks like this:
     inclusive: true,  // whether or not the predicate is to be applied disjunctively with other predicates
 }
 ```
+
+Filters are Criterion components, of a specific kind. They're used mainly to build filter functions for a given field and predicate, but can also be used for populating a list of Criterion when placed inside of a `<criterion-list-group>`.
 
 You can pre-populate a `CriterionListGroup` by making an array of Criterion objects and passing them through with `v-model`. For this list, `field` and `threshold` are necessary; the remaining properties will tend to have defaults, but it's recommended that you provide them values. Pill styling is handled in `mdkp.css` and obeys the function `filter-pill-<field>` where `field` is of course the case-sensitive/exact field name given to the `Filter*.vue` component or its Criterion.
 
