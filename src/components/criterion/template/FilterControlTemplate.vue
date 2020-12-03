@@ -115,22 +115,18 @@ export default Vue.component("filter-control-template", {
                                 "change",
                                 thresholdElement.trim(),
                                 {
+                                    label: this.pillFormatter,
+                                    color: this.color,
                                     ...this.filterDefinition,
-                                    pill: {
-                                        label: this.pillFormatter,
-                                        color: this.color,
-                                    },
                                 }
                             )
                         );
                     } else {
                         // double parent since we're only using this component as a template inside of another component
                         this.$parent.$parent.$emit("change", newThreshold, {
+                            label: this.pillFormatter,
+                            color: this.color,
                             ...this.filterDefinition,
-                            pill: {
-                                label: this.pillFormatter,
-                                color: this.color,
-                            },
                         });
                     }
                 } else {

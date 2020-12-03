@@ -24,9 +24,9 @@
                 v-for="(filter, idx) in filterList"
                 :key="filter.field + filter.predicate + filter.threshold + idx"
                 :class="`btn filter-pill-${filter.field}`"
-                :style="{ 'background-color': `${ !!filter.pill && !!filter.pill.color ? `${filter.pill.color} !important` : '' }` }"
+                :style="{ 'background-color': `${ !!filter.color ? `${filter.color} !important` : '' }` }"
                 @click="unsetFilter(filter, idx)">
-                {{ !!filter.pill && !!filter.pill.label ? filter.pill.label(filter) : `${filter.field} = ${filter.threshold}` }}
+                {{ !!filter.label ? typeof filter.label === 'function' ? filter.label(filter) : new String(filter.label) : `${filter.field} = ${filter.threshold}` }}
                 <span class="remove">X</span>
             </b-badge>
         </div>
@@ -140,8 +140,8 @@ export default Vue.component("filter-group-template", {
             ) {
 
                 this.filterList.push({
+                    threshold,
                     ...filterDefinition,
-                    threshold
                 });
 
             } else {
@@ -157,8 +157,8 @@ export default Vue.component("filter-group-template", {
                     ) {
 
                         this.filterList.push({
+                            threshold,
                             ...filterDefinition,
-                            threshold
                         });
 
                     }
