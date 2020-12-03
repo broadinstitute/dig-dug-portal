@@ -103,29 +103,34 @@
                             <b-progress-bar value="3"> </b-progress-bar>
                             <div class="progress-bar-title">Something</div>
                         </b-progress>
-                        <b-alert
-                            show
-                            v-if="
-                                $parent.selectedGene.length == 0 ||
-                                $parent.selectedGene[0] === undefined
-                            "
-                            >Please select a gene.</b-alert
+                        <transition name="fade"
+                            ><b-alert
+                                show
+                                v-if="
+                                    $parent.selectedGene.length == 0 ||
+                                    $parent.selectedGene[0] === undefined
+                                "
+                                >Please select a gene.</b-alert
+                            >
+                            <b-alert
+                                show
+                                v-else-if="$parent.selectedDataset.length == 0"
+                                >Please select a dataset.</b-alert
+                            >
+                            <b-alert
+                                show
+                                v-else-if="
+                                    $parent.selectedPhenotypes.length == 0
+                                "
+                                >Please select one or more phenotypes.</b-alert
+                            >
+                            <b-alert
+                                show
+                                v-else-if="$parent.selectedMasks.length == 0"
+                                >Please select one or more masks.</b-alert
+                            ></transition
                         >
-                        <b-alert
-                            show
-                            v-else-if="$parent.selectedDataset.length == 0"
-                            >Please select a dataset.</b-alert
-                        >
-                        <b-alert
-                            show
-                            v-else-if="$parent.selectedPhenotypes.length == 0"
-                            >Please select one or more phenotypes.</b-alert
-                        >
-                        <b-alert
-                            show
-                            v-else-if="$parent.selectedMasks.length == 0"
-                            >Please select one or more masks.</b-alert
-                        >
+
                         <b-button
                             variant="primary"
                             @click="$parent.searchVariants"
