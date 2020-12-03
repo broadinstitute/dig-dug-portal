@@ -10,7 +10,7 @@
 
                     <h4 class="card-title">Build search criteria</h4>
 
-                    <filter-list-group
+                    <criterion-function-group
                         v-model="$parent.geneFinderSearchCriterion"
                         :header="'Search Criterion'"
                     >
@@ -46,7 +46,7 @@
                                 <strong>P-Value (&le;)</strong>
                             </div>
                         </filter-pvalue-control>
-                    </filter-list-group>
+                    </criterion-function-group>
 
                     <div>
                         <gene-finder-table

@@ -92,7 +92,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-function-group>
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="
@@ -132,7 +132,7 @@
                                     :per-page="10"
                                 ></associations-table>
                             </template>
-                        </filter-function-group>
+                        </criterion-function-group>
                     </div>
                 </div>
 
@@ -150,7 +150,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-function-group>
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'gene'"
                                 :options="
@@ -178,7 +178,7 @@
                                     :showPlot="true"
                                 ></gene-finder-table>
                             </template>
-                        </filter-function-group>
+                        </criterion-function-group>
                     </div>
                 </div>
 
@@ -193,7 +193,7 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-function-group>
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'tech'"
                                 :options="
@@ -224,7 +224,7 @@
                                     :filter="filter"
                                 ></datasets-table>
                             </template>
-                        </filter-function-group>
+                        </criterion-function-group>
                     </div>
                 </div>
 
@@ -245,7 +245,7 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-function-group>
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'annotation'"
                                 :options="
@@ -307,7 +307,7 @@
                                     :per-page="10"
                                 ></enrichment-table>
                             </template>
-                        </filter-function-group>
+                        </criterion-function-group>
                     </div>
                 </div>
             </div>

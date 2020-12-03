@@ -144,7 +144,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-function-group>
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'phenotype'"
                                 :options="
@@ -203,7 +203,7 @@
                                     :filter="filter"
                                 ></gene-associations-table>
                             </template>
-                        </filter-function-group>
+                        </criterion-function-group>
                     </div>
                 </div>
             </div>
@@ -245,7 +245,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-function-group :inclusive="true">
+                        <criterion-function-group :inclusive="true">
                             <filter-enumeration-control
                                 :field="'source'"
                                 :options="
@@ -273,7 +273,7 @@
                                     :filter="filter"
                                 ></uniprot-references-table>
                             </template>
-                        </filter-function-group>
+                        </criterion-function-group>
                     </div>
                 </div>
             </div>

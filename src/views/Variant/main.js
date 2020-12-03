@@ -30,7 +30,7 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue"
+import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
@@ -56,7 +56,7 @@ new Vue({
         ForestPlotHtml,
         DatasetAssociations,
         UnauthorizedMessage,
-        FilterGroupTemplate,
+        CriterionGroupTemplate,
         FilterControlTemplate,
         FilterPValue,
         FilterEffectDirection,

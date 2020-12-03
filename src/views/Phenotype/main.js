@@ -30,8 +30,8 @@ import FilterControlTemplate from "@/components/criterion/template/FilterControl
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
-import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue"
-import FilterListGroup from "@/components/criterion/group/FilterListGroup.vue"
+import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 
 
@@ -50,8 +50,8 @@ new Vue({
         Documentation,
         RawImage,
 
-        FilterGroupTemplate,
-        FilterListGroup,
+        CriterionGroupTemplate,
+        CriterionListGroup,
         FilterControlTemplate,
         FilterPValue,
         FilterGreaterThan,

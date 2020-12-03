@@ -2,7 +2,7 @@
     <!-- Header -->
     <div>
 
-        <filter-list-group
+        <criterion-function-group
             v-model="$parent.searchCriterionList"
             :header="'Search Criterion'">
 
@@ -29,7 +29,7 @@
                 {{filter}}
             </template>
 
-        </filter-list-group>
+        </criterion-function-group>
 
     </div>
 </template>

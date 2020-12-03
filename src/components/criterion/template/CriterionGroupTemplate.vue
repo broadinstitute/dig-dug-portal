@@ -17,7 +17,7 @@
             {{this.header}}:&nbsp;&nbsp;
             <!-- Derive pills from current filter state?
                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
-                        It would be deterministic upto the compile-time declaration of the FilterGroupTemplate controls which would lead to predicatable results at runtime
+                        It would be deterministic upto the compile-time declaration of the CriterionGroupTemplate controls which would lead to predicatable results at runtime
             -->
             <b-badge
                 pill
@@ -61,7 +61,7 @@ const EventListener = {
      * If you want someone to blame for this, it's the Vue devs, for not allowing v-on with slots: https://github.com/vuejs/vue/issues/4781
      * And we're doing this as our response: https://github.com/vuejs/vue/issues/4781#issuecomment-501217642
      *
-     * In FilterGroupTemplate we'll use 'change' as the event share between EventListener and the child components.
+     * In CriterionGroupTemplate we'll use 'change' as the event share between EventListener and the child components.
      *
      */
     render(createElement) {
@@ -75,7 +75,7 @@ const EventListener = {
     }
 };
 
-export default Vue.component("filter-group-template", {
+export default Vue.component("criterion-group-template", {
     props: {
 
         value: [Function, Array],

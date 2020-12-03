@@ -1,8 +1,8 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 
-import FilterListGroup from "@/components/criterion/group/FilterListGroup.vue"
-import FilterFunctionGroup from "@/components/criterion/group/FilterFunctionGroup.vue"
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
@@ -14,8 +14,8 @@ import keyParams from "@/utils/keyParams"
 Vue.config.productionTip = false;
 new Vue({
     components: {
-        FilterListGroup,
-        FilterFunctionGroup,
+        CriterionListGroup,
+        CriterionFunctionGroup,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
@@ -27,7 +27,7 @@ new Vue({
 
     data() {
         return {
-            searchCriterionList: [ { "field": "phenotype", "multiple": true, label: 'override', color: '#00FF00', "inclusive": true, "threshold": "hello" } ],
+            searchCriterionList: [ { "field": "phenotype", "multiple": true, "inclusive": true, "threshold": "hello" } ],
             searchCriterionFunction: id => true,
         };
     },

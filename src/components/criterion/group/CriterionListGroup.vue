@@ -1,5 +1,5 @@
 <template>
-    <filter-group-template
+    <criterion-group-template
         :value="value"
         type='list'
         :looseMatch="true"
@@ -9,14 +9,14 @@
         <template slot=filtered slot-scope="{ filter }">
             <slot name="filtered" :filter="filter"></slot>
         </template>
-    </filter-group-template>
+    </criterion-group-template>
 </template>
 
 <script>
 import Vue from "vue"
-import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue"
+import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
 
-export default Vue.component('filter-list-group', {
+export default Vue.component('criterion-function-group', {
     props: {
         value: {
             type: Array,
@@ -35,7 +35,7 @@ export default Vue.component('filter-list-group', {
         },
         header: String,
     },
-    components:{ FilterGroupTemplate },
+    components:{ CriterionGroupTemplate },
     methods: {
         emitInput(value) {
             this.$emit('input', value)

@@ -185,7 +185,7 @@
                         :restricted="$store.state.phewas.restricted"
                     ></unauthorized-message>
 
-                    <filter-function-group>
+                    <criterion-function-group>
                         <filter-enumeration-control
                             :field="'phenotype'"
                             :options="
@@ -286,7 +286,7 @@
                                 :filter="filter"
                             ></phewas-datasets>
                         </template>
-                    </filter-function-group>
+                    </criterion-function-group>
                 </div>
             </div>
 
@@ -343,7 +343,7 @@
                         :restricted="$store.state.regions.restricted"
                     ></unauthorized-message>
 
-                    <filter-function-group>
+                    <criterion-function-group>
                         <filter-enumeration-control
                             :field="'annotation'"
                             :options="
@@ -378,7 +378,7 @@
                                 :filter="filter"
                             ></regions-table>
                         </template>
-                    </filter-function-group>
+                    </criterion-function-group>
                 </div>
             </div>
         </div>

@@ -80,7 +80,7 @@ export default Vue.component("filter-control-template", {
                 multiple: !!this.multiple || !!this.splitBy ? true : false, // if undefined, default to false
                 inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
             },
-            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the FilterGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
+            filterThreshold: this.default, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
     },
     created() {
@@ -103,7 +103,7 @@ export default Vue.component("filter-control-template", {
             return true;
         },
         updateFilter(newThreshold) {
-            // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of FilterGroupTemplate
+            // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
                 const isValid = this.validateInput(newThreshold);
