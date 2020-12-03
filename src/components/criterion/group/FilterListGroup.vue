@@ -1,17 +1,21 @@
 <template>
-    <filter-group
+    <filter-group-template
         :value="value"
-        :looseMatch="looseMatch"
-        :filterMaker="id=>id"
-        :predicateMaker="id=>id"
+        type='list'
+        :looseMatch="true"
         :header="header"
         @input="emitInput">
         <slot></slot>
-    </filter-group>
+        <template slot=filtered slot-scope="{ filter }">
+            <slot name="filtered" :filter="filter"></slot>
+        </template>
+    </filter-group-template>
 </template>
+
 <script>
 import Vue from "vue"
-import FilterGroup from "./FilterGroup.vue"
+import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue"
+
 export default Vue.component('filter-list-group', {
     props: {
         value: {
@@ -32,10 +36,9 @@ export default Vue.component('filter-list-group', {
                 }
             }
         },
-        looseMatch: Boolean,
         header: String,
     },
-    components:{ FilterGroup },
+    components:{ FilterGroupTemplate },
     methods: {
         emitInput(value) {
             this.$emit('input', value)

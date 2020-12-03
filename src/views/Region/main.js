@@ -20,12 +20,16 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue"
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
+
+import FilterListGroup from "@/components/criterion/group/FilterListGroup.vue"
+import FilterFunctionGroup from "@/components/criterion/group/FilterFunctionGroup.vue"
+
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -63,8 +67,11 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
 
-        FilterGroup,
-        FilterControl,
+        FilterListGroup,
+        FilterFunctionGroup,
+
+        FilterGroupTemplate,
+        FilterControlTemplate,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
@@ -84,7 +91,7 @@ new Vue({
 
     data() {
         return {
-            associationsFilter: null,
+            associationsFilter: function (id) { return true; },
             tissueScoring: null,
         };
     },

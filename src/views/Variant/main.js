@@ -30,12 +30,12 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue"
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 new Vue({
     store,
@@ -56,8 +56,8 @@ new Vue({
         ForestPlotHtml,
         DatasetAssociations,
         UnauthorizedMessage,
-        FilterGroup,
-        FilterControl,
+        FilterGroupTemplate,
+        FilterControlTemplate,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,

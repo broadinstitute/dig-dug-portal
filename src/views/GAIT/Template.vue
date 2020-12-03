@@ -25,7 +25,6 @@
 
                     <filter-list-group
                         v-model="$parent.searchCriteria"
-                        :looseMatch="true"
                         :header="'Search Criteria'"
                     >
                         <filter-basic-control ref="gene" :field="'gene'">
@@ -211,7 +210,6 @@
                                         <filter-list-group
                                             v-if="$parent.tableData.length > 0"
                                             v-model="$parent.selectedMethods"
-                                            :looseMatch="true"
                                             :header="'Test(s) Selected'"
                                             ><filter-enumeration-control
                                                 ref="test"

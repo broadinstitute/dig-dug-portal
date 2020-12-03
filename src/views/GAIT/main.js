@@ -4,13 +4,13 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import Documentation from "@/components/Documentation.vue";
-import FilterGroup from "@/components/Filter/FilterGroup.vue";
-import FilterListGroup from "@/components/Filter/FilterListGroup.vue";
-import FilterControl from "@/components/Filter/FilterControl.vue";
-import FilterPValue from "@/components/Filter/FilterPValue.vue";
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue";
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue";
-import FilterBasic from "@/components/Filter/FilterBasic";
+import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue";
+import FilterListGroup from "@/components/criterion/group/FilterListGroup.vue";
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterBasic from "@/components/criterion/FilterBasic";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { pageMixin } from "@/mixins/pageMixin";
@@ -24,8 +24,8 @@ new Vue({
     mixins: [pageMixin],
     components: {
         Documentation,
-        FilterGroup,
-        FilterControl,
+        FilterGroupTemplate,
+        FilterControlTemplate,
         FilterListGroup,
         FilterPValue,
         FilterEnumeration,

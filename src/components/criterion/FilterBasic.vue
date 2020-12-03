@@ -1,5 +1,5 @@
 <template>
-    <filter-control
+    <filter-control-template
         class="filter-col-md"
         :field="field"
         :predicate="(string, selection) => string === selection"
@@ -9,17 +9,17 @@
         "
         :options="options"
         :color="color"
-        :multiple="true"
+        :multiple="false"
         :inclusive="inclusive"
         :splitBy="splitBy"
     >
         <slot> </slot>
-    </filter-control>
+    </filter-control-template>
 </template>
 <script>
 import Vue from "vue";
-import FilterControl from "./FilterControl";
-export default Vue.component("filter-multi-control", {
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
+export default Vue.component("filter-basic-control", {
     props: {
         field: String,
         options: {
@@ -34,7 +34,7 @@ export default Vue.component("filter-multi-control", {
         },
     },
     components: {
-        FilterControl,
+        FilterControlTemplate,
     },
 });
 </script>

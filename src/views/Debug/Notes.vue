@@ -108,7 +108,7 @@
             - Use providers, again, to manage scope, but combine the filter provider with the filter widget to prevent the function from escaping to the page scope
             - Only usable with puppet components
         -->
-        <filter-group>
+        <>
             <filterP>
                 <filterC slot-scope="filter">
                     <locuszoom
@@ -119,7 +119,7 @@
                     </asscociations-table>
                 </filterC>
             </filterP>
-        </filter-group>
+        </>
 
         <!--
             PO:

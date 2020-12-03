@@ -14,12 +14,12 @@ import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypePicker from "@/components/PhenotypePicker.vue";
 import GeneFinderTable from "@/components/GeneFinderTable.vue";
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
-import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue"
+import FilterListGroup from "@/components/criterion/group/FilterListGroup.vue"
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import Alert, {
     postAlert,
@@ -45,9 +45,9 @@ new Vue({
         Documentation,
         GeneFinderTable,
         UnauthorizedMessage,
-        FilterGroup,
+        FilterGroupTemplate,
         FilterListGroup,
-        FilterControl,
+        FilterControlTemplate,
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,

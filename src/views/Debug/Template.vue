@@ -1,10 +1,11 @@
 <template>
     <!-- Header -->
     <div>
-        <filter-list-group
-            v-model="$parent.searchCriterionList"
-            :looseMatch="true"
+
+        <filter-function-group
+            v-model="$parent.searchCriterionFunction"
             :header="'Search Criterion'">
+
             <!-- Phenotype Selector -->
             <filter-enumeration-control
                 class="filter-col-lg"
@@ -23,8 +24,12 @@
                     <strong>P-Value (&le;)</strong>
                 </div>
             </filter-pvalue-control>
-        </filter-list-group>
-        <button @click="$parent.clear">Clear</button>
-        {{$parent.searchCriterionList}}
+
+            <template slot=filtered slot-scope="{ filter }">
+                {{filter}}
+            </template>
+
+        </filter-function-group>
+
     </div>
 </template>

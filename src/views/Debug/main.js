@@ -1,12 +1,13 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 
-import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import FilterListGroup from "@/components/criterion/group/FilterListGroup.vue"
+import FilterFunctionGroup from "@/components/criterion/group/FilterFunctionGroup.vue"
+
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import keyParams from "@/utils/keyParams"
 
@@ -14,7 +15,7 @@ Vue.config.productionTip = false;
 new Vue({
     components: {
         FilterListGroup,
-        FilterControl,
+        FilterFunctionGroup,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
@@ -26,12 +27,8 @@ new Vue({
 
     data() {
         return {
-            searchCriterionList: [
-                {
-                    field: 'phenotype',
-                    threshold: keyParams.phenotype,
-                }
-            ],
+            searchCriterionList: [ { "field": "phenotype", "multiple": true, "inclusive": true, "pill": {}, "threshold": "hello" } ],
+            searchCriterionFunction: id => true,
         };
     },
 

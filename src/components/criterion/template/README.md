@@ -1,0 +1,1 @@
+These Filter-*-Template components are not meant to be used inside of a page. Rather, they are extended by wrapping them inside of other components. See the existing components for examples. 

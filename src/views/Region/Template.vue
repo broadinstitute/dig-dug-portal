@@ -200,10 +200,7 @@
                             name="region.variantassociation.subheader"
                         ></documentation>
 
-                        <filter-group
-                            v-model="$parent.associationsFilter"
-                            :looseMatch="true"
-                        >
+                        <filter-function-group v-model="$parent.associationsFilter">
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="$parent.associationConsequences"
@@ -240,7 +237,7 @@
                                     :filter="filter"
                                 ></associations-table>
                             </template>
-                        </filter-group>
+                        </filter-function-group>
 
                         <br />
                         <documentation
@@ -253,7 +250,7 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-group :looseMatch="true">
+                        <filter-function-group>
                             <div class="col filter-col-lg">
                                 <div class="label" style="margin-bottom: 5px">
                                     Add annotation
@@ -323,7 +320,8 @@
                                     ></lz-associations-panel>
                                 </locuszoom>
                             </template>
-                        </filter-group>
+                        </filter-function-group>
+
                     </div>
                 </div>
             </div>

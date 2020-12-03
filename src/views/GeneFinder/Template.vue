@@ -12,7 +12,6 @@
 
                     <filter-list-group
                         v-model="$parent.geneFinderSearchCriterion"
-                        :looseMatch="true"
                         :header="'Search Criterion'"
                     >
                         <!-- Phenotype Selector -->

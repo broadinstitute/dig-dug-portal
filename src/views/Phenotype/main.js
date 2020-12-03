@@ -26,13 +26,13 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
-import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
-import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+import FilterGroupTemplate from "@/components/criterion/template/FilterGroupTemplate.vue"
+import FilterListGroup from "@/components/criterion/group/FilterListGroup.vue"
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 
 
 new Vue({
@@ -50,9 +50,9 @@ new Vue({
         Documentation,
         RawImage,
 
-        FilterGroup,
+        FilterGroupTemplate,
         FilterListGroup,
-        FilterControl,
+        FilterControlTemplate,
         FilterPValue,
         FilterGreaterThan,
         FilterEnumeration,
