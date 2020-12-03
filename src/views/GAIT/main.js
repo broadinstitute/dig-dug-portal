@@ -150,7 +150,7 @@ new Vue({
             return this.tableData.filter(v => v.selected).map(v => v.varId);
         },
         selectedPhenotypes() {
-            return this.searchCriteria
+            return this.selectedMethods
                 .filter(v => {
                     return v.field === "phenotype";
                 })
@@ -171,7 +171,7 @@ new Vue({
                 .map(v => v.threshold);
         },
         selectedDataset() {
-            return this.searchCriteria
+            return this.selectedMethods
                 .filter(v => {
                     return v.field === "dataset";
                 })

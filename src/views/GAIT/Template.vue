@@ -33,50 +33,6 @@
                         </filter-basic-control>
 
                         <filter-enumeration-control
-                            ref="dataset"
-                            :field="'dataset'"
-                            :options="$parent.datasets.map((v) => v.value)"
-                            :labelFormatter="
-                                (v) =>
-                                    $parent.datasets.find((o) => o.value === v)
-                                        .text
-                            "
-                            ><div class="label">
-                                Dataset
-                            </div></filter-enumeration-control
-                        >
-
-                        <filter-enumeration-control
-                            ref="phenotype"
-                            :field="'phenotype'"
-                            :disableSort="true"
-                            :disabled="
-                                $parent.selectedDataset.length == 0 ||
-                                $parent.selectedDataset[0] === undefined
-                            "
-                            :multiple="true"
-                            :options="
-                                $parent.selectedDataset == '52k'
-                                    ? $store.state.ldServer.phenotypes.map(
-                                          (phenotype) => phenotype.name
-                                      )
-                                    : ['T2D']
-                            "
-                            :labelFormatter="
-                                (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
-                            "
-                        >
-                            <div class="label">Phenotypes</div>
-                        </filter-enumeration-control>
-
-                        <filter-enumeration-control
                             ref="mask"
                             :field="'mask'"
                             :multiple="true"
@@ -94,7 +50,7 @@
                     </filter-list-group>
 
                     <div class="function">
-                        <b-progress
+                        <!-- <b-progress
                             max="4"
                             height="3rem"
                             variant="info"
@@ -102,7 +58,7 @@
                         >
                             <b-progress-bar value="3"> </b-progress-bar>
                             <div class="progress-bar-title">Something</div>
-                        </b-progress>
+                        </b-progress> -->
                         <transition name="fade"
                             ><b-alert
                                 show
@@ -112,18 +68,7 @@
                                 "
                                 >Please select a gene.</b-alert
                             >
-                            <b-alert
-                                show
-                                v-else-if="$parent.selectedDataset.length == 0"
-                                >Please select a dataset.</b-alert
-                            >
-                            <b-alert
-                                show
-                                v-else-if="
-                                    $parent.selectedPhenotypes.length == 0
-                                "
-                                >Please select one or more phenotypes.</b-alert
-                            >
+
                             <b-alert
                                 show
                                 v-else-if="$parent.selectedMasks.length == 0"
@@ -134,11 +79,7 @@
                         <b-button
                             variant="primary"
                             @click="$parent.searchVariants"
-                            :disabled="
-                                $parent.selectedPhenotypes.length == 0 ||
-                                $parent.selectedGene.length == 0 ||
-                                $parent.selectedMasks.length == 0
-                            "
+                            :disabled="$parent.selectedMasks.length == 0"
                             >Search Variants</b-button
                         >
                     </div>
@@ -272,7 +213,67 @@
                                             v-model="$parent.selectedMethods"
                                             :looseMatch="true"
                                             :header="'Test(s) Selected'"
-                                            ><filter-enumeration-control
+                                        >
+                                            <filter-enumeration-control
+                                                ref="dataset"
+                                                :field="'dataset'"
+                                                :options="
+                                                    $parent.datasets.map(
+                                                        (v) => v.value
+                                                    )
+                                                "
+                                                :labelFormatter="
+                                                    (v) =>
+                                                        $parent.datasets.find(
+                                                            (o) => o.value === v
+                                                        ).text
+                                                "
+                                                ><div class="label">
+                                                    Dataset
+                                                </div></filter-enumeration-control
+                                            >
+
+                                            <filter-enumeration-control
+                                                ref="phenotype"
+                                                :field="'phenotype'"
+                                                :disableSort="true"
+                                                :disabled="
+                                                    $parent.selectedDataset
+                                                        .length == 0 ||
+                                                    $parent
+                                                        .selectedDataset[0] ===
+                                                        undefined
+                                                "
+                                                :multiple="true"
+                                                :options="
+                                                    $parent.selectedDataset ==
+                                                    '52k'
+                                                        ? $store.state.ldServer.phenotypes.map(
+                                                              (phenotype) =>
+                                                                  phenotype.name
+                                                          )
+                                                        : ['T2D']
+                                                "
+                                                :labelFormatter="
+                                                    (phenotype) =>
+                                                        !!$store.state.bioPortal
+                                                            .phenotypeMap[
+                                                            phenotype
+                                                        ]
+                                                            ? $store.state
+                                                                  .bioPortal
+                                                                  .phenotypeMap[
+                                                                  phenotype
+                                                              ].description
+                                                            : phenotype
+                                                "
+                                            >
+                                                <div class="label">
+                                                    Phenotypes
+                                                </div>
+                                            </filter-enumeration-control>
+
+                                            <filter-enumeration-control
                                                 ref="test"
                                                 :field="'test'"
                                                 :multiple="true"
@@ -301,6 +302,24 @@
                                             <b-alert
                                                 show
                                                 v-if="
+                                                    $parent.selectedDataset
+                                                        .length == 0
+                                                "
+                                                >Please select a
+                                                dataset.</b-alert
+                                            >
+                                            <b-alert
+                                                show
+                                                v-else-if="
+                                                    $parent.selectedPhenotypes
+                                                        .length == 0
+                                                "
+                                                >Please select one or more
+                                                phenotypes.</b-alert
+                                            >
+                                            <b-alert
+                                                show
+                                                v-else-if="
                                                     $parent.selectedTests
                                                         .length == 0 ||
                                                     $parent.selectedTests[0] ===
