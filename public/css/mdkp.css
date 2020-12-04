@@ -495,6 +495,49 @@ a:hover {
     border-color: #fff;
 }
 
+/* front page datasets info graphs */
+
+.front-datasets-graph, .front-phenotypes-graph {
+    width: 50%;
+    padding: 0px 10px 20px 10px;
+    display: inline-block;
+    position: relative;
+}
+
+.front-datasets-graph .each-item, .front-phenotypes-graph .each-item {
+    font-size: 16px;
+    position: relative;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 3px;
+}
+
+.front-datasets-graph .percent-bg, .front-phenotypes-graph .percent-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #ccc;
+    border-radius: 30px;
+    width: 0%;
+    transition: width 2s;
+    height: 30px;
+}
+
+.front-datasets-graph .percent-bg {
+    background-color: rgba(0, 185, 242, 0.5);
+}
+
+.front-phenotypes-graph .percent-bg {
+    background-color: rgba(128, 194, 66, 0.5);
+}
+
+.front-datasets-graph .info-label, .front-phenotypes-graph .info-label {
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    font-size: 14px;
+}
+
 .header-disease-group-select-wrapper {
     display: inline-block;
     border-left: solid 1px #ddd;
