@@ -26,12 +26,10 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
-import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
-import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 
 
@@ -50,9 +48,8 @@ new Vue({
         Documentation,
         RawImage,
 
-        CriterionGroupTemplate,
-        CriterionListGroup,
-        FilterControlTemplate,
+        CriterionFunctionGroup,
+        // CriterionListGroup,
         FilterPValue,
         FilterGreaterThan,
         FilterEnumeration,
@@ -70,7 +67,7 @@ new Vue({
     },
     data() {
         return {
-            enrichmentFilter: null,
+            enrichmentFilter: function(id) { return true },
         }
     },
     methods: {

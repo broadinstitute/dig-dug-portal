@@ -1,7 +1,7 @@
 <template>
     <criterion-group-template
         :value="value"
-        type='function'
+        :filterType="'function'"
         :looseMatch="true"
         :header="header"
         :inclusive="inclusive"
@@ -16,7 +16,16 @@
 import Vue from "vue";
 import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
 export default Vue.component('criterion-function-group', {
-    props: ['value', 'header', 'inclusive'],
+    props: {
+        value: {
+            type: Function,
+            default: function (id) { return true; }
+        },
+        header: String,
+        inclusive: {
+            type: Boolean,
+        }
+    },
     components:{ CriterionGroupTemplate },
     methods: {
         emitInput(value) {

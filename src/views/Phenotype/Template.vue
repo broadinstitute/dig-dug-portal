@@ -307,7 +307,9 @@
                                     :per-page="10"
                                 ></enrichment-table>
                             </template>
+
                         </criterion-function-group>
+
                     </div>
                 </div>
             </div>

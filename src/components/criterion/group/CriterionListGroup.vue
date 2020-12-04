@@ -1,7 +1,7 @@
 <template>
     <criterion-group-template
         :value="value"
-        type='list'
+        :filterType="'list'"
         :looseMatch="true"
         :header="header"
         @input="emitInput">
@@ -20,6 +20,7 @@ export default Vue.component('criterion-function-group', {
     props: {
         value: {
             type: Array,
+            default: function() { return []; },
             validator: function (predicateSpecs) {
                 if (Array.isArray(predicateSpecs)) {
                     if (predicateSpecs.length > 0) {
@@ -35,7 +36,6 @@ export default Vue.component('criterion-function-group', {
         },
         header: String,
     },
-    components:{ CriterionGroupTemplate },
     methods: {
         emitInput(value) {
             this.$emit('input', value)

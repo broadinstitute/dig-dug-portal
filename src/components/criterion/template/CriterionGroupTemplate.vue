@@ -79,14 +79,9 @@ export default Vue.component("criterion-group-template", {
     props: {
 
         value: [Function, Array],
-        type: {
+        filterType: {
             type: String,
             // required: true,
-            default: 'function',
-            validator: function (value) {
-                // The value must match one of these strings
-                return ['function', 'list'].indexOf(value) !== -1
-            }
         },
 
         inclusive: Boolean,
@@ -195,12 +190,11 @@ export default Vue.component("criterion-group-template", {
     watch: {
         value: {
             handler: function(newCriterionValue, oldCriterionValue) {
-                console.log('value', arguments[0])
                 if (!_.isEqual(newCriterionValue, oldCriterionValue)) {
-                    if (this.type === 'function') {
+                    if (this.filterType === 'function') {
                         this.filterFunction = newCriterionValue;
                     }
-                    else if (this.type === 'list') {
+                    else if (this.filterType === 'list') {
                         this.filterList = newCriterionValue;
                     }
                 }
@@ -212,15 +206,15 @@ export default Vue.component("criterion-group-template", {
                 if (newFilterList.length > 0) {
                     const predicates = newFilterList.map(predicateSpec => this.makePredicate(predicateSpec, { strictCase: this.strictCase,notStrictMatch: this.looseMatch }));
                     this.filterFunction = this.makeFilter(predicates, !!this.inclusive);
-                    if (this.type === 'function') {
+                    if (this.filterType === 'function') {
                         this.criterion = this.filterFunction;
-                    } else if (this.type === 'list') {
+                    } else if (this.filterType === 'list') {
                         this.criterion = this.filterList;
                     }
                 } else {
-                    if (this.type === 'function') {
+                    if (this.filterType === 'function') {
                         this.criterion = function (id) { return true; };
-                    } else if (this.type === 'list') {
+                    } else if (this.filterType === 'list') {
                         this.criterion = [];
                     }
                 }
@@ -229,7 +223,6 @@ export default Vue.component("criterion-group-template", {
         },
         criterion: {
             handler: function(newCriterionValue, oldCriterionValue) {
-                console.log('criterion', arguments[0])
                 if (!_.isEqual(newCriterionValue, oldCriterionValue)) {
                     this.$emit("input", newCriterionValue);
                 }

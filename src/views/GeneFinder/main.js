@@ -14,9 +14,8 @@ import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypePicker from "@/components/PhenotypePicker.vue";
 import GeneFinderTable from "@/components/GeneFinderTable.vue";
-import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
-import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
@@ -45,9 +44,8 @@ new Vue({
         Documentation,
         GeneFinderTable,
         UnauthorizedMessage,
-        CriterionGroupTemplate,
+        CriterionFunctionGroup,
         CriterionListGroup,
-        FilterControlTemplate,
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,

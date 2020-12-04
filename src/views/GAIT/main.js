@@ -4,9 +4,8 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import Documentation from "@/components/Documentation.vue";
-import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
-import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
@@ -24,8 +23,7 @@ new Vue({
     mixins: [pageMixin],
     components: {
         Documentation,
-        CriterionGroupTemplate,
-        FilterControlTemplate,
+        CriterionFunctionGroup,
         CriterionListGroup,
         FilterPValue,
         FilterEnumeration,

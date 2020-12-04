@@ -20,12 +20,9 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
-import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
 
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
@@ -70,8 +67,7 @@ new Vue({
         CriterionListGroup,
         CriterionFunctionGroup,
 
-        CriterionGroupTemplate,
-        FilterControlTemplate,
+        CriterionFunctionGroup,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,

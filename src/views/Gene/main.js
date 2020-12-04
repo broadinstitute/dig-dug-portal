@@ -21,8 +21,7 @@ import Formatters from "@/utils/formatters";
 import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
-import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
@@ -52,8 +51,7 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
         UnauthorizedMessage,
-        CriterionGroupTemplate,
-        FilterControlTemplate,
+        CriterionFunctionGroup,
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
