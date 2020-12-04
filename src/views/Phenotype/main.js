@@ -30,6 +30,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 
 
@@ -49,7 +50,7 @@ new Vue({
         RawImage,
 
         CriterionFunctionGroup,
-        // CriterionListGroup,
+        CriterionListGroup,
         FilterPValue,
         FilterGreaterThan,
         FilterEnumeration,

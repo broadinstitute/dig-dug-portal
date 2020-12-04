@@ -1,5 +1,6 @@
 <template>
     <criterion-group-template
+        :ref="Math.floor(Math.random() * 10000).toString()"
         :value="value"
         :filterType="'function'"
         :looseMatch="true"

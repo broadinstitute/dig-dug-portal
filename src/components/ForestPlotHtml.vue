@@ -275,10 +275,10 @@ export default Vue.component("forest-plot-html", {
                 let labelGroup = [];
 
                 content["data"].map((d) => {
-                    console.log(
-                        this.labelMap[d[this.labelBy]].description,
-                        d[this.stdErr]
-                    );
+                    // console.log(
+                    //     this.labelMap[d[this.labelBy]].description,
+                    //     d[this.stdErr]
+                    // );
                     let dichotomous =
                         this.countDichotomous == 1
                             ? this.labelMap[d[this.labelBy]].dichotomous

@@ -1,5 +1,6 @@
 <template>
     <criterion-group-template
+        :ref="Math.floor(Math.random() * 10000).toString()"
         :value="value"
         :filterType="'list'"
         :looseMatch="true"
@@ -16,7 +17,7 @@
 import Vue from "vue"
 import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
 
-export default Vue.component('criterion-function-group', {
+export default Vue.component('criterion-list-group', {
     props: {
         value: {
             type: Array,
@@ -26,7 +27,7 @@ export default Vue.component('criterion-function-group', {
                     if (predicateSpecs.length > 0) {
                         return predicateSpecs.every(predicateSpec => {
                             return typeof predicateSpec.field !== 'undefined' &&
-                                    typeof predicateSpec.threshold !== 'undefined'
+                                   typeof predicateSpec.threshold !== 'undefined'
                         });
                     } else {
                         return true;

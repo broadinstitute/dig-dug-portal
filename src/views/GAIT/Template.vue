@@ -23,7 +23,7 @@
                 <div class="card-body">
                     <h4 class="card-title">Build Search Criteria</h4>
 
-                    <criterion-function-group
+                    <criterion-list-group
                         v-model="$parent.searchCriteria"
                         :header="'Search Criteria'"
                     >
@@ -87,7 +87,7 @@
                                 Masks
                             </div></filter-enumeration-control
                         >
-                    </criterion-function-group>
+                    </criterion-list-group>
 
                     <div class="function">
                         <b-button

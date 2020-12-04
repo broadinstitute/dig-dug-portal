@@ -105,7 +105,7 @@ new Vue({
             searchCriteria: [
                 {
                     field: "gene",
-                    threshold: keyParams.gene
+                    threshold: keyParams.gene,
                 },
                 {
                     field: "dataset",

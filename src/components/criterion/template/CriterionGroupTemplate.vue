@@ -101,7 +101,6 @@ export default Vue.component("criterion-group-template", {
             type: Function,
             default: predicateFromSpec
         },
-
     },
     components: {
         EventListener
