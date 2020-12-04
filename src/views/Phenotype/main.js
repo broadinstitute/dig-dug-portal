@@ -68,7 +68,6 @@ new Vue({
     },
     data() {
         return {
-            enrichmentFilter: function(id) { return true },
         }
     },
     methods: {

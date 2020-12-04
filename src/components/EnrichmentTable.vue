@@ -116,7 +116,7 @@ export default Vue.component("enrichment-table", {
         },
 
         rows() {
-            return this.groupedAnnotations.length;
+            return this.tableData.length;
         },
 
         groupedAnnotations() {
