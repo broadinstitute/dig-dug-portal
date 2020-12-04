@@ -18,7 +18,7 @@
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             class="filter-col-lg"
-                            :field="'phenotype'"
+                            :field="'complication'"
                             :options="$parent.complicationPhenotypeOptions.map((phenotype) => phenotype.name)"
                             :multiple="false"
                             :labelFormatter="
@@ -32,7 +32,7 @@
                             </div>
                         </filter-enumeration-control>
                         <filter-enumeration-control
-                            v-if="$parent.complicationViewerPhenotypes.length > 0"
+                            v-if="$parent.complicationSecondaryPhenotypeOptions"
                             class="filter-col-lg"
                             :field="'secondaryPhenotype'"
                             :options="$parent.complicationSecondaryPhenotypeOptions"
@@ -44,7 +44,7 @@
                                         : phenotype"
                         >
                             <div>
-                                <strong> Complication Phenotypes</strong>
+                                <strong>Complication Phenotypes</strong>
                             </div>
                         </filter-enumeration-control>
 
