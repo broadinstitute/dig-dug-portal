@@ -121,17 +121,32 @@ new Vue({
         },
 
         manhattanPlot() {
-            let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
+            let search = this.complicationViewerPhenotypes;
             let phenotype = search[0];
-
             if (!!phenotype) {
                 return `/api/raw/plot/phenotype/${phenotype}/manhattan.png`;
             }
         },
 
+        manhattanPlot2() {
+            let search = this.complicationViewerPhenotypes;
+            let phenotype = search[1];
+            if (!!phenotype) {
+                return `/api/raw/plot/phenotype/${phenotype}/manhattan.png`;
+            }
+        },
         qqPlot() {
-            let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
+            // let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
+            let search = this.complicationViewerPhenotypes;
             let phenotype = search[0];
+
+            if (!!phenotype) {
+                return `/api/raw/plot/phenotype/${phenotype}/qq.png`;
+            }
+        },
+        qqPlot2() {
+            let search = this.complicationViewerPhenotypes;
+            let phenotype = search[1];
 
             if (!!phenotype) {
                 return `/api/raw/plot/phenotype/${phenotype}/qq.png`;
