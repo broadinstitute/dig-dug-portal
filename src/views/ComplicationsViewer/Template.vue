@@ -95,6 +95,34 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card" style="width: 95%; border: 0">
+                                            <raw-img
+                                                id="manhattanPlot2"
+                                                :src="$parent.manhattanPlot2"
+                                                alt="Manhattan Plot"
+                                                :documentation="'phenotype.associationplots.manhattan'"
+                                                :content-fill="
+                                            $store.getters['documentationMap']
+                                        "
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card" style="width: 95%; border: 0">
+                                            <raw-img
+                                                id="qqPlot"
+                                                :src="$parent.qqPlot2"
+                                                alt="QQ Plot"
+                                                :documentation="'phenotype.associationplots.qq'"
+                                                :content-fill="
+                                            $store.getters['documentationMap']
+                                        "
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <gene-finder-table
