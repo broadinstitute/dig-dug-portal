@@ -139,15 +139,24 @@ new Vue({
         },
 
         complicationPhenotypeOptions() {
-            return this.$store.state.bioPortal.complications.filter(x => x.name != this.$store.state.phenotype);
+            let x = this.$store.state.bioPortal.complications.filter(x => x.name != this.$store.state.phenotype);
+            return x;
         },
 
-        // complicationPhenotypes() {
-
-        // },
+        //find the selected comlication based on selected criterion
+        //then get the phenotypes for the selected complication.
+        //display all the keys
+        complicationSecondaryPhenotypeOptions() {
+            let selectedComplication = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold)[0];
+            let phenotypes = Object.keys(this.$store.state.bioPortal.complicationsMap[selectedComplication].phenotypes);
+            return phenotypes
+        },
 
         complicationViewerPhenotypes() {
-            return this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let complicationPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let secondaryPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
+            let selectedPhenotypes = complicationPhenotype.concat(secondaryPhenotype);
+            return selectedPhenotypes;
         },
         complicationsViewerPhenotype() {
             return this.complicationViewerPhenotypes[0]
