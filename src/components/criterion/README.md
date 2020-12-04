@@ -7,7 +7,7 @@ A piece of Criterion is an object that looks like this:
     threshold: [String, Number] // a value for the field
 
     // For the pill/tag being displayed underneath the Criterion Group
-    label: [String, Function],  // description of the criterion, either given by hand or derived from the criterion's threshold and field.
+    label: [String, Function],  // description of the criterion, either given by hand or derived from the criterion's threshold and field. If it's a function it will be passed the criterion's own definition before being evaluated.
     color: String,  // hexcode color of the pill
 
     // For filter function construction
