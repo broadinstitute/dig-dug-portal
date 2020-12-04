@@ -87,7 +87,11 @@ export class LZAssociationsPanel {
 
         this.index = 'associations'
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
-        this.translator = associations => associations.map(association => ({
+        function tap(id) {
+            console.log(id);
+            return id;
+        }
+        this.translator = associations => tap(associations.map(association => ({
             id: association.varId,
             position: association.position,
             pValue: association.pValue,
@@ -97,7 +101,7 @@ export class LZAssociationsPanel {
             consequence: association.consequence,
             beta: association.beta,
             nearest: association.nearest,
-        }));
+        })));
         this.initialData = initialData;
 
 

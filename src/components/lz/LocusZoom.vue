@@ -50,6 +50,7 @@ export default Vue.component("locuszoom", {
         return {
             locuszoommounted: false,
             salt: Math.floor(Math.random() * 10000).toString(),
+            plot: null,
         };
     },
     mounted() {
@@ -83,8 +84,6 @@ export default Vue.component("locuszoom", {
             },
         });
         this.locuszoommounted = true;
-
-        console.log(this.plot);
 
         // event listeners
         let self = this;
