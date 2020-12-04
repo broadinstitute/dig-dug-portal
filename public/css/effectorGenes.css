@@ -542,6 +542,7 @@
 .legend-wrapper {
     padding-top: 20px;
     padding-bottom: 10px;
+    margin-bottom: 0px !important;
 }
 
 .legend-wrapper .each-legend {
@@ -918,3 +919,196 @@ span.weight-blue {
     font-size: 12px;
     font-weight: 600;
 }
+
+
+/* EGL M-Plot */
+.egl-m-plot-wrapper {
+    height: 300px;
+    margin-top: 10px !important;
+    margin-bottom: 30px !important;
+    position: relative;
+}
+
+.bunch-by-locus {
+    position: absolute;
+    right: 0;
+    top: -30px;
+    z-index: 10;
+}
+
+.bunch-by-locus .bunch-ui {
+    display: inline-block;
+    padding-right: 10px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.bunch-by-locus .bunch-ui input.form-control {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+    display: inline-block;
+    vertical-align: text-bottom;
+}
+
+.bunch-by-locus .bunch-ui select.form-control {
+    font-size: 12px;
+    height: 20px;
+    width: 60px;
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding: 0 3px;
+}
+
+.egl-m-plot-content {
+    height: 100%;
+    position: relative;
+}
+
+.y-axis-label {
+    position: absolute;
+    transform: rotate(-90deg);
+    top: 150px;
+    left: -150px;
+    width: 300px;
+    text-align: center;
+    font-size: 12px;
+}
+
+#egl_m_plot_y {
+    width: 50px;
+    height: calc(100% - 30px);
+    border-right: solid 1px #000;
+    display: inline-block;
+    font-size: 12px;
+    position: relative;
+}
+
+#egl_m_plot_y .tick {
+    text-align: right;
+    height: 25%;
+    position: relative;
+}
+
+#egl_m_plot_y .tick span.tick-num {
+    display:block;
+    position: absolute;
+    top: -12px;
+    right: 6px;
+}
+
+.egl-m-plot {
+    width: calc(100% - 50px);
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+    font-size: 14px;
+}
+
+.egl-m-plot .chr_wrapper {
+    display: inline-block;
+    height: 100%;
+}
+
+.egl-m-plot .chr_wrapper.collapsed-chr {
+    width: 1.5% !important;
+    transition: width 0.05s;
+}
+
+.egl-m-plot .chr_wrapper.collapsed-chr.expanded-chr {
+    width: 65% !important;
+    /*background-color: #fffeb9;*/
+    transition: width 0.05s;
+}
+
+.egl-m-plot .chr_wrapper.collapsed-chr.expanded-chr .chr_number {
+    border-top: solid 2px #999;
+    background-color: #fffeb9;
+}
+
+.egl-m-plot .chr_wrapper .chr_dots_wrapper {
+    height: calc(100% - 35px);
+    border-right: solid 1px #eee;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.egl-m-plot .chr_wrapper .chr_number {
+    width: 100%;
+    border-top: solid 1px #000;
+    height: 30px;
+    vertical-align: bottom;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    color: #0067A6;
+}
+
+.egl-m-plot .chr_wrapper.expanded-chr .chr_number {
+    font-weight: 500;
+}
+
+.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot {
+    width: 10px !important;
+    height: 10px !important;
+    border-radius: 15px;
+    background-color: #00000050;
+    display: block;
+    position: absolute;
+}
+
+.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot .dot-content {
+    position: absolute;
+    display: none;
+    color: #fff;
+    background-color: #333;
+    padding: 5px 10px;
+    top: -6px;
+    left: 9px;
+    z-index: 10;
+    border-radius: 5px;
+    font-size: 13px;
+    white-space: nowrap;
+    max-height: 300px;
+    overflow-y: auto;
+    border: solid 1px #666;
+}
+
+.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot:hover .dot-content {
+    display: block;
+    cursor: pointer;
+}
+
+.egl-m-plot .dot-content > strong {
+    color: #cccc00;
+    border-radius: 10px;
+    margin-top: 3px;
+}
+
+.num-of-genes {
+    color: #fff;
+    font-size: 9px;
+    display: block;
+    text-align: center;
+    margin-top: -1px;
+}
+
+html {
+    --scrollbarBG: #666666;
+    --thumbBG: #bbbbbb;
+  }
+  .egl-m-plot .dot-content::-webkit-scrollbar {
+    width: 11px;
+  }
+  .egl-m-plot .dot-content {
+    scrollbar-width: thin;
+    scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+  }
+  .egl-m-plot .dot-content::-webkit-scrollbar-track {
+    background: var(--scrollbarBG);
+  }
+  .egl-m-plot .dot-content::-webkit-scrollbar-thumb {
+    background-color: var(--thumbBG) ;
+    border-radius: 6px;
+    border: 3px solid var(--scrollbarBG);
+  }

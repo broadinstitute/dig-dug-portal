@@ -1,13 +1,5 @@
 <template>
     <div class="eglt-table-wrapper" :id="dataset">
-        <!--<div id="igv-div" v-show="igvBrowser">
-            <div style="height:40px;">
-                <b-btn-close @click="igvBrowser = false">
-                    <b-icon-x-circle></b-icon-x-circle>
-                </b-btn-close>
-            </div>
-            <div id="igv-content"></div>
-        </div>-->
         <b-container
             fluid
             v-if="
@@ -15,15 +7,6 @@
             "
             class="filtering-ui-wrapper"
         >
-            <!--<div>
-                <input
-                    type="checkbox"
-                    v-model="showAllFeaturesChk"
-                    id="show_all_features"
-                    @change="showAllFeatures()"
-                />
-                <label for="show_all_features">Only in filtered</label>
-            </div>-->
             <b-row class="filtering-ui-content">
                 <b-col
                     v-for="filter in config[dataset]['filters']"
@@ -44,7 +27,12 @@
                         <select
                             :id="'filter_' + filter.field"
                             @change="
-                                filterData($event, filter.field, filter.type)
+                                filterData(
+                                    $event,
+                                    filter.field,
+                                    filter.type,
+                                    filter.dataType
+                                )
                             "
                             class="custom-select"
                         >
@@ -77,6 +65,26 @@
                 ></b-badge>
             </div>
         </b-container>
+
+        <b-container
+            fluid
+            v-if="
+                !!config &&
+                !!filteredData &&
+                config[dataset]['render_m_plot'] == true
+            "
+            class="egl-m-plot-wrapper"
+        >
+            <effector-genes-m-plot
+                :plotData="filteredData"
+                :locusKey="config[dataset]['m_plot_config']['locusKey']"
+                :scoreKey="config[dataset]['m_plot_config']['scoreKey']"
+                :renderBy="config[dataset]['m_plot_config']['renderBy']"
+                :yAxisLabel="config[dataset]['m_plot_config']['yAxisLabel']"
+                :popUpContent="config[dataset]['m_plot_config']['hoverContent']"
+            ></effector-genes-m-plot>
+        </b-container>
+
         <b-container
             fluid
             v-if="!!config && !!tableData"
@@ -144,7 +152,15 @@
                         v-html="value"
                         @click="applySorting(key)"
                     ></div>
-                    <div class="top-level-header-item">View</div>
+                    <div
+                        class="top-level-header-item"
+                        v-if="
+                            config[dataset]['render_feature'] == true ||
+                            config[dataset]['plots']['render'] == true
+                        "
+                    >
+                        View
+                    </div>
                 </b-row>
                 <b-row
                     v-for="(value, index) in filteredData"
@@ -181,8 +197,15 @@
                             v-html="formatContent(i, value[i], 'top')"
                         ></div>
                     </template>
-                    <div class="top-level-value-item">
+                    <div
+                        class="top-level-value-item"
+                        v-if="
+                            config[dataset]['render_feature'] == true ||
+                            config[dataset]['plots']['render'] == true
+                        "
+                    >
                         <b-button
+                            v-if="config[dataset]['render_feature'] == true"
                             @click="showFeatures(index)"
                             class="view-features-btn"
                             v-html="
@@ -208,12 +231,6 @@
                                 v-html="config[dataset]['plots']['btnName']"
                             ></b-button>
                         </template>
-                        <!--<template v-if="config[dataset]['browser']">
-                            <b-button
-                                @click="showIGV(value.location, value.gene)"
-                                class="view-igv-btn"
-                            >IGV Browser</b-button>
-                        </template>-->
                     </div>
                     <effector-genes-features
                         :features="value.features"
@@ -231,6 +248,7 @@ import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 //import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
+import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
@@ -255,7 +273,7 @@ export default Vue.component("effector-genes-table", {
     modules: {
         uiUtils,
     },
-    components: { EffectorGenesFeatures },
+    components: { EffectorGenesFeatures, EffectorGenesMPlot },
     created() {
         this.$store.dispatch("fetchConfig", {
             dataset: this.dataset,
@@ -309,16 +327,66 @@ export default Vue.component("effector-genes-table", {
             return options.sort();
         },
         applySorting(key) {
-            let filtered = this.filteredData;
-            let sortDirection = this.sortDirection == "asc" ? false : true;
-            this.sortDirection = this.sortDirection == "asc" ? "desc" : "asc";
-            let keyData = filtered[0][key];
-            let isNumeric = typeof keyData != "number" ? false : true;
+            if (key != this.config[this.dataset]["locus_key"]) {
+                let filtered = this.filteredData;
+                let sortDirection = this.sortDirection == "asc" ? false : true;
+                this.sortDirection =
+                    this.sortDirection == "asc" ? "desc" : "asc";
+                let keyData = filtered[0][key];
+                let isNumeric = typeof keyData != "number" ? false : true;
 
-            sortUtils.sortEGLTableData(filtered, key, isNumeric, sortDirection);
-            this.$store.dispatch("filteredData", filtered);
+                sortUtils.sortEGLTableData(
+                    filtered,
+                    key,
+                    isNumeric,
+                    sortDirection
+                );
+                this.$store.dispatch("filteredData", filtered);
+            } else if (key == this.config[this.dataset]["locus_key"]) {
+                let sortKey = this.config[this.dataset]["locus_key"];
+                let filtered = this.filteredData;
+                let sortDirection = this.sortDirection == "asc" ? false : true;
+                this.sortDirection =
+                    this.sortDirection == "asc" ? "desc" : "asc";
+
+                filtered.map(function (g) {
+                    let locusArr = g[sortKey].split(":");
+                    let chrNum = locusArr[0].trim();
+                    let bpNum;
+                    if (!!locusArr[1]) {
+                        bpNum =
+                            locusArr[1].includes("-") == true
+                                ? (Number(locusArr[1].split("-")[0].trim()) +
+                                      Number(
+                                          locusArr[1].split("-")[1].trim()
+                                      )) /
+                                  2
+                                : Number(locusArr[1]);
+                    } else {
+                        bpNum = 0;
+                    }
+
+                    g["chr"] =
+                        chrNum != "X" || chrNum != "Y"
+                            ? Number(chrNum)
+                            : chrNum == "X"
+                            ? 23
+                            : 24;
+
+                    g["bp"] = bpNum;
+                });
+
+                sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+                sortUtils.sortEGLTableData(
+                    filtered,
+                    "chr",
+                    true,
+                    sortDirection
+                );
+                this.$store.dispatch("filteredData", filtered);
+            }
         },
-        filterData(EVENT, FIELD, TYPE) {
+        filterData(EVENT, FIELD, TYPE, DATATYPE) {
             let searchValue = EVENT.target.value;
             let id = "#filter_" + FIELD.replace(/ /g, "");
             let inputField = document.querySelector(id);
@@ -334,10 +402,16 @@ export default Vue.component("effector-genes-table", {
             } else if (TYPE == "search_gt" || TYPE == "search_lt") {
                 this.filtersIndex[FIELD]["search"] = [searchValue];
             } else {
-                this.filtersIndex[FIELD]["search"].push(searchValue);
+                if (DATATYPE == "number") {
+                    this.filtersIndex[FIELD]["search"].push(
+                        Number(searchValue)
+                    );
+                } else {
+                    this.filtersIndex[FIELD]["search"].push(searchValue);
+                }
             }
 
-            //console.log(this.filtersIndex);
+            //console.log("filtersIndex", this.filtersIndex);
 
             this.applyFilters();
         },
@@ -525,70 +599,86 @@ export default Vue.component("effector-genes-table", {
                         let contentLink = "";
                         switch (linkPage) {
                             case "gene":
-                                contentLink =
-                                    '<a href="/gene.html?gene=' +
-                                    VALUE +
-                                    '">' +
-                                    VALUE +
-                                    "</a>";
-                                return contentLink;
+                                if (VALUE != "") {
+                                    contentLink =
+                                        '<a href="/gene.html?gene=' +
+                                        VALUE +
+                                        '">' +
+                                        VALUE +
+                                        "</a>";
+                                    return contentLink;
+                                } else {
+                                    return "";
+                                }
 
                                 break;
                             case "variant":
-                                contentLink =
-                                    '<a href="/variant.html?variant=' +
-                                    VALUE +
-                                    '">' +
-                                    VALUE +
-                                    "</a>";
-                                return contentLink;
+                                if (VALUE != "") {
+                                    contentLink =
+                                        '<a href="/variant.html?variant=' +
+                                        VALUE +
+                                        '">' +
+                                        VALUE +
+                                        "</a>";
+                                    return contentLink;
+                                } else {
+                                    return "";
+                                }
 
                                 break;
                             case "region":
-                                let chr = VALUE.split(":")[0];
-                                let start = VALUE.split(":")[1]
-                                    .split("-")[0]
-                                    .trim();
-                                let end = VALUE.split(":")[1]
-                                    .split("-")[1]
-                                    .trim();
-                                contentLink =
-                                    '<a href="/region.html?chr=' +
-                                    chr +
-                                    "&start=" +
-                                    start +
-                                    "&end=" +
-                                    end +
-                                    '">' +
-                                    VALUE +
-                                    "</a>";
-                                return contentLink;
+                                if (VALUE != "") {
+                                    let chr = VALUE.split(":")[0];
+                                    let start = VALUE.split(":")[1]
+                                        .split("-")[0]
+                                        .trim();
+                                    let end = VALUE.split(":")[1]
+                                        .split("-")[1]
+                                        .trim();
+                                    contentLink =
+                                        '<a href="/region.html?chr=' +
+                                        chr +
+                                        "&start=" +
+                                        start +
+                                        "&end=" +
+                                        end +
+                                        '">' +
+                                        VALUE +
+                                        "</a>";
+                                    return contentLink;
+                                } else {
+                                    return "";
+                                }
 
                                 break;
                             case "phenotype":
-                                let valueName = null;
+                                if (VALUE != "") {
+                                    let valueName = null;
 
-                                this.$store.state.bioPortal.phenotypes.map(
-                                    (x) => {
-                                        if (
-                                            x.name.toLowerCase() ==
-                                            VALUE.toLowerCase()
-                                        ) {
-                                            valueName = x.description;
+                                    this.$store.state.bioPortal.phenotypes.map(
+                                        (x) => {
+                                            if (
+                                                x.name.toLowerCase() ==
+                                                VALUE.toLowerCase()
+                                            ) {
+                                                valueName = x.description;
+                                            }
                                         }
-                                    }
-                                );
+                                    );
 
-                                contentLink =
-                                    valueName != null
-                                        ? '<a href="/phenotype.html?phenotype=' +
-                                          VALUE +
-                                          '">' +
-                                          valueName +
-                                          "</a>"
-                                        : VALUE;
+                                    contentLink =
+                                        valueName != null
+                                            ? '<a href="/phenotype.html?phenotype=' +
+                                              VALUE +
+                                              '">' +
+                                              valueName +
+                                              "</a>"
+                                            : VALUE;
 
-                                return contentLink;
+                                    return contentLink;
+                                } else {
+                                    return "";
+                                }
 
                                 break;
                         }
