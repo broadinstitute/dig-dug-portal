@@ -116,12 +116,12 @@ new Vue({
         },
         phenotypes() {
             let selectedPhenotypesList = []
-            selectedPhenotypesList = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            selectedPhenotypesList = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold);
             return selectedPhenotypesList;
         },
 
         manhattanPlot() {
-            let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
             let phenotype = search[0];
 
             if (!!phenotype) {
@@ -130,7 +130,7 @@ new Vue({
         },
 
         qqPlot() {
-            let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
             let phenotype = search[0];
 
             if (!!phenotype) {
@@ -147,16 +147,27 @@ new Vue({
         //then get the phenotypes for the selected complication.
         //display all the keys
         complicationSecondaryPhenotypeOptions() {
-            let selectedComplication = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold)[0];
-            let phenotypes = Object.keys(this.$store.state.bioPortal.complicationsMap[selectedComplication].phenotypes);
-            return phenotypes
+            let selectedComplication = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold)[0];
+            if (!!selectedComplication) {
+                let phenotypes = Object.keys(this.$store.state.bioPortal.complicationsMap[selectedComplication].phenotypes);
+                return phenotypes
+            }
+
         },
 
         complicationViewerPhenotypes() {
-            let complicationPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let complicationPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold);
             let secondaryPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
-            let selectedPhenotypes = complicationPhenotype.concat(secondaryPhenotype);
-            return selectedPhenotypes;
+            let realSecondaryPhenotype = []
+            if (secondaryPhenotype.length > 0) {
+                let complication = this.$store.state.bioPortal.complicationsMap[complicationPhenotype].phenotypes[secondaryPhenotype]
+                let x = secondaryPhenotype.concat(complication)
+                return x;
+            }
+            if (secondaryPhenotype.length == 0) {
+                return []
+            }
+
         },
         complicationsViewerPhenotype() {
             return this.complicationViewerPhenotypes[0]
