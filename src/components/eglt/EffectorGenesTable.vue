@@ -367,7 +367,7 @@ export default Vue.component("effector-genes-table", {
                     }
 
                     g["chr"] =
-                        chrNum != "X" || chrNum != "Y"
+                        chrNum != "X" && chrNum != "Y"
                             ? Number(chrNum)
                             : chrNum == "X"
                             ? 23
