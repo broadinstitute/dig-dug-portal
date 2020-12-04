@@ -19,8 +19,8 @@
                         <filter-enumeration-control
                             class="filter-col-lg"
                             :field="'phenotype'"
-                            :options="$parent.complicationPhenotypeOptions.map((phenotype) => phenotype.withComplication)"
-                            :multiple="true"
+                            :options="$parent.complicationPhenotypeOptions.map((phenotype) => phenotype.name)"
+                            :multiple="false"
                             :labelFormatter="
                                 (phenotype) =>
                                     !!$store.state.bioPortal.complicationsMap[phenotype]
@@ -28,7 +28,23 @@
                                         : phenotype"
                         >
                             <div>
-                                <strong>Complication phenotypes</strong>
+                                <strong>Complication</strong>
+                            </div>
+                        </filter-enumeration-control>
+                        <filter-enumeration-control
+                            v-if="$parent.complicationViewerPhenotypes.length > 0"
+                            class="filter-col-lg"
+                            :field="'secondaryPhenotype'"
+                            :options="$parent.complicationSecondaryPhenotypeOptions"
+                            :multiple="false"
+                            :labelFormatter="
+                                (phenotype) =>
+                                    !!$store.state.bioPortal.complicationsMap[phenotype]
+                                        ? $store.state.bioPortal.complicationsMap[phenotype].name
+                                        : phenotype"
+                        >
+                            <div>
+                                <strong> Complication Phenotypes</strong>
                             </div>
                         </filter-enumeration-control>
 
