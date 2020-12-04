@@ -36,6 +36,8 @@ import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+
 new Vue({
     store,
 
@@ -60,6 +62,8 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
+
+        SearchHeaderWrapper,
 
     },
 

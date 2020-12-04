@@ -20,7 +20,7 @@ export default new Vuex.Store({
         geneAssociations52k: bioIndex("gene-associations-52k"),
     },
     state: {
-        geneName: keyParams.gene,
+        geneName: keyParams.gene || "SLC30A8",
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
         phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
         effectorGeneData: [],
@@ -45,6 +45,9 @@ export default new Vuex.Store({
 
         setPriorVariance(state, priorVariance) {
             state.priorVariance = priorVariance;
+        },
+        setPhenotype(state, phenotype) {
+            state.phenotype = phenotype
         }
     },
 
@@ -71,51 +74,19 @@ export default new Vuex.Store({
                 }
             }
         },
+
     },
 
     actions: {
-        //Common Variation, Stage 1
-        async getEffectorGeneData(context, geneSymbol) {
-
-            let dataset = 'mccarthy'
-            let trait = this.state.phenotype.name.toLowerCase();
-
-            fetch(`https://kp4cd.org/egldata/dataset?dataset=${dataset}&trait=${trait}`)
-                .then(resp => {
-                    if (resp.status === 422) {
-                        throw Error("missing parameters");
-                    }
-                    if (resp.status === 200) {
-                        return resp;
-                    }
-                })
-                .then(resp => resp.json())
-                .then(json => {
-                    if (json.data.length > 0) {
-                        let effectorGeneData = {}
-                        for (var i = 0; i < json.data.length; ++i) {
-                            if (json.data[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
-                                effectorGeneData = json.data[i];
-                                let p = effectorGeneData.perturbational.split("")[0] - 1;
-                                effectorGeneData.perturbational = p.toString() + "P";
-                                break;
-                            }
-                            else {
-                                effectorGeneData = { "perturbational": "3P", "category": "No", "message": "is in GWAS but only one line of perturbational evidence found" }
-                            }
-                        }
-                        context.commit('setEffectorGeneData', effectorGeneData);
-                    } else {
-                        throw new Error(
-                            "No content returned for given gene "
-                        );
-                    }
-                });
+        onPhenotypeChange(context, phenotype) {
+            context.commit("setPhenotype", phenotype);
+            keyParams.set({ phenotype: phenotype.name });
         },
 
         async queryGeneName(context, symbol) {
             let name = symbol || context.state.geneName;
             let phenotype = this.state.phenotype.name;
+            let dataset = "mccarthy"
             context.commit('setGeneName', name);
             let query = {
                 q: `${phenotype},${name}`
@@ -123,7 +94,8 @@ export default new Vuex.Store({
 
             if (!!name) {
                 context.dispatch('gene/query', { q: name });
-                context.dispatch('getEffectorGeneData', name);
+                let trait = phenotype.toLowerCase(); //for egldata
+                context.dispatch("kp4cd/getEglData", { dataset, trait });
                 context.dispatch('associations/query', query);
                 context.dispatch('geneAssociations52k/query', { q: name });
 

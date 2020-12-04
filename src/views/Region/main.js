@@ -28,6 +28,8 @@ import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
@@ -71,7 +73,9 @@ new Vue({
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
-        FilterGreaterThan
+        FilterGreaterThan,
+
+        SearchHeaderWrapper
     },
 
     async created() {
@@ -88,6 +92,7 @@ new Vue({
     data() {
         return {
             associationsFilter: function (id) { return true; },
+            pageAssociations: [],
             tissueScoring: null,
         };
     },
@@ -118,9 +123,8 @@ new Vue({
         },
 
         // TODO: refactor this away in favor of v-model
-        updateAssociationsTable(data) {
-            this.$store.commit(`associations/clearData`);
-            this.$store.commit(`associations/setResponse`, data);
+        updatePageAssociations(data) {
+            this.pageAssociations = data;
         },
 
         // LocusZoom has "Panels"
@@ -158,6 +162,7 @@ new Vue({
     },
 
     computed: {
+
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {

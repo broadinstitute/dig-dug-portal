@@ -33,7 +33,7 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 
-
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 new Vue({
     store,
 
@@ -54,7 +54,9 @@ new Vue({
         FilterPValue,
         FilterGreaterThan,
         FilterEnumeration,
-        FilterEffectDirection
+        FilterEffectDirection,
+
+        SearchHeaderWrapper
     },
 
     created() {
