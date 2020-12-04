@@ -1,5 +1,9 @@
 These Vue components, here called Criterion components, are used for search, selecting and filtering for data based on... criterion.
 
+Filters are Criterion components, of a specific kind. They're used mainly to build filter functions for a given field and predicate when children for `<criterion-function-group>` but can also be used for populating a list of Criterion when placed inside of a `<criterion-list-group>`.
+
+Importantly, the `template/<Criterion/Filter>-*-Template` components are not meant to be used inside of a page. Rather, they are extended by wrapping them inside of other components. See the existing components in `group`, or the `Filter*.vue` files, for examples. `Filter*.vue` components are meant to be used inside of `Criterion*Group.vue` components; nowhere else.
+
 A piece of Criterion is an object that looks like this:
 ```js
 {
@@ -16,14 +20,53 @@ A piece of Criterion is an object that looks like this:
 }
 ```
 
-Filters are Criterion components, of a specific kind. They're used mainly to build filter functions for a given field and predicate when children for `<criterion-function-group>` but can also be used for populating a list of Criterion when placed inside of a `<criterion-list-group>`.
-
 You can pre-populate a `<criterion-list-group>` by making an array of Criterion objects and passing them through with `v-model`. For this list, `field` and `threshold` are necessary; the remaining properties will tend to have defaults, but it's recommended that you provide them values. Pill styling is handled in `mdkp.css` and obeys the function `filter-pill-<field>` where `field` is of course the case-sensitive/exact field name given to the `Filter*.vue` component or its Criterion.
+
+If you have a group of components that are using only one filter function, it is *most performant* to place them inside of a template for the `filtered` slot inside of the Criterion Group. For instance, with `<criterion-function-group>`:
+```vue
+<template>
+
+    <!-- Page Content -->
+
+    <criterion-function-group>
+        <template slot=filtered slot-scope="{ filter }">
+            <!-- Target the slot for components using the function, with the property `filter` a part of slot-scope -->
+            <example-table
+                :data="$parent.exampleData"
+                :filter="filter">
+            </example-table>
+        </template>
+
+        <!-- filter controls can go here -->
+    </criterion-function-group>
+
+</template>
+```
+If you want the list of criterion from `<criterion-list-group>` into a child component like above, it uses the same template, with the same props.
+
+Currently, `<criterion-function-group>` supports the creation of only one filter function. To share a filter function between components, like when a component requires two filters but cannot be inside of the `<criterion-function-group>` for one of them, you may need to use `v-model` with a function defined on the page scope:
+```vue
+<template>
+
+    <!-- Page Content -->
+
+    <criterion-function-group v-model="$parent.sharedFilter">
+        <!-- filter controls go here -->
+        <!-- another component can be inserted here -->
+    </criterion-function-group>
+        
+    <!-- Notice the table is NOT a child of criterion-filter-group above, but $parent.sharedFilter is in a scope shared by both -->
+    <!-- you could put this table in another criterion-filter-group if you wanted -->
+    <example-table 
+        :data="$parent.exampleData" 
+        :filter="$parent.sharedFilter">
+    </example-table>
+\
+</template>
+```
 
 To see how `<criterion-function-group>` constructs filters by default, look at `@/utils/filterHelpers`: 
 
 1. The function `predicateFromSpec` is mapped onto an array of Criterion, paired with comparators given by child components that correctly wrap `FilterControlTemplate.vue`. This map derives a predicate function that is equipped with a flag which says if it's supposed to be exclusive or inclusive with other predicates (i.e. whether it is used in conjunctively or disjunctively). 
 
-2. These new predicates are reduced into a single function using the method `filterFromPredicates`. This function already knows how to apply these predicates disjunctively or conjunctively, with Criterion presumed conjuctive by default. In other words, the function is a logical statement that is like `p(x) OR q(x) AND r(x) AND s(x) OR t(x)...`, or any combination of `OR/AND` across the given predicates to test an object `x` for properties with values, i.e. satisfying criterion.
-
-The `template/<Criterion/Filter>-*-Template` components are not meant to be used inside of a page. Rather, they are extended by wrapping them inside of other components. See the existing components in `group`, or the `Filter*.vue` files, for examples.
+2. These new predicates are reduced into a single function using the method `filterFromPredicates`. This function already knows how to apply these predicates disjunctively or conjunctively, with Criterion presumed conjuctive by default. In other words, the function is a logical statement that is like `p(x) OR q(x) AND r(x) AND s(x) OR t(x)...`, or any combination of `OR/AND`, applied across the propeties `p, q, r, s, t...` of an object `x` to test if they satisfy criterion.
