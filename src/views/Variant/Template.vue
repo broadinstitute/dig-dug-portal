@@ -10,39 +10,38 @@
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
-                <div id="pageSearchParameters">
-                    <div class="col filter-col-md">
-                        <div class="label">Variant</div>
-                        <input
-                            v-model="$store.state.newVariantId"
-                            type="text"
-                            class="form-control"
-                            placeholder="Search Variant"
-                            id="variant_search_input"
-                        />
-                    </div>
-                    <div class="col filter-col-sm">
-                        <button
-                            id="variantSearchGo"
-                            class="btn btn-light btn-sm go"
-                            type="button"
-                            @click="
-                                $store.dispatch(
-                                    'queryVariant',
-                                    $store.state.newVariantId
-                                )
-                            "
-                        >
-                            GO
-                        </button>
-                    </div>
-                    <div class="col divider"></div>
-                    <div class="col filter-col-md search-example">
-                        <div class="label">Search format examples</div>
-                        <div>
-                            rs11716727, chr3:12489012_C_T, 3_12489012:C/T,
-                            chr3_12489012-C-T
-                        </div>
+
+                <div class="col filter-col-md">
+                    <div class="label">Variant</div>
+                    <input
+                        v-model="$store.state.newVariantId"
+                        type="text"
+                        class="form-control"
+                        placeholder="Search Variant"
+                        id="variant_search_input"
+                    />
+                </div>
+                <div class="col filter-col-sm">
+                    <button
+                        id="variantSearchGo"
+                        class="btn btn-light btn-sm go"
+                        type="button"
+                        @click="
+                            $store.dispatch(
+                                'queryVariant',
+                                $store.state.newVariantId
+                            )
+                        "
+                    >
+                        GO
+                    </button>
+                </div>
+                <div class="col divider"></div>
+                <div class="col filter-col-md search-example">
+                    <div class="label">Search format examples</div>
+                    <div>
+                        rs11716727, chr3:12489012_C_T, 3_12489012:C/T,
+                        chr3_12489012-C-T
                     </div>
                 </div>
             </search-header-wrapper>

@@ -10,18 +10,16 @@
         <div class="container-fluid mdkp-body">
             <search-header-wrapper
                 ><!-- Wrap page level searchs with "pageSearchParameters" div -->
-                <div id="pageSearchParameters">
-                    <div class="col filter-col-lg hidden">
-                        <div class="label">Search phenotype</div>
-                        <phenotype-selectpicker
-                            v-if="$store.state.phenotype"
-                            :phenotypes="$store.state.bioPortal.phenotypes"
-                            :default-phenotype="
-                                $store.state.phenotype.description
-                            "
-                        ></phenotype-selectpicker>
-                    </div></div
-            ></search-header-wrapper>
+
+                <div class="col filter-col-lg hidden">
+                    <div class="label">Search phenotype</div>
+                    <phenotype-selectpicker
+                        v-if="$store.state.phenotype"
+                        :phenotypes="$store.state.bioPortal.phenotypes"
+                        :default-phenotype="$store.state.phenotype.description"
+                    ></phenotype-selectpicker>
+                </div>
+            </search-header-wrapper>
 
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
