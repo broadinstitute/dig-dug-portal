@@ -24,11 +24,17 @@ new Vue({
     data() {
         return {
             allDatasets: ['52k', '32k', '9001k'],
+            inputChange: '',
         };
     },
-    methods: {
-        inputChangeTap(inputChange) {
-            console.log('input changed to', inputChange)
+    computed: {
+        someDatasets() {
+            console.log('updating because inputChange changed to', this.inputChange)
+            if (this.inputChange === '') {
+                return this.allDatasets;
+            } else {
+                return this.allDatasets.filter(el => el.includes(this.inputChange))                
+            }
         }
     },
     render(createElement, context) {

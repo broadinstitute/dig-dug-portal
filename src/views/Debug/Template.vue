@@ -3,10 +3,13 @@
             <filter-enumeration-control
                 ref="dataset"
                 :field="'dataset'"
-                :options="$parent.allDatasets"
-                @input-change="$parent.inputChangeTap"
+                :options="$parent.someDatasets"
+                @input-change="$parent.inputChange = $event"
                 ><div class="label">
                     Dataset
                 </div></filter-enumeration-control>
+                <template slot=filtered>
+                    {{$parent.someDatasets}}
+                </template>
         </criterion-list-group>
 </template>
