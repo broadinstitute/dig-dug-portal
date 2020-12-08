@@ -104,24 +104,14 @@ new Vue({
             ],
             fields: [],
             optionalFields: [],
-            searchCriteria: [
-                {
-                    field: "gene",
-                    threshold: keyParams.gene,
-                },
-                {
-                    field: "dataset",
-                    threshold: keyParams.dataset
-                },
-                {
-                    field: "phenotype",
-                    threshold: keyParams.phenotype
-                },
-                {
-                    field: "masks",
-                    threshold: keyParams.masks
-                }
-            ]
+            searchCriteria: keyParams.gene
+                ? [
+                      {
+                          field: "gene",
+                          threshold: keyParams.gene
+                      }
+                  ]
+                : []
         };
     },
     created() {
