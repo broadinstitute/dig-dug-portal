@@ -128,98 +128,10 @@
                                                 }"
                                             ></b-skeleton-table>
                                         </template>
-
-                                        <div
-                                            class="variants"
-                                            v-if="$parent.tableData.length > 0"
-                                        >
-                                            <b-alert
-                                                show
-                                                variant="warning"
-                                                v-if="$parent.criteriaChanged"
-                                                >Search criteria changed. Click
-                                                <b-button
-                                                    variant="outline-primary"
-                                                    size="sm"
-                                                    disabled
-                                                    >Search Variants</b-button
-                                                >
-                                                again to update variant
-                                                list.</b-alert
-                                            >
-                                            <strong
-                                                >View optional columns
-                                            </strong>
-                                            <template
-                                                v-for="field in $parent.optionalFields"
-                                            >
-                                                <b-checkbox
-                                                    v-if="
-                                                        $parent.defaultFields.indexOf(
-                                                            field.key
-                                                        ) < 0
-                                                    "
-                                                    :disabled="
-                                                        $parent.visibleFields
-                                                            .length == 1 &&
-                                                        field.visible
-                                                    "
-                                                    :key="field.key"
-                                                    v-model="field.visible"
-                                                    inline
-                                                >
-                                                    {{ field.label }}
-                                                </b-checkbox>
-                                            </template>
-
-                                            <b-table
-                                                striped
-                                                hover
-                                                small
-                                                responsive="sm"
-                                                sticky-header="400px"
-                                                :items="$parent.tableData"
-                                                :fields="$parent.visibleFields"
-                                            >
-                                                <template
-                                                    #cell(selected)="data"
-                                                >
-                                                    <b-form-group>
-                                                        <input
-                                                            type="checkbox"
-                                                            v-model="
-                                                                data.item
-                                                                    .selected
-                                                            "
-                                                        />
-                                                    </b-form-group>
-                                                </template>
-                                                <template
-                                                    #cell(burdenBinId)="data"
-                                                >
-                                                    {{
-                                                        $parent.masks.find(
-                                                            (o) =>
-                                                                o.value ===
-                                                                data.value
-                                                        ).text
-                                                    }}
-                                                </template>
-                                                <template #cell(varId)="data">
-                                                    <a
-                                                        :href="`/variant.html?variant=${data.value}`"
-                                                        >{{ data.value }}</a
-                                                    >
-                                                </template>
-                                            </b-table>
-                                        </div>
-
                                         <b-card
                                             header="Association statistics for selected variants"
-                                            class="text-center"
-                                            border-variant="info"
-                                            header-bg-variant="info"
-                                            header-text-variant="white"
+                                            class="text-center filter-tests"
+                                            border-variant="primary"
                                         >
                                             <criterion-list-group
                                                 v-if="
@@ -382,6 +294,91 @@
                                                 >
                                             </div>
                                         </b-card>
+
+                                        <div
+                                            class="variants"
+                                            v-if="$parent.tableData.length > 0"
+                                        >
+                                            <b-alert
+                                                show
+                                                variant="warning"
+                                                v-if="$parent.criteriaChanged"
+                                                >Search criteria changed. Click
+                                                <b-button
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    disabled
+                                                    >Search Variants</b-button
+                                                >
+                                                again to update variant
+                                                list.</b-alert
+                                            >
+                                            <strong
+                                                >View optional columns
+                                            </strong>
+                                            <template
+                                                v-for="field in $parent.optionalFields"
+                                            >
+                                                <b-checkbox
+                                                    v-if="
+                                                        $parent.defaultFields.indexOf(
+                                                            field.key
+                                                        ) < 0
+                                                    "
+                                                    :disabled="
+                                                        $parent.visibleFields
+                                                            .length == 1 &&
+                                                        field.visible
+                                                    "
+                                                    :key="field.key"
+                                                    v-model="field.visible"
+                                                    inline
+                                                >
+                                                    {{ field.label }}
+                                                </b-checkbox>
+                                            </template>
+
+                                            <b-table
+                                                striped
+                                                hover
+                                                small
+                                                responsive="sm"
+                                                sticky-header="400px"
+                                                :items="$parent.tableData"
+                                                :fields="$parent.visibleFields"
+                                            >
+                                                <template
+                                                    #cell(selected)="data"
+                                                >
+                                                    <b-form-group>
+                                                        <input
+                                                            type="checkbox"
+                                                            v-model="
+                                                                data.item
+                                                                    .selected
+                                                            "
+                                                        />
+                                                    </b-form-group>
+                                                </template>
+                                                <template
+                                                    #cell(burdenBinId)="data"
+                                                >
+                                                    {{
+                                                        $parent.masks.find(
+                                                            (o) =>
+                                                                o.value ===
+                                                                data.value
+                                                        ).text
+                                                    }}
+                                                </template>
+                                                <template #cell(varId)="data">
+                                                    <a
+                                                        :href="`/variant.html?variant=${data.value}`"
+                                                        >{{ data.value }}</a
+                                                    >
+                                                </template>
+                                            </b-table>
+                                        </div>
                                     </b-skeleton-wrapper>
                                 </b-card-body>
                             </b-collapse>
