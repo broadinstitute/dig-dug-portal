@@ -244,8 +244,12 @@ new Vue({
     },
     watch: {
         searchCriteria(newData, oldData) {
+            console.log("search changed");
+            console.log("new", newData);
+            console.log("old", oldData);
             if (!isEqual(newData, oldData)) {
                 this.criteriaChanged = true;
+                console.log("not equal");
             }
         },
         selectedTests(newData, oldData) {

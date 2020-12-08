@@ -128,6 +128,26 @@
                                                 }"
                                             ></b-skeleton-table>
                                         </template>
+                                        <b-alert
+                                            show
+                                            variant="warning"
+                                            v-if="
+                                                $parent.tableData.length > 0 &&
+                                                $parent.criteriaChanged
+                                            "
+                                            ><b-icon
+                                                icon="exclamation-triangle"
+                                            ></b-icon>
+                                            Search criteria changed. Click
+                                            <b-button
+                                                variant="outline-primary"
+                                                size="sm"
+                                                disabled
+                                                >Search Variants</b-button
+                                            >
+                                            again to update variant
+                                            list.</b-alert
+                                        >
                                         <b-card
                                             header="Association statistics for selected variants"
                                             class="text-center filter-tests"
@@ -299,20 +319,6 @@
                                             class="variants"
                                             v-if="$parent.tableData.length > 0"
                                         >
-                                            <b-alert
-                                                show
-                                                variant="warning"
-                                                v-if="$parent.criteriaChanged"
-                                                >Search criteria changed. Click
-                                                <b-button
-                                                    variant="outline-primary"
-                                                    size="sm"
-                                                    disabled
-                                                    >Search Variants</b-button
-                                                >
-                                                again to update variant
-                                                list.</b-alert
-                                            >
                                             <strong
                                                 >View optional columns
                                             </strong>
@@ -448,7 +454,10 @@
                                                     v-if="
                                                         $parent.criteriaChanged
                                                     "
-                                                    >Search criteria changed.
+                                                    ><b-icon
+                                                        icon="exclamation-triangle"
+                                                    ></b-icon>
+                                                    Search criteria changed.
                                                     Click
                                                     <b-button
                                                         variant="outline-primary"
@@ -466,8 +475,10 @@
                                                     v-else-if="
                                                         $parent.testChanged
                                                     "
-                                                    >Test criteria changed.
-                                                    Click
+                                                    ><b-icon
+                                                        icon="exclamation-triangle"
+                                                    ></b-icon>
+                                                    Test criteria changed. Click
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"

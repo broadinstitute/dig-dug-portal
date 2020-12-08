@@ -1616,6 +1616,9 @@ a.to-previous-page:hover {
     text-align: center;
     margin: 20px auto;
 }
+#gait .filter-tests.card {
+    border-style: dashed;
+}
 #gait .filter-tests > .card-header {
     background-color: #cce5ff;
     color: #004085;
