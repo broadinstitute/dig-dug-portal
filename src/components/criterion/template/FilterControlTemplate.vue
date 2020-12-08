@@ -13,6 +13,7 @@
             :matches="options"
             :labelFormatter="labelFormatter"
             @item-select="updateFilter($event)"
+            @input-change="$parent.$emit('input-change', $event)"
             :disabled="disabled"
         ></autocomplete>
         <b-form-input

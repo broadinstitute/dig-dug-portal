@@ -1,10 +1,10 @@
-These Vue components, here called Criterion components, are used for search, selecting and filtering for data based on... criterion.
+## Overview
+
+These Vue components, here called **Criterion components**, are used for search, selecting and filtering for data based on... criterion.
 
 Filters are Criterion components, of a specific kind. They're used mainly to build filter functions for a given field and predicate when children for `<criterion-function-group>` but can also be used for populating a list of Criterion when placed inside of a `<criterion-list-group>`.
 
-Importantly, the `template/<Criterion/Filter>-*-Template` components are not meant to be used inside of a page. Rather, they are extended by wrapping them inside of other components. See the existing components in `group`, or the `Filter*.vue` files, for examples. `Filter*.vue` components are meant to be used inside of `Criterion*Group.vue` components; nowhere else.
-
-A piece of Criterion is an object that looks like this:
+A piece of **Criterion** is an object that looks like this:
 ```js
 {
     field: String,  // the property inside of an object that the criterion operates on. Case-sensitive.
@@ -15,7 +15,7 @@ A piece of Criterion is an object that looks like this:
     color: String,  // hexcode color of the pill
 
     // For filter function construction
-    multiple: true,   // there can be multiples of this field with different thresholds
+    multiple: true,   // there will be multiples of this field with different thresholds
     inclusive: true,  // whether or not the predicate is to be applied disjunctively with other predicates
 }
 ```
@@ -69,4 +69,12 @@ To see how `<criterion-function-group>` constructs filters by default, look at `
 
 1. The function `predicateFromSpec` is mapped onto an array of Criterion, paired with comparators given by child components that correctly wrap `FilterControlTemplate.vue`. This map derives a predicate function that is equipped with a flag which says if it's supposed to be exclusive or inclusive with other predicates (i.e. whether it is used in conjunctively or disjunctively). 
 
-2. These new predicates are reduced into a single function using the method `filterFromPredicates`. This function already knows how to apply these predicates disjunctively or conjunctively, with Criterion presumed conjuctive by default. In other words, the function is a logical statement that is like `p(x) OR q(x) AND r(x) AND s(x) OR t(x)...`, or any combination of `OR/AND`, applied across the propeties `p, q, r, s, t...` of an object `x` to test if they satisfy criterion.
+2. These new predicates are reduced into a single function using the method `filterFromPredicates`. This function already knows how to apply these predicates disjunctively or conjunctively, with Criterion presumed conjuctive by default. In other words, the function is a logical statement that is like `p(x) OR q(x) AND r(x) AND s(x) OR t(x)...`, or any combination of `OR/AND` across the given predicates to test an object `x` for properties with values, i.e. satisfying criterion.
+
+The `template/<Criterion/Filter>-*-Template` components are not meant to be used inside of a page. Rather, they are extended by wrapping them inside of other components. See the existing components in `group`, or the `Filter*.vue` files, for examples.
+
+## Filter Template Props
+
+| Property  | Type |  Notes        |
+| :-------: |:----:| :-----------: |
+| multiple   |Boolean | Allow a list of Criterion produced by a Filter to produce multiple thresholds for the same field, as in `[{ field: "phenotype", threshold: "T2D",... }, { field: "phenotype", threshold: "BMI",... }]` (i.e. a multiselect) |
