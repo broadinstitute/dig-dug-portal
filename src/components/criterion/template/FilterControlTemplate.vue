@@ -8,8 +8,13 @@
             Go between a select component or a simple text input based on whether or not we have options
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
+        <!-- 
+            We need to both check that `options` supports `length > 0` 
+            AND that `options` is not a string, since strings support `length > 0` as well 
+            (and checking for array directly also results in an ambiguous type, i.e. 'object') 
+        -->
         <autocomplete
-            v-if="!!options && options.length > 0"
+            v-if="!!options && options.length > 0 && typeof options !== 'string'"
             :matches="options"
             :labelFormatter="labelFormatter"
             @item-select="updateFilter($event)"
