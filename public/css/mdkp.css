@@ -497,14 +497,16 @@ a:hover {
 
 /* front page datasets info graphs */
 
-.front-datasets-graph, .front-phenotypes-graph {
+.front-datasets-graph,
+.front-phenotypes-graph {
     width: 50%;
     padding: 0px 10px 20px 10px;
     display: inline-block;
     position: relative;
 }
 
-.front-datasets-graph .each-item, .front-phenotypes-graph .each-item {
+.front-datasets-graph .each-item,
+.front-phenotypes-graph .each-item {
     font-size: 16px;
     position: relative;
     width: 100%;
@@ -512,7 +514,8 @@ a:hover {
     margin-bottom: 3px;
 }
 
-.front-datasets-graph .percent-bg, .front-phenotypes-graph .percent-bg {
+.front-datasets-graph .percent-bg,
+.front-phenotypes-graph .percent-bg {
     position: absolute;
     left: 0;
     top: 0;
@@ -531,7 +534,8 @@ a:hover {
     background-color: rgba(128, 194, 66, 0.5);
 }
 
-.front-datasets-graph .info-label, .front-phenotypes-graph .info-label {
+.front-datasets-graph .info-label,
+.front-phenotypes-graph .info-label {
     position: absolute;
     left: 10px;
     top: 5px;
@@ -1610,7 +1614,11 @@ a.to-previous-page:hover {
 }
 #gait .function {
     text-align: center;
-    margin: 20px auto 30px;
+    margin: 20px auto;
+}
+#gait .filter-tests > .card-header {
+    background-color: #cce5ff;
+    color: #004085;
 }
 #gait .filter-pill-dataset {
     background-color: #8a2be2 !important;
@@ -1640,6 +1648,9 @@ a.to-previous-page:hover {
     right: 0;
     left: 0;
     top: 0;
+}
+#gait .variants {
+    margin-top: 2rem;
 }
 .fade-enter-active,
 .fade-leave-active {
