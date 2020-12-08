@@ -495,6 +495,49 @@ a:hover {
     border-color: #fff;
 }
 
+/* front page datasets info graphs */
+
+.front-datasets-graph, .front-phenotypes-graph {
+    width: 50%;
+    padding: 0px 10px 20px 10px;
+    display: inline-block;
+    position: relative;
+}
+
+.front-datasets-graph .each-item, .front-phenotypes-graph .each-item {
+    font-size: 16px;
+    position: relative;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 3px;
+}
+
+.front-datasets-graph .percent-bg, .front-phenotypes-graph .percent-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #ccc;
+    border-radius: 30px;
+    width: 0%;
+    transition: width 2s;
+    height: 30px;
+}
+
+.front-datasets-graph .percent-bg {
+    background-color: rgba(0, 185, 242, 0.5);
+}
+
+.front-phenotypes-graph .percent-bg {
+    background-color: rgba(128, 194, 66, 0.5);
+}
+
+.front-datasets-graph .info-label, .front-phenotypes-graph .info-label {
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    font-size: 14px;
+}
+
 .header-disease-group-select-wrapper {
     display: inline-block;
     border-left: solid 1px #ddd;
@@ -540,18 +583,27 @@ a.edit-btn:hover {
     position: absolute;
     top: 0;
     left: 0;
-    height: 65px;
+    /*height: 65px;*/
     width: 100%;
     background-color: #fff;
     font-size: 16px;
     z-index: 10;
 }
 
+.shorten-when-full {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .gene-page-header-body {
-    height: 65px;
+    /*height: 65px;*/
     font-size: 25px;
     padding: 12px 0 12px 5px;
     border-left: solid 1px #eee;
+}
+
+.gene-page-header-search-holder   {
 }
 
 div.filtering-tools {
@@ -621,8 +673,67 @@ div.filtering-tools table th {
     padding-left: 40px;
 }
 
+.search-header {
+    margin-top: -10px;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    background-color: #bbbbbb !important;
+    font-size: 14px !important;
+    padding: 1px !important;
+    color: #333333;
+    font-weight: 300 !important;
+    border: none !important;
+    position: relative;
+    z-index: 10;
+}
+
+.search-header.fixed-header {
+    position: fixed;
+    top: 8px;
+    width: calc(100% - 30px);
+    background-color: #bbbbbb;
+    left: 15px;
+}
+
+.search-header .row {
+    padding: 0 1.25rem;
+}
+
+.search-header div[class^="col-md-"] {
+    padding: 0;
+}
+
+.search-header .input-wrapper input[type="text"] {
+    border: none;
+    border-radius: 0;
+    border-right: solid 1px #ddd;
+    display: inline-block;
+}
+
+.reset-page-parameters {
+    position: relative;
+    display: block;
+    width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: -25px;
+    padding: 5px 15px;
+    background-color:#bbbbbb;
+    border-bottom-left-radius: 5px !important;
+    border-bottom-right-radius: 5px !important;
+    font-weight: 400;
+}
+
+.reset-page-parameters:hover {
+    cursor: pointer;
+}
+
 #regionSearchHolder .region-search {
     height: 100%;
+}
+
+.region-search > .input-wrapper {
+    display: inline-block !important;
 }
 
 .region-search-examples {
@@ -1072,6 +1183,38 @@ div.filtering-ui-content .divider.col .or-text {
     color: #fff;
     padding: 2px 2px 1px 2px;
     border-radius: 14px;
+}
+
+#pageSearchParameters .divider.col {
+    width: 1px !important;
+    height: 61px;
+    padding: 0 1px 0 0;
+    background-color: #FFF;
+    margin-bottom: -17px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+#pageSearchParameters .divider.col .or-text {
+    display: block;
+    position: absolute;
+    left: -6px;
+    top: 35%;
+    font-size: 10px;
+    background-color: #666;
+    color: #fff;
+    padding: 2px 2px 1px 2px;
+    border-radius: 14px;
+    width: 18px;
+    font-weight: 500;
+    height: 18px;
+}
+
+#pageSearchParameters .btn.go {
+    border: 1px solid #ced4da;
+    border-radius: 0.25em;
+    height: 30px;
+    margin-top: -2px !important;
 }
 
 div.filtering-ui-content div.col {

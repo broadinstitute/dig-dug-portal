@@ -8,31 +8,22 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+            <search-header-wrapper
+                ><!-- Wrap page level searchs with "pageSearchParameters" div -->
+
+                <div class="col filter-col-md">
+                    <gene-selectpicker
+                        @onGeneChange="$store.dispatch('queryGeneName', $event)"
+                    ></gene-selectpicker>
+                </div>
+            </search-header-wrapper>
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">
-                        Gene
-                        <a
-                            class="edit-btn"
-                            v-on:click="
-                                $parent.showHideElement('variantSearchHolder')
-                            "
-                            >Select gene</a
-                        >
-                    </div>
+                    <div class="col-md-8 gene-page-header-title">Gene</div>
                     <div class="col-md-4 gene-page-header-title">Navigate</div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
-                            <gene-selectpicker
-                                @onGeneChange="
-                                    $store.dispatch('queryGeneName', $event)
-                                "
-                            ></gene-selectpicker>
-                        </div>
                         <div v-if="$parent.symbolName">
                             <span>
                                 {{ $parent.symbolName }}
@@ -144,7 +135,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-group :looseMatch="true">
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'phenotype'"
                                 :options="
@@ -203,7 +194,7 @@
                                     :filter="filter"
                                 ></gene-associations-table>
                             </template>
-                        </filter-group>
+                        </criterion-function-group>
                     </div>
                 </div>
             </div>
@@ -245,7 +236,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-group :inclusive="true">
+                        <criterion-function-group :inclusive="true">
                             <filter-enumeration-control
                                 :field="'source'"
                                 :options="
@@ -273,7 +264,7 @@
                                     :filter="filter"
                                 ></uniprot-references-table>
                             </template>
-                        </filter-group>
+                        </criterion-function-group>
                     </div>
                 </div>
             </div>

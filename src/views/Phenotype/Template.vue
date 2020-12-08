@@ -8,32 +8,26 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+            <search-header-wrapper
+                ><!-- Wrap page level searchs with "pageSearchParameters" div -->
+
+                <div class="col filter-col-lg hidden">
+                    <div class="label">Search phenotype</div>
+                    <phenotype-selectpicker
+                        v-if="$store.state.phenotype"
+                        :phenotypes="$store.state.bioPortal.phenotypes"
+                        :default-phenotype="$store.state.phenotype.description"
+                    ></phenotype-selectpicker>
+                </div>
+            </search-header-wrapper>
+
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
                     <div class="col-md-12 gene-page-header-title">
                         Phenotype
-                        <a
-                            class="edit-btn"
-                            v-on:click="
-                                $parent.showHideElement('phenotypeSearchHolder')
-                            "
-                            >Set phenotype</a
-                        >
                     </div>
 
                     <div class="col-md-12 gene-page-header-body">
-                        <div
-                            id="phenotypeSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
-                            <phenotype-selectpicker
-                                v-if="$store.state.phenotype"
-                                :phenotypes="$store.state.bioPortal.phenotypes"
-                                :default-phenotype="
-                                    $store.state.phenotype.description
-                                "
-                            ></phenotype-selectpicker>
-                        </div>
                         <span v-if="$store.state.phenotype">{{
                             $store.state.phenotype.description
                         }}</span>
@@ -92,7 +86,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-group :looseMatch="true">
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="
@@ -132,7 +126,7 @@
                                     :per-page="10"
                                 ></associations-table>
                             </template>
-                        </filter-group>
+                        </criterion-function-group>
                     </div>
                 </div>
 
@@ -150,7 +144,7 @@
                             ></tooltip-documentation>
                         </h4>
 
-                        <filter-group :looseMatch="true">
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'gene'"
                                 :options="
@@ -178,7 +172,7 @@
                                     :showPlot="true"
                                 ></gene-finder-table>
                             </template>
-                        </filter-group>
+                        </criterion-function-group>
                     </div>
                 </div>
 
@@ -193,7 +187,7 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-group :looseMatch="true">
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'tech'"
                                 :options="
@@ -224,7 +218,7 @@
                                     :filter="filter"
                                 ></datasets-table>
                             </template>
-                        </filter-group>
+                        </criterion-function-group>
                     </div>
                 </div>
 
@@ -245,7 +239,7 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-group :looseMatch="true">
+                        <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'annotation'"
                                 :options="
@@ -307,7 +301,9 @@
                                     :per-page="10"
                                 ></enrichment-table>
                             </template>
-                        </filter-group>
+
+                        </criterion-function-group>
+
                     </div>
                 </div>
             </div>

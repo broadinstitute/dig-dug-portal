@@ -1,10 +1,7 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -20,8 +17,7 @@
                                     'gene_search_input'
                                 )
                             "
-                            >Search gene</a
-                        >
+                        >Search gene</a>
                     </div>
                     <div class="col-md-6 gene-page-header-title">
                         Phenotype
@@ -33,15 +29,11 @@
                                     'phenotype_search_input'
                                 )
                             "
-                            >Select Phenotype</a
-                        >
+                        >Select Phenotype</a>
                     </div>
 
                     <div class="col-md-6 gene-page-header-body">
-                        <div
-                            id="variantSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <gene-selectpicker
                                 @onGeneChange="
                                     $store.dispatch('queryGeneName', $event)
@@ -56,8 +48,7 @@
                                         $parent.symbolName.toLowerCase() !==
                                         $store.state.geneName.toLowerCase()
                                     "
-                                    >({{ $store.state.geneName }})</span
-                                >
+                                >({{ $store.state.geneName }})</span>
                             </span>
                         </div>
                     </div>
@@ -70,30 +61,14 @@
                             <!-- change the input of phenotypes to bioportal.phenotypes when we have data for all the phenotypes -->
                             <phenotype-selectpicker
                                 v-if="$store.state.phenotype"
-                                :phenotypes="$store.state.phenotypes"
-                                :default-phenotype="
-                                    $store.state.phenotype.description
-                                "
+                                :phenotypes="$store.state.bioPortal.phenotypes"
+                                :default-phenotype="$store.state.phenotype.description"
                             ></phenotype-selectpicker>
                         </div>
-                        <span v-if="$store.state.phenotype">
-                            {{ $store.state.phenotype.description }}
-                        </span>
+                        <span v-if="$store.state.phenotype">{{ $store.state.phenotype.description }}</span>
                     </div>
                 </div>
             </div>
-
-            <!-- Page header -->
-            <!-- <div class="card mdkp-card">
-                <div class="card-body">
-                    <h4 class="card-title">
-                        <documentation
-                            name="hugecal.title.header"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-                    </h4>
-                </div>
-            </div>-->
 
             <!-- Card for combined Evidence -->
             <div class="card mdkp-card">
@@ -112,135 +87,32 @@
 
                             <h5>
                                 {{ $store.state.geneName }} has
-                                {{ $parent.finalCategory }} Evidence of a
+                                {{$parent.combinedVariationCategory.category}} evidence of a
                                 disease-susceptibility.
                             </h5>
 
                             <!-- traffic light -->
-                            <div style="width: 600px">
+
+                            <div style="width: 700px">
                                 <br />
-                                <div
-                                    v-if="
-                                        $parent.rareVariationCategoryAndScore
-                                            .categoryScore +
-                                            $parent
-                                                .commonVariationCategoryAndScore
-                                                .categoryScore >=
-                                        5
-                                    "
-                                    class="arrow-up causalclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $parent.rareVariationCategoryAndScore
-                                            .categoryScore +
-                                            $parent
-                                                .commonVariationCategoryAndScore
-                                                .categoryScore ==
-                                        4
-                                    "
-                                    class="arrow-up strongclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $parent.rareVariationCategoryAndScore
-                                            .categoryScore +
-                                            $parent
-                                                .commonVariationCategoryAndScore
-                                                .categoryScore ==
-                                        3
-                                    "
-                                    class="arrow-up moderateclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $parent.rareVariationCategoryAndScore
-                                            .categoryScore +
-                                            $parent
-                                                .commonVariationCategoryAndScore
-                                                .categoryScore ==
-                                        2
-                                    "
-                                    class="arrow-up possibleclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $parent.rareVariationCategoryAndScore
-                                            .categoryScore +
-                                            $parent
-                                                .commonVariationCategoryAndScore
-                                                .categoryScore ==
-                                        1
-                                    "
-                                    class="arrow-up weakclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $parent.rareVariationCategoryAndScore
-                                            .categoryScore +
-                                            $parent
-                                                .commonVariationCategoryAndScore
-                                                .categoryScore <
-                                        1
-                                    "
-                                    class="arrow-up noEvidenceclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $parent.rareVariationCategoryAndScore
-                                            .categoryScore +
-                                            $parent
-                                                .commonVariationCategoryAndScore
-                                                .categoryScore ==
-                                        0
-                                    "
-                                    class="arrow-up noEvidenceclass"
-                                ></div>
-                                <div>
-                                    <div class="container">
-                                        <div class="row">
-                                            <div
-                                                class="col-sm combinedVariationCausal"
-                                            >
-                                                <strong>Causal</strong>
-                                            </div>
-                                            <div
-                                                class="col-sm combinedVariationStrong"
-                                            >
-                                                <strong>Strong</strong>
-                                            </div>
-                                            <div
-                                                class="col-sm combinedVariationModerate"
-                                            >
-                                                <strong>Moderate</strong>
-                                            </div>
-                                            <div
-                                                class="col-sm combinedVariationPossible"
-                                            >
-                                                <strong>Possible</strong>
-                                            </div>
-                                            <div
-                                                class="col-sm combinedVariationWeak"
-                                            >
-                                                <strong>Weak</strong>
-                                            </div>
-
-                                            <div
-                                                class="col- combinedVariationNoEvidence"
-                                            >
-                                                <strong>No Evidence</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <color-bar-plot
+                                    v-if="$parent.combinedVariationCategory.category"
+                                    :category="$parent.combinedVariationCategory.category.toUpperCase()"
+                                    :elementid="'combinedVariation'"
+                                ></color-bar-plot>
                             </div>
-                        </div>
 
-                        <div class="col-md-5">
-                            <documentation
-                                name="hugecal.combinedscore.help"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
+                            <!-- //ppa plot goes here. -->
+                        </div>
+                        <div class="col-md-6" style="border-left: 1px dashed #444">
+                            <div v-if="$parent.geneAssociations52k">
+                                <posterior-probability-plot
+                                    :geneAssociationsData="$parent.geneAssociations52k"
+                                    :priorVariance="$store.state.priorVariance"
+                                    :bayes_factor="$parent.combinedVariationABF"
+                                    :isDichotomous="true"
+                                ></posterior-probability-plot>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -269,194 +141,53 @@
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
                             </h5>
-                            <ul>
+                            <ul v-if="$parent.isSignificantAssociationCommonVariation">
                                 <!-- genetic -->
-                                <li
-                                    v-if="$store.state.effectorGeneData.genetic"
-                                >
+                                <li v-if="$parent.eglData.category">
                                     Genetic Evidence:
                                     <span
-                                        v-if="
-                                            $store.state.effectorGeneData
-                                                .genetic == '1C'
-                                        "
+                                        v-if="$parent.eglData.genetic == '1C'"
                                         class="codingEvidence1C"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .genetic
-                                        }}</span
-                                    >
+                                    >{{$parent.eglData.genetic}}</span>
                                     <span
-                                        v-else-if="
-                                            $store.state.effectorGeneData
-                                                .genetic == '2C'
+                                        v-else-if="$parent.eglData.genetic == '2C'
                                         "
                                         class="codingEvidence2C"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .genetic
-                                        }}</span
-                                    >
+                                    >{{$parent.eglData.genetic}}</span>
                                 </li>
-
                                 <!-- genomic -->
-                                <li
-                                    v-if="$store.state.effectorGeneData.genomic"
-                                >
+                                <li v-if="$parent.eglData.genomic">
                                     Regulatory Evidence:
                                     <span
                                         v-if="
-                                            $store.state.effectorGeneData
-                                                .genomic == '2R'
+                                            $parent.eglData.genomic == '2R'
                                         "
                                         class="regulatoryEvidence2R"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .genomic
-                                        }}</span
                                     >
+                                        {{
+                                        $parent.eglData.genomic
+                                        }}
+                                    </span>
                                     <span
                                         v-if="
-                                            $store.state.effectorGeneData
-                                                .genomic == '3R'
+                                            $parent.eglData.genomic == '3R'
                                         "
                                         class="regulatoryEvidence3R"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .genomic
-                                        }}</span
                                     >
-                                </li>
-
-                                <!-- perturbational -->
-                                <li
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .perturbational
-                                    "
-                                >
-                                    Perturbational Evidence:
-                                    <span
-                                        v-if="
-                                            $store.state.effectorGeneData
-                                                .perturbational == '1P'
-                                        "
-                                        class="perturbationalEvidence1P"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .perturbational
-                                        }}</span
-                                    >
-                                    <span
-                                        v-if="
-                                            $store.state.effectorGeneData
-                                                .perturbational == '2P'
-                                        "
-                                        class="perturbationalEvidence2P"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .perturbational
-                                        }}</span
-                                    >
-                                    <span
-                                        v-if="
-                                            $store.state.effectorGeneData
-                                                .perturbational == '3P'
-                                        "
-                                        class="perturbationalEvidence3P"
-                                        >{{
-                                            $store.state.effectorGeneData
-                                                .perturbational
-                                        }}</span
-                                    >
+                                        {{
+                                        $parent.eglData.genomic
+                                        }}
+                                    </span>
                                 </li>
                             </ul>
-
-                            <div
-                                style="width: 600px"
-                                v-if="$store.state.effectorGeneData"
-                            >
+                            <!-- Common variation color bar plot -->
+                            <div style="width: 700px" v-if="$parent.eglData">
                                 <br />
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'CAUSAL'
-                                    "
-                                    class="arrow-up causalclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'STRONG'
-                                    "
-                                    class="arrow-up strongclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'MODERATE'
-                                    "
-                                    class="arrow-up moderateclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'POSSIBLE'
-                                    "
-                                    class="arrow-up possibleclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'WEAK'
-                                    "
-                                    class="arrow-up weakclass"
-                                ></div>
-                                <div
-                                    v-if="
-                                        $store.state.effectorGeneData
-                                            .category == 'No'
-                                    "
-                                    class="arrow-up noEvidenceclass"
-                                ></div>
-                                <!-- traffic light for common varation when gene is and is not genome wide significant -->
-                                <div>
-                                    <div class="container">
-                                        <div class="row">
-                                            <div
-                                                class="col-sm commonVariationCausal"
-                                            >
-                                                <strong>Causal</strong>
-                                            </div>
-                                            <div
-                                                class="col-sm commonVariationStrong"
-                                            >
-                                                <strong>Strong</strong>
-                                            </div>
-                                            <div
-                                                class="col-sm commonVariationModerate"
-                                            >
-                                                <strong>Moderate</strong>
-                                            </div>
-                                            <div
-                                                class="col-sm commonVariationPossible"
-                                            >
-                                                <strong>Possible</strong>
-                                            </div>
-                                            <div
-                                                class="col-sm commonVariationWeak"
-                                            >
-                                                <strong>Weak</strong>
-                                            </div>
-
-                                            <div
-                                                class="col- commonVariationNoEvidence"
-                                            >
-                                                <strong>No Evidence</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <color-bar-plot
+                                    v-if="$parent.commonVariationCategory.category"
+                                    :category="$parent.commonVariationCategory.category.toUpperCase()"
+                                    :elementid="'commonVariation'"
+                                ></color-bar-plot>
                             </div>
                             <hr style="margin: 40px" />
                             <!-- End of common variation evidence -->
@@ -546,11 +277,7 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div
-                            class="col-md-5"
-                            style="border-left: 1px dashed #444"
-                        >
+                        <div class="col-md-5" style="border-left: 1px dashed #444">
                             <!-- </p> -->
 
                             <!-- Start Rare Variation -->
@@ -563,11 +290,7 @@
                                     :noIcon="false"
                                 ></tooltip-documentation>
                             </h4>
-                            <div
-                                v-if="
-                                    $parent.isSignificant52kAssociationRareVariation
-                                "
-                            >
+                            <div v-if="$parent.isSignificant52kAssociationRareVariation">
                                 <h5>
                                     <documentation
                                         name="hugecal.rareVaration.header"
@@ -576,106 +299,18 @@
                                 </h5>
                                 <ul>
                                     <li>
-                                        Genetic Evidence
-                                        <span class="codingEvidence1C">{{
-                                            $store.state.effectorGeneData
-                                                .genetic
-                                        }}</span>
-                                    </li>
-                                    <li>
                                         <span>
-                                            <strong>{{
-                                                $parent.stage2Category.evidence
-                                            }}</strong>
+                                            <strong>{{$parent.stage2Category.evidence }}</strong>
                                         </span>
                                     </li>
                                 </ul>
-                                <!-- Traffic Light for rare variation when gene is exome significant -->
-                                <div
-                                    style="width: 600px"
-                                    v-if="$parent.stage2Category"
-                                >
-                                    <br />
-                                    <div
-                                        v-if="
-                                            $parent.stage2Category.category ==
-                                            'CAUSAL'
-                                        "
-                                        class="arrow-up causalclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent.stage2Category.category ==
-                                            'STRONG'
-                                        "
-                                        class="arrow-up strongclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent.stage2Category.category ==
-                                            'MODERATE'
-                                        "
-                                        class="arrow-up moderateclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent.stage2Category.category ==
-                                            'POSSIBLE'
-                                        "
-                                        class="arrow-up possibleclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent.stage2Category.category ==
-                                            'WEAK'
-                                        "
-                                        class="arrow-up weakclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent.stage2Category.category ==
-                                            'No'
-                                        "
-                                        class="arrow-up noEvidenceclass"
-                                    ></div>
-                                    <div>
-                                        <div class="container">
-                                            <div class="row">
-                                                <div
-                                                    class="col-sm rareVariationCausal"
-                                                >
-                                                    <strong>Causal</strong>
-                                                </div>
-                                                <div
-                                                    class="col-sm rareVariationStrong"
-                                                >
-                                                    <strong>Strong</strong>
-                                                </div>
-                                                <div
-                                                    class="col-sm rareVariationModerate"
-                                                >
-                                                    <strong>Moderate</strong>
-                                                </div>
-                                                <div
-                                                    class="col-sm rareVariationPossible"
-                                                >
-                                                    <strong>Possible</strong>
-                                                </div>
-                                                <div
-                                                    class="col-sm rareVariationWeak"
-                                                >
-                                                    <strong>Weak</strong>
-                                                </div>
 
-                                                <div
-                                                    class="col- rareVariationNoEvidence"
-                                                >
-                                                    <strong>No Evidence</strong>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <!-- Traffic Light for rare variation when gene is exome significant -->
+                                <color-bar-plot
+                                    v-if="$parent.rareVariationCategory.category"
+                                    :category="$parent.rareVariationCategory.category.toUpperCase()"
+                                    :elementid="'rareVariation'"
+                                ></color-bar-plot>
 
                                 <hr style="margin: 40px" />
                                 <h5>
@@ -694,219 +329,52 @@
 
                             <!-- Rare variation when NOT Exome wide significant -->
                             <div
-                                v-else-if="
-                                    $parent.isSignificant52kAssociationRareVariation ==
-                                    false
-                                "
+                                v-else-if="$parent.isSignificant52kAssociationRareVariation ==false"
                             >
                                 <h5>
                                     <documentation
                                         name="hugecal.rareVaration.header"
                                         :content-fill="$parent.documentationMap"
-                                    ></documentation>
+                                    >
+                                        <tooltip-documentation
+                                            name="hugecal.rareVaration.evidence.description"
+                                            :content-fill="$parent.documentationMap"
+                                            :isHover="true"
+                                            :noIcon="false"
+                                        ></tooltip-documentation>
+                                    </documentation>
                                 </h5>
-                                <h6>
+                                <!-- <h6>
                                     <documentation
                                         name="hugecal.rareVaration.evidence.description"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
-                                </h6>
+                                </h6>-->
 
                                 <!-- Traffic Light -->
-                                <div
-                                    v-if="
-                                        $parent.rareVariationCategoryAndScore
-                                            .category
-                                    "
-                                    style="width: 600px"
-                                >
-                                    <br />
-                                    <div
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category == 'CAUSAL'
-                                        "
-                                        class="arrow-up causalclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category == 'STRONG'
-                                        "
-                                        class="arrow-up strongclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category == 'MODERATE'
-                                        "
-                                        class="arrow-up moderateclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category == 'POSSIBLE'
-                                        "
-                                        class="arrow-up possibleclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category == 'WEAK'
-                                        "
-                                        class="arrow-up weakclass"
-                                    ></div>
-                                    <div
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category == 'No'
-                                        "
-                                        class="arrow-up noEvidenceclass"
-                                    ></div>
-                                    <div>
-                                        <div class="container">
-                                            <div class="row">
-                                                <div
-                                                    class="col-sm rareVariationCausal"
-                                                >
-                                                    <strong>Causal</strong>
-                                                </div>
-                                                <div
-                                                    class="col-sm rareVariationStrong"
-                                                >
-                                                    <strong>Strong</strong>
-                                                </div>
-                                                <div
-                                                    class="col-sm rareVariationModerate"
-                                                >
-                                                    <strong>Moderate</strong>
-                                                </div>
-                                                <div
-                                                    class="col-sm rareVariationPossible"
-                                                >
-                                                    <strong>Possible</strong>
-                                                </div>
-                                                <div
-                                                    class="col-sm rareVariationWeak"
-                                                >
-                                                    <strong>Weak</strong>
-                                                </div>
+                                <color-bar-plot
+                                    v-if="$parent.rareVariationCategory"
+                                    :category="$parent.rareVariationCategory.category.toUpperCase()"
+                                    :elementid="'rareVariation'"
+                                ></color-bar-plot>
 
-                                                <div
-                                                    class="col- rareVariationNoEvidence"
-                                                >
-                                                    <strong>No Evidence</strong>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                                 <hr style="margin: 40px" />
                                 <h5>
                                     <documentation
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category
-                                        "
+                                        v-if="$parent.rareVariationCategory.category"
                                         name="hugecal.priorVariance.header.notExomeSignificant"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h5>
                                 <h6>
                                     <documentation
-                                        v-if="
-                                            $parent
-                                                .rareVariationCategoryAndScore
-                                                .category
-                                        "
+                                        v-if="$parent.rareVariationCategory.category"
                                         name="hugecal.priorVariance.notExomeSignificant"
                                         :content-fill="$parent.documentationMap"
                                     ></documentation>
                                 </h6>
-                                <div v-if="$parent.geneAssociations52k">
-                                    <div style="margin-block-end: 10px">
-                                        Prior variance:
-                                        <input
-                                            v-model.number="
-                                                $store.state.priorVariance
-                                            "
-                                            type="number"
-                                            placeholder="Prior Variance"
-                                            id="prior_variance_input"
-                                        />
-                                    </div>
-
-                                    <posterior-probability-plot
-                                        :geneAssociationsData="
-                                            $parent.geneAssociations52k
-                                        "
-                                        :priorVariance="
-                                            $store.state.priorVariance
-                                        "
-                                        :isDichotomous="true"
-                                    ></posterior-probability-plot>
-                                </div>
                             </div>
                             <!-- Close Rare Variation -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Confidence interval and it's explaination -->
-            <div class="card mdkp-card">
-                <div class="card-body" style="margin-block-end: 20px">
-                    <h5
-                        v-if="
-                            $parent.geneAssociations52k &&
-                            $parent.geneAssociationsLoftee.length > 0
-                        "
-                    >
-                        <documentation
-                            name="hugecal.loftee.header"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-                    </h5>
-                    <h5 v-else>
-                        <documentation
-                            name="hugecal.noloftee.header"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-                    </h5>
-                    <div class="row">
-                        <div v-if="$parent.geneAssociations52k">
-                            <div
-                                v-if="$parent.geneAssociationsLoftee.length > 0"
-                            >
-                                <div class="col-md-6">
-                                    <!-- loftee -->
-                                    <forest-plot
-                                        :data="$parent.geneAssociationsLoftee"
-                                        class="border"
-                                    ></forest-plot>
-                                </div>
-                                <div class="col-md-6">
-                                    <documentation
-                                        name="hugecal.confidenceInterval.help"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </div>
-                            </div>
-                            <div v-else>
-                                <div class="col-md-12">
-                                    <documentation
-                                        name="hugecal.noconfidenceInterval.help"
-                                        :content-fill="$parent.documentationMap"
-                                    ></documentation>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -940,7 +408,7 @@ export default Vue.component("test", {
 
     computed: {},
 
-    methods: {},
+    methods: {}
 });
 // window.onload = function() {
 //     document.getElementById("fademe2s").style.opacity = 1;
@@ -962,61 +430,69 @@ export default Vue.component("test", {
     animation: moveright 1s alternate 1s;
 }
 
-.commonVariationCausal {
+#commonVariation .variationCausal {
     background-color: #884ea0;
 }
-.commonVariationStrong {
+#commonVariation .variationStrong {
     background-color: #9b59b6;
 }
-.commonVariationModerate {
+#commonVariation .variationModerate {
     background-color: #af7ac5;
 }
-.commonVariationPossible {
+#commonVariation .variationPossible {
     background-color: #c39bd3;
 }
-.commonVariationWeak {
-    background-color: #d7bde2;
+#commonVariation .variationWeak {
+    background-color: #deb3f1;
 }
-.commonVariationNoEvidence {
-    background-color: #ebdef0;
+#commonVariation .variationInGWAS {
+    background-color: #e6c7f3;
 }
-
-.rareVariationCausal {
-    background-color: #f1c40f;
-}
-.rareVariationStrong {
-    background-color: #f4d03f;
-}
-.rareVariationModerate {
-    background-color: #f7dc6f;
-}
-.rareVariationPossible {
-    background-color: #f9e79f;
-}
-.rareVariationWeak {
-    background-color: #fcf3cf;
-}
-.rareVariationNoEvidence {
-    background-color: #fef9e7;
+#commonVariation .variationNoEvidence {
+    background-color: #eaddee;
 }
 
-.combinedVariationCausal {
-    background-color: #28b463;
+#rareVariation .variationCausal {
+    background-color: #f1c206;
 }
-.combinedVariationStrong {
-    background-color: #2ecc71;
+#rareVariation .variationStrong {
+    background-color: #f3d14a;
 }
-.combinedVariationModerate {
-    background-color: #58d68d;
+#rareVariation .variationModerate {
+    background-color: #f5db74;
 }
-.combinedVariationPossible {
-    background-color: #82e0aa;
+#rareVariation .variationPossible {
+    background-color: #f6e5a0;
 }
-.combinedVariationWeak {
-    background-color: #abebc6;
+#rareVariation .variationWeak {
+    background-color: #f3e3a4;
 }
-.combinedVariationNoEvidence {
-    background-color: #d5f5e3;
+#rareVariation .variationInGWAS {
+    background-color: #f3e9c5;
+}
+#rareVariation .variationNoEvidence {
+    background-color: #ebe8de;
+}
+#combinedVariation .variationCausal {
+    background-color: rgb(20, 110, 103);
+}
+#combinedVariation .variationStrong {
+    background-color: rgb(39, 148, 139);
+}
+#combinedVariation .variationModerate {
+    background-color: rgb(48, 175, 164);
+}
+#combinedVariation .variationPossible {
+    background-color: rgb(69, 192, 182);
+}
+#combinedVariation .variationWeak {
+    background-color: rgb(78, 209, 198);
+}
+#combinedVariation .variationInGWAS {
+    background-color: rgb(120, 228, 219);
+}
+#combinedVariation .variationNoEvidence {
+    background-color: rgb(168, 240, 234);
 }
 
 .causalclass {
@@ -1039,10 +515,15 @@ export default Vue.component("test", {
     position: absolute;
     left: 460px;
 }
+.inGWASclass {
+    position: absolute;
+    left: 550px;
+}
 .noEvidenceclass {
     position: absolute;
-    left: 560px;
+    left: 650px;
 }
+
 .codingEvidence1C {
     background-color: #ffd62e;
     padding: 5px;
