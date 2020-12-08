@@ -233,6 +233,7 @@
                                                 <filter-enumeration-control
                                                     ref="dataset"
                                                     :field="'dataset'"
+                                                    placeholder="Select a dataset ..."
                                                     :options="
                                                         $parent.datasets.map(
                                                             (v) => v.value
@@ -254,6 +255,7 @@
                                                 <filter-enumeration-control
                                                     ref="phenotype"
                                                     :field="'phenotype'"
+                                                    placeholder="Select one or more phenotypes ..."
                                                     :disableSort="true"
                                                     :disabled="
                                                         $parent.selectedDataset
@@ -295,6 +297,7 @@
                                                 <filter-enumeration-control
                                                     ref="test"
                                                     :field="'test'"
+                                                    placeholder="Select one or more methods ..."
                                                     :multiple="true"
                                                     :disableSort="true"
                                                     :options="
