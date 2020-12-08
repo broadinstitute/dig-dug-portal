@@ -383,6 +383,13 @@
                                                         >{{ data.value }}</a
                                                     >
                                                 </template>
+                                                <template #cell(maf)="data">
+                                                    {{
+                                                        $parent.zScoreFormatter(
+                                                            data.value
+                                                        )
+                                                    }}
+                                                </template>
                                             </b-table>
                                         </div>
                                     </b-skeleton-wrapper>
