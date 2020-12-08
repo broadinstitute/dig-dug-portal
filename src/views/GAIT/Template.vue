@@ -23,9 +23,8 @@
                 <div class="card-body">
                     <h4 class="card-title">Build Search Criteria</h4>
 
-                    <filter-list-group
+                    <criterion-list-group
                         v-model="$parent.searchCriteria"
-                        :looseMatch="true"
                         :header="'Search Criteria'"
                     >
                         <filter-basic-control ref="gene" :field="'gene'">
@@ -47,7 +46,7 @@
                                 Masks
                             </div></filter-enumeration-control
                         >
-                    </filter-list-group>
+                    </criterion-list-group>
 
                     <div class="function">
                         <!-- <b-progress
@@ -215,15 +214,14 @@
                                             header-bg-variant="info"
                                             header-text-variant="white"
                                         >
-                                            <filter-list-group
+                                            <criterion-list-group
                                                 v-if="
                                                     $parent.tableData.length > 0
                                                 "
                                                 v-model="
                                                     $parent.selectedMethods
                                                 "
-                                                :looseMatch="true"
-                                                :header="'Test Criteria'"
+                                                :header="'Test(s) Selected'"
                                             >
                                                 <filter-enumeration-control
                                                     ref="dataset"
@@ -309,7 +307,7 @@
                                                         Test Methods
                                                     </div></filter-enumeration-control
                                                 >
-                                            </filter-list-group>
+                                            </criterion-list-group>
 
                                             <div
                                                 class="function"

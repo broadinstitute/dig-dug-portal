@@ -378,11 +378,22 @@
                         </div>
                     </div>
                 </div>
+<<<<<<< HEAD
+            </filter-pvalue-control>
+
+            <template slot=filtered slot-scope="{ filter }">
+                {{filter}}
+            </template>
+
+        </criterion-function-group>
+
+=======
             </div>
         </div>
 
         <!-- Footer-->
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+>>>>>>> master
     </div>
 </template>
 

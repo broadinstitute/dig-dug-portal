@@ -10,71 +10,71 @@
         <div class="container-fluid mdkp-body">
             <search-header-wrapper>
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
-                <div id="pageSearchParameters">
-                    <div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Search gene</div>
-                            <gene-selectpicker
-                                @onGeneChange="
-                                    $store.dispatch('onGeneChange', $event)
-                                "
-                            ></gene-selectpicker>
-                        </div>
-                        <div class="col divider" style="background: none">
-                            <span class="or-text">or</span>
-                        </div>
-                        <div class="region-search col filter-col-sm">
-                            <div class="label">Chromosome</div>
-                            <input
-                                v-model="$store.state.newChr"
-                                type="text"
-                                class="form-control input-default"
-                                placeholder="Chromosome"
-                            />
-                        </div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Start</div>
-                            <input
-                                v-model="$store.state.newStart"
-                                type="text"
-                                class="form-control input-default"
-                                placeholder="Start position"
-                            />
-                        </div>
 
-                        <div class="region-search col filter-col-md">
-                            <div class="label">End</div>
-                            <input
-                                v-model="$store.state.newEnd"
-                                type="text"
-                                class="form-control input-default"
-                                placeholder="End position"
-                            />
-                        </div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Search</div>
-                            <button
-                                id="regionSearchGo"
-                                class="btn btn-light btn-sm go"
-                                type="button"
-                                @click="$store.dispatch('queryRegion')"
-                            >
-                                GO
-                            </button>
-                        </div>
-                        <div class="col divider"></div>
-                        <div class="region-search col filter-col-md">
-                            <div class="label">Search phenotype</div>
-                            <phenotype-selectpicker
-                                v-if="$store.state.phenotype"
-                                :phenotypes="$store.state.bioPortal.phenotypes"
-                                :default-phenotype="
-                                    $store.state.phenotype.description
-                                "
-                            ></phenotype-selectpicker>
-                        </div>
-                    </div></div
-            ></search-header-wrapper>
+                <div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Search gene</div>
+                        <gene-selectpicker
+                            @onGeneChange="
+                                $store.dispatch('onGeneChange', $event)
+                            "
+                        ></gene-selectpicker>
+                    </div>
+                    <div class="col divider" style="background: none">
+                        <span class="or-text">or</span>
+                    </div>
+                    <div class="region-search col filter-col-sm">
+                        <div class="label">Chromosome</div>
+                        <input
+                            v-model="$store.state.newChr"
+                            type="text"
+                            class="form-control input-default"
+                            placeholder="Chromosome"
+                        />
+                    </div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Start</div>
+                        <input
+                            v-model="$store.state.newStart"
+                            type="text"
+                            class="form-control input-default"
+                            placeholder="Start position"
+                        />
+                    </div>
+
+                    <div class="region-search col filter-col-md">
+                        <div class="label">End</div>
+                        <input
+                            v-model="$store.state.newEnd"
+                            type="text"
+                            class="form-control input-default"
+                            placeholder="End position"
+                        />
+                    </div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Search</div>
+                        <button
+                            id="regionSearchGo"
+                            class="btn btn-light btn-sm go"
+                            type="button"
+                            @click="$store.dispatch('queryRegion')"
+                        >
+                            GO
+                        </button>
+                    </div>
+                    <div class="col divider"></div>
+                    <div class="region-search col filter-col-md">
+                        <div class="label">Search phenotype</div>
+                        <phenotype-selectpicker
+                            v-if="$store.state.phenotype"
+                            :phenotypes="$store.state.bioPortal.phenotypes"
+                            :default-phenotype="
+                                $store.state.phenotype.description
+                            "
+                        ></phenotype-selectpicker>
+                    </div>
+                </div>
+            </search-header-wrapper>
 
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
@@ -181,10 +181,7 @@
                             name="region.variantassociation.subheader"
                         ></documentation>
 
-                        <filter-group
-                            v-model="$parent.associationsFilter"
-                            :looseMatch="true"
-                        >
+                        <criterion-function-group v-model="$parent.associationsFilter">
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="$parent.associationConsequences"
@@ -210,18 +207,13 @@
                             </filter-effect-direction-control>
                             <template slot="filtered" slot-scope="{ filter }">
                                 <associations-table
-                                    v-if="
-                                        $store.state.associations.data.length >
-                                        0
-                                    "
+                                    v-if="$parent.pageAssociations.length > 0"
                                     :phenotypes="$parent.phenotypes"
-                                    :associations="
-                                        $store.state.associations.data
-                                    "
+                                    :associations="$parent.pageAssociations"
                                     :filter="filter"
                                 ></associations-table>
                             </template>
-                        </filter-group>
+                        </criterion-function-group>
 
                         <br />
                         <documentation
@@ -234,7 +226,7 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <filter-group :looseMatch="true">
+                        <criterion-function-group>
                             <div class="col filter-col-lg">
                                 <div class="label" style="margin-bottom: 5px">
                                     Add annotation
@@ -299,12 +291,13 @@
                                     <lz-associations-panel
                                         :phenotype="$store.state.phenotype.name"
                                         :finishHandler="
-                                            $parent.updateAssociationsTable
+                                            $parent.updatePageAssociations
                                         "
                                     ></lz-associations-panel>
                                 </locuszoom>
                             </template>
-                        </filter-group>
+                        </criterion-function-group>
+
                     </div>
                 </div>
             </div>

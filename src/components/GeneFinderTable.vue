@@ -133,7 +133,7 @@ export default Vue.component("gene-finder-table", {
 
     computed: {
         rows() {
-            return this.groupedAssociations.length;
+            return this.tableData.length;
         },
 
         tableData() {

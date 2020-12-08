@@ -1,5 +1,5 @@
 <template>
-    <filter-control
+    <filter-control-template
         class="filter-col-sm"
         :field="field"
         :type="'number'"
@@ -7,16 +7,16 @@
         :pillFormatter="filterDefinition => `${filterDefinition.field} <= ${pValueFormatter(filterDefinition.threshold)}`"
         :multiple="false">
         <slot></slot>
-    </filter-control>
+    </filter-control-template>
 </template>
 <script>
 import Vue from "vue";
-import FilterControl from "./FilterControl"
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate"
 import Formatter from "@/utils/formatters"
 export default Vue.component('filter-pvalue-control', {
     props: ['field'],
     components: {
-        FilterControl,
+        FilterControlTemplate,
     },
     methods: {
         pValueFormatter: Formatter.pValueFormatter
