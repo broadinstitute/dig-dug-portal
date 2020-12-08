@@ -22,7 +22,6 @@ export class ToggleLogLog extends BaseWidget {
             .setHtml(this._button_html)
             .setTitle(this._button_title)
             .setOnclick(function () {
-                console.log(self)
                 // Auxiliary method within our json query for data layers in the LocusZoom plot
                 // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
                 // using flatmap because we need to work across many Object.keys

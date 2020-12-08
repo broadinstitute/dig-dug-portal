@@ -1,5 +1,5 @@
 <template>
-    <filter-control
+    <filter-control-template
         class="filter-col-sm"
         :field="field"
         :type="'string'"
@@ -18,15 +18,15 @@
         <slot>
             Effect (+/-)
         </slot>
-    </filter-control>
+    </filter-control-template>
 </template>
 <script>
 import Vue from "vue";
-import FilterControl from "./FilterControl"
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate"
 export default Vue.component('filter-effect-direction-control', {
     props: ['field'],
     components: {
-        FilterControl,
+        FilterControlTemplate,
     },
     methods: {
         tap(value) {

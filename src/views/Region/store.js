@@ -152,19 +152,7 @@ export default new Vuex.Store({
                 context.dispatch("queryRegion");
             }
         },
-
-        async loadAssociations(context, lzstate) {
-            let { chr, start, end, phenotype } = lzstate;
-
-            // construct the query
-            let query = {
-                q: `${phenotype},${chr}:${start}-${end}`
-            };
-
-            // load the association
-            context.dispatch("associations/query", query);
-        },
-
+        
         async resetToDefaultRegion(context) {
             context.commit("setLocus", {
                 chr: context.state.initial.chr,

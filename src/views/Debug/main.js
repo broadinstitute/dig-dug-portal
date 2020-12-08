@@ -320,8 +320,8 @@ new Vue({
         },
 
         //if GWAS Significant? -> yes -> Mccarthy list in T2D -> get the eglData (get the evidence and category)  ->Mccarthy list as T2D_unrelated -> "in GWAS"
-        // if not GWAS Significant -> category -> No Evidence: 
-        //now calculate the ABF based on this.         
+        // if not GWAS Significant -> category -> No Evidence:
+        //now calculate the ABF based on this.
         commonVariationABF() {
             let commonVariationABF = 1;
             if (this.isSignificantAssociationCommonVariation) {

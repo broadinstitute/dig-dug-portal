@@ -17,22 +17,22 @@
             {{this.header}}:&nbsp;&nbsp;
             <!-- Derive pills from current filter state?
                         Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
-                        It would be deterministic upto the compile-time declaration of the FilterGroup controls which would lead to predicatable results at runtime
+                        It would be deterministic upto the compile-time declaration of the CriterionGroupTemplate controls which would lead to predicatable results at runtime
             -->
             <b-badge
                 pill
                 v-for="(filter, idx) in filterList"
                 :key="filter.field + filter.predicate + filter.threshold + idx"
                 :class="`btn filter-pill-${filter.field}`"
-                :style="{ 'background-color': `${ !!filter.pill && !!filter.pill.color ? `${filter.pill.color} !important` : '' }` }"
+                :style="{ 'background-color': `${ !!filter.color ? `${filter.color} !important` : '' }` }"
                 @click="unsetFilter(filter, idx)">
-                {{ !!filter.pill && !!filter.pill.label ? filter.pill.label(filter) : `${filter.field} = ${filter.threshold}` }}
+                {{ !!filter.label ? typeof filter.label === 'function' ? filter.label(filter) : new String(filter.label) : `${filter.field} = ${filter.threshold}` }}
                 <span class="remove">X</span>
             </b-badge>
         </div>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <br v-else />
-        <slot name="filtered" :filter="filterFunction"></slot>
+        <slot name="filtered" :filter="criterion"></slot>
     </span>
 </template>
 
@@ -61,7 +61,7 @@ const EventListener = {
      * If you want someone to blame for this, it's the Vue devs, for not allowing v-on with slots: https://github.com/vuejs/vue/issues/4781
      * And we're doing this as our response: https://github.com/vuejs/vue/issues/4781#issuecomment-501217642
      *
-     * In FilterGroup we'll use 'change' as the event share between EventListener and the child components.
+     * In CriterionGroupTemplate we'll use 'change' as the event share between EventListener and the child components.
      *
      */
     render(createElement) {
@@ -75,16 +75,24 @@ const EventListener = {
     }
 };
 
-export default Vue.component("filter-group", {
+export default Vue.component("criterion-group-template", {
     props: {
-        value: null, // any type, since filterMaker might return any type even though by default it should return a function
+
+        value: [Function, Array],
+        filterType: {
+            type: String,
+            // required: true,
+        },
+
         inclusive: Boolean,
         strictCase: Boolean,
         looseMatch: Boolean,
+
         header: {
             type: String,
             default: "Selected Filters"
         },
+
         filterMaker: {
             type: Function,
             default: filterFromPredicates
@@ -92,7 +100,7 @@ export default Vue.component("filter-group", {
         predicateMaker: {
             type: Function,
             default: predicateFromSpec
-        }
+        },
     },
     components: {
         EventListener
@@ -100,7 +108,9 @@ export default Vue.component("filter-group", {
     data() {
         return {
             // the filter on the end prevents malformed initial values from being used in the component
-            filterList: (this.value !== null && Array.isArray(this.value) ? this.value : []).filter(filterDefinition => !!filterDefinition.field && !!filterDefinition.threshold),
+            filterList: typeof this.value === 'object' && !!this.value.length && this.value.length > 0 ? this.value : [],
+            filterFunction: !!this.value && typeof this.value === 'function' ? this.value : id => true,
+            criterion: !!this.value ? this.value : this.type === 'function' ? id => true : [],
 
             // Vue doesn't identify anonymous functions of the same form with one another,
             // so we are turning these two props into data to prevent infinite loops that result
@@ -114,21 +124,6 @@ export default Vue.component("filter-group", {
         };
     },
 
-    computed: {
-        filterFunction() {
-            const predicates = this.filterList.map(obj =>
-                this.makePredicate(
-                    { ...obj },
-                    {
-                        strictCase: this.strictCase,
-                        notStrictMatch: this.looseMatch
-                    }
-                )
-            );
-            return this.makeFilter(predicates, !!this.inclusive);
-        },
-    },
-
     methods: {
         filterControlChange(threshold, filterDefinition) {
             if (
@@ -137,11 +132,14 @@ export default Vue.component("filter-group", {
                     .map(filter => filter.field)
                     .includes(filterDefinition.field)
             ) {
+
                 this.filterList.push({
+                    threshold,
                     ...filterDefinition,
-                    threshold
                 });
+
             } else {
+
                 // if the definition already exists, and it's a multiple, then just push, since we can allow for multiple instances of the same filter
                 if (filterDefinition.multiple) {
                     // check if value is unique
@@ -151,14 +149,17 @@ export default Vue.component("filter-group", {
                             .map(filter => filter.threshold)
                             .includes(threshold)
                     ) {
+
                         this.filterList.push({
+                            threshold,
                             ...filterDefinition,
-                            threshold
                         });
+
                     }
                     // if the definition already exists, and it's a not a multiple, then modify the existing definition in filterList that matches the field
                     // TODO: would be faster if we maintain a normalized version of filterList against the filter ID, refactor towards this for performance
                 } else if (!filterDefinition.multiple) {
+
                     this.filterList = this.filterList.map(filter => {
                         if (filter.field === filterDefinition.field) {
                             const tempFilter = filter;
@@ -169,7 +170,9 @@ export default Vue.component("filter-group", {
                             return filter;
                         }
                     });
+
                 }
+
             }
             // NOTE: As a result of this.filterList being modified, the computed property for the filterFunction should reactively producing a new version of itself.
         },
@@ -185,16 +188,43 @@ export default Vue.component("filter-group", {
     },
     watch: {
         value: {
-            handler: function(newFilterValue, oldFilterValue) {
-                if (!_.isEqual(newFilterValue, oldFilterValue)) {
-                    this.filterList = this.value;
+            handler: function(newCriterionValue, oldCriterionValue) {
+                if (!_.isEqual(newCriterionValue, oldCriterionValue)) {
+                    if (this.filterType === 'function') {
+                        this.filterFunction = newCriterionValue;
+                    }
+                    else if (this.filterType === 'list') {
+                        this.filterList = newCriterionValue;
+                    }
                 }
             },
             deep: true,
         },
-        filterFunction: {
-            handler: function(newFilterFunction, oldFilterFunction) {
-                this.$emit("input", newFilterFunction);
+        filterList: {
+            handler: function (newFilterList, oldFilterList) {
+                if (newFilterList.length > 0) {
+                    const predicates = newFilterList.map(predicateSpec => this.makePredicate(predicateSpec, { strictCase: this.strictCase,notStrictMatch: this.looseMatch }));
+                    this.filterFunction = this.makeFilter(predicates, !!this.inclusive);
+                    if (this.filterType === 'function') {
+                        this.criterion = this.filterFunction;
+                    } else if (this.filterType === 'list') {
+                        this.criterion = this.filterList;
+                    }
+                } else {
+                    if (this.filterType === 'function') {
+                        this.criterion = function (id) { return true; };
+                    } else if (this.filterType === 'list') {
+                        this.criterion = [];
+                    }
+                }
+            },
+            deep: true,
+        },
+        criterion: {
+            handler: function(newCriterionValue, oldCriterionValue) {
+                if (!_.isEqual(newCriterionValue, oldCriterionValue)) {
+                    this.$emit("input", newCriterionValue);
+                }
             },
             deep: true
         }

@@ -97,7 +97,6 @@
                 :key="i"
             ></b-row>
         </b-container>
-
         <b-container
             fluid
             v-if="!!config && !!tableData"
@@ -233,10 +232,10 @@
                             ></b-button>
                         </template>
                     </div>
-
                     <effector-genes-features
                         :features="value.features"
                         :featureIndex="index"
+                        :columnHeader="value[config[dataset]['topLevelPrime']]"
                     ></effector-genes-features>
                 </b-row>
             </b-container>
@@ -368,7 +367,7 @@ export default Vue.component("effector-genes-table", {
                     }
 
                     g["chr"] =
-                        chrNum != "X" || chrNum != "Y"
+                        chrNum != "X" && chrNum != "Y"
                             ? Number(chrNum)
                             : chrNum == "X"
                             ? 23

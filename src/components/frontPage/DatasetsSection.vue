@@ -1,15 +1,19 @@
 <template>
     <div>
         <div>
-            <span
-                style="color: #00b9f2;font-family: 'Oswald'; font-size: 65px"
-            >{{ processedDatasetsInfo.totalDatasetsNum }} datasets,</span>
-            <span
-                style="color: #80C242;font-family: 'Oswald'; font-size: 65px"
-            >&nbsp;{{ processedDatasetsInfo.totalPhenotypesNum }} traits</span>
+            <span style="color: #00b9f2; font-family: 'Oswald'; font-size: 65px"
+                >{{ processedDatasetsInfo.totalDatasetsNum }} datasets,</span
+            >
+            <span style="color: #80C242; font-family: 'Oswald'; font-size: 65px"
+                >&nbsp;{{
+                    processedDatasetsInfo.totalPhenotypesNum
+                }}
+                traits</span
+            >
         </div>
+
         <div id="datasets-chart"></div>
-        <div style="text-align: center;">
+        <div style="text-align: center">
             <h4>
                 <a href="/datasets.html">Browse data here ></a>
             </h4>
@@ -33,6 +37,48 @@ export default Vue.component("datasets-section", {
     },
     methods: {
         renderCharts: function (DATASETS) {
+            var renderTable = function (TABLEDATA, TABLETYPE) {
+                let tableContent =
+                    '<div class="front-' + TABLETYPE + '-graph">';
+
+                tableContent +=
+                    '<h4 style = "text-transform:capitalize;">' +
+                    TABLETYPE +
+                    "</h4>";
+
+                let renderingData = TABLEDATA.sort((a, b) =>
+                    a.value < b.value ? 1 : -1
+                );
+
+                let valueHigh = renderingData[0].value;
+
+                renderingData.map((t) => {
+                    let valuePercent = (t.value / valueHigh) * 100;
+                    let percentBG =
+                        '<div style="width:' +
+                        valuePercent +
+                        '%" class="percent-bg">&nbsp;</div>';
+
+                    let infoLabel =
+                        '<div class="info-label">' +
+                        t.label +
+                        " KP: <strong>" +
+                        t.value +
+                        "</strong></div>";
+
+                    tableContent +=
+                        "<div class='each-item'>" +
+                        percentBG +
+                        infoLabel +
+                        "</div>";
+                });
+
+                tableContent += "</div>";
+
+                document.getElementById(
+                    "datasets-chart"
+                ).innerHTML += tableContent;
+            };
             var renderPie = function (PIEDATA, SVGID, COLORSET, WIDTH, HEIGHT) {
                 var width = WIDTH,
                     height = HEIGHT,
@@ -115,14 +161,14 @@ export default Vue.component("datasets-section", {
                         return d.data.label;
                     });
             };
-
+            /*
             $("#datasets-chart").append(
                 "<svg id='datasets-svg' style='width:300px; height:250px;'></svg>"
             );
             $("#datasets-chart").append(
                 "<svg id='phenotypes-svg' style='width:300px; height:250px;'></svg>"
             );
-
+*/
             let portals = [];
 
             this.diseaseGroups.map((x) => {
@@ -168,14 +214,20 @@ export default Vue.component("datasets-section", {
                 "#80c34211",
             ];
 
-            renderPie(datasetsData, "datasets-svg", datasetsColors, 300, 250);
-            renderPie(
+            console.log(datasetsData);
+            console.log(phenotypesData);
+
+            renderTable(datasetsData, "datasets");
+            renderTable(phenotypesData, "phenotypes");
+
+            //renderPie(datasetsData, "datasets-svg", datasetsColors, 300, 250);
+            /*renderPie(
                 phenotypesData,
                 "phenotypes-svg",
                 phenotypesColors,
                 300,
                 250
-            );
+            );*/
         },
     },
     mounted: function () {},
