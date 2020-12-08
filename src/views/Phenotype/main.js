@@ -26,15 +26,14 @@ import Alert, {
     closeAlert
 } from "@/components/Alert";
 
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
-import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
-import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import CriterionListGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 
-
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 new Vue({
     store,
 
@@ -50,13 +49,14 @@ new Vue({
         Documentation,
         RawImage,
 
-        FilterGroup,
-        FilterListGroup,
-        FilterControl,
+        CriterionFunctionGroup,
+        CriterionListGroup,
         FilterPValue,
         FilterGreaterThan,
         FilterEnumeration,
-        FilterEffectDirection
+        FilterEffectDirection,
+
+        SearchHeaderWrapper
     },
 
     created() {
@@ -70,7 +70,6 @@ new Vue({
     },
     data() {
         return {
-            enrichmentFilter: null,
         }
     },
     methods: {

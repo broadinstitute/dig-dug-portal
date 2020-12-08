@@ -20,12 +20,15 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEffectDirection from "@/components/Filter/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -63,12 +66,16 @@ new Vue({
         Autocomplete,
         GeneSelectPicker,
 
-        FilterGroup,
-        FilterControl,
+        CriterionListGroup,
+        CriterionFunctionGroup,
+
+        CriterionFunctionGroup,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
-        FilterGreaterThan
+        FilterGreaterThan,
+
+        SearchHeaderWrapper
     },
 
     async created() {
@@ -84,7 +91,8 @@ new Vue({
 
     data() {
         return {
-            associationsFilter: null,
+            associationsFilter: function (id) { return true; },
+            pageAssociations: [],
             tissueScoring: null,
         };
     },
@@ -115,9 +123,8 @@ new Vue({
         },
 
         // TODO: refactor this away in favor of v-model
-        updateAssociationsTable(data) {
-            this.$store.commit(`associations/clearData`);
-            this.$store.commit(`associations/setResponse`, data);
+        updatePageAssociations(data) {
+            this.pageAssociations = data;
         },
 
         // LocusZoom has "Panels"
@@ -155,6 +162,7 @@ new Vue({
     },
 
     computed: {
+
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {

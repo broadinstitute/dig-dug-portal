@@ -1,30 +1,33 @@
 <template>
-    <filter-group
+    <criterion-group-template
+        :ref="Math.floor(Math.random() * 10000).toString()"
         :value="value"
-        :looseMatch="looseMatch"
-        :filterMaker="id=>id"
-        :predicateMaker="id=>id"
+        :filterType="'list'"
+        :looseMatch="true"
         :header="header"
         @input="emitInput">
         <slot></slot>
-    </filter-group>
+        <template slot=filtered slot-scope="{ filter }">
+            <slot name="filtered" :filter="filter"></slot>
+        </template>
+    </criterion-group-template>
 </template>
+
 <script>
 import Vue from "vue"
-import FilterGroup from "./FilterGroup.vue"
-export default Vue.component('filter-list-group', {
+import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
+
+export default Vue.component('criterion-list-group', {
     props: {
         value: {
             type: Array,
+            default: function() { return []; },
             validator: function (predicateSpecs) {
                 if (Array.isArray(predicateSpecs)) {
                     if (predicateSpecs.length > 0) {
                         return predicateSpecs.every(predicateSpec => {
                             return typeof predicateSpec.field !== 'undefined' &&
-                                    typeof predicateSpec.threshold !== 'undefined'
-                                    // &&
-                                    // typeof predicateSpec.pill !== 'undefined' &&
-                                    // typeof predicateSpec.pill.label !== 'undefined';
+                                   typeof predicateSpec.threshold !== 'undefined'
                         });
                     } else {
                         return true;
@@ -32,10 +35,8 @@ export default Vue.component('filter-list-group', {
                 }
             }
         },
-        looseMatch: Boolean,
         header: String,
     },
-    components:{ FilterGroup },
     methods: {
         emitInput(value) {
             this.$emit('input', value)

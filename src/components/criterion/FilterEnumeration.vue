@@ -1,5 +1,5 @@
 <template>
-    <filter-control
+    <filter-control-template
         class="filter-col-md"
         :field="field"
         :type="'string'"
@@ -18,11 +18,11 @@
         :disabled="disabled"
     >
         <slot> </slot>
-    </filter-control>
+    </filter-control-template>
 </template>
 <script>
 import Vue from "vue";
-import FilterControl from "./FilterControl";
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
 import Formatter from "@/utils/formatters";
 
 export default Vue.component("filter-enumeration-control", {
@@ -52,7 +52,7 @@ export default Vue.component("filter-enumeration-control", {
         },
     },
     components: {
-        FilterControl,
+        FilterControlTemplate,
     },
     computed: {
         // Make options unique and sorted by default, and always
