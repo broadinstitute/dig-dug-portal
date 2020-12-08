@@ -27,15 +27,22 @@
                         v-model="$parent.searchCriteria"
                         :header="'Search Criteria'"
                     >
-                        <filter-basic-control ref="gene" :field="'gene'">
+                        <filter-basic-control
+                            ref="gene"
+                            :field="'gene'"
+                            placeholder="Select a gene ..."
+                        >
                             <div class="label">Gene</div>
                         </filter-basic-control>
+
+                        <b-col class="divider"></b-col>
 
                         <filter-enumeration-control
                             ref="mask"
                             :field="'mask'"
                             :multiple="true"
                             :disableSort="true"
+                            placeholder="Select one or more masks ..."
                             :options="$parent.masks.map((v) => v.value)"
                             :labelFormatter="
                                 (v) =>

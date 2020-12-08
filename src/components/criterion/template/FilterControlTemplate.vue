@@ -14,12 +14,14 @@
             :labelFormatter="labelFormatter"
             @item-select="updateFilter($event)"
             :disabled="disabled"
+            :placeholder="placeholder"
         ></autocomplete>
         <b-form-input
             v-else
             v-model="filterThreshold"
             @keydown.enter="updateFilter(filterThreshold)"
             :disabled="disabled"
+            :placeholder="placeholder"
         ></b-form-input>
     </div>
 </template>
@@ -39,6 +41,7 @@ export default Vue.component("filter-control-template", {
     props: {
         value: [String, Number],
         field: String,
+        placeholder: String,
         predicate: Function,
         options: Array,
         multiple: Boolean,
@@ -76,6 +79,7 @@ export default Vue.component("filter-control-template", {
         return {
             filterDefinition: {
                 field: this.field,
+                placeholder: this.placeholder,
                 predicate: this.predicate,
                 multiple: !!this.multiple || !!this.splitBy ? true : false, // if undefined, default to false
                 inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)

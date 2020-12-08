@@ -2,6 +2,7 @@
     <filter-control-template
         class="filter-col-md"
         :field="field"
+        :placeholder="placeholder"
         :type="'string'"
         :predicate="(string, selection) => string === selection"
         :pillFormatter="
@@ -28,6 +29,7 @@ import Formatter from "@/utils/formatters";
 export default Vue.component("filter-enumeration-control", {
     props: {
         field: String,
+        placeholder: String,
         options: Array,
         color: String,
         multiple: {
