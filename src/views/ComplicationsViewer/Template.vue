@@ -82,15 +82,18 @@
                                     Genome-wide single-variant associations for
                                     {{ $parent.complicationsViewerPhenotype }}
                                 </h4>
-                                <div class="row">
+                                <div
+                                    class="row"
+                                    v-for="phenotype in $parent.complicationViewerPhenotypes"
+                                >
                                     <div class="col-md-6">
                                         <div class="card" style="width: 95%; border: 0">
                                             <raw-img
                                                 id="manhattanPlot"
-                                                :src="$parent.manhattanPlot"
+                                                :src="`/api/raw/plot/phenotype/${phenotype}/manhattan.png`"
                                                 alt="Manhattan Plot"
                                                 :documentation="'phenotype.associationplots.manhattan'"
-                                                :content-fill="$parent.documentationMap"
+                                                :content-fill="{phenotype:phenotype}"
                                             />
                                         </div>
                                     </div>
@@ -98,38 +101,10 @@
                                         <div class="card" style="width: 95%; border: 0">
                                             <raw-img
                                                 id="qqPlot"
-                                                :src="$parent.qqPlot"
+                                                :src="`/api/raw/plot/phenotype/${phenotype}/qq.png`"
                                                 alt="QQ Plot"
                                                 :documentation="'phenotype.associationplots.qq'"
-                                                :content-fill="$parent.documentationMap"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                                <h4 class="card-title">
-                                    Genome-wide single-variant associations for
-                                    {{ $parent.complicationsViewerPhenotype2 }}
-                                </h4>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="card" style="width: 95%; border: 0">
-                                            <raw-img
-                                                id="manhattanPlot2"
-                                                :src="$parent.manhattanPlot2"
-                                                alt="Manhattan Plot"
-                                                :documentation="'phenotype.associationplots.manhattan'"
-                                                :content-fill="$store.getters['documentationMap']"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card" style="width: 95%; border: 0">
-                                            <raw-img
-                                                id="qqPlot"
-                                                :src="$parent.qqPlot2"
-                                                alt="QQ Plot"
-                                                :documentation="'phenotype.associationplots.qq'"
-                                                :content-fill="$store.getters['documentationMap']"
+                                                :content-fill="{phenotype:phenotype}"
                                             />
                                         </div>
                                     </div>
