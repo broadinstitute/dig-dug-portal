@@ -1603,10 +1603,12 @@ a.to-previous-page:hover {
 #gait .accordion .card.mb-1 {
     overflow: unset;
 }
-#gait .accordion .btn-block.btn-outline-primary {
-    border-color: transparent;
+#gait .accordion .btn-block {
     text-align: left;
     position: relative;
+}
+#gait .accordion .btn-block.btn-outline-primary {
+    border-color: transparent;
 }
 #gait .accordion .criteria {
     position: absolute;
