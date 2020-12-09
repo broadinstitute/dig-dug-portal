@@ -204,7 +204,16 @@ new Vue({
                 pValue: this.geneFinderPValue,
                 phenotypes: this.complicationViewerPhenotypes,
             }
-        }
+        },
+
+        documentationMap() {
+            let complication = this.complicationViewerPhenotypes[0];
+            let phenotype = this.complicationViewerPhenotypes[1];
+            return {
+                phenotype: phenotype,
+                complication: complication
+            };
+        },
     },
 
     watch: {
