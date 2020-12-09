@@ -9,10 +9,11 @@
             Note how this is separate from whether or not the filter is a multiple; the conditional for that case is irrelevant here.
         -->
         <autocomplete
-            v-if="!!options && options.length > 0"
+            v-if="!!options && Array.isArray(options)"
             :matches="options"
             :labelFormatter="labelFormatter"
             @item-select="updateFilter($event)"
+            @input-change="$parent.$emit('input-change', $event)"
             :disabled="disabled"
         ></autocomplete>
         <b-form-input

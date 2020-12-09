@@ -129,6 +129,7 @@ new Vue({
         this.$store.dispatch("ldServer/getPhenotypes");
     },
     computed: {
+
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
