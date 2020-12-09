@@ -21,7 +21,9 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Build Search Criteria</h4>
+                    <h4 class="card-title">
+                        Association statistics for selected variants
+                    </h4>
 
                     <div class="accordion" role="tablist">
                         <b-card no-body class="mb-1">
@@ -285,7 +287,6 @@
                                             ></transition
                                         >
                                         <b-card
-                                            header="Association statistics for selected variants"
                                             class="text-center filter-tests"
                                             border-variant="primary"
                                         >
