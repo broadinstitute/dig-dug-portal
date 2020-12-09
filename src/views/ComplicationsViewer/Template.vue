@@ -57,10 +57,22 @@
                     </filter-list-group>
 
                     <div>
+                        <gene-finder-table
+                            v-show="
+                                $parent.complicationViewerPhenotypes.length > 0 &&
+                                $parent.combined.length > 0
+                            "
+                            :phenotypes="$parent.complicationViewerPhenotypes"
+                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            :associations="$parent.combined"
+                            :rowsPerPage="20"
+                            :exclusive="true"
+                            :showPlot="true"
+                            :showChiSquared="true"
+                        ></gene-finder-table>
                         <div
                             v-if="$parent.complicationViewerPhenotypes.length > 0 &&
                                 $parent.combined.length > 0"
-                            class="card mdkp-card"
                         >
                             <div class="card-body">
                                 <h4 class="card-title">
@@ -125,19 +137,6 @@
                                 </div>
                             </div>
                         </div>
-                        <gene-finder-table
-                            v-show="
-                                $parent.complicationViewerPhenotypes.length > 0 &&
-                                $parent.combined.length > 0
-                            "
-                            :phenotypes="$parent.complicationViewerPhenotypes"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            :associations="$parent.combined"
-                            :rowsPerPage="20"
-                            :exclusive="true"
-                            :showPlot="true"
-                            :showChiSquared="true"
-                        ></gene-finder-table>
                     </div>
                 </div>
             </div>
