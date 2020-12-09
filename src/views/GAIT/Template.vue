@@ -34,8 +34,35 @@
                                     block
                                     v-b-toggle.accordion-1
                                     variant="outline-primary"
-                                    >Criteria</b-button
-                                >
+                                    >Criteria
+                                    <div class="criteria">
+                                        <b-badge
+                                            class="filter-pill-gene"
+                                            v-if="
+                                                $parent.selectedGene.length > 0
+                                            "
+                                        >
+                                            {{ $parent.selectedGene[0] }}
+                                        </b-badge>
+                                        <template
+                                            v-if="
+                                                $parent.selectedMasks.length > 0
+                                            "
+                                        >
+                                            <b-badge
+                                                class="filter-pill-mask"
+                                                v-for="mask in $parent.selectedMasks"
+                                                :key="mask"
+                                            >
+                                                {{
+                                                    $parent.masks.find(
+                                                        (o) => o.value === mask
+                                                    ).text
+                                                }}
+                                            </b-badge>
+                                        </template>
+                                    </div>
+                                </b-button>
                             </b-card-header>
                             <b-collapse
                                 id="accordion-1"
@@ -134,7 +161,57 @@
                                             ? 'outline-warning'
                                             : 'outline-primary'
                                     "
-                                    >Variants</b-button
+                                    >Variants
+                                    <div class="criteria">
+                                        <b-badge
+                                            class="filter-pill-dataset"
+                                            v-if="
+                                                $parent.selectedDataset.length >
+                                                0
+                                            "
+                                        >
+                                            {{ $parent.selectedDataset[0] }}
+                                        </b-badge>
+                                        <template
+                                            v-if="
+                                                $parent.selectedPhenotypes
+                                                    .length > 0
+                                            "
+                                        >
+                                            <b-badge
+                                                class="filter-pill-phenotype"
+                                                v-for="phenotype in $parent.selectedPhenotypes"
+                                                :key="phenotype"
+                                            >
+                                                {{
+                                                    !!$store.state.bioPortal
+                                                        .phenotypeMap[phenotype]
+                                                        ? $store.state.bioPortal
+                                                              .phenotypeMap[
+                                                              phenotype
+                                                          ].description
+                                                        : phenotype
+                                                }}
+                                            </b-badge>
+                                        </template>
+                                        <template
+                                            v-if="
+                                                $parent.selectedTests.length > 0
+                                            "
+                                        >
+                                            <b-badge
+                                                class="filter-pill-test"
+                                                v-for="test in $parent.selectedTests"
+                                                :key="test"
+                                            >
+                                                {{
+                                                    $parent.testMethods.find(
+                                                        (o) => o.value === test
+                                                    ).text
+                                                }}
+                                            </b-badge>
+                                        </template>
+                                    </div></b-button
                                 >
                             </b-card-header>
                             <b-collapse

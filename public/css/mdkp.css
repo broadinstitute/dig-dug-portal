@@ -1605,6 +1605,17 @@ a.to-previous-page:hover {
 }
 #gait .accordion .btn-block.btn-outline-primary {
     border-color: transparent;
+    text-align: left;
+    position: relative;
+}
+#gait .accordion .criteria {
+    position: absolute;
+    right: 0.75rem;
+    top: unset;
+}
+#gait .criteria {
+    display: inline;
+    overflow: visible;
 }
 #gait .accordion .alert {
     text-align: center;
