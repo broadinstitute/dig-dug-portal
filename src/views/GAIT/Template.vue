@@ -255,7 +255,10 @@
                                             again to update variant
                                             list.</b-alert
                                         >
-                                        <transition name="fade">
+                                        <transition
+                                            name="fade"
+                                            v-if="$parent.tableData.length > 0"
+                                        >
                                             <b-alert
                                                 show
                                                 v-if="
@@ -289,11 +292,9 @@
                                         <b-card
                                             class="text-center filter-tests"
                                             border-variant="primary"
+                                            v-if="$parent.tableData.length > 0"
                                         >
                                             <criterion-list-group
-                                                v-if="
-                                                    $parent.tableData.length > 0
-                                                "
                                                 v-model="
                                                     $parent.selectedMethods
                                                 "
