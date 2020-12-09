@@ -8,61 +8,35 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
+            <search-header-wrapper>
+                <!-- Wrap page level searchs with "pageSearchParameters" div -->
+                <div class="col filter-col-md">
+                    <div class="label">Dataset</div>
+                    <dataset-selectpicker
+                        v-if="$store.state.bioPortal.datasetMap"
+                        :datasets="$store.state.bioPortal.datasets"
+                    ></dataset-selectpicker>
+                </div>
+                <div class="col filter-col-md">
+                    <div class="label">Phenotype</div>
+                    <phenotype-selectpicker
+                        v-if="$store.state.bioPortal.phenotypeMap"
+                        :phenotypes="$parent.datasetPhenotypes"
+                    ></phenotype-selectpicker>
+                </div>
+            </search-header-wrapper>
             <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">
-                        Dataset
-                        <a
-                            class="edit-btn"
-                            v-on:click="
-                                () =>
-                                    $parent.showHideElement(
-                                        'datasetSearchHolder',
-                                        'dataset_search'
-                                    )
-                            "
-                            >Select datasets</a
-                        >
-                    </div>
-                    <div class="col-md-4 gene-page-header-title">
-                        Phenotype
-                        <a
-                            class="edit-btn"
-                            v-on:click="
-                                () =>
-                                    $parent.showHideElement(
-                                        'phenotypeSearchHolder'
-                                    )
-                            "
-                            >Select phenotype</a
-                        >
-                    </div>
+                    <div class="col-md-8 gene-page-header-title">Dataset</div>
+                    <div class="col-md-4 gene-page-header-title">Phenotype</div>
 
                     <div class="col-md-8 gene-page-header-body">
-                        <div
-                            id="datasetSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
-                            <dataset-selectpicker
-                                v-if="$store.state.bioPortal.datasetMap"
-                                :datasets="$store.state.bioPortal.datasets"
-                            ></dataset-selectpicker>
-                        </div>
                         <span v-if="$store.state.selectedDataset">
                             {{ $store.state.selectedDataset.description }}
                         </span>
                     </div>
 
                     <div class="col-md-4 gene-page-header-body">
-                        <div
-                            id="phenotypeSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
-                            <phenotype-selectpicker
-                                v-if="$store.state.bioPortal.phenotypeMap"
-                                :phenotypes="$parent.datasetPhenotypes"
-                            ></phenotype-selectpicker>
-                        </div>
                         <span v-if="$store.state.selectedPhenotype">
                             {{ $store.state.selectedPhenotype.description }}
                         </span>

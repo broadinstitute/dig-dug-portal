@@ -1,5 +1,5 @@
 <template>
-    <filter-control
+    <filter-control-template
         class="filter-col-sm"
         :field="field"
         :type="Number"
@@ -10,15 +10,15 @@
         <slot>
             {{field}}
         </slot>
-    </filter-control>
+    </filter-control-template>
 </template>
 <script>
 import Vue from "vue";
-import FilterControl from "./FilterControl"
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate"
 export default Vue.component('filter-less-control', {
     props: ['field', 'color'],
     components: {
-        FilterControl,
+        FilterControlTemplate,
     }
 })
 </script>
