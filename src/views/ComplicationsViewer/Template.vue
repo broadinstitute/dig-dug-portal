@@ -107,6 +107,10 @@
                                         </div>
                                     </div>
                                 </div>
+                                <h4 class="card-title">
+                                    Genome-wide single-variant associations for
+                                    {{ $parent.complicationsViewerPhenotype2 }}
+                                </h4>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="card" style="width: 95%; border: 0">

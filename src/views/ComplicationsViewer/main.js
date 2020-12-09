@@ -50,10 +50,10 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
-        RawImage,
         CriterionFunctionGroup,
         CriterionListGroup,
-        FilterBasic
+        FilterBasic,
+        RawImage,
     },
 
     data() {
@@ -174,7 +174,6 @@ new Vue({
         complicationViewerPhenotypes() {
             let complicationPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold);
             let secondaryPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
-            let realSecondaryPhenotype = []
             if (secondaryPhenotype.length > 0) {
                 let complication = this.$store.state.bioPortal.complicationsMap[complicationPhenotype].phenotypes[secondaryPhenotype]
                 let x = secondaryPhenotype.concat(complication)
@@ -186,7 +185,15 @@ new Vue({
 
         },
         complicationsViewerPhenotype() {
-            return this.complicationViewerPhenotypes[0]
+            if (this.complicationViewerPhenotypes.length > 1) {
+                return this.complicationViewerPhenotypes[0]
+            }
+        },
+
+        complicationsViewerPhenotype2() {
+            if (this.complicationViewerPhenotypes.length > 1) {
+                return this.complicationViewerPhenotypes[1]
+            }
         },
         combined() {
             return Object.entries(this.geneFinderAssociationsMap).flatMap(geneFinderItem => geneFinderItem[1]);
