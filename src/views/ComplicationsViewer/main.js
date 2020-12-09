@@ -142,7 +142,7 @@ new Vue({
                 return `/api/raw/plot/phenotype/${phenotype}/qq.png`;
             }
         },
-  
+
 
         complicationPhenotypeOptions() {
             let x = this.$store.state.bioPortal.complications.filter(x => x.name != this.$store.state.phenotype);
@@ -165,8 +165,8 @@ new Vue({
             let complicationPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold);
             let secondaryPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
             if (secondaryPhenotype.length > 0) {
-                let complication = this.$store.state.bioPortal.complicationsMap[complicationPhenotype].phenotypes[secondaryPhenotype]
-                let x = secondaryPhenotype.concat(complication)
+                let complication = [this.$store.state.bioPortal.complicationsMap[complicationPhenotype].phenotypes[secondaryPhenotype]]
+                let x = complication.concat(secondaryPhenotype)
                 return x;
             }
             if (secondaryPhenotype.length == 0) {
