@@ -13,6 +13,7 @@
         "
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
+        @input-change="$emit('input-change', $event)"
         :color="color"
         :multiple="!!multiple"
         :inclusive="!!inclusive || !!multiple"

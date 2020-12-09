@@ -14,6 +14,7 @@
         }"
         :pillFormatter="filterDefinition => `effect size ${filterDefinition.threshold}`"
         :options="['positive', 'negative']"
+        @input-change="$emit('input-change', $event)"
         :multiple="false">
         <slot>
             Effect (+/-)

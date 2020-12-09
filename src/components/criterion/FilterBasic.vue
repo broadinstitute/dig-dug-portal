@@ -9,6 +9,7 @@
                 `${filterDefinition.field} = ${filterDefinition.threshold}`
         "
         :options="options"
+        @input-change="$emit('input-change', $event)"
         :color="color"
         :multiple="false"
         :inclusive="inclusive"
