@@ -80,8 +80,10 @@
                                 $parent.combined.length > 0"
                         v-for="pheno in $parent.complicationViewerPhenotypes"
                     >
+                        <h4
+                            class="card-title"
+                        >Genome-wide single-variant associations for {{ $store.state.bioPortal.phenotypeMap[pheno].description }}</h4>
                         <div class="row">
-                            <h4>Genome-wide single-variant associations for {{ $store.state.bioPortal.phenotypeMap[pheno].description }}</h4>
                             <div class="col-md-6">
                                 <div class="card" style="width: 95%; border: 0">
                                     <raw-img
