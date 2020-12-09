@@ -23,72 +23,6 @@
                 <div class="card-body">
                     <h4 class="card-title">Build Search Criteria</h4>
 
-                    <criterion-list-group
-                        v-model="$parent.searchCriteria"
-                        :header="'Search Criteria'"
-                    >
-                        <filter-basic-control
-                            ref="gene"
-                            :field="'gene'"
-                            placeholder="Select a gene ..."
-                        >
-                            <div class="label">Gene</div>
-                        </filter-basic-control>
-
-                        <b-col class="divider"></b-col>
-
-                        <filter-enumeration-control
-                            ref="mask"
-                            :field="'mask'"
-                            :multiple="true"
-                            :disableSort="true"
-                            placeholder="Select one or more masks ..."
-                            :options="$parent.masks.map((v) => v.value)"
-                            :labelFormatter="
-                                (v) =>
-                                    $parent.masks.find((o) => o.value === v)
-                                        .text
-                            "
-                            ><div class="label">
-                                Masks
-                            </div></filter-enumeration-control
-                        >
-                    </criterion-list-group>
-
-                    <div class="function">
-                        <!-- <b-progress
-                            max="4"
-                            height="3rem"
-                            variant="info"
-                            class="mt-2"
-                        >
-                            <b-progress-bar value="3"> </b-progress-bar>
-                            <div class="progress-bar-title">Something</div>
-                        </b-progress> -->
-                        <transition name="fade"
-                            ><b-alert
-                                show
-                                v-if="
-                                    $parent.selectedGene.length == 0 ||
-                                    $parent.selectedGene[0] === undefined
-                                "
-                                >Please select a gene.</b-alert
-                            >
-
-                            <b-alert
-                                show
-                                v-else-if="$parent.selectedMasks.length == 0"
-                                >Please select one or more masks.</b-alert
-                            ></transition
-                        >
-
-                        <b-button
-                            variant="primary"
-                            @click="$parent.searchVariants"
-                            :disabled="$parent.selectedMasks.length == 0"
-                            >Search Variants</b-button
-                        >
-                    </div>
                     <div class="accordion" role="tablist">
                         <b-card no-body class="mb-1">
                             <b-card-header
@@ -99,6 +33,101 @@
                                 <b-button
                                     block
                                     v-b-toggle.accordion-1
+                                    variant="outline-primary"
+                                    >Criteria</b-button
+                                >
+                            </b-card-header>
+                            <b-collapse
+                                id="accordion-1"
+                                visible
+                                accordion="my-accordion"
+                                role="tabpanel"
+                            >
+                                <b-card-body>
+                                    <criterion-list-group
+                                        v-model="$parent.searchCriteria"
+                                        :header="'Search Criteria'"
+                                    >
+                                        <filter-basic-control
+                                            ref="gene"
+                                            :field="'gene'"
+                                            placeholder="Select a gene ..."
+                                        >
+                                            <div class="label">Gene</div>
+                                        </filter-basic-control>
+
+                                        <b-col class="divider"></b-col>
+
+                                        <filter-enumeration-control
+                                            ref="mask"
+                                            :field="'mask'"
+                                            :multiple="true"
+                                            :disableSort="true"
+                                            placeholder="Select one or more masks ..."
+                                            :options="
+                                                $parent.masks.map(
+                                                    (v) => v.value
+                                                )
+                                            "
+                                            :labelFormatter="
+                                                (v) =>
+                                                    $parent.masks.find(
+                                                        (o) => o.value === v
+                                                    ).text
+                                            "
+                                            ><div class="label">
+                                                Masks
+                                            </div></filter-enumeration-control
+                                        >
+                                    </criterion-list-group>
+
+                                    <div class="function">
+                                        <transition name="fade"
+                                            ><b-alert
+                                                show
+                                                v-if="
+                                                    $parent.selectedGene
+                                                        .length == 0 ||
+                                                    $parent.selectedGene[0] ===
+                                                        undefined
+                                                "
+                                                >Please select a gene.</b-alert
+                                            >
+
+                                            <b-alert
+                                                show
+                                                v-else-if="
+                                                    $parent.selectedMasks
+                                                        .length == 0
+                                                "
+                                                >Please select one or more
+                                                masks.</b-alert
+                                            ></transition
+                                        >
+
+                                        <b-button
+                                            variant="primary"
+                                            @click="$parent.searchVariants"
+                                            :disabled="
+                                                $parent.selectedMasks.length ==
+                                                0
+                                            "
+                                            >Search Variants</b-button
+                                        >
+                                    </div>
+                                </b-card-body>
+                            </b-collapse>
+                        </b-card>
+
+                        <b-card no-body class="mb-1">
+                            <b-card-header
+                                header-tag="header"
+                                class="p-1"
+                                role="tab"
+                            >
+                                <b-button
+                                    block
+                                    v-b-toggle.accordion-2
                                     :variant="
                                         $parent.criteriaChanged &&
                                         $parent.tableData.length > 0
@@ -109,7 +138,7 @@
                                 >
                             </b-card-header>
                             <b-collapse
-                                id="accordion-1"
+                                id="accordion-2"
                                 v-model="$parent.showVariants"
                                 accordion="my-accordion"
                                 role="tabpanel"
@@ -405,7 +434,7 @@
                             >
                                 <b-button
                                     block
-                                    v-b-toggle.accordion-2
+                                    v-b-toggle.accordion-3
                                     :variant="
                                         ($parent.criteriaChanged &&
                                             $store.state.ldServer.covariances
@@ -420,7 +449,7 @@
                                 >
                             </b-card-header>
                             <b-collapse
-                                id="accordion-2"
+                                id="accordion-3"
                                 v-model="$parent.showCovariances"
                                 accordion="my-accordion"
                                 role="tabpanel"
