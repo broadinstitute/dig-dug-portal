@@ -73,41 +73,35 @@
                             :showPlot="true"
                             :showChiSquared="true"
                         ></gene-finder-table>
-                        <div
-                            v-if="$parent.complicationViewerPhenotypes.length > 0 &&
+                    </div>
+                    <div
+                        class="card-body"
+                        v-if="$parent.complicationViewerPhenotypes.length > 0 &&
                                 $parent.combined.length > 0"
-                        >
-                            <div class="card-body">
-                                <h4 class="card-title">
-                                    Genome-wide single-variant associations for
-                                    {{ $parent.complicationsViewerPhenotype }}
-                                </h4>
-                                <div
-                                    class="row"
-                                    v-for="pheno in $parent.complicationViewerPhenotypes"
-                                >
-                                    <div class="col-md-6">
-                                        <div class="card" style="width: 95%; border: 0">
-                                            <raw-img
-                                                id="manhattanPlot"
-                                                :src="`/api/raw/plot/phenotype/${pheno}/manhattan.png`"
-                                                alt="Manhattan Plot"
-                                                :documentation="'phenotype.associationplots.manhattan'"
-                                                :content-fill="{phenotype:$store.state.bioPortal.phenotypeMap[pheno].description}"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card" style="width: 95%; border: 0">
-                                            <raw-img
-                                                id="qqPlot"
-                                                :src="`/api/raw/plot/phenotype/${pheno}/qq.png`"
-                                                alt="QQ Plot"
-                                                :documentation="'phenotype.associationplots.qq'"
-                                                :content-fill="{phenotype:$store.state.bioPortal.phenotypeMap[pheno].description}"
-                                            />
-                                        </div>
-                                    </div>
+                        v-for="pheno in $parent.complicationViewerPhenotypes"
+                    >
+                        <div class="row">
+                            <h4>Genome-wide single-variant associations for {{ $store.state.bioPortal.phenotypeMap[pheno].description }}</h4>
+                            <div class="col-md-6">
+                                <div class="card" style="width: 95%; border: 0">
+                                    <raw-img
+                                        id="manhattanPlot"
+                                        :src="`/api/raw/plot/phenotype/${pheno}/manhattan.png`"
+                                        alt="Manhattan Plot"
+                                        :documentation="'phenotype.associationplots.manhattan'"
+                                        :content-fill="{phenotype:$store.state.bioPortal.phenotypeMap[pheno].description}"
+                                    />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card" style="width: 95%; border: 0">
+                                    <raw-img
+                                        id="qqPlot"
+                                        :src="`/api/raw/plot/phenotype/${pheno}/qq.png`"
+                                        alt="QQ Plot"
+                                        :documentation="'phenotype.associationplots.qq'"
+                                        :content-fill="{phenotype:$store.state.bioPortal.phenotypeMap[pheno].description}"
+                                    />
                                 </div>
                             </div>
                         </div>
