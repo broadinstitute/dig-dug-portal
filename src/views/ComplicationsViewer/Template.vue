@@ -27,7 +27,7 @@
                             :labelFormatter="
                                 (phenotype) =>
                                     !!$store.state.bioPortal.complicationsMap[phenotype]
-                                        ? $store.state.bioPortal.complicationsMap[phenotype].name
+                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description
                                         : phenotype"
                         >
                             <div>
