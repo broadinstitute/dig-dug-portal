@@ -44,7 +44,7 @@
                                 (phenotype) =>
                                     !!$store.state.bioPortal.complicationsMap[phenotype]
                                         ? $store.state.bioPortal.complicationsMap[phenotype].name
-                                        : phenotype"
+                                        : $store.state.bioPortal.phenotypeMap[phenotype].description"
                         >
                             <div>
                                 <strong>Complication Phenotypes</strong>
