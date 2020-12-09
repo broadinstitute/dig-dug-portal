@@ -14,13 +14,14 @@ import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypePicker from "@/components/PhenotypePicker.vue";
 import GeneFinderTable from "@/components/GeneFinderTable.vue";
-import FilterGroup from "@/components/Filter/FilterGroup.vue"
-import FilterListGroup from "@/components/Filter/FilterListGroup.vue"
-import FilterControl from "@/components/Filter/FilterControl.vue"
-import FilterPValue from "@/components/Filter/FilterPValue.vue"
-import FilterEnumeration from "@/components/Filter/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/Filter/FilterGreaterThan.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterBasic from "@/components/criterion/FilterBasic";
 import RawImage from "@/components/RawImage.vue";
+
 
 import Alert, {
     postAlert,
@@ -46,13 +47,13 @@ new Vue({
         Documentation,
         GeneFinderTable,
         UnauthorizedMessage,
-        FilterGroup,
-        FilterListGroup,
-        FilterControl,
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
         RawImage,
+        CriterionFunctionGroup,
+        CriterionListGroup,
+        FilterBasic
     },
 
     data() {
