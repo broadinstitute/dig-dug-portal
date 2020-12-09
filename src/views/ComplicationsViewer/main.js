@@ -218,11 +218,11 @@ new Vue({
         },
 
         documentationMap() {
-            let complication = this.complicationViewerPhenotypes[0];
-            let phenotype = this.complicationViewerPhenotypes[1];
+            let phenotype = this.complicationViewerPhenotypes[0];
+            let secondaryphenotype = this.complicationViewerPhenotypes[1];
             return {
                 phenotype: phenotype,
-                complication: complication
+                secondaryphenotype: secondaryphenotype
             };
         },
     },

@@ -6,7 +6,10 @@
                 <div class="card-body">
                     <h1 class="card-title">Complications Viewer</h1>
 
-                    <documentation style="margin-bottom: 30px" name="tools.complicationsviewer.subheader"></documentation>
+                    <documentation
+                        style="margin-bottom: 30px"
+                        name="tools.complicationsviewer.subheader"
+                    ></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
 
@@ -87,9 +90,7 @@
                                                 :src="$parent.manhattanPlot"
                                                 alt="Manhattan Plot"
                                                 :documentation="'phenotype.associationplots.manhattan'"
-                                                :content-fill="
-                                            $store.getters['documentationMap']
-                                        "
+                                                :content-fill="$parent.documentationMap"
                                             />
                                         </div>
                                     </div>
@@ -100,9 +101,7 @@
                                                 :src="$parent.qqPlot"
                                                 alt="QQ Plot"
                                                 :documentation="'phenotype.associationplots.qq'"
-                                                :content-fill="
-                                            $store.getters['documentationMap']
-                                        "
+                                                :content-fill="$parent.documentationMap"
                                             />
                                         </div>
                                     </div>
@@ -119,9 +118,7 @@
                                                 :src="$parent.manhattanPlot2"
                                                 alt="Manhattan Plot"
                                                 :documentation="'phenotype.associationplots.manhattan'"
-                                                :content-fill="
-                                            $store.getters['documentationMap']
-                                        "
+                                                :content-fill="$store.getters['documentationMap']"
                                             />
                                         </div>
                                     </div>
@@ -132,9 +129,7 @@
                                                 :src="$parent.qqPlot2"
                                                 alt="QQ Plot"
                                                 :documentation="'phenotype.associationplots.qq'"
-                                                :content-fill="
-                                            $store.getters['documentationMap']
-                                        "
+                                                :content-fill="$store.getters['documentationMap']"
                                             />
                                         </div>
                                     </div>
