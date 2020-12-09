@@ -268,27 +268,27 @@
                     </div>
                 </div>
             </div>
-            <div class="card mdkp-card">
-                <div class="card-body">
-                    <div v-if="$parent.accession">
-                        <h4 class="card-title">Swiss Prot Accesssion IDs</h4>
-                        <div
-                            v-for="row in $parent.accession"
-                            class="gene-with-signal none"
-                        >
-                            <a
-                                :href="`https://www.uniprot.org/uniprot/${row}`"
-                                >{{ row }}</a
-                            >
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.geneNames">
                         <h4 class="card-title">External resources</h4>
+                        <div
+                            v-if="$parent.accession.length > 0"
+                            class="gene-with-signal none"
+                        >
+                            <a
+                                :href="
+                                    $parent.externalResources['uniprot'].link +
+                                    $parent.accession[0]
+                                "
+                                target="_blank"
+                                :title="
+                                    $parent.externalResources['uniprot'].title
+                                "
+                                >UNIPROT</a
+                            >
+                        </div>
                         <div
                             v-for="gene in $parent.alternateNames"
                             v-if="gene.source != 'alias'"
@@ -296,22 +296,28 @@
                             :key="gene.name"
                         >
                             <a
-                                :href="
-                                    $parent.externalResources[gene.source] +
-                                    gene.name
-                                "
                                 v-if="gene.source != 'ucsc'"
+                                :href="
+                                    $parent.externalResources[gene.source]
+                                        .link + gene.name
+                                "
                                 target="_blank"
-                                >{{ gene.name }}</a
+                                :title="
+                                    $parent.externalResources[gene.source].title
+                                "
+                                >{{ gene.source.toUpperCase() }}</a
                             >
                             <a
+                                v-else
                                 :href="
-                                    $parent.externalResources[gene.source] +
-                                    $parent.symbolName
+                                    $parent.externalResources[gene.source]
+                                        .link + $parent.symbolName
                                 "
                                 target="_blank"
-                                v-else
-                                >{{ gene.name }}</a
+                                :title="
+                                    $parent.externalResources[gene.source].title
+                                "
+                                >{{ gene.source.toUpperCase() }}</a
                             >
                         </div>
                     </div>
