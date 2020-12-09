@@ -6,7 +6,7 @@
                 <div class="card-body">
                     <h1 class="card-title">Complications Viewer</h1>
 
-                    <documentation style="margin-bottom: 30px" name="tools.genefinder.subheader"></documentation>
+                    <documentation style="margin-bottom: 30px" name="tools.complicationsviewer.subheader"></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
 
