@@ -156,10 +156,6 @@ new Vue({
             let selectedComplication = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold)[0];
             if (!!selectedComplication) {
                 let phenotypes = Object.keys(this.$store.state.bioPortal.complicationsMap[selectedComplication].phenotypes);
-                // let x = []
-                // for (let i = 0; i < phenotypes.length; i++) {
-                //     x.push(this.$store.state.bioPortal.phenotypeMap[phenotypes[i]].description)
-                // }
                 return phenotypes;
             }
 
