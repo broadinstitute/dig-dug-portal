@@ -87,12 +87,15 @@ new Vue({
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let promises = updatedPhenotypes.map(phenotype => {
                 if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
-                    let alertId = postAlertNotice(`Loading ${phenotypeMap[phenotype].description} gene associations...`);
-                    return query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
-                        .then(bioIndexData => {
-                            closeAlert(alertId);
-                            Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
-                        })
+                    if (!!phenotypeMap[phenotype]) {
+                        let alertId = postAlertNotice(`Loading ${phenotypeMap[phenotype].description} gene associations...`);
+                        return query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
+                            .then(bioIndexData => {
+                                closeAlert(alertId);
+                                Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
+                            })
+                    }
+
                 } else {
                     return Promise.resolve();
                 }
