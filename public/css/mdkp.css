@@ -1648,11 +1648,8 @@ a.to-previous-page:hover {
 #gait .form-group {
     margin-bottom: auto;
 }
-#gait .progress {
-    position: relative;
-}
-#gait .progress-bar {
-    background-color: #d1ecf1;
+#gait .alert-info {
+    padding: 0.1rem 1.25rem;
 }
 #gait .progress-bar-title {
     position: absolute;

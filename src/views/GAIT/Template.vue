@@ -71,6 +71,28 @@
                                 role="tabpanel"
                             >
                                 <b-card-body>
+                                    <transition name="fade"
+                                        ><b-alert
+                                            show
+                                            v-if="
+                                                $parent.selectedGene.length ==
+                                                    0 ||
+                                                $parent.selectedGene[0] ===
+                                                    undefined
+                                            "
+                                            >Please select a gene.</b-alert
+                                        >
+
+                                        <b-alert
+                                            show
+                                            v-else-if="
+                                                $parent.selectedMasks.length ==
+                                                0
+                                            "
+                                            >Please select one or more
+                                            masks.</b-alert
+                                        ></transition
+                                    >
                                     <criterion-list-group
                                         v-model="$parent.searchCriteria"
                                         :header="'Search Criteria'"
@@ -109,29 +131,6 @@
                                     </criterion-list-group>
 
                                     <div class="function">
-                                        <transition name="fade"
-                                            ><b-alert
-                                                show
-                                                v-if="
-                                                    $parent.selectedGene
-                                                        .length == 0 ||
-                                                    $parent.selectedGene[0] ===
-                                                        undefined
-                                                "
-                                                >Please select a gene.</b-alert
-                                            >
-
-                                            <b-alert
-                                                show
-                                                v-else-if="
-                                                    $parent.selectedMasks
-                                                        .length == 0
-                                                "
-                                                >Please select one or more
-                                                masks.</b-alert
-                                            ></transition
-                                        >
-
                                         <b-button
                                             variant="primary"
                                             @click="$parent.searchVariants"
@@ -254,6 +253,37 @@
                                             again to update variant
                                             list.</b-alert
                                         >
+                                        <transition name="fade">
+                                            <b-alert
+                                                show
+                                                v-if="
+                                                    $parent.selectedDataset
+                                                        .length == 0
+                                                "
+                                                >Please select a
+                                                dataset.</b-alert
+                                            >
+                                            <b-alert
+                                                show
+                                                v-else-if="
+                                                    $parent.selectedPhenotypes
+                                                        .length == 0
+                                                "
+                                                >Please select one or more
+                                                phenotypes.</b-alert
+                                            >
+                                            <b-alert
+                                                show
+                                                v-else-if="
+                                                    $parent.selectedTests
+                                                        .length == 0 ||
+                                                    $parent.selectedTests[0] ===
+                                                        undefined
+                                                "
+                                                >Please select one or more tests
+                                                to run.</b-alert
+                                            ></transition
+                                        >
                                         <b-card
                                             header="Association statistics for selected variants"
                                             class="text-center filter-tests"
@@ -363,43 +393,6 @@
                                                     $parent.tableData.length > 0
                                                 "
                                             >
-                                                <transition name="fade">
-                                                    <b-alert
-                                                        show
-                                                        v-if="
-                                                            $parent
-                                                                .selectedDataset
-                                                                .length == 0
-                                                        "
-                                                        >Please select a
-                                                        dataset.</b-alert
-                                                    >
-                                                    <b-alert
-                                                        show
-                                                        v-else-if="
-                                                            $parent
-                                                                .selectedPhenotypes
-                                                                .length == 0
-                                                        "
-                                                        >Please select one or
-                                                        more
-                                                        phenotypes.</b-alert
-                                                    >
-                                                    <b-alert
-                                                        show
-                                                        v-else-if="
-                                                            $parent
-                                                                .selectedTests
-                                                                .length == 0 ||
-                                                            $parent
-                                                                .selectedTests[0] ===
-                                                                undefined
-                                                        "
-                                                        >Please select one or
-                                                        more tests to
-                                                        run.</b-alert
-                                                    ></transition
-                                                >
                                                 <b-button
                                                     :disabled="
                                                         $parent.selectedVariants
