@@ -258,6 +258,12 @@
                                             ></b-icon>
                                             There is no variant found with
                                             selected criteria.
+                                            <a
+                                                v-b-toggle
+                                                href="#accordion-1"
+                                                @click.prevent
+                                                >Try another gene?</a
+                                            >
                                         </b-alert>
                                         <b-alert
                                             show
