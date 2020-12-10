@@ -21,7 +21,7 @@
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             class="filter-col-lg"
-                            :field="'complication'"
+                            :field="'condition'"
                             :options="$parent.complicationPhenotypeOptions.map((phenotype) => phenotype.name)"
                             :multiple="false"
                             :labelFormatter="
@@ -31,7 +31,7 @@
                                         : phenotype"
                         >
                             <div>
-                                <strong>Complication</strong>
+                                <strong>Condition</strong>
                             </div>
                         </filter-enumeration-control>
                         <filter-enumeration-control

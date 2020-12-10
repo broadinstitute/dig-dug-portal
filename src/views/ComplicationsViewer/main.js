@@ -120,7 +120,7 @@ new Vue({
         },
         phenotypes() {
             let selectedPhenotypesList = []
-            selectedPhenotypesList = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold);
+            selectedPhenotypesList = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'condition').map(criterion => criterion.threshold);
             return selectedPhenotypesList;
         },
 
@@ -153,7 +153,7 @@ new Vue({
         //then get the phenotypes for the selected complication.
         //display all the keys
         complicationSecondaryPhenotypeOptions() {
-            let selectedComplication = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold)[0];
+            let selectedComplication = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'condition').map(criterion => criterion.threshold)[0];
             if (!!selectedComplication) {
                 let phenotypes = Object.keys(this.$store.state.bioPortal.complicationsMap[selectedComplication].phenotypes);
                 return phenotypes;
@@ -162,7 +162,7 @@ new Vue({
         },
 
         complicationViewerPhenotypes() {
-            let complicationPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'complication').map(criterion => criterion.threshold);
+            let complicationPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'condition').map(criterion => criterion.threshold);
             let secondaryPhenotype = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
             if (secondaryPhenotype.length > 0) {
                 let complication = [this.$store.state.bioPortal.complicationsMap[complicationPhenotype].phenotypes[secondaryPhenotype]]
