@@ -121,7 +121,6 @@ new Vue({
         this.$store.dispatch("ldServer/getPhenotypes");
     },
     computed: {
-
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
@@ -253,9 +252,13 @@ new Vue({
                 console.log("not equal");
             }
         },
-        selectedTests(newData, oldData) {
+        selectedMethods(newData, oldData) {
+            console.log("method changed");
+            console.log("new", newData);
+            console.log("old", oldData);
             if (!isEqual(newData, oldData)) {
                 this.testChanged = true;
+                console.log("not equal");
             }
         },
         selectedDataset(newDataset, oldDataset) {
