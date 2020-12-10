@@ -251,6 +251,18 @@
                                             show
                                             variant="warning"
                                             v-if="
+                                                $parent.tableData.length === 0
+                                            "
+                                            ><b-icon
+                                                icon="exclamation-triangle"
+                                            ></b-icon>
+                                            There is no variant found with
+                                            selected criteria.
+                                        </b-alert>
+                                        <b-alert
+                                            show
+                                            variant="warning"
+                                            v-if="
                                                 $parent.tableData.length > 0 &&
                                                 $parent.criteriaChanged
                                             "
