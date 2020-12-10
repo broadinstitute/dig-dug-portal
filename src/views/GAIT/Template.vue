@@ -245,11 +245,11 @@
                                             ><b-icon
                                                 icon="exclamation-triangle"
                                             ></b-icon>
-                                            Search criteria changed. Click
+                                            Search criteria changed. Run
                                             <b-button
                                                 variant="outline-primary"
                                                 size="sm"
-                                                disabled
+                                                @click="$parent.searchVariants"
                                                 >Search Variants</b-button
                                             >
                                             again to update variant
@@ -565,12 +565,13 @@
                                                     ><b-icon
                                                         icon="exclamation-triangle"
                                                     ></b-icon>
-                                                    Search criteria changed.
-                                                    Click
+                                                    Search criteria changed. Run
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        disabled
+                                                        @click="
+                                                            $parent.searchVariants
+                                                        "
                                                         >Search
                                                         Variants</b-button
                                                     >
@@ -587,10 +588,13 @@
                                                         icon="exclamation-triangle"
                                                     ></b-icon>
                                                     Test criteria changed. Click
+                                                    on
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        disabled
+                                                        @click="
+                                                            $parent.searchCovariances
+                                                        "
                                                         >Run Analysis</b-button
                                                     >
                                                     again to update the
