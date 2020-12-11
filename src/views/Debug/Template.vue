@@ -33,10 +33,7 @@
                     </div>
 
                     <div class="col-md-6 gene-page-header-body">
-                        <div
-                            id="varia ntSearchHolder"
-                            class="gene-page-header-search-holder hidden"
-                        >
+                        <div id="variantSearchHolder" class="gene-page-header-search-holder hidden">
                             <gene-selectpicker
                                 @onGeneChange="
                                     $store.dispatch('queryGeneName', $event)
