@@ -270,14 +270,17 @@ new Vue({
             },
             deep: true
         },
-        selectedMethods(newData, oldData) {
-            // console.log("method changed");
-            // console.log("new", newData);
-            // console.log("old", oldData);
-            if (!isEqual(newData, oldData)) {
-                this.testChanged = true;
-                // console.log("not equal");
-            }
+        selectedMethods: {
+            handler(newData, oldData) {
+                // console.log("method changed");
+                // console.log("new", newData);
+                // console.log("old", oldData);
+                if (!isEqual(newData, oldData)) {
+                    this.testChanged = true;
+                    // console.log("not equal");
+                }
+            },
+            deep: true
         },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
