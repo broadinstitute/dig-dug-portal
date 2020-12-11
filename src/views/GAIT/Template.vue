@@ -138,9 +138,7 @@
                                                         (o) => o.value === v
                                                     ).text
                                             "
-                                            ><div class="label">
-                                                Masks
-                                            </div>
+                                            ><div class="label">Masks</div>
                                         </filter-enumeration-control>
                                     </criterion-list-group>
 
@@ -728,14 +726,16 @@
                                                                         .dichotomous
                                                                 "
                                                                 :class="`effect ${
-                                                                    data.value <
-                                                                    1
+                                                                    Math.exp(
+                                                                        data.value
+                                                                    ) < 1
                                                                         ? 'negative'
                                                                         : 'positive'
                                                                 }`"
                                                                 >{{
-                                                                    data.value <
-                                                                    1
+                                                                    Math.exp(
+                                                                        data.value
+                                                                    ) < 1
                                                                         ? "&#9660;"
                                                                         : "&#9650;"
                                                                 }}</span
