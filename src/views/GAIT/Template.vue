@@ -147,8 +147,10 @@
                                             variant="primary"
                                             @click="$parent.searchVariants"
                                             :disabled="
+                                                $parent.selectedGene.length ==
+                                                    0 ||
                                                 $parent.selectedMasks.length ==
-                                                0
+                                                    0
                                             "
                                             >Search Variants</b-button
                                         >
@@ -277,9 +279,10 @@
                                             <b-button
                                                 variant="outline-primary"
                                                 size="sm"
-                                                @click="$parent.searchVariants"
+                                                v-b-toggle.accordion-1
                                                 >Search Variants</b-button
                                             >
+
                                             again to update variant
                                             list.</b-alert
                                         >
@@ -597,15 +600,14 @@
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        @click="
-                                                            $parent.searchVariants
-                                                        "
+                                                        v-b-toggle.accordion-1
                                                         >Search
                                                         Variants</b-button
                                                     >
                                                     again to update variant
                                                     list.</b-alert
                                                 >
+
                                                 <b-alert
                                                     show
                                                     variant="warning"
@@ -620,9 +622,7 @@
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        @click="
-                                                            $parent.searchCovariances
-                                                        "
+                                                        v-b-toggle.accordion-2
                                                         >Run Analysis</b-button
                                                     >
                                                     again to update the
