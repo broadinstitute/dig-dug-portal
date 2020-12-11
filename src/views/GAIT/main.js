@@ -59,6 +59,8 @@ new Vue({
             showCovariances: false,
             loadingVariants: false,
             loadingCovariances: false,
+            criteriaChanged: false,
+            testChanged: false,
             perPage: 10,
             currentPage: 1,
             baseFields: [
@@ -102,24 +104,14 @@ new Vue({
             ],
             fields: [],
             optionalFields: [],
-            searchCriteria: [
-                {
-                    field: "gene",
-                    threshold: keyParams.gene,
-                },
-                {
-                    field: "dataset",
-                    threshold: keyParams.dataset
-                },
-                {
-                    field: "phenotype",
-                    threshold: keyParams.phenotype
-                },
-                {
-                    field: "masks",
-                    threshold: keyParams.masks
-                }
-            ]
+            searchCriteria: keyParams.gene
+            ? [
+                  {
+                      field: "gene",
+                      threshold: keyParams.gene
+                  }
+              ]
+            : []
         };
     },
     created() {
@@ -129,7 +121,6 @@ new Vue({
         this.$store.dispatch("ldServer/getPhenotypes");
     },
     computed: {
-
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
@@ -147,7 +138,7 @@ new Vue({
             return this.tableData.filter(v => v.selected).map(v => v.varId);
         },
         selectedPhenotypes() {
-            return this.searchCriteria
+            return this.selectedMethods
                 .filter(v => {
                     return v.field === "phenotype";
                 })
@@ -168,7 +159,7 @@ new Vue({
                 .map(v => v.threshold);
         },
         selectedDataset() {
-            return this.searchCriteria
+            return this.selectedMethods
                 .filter(v => {
                     return v.field === "dataset";
                 })
@@ -202,6 +193,8 @@ new Vue({
             this.$store.dispatch("gene/query", {
                 q: this.selectedGene
             });
+            this.criteriaChanged = false;
+            this.$store.commit("ldServer/setCovariances", []);
         },
         searchCovariances() {
             this.showCovariances = true;
@@ -215,6 +208,7 @@ new Vue({
                         ? this.selectedTests
                         : ["burden"]
             });
+            this.testChanged = false;
         },
         updateFields() {
             let addFields = [];
@@ -241,6 +235,7 @@ new Vue({
                     zscore: test.stat,
                     pvalue: test.pvalue,
                     effect: test.effect,
+                    se: test.se,
                     samples
                 });
             });
@@ -248,10 +243,31 @@ new Vue({
         }
     },
     watch: {
+        // searchCriteria: {
+        //     handler(newData, oldData) {
+        //         console.log("search changed");
+        //         console.log("new", newData);
+        //         console.log("old", oldData);
+        //         if (!isEqual(newData, oldData)) {
+        //             this.criteriaChanged = true;
+        //             console.log("not equal");
+        //         }
+        //     },
+        //     deep: true,
+        // },
+        // selectedMethods(newData, oldData) {
+        //     console.log("method changed");
+        //     console.log("new", newData);
+        //     console.log("old", oldData);
+        //     if (!isEqual(newData, oldData)) {
+        //         this.testChanged = true;
+        //         console.log("not equal");
+        //     }
+        // },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
                 console.log("change");
-                this.searchCriteria = this.searchCriteria.filter(v => {
+                this.selectedMethods = this.selectedMethods.filter(v => {
                     return v.field !== "phenotype";
                 });
                 //TODO: clear pill when clear phenotype
