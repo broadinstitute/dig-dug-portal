@@ -107,13 +107,13 @@ new Vue({
             fields: [],
             optionalFields: [],
             searchCriteria: keyParams.gene
-            ? [
-                  {
-                      field: "gene",
-                      threshold: keyParams.gene
-                  }
-              ]
-            : []
+                ? [
+                      {
+                          field: "gene",
+                          threshold: keyParams.gene
+                      }
+                  ]
+                : []
         };
     },
     created() {
@@ -251,34 +251,33 @@ new Vue({
         }
     },
     watch: {
-        // searchCriteria: {
-        //     handler(newData, oldData) {
-        //         console.log("search changed");
-        //         console.log("new", newData);
-        //         console.log("old", oldData);
-        //         if (!isEqual(newData, oldData)) {
-        //             this.criteriaChanged = true;
-        //             console.log("not equal");
-        //         }
-        //     },
-        //     deep: true,
-        // },
-        // selectedMethods(newData, oldData) {
-        //     console.log("method changed");
-        //     console.log("new", newData);
-        //     console.log("old", oldData);
-        //     if (!isEqual(newData, oldData)) {
-        //         this.testChanged = true;
-        //         console.log("not equal");
-        //     }
-        // },
+        searchCriteria: {
+            handler(newData, oldData) {
+                // console.log("search changed");
+                // console.log("new", newData);
+                // console.log("old", oldData);
+                if (!isEqual(newData, oldData)) {
+                    this.criteriaChanged = true;
+                    //console.log("not equal");
+                }
+            },
+            deep: true
+        },
+        selectedMethods(newData, oldData) {
+            // console.log("method changed");
+            // console.log("new", newData);
+            // console.log("old", oldData);
+            if (!isEqual(newData, oldData)) {
+                this.testChanged = true;
+                // console.log("not equal");
+            }
+        },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
                 console.log("change");
                 this.selectedMethods = this.selectedMethods.filter(v => {
                     return v.field !== "phenotype";
                 });
-                //TODO: clear pill when clear phenotype
             }
         },
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
