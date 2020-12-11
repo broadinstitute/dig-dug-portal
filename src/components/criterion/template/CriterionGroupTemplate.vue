@@ -123,9 +123,6 @@ export default Vue.component("criterion-group-template", {
             makePredicate: this.predicateMaker
         };
     },
-    mounted() {
-        console.log(this.criterion)
-    },
     computed: {
         criterion() {
             if (this.filterType === 'function') {
