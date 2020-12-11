@@ -128,8 +128,12 @@
                                             "
                                             ><div class="label">
                                                 Masks
-                                            </div></filter-enumeration-control
-                                        >
+                                            </div>
+                                        </filter-enumeration-control>
+                                        <template slot=filtered slot-scope="{ filter }">
+                                            {{$parent.testChanged}}
+                                            {{$parent.searchCriteria}}
+                                        </template>
                                     </criterion-list-group>
 
                                     <div class="function">

@@ -105,13 +105,13 @@ new Vue({
             fields: [],
             optionalFields: [],
             searchCriteria: keyParams.gene
-                ? [
-                      {
-                          field: "gene",
-                          threshold: keyParams.gene
-                      }
-                  ]
-                : []
+            ? [
+                  {
+                      field: "gene",
+                      threshold: keyParams.gene
+                  }
+              ]
+            : []
         };
     },
     created() {
@@ -243,14 +243,17 @@ new Vue({
         }
     },
     watch: {
-        searchCriteria(newData, oldData) {
-            console.log("search changed");
-            console.log("new", newData);
-            console.log("old", oldData);
-            if (!isEqual(newData, oldData)) {
-                this.criteriaChanged = true;
-                console.log("not equal");
-            }
+        searchCriteria: {
+            handler(newData, oldData) {
+                console.log("search changed");
+                console.log("new", newData);
+                console.log("old", oldData);
+                if (!isEqual(newData, oldData)) {
+                    this.criteriaChanged = true;
+                    console.log("not equal");
+                }
+            },
+            deep: true,
         },
         selectedMethods(newData, oldData) {
             console.log("method changed");
