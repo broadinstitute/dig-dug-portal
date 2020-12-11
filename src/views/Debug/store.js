@@ -20,7 +20,7 @@ export default new Vuex.Store({
         geneAssociations52k: bioIndex("gene-associations-52k"),
     },
     state: {
-        geneName: keyParams.gene,
+        geneName: keyParams.gene || "SLC30A8",
         phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
         phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
         effectorGeneData: [],
@@ -74,7 +74,7 @@ export default new Vuex.Store({
                 }
             }
         },
-        
+
     },
 
     actions: {
