@@ -130,10 +130,17 @@ new Vue({
             return this.fields.filter(field => !!field.visible);
         },
         tableData() {
-            return this.$store.state.variants.map(v => ({
-                selected: true, //add selected column for manual selection
-                ...v
-            }));
+            if (
+                this.$store.state.variants &&
+                this.$store.state.variants.length
+            ) {
+                return this.$store.state.variants.map(v => ({
+                    selected: true, //add selected column for manual selection
+                    ...v
+                }));
+            } else {
+                return [];
+            }
         },
         selectedVariants() {
             //get only the varIDs for selected rows
@@ -289,7 +296,12 @@ new Vue({
         "$store.state.variants": function() {
             console.log("change1");
             this.loadingVariants = false;
-            this.updateFields();
+            if (
+                this.$store.state.variants &&
+                this.$store.state.variants.length
+            ) {
+                this.updateFields();
+            }
         },
         "$store.state.ldServer.covariances": function() {
             console.log("change2");
