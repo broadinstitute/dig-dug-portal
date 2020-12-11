@@ -110,7 +110,7 @@ export default Vue.component("criterion-group-template", {
             // the filter on the end prevents malformed initial values from being used in the component
             filterList: typeof this.value === 'object' && !!this.value.length && this.value.length > 0 ? this.value : [],
             filterFunction: !!this.value && typeof this.value === 'function' ? this.value : id => true,
-            criterion: !!this.value ? this.value : this.type === 'function' ? id => true : [],
+            // criterion: !!this.value ? this.value : this.filterType === 'function' ? id => true : [],
 
             // Vue doesn't identify anonymous functions of the same form with one another,
             // so we are turning these two props into data to prevent infinite loops that result
@@ -123,9 +123,22 @@ export default Vue.component("criterion-group-template", {
             makePredicate: this.predicateMaker
         };
     },
-
+    computed: {
+        criterion() {
+            if (this.filterType === 'function') {
+               return this.filterFunction;
+            } else if (this.filterType === 'list') {
+                return this.filterList;
+            }
+        }
+    },
     methods: {
         filterControlChange(threshold, filterDefinition) {
+            // this is a workaround for a limitation Vue has when mutating arrays and objects that prevents watchers from detecting value changes
+            // (they can detect that an update has occured, yet do not return old values unless we reinitialize the object/array entirely, against a new reference)
+            // https://github.com/vuejs/vue/issues/2164
+            let copiedArray = cloneDeep(this.filterList)
+
             if (
                 threshold !== null &&
                 !this.filterList
@@ -133,7 +146,7 @@ export default Vue.component("criterion-group-template", {
                     .includes(filterDefinition.field)
             ) {
 
-                this.filterList.push({
+                this.filterList = copiedArray.concat({
                     threshold,
                     ...filterDefinition,
                 });
@@ -150,7 +163,7 @@ export default Vue.component("criterion-group-template", {
                             .includes(threshold)
                     ) {
 
-                        this.filterList.push({
+                        this.filterList = copiedArray.concat({
                             threshold,
                             ...filterDefinition,
                         });
@@ -160,7 +173,7 @@ export default Vue.component("criterion-group-template", {
                     // TODO: would be faster if we maintain a normalized version of filterList against the filter ID, refactor towards this for performance
                 } else if (!filterDefinition.multiple) {
 
-                    this.filterList = this.filterList.map(filter => {
+                    this.filterList = copiedArray.map(filter => {
                         if (filter.field === filterDefinition.field) {
                             const tempFilter = filter;
                             tempFilter.threshold = threshold;
@@ -189,6 +202,8 @@ export default Vue.component("criterion-group-template", {
     watch: {
         value: {
             handler: function(newCriterionValue, oldCriterionValue) {
+                // Is this resulting in feedback?
+                console.log('value in criteriongrouptemplate', 'old', oldCriterionValue, 'new', newCriterionValue)
                 if (!_.isEqual(newCriterionValue, oldCriterionValue)) {
                     if (this.filterType === 'function') {
                         this.filterFunction = newCriterionValue;
@@ -205,17 +220,8 @@ export default Vue.component("criterion-group-template", {
                 if (newFilterList.length > 0) {
                     const predicates = newFilterList.map(predicateSpec => this.makePredicate(predicateSpec, { strictCase: this.strictCase,notStrictMatch: this.looseMatch }));
                     this.filterFunction = this.makeFilter(predicates, !!this.inclusive);
-                    if (this.filterType === 'function') {
-                        this.criterion = this.filterFunction;
-                    } else if (this.filterType === 'list') {
-                        this.criterion = this.filterList;
-                    }
                 } else {
-                    if (this.filterType === 'function') {
-                        this.criterion = function (id) { return true; };
-                    } else if (this.filterType === 'list') {
-                        this.criterion = [];
-                    }
+                    this.filterFunction = function (id) { return true; };
                 }
             },
             deep: true,

@@ -21,8 +21,10 @@ export default {
             host,
             diseaseGroups: [],
             phenotypes: [],
+            complications: [],
             datasets: [],
             phenotypeMap: {},
+            complicationsMap: {},
             datasetMap: {},
             documentation: {},
             user: "",
@@ -44,6 +46,15 @@ export default {
                     state.phenotypes[i];
             }
         },
+        setComplications(state, data) {
+            state.complications = data;
+            state.complicationsMap = {};
+            // create a map of the phenotypes by name for fast lookup
+            for (let i in state.complications) {
+                state.complicationsMap[state.complications[i].name] =
+                    state.complications[i];
+            }
+        },
         setDatasets(state, data) {
             state.datasets = data;
             state.datasetMap = {};
@@ -61,7 +72,8 @@ export default {
         },
         setLinks(state, data) {
             state.links = data;
-        }
+        },
+
     },
 
     getters: {
@@ -108,6 +120,20 @@ export default {
 
             // set the list of phenotypes
             commit("setPhenotypes", json.data);
+        },
+
+        // fetch all the complicaitons for given disease group
+        async getComplications({ state, commit }) {
+            let qs = queryString.stringify(
+                { q: state.host.subDomain },
+                { skipNull: true }
+            );
+            let json = await fetch(
+                `${BIO_INDEX_HOST}/api/portal/complications`
+            ).then(resp => resp.json());
+
+            // set the list of phenotypes
+            commit("setComplications", json.data);
         },
 
         // fetch all datasets for this portal

@@ -140,8 +140,8 @@
                                             "
                                             ><div class="label">
                                                 Masks
-                                            </div></filter-enumeration-control
-                                        >
+                                            </div>
+                                        </filter-enumeration-control>
                                     </criterion-list-group>
 
                                     <div class="function">
