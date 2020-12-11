@@ -450,10 +450,10 @@ export default Vue.component("test", {
     background-color: #c39bd3;
 }
 #commonVariation .variationPotential {
-    background-color: #e6c7f3;
+    background-color: #deb3f1;
 }
 #commonVariation .variationWeak {
-    background-color: #deb3f1;
+    background-color: #e6c7f3;
 }
 
 #commonVariation .variationNoEvidence {
@@ -472,12 +472,13 @@ export default Vue.component("test", {
 #rareVariation .variationPossible {
     background-color: #f6e5a0;
 }
-#rareVariation .variationWeak {
+#rareVariation .variationPotential {
     background-color: #f3e3a4;
 }
-#rareVariation .variationInGWAS {
+#rareVariation .variationWeak {
     background-color: #f3e9c5;
 }
+
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
 }
@@ -493,12 +494,13 @@ export default Vue.component("test", {
 #combinedVariation .variationPossible {
     background-color: rgb(69, 192, 182);
 }
-#combinedVariation .variationWeak {
+#combinedVariation .variationPotential {
     background-color: rgb(78, 209, 198);
 }
-#combinedVariation .variationInGWAS {
+#combinedVariation .variationWeak {
     background-color: rgb(120, 228, 219);
 }
+
 #combinedVariation .variationNoEvidence {
     background-color: rgb(168, 240, 234);
 }
