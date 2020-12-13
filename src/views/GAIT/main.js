@@ -10,6 +10,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterBasic from "@/components/criterion/FilterBasic";
+import ForestPlotSimple from "@/components/ForestPlotSimple";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
@@ -29,7 +30,8 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
-        FilterBasic
+        FilterBasic,
+        ForestPlotSimple
     },
     render(createElement, context) {
         return createElement(Template);
