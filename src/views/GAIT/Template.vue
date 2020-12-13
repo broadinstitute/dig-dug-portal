@@ -695,8 +695,8 @@
                                                         >
                                                             {{
                                                                 data.detailsShowing
-                                                                    ? "&uArr; Hide"
-                                                                    : "&dArr; Show"
+                                                                    ? "&uArr;"
+                                                                    : "&dArr;"
                                                             }}
                                                             Plot
                                                         </b-button>
@@ -819,9 +819,6 @@
                                                         #row-details="row"
                                                     >
                                                         <forest-plot-simple
-                                                            :pvalue="
-                                                                row.item.pvalue
-                                                            "
                                                             :se="row.item.se"
                                                             :effect="
                                                                 row.item.effect
