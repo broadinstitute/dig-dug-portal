@@ -685,6 +685,21 @@
                                                                 data.value
                                                             )
                                                         }}
+                                                        <b-button
+                                                            size="sm"
+                                                            variant="outline-primary"
+                                                            @click="
+                                                                data.toggleDetails
+                                                            "
+                                                            class="mr-2 btn-mini"
+                                                        >
+                                                            {{
+                                                                data.detailsShowing
+                                                                    ? "&uArr; Hide"
+                                                                    : "&dArr; Show"
+                                                            }}
+                                                            Plot
+                                                        </b-button>
                                                     </template>
 
                                                     <template #head(pvalue)>
@@ -798,6 +813,26 @@
                                                                 data.value
                                                             )
                                                         }}
+                                                    </template>
+
+                                                    <template
+                                                        #row-details="row"
+                                                    >
+                                                        <forest-plot-simple
+                                                            :pvalue="
+                                                                row.item.pvalue
+                                                            "
+                                                            :se="row.item.se"
+                                                            :effect="
+                                                                row.item.effect
+                                                            "
+                                                            :dichotomous="
+                                                                !!$parent
+                                                                    .phenotypeMap[
+                                                                    p.phenotype
+                                                                ].dichotomous
+                                                            "
+                                                        ></forest-plot-simple>
                                                     </template>
                                                 </b-table>
                                             </template>

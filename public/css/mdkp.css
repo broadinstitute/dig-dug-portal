@@ -1546,7 +1546,7 @@ a.to-previous-page:hover {
     background-color: #28a745 !important;
 }
 .filter-pill-secondaryPhenotype {
-    background-color:  #007bff !important;
+    background-color: #007bff !important;
 }
 .filter-pill-primaryphenotype {
     background-color: #28a745 !important;
@@ -1657,19 +1657,16 @@ a.to-previous-page:hover {
 #gait .alert-info {
     padding: 0.1rem 1.25rem;
 }
-#gait .progress-bar-title {
-    position: absolute;
-    text-align: center;
-    line-height: 3rem; /* line-height should be equal to bar height */
-    overflow: hidden;
-    color: #0c5460;
-    font-size: 1rem;
-    right: 0;
-    left: 0;
-    top: 0;
+#gait .b-table-details {
+    background-color: #99ddfa75;
 }
 #gait .variants {
     margin-top: 2rem;
+}
+#gait .btn-mini {
+    padding: 0.1rem 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1.25;
 }
 .fade-enter-active,
 .fade-leave-active {
