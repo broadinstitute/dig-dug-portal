@@ -695,8 +695,8 @@
                                                         >
                                                             {{
                                                                 data.detailsShowing
-                                                                    ? "&uArr;"
-                                                                    : "&dArr;"
+                                                                    ? "Hide"
+                                                                    : "Show"
                                                             }}
                                                             Plot
                                                         </b-button>

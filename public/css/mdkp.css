@@ -1658,7 +1658,10 @@ a.to-previous-page:hover {
     padding: 0.1rem 1.25rem;
 }
 #gait .b-table-details {
-    background-color: #99ddfa75;
+    background-color: unset;
+}
+#gait .b-table-details td {
+    padding: 0;
 }
 #gait .variants {
     margin-top: 2rem;
@@ -1668,6 +1671,30 @@ a.to-previous-page:hover {
     font-size: 0.75rem;
     line-height: 1.25;
 }
+#gait .forest-plot-simple {
+    position: relative;
+    padding-top: 10px;
+    overflow-x: hidden;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    line-height: 2rem;
+    border-left: 4px solid #ddd;
+    color: #aaa;
+    margin-left: 15px;
+}
+#gait .forest-plot-html-row {
+    margin-top: 10px auto;
+}
+#gait .forest-plot-html-row:hover {
+    background-color: unset;
+}
+#gait .beta-box {
+    background-color: #55aaee;
+}
+#gait .plot {
+    overflow: hidden;
+}
+
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 1s;
