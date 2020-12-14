@@ -674,18 +674,21 @@
                                                         </b-th>
                                                     </template>
 
-                                                    <template #head(zscore)>
-                                                        Z-Score
-                                                    </template>
                                                     <template
-                                                        #cell(zscore)="data"
+                                                        #cell(test)="data"
                                                     >
                                                         {{
-                                                            $parent.zScoreFormatter(
-                                                                data.value
-                                                            )
+                                                            $parent.testMethods.find(
+                                                                (t) =>
+                                                                    t.value ===
+                                                                    data.value
+                                                            ).text
                                                         }}
                                                         <b-button
+                                                            v-if="
+                                                                data.value ==
+                                                                'burden'
+                                                            "
                                                             size="sm"
                                                             variant="outline-primary"
                                                             @click="
@@ -700,6 +703,19 @@
                                                             }}
                                                             Plot
                                                         </b-button>
+                                                    </template>
+
+                                                    <template #head(zscore)>
+                                                        Z-Score
+                                                    </template>
+                                                    <template
+                                                        #cell(zscore)="data"
+                                                    >
+                                                        {{
+                                                            $parent.zScoreFormatter(
+                                                                data.value
+                                                            )
+                                                        }}
                                                     </template>
 
                                                     <template #head(pvalue)>

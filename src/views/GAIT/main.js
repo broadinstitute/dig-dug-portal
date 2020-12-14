@@ -240,8 +240,7 @@ new Vue({
             let formatted = [];
             data.map(test => {
                 formatted.push({
-                    test: this.testMethods.find(t => t.value === test.test)
-                        .text,
+                    test: test.test,
                     variants: test.variants.length,
                     zscore: test.stat,
                     pvalue: test.pvalue,
