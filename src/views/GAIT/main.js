@@ -12,6 +12,7 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterBasic from "@/components/criterion/FilterBasic";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
+import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 
@@ -55,6 +56,7 @@ new Vue({
                 { text: "SKAT Optimal", value: "skat-o" }
             ],
             selectedMethods: [],
+            matchingGenes: [],
             showVariants: false,
             showCovariances: false,
             loadingVariants: false,
@@ -105,13 +107,13 @@ new Vue({
             fields: [],
             optionalFields: [],
             searchCriteria: keyParams.gene
-            ? [
-                  {
-                      field: "gene",
-                      threshold: keyParams.gene
-                  }
-              ]
-            : []
+                ? [
+                      {
+                          field: "gene",
+                          threshold: keyParams.gene
+                      }
+                  ]
+                : []
         };
     },
     created() {
@@ -128,10 +130,17 @@ new Vue({
             return this.fields.filter(field => !!field.visible);
         },
         tableData() {
-            return this.$store.state.variants.map(v => ({
-                selected: true, //add selected column for manual selection
-                ...v
-            }));
+            if (
+                this.$store.state.variants &&
+                this.$store.state.variants.length
+            ) {
+                return this.$store.state.variants.map(v => ({
+                    selected: true, //add selected column for manual selection
+                    ...v
+                }));
+            } else {
+                return [];
+            }
         },
         selectedVariants() {
             //get only the varIDs for selected rows
@@ -240,37 +249,45 @@ new Vue({
                 });
             });
             return formatted;
+        },
+        async lookupGenes(input) {
+            if (!!input) {
+                let matches = await match("gene", input, { limit: 10 });
+                this.matchingGenes = matches;
+            }
         }
     },
     watch: {
-        // searchCriteria: {
-        //     handler(newData, oldData) {
-        //         console.log("search changed");
-        //         console.log("new", newData);
-        //         console.log("old", oldData);
-        //         if (!isEqual(newData, oldData)) {
-        //             this.criteriaChanged = true;
-        //             console.log("not equal");
-        //         }
-        //     },
-        //     deep: true,
-        // },
-        // selectedMethods(newData, oldData) {
-        //     console.log("method changed");
-        //     console.log("new", newData);
-        //     console.log("old", oldData);
-        //     if (!isEqual(newData, oldData)) {
-        //         this.testChanged = true;
-        //         console.log("not equal");
-        //     }
-        // },
+        searchCriteria: {
+            handler(newData, oldData) {
+                // console.log("search changed");
+                // console.log("new", newData);
+                // console.log("old", oldData);
+                if (!isEqual(newData, oldData)) {
+                    this.criteriaChanged = true;
+                    //console.log("not equal");
+                }
+            },
+            deep: true
+        },
+        selectedMethods: {
+            handler(newData, oldData) {
+                // console.log("method changed");
+                // console.log("new", newData);
+                // console.log("old", oldData);
+                if (!isEqual(newData, oldData)) {
+                    this.testChanged = true;
+                    // console.log("not equal");
+                }
+            },
+            deep: true
+        },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
                 console.log("change");
                 this.selectedMethods = this.selectedMethods.filter(v => {
                     return v.field !== "phenotype";
                 });
-                //TODO: clear pill when clear phenotype
             }
         },
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
@@ -282,7 +299,12 @@ new Vue({
         "$store.state.variants": function() {
             console.log("change1");
             this.loadingVariants = false;
-            this.updateFields();
+            if (
+                this.$store.state.variants &&
+                this.$store.state.variants.length
+            ) {
+                this.updateFields();
+            }
         },
         "$store.state.ldServer.covariances": function() {
             console.log("change2");

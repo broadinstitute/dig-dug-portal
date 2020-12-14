@@ -99,13 +99,25 @@
                                         v-model="$parent.searchCriteria"
                                         :header="'Search Criteria'"
                                     >
-                                        <filter-basic-control
+                                        <!-- <filter-basic-control
                                             ref="gene"
                                             :field="'gene'"
                                             placeholder="Select a gene ..."
                                         >
                                             <div class="label">Gene</div>
-                                        </filter-basic-control>
+                                        </filter-basic-control> -->
+
+                                        <filter-enumeration-control
+                                            ref="gene"
+                                            :field="'gene'"
+                                            placeholder="Select a gene ..."
+                                            :options="$parent.matchingGenes"
+                                            @input-change="
+                                                $parent.lookupGenes($event)
+                                            "
+                                        >
+                                            <div class="label">Gene</div>
+                                        </filter-enumeration-control>
 
                                         <b-col class="divider"></b-col>
 
@@ -126,9 +138,7 @@
                                                         (o) => o.value === v
                                                     ).text
                                             "
-                                            ><div class="label">
-                                                Masks
-                                            </div>
+                                            ><div class="label">Masks</div>
                                         </filter-enumeration-control>
                                     </criterion-list-group>
 
@@ -137,8 +147,10 @@
                                             variant="primary"
                                             @click="$parent.searchVariants"
                                             :disabled="
+                                                $parent.selectedGene.length ==
+                                                    0 ||
                                                 $parent.selectedMasks.length ==
-                                                0
+                                                    0
                                             "
                                             >Search Variants</b-button
                                         >
@@ -239,6 +251,24 @@
                                             show
                                             variant="warning"
                                             v-if="
+                                                $parent.tableData.length === 0
+                                            "
+                                            ><b-icon
+                                                icon="exclamation-triangle"
+                                            ></b-icon>
+                                            There is no variant found with
+                                            selected criteria.
+                                            <a
+                                                v-b-toggle
+                                                href="#accordion-1"
+                                                @click.prevent
+                                                >Try another gene?</a
+                                            >
+                                        </b-alert>
+                                        <b-alert
+                                            show
+                                            variant="warning"
+                                            v-if="
                                                 $parent.tableData.length > 0 &&
                                                 $parent.criteriaChanged
                                             "
@@ -249,9 +279,10 @@
                                             <b-button
                                                 variant="outline-primary"
                                                 size="sm"
-                                                @click="$parent.searchVariants"
+                                                v-b-toggle.accordion-1
                                                 >Search Variants</b-button
                                             >
+
                                             again to update variant
                                             list.</b-alert
                                         >
@@ -569,15 +600,14 @@
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        @click="
-                                                            $parent.searchVariants
-                                                        "
+                                                        v-b-toggle.accordion-1
                                                         >Search
                                                         Variants</b-button
                                                     >
                                                     again to update variant
                                                     list.</b-alert
                                                 >
+
                                                 <b-alert
                                                     show
                                                     variant="warning"
@@ -592,9 +622,7 @@
                                                     <b-button
                                                         variant="outline-primary"
                                                         size="sm"
-                                                        @click="
-                                                            $parent.searchCovariances
-                                                        "
+                                                        v-b-toggle.accordion-2
                                                         >Run Analysis</b-button
                                                     >
                                                     again to update the
@@ -698,14 +726,16 @@
                                                                         .dichotomous
                                                                 "
                                                                 :class="`effect ${
-                                                                    data.value <
-                                                                    1
+                                                                    Math.exp(
+                                                                        data.value
+                                                                    ) < 1
                                                                         ? 'negative'
                                                                         : 'positive'
                                                                 }`"
                                                                 >{{
-                                                                    data.value <
-                                                                    1
+                                                                    Math.exp(
+                                                                        data.value
+                                                                    ) < 1
                                                                         ? "&#9660;"
                                                                         : "&#9650;"
                                                                 }}</span
