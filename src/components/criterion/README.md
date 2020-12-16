@@ -44,6 +44,8 @@ If you have a group of components that are using only one filter function, it is
 ```
 If you want the list of criterion from `<criterion-list-group>` into a child component like above, it uses the same template, with the same props.
 
+### Multiple Filters
+
 Currently, `<criterion-function-group>` supports the creation of only one filter function. To share a filter function between components, like when a component requires two filters but cannot be inside of the `<criterion-function-group>` for one of them, you may need to use `v-model` with a function defined on the page scope:
 ```vue
 <template>
@@ -61,9 +63,10 @@ Currently, `<criterion-function-group>` supports the creation of only one filter
         :data="$parent.exampleData" 
         :filter="$parent.sharedFilter">
     </example-table>
-\
 </template>
 ```
+
+### How Filters are Made
 
 To see how `<criterion-function-group>` constructs filters by default, look at `@/utils/filterHelpers`: 
 
@@ -73,7 +76,33 @@ To see how `<criterion-function-group>` constructs filters by default, look at `
 
 The `template/<Criterion/Filter>-*-Template` components are not meant to be used inside of a page. Rather, they are extended by wrapping them inside of other components. See the existing components in `group`, or the `Filter*.vue` files, for examples.
 
-## Filter Template Props
+### Pattern: Turning a Filter into a Controlled Component to get matches dynamically
+
+Due to the potentially large number of options that a filter control may have, which can either affect page performance or clutter the UI, one might ask if it is possible to only get options relevant to what the user has given as input up to that point.
+
+With the `@input-change` event, used on `filter-enumeration-control`, `filter-multi-control`, and `filter-basic-control`, we can respond to the user's matches to affect changes on the page. If we write a function that looks up or otherwise changes the list of options passed into these filters, then we can update the options dynamically based on closest matches to the string. For example:
+
+```vue
+<template>
+    <!-- This example is taken from the GAIT page -->
+    <!-- $parent.lookupGenes dispatches an action to the store for every keystroke on the filter control, 
+        passing in the current value of filter-enumeration-control's input field to act as a string match -->
+    <!-- $parent.matchingGenes is a computed property that carries a flat list of gene names based on elements in the store -->
+    <filter-enumeration-control
+        ref="gene"
+        :field="'gene'"
+        placeholder="Select a gene ..."
+        :options="$parent.matchingGenes"
+        @input-change="
+            $parent.lookupGenes($event)
+        ">
+    </filtered-enumeration-control>
+</template>
+```
+
+This is similar to how the `<autocomplete>` component works on the Index page, as Filters are in fact based on this component.
+
+### Filter Template Props
 
 | Property  | Type |  Notes        |
 | :-------: |:----:| :-----------: |
