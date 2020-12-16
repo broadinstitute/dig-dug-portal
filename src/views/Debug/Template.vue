@@ -61,7 +61,7 @@
                             <!-- change the input of phenotypes to bioportal.phenotypes when we have data for all the phenotypes -->
                             <phenotype-selectpicker
                                 v-if="$store.state.phenotype"
-                                :phenotypes="$store.state.bioPortal.phenotypes"
+                                :phenotypes="$store.state.phenotypes"
                                 :default-phenotype="$store.state.phenotype.description"
                             ></phenotype-selectpicker>
                         </div>
@@ -95,6 +95,7 @@
 
                             <div style="width: 700px">
                                 <br />
+                                ABF is {{$parent.combinedVariationABF}}
                                 <color-bar-plot
                                     v-if="$parent.combinedVariationCategory.category"
                                     :category="$parent.combinedVariationCategory.category.toUpperCase()"
@@ -146,7 +147,7 @@
                             <ul v-if="$parent.isSignificantAssociationCommonVariation">
                                 <!-- genetic -->
                                 <li
-                                    v-if="$parent.eglData.category && $parent.eglData.category != 'in GWAS'"
+                                    v-if=" $parent.eglData.category && $parent.eglData.category != 'in GWAS'"
                                 >
                                     Genetic Evidence:
                                     <span
@@ -163,25 +164,13 @@
                                 <li v-if="$parent.eglData.genomic">
                                     Regulatory Evidence:
                                     <span
-                                        v-if="
-                                            $parent.eglData.genomic == '2R'
-                                        "
+                                        v-if="$parent.eglData.genomic == '2R'"
                                         class="regulatoryEvidence2R"
-                                    >
-                                        {{
-                                        $parent.eglData.genomic
-                                        }}
-                                    </span>
+                                    >{{$parent.eglData.genomic}}</span>
                                     <span
-                                        v-if="
-                                            $parent.eglData.genomic == '3R'
-                                        "
+                                        v-if=" $parent.eglData.genomic == '3R'"
                                         class="regulatoryEvidence3R"
-                                    >
-                                        {{
-                                        $parent.eglData.genomic
-                                        }}
-                                    </span>
+                                    >{{$parent.eglData.genomic }}</span>
                                 </li>
                             </ul>
                             <!-- Common variation color bar plot -->

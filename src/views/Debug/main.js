@@ -304,25 +304,28 @@ new Vue({
                 let abf3 = 1;
                 let abf3r = 1;
                 //abf = 3 if its in GWAS (essentially it has significant common variation)
-                if (!!this.eglData.genetic && this.eglData.genetic == "1C") {
-                    abf1 = 500 * 3.3;
+                if (!!this.eglData) {
+                    if (!!this.eglData.genetic && this.eglData.genetic == "1C") {
+                        abf1 = 500 * 3.3;
+                    }
+                    if (!!this.eglData.genetic && this.eglData.genetic == "2C") {
+                        abf2 = 5 * 3.3;
+                    }
+                    if (!!this.eglData.genomic && this.eglData.genomic == "2R") {
+                        abf2r = 5 * 3.3;
+                    }
+                    if (!!this.eglData.perturbational && this.eglData.perturbational == "3P") {
+                        abf3 = 2.2 * 3.3
+                    }
+                    if (!!this.eglData.genomic && this.eglData.genomic == "3R") {
+                        abf3r = 2.2 * 3.3
+                    }
+                    else if (this.eglData.category == "in GWAS") {
+                        abf1 = 3.3
+                        //return commonVariationABF;
+                    }
                 }
-                if (!!this.eglData.genetic && this.eglData.genetic == "2C") {
-                    abf2 = 5 * 3.3;
-                }
-                if (!!this.eglData.genomic && this.eglData.genomic == "2R") {
-                    abf2r = 5 * 3.3;
-                }
-                if (!!this.eglData.perturbational && this.eglData.perturbational == "3P") {
-                    abf3 = 2.2 * 3.3
-                }
-                if (!!this.eglData.genomic && this.eglData.genomic == "3R") {
-                    abf3r = 2.2 * 3.3
-                }
-                else if (this.eglData.category == "in GWAS") {
-                    abf1 = 3.3
-                    //return commonVariationABF;
-                }
+
                 commonVariationABF = abf1 * abf2 * abf3 * abf2r * abf3r
             }
             else {
