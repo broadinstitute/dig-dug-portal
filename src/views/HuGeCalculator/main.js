@@ -96,34 +96,7 @@ new Vue({
             return bayes_factor;
         },
 
-        calculateCategoryScore(category) {
-            let score;
-            if (category == "WEAK") {
-                score = 1;
-                return score;
-            }
-            else if (category == "POSSIBLE") {
-                score = 2;
-                return score;
-            }
-            else if (category == "MODERATE") {
-                score = 3;
-                return score;
-            }
-            else if (category == "STRONG") {
-                score = 4;
-                return score;
-            }
-            else if (category == "CAUSAL") {
-                score = 5;
-                return score;
-            }
-            else if (category == "No") {
-                score = 0;
-                return score;
-            }
 
-        },
         calculateCombinedVariationABF(rareVariationABF, commonVariationABF) {
             let combinedVariationABF = 1;
             combinedVariationABF = rareVariationABF * commonVariationABF;
@@ -338,11 +311,14 @@ new Vue({
                 if (this.eglData.perturbational == "3P" || this.eglData.regulatory == "3R") {
                     abf3 = 2.2 * 3.3
                 }
-                else if (!this.eglData) {
+                else if (this.eglData.category == "in GWAS") {
                     abf1 = 3.3
                     //return commonVariationABF;
                 }
                 commonVariationABF = abf1 * abf2 * abf3
+            }
+            else {
+                commonVariationABF = 1
             }
             return commonVariationABF;
         },
