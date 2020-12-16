@@ -497,14 +497,16 @@ a:hover {
 
 /* front page datasets info graphs */
 
-.front-datasets-graph, .front-phenotypes-graph {
+.front-datasets-graph,
+.front-phenotypes-graph {
     width: 50%;
     padding: 0px 10px 20px 10px;
     display: inline-block;
     position: relative;
 }
 
-.front-datasets-graph .each-item, .front-phenotypes-graph .each-item {
+.front-datasets-graph .each-item,
+.front-phenotypes-graph .each-item {
     font-size: 16px;
     position: relative;
     width: 100%;
@@ -512,7 +514,8 @@ a:hover {
     margin-bottom: 3px;
 }
 
-.front-datasets-graph .percent-bg, .front-phenotypes-graph .percent-bg {
+.front-datasets-graph .percent-bg,
+.front-phenotypes-graph .percent-bg {
     position: absolute;
     left: 0;
     top: 0;
@@ -531,7 +534,8 @@ a:hover {
     background-color: rgba(128, 194, 66, 0.5);
 }
 
-.front-datasets-graph .info-label, .front-phenotypes-graph .info-label {
+.front-datasets-graph .info-label,
+.front-phenotypes-graph .info-label {
     position: absolute;
     left: 10px;
     top: 5px;
@@ -603,7 +607,7 @@ a.edit-btn:hover {
     border-left: solid 1px #eee;
 }
 
-.gene-page-header-search-holder   {
+.gene-page-header-search-holder {
 }
 
 div.filtering-tools {
@@ -718,7 +722,7 @@ div.filtering-tools table th {
     margin-right: auto;
     margin-bottom: -25px;
     padding: 5px 15px;
-    background-color:#bbbbbb;
+    background-color: #bbbbbb;
     border-bottom-left-radius: 5px !important;
     border-bottom-right-radius: 5px !important;
     font-weight: 400;
@@ -1189,7 +1193,7 @@ div.filtering-ui-content .divider.col .or-text {
     width: 1px !important;
     height: 61px;
     padding: 0 1px 0 0;
-    background-color: #FFF;
+    background-color: #fff;
     margin-bottom: -17px;
     margin-left: 8px;
     margin-right: 8px;
@@ -1538,6 +1542,12 @@ a.to-previous-page:hover {
 .filter-pill-phenotype {
     background-color: #28a745 !important;
 }
+.filter-pill-condition {
+    background-color: #28a745 !important;
+}
+.filter-pill-secondaryPhenotype {
+    background-color:  #007bff !important;
+}
 .filter-pill-primaryphenotype {
     background-color: #28a745 !important;
 }
@@ -1599,9 +1609,21 @@ a.to-previous-page:hover {
 #gait .accordion .card.mb-1 {
     overflow: unset;
 }
-#gait .accordion .card-body {
-    border-left: 1px solid #007bff;
-    margin-left: 4px;
+#gait .accordion .btn-block {
+    text-align: left;
+    position: relative;
+}
+#gait .accordion .btn-block.btn-outline-primary {
+    border-color: transparent;
+}
+#gait .accordion .criteria {
+    position: absolute;
+    right: 0.75rem;
+    top: unset;
+}
+#gait .criteria {
+    display: inline;
+    overflow: visible;
 }
 #gait .accordion .alert {
     text-align: center;
@@ -1611,7 +1633,14 @@ a.to-previous-page:hover {
 }
 #gait .function {
     text-align: center;
-    margin: 20px auto 30px;
+    margin: 20px auto;
+}
+#gait .filter-tests.card {
+    border-style: dashed;
+}
+#gait .filter-tests > .card-header {
+    background-color: #cce5ff;
+    color: #004085;
 }
 #gait .filter-pill-dataset {
     background-color: #8a2be2 !important;
@@ -1624,4 +1653,28 @@ a.to-previous-page:hover {
 }
 #gait .form-group {
     margin-bottom: auto;
+}
+#gait .alert-info {
+    padding: 0.1rem 1.25rem;
+}
+#gait .progress-bar-title {
+    position: absolute;
+    text-align: center;
+    line-height: 3rem; /* line-height should be equal to bar height */
+    overflow: hidden;
+    color: #0c5460;
+    font-size: 1rem;
+    right: 0;
+    left: 0;
+    top: 0;
+}
+#gait .variants {
+    margin-top: 2rem;
+}
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 1s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
 }

@@ -2,6 +2,7 @@
     <filter-control-template
         class="filter-col-md"
         :field="field"
+        :placeholder="placeholder"
         :predicate="(string, selection) => string === selection"
         :pillFormatter="
             (filterDefinition) =>
@@ -23,6 +24,7 @@ import FilterControlTemplate from "@/components/criterion/template/FilterControl
 export default Vue.component("filter-basic-control", {
     props: {
         field: String,
+        placeholder: String,
         options: {
             type: Array,
             required: false,

@@ -12,6 +12,7 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterBasic from "@/components/criterion/FilterBasic";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
+import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 
@@ -55,10 +56,13 @@ new Vue({
                 { text: "SKAT Optimal", value: "skat-o" }
             ],
             selectedMethods: [],
+            matchingGenes: [],
             showVariants: false,
             showCovariances: false,
             loadingVariants: false,
             loadingCovariances: false,
+            criteriaChanged: false,
+            testChanged: false,
             perPage: 10,
             currentPage: 1,
             baseFields: [
@@ -102,24 +106,14 @@ new Vue({
             ],
             fields: [],
             optionalFields: [],
-            searchCriteria: [
-                {
-                    field: "gene",
-                    threshold: keyParams.gene,
-                },
-                {
-                    field: "dataset",
-                    threshold: keyParams.dataset
-                },
-                {
-                    field: "phenotype",
-                    threshold: keyParams.phenotype
-                },
-                {
-                    field: "masks",
-                    threshold: keyParams.masks
-                }
-            ]
+            searchCriteria: keyParams.gene
+                ? [
+                      {
+                          field: "gene",
+                          threshold: keyParams.gene
+                      }
+                  ]
+                : []
         };
     },
     created() {
@@ -129,7 +123,6 @@ new Vue({
         this.$store.dispatch("ldServer/getPhenotypes");
     },
     computed: {
-
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
@@ -137,17 +130,24 @@ new Vue({
             return this.fields.filter(field => !!field.visible);
         },
         tableData() {
-            return this.$store.state.variants.map(v => ({
-                selected: true, //add selected column for manual selection
-                ...v
-            }));
+            if (
+                this.$store.state.variants &&
+                this.$store.state.variants.length
+            ) {
+                return this.$store.state.variants.map(v => ({
+                    selected: true, //add selected column for manual selection
+                    ...v
+                }));
+            } else {
+                return [];
+            }
         },
         selectedVariants() {
             //get only the varIDs for selected rows
             return this.tableData.filter(v => v.selected).map(v => v.varId);
         },
         selectedPhenotypes() {
-            return this.searchCriteria
+            return this.selectedMethods
                 .filter(v => {
                     return v.field === "phenotype";
                 })
@@ -168,7 +168,7 @@ new Vue({
                 .map(v => v.threshold);
         },
         selectedDataset() {
-            return this.searchCriteria
+            return this.selectedMethods
                 .filter(v => {
                     return v.field === "dataset";
                 })
@@ -202,6 +202,8 @@ new Vue({
             this.$store.dispatch("gene/query", {
                 q: this.selectedGene
             });
+            this.criteriaChanged = false;
+            this.$store.commit("ldServer/setCovariances", []);
         },
         searchCovariances() {
             this.showCovariances = true;
@@ -215,6 +217,7 @@ new Vue({
                         ? this.selectedTests
                         : ["burden"]
             });
+            this.testChanged = false;
         },
         updateFields() {
             let addFields = [];
@@ -241,20 +244,50 @@ new Vue({
                     zscore: test.stat,
                     pvalue: test.pvalue,
                     effect: test.effect,
+                    se: test.se,
                     samples
                 });
             });
             return formatted;
+        },
+        async lookupGenes(input) {
+            if (!!input) {
+                let matches = await match("gene", input, { limit: 10 });
+                this.matchingGenes = matches;
+            }
         }
     },
     watch: {
+        searchCriteria: {
+            handler(newData, oldData) {
+                // console.log("search changed");
+                // console.log("new", newData);
+                // console.log("old", oldData);
+                if (!isEqual(newData, oldData)) {
+                    this.criteriaChanged = true;
+                    //console.log("not equal");
+                }
+            },
+            deep: true
+        },
+        selectedMethods: {
+            handler(newData, oldData) {
+                // console.log("method changed");
+                // console.log("new", newData);
+                // console.log("old", oldData);
+                if (!isEqual(newData, oldData)) {
+                    this.testChanged = true;
+                    // console.log("not equal");
+                }
+            },
+            deep: true
+        },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
                 console.log("change");
-                this.searchCriteria = this.searchCriteria.filter(v => {
+                this.selectedMethods = this.selectedMethods.filter(v => {
                     return v.field !== "phenotype";
                 });
-                //TODO: clear pill when clear phenotype
             }
         },
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
@@ -266,7 +299,12 @@ new Vue({
         "$store.state.variants": function() {
             console.log("change1");
             this.loadingVariants = false;
-            this.updateFields();
+            if (
+                this.$store.state.variants &&
+                this.$store.state.variants.length
+            ) {
+                this.updateFields();
+            }
         },
         "$store.state.ldServer.covariances": function() {
             console.log("change2");
