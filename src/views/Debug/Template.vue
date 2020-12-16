@@ -297,7 +297,7 @@
                                         </span>
                                     </li>
                                 </ul>
-
+                                ABF is {{$parent.rareVariationABF}}
                                 <!-- Traffic Light for rare variation when gene is exome significant -->
                                 <color-bar-plot
                                     v-if="$parent.rareVariationCategory.category"
@@ -337,6 +337,7 @@
                                         ></tooltip-documentation>
                                     </documentation>
                                 </h5>
+                                ABF is {{$parent.rareVariationABF}}
                                 <!-- <h6>
                                     <documentation
                                         name="hugecal.rareVaration.evidence.description"
