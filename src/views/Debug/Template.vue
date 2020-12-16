@@ -521,7 +521,7 @@ export default Vue.component("test", {
 
 .potentialclass {
     position: absolute;
-    left: 4600px;
+    left: 460px;
 }
 .weakclass {
     position: absolute;
