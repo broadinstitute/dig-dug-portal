@@ -359,6 +359,9 @@ new Vue({
                     }
 
                     rare_bayes_factor = this.bayes_factor(beta, stdErr);
+                    if (rare_bayes_factor < 1) {
+                        rare_bayes_factor = 1
+                    }
                 }
             }
 
