@@ -84,19 +84,27 @@ With the `@input-change` event, used on `filter-enumeration-control`, `filter-mu
 
 ```vue
 <template>
+
     <!-- This example is taken from the GAIT page -->
     <!-- $parent.lookupGenes dispatches an action to the store for every keystroke on the filter control, 
         passing in the current value of filter-enumeration-control's input field to act as a string match -->
     <!-- $parent.matchingGenes is a computed property that carries a flat list of gene names based on elements in the store -->
-    <filter-enumeration-control
-        ref="gene"
-        :field="'gene'"
-        placeholder="Select a gene ..."
-        :options="$parent.matchingGenes"
-        @input-change="
-            $parent.lookupGenes($event)
-        ">
-    </filtered-enumeration-control>
+    
+    <!-- the <criterion-list-control> is not relevant to illustrate `@input-change`, but is provided to illustrate correct use of the filter -->
+    <criterion-list-control v-model="$parent.criterionList">
+        <!-- other filters would go here -->
+        <filter-enumeration-control
+            ref="gene"
+            :field="'gene'"
+            placeholder="Select a gene ..."
+            :options="$parent.matchingGenes"
+            @input-change="
+                $parent.lookupGenes($event)
+            ">
+        </filtered-enumeration-control>
+        <!-- other filters would go here -->
+    </criterion-list-control>
+
 </template>
 ```
 
