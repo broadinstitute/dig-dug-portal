@@ -141,9 +141,13 @@
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
                             </h5>
+                            ABF is {{$parent.commonVariationABF}}
+                            Category is {{$parent.commonVariationCategory.category}}
                             <ul v-if="$parent.isSignificantAssociationCommonVariation">
                                 <!-- genetic -->
-                                <li v-if="$parent.eglData.category">
+                                <li
+                                    v-if="$parent.eglData.category && $parent.eglData.category != 'in GWAS'"
+                                >
                                     Genetic Evidence:
                                     <span
                                         v-if="$parent.eglData.genetic == '1C'"
@@ -442,12 +446,13 @@ export default Vue.component("test", {
 #commonVariation .variationPossible {
     background-color: #c39bd3;
 }
-#commonVariation .variationWeak {
+#commonVariation .variationPotential {
     background-color: #deb3f1;
 }
-#commonVariation .variationInGWAS {
+#commonVariation .variationWeak {
     background-color: #e6c7f3;
 }
+
 #commonVariation .variationNoEvidence {
     background-color: #eaddee;
 }
@@ -464,12 +469,13 @@ export default Vue.component("test", {
 #rareVariation .variationPossible {
     background-color: #f6e5a0;
 }
-#rareVariation .variationWeak {
+#rareVariation .variationPotential {
     background-color: #f3e3a4;
 }
-#rareVariation .variationInGWAS {
+#rareVariation .variationWeak {
     background-color: #f3e9c5;
 }
+
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
 }
@@ -485,12 +491,13 @@ export default Vue.component("test", {
 #combinedVariation .variationPossible {
     background-color: rgb(69, 192, 182);
 }
-#combinedVariation .variationWeak {
+#combinedVariation .variationPotential {
     background-color: rgb(78, 209, 198);
 }
-#combinedVariation .variationInGWAS {
+#combinedVariation .variationWeak {
     background-color: rgb(120, 228, 219);
 }
+
 #combinedVariation .variationNoEvidence {
     background-color: rgb(168, 240, 234);
 }
@@ -511,13 +518,14 @@ export default Vue.component("test", {
     position: absolute;
     left: 360px;
 }
+
+.potentialclass {
+    position: absolute;
+    left: 4600px;
+}
 .weakclass {
     position: absolute;
-    left: 460px;
-}
-.inGWASclass {
-    position: absolute;
-    left: 550px;
+    left: 560px;
 }
 .noEvidenceclass {
     position: absolute;
