@@ -15,6 +15,7 @@ import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
+import { query } from "@/utils/bioIndexUtils";
 
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
@@ -69,8 +70,20 @@ new Vue({
         criterion() {
             return {
                 gene: this.selectedGene,
+                phenotype: this.selectedPhenotype
             }
-        }
+        },
+        isGWASSignificantAssociation() {
+            if (!!this.$store.state.associationsData.length > 0) {
+                let data = this.$store.state.associationsData;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].pValue <= 5e-8) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        },
     },
     methods: {
         async lookupGenes(input) {
@@ -80,9 +93,13 @@ new Vue({
             }
         },
 
-        updateAssociations(gene) {
+        updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
-            this.$store.dispatch("getAssociations", { phenotype: this.selectedPhenotype, gene: this.selectedGene })
+            // this.$store.dispatch("getAssociations", { phenotype: this.selectedPhenotype, gene: this.selectedGene })
+            let x = query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
+                console.log(bioIndexData)
+                this.$store.commit("setAssociationsData", bioIndexData)
+            });
 
         }
     },

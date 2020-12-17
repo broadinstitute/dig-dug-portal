@@ -19,12 +19,14 @@ export default new Vuex.Store({
         gene: bioIndex("gene")
     },
     state: {
-
+        associationsData: {},
         variants: []
 
     },
     mutations: {
-
+        setAssociationsData(state, associationsData) {
+            state.associationsData = associationsData
+        },
     },
     getters: {
 

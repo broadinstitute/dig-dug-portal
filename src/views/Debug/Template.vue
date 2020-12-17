@@ -32,14 +32,16 @@
                             :options="$parent.phenotypes.map((phenotype) => phenotype.name)"
                             :multiple="false"
                             :labelFormatter="
-                                (phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype.name ]
+                                (phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype.name]
                                         ? $store.state.bioPortal.phenotypeMap[phenotype].description
-                                        : phenotype
-                            "
+                                        : phenotype"
                         >
-                            <div class="label">Gene</div>
+                            <div class="label">Phenotype</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
+                    <div v-show="!!($parent.selectedPhenotype)">
+                        <div v-if="$parent.isGWASSignificantAssociation">Gene is GWAS significant</div>
+                    </div>
                 </div>
             </div>
         </div>
