@@ -39,8 +39,9 @@
                             <div class="label">Phenotype</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
-                    <div v-show="!!($parent.selectedPhenotype)">
+                    <div v-if="$store.state.associationsData.length>1">
                         <div v-if="$parent.isGWASSignificantAssociation">Gene is GWAS significant</div>
+                        <div v-else>Gene is NOT GWAS significant</div>
                     </div>
                 </div>
             </div>
