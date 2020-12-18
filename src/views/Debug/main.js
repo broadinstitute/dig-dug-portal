@@ -84,6 +84,28 @@ new Vue({
                 return false;
             }
         },
+        eglData() {
+            let geneSymbol = this.selectedGene[0];
+            if (!!this.$store.state.kp4cd.eglData.data) {
+                let effectordata = this.$store.state.kp4cd.eglData.data;
+                let effectorGeneData = {}
+
+                for (var i = 0; i < effectordata.length; ++i) {
+                    if (effectordata[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
+                        effectorGeneData = effectordata[i];
+
+                        if (effectorGeneData.category == "(T2D_related)") {
+                            effectorGeneData.category = "No"
+                        }
+                        break;
+                    }
+                    else {
+                        effectorGeneData["category"] = "in GWAS"
+                    }
+                }
+                return effectorGeneData;
+            }
+        },
     },
     methods: {
         async lookupGenes(input) {
@@ -96,12 +118,15 @@ new Vue({
         updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
             // this.$store.dispatch("getAssociations", { phenotype: this.selectedPhenotype, gene: this.selectedGene })
-            let associations = query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
-                console.log(bioIndexData)
-                this.$store.commit("setAssociationsData", bioIndexData)
-            });
+
             if (phenotype.length > 0) {
+                query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
+                    this.$store.commit("setAssociationsData", bioIndexData)
+                });
+
                 this.$store.dispatch("getEGLData", phenotype[0]);
+
+
             }
 
         },

@@ -40,7 +40,10 @@
                         </filter-enumeration-control>
                     </criterion-list-group>
                     <div v-if="$store.state.associationsData.length>1">
-                        <div v-if="$parent.isGWASSignificantAssociation">Gene is GWAS significant</div>
+                        <div v-if="$parent.isGWASSignificantAssociation">
+                            Gene is GWAS significant
+                            Category is {{$parent.eglData.category}}
+                        </div>
                         <div v-else>Gene is NOT GWAS significant</div>
                     </div>
                 </div>
