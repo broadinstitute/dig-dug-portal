@@ -32,11 +32,11 @@ export default new Vuex.Store({
 
     },
     actions: {
-        async getAssociations(context, { phenotype, gene }) {
-            let x = query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
-                console.log(bioIndexData)
-            });
-        },
+        async getEGLData(context, phen) {
+            let dataset = "mccarthy";
+            let trait = phen.toLowerCase();
+            context.dispatch("kp4cd/getEglData", { dataset, trait });
+        }
 
 
 

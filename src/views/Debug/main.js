@@ -96,12 +96,15 @@ new Vue({
         updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
             // this.$store.dispatch("getAssociations", { phenotype: this.selectedPhenotype, gene: this.selectedGene })
-            let x = query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
+            let associations = query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
                 console.log(bioIndexData)
                 this.$store.commit("setAssociationsData", bioIndexData)
             });
+            if (phenotype.length > 0) {
+                this.$store.dispatch("getEGLData", phenotype[0]);
+            }
 
-        }
+        },
     },
 
     watch: {
