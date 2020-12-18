@@ -47,6 +47,7 @@ new Vue({
     data() {
         return {
             matchingGenes: [],
+            phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
             phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
             hugecalSearchCriterion: keyParams.gene
                 ? [{
@@ -168,7 +169,7 @@ new Vue({
                     let mostSignificantMask = d[0];
                     let stdErr = mostSignificantMask.stdErr;
                     let beta;
-                    if (this.$store.state.phenotype.isDichotomous) {
+                    if (this.phenotype.isDichotomous) {
                         beta = mostSignificantMask.beta;
                     } else {
                         beta = Math.log(mostSignificantMask.oddsRatio);

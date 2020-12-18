@@ -217,6 +217,26 @@
                                                     :noIcon="false"
                                                 ></tooltip-documentation>
                                             </h4>
+                                            <ul>
+                                                <li>
+                                                    <span>{{$parent.determineCategory($parent.bayesFactorRareVariation)}} Evidence</span>
+                                                </li>
+                                                <li>
+                                                    <span>Not Exome Wide significant - p value greater than 2.5e-6</span>
+                                                </li>
+                                                <li>
+                                                    Bayes Factor:
+                                                    <span>{{$parent.bayesFactorRareVariation}}</span>
+                                                </li>
+                                                <div style="width: 700px">
+                                                    <br />
+                                                    <rare-color-bar-plot
+                                                        v-if="$parent.bayesFactorRareVariation"
+                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        :elementid="'rareVariation'"
+                                                    ></rare-color-bar-plot>
+                                                </div>
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>
@@ -376,31 +396,31 @@
 /* rare arrow distance */
 .rarecausalclass {
     position: absolute;
-    left: 1020px;
+    left: 920px;
 }
 .rarestrongclass {
     position: absolute;
-    left: 1120;
+    left: 1020;
 }
 .raremoderateclass {
     position: absolute;
-    left: 1220px;
+    left: 1120px;
 }
 .rarepossibleclass {
     position: absolute;
-    left: 1320px;
+    left: 1220px;
 }
 
 .rarepotentialclass {
     position: absolute;
-    left: 1420px;
+    left: 1320px;
 }
 .rareweakclass {
     position: absolute;
-    left: 1520px;
+    left: 1420px;
 }
 .rarenoEvidenceclass {
     position: absolute;
-    left: 1620px;
+    left: 1520px;
 }
 </style>
