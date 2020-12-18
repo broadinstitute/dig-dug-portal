@@ -95,10 +95,11 @@ new Vue({
                         effectorGeneData = effectordata[i];
 
                         if (effectorGeneData.category == "(T2D_related)") {
-                            effectorGeneData.category = "No"
+                            effectorGeneData.category = "No Evidence"
                         }
                         break;
                     }
+                    //if the gene is in GWAS but not in mccarthy data
                     else {
                         effectorGeneData["category"] = "in GWAS"
                     }

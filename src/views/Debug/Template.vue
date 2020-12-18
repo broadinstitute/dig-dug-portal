@@ -39,10 +39,19 @@
                             <div class="label">Phenotype</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
-                    <div v-if="$store.state.associationsData.length>1">
+                    <div v-if="$store.state.associationsData.length>0">
                         <div v-if="$parent.isGWASSignificantAssociation">
-                            Gene is GWAS significant
-                            Category is {{$parent.eglData.category}}
+                            <div class="card mdkp-card">
+                                <div class="card-body" style="margin-block-end: 20px">
+                                    <div class="row">
+                                        <div class="col-md-6">Common Variation</div>
+                                        <div
+                                            class="col-md-5"
+                                            style="border-left: 1px dashed #444"
+                                        >Rare Variation</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div v-else>Gene is NOT GWAS significant</div>
                     </div>
