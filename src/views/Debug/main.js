@@ -109,6 +109,38 @@ new Vue({
                 return effectorGeneData;
             }
         },
+
+        bayesFactorCommonVariation() {
+            let firstBF = 1;
+            let secondBF = 1;
+            let thirdBF = 1;
+            let commonBF = 1;
+            if (!!this.$store.state.associationsData.length > 0) {
+                let data = this.$store.state.associationsData;
+                for (let i = 0; i < data.length; i++) {
+                    //if GWAS evidence
+                    if (data[i].pValue <= 5e-8) {
+                        firstBF = 3.3
+                    }
+                }
+            }
+            if (!!this.eglData) {
+                if (!!this.eglData.genetic && this.eglData.genetic == "1C") {
+                    secondBF = 500
+                }
+                if (!!this.eglData.genetic && this.eglData.genetic == "2C") {
+                    secondBF = 5
+                }
+                if (!!this.eglData.genomic && this.eglData.genomic == "2R") {
+                    thirdBF = 5
+                }
+                if (!!this.eglData.genomic && this.eglData.genomic == "3R") {
+                    thirdBF = 2.2
+                }
+            }
+            commonBF = firstBF * secondBF * thirdBF
+            return commonBF;
+        }
     },
     methods: {
         async lookupGenes(input) {
@@ -120,8 +152,6 @@ new Vue({
 
         updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
-            // this.$store.dispatch("getAssociations", { phenotype: this.selectedPhenotype, gene: this.selectedGene })
-
             if (phenotype.length > 0) {
                 query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
                     this.$store.commit("setAssociationsData", bioIndexData)

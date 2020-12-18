@@ -80,6 +80,7 @@
                                                     >{{$parent.eglData.genomic}}</span>
                                                 </li>
                                                 <li v-if=" $parent.eglData.genomic == '3R'">
+                                                    Regulatory evidence:
                                                     <span
                                                         class="regulatoryEvidence3R"
                                                     >{{$parent.eglData.genomic }}</span>
@@ -91,6 +92,10 @@
                                                     v-if=" $parent.eglData.category == 'No Evidence'"
                                                 >
                                                     <span>Genome wide significant but no coding or regulatory evidence associated with Type 2 diabetes</span>
+                                                </li>
+                                                <li>
+                                                    Bayes Factor:
+                                                    <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                 </li>
                                             </ul>
                                         </div>
