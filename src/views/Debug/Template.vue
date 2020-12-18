@@ -98,6 +98,16 @@
                                                     <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                 </li>
                                             </ul>
+
+                                            <!-- Common variation color bar plot -->
+                                            <div style="width: 700px" v-if="$parent.eglData">
+                                                <br />
+                                                <color-bar-plot
+                                                    v-if="$parent.bayesFactorCommonVariation"
+                                                    :bayesfactor="$parent.bayesFactorCommonVariation"
+                                                    :elementid="'commonVariation'"
+                                                ></color-bar-plot>
+                                            </div>
                                         </div>
 
                                         <div class="column" v-else>
@@ -168,6 +178,7 @@
     }
 }
 
+/* coding and regulatory evidence */
 .codingEvidence1C {
     background-color: #ffd62e;
     padding: 5px;
@@ -191,5 +202,69 @@
     padding: 5px;
     border-radius: 25px;
     font-weight: 700;
+}
+
+/* color bar plot */
+.arrow-up {
+    width: 0;
+    height: 40px;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid black;
+    animation: moveright 1s alternate 1s;
+}
+
+#commonVariation .variationCausal {
+    background-color: #884ea0;
+}
+#commonVariation .variationStrong {
+    background-color: #9b59b6;
+}
+#commonVariation .variationModerate {
+    background-color: #af7ac5;
+}
+#commonVariation .variationPossible {
+    background-color: #c39bd3;
+}
+#commonVariation .variationPotential {
+    background-color: #deb3f1;
+}
+#commonVariation .variationWeak {
+    background-color: #e6c7f3;
+}
+
+#commonVariation .variationNoEvidence {
+    background-color: #eaddee;
+}
+
+/* arrow distance */
+.causalclass {
+    position: absolute;
+    left: 60px;
+}
+.strongclass {
+    position: absolute;
+    left: 160px;
+}
+.moderateclass {
+    position: absolute;
+    left: 260px;
+}
+.possibleclass {
+    position: absolute;
+    left: 360px;
+}
+
+.potentialclass {
+    position: absolute;
+    left: 460px;
+}
+.weakclass {
+    position: absolute;
+    left: 560px;
+}
+.noEvidenceclass {
+    position: absolute;
+    left: 650px;
 }
 </style>
