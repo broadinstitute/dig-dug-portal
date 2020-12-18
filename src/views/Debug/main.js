@@ -4,6 +4,7 @@ import Template from "./Template.vue";
 import store from "./store.js";
 
 import Documentation from "@/components/Documentation.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -30,7 +31,8 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
-        FilterBasic
+        FilterBasic,
+        TooltipDocumentation
     },
     render(createElement, context) {
         return createElement(Template);
