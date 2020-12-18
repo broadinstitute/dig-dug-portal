@@ -125,21 +125,22 @@ new Vue({
                         firstBF = 3.3
                     }
                 }
+                if (!!this.eglData) {
+                    if (!!this.eglData.genetic && this.eglData.genetic == "1C") {
+                        secondBF = 500
+                    }
+                    if (!!this.eglData.genetic && this.eglData.genetic == "2C") {
+                        secondBF = 5
+                    }
+                    if (!!this.eglData.genomic && this.eglData.genomic == "2R") {
+                        thirdBF = 5
+                    }
+                    if (!!this.eglData.genomic && this.eglData.genomic == "3R") {
+                        thirdBF = 2.2
+                    }
+                }
             }
-            if (!!this.eglData) {
-                if (!!this.eglData.genetic && this.eglData.genetic == "1C") {
-                    secondBF = 500
-                }
-                if (!!this.eglData.genetic && this.eglData.genetic == "2C") {
-                    secondBF = 5
-                }
-                if (!!this.eglData.genomic && this.eglData.genomic == "2R") {
-                    thirdBF = 5
-                }
-                if (!!this.eglData.genomic && this.eglData.genomic == "3R") {
-                    thirdBF = 2.2
-                }
-            }
+
             commonBF = firstBF * secondBF * thirdBF
             return commonBF;
         }
