@@ -128,10 +128,6 @@ new Vue({
                 });
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
-            if (phenotype.length == 0 || gene.length == 0) {
-                context.commit("associations/clearData");
-            }
-
         },
     },
 

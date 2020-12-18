@@ -43,11 +43,14 @@
                     <div
                         v-if="$store.state.associationsData.length>0 && $parent.selectedPhenotype.length != 0"
                     >
-                        <div v-if="$parent.isGWASSignificantAssociation">
+                        <div>
                             <div class="card mdkp-card">
                                 <div class="card-body" style="margin-block-end: 20px">
                                     <div class="row">
-                                        <div class="column">
+                                        <div
+                                            class="column"
+                                            v-if="$parent.isGWASSignificantAssociation"
+                                        >
                                             <h4>
                                                 Common Variation
                                                 <tooltip-documentation
@@ -57,30 +60,46 @@
                                                     :noIcon="false"
                                                 ></tooltip-documentation>
                                             </h4>
-                                            <ul>
-                                                <li v-if="$parent.eglData.genetic != ''">
+                                            <ul v-if="$parent.eglData">
+                                                <li v-if="$parent.eglData.genetic == '1C'">
                                                     Coding evidence:
                                                     <span
-                                                        v-if="$parent.eglData.genetic == '1C'"
                                                         class="codingEvidence1C"
                                                     >{{$parent.eglData.genetic}}</span>
+                                                </li>
+                                                <li v-else-if="$parent.eglData.genetic == '2C'">
+                                                    Coding evidence:
                                                     <span
-                                                        v-else-if="$parent.eglData.genetic == '2C'"
                                                         class="codingEvidence2C"
                                                     >{{$parent.eglData.genetic}}</span>
                                                 </li>
-                                                <li v-if="$parent.eglData.genomic != ''">
+                                                <li v-if="$parent.eglData.genomic == '2R'">
                                                     Regulatory evidence:
                                                     <span
-                                                        v-if="$parent.eglData.genomic == '2R'"
                                                         class="regulatoryEvidence2R"
                                                     >{{$parent.eglData.genomic}}</span>
+                                                </li>
+                                                <li v-if=" $parent.eglData.genomic == '3R'">
                                                     <span
-                                                        v-if=" $parent.eglData.genomic == '3R'"
                                                         class="regulatoryEvidence3R"
                                                     >{{$parent.eglData.genomic }}</span>
                                                 </li>
+                                                <li v-if=" $parent.eglData.category == 'in GWAS'">
+                                                    <span>Genome wide significant but no coding or regulatory evidence</span>
+                                                </li>
                                             </ul>
+                                        </div>
+
+                                        <div class="column" v-else>
+                                            <h4>
+                                                Common Variation
+                                                <tooltip-documentation
+                                                    name="gene.function.tooltip.hover"
+                                                    :content-fill="$parent.documentationMap"
+                                                    :isHover="true"
+                                                    :noIcon="false"
+                                                ></tooltip-documentation>
+                                            </h4>Gene is NOT GWAS significant
                                         </div>
 
                                         <!-- Rare Variation -->
@@ -99,7 +118,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-else>Gene is NOT GWAS significant</div>
                     </div>
                 </div>
             </div>
