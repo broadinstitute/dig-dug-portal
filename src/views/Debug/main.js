@@ -17,6 +17,7 @@ import { match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 import { query } from "@/utils/bioIndexUtils";
+import ColorBarPlot from "@/components/ColorBarPlot.vue";
 
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
@@ -32,7 +33,8 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
         FilterBasic,
-        TooltipDocumentation
+        TooltipDocumentation,
+        ColorBarPlot,
     },
     render(createElement, context) {
         return createElement(Template);
