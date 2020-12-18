@@ -40,7 +40,9 @@
                         </filter-enumeration-control>
                     </criterion-list-group>
 
-                    <div v-if="$store.state.associationsData.length>0">
+                    <div
+                        v-if="$store.state.associationsData.length>0 && $parent.selectedPhenotype.length != 0"
+                    >
                         <div v-if="$parent.isGWASSignificantAssociation">
                             <div class="card mdkp-card">
                                 <div class="card-body" style="margin-block-end: 20px">
@@ -55,8 +57,33 @@
                                                     :noIcon="false"
                                                 ></tooltip-documentation>
                                             </h4>
+                                            <ul>
+                                                <li v-if="$parent.eglData.genetic != ''">
+                                                    Coding evidence:
+                                                    <span
+                                                        v-if="$parent.eglData.genetic == '1C'"
+                                                        class="codingEvidence1C"
+                                                    >{{$parent.eglData.genetic}}</span>
+                                                    <span
+                                                        v-else-if="$parent.eglData.genetic == '2C'"
+                                                        class="codingEvidence2C"
+                                                    >{{$parent.eglData.genetic}}</span>
+                                                </li>
+                                                <li v-if="$parent.eglData.genomic != ''">
+                                                    Regulatory evidence:
+                                                    <span
+                                                        v-if="$parent.eglData.genomic == '2R'"
+                                                        class="regulatoryEvidence2R"
+                                                    >{{$parent.eglData.genomic}}</span>
+                                                    <span
+                                                        v-if=" $parent.eglData.genomic == '3R'"
+                                                        class="regulatoryEvidence3R"
+                                                    >{{$parent.eglData.genomic }}</span>
+                                                </li>
+                                            </ul>
                                         </div>
 
+                                        <!-- Rare Variation -->
                                         <div class="column" style="border-left: 1px dashed #444">
                                             <h4>
                                                 Rare Variation
@@ -69,12 +96,6 @@
                                             </h4>
                                         </div>
                                     </div>
-                                    <!-- <div class="col-md-6">
-                                           
-                                        </div>
-                                        <div class="col-md-6" style="border-left: 1px dashed #444">
-                                          
-                                    </div>-->
                                 </div>
                             </div>
                         </div>
@@ -117,5 +138,30 @@
     .row {
         flex-direction: column;
     }
+}
+
+.codingEvidence1C {
+    background-color: #ffd62e;
+    padding: 5px;
+    border-radius: 25px;
+    font-weight: 700;
+}
+.codingEvidence2C {
+    background-color: #ffec2e;
+    padding: 5px;
+    border-radius: 25px;
+    font-weight: 700;
+}
+.regulatoryEvidence2R {
+    background-color: #bfd730;
+    padding: 5px;
+    border-radius: 25px;
+    font-weight: 700;
+}
+.regulatoryEvidence3R {
+    background-color: #bfd73050;
+    padding: 5px;
+    border-radius: 25px;
+    font-weight: 700;
 }
 </style>
