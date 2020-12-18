@@ -69,6 +69,14 @@
                                                     <span>{{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}}</span>
                                                 </li>
                                             </ul>
+                                            <div style="width: 700px">
+                                                <br />
+                                                <color-bar-plot
+                                                    v-if="$parent.bayesFactorRareVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation))"
+                                                    :elementid="'combinedVariation'"
+                                                ></color-bar-plot>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -227,15 +235,15 @@
                                                     Bayes Factor:
                                                     <span>{{$parent.bayesFactorRareVariation}}</span>
                                                 </li>
-                                                <div style="width: 700px">
-                                                    <br />
-                                                    <color-bar-plot
-                                                        v-if="$parent.bayesFactorRareVariation"
-                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                        :elementid="'rareVariation'"
-                                                    ></color-bar-plot>
-                                                </div>
                                             </ul>
+                                            <div style="width: 700px">
+                                                <br />
+                                                <color-bar-plot
+                                                    v-if="$parent.bayesFactorRareVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                    :elementid="'rareVariation'"
+                                                ></color-bar-plot>
+                                            </div>
                                             <!-- <div
                                                 style="display:flex; align-items:center;justify-content:center;"
                                             >-->
@@ -409,6 +417,30 @@
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
 }
+
+#combinedVariation .variationCausal {
+    background-color: rgb(20, 110, 103);
+}
+#combinedVariation .variationStrong {
+    background-color: rgb(39, 148, 139);
+}
+#combinedVariation .variationModerate {
+    background-color: rgb(48, 175, 164);
+}
+#combinedVariation .variationPossible {
+    background-color: rgb(69, 192, 182);
+}
+#combinedVariation .variationPotential {
+    background-color: rgb(78, 209, 198);
+}
+#combinedVariation .variationWeak {
+    background-color: rgb(120, 228, 219);
+}
+
+#combinedVariation .variationNoEvidence {
+    background-color: rgb(168, 240, 234);
+}
+
 /* arrow distance */
 .causalclass {
     position: absolute;
