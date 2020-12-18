@@ -66,6 +66,20 @@ new Vue({
         this.$store.dispatch("ldServer/getPhenotypes");
     },
     computed: {
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        region() {
+            return this.$store.getters.region;
+        },
         selectedGene() {
             return this.hugecalSearchCriterion
                 .filter(v => {
@@ -200,9 +214,25 @@ new Vue({
                 }
             }
         },
+        documentationMap() {
+            let gene = this.selectedGene[0];
+            let phenotype = this.selectedPhenotype[0];
+            let rareVariationEvidence;
+            let priorVariance = this.priorVariance;
+
+
+            return {
+                gene: gene,
+                phenotype: phenotype,
+                priorVariance: priorVariance
+            }
+        },
 
     },
     methods: {
+        updateAssociationsTable(data) {
+            this.$store.commit(`associations/setResponse`, { data });
+        },
         bayesFactorCombinedEvidence(commonBF, rareBF) {
             return commonBF * rareBF;
         },
@@ -259,10 +289,16 @@ new Vue({
 
         updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
+            if (gene.length > 0) {
+
+            }
             if (phenotype.length > 0) {
                 query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
                     this.$store.commit("setAssociationsData", bioIndexData)
                 });
+
+                // this.$store.dispatch("queryGeneRegion", region)
+                this.$store.dispatch("gene/query", gene[0])
                 this.$store.dispatch("get52KAssociationData", gene[0])
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
@@ -270,6 +306,9 @@ new Vue({
     },
 
     watch: {
+        region(region) {
+            this.$store.dispatch("queryGeneRegion", region);
+        },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },

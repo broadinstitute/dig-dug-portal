@@ -75,7 +75,7 @@ new Vue({
     methods: {
         ...uiUtils,
         postAlert,
-        postAlertNotice,
+        postAlertNotupdateAssociationsTableice,
         postAlertError,
         closeAlert,
 

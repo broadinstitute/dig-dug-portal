@@ -32,9 +32,25 @@ export default new Vuex.Store({
         },
     },
     getters: {
+        region(state) {
+            let data = state.gene.data;
+            if (data.length > 0) {
+                let gene = data[0];
 
+                return {
+                    chromosome: gene.chromosome,
+                    start: gene.start,
+                    end: gene.end,
+                }
+            }
+        },
     },
     actions: {
+        // async queryGeneRegion(context, region) {
+        //     let { chromosome, start, end } = region || context.getters.region;
+        //     let q = `${chromosome}:${start}-${end}`;
+        //     context.dispatch('genes/query', { q });
+        // },
         async getEGLData(context, phen) {
             let dataset = "mccarthy";
             let trait = phen.toLowerCase();
@@ -44,10 +60,5 @@ export default new Vuex.Store({
         async get52KAssociationData(context, gene) {
             context.dispatch('geneAssociations52k/query', { q: gene });
         }
-
-
-
-
-
     }
 });

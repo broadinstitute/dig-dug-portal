@@ -107,6 +107,9 @@
                                                 ></tooltip-documentation>
                                             </h4>
                                             <ul v-if="$parent.eglData">
+                                                <li>
+                                                    <span>Genome-wide significant - pvalue less than 5e-8</span>
+                                                </li>
                                                 <li v-if="$parent.eglData.genetic == '1C'">
                                                     Coding evidence:
                                                     <span
@@ -144,11 +147,7 @@
                                                     <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                 </li>
                                             </ul>
-
                                             <!-- Common variation color bar plot -->
-                                            <!-- <div
-                                                style="display:flex; align-items:center;justify-content:center;"
-                                            >-->
                                             <div style="width: 700px" v-if="$parent.eglData">
                                                 <br />
                                                 <color-bar-plot
@@ -157,7 +156,35 @@
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
-                                            <!-- </div> -->
+                                            <hr style="margin: 40px" />
+                                            <div>
+                                                <h5>
+                                                    <documentation
+                                                        name="hugecal.commonVaration.header.gwasSignificant"
+                                                        :content-fill="$parent.documentationMap"
+                                                    ></documentation>
+                                                </h5>
+
+                                                <h6>
+                                                    <documentation
+                                                        name="hugecal.commonVaration.subheader.gwasSignificant"
+                                                        :content-fill="$parent.documentationMap"
+                                                    ></documentation>
+                                                </h6>
+                                                <locuszoom
+                                                    v-if="$parent.region"
+                                                    ref="locuszoom"
+                                                    :chr="$parent.region.chromosome"
+                                                    :start="$parent.region.start - 50000"
+                                                    :end="$parent.region.end + 50000"
+                                                    :refSeq="true"
+                                                >
+                                                    <lz-associations-panel
+                                                        :phenotype="$parent.phenotype.name"
+                                                        :finishHandler="$parent.updateAssociationsTable"
+                                                    ></lz-associations-panel>
+                                                </locuszoom>
+                                            </div>
                                         </div>
 
                                         <!-- If NOT GWAS significant -->
@@ -253,12 +280,6 @@
                                                     ></color-bar-plot>
                                                 </div>
                                             </ul>
-
-                                            <!-- <div
-                                                style="display:flex; align-items:center;justify-content:center;"
-                                            >-->
-
-                                            <!-- </div> -->
                                         </div>
 
                                         <!-- Rare Variation - If not Exome wide significant -->
@@ -297,11 +318,6 @@
                                                     ></color-bar-plot>
                                                 </div>
                                             </ul>
-                                            <!-- <div
-                                                style="display:flex; align-items:center;justify-content:center;"
-                                            >-->
-
-                                            <!-- </div> -->
                                         </div>
                                     </div>
                                 </div>
@@ -454,7 +470,7 @@
 /* arrow distance */
 .causalclass {
     position: absolute;
-    left: 60px;
+    left: 70px;
 }
 .strongclass {
     position: absolute;
@@ -462,7 +478,7 @@
 }
 .moderateclass {
     position: absolute;
-    left: 260px;
+    left: 280px;
 }
 .possibleclass {
     position: absolute;
