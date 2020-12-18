@@ -227,18 +227,19 @@
                                                     Bayes Factor:
                                                     <span>{{$parent.bayesFactorRareVariation}}</span>
                                                 </li>
+                                                <div style="width: 700px">
+                                                    <br />
+                                                    <color-bar-plot
+                                                        v-if="$parent.bayesFactorRareVariation"
+                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        :elementid="'rareVariation'"
+                                                    ></color-bar-plot>
+                                                </div>
                                             </ul>
                                             <!-- <div
                                                 style="display:flex; align-items:center;justify-content:center;"
                                             >-->
-                                            <div style="width: 700px">
-                                                <br />
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorRareVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                    :elementid="'rareVariation'"
-                                                ></color-bar-plot>
-                                            </div>
+
                                             <!-- </div> -->
                                         </div>
 
@@ -428,15 +429,15 @@
 
 .potentialclass {
     position: absolute;
-    left: 460px;
+    left: 480px;
 }
 .weakclass {
     position: absolute;
-    left: 590px;
+    left: 580px;
 }
 .noEvidenceclass {
     position: absolute;
-    left: 690px;
+    left: 680px;
 }
 
 /* rare arrow distance */

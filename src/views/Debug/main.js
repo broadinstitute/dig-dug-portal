@@ -194,19 +194,19 @@ new Vue({
         determineCategory(bayesfactor) {
             let category;
             if (bayesfactor < 2.1) {
-                category = "NO";
+                category = "No";
             } else if (bayesfactor >= 2.1 && bayesfactor < 7.26) {
-                category = "WEAK";
+                category = "Weak";
             } else if (bayesfactor >= 7.26 && bayesfactor < 16.5) {
-                category = "POTENTIAL";
+                category = "Potential";
             } else if (bayesfactor >= 16.5 && bayesfactor < 36.3) {
-                category = "POSSIBLE";
+                category = "Possible";
             } else if (bayesfactor >= 36.3 && bayesfactor < 82.5) {
-                category = "MODERATE";
+                category = "Moderate";
             } else if (bayesfactor >= 82.5 && bayesfactor < 1650) {
-                category = "STRONG";
+                category = "Strong";
             } else if (bayesfactor >= 1650) {
-                category = "CAUSAL";
+                category = "Causal";
             }
             return category;
         },
