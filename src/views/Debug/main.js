@@ -126,10 +126,10 @@ new Vue({
                 query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
                     this.$store.commit("setAssociationsData", bioIndexData)
                 });
-
                 this.$store.dispatch("getEGLData", phenotype[0]);
-
-
+            }
+            if (phenotype.length == 0 || gene.length == 0) {
+                context.commit("associations/clearData");
             }
 
         },
