@@ -48,7 +48,7 @@
                                 <div class="card-body" style="margin-block-end: 20px">
                                     <div class="row">
                                         <div
-                                            class="column"
+                                            class="col-md-6"
                                             v-if="$parent.isGWASSignificantAssociation"
                                         >
                                             <h4>
@@ -100,6 +100,9 @@
                                             </ul>
 
                                             <!-- Common variation color bar plot -->
+                                            <!-- <div
+                                                style="display:flex; align-items:center;justify-content:center;"
+                                            >-->
                                             <div style="width: 700px" v-if="$parent.eglData">
                                                 <br />
                                                 <color-bar-plot
@@ -108,10 +111,11 @@
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
+                                            <!-- </div> -->
                                         </div>
 
                                         <!-- If NOT GWAS significant -->
-                                        <div v-else class="column">
+                                        <div v-else class="col-md-6">
                                             <h4>
                                                 Common Variation
                                                 <tooltip-documentation
@@ -154,7 +158,9 @@
                                                     <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                 </li>
                                             </ul>
-
+                                            <!-- <div
+                                                style="display:flex; align-items:center;justify-content:center;"
+                                            >-->
                                             <div style="width: 700px">
                                                 <br />
                                                 <color-bar-plot
@@ -163,12 +169,13 @@
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
+                                            <!-- </div> -->
                                         </div>
 
                                         <!-- Rare Variation - If EXOME WIDE SIGNIFICANT-->
                                         <div
                                             v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)"
-                                            class="column"
+                                            class="col-md-6"
                                             style="border-left: 1px dashed #444"
                                         >
                                             <h4>
@@ -191,21 +198,25 @@
                                                     Bayes Factor:
                                                     <span>{{$parent.bayesFactorRareVariation}}</span>
                                                 </li>
-                                                <div style="width: 700px">
-                                                    <br />
-                                                    <rare-color-bar-plot
-                                                        v-if="$parent.bayesFactorRareVariation"
-                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                        :elementid="'rareVariation'"
-                                                    ></rare-color-bar-plot>
-                                                </div>
                                             </ul>
+                                            <!-- <div
+                                                style="display:flex; align-items:center;justify-content:center;"
+                                            >-->
+                                            <div style="width: 700px">
+                                                <br />
+                                                <color-bar-plot
+                                                    v-if="$parent.bayesFactorRareVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                    :elementid="'rareVariation'"
+                                                ></color-bar-plot>
+                                            </div>
+                                            <!-- </div> -->
                                         </div>
 
                                         <!-- Rare Variation - If not Exome wide significant -->
                                         <div
                                             v-else
-                                            class="column"
+                                            class="col-md-6"
                                             style="border-left: 1px dashed #444"
                                         >
                                             <h4>
@@ -228,15 +239,19 @@
                                                     Bayes Factor:
                                                     <span>{{$parent.bayesFactorRareVariation}}</span>
                                                 </li>
-                                                <div style="width: 700px">
-                                                    <br />
-                                                    <rare-color-bar-plot
-                                                        v-if="$parent.bayesFactorRareVariation"
-                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                        :elementid="'rareVariation'"
-                                                    ></rare-color-bar-plot>
-                                                </div>
                                             </ul>
+                                            <!-- <div
+                                                style="display:flex; align-items:center;justify-content:center;"
+                                            >-->
+                                            <div style="width: 700px">
+                                                <br />
+                                                <rare-color-bar-plot
+                                                    v-if="$parent.bayesFactorRareVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                    :elementid="'rareVariation'"
+                                                ></rare-color-bar-plot>
+                                            </div>
+                                            <!-- </div> -->
                                         </div>
                                     </div>
                                 </div>
@@ -396,31 +411,31 @@
 /* rare arrow distance */
 .rarecausalclass {
     position: absolute;
-    left: 920px;
+    left: 1020px;
 }
 .rarestrongclass {
     position: absolute;
-    left: 1020;
+    left: 1120;
 }
 .raremoderateclass {
     position: absolute;
-    left: 1120px;
+    left: 1220px;
 }
 .rarepossibleclass {
     position: absolute;
-    left: 1220px;
+    left: 1320px;
 }
 
 .rarepotentialclass {
     position: absolute;
-    left: 1320px;
+    left: 1420px;
 }
 .rareweakclass {
     position: absolute;
-    left: 1420px;
+    left: 1520px;
 }
 .rarenoEvidenceclass {
     position: absolute;
-    left: 1520px;
+    left: 1620px;
 }
 </style>
