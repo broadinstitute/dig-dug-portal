@@ -39,17 +39,42 @@
                             <div class="label">Phenotype</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
+
                     <div v-if="$store.state.associationsData.length>0">
                         <div v-if="$parent.isGWASSignificantAssociation">
                             <div class="card mdkp-card">
                                 <div class="card-body" style="margin-block-end: 20px">
                                     <div class="row">
-                                        <div class="col-md-6">Common Variation</div>
-                                        <div
-                                            class="col-md-5"
-                                            style="border-left: 1px dashed #444"
-                                        >Rare Variation</div>
+                                        <div class="column">
+                                            <h4>
+                                                Common Variation
+                                                <tooltip-documentation
+                                                    name="gene.function.tooltip.hover"
+                                                    :content-fill="$parent.documentationMap"
+                                                    :isHover="true"
+                                                    :noIcon="false"
+                                                ></tooltip-documentation>
+                                            </h4>
+                                        </div>
+
+                                        <div class="column" style="border-left: 1px dashed #444">
+                                            <h4>
+                                                Rare Variation
+                                                <tooltip-documentation
+                                                    name="gene.function.tooltip.hover"
+                                                    :content-fill="$parent.documentationMap"
+                                                    :isHover="true"
+                                                    :noIcon="false"
+                                                ></tooltip-documentation>
+                                            </h4>
+                                        </div>
                                     </div>
+                                    <!-- <div class="col-md-6">
+                                           
+                                        </div>
+                                        <div class="col-md-6" style="border-left: 1px dashed #444">
+                                          
+                                    </div>-->
                                 </div>
                             </div>
                         </div>
@@ -63,3 +88,34 @@
 </template>
 
 
+<style>
+* {
+    box-sizing: border-box;
+}
+
+/* Container for flexboxes */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Create four equal columns */
+.column {
+    flex: 25%;
+    padding: 20px;
+}
+
+/* On screens that are 992px wide or less, go from four columns to two columns */
+@media screen and (max-width: 992px) {
+    .column {
+        flex: 50%;
+    }
+}
+
+/* On screens that are 600px wide or less, make the columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+    .row {
+        flex-direction: column;
+    }
+}
+</style>
