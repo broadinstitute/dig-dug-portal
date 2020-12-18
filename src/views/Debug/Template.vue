@@ -87,6 +87,11 @@
                                                 <li v-if=" $parent.eglData.category == 'in GWAS'">
                                                     <span>Genome wide significant but no coding or regulatory evidence</span>
                                                 </li>
+                                                <li
+                                                    v-if=" $parent.eglData.category == 'No Evidence'"
+                                                >
+                                                    <span>Genome wide significant but no coding or regulatory evidence associated with Type 2 diabetes</span>
+                                                </li>
                                             </ul>
                                         </div>
 
