@@ -21,6 +21,7 @@ import { isEqual, startCase } from "lodash";
 import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
+import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -39,7 +40,8 @@ new Vue({
         FilterBasic,
         TooltipDocumentation,
         ColorBarPlot,
-        RareColorBarPlot
+        RareColorBarPlot,
+        PosteriorProbabilityPlot,
     },
     render(createElement, context) {
         return createElement(Template);
@@ -53,7 +55,8 @@ new Vue({
                 ? [{
                     field: "gene",
                     threshold: keyParams.gene
-                }] : []
+                }] : [],
+            priorVariance: 0.3696
         };
     },
     created() {
@@ -184,7 +187,19 @@ new Vue({
 
             return rare_bayes_factor;
 
-        }
+        },
+        geneAssociations52k() {
+            if (!!this.$store.state.geneAssociations52k) {
+                if (!!this.$store.state.geneAssociations52k.data.length) {
+                    let data = this.$store.state.geneAssociations52k.data;
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].phenotype == this.phenotype.name) {
+                            return data[i];
+                        }
+                    }
+                }
+            }
+        },
 
     },
     methods: {

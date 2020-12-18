@@ -78,6 +78,15 @@
                                                 ></color-bar-plot>
                                             </div>
                                         </div>
+                                        <div class="col-md-6" style="border-left: 1px dashed #444">
+                                            <posterior-probability-plot
+                                                v-if="$parent.geneAssociations52k"
+                                                :geneAssociationsData="$parent.geneAssociations52k"
+                                                :priorVariance="$parent.priorVariance"
+                                                :bayes_factor="$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)"
+                                                :isDichotomous="true"
+                                            ></posterior-probability-plot>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -123,12 +132,12 @@
                                                     >{{$parent.eglData.genomic }}</span>
                                                 </li>
                                                 <li v-if=" $parent.eglData.category == 'in GWAS'">
-                                                    <span>Genome wide significant but no coding or regulatory evidence</span>
+                                                    <span>Genome-wide significant but no coding or regulatory evidence</span>
                                                 </li>
                                                 <li
                                                     v-if=" $parent.eglData.category == 'No Evidence'"
                                                 >
-                                                    <span>Genome wide significant but no coding or regulatory evidence associated with Type 2 diabetes</span>
+                                                    <span>Genome-wide significant but no coding or regulatory evidence associated with Type 2 diabetes</span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
@@ -188,7 +197,7 @@
                                                     >{{$parent.eglData.genomic }}</span>
                                                 </li>
                                                 <li>
-                                                    <span>Not Genome wide significant</span>
+                                                    <span>Not Genome-wide significant - p-value greater than 5e-8</span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
@@ -229,21 +238,22 @@
                                                     <span>Causal</span>
                                                 </li>
                                                 <li>
-                                                    <span>Exome Wide significant - p value less than 2.5e-6</span>
+                                                    <span>Exome-Wide significant - p-value less than 2.5e-6</span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
                                                     <span>{{$parent.bayesFactorRareVariation}}</span>
                                                 </li>
+                                                <div style="width: 700px padding:10px">
+                                                    <br />
+                                                    <color-bar-plot
+                                                        v-if="$parent.bayesFactorRareVariation"
+                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        :elementid="'rareVariation'"
+                                                    ></color-bar-plot>
+                                                </div>
                                             </ul>
-                                            <div style="width: 700px">
-                                                <br />
-                                                <color-bar-plot
-                                                    v-if="$parent.bayesFactorRareVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                    :elementid="'rareVariation'"
-                                                ></color-bar-plot>
-                                            </div>
+
                                             <!-- <div
                                                 style="display:flex; align-items:center;justify-content:center;"
                                             >-->
@@ -268,7 +278,7 @@
                                             </h4>
                                             <ul>
                                                 <li>
-                                                    <span>Not Exome Wide significant - p value greater than 2.5e-6</span>
+                                                    <span>Not Exome-Wide significant - p-value greater than 2.5e-6</span>
                                                 </li>
                                                 <li>
                                                     <span>{{$parent.determineCategory($parent.bayesFactorRareVariation)}} Evidence</span>
