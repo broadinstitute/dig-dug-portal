@@ -20,6 +20,7 @@ import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual, startCase } from "lodash";
 import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
+import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -38,6 +39,7 @@ new Vue({
         FilterBasic,
         TooltipDocumentation,
         ColorBarPlot,
+        RareColorBarPlot
     },
     render(createElement, context) {
         return createElement(Template);
@@ -185,6 +187,25 @@ new Vue({
 
     },
     methods: {
+        determineCategory(bayesfactor) {
+            let category;
+            if (bayesfactor < 2.1) {
+                category = "NO";
+            } else if (bayesfactor >= 2.1 && bayesfactor < 7.26) {
+                category = "WEAK";
+            } else if (bayesfactor >= 7.26 && bayesfactor < 16.5) {
+                category = "POTENTIAL";
+            } else if (bayesfactor >= 16.5 && bayesfactor < 36.3) {
+                category = "POSSIBLE";
+            } else if (bayesfactor >= 36.3 && bayesfactor < 82.5) {
+                category = "MODERATE";
+            } else if (bayesfactor >= 82.5 && bayesfactor < 1650) {
+                category = "STRONG";
+            } else if (bayesfactor >= 1650) {
+                category = "CAUSAL";
+            }
+            return category;
+        },
         bayes_factor(beta, stdErr) {
             let w = 0.3696;
             let v = Math.pow(stdErr, 2);

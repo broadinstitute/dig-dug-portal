@@ -104,7 +104,7 @@
                                                 <br />
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorCommonVariation"
-                                                    :bayesfactor="$parent.bayesFactorCommonVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
@@ -159,7 +159,7 @@
                                                 <br />
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorCommonVariation"
-                                                    :bayesfactor="$parent.bayesFactorCommonVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
@@ -193,11 +193,11 @@
                                                 </li>
                                                 <div style="width: 700px">
                                                     <br />
-                                                    <color-bar-plot
+                                                    <rare-color-bar-plot
                                                         v-if="$parent.bayesFactorRareVariation"
-                                                        :bayesfactor="$parent.bayesFactorRareVariation"
+                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
                                                         :elementid="'rareVariation'"
-                                                    ></color-bar-plot>
+                                                    ></rare-color-bar-plot>
                                                 </div>
                                             </ul>
                                         </div>
@@ -371,5 +371,36 @@
 .noEvidenceclass {
     position: absolute;
     left: 650px;
+}
+
+/* rare arrow distance */
+.rarecausalclass {
+    position: absolute;
+    left: 1020px;
+}
+.rarestrongclass {
+    position: absolute;
+    left: 1120;
+}
+.raremoderateclass {
+    position: absolute;
+    left: 1220px;
+}
+.rarepossibleclass {
+    position: absolute;
+    left: 1320px;
+}
+
+.rarepotentialclass {
+    position: absolute;
+    left: 1420px;
+}
+.rareweakclass {
+    position: absolute;
+    left: 1520px;
+}
+.rarenoEvidenceclass {
+    position: absolute;
+    left: 1620px;
 }
 </style>
