@@ -165,10 +165,51 @@
                                             </div>
                                         </div>
 
-                                        <!-- Rare Variation -->
-                                        <div class="column" style="border-left: 1px dashed #444">
+                                        <!-- Rare Variation - If EXOME WIDE SIGNIFICANT-->
+                                        <div
+                                            v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)"
+                                            class="column"
+                                            style="border-left: 1px dashed #444"
+                                        >
                                             <h4>
                                                 Rare Variation
+                                                <tooltip-documentation
+                                                    name="gene.function.tooltip.hover"
+                                                    :content-fill="$parent.documentationMap"
+                                                    :isHover="true"
+                                                    :noIcon="false"
+                                                ></tooltip-documentation>
+                                            </h4>
+                                            <ul>
+                                                <li>
+                                                    <span>Causal</span>
+                                                </li>
+                                                <li>
+                                                    <span>Exome Wide significant - p value less than 2.5e-6</span>
+                                                </li>
+                                                <li>
+                                                    Bayes Factor:
+                                                    <span>{{$parent.bayesFactorRareVariation}}</span>
+                                                </li>
+                                                <div style="width: 700px">
+                                                    <br />
+                                                    <color-bar-plot
+                                                        v-if="$parent.bayesFactorRareVariation"
+                                                        :bayesfactor="$parent.bayesFactorRareVariation"
+                                                        :elementid="'rareVariation'"
+                                                    ></color-bar-plot>
+                                                </div>
+                                            </ul>
+                                        </div>
+
+                                        <!-- Rare Variation - If not Exome wide significant -->
+                                        <div
+                                            v-else
+                                            class="column"
+                                            style="border-left: 1px dashed #444"
+                                        >
+                                            <h4>
+                                                Rare Variation - Not EXome wide significant
                                                 <tooltip-documentation
                                                     name="gene.function.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
@@ -279,7 +320,28 @@
 #commonVariation .variationNoEvidence {
     background-color: #eaddee;
 }
+#rareVariation .variationCausal {
+    background-color: #f1c206;
+}
+#rareVariation .variationStrong {
+    background-color: #f3d14a;
+}
+#rareVariation .variationModerate {
+    background-color: #f5db74;
+}
+#rareVariation .variationPossible {
+    background-color: #f6e5a0;
+}
+#rareVariation .variationPotential {
+    background-color: #f3e3a4;
+}
+#rareVariation .variationWeak {
+    background-color: #f3e9c5;
+}
 
+#rareVariation .variationNoEvidence {
+    background-color: #ebe8de;
+}
 /* arrow distance */
 .causalclass {
     position: absolute;

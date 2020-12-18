@@ -1,7 +1,9 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
+import { BootstrapVue, BootstrapVueIcons, BIconMouse2 } from "bootstrap-vue";
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -19,8 +21,9 @@ import { isEqual, startCase } from "lodash";
 import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 
-Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
+Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
@@ -143,9 +146,70 @@ new Vue({
 
             commonBF = firstBF * secondBF * thirdBF
             return commonBF;
+        },
+
+
+
+        bayesFactorRareVariation() {
+            let masks = [];
+
+            let rare_bayes_factor = 1;
+            if (this.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)) {
+                rare_bayes_factor = 1650;
+            }
+            else {
+                if (!!this.$store.state.geneAssociations52k.data[0]) {
+                    masks = this.$store.state.geneAssociations52k.data[0].masks
+                    let d = masks.sort(
+                        (a, b) => a.pValue - b.pValue
+                    );
+                    let mostSignificantMask = d[0];
+                    let stdErr = mostSignificantMask.stdErr;
+                    let beta;
+                    if (this.$store.state.phenotype.isDichotomous) {
+                        beta = mostSignificantMask.beta;
+                    } else {
+                        beta = Math.log(mostSignificantMask.oddsRatio);
+                    }
+
+                    rare_bayes_factor = this.bayes_factor(beta, stdErr);
+                    if (rare_bayes_factor < 1) {
+                        rare_bayes_factor = 1
+                    }
+                }
+            }
+
+            return rare_bayes_factor;
+
         }
+
     },
     methods: {
+        bayes_factor(beta, stdErr) {
+            let w = 0.3696;
+            let v = Math.pow(stdErr, 2);
+            let f1 = v / (v + w);
+            let sqrt_f1 = Math.sqrt(f1);
+            let f2 = w * Math.pow(beta, 2);
+            let f3 = 2 * v * (v + w);
+            let f4 = f2 / f3;
+            let bayes_factor = sqrt_f1 * Math.exp(f4);
+            return bayes_factor;
+        },
+
+        isExomeWideSignificant(data) {
+            let trait = "T2D";
+            if (!!data.length) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        if (data[i].pValue <= 2.5e-6) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+        },
         async lookupGenes(input) {
             if (!!input) {
                 let matches = await match("gene", input, { limit: 10 });
@@ -159,6 +223,7 @@ new Vue({
                 query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
                     this.$store.commit("setAssociationsData", bioIndexData)
                 });
+                this.$store.dispatch("get52KAssociationData", gene[0])
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
         },
@@ -169,6 +234,8 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         criterion(newCriterion, oldCriterion) {
+            //check if the old and new criterion are different only then update the Associations
+            // ??DO THIS
             this.updateAssociations(this.selectedGene, this.selectedPhenotype);
         }
 

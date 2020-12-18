@@ -16,7 +16,10 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         ldServer,
-        gene: bioIndex("gene")
+        gene: bioIndex("gene"),
+        genes: bioIndex("genes"),
+        associations: bioIndex("associations"),
+        geneAssociations52k: bioIndex("gene-associations-52k"),
     },
     state: {
         associationsData: {},
@@ -36,6 +39,10 @@ export default new Vuex.Store({
             let dataset = "mccarthy";
             let trait = phen.toLowerCase();
             context.dispatch("kp4cd/getEglData", { dataset, trait });
+        },
+
+        async get52KAssociationData(context, gene) {
+            context.dispatch('geneAssociations52k/query', { q: gene });
         }
 
 

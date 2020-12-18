@@ -81,7 +81,6 @@ new Vue({
 
 
         updateAssociationsTable(data) {
-
             this.$store.commit(`associations/setResponse`, { data });
         },
         bayes_factor(beta, stdErr) {
