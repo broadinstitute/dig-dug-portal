@@ -220,7 +220,7 @@
                                             style="border-left: 1px dashed #444"
                                         >
                                             <h4>
-                                                Rare Variation - Not EXome wide significant
+                                                Rare Variation
                                                 <tooltip-documentation
                                                     name="gene.function.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
@@ -230,27 +230,29 @@
                                             </h4>
                                             <ul>
                                                 <li>
-                                                    <span>{{$parent.determineCategory($parent.bayesFactorRareVariation)}} Evidence</span>
-                                                </li>
-                                                <li>
                                                     <span>Not Exome Wide significant - p value greater than 2.5e-6</span>
                                                 </li>
+                                                <li>
+                                                    <span>{{$parent.determineCategory($parent.bayesFactorRareVariation)}} Evidence</span>
+                                                </li>
+
                                                 <li>
                                                     Bayes Factor:
                                                     <span>{{$parent.bayesFactorRareVariation}}</span>
                                                 </li>
+                                                <div style="width: 700px">
+                                                    <br />
+                                                    <color-bar-plot
+                                                        v-if="$parent.bayesFactorRareVariation"
+                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        :elementid="'rareVariation'"
+                                                    ></color-bar-plot>
+                                                </div>
                                             </ul>
                                             <!-- <div
                                                 style="display:flex; align-items:center;justify-content:center;"
                                             >-->
-                                            <div style="width: 700px">
-                                                <br />
-                                                <rare-color-bar-plot
-                                                    v-if="$parent.bayesFactorRareVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
-                                                    :elementid="'rareVariation'"
-                                                ></rare-color-bar-plot>
-                                            </div>
+
                                             <!-- </div> -->
                                         </div>
                                     </div>
@@ -401,11 +403,11 @@
 }
 .weakclass {
     position: absolute;
-    left: 560px;
+    left: 590px;
 }
 .noEvidenceclass {
     position: absolute;
-    left: 650px;
+    left: 690px;
 }
 
 /* rare arrow distance */
@@ -431,8 +433,8 @@
     left: 1420px;
 }
 .rareweakclass {
-    position: absolute;
-    left: 1520px;
+    position: relative;
+    left: 1020px;
 }
 .rarenoEvidenceclass {
     position: absolute;
