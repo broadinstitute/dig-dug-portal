@@ -188,6 +188,9 @@ new Vue({
 
     },
     methods: {
+        bayesFactorCombinedEvidence(commonBF, rareBF) {
+            return commonBF * rareBF;
+        },
         determineCategory(bayesfactor) {
             let category;
             if (bayesfactor < 2.1) {

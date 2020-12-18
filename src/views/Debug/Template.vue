@@ -49,6 +49,35 @@
                                     <div class="row">
                                         <div
                                             class="col-md-6"
+                                            v-if="$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)"
+                                        >
+                                            <h4>
+                                                Combined Evidence
+                                                <tooltip-documentation
+                                                    name="gene.function.tooltip.hover"
+                                                    :content-fill="$parent.documentationMap"
+                                                    :isHover="true"
+                                                    :noIcon="false"
+                                                ></tooltip-documentation>
+                                            </h4>
+                                            <ul>
+                                                <li>
+                                                    <span>{{$parent.determineCategory($parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation))}} Evidence</span>
+                                                </li>
+                                                <li>
+                                                    Bayes Factor:
+                                                    <span>{{$parent.bayesFactorCombinedEvidence($parent.bayesFactorCommonVariation,$parent.bayesFactorRareVariation)}}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card mdkp-card">
+                                <div class="card-body" style="margin-block-end: 20px">
+                                    <div class="row">
+                                        <div
+                                            class="col-md-6"
                                             v-if="$parent.isGWASSignificantAssociation"
                                         >
                                             <h4>
