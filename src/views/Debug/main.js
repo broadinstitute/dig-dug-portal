@@ -168,7 +168,6 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         criterion(newCriterion, oldCriterion) {
-            console.log("Search crietria" + newCriterion, oldCriterion)
             this.updateAssociations(this.selectedGene, this.selectedPhenotype);
         }
 

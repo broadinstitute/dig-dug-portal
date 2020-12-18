@@ -110,7 +110,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="column" v-else>
+                                        <!-- If NOT GWAS significant -->
+                                        <div
+                                            v-else-if="$parent.isGWASSignificantAssociation == false"
+                                            class="column"
+                                        >
                                             <h4>
                                                 Common Variation
                                                 <tooltip-documentation
@@ -119,7 +123,25 @@
                                                     :isHover="true"
                                                     :noIcon="false"
                                                 ></tooltip-documentation>
-                                            </h4>Gene is NOT GWAS significant
+                                            </h4>
+                                            <ul>
+                                                <li>
+                                                    Bayes Factor:
+                                                    <span>{{$parent.bayesFactorCommonVariation}}</span>
+                                                </li>
+                                                <li>
+                                                    <span>Not Genome wide significant</span>
+                                                </li>
+                                            </ul>
+
+                                            <div style="width: 700px">
+                                                <br />
+                                                <color-bar-plot
+                                                    v-if="$parent.bayesFactorCommonVariation"
+                                                    :bayesfactor="$parent.bayesFactorCommonVariation"
+                                                    :elementid="'commonVariation'"
+                                                ></color-bar-plot>
+                                            </div>
                                         </div>
 
                                         <!-- Rare Variation -->
