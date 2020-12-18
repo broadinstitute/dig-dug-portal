@@ -242,6 +242,35 @@
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
+                                            <hr style="margin: 40px" />
+                                            <div>
+                                                <h5>
+                                                    <documentation
+                                                        name="hugecal.commonVaration.header.gwasSignificant"
+                                                        :content-fill="$parent.documentationMap"
+                                                    ></documentation>
+                                                </h5>
+
+                                                <h6>
+                                                    <documentation
+                                                        name="hugecal.commonVaration.subheader.gwasSignificant"
+                                                        :content-fill="$parent.documentationMap"
+                                                    ></documentation>
+                                                </h6>
+                                                <locuszoom
+                                                    v-if="$parent.region"
+                                                    ref="locuszoom"
+                                                    :chr="$parent.region.chromosome"
+                                                    :start="$parent.region.start - 50000"
+                                                    :end="$parent.region.end + 50000"
+                                                    :refSeq="true"
+                                                >
+                                                    <lz-associations-panel
+                                                        :phenotype="$parent.phenotype.name"
+                                                        :finishHandler="$parent.updateAssociationsTable"
+                                                    ></lz-associations-panel>
+                                                </locuszoom>
+                                            </div>
                                             <!-- </div> -->
                                         </div>
 

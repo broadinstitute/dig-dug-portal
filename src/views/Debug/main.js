@@ -22,6 +22,7 @@ import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
+import LocusZoom from "@/components/lz/LocusZoom";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -42,6 +43,7 @@ new Vue({
         ColorBarPlot,
         RareColorBarPlot,
         PosteriorProbabilityPlot,
+        LocusZoom,
     },
     render(createElement, context) {
         return createElement(Template);
@@ -172,35 +174,38 @@ new Vue({
 
         bayesFactorRareVariation() {
             let masks = [];
-
-            let rare_bayes_factor = 1;
+            let rarebayesfactor = 1;
+            let beta;
+            let stdErr;
             if (this.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)) {
-                rare_bayes_factor = 1650;
+                rarebayesfactor = 1650;
             }
             else {
-                if (!!this.$store.state.geneAssociations52k.data[0]) {
-                    masks = this.$store.state.geneAssociations52k.data[0].masks
-                    let d = masks.sort(
-                        (a, b) => a.pValue - b.pValue
-                    );
-                    let mostSignificantMask = d[0];
-                    let stdErr = mostSignificantMask.stdErr;
-                    let beta;
-                    if (this.phenotype.isDichotomous) {
-                        beta = mostSignificantMask.beta;
-                    } else {
-                        beta = Math.log(mostSignificantMask.oddsRatio);
+                if (this.$store.state.geneAssociations52k.data.length > 0) {
+                    for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
+                        if (!!this.$store.state.geneAssociations52k.data[i].phenotype && this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]) {
+                            //filter with selected phenotype
+                            masks = this.$store.state.geneAssociations52k.data[i].masks
+                            let d = masks.sort(
+                                (a, b) => a.pValue - b.pValue
+                            );
+                            let mostSignificantMask = d[0];
+                            stdErr = mostSignificantMask.stdErr;
+                            if (this.phenotype.isDichotomous) {
+                                beta = mostSignificantMask.beta;
+                            } else {
+                                beta = Math.log(mostSignificantMask.oddsRatio);
+                            }
+                        }
                     }
 
-                    rare_bayes_factor = this.bayes_factor(beta, stdErr);
-                    if (rare_bayes_factor < 1) {
-                        rare_bayes_factor = 1
+                    rarebayesfactor = this.bayes_factor(beta, stdErr);
+                    if (rarebayesfactor < 1) {
+                        rarebayesfactor = 1
                     }
                 }
             }
-
-            return rare_bayes_factor;
-
+            return rarebayesfactor;
         },
         geneAssociations52k() {
             if (!!this.$store.state.geneAssociations52k) {
@@ -298,7 +303,9 @@ new Vue({
                 });
 
                 // this.$store.dispatch("queryGeneRegion", region)
-                this.$store.dispatch("gene/query", gene[0])
+                this.$store.dispatch("gene/query", {
+                    q: gene[0]
+                })
                 this.$store.dispatch("get52KAssociationData", gene[0])
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
@@ -306,9 +313,9 @@ new Vue({
     },
 
     watch: {
-        region(region) {
-            this.$store.dispatch("queryGeneRegion", region);
-        },
+        // region(region) {
+        //     this.$store.dispatch("queryGeneRegion", region);
+        // },
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
