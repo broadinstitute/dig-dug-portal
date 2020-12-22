@@ -1,15 +1,22 @@
 <template>
     <div>
         <vue-typeahead-bootstrap
+            ref="autocomplete"
             v-model="userInput"
             :data="lookupOptions"
+            :disabled="disabled"
             :placeholder="placeholder"
+            :serializer="labelFormatter"
+            :showOnFocus="true"
+            :maxMatches="1000"
             @hit="onAutoCompleteItemSelected($event)"
             @keyup.enter="onUserEnterNonAutoCompleteItem"
         >
             <template slot="suggestion" slot-scope="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
-                <small v-if="secondaryKey" class="text-secondary">{{ data[secondaryKey] }}</small>
+                <small v-if="secondaryKey" class="text-secondary">{{
+                    data[secondaryKey]
+                }}</small>
             </template>
         </vue-typeahead-bootstrap>
     </div>
@@ -17,8 +24,7 @@
 
 <script>
 import Vue from "vue";
-import _ from "lodash";
-import { debounce } from "lodash";
+import { cloneDeep } from "lodash";
 import queryString from "query-string";
 import host from "@/utils/hostUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
@@ -34,12 +40,20 @@ Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
 export default Vue.component("autocomplete", {
-    props: ["matches", "placeholder", "secondaryKey"],
-
+    props: {
+        matches: Array,
+        placeholder: String,
+        secondaryKey: String,
+        labelFormatter: {
+            type: Function,
+            default: (id) => id,
+        },
+        disabled: Boolean,
+    },
     data() {
         return {
-            userInput: this.initialText || null,
-            selectedItem: null,
+            userInput: this.initialText || "",
+            selectedItem: "",
         };
     },
 
@@ -54,6 +68,9 @@ export default Vue.component("autocomplete", {
     },
 
     methods: {
+        formatHTML(html) {
+            return this.labelFormatter(cloneDeep(html));
+        },
         serializer(item) {
             if (!this.matchkey) {
                 return item;
@@ -62,16 +79,15 @@ export default Vue.component("autocomplete", {
             }
         },
         onAutoCompleteItemSelected(item) {
-            //return object if phenotype?
-
-            this.selectedItem = item;
-            this.userText = null;
-
             this.$emit("item-select", item);
+            this.userInput = "";
+            this.$refs.autocomplete.inputValue = "";
         },
 
         onUserEnterNonAutoCompleteItem() {
             this.$emit("keyup-enter", this.userInput);
+            this.userInput = "";
+            this.$refs.autocomplete.inputValue = "";
         },
     },
 

@@ -7,14 +7,20 @@
         :serializer="s => s.credibleSetId"
         :showOnFocus="true"
         :minMatchingChars="0"
-        :maxMatches="30"
+        :maxMatches="1000"
         @hit="onCredibleSetSelected($event)">
+        <template slot="suggestion" slot-scope="{ data, htmlText }">
+            <span v-html="htmlText"></span>&nbsp;
+            <small class="text-secondary">
+                {{ data.credibleSetId === 'computed' ? 'from current associations' : `${data.dataset}` }}
+            </small>
+        </template>
     </vue-typeahead-bootstrap>
+
 </template>
 
 <script>
 import Vue from "vue";
-import _ from "lodash";
 
 import EventBus from "@/utils/eventBus";
 
@@ -52,11 +58,15 @@ export default Vue.component("credible-sets-selectpicker", {
             if (!this.credibleSets) {
                 return [];
             }
-            return this.credibleSets.sort((a, b) => {
+            this.credibleSets.sort((a, b) => {
                 if (a.credibleSetId < b.credibleSetId) return -1;
                 if (b.credibleSetId < a.credibleSetId) return 1;
                 return 0;
             });
+            this.credibleSets.unshift({
+                credibleSetId: 'computed',
+            })
+            return this.credibleSets;
         }
     },
     methods: {

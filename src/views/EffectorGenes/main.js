@@ -6,11 +6,10 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-
+import Documentation from "@/components/Documentation.vue";
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -23,7 +22,7 @@ new Vue({
     store,
 
     components: {
-        StaticPageInfo,
+        Documentation,
         PageHeader,
         PageFooter,
         PortalDatasetsListTable,
@@ -70,15 +69,21 @@ new Vue({
             return contents;
         },
 
+        eglSummaries() {
+            let contents = this.$store.state.kp4cd.eglSummaries;
 
-
-
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents;
+        },
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
             this.$store.dispatch("kp4cd/getPageInfo", { "page": "eglmethodscollection", "portal": group.name });
+            this.$store.dispatch("kp4cd/getEglSummaries", group.name);
         },
     }
 }).$mount("#app");

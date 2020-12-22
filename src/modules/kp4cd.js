@@ -17,8 +17,10 @@ export default {
             newFeatures: [],
             resources: [],
             researchMethod: [],
+            eglSummaries: [],
             eglData: [],
-            eglConfig: []
+            eglConfig: [],
+            forestPlotData: {},
         };
     },
 
@@ -45,6 +47,10 @@ export default {
         setResources(state, resources) {
             state.resources = resources;
         },
+        setEglSummaries(state, eglSummaries) {
+
+            state.eglSummaries = eglSummaries;
+        },
         setResearchMethod(state, researchMethod) {
             state.researchMethod = researchMethod;
         },
@@ -53,6 +59,9 @@ export default {
         },
         setEglConfig(state, config) {
             state.eglConfig = config;
+        },
+        setForestPlotData(state, data) {
+            state.forestPlotData = data;
         }
     },
 
@@ -90,7 +99,7 @@ export default {
         async getDatasetInfo(context, datasetId) {
             let json = await fetch(
                 "https://kp4cd.org/rest/views/datasetinfo?datasetid=" +
-                    datasetId
+                datasetId
             ).then(resp => resp.json());
             // set the data
             context.commit("setDatasetInfo", json);
@@ -99,9 +108,9 @@ export default {
         async getPageInfo(context, query) {
             let json = await fetch(
                 "https://kp4cd.org/rest/views/" +
-                    query.page +
-                    "?portal=" +
-                    query.portal
+                query.page +
+                "?portal=" +
+                query.portal
             ).then(resp => resp.json());
             // set the data
             context.commit("setPageInfo", json);
@@ -112,7 +121,7 @@ export default {
 
             let json = await fetch(
                 "https://kp4cd.org/rest/views/newfeatures?portal=" +
-                    selectedDiseaseGroup
+                selectedDiseaseGroup
             ).then(resp => resp.json());
             // set the data
             context.commit("setNewFeatures", json);
@@ -122,7 +131,7 @@ export default {
 
             let json = await fetch(
                 "https://kp4cd.org/rest/views/newresources?portal=" +
-                    selectedDiseaseGroup
+                selectedDiseaseGroup
             ).then(resp => resp.json());
             // set the data
             context.commit("setResources", json);
@@ -134,12 +143,23 @@ export default {
             // set the data
             context.commit("setResearchMethod", json);
         },
+        async getEglSummaries(context, selectedDiseaseGroup) {
+
+            let portal = selectedDiseaseGroup || "md";
+
+            let json = await fetch(
+                "https://kp4cd.org/rest/views/eglmethodsperportal?portal=" +
+                selectedDiseaseGroup
+            ).then(resp => resp.json());
+            // set the data
+            context.commit("setEglSummaries", json);
+        },
         async getEglData(context, targetData) {
             let json = await fetch(
                 "https://kp4cd.org/egldata/dataset?dataset=" +
-                    targetData.dataset +
-                    "&trait=" +
-                    targetData.trait
+                targetData.dataset +
+                "&trait=" +
+                targetData.trait
             ).then(resp => resp.json());
 
             context.commit("setEglData", json);
@@ -147,12 +167,19 @@ export default {
         async getEglConfig(context, targetData) {
             let json = await fetch(
                 "https://kp4cd.org/egldata/config?dataset=" +
-                    targetData.dataset +
-                    "&trait=" +
-                    targetData.trait
+                targetData.dataset +
+                "&trait=" +
+                targetData.trait
             ).then(resp => resp.json());
 
             context.commit("setEglConfig", json);
+        },
+        async getForestPlotData(context) {
+            let json = await fetch(
+                "https://raw.githubusercontent.com/statgen/locuszoom/develop/examples/data/phewas_forest.json"
+            ).then(resp => resp.json());
+
+            context.commit("setForestPlotData", json);
         }
     }
 };

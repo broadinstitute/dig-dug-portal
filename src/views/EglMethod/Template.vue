@@ -17,7 +17,7 @@
                         <h2>{{$store.state.pageTitle}}</h2>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
-                        <h4>Phenotype: {{$parent.trait}}</h4>
+                        <h4>{{$parent.trait}}</h4>
                     </div>
                 </div>
             </div>
@@ -35,6 +35,7 @@
                                     <effector-genes-table
                                         :dataset="$parent.dataset"
                                         :trait="$parent.trait"
+                                        v-on:scroll.native="handleScroll"
                                     ></effector-genes-table>
                                 </b-tab>
                                 <b-tab title="View research method">

@@ -70,7 +70,13 @@ export default {
         geneFunction(state) {
             let doc = state.uniprotDoc
             if (!!doc) {
-                let commentObject = doc.uniprot.entry.comment
+                let commentObject = doc.uniprot.entry.comment;
+
+                // most uniprot comments are an array, so ensure that
+                if (!Array.isArray(commentObject)) {
+                    commentObject = [commentObject];
+                }
+
                 for (let i in commentObject) {
                     if (commentObject[i]._attributes.type == 'function') {
                         let geneFunction = jsonQuery('text[**]', { data: commentObject[i] }).value
@@ -84,11 +90,10 @@ export default {
         proteinExistence(state) {
             let doc = state.uniprotDoc
             let references = []
-            references.push(_.get(doc.uniprot.entry.dbReference, '_text'))
+            // eliminated lodash here in to remove dependencies
+            // previously was _.get
+            references.push(!!doc.uniprot.entry.dbReference ? doc.uniprot.entry.dbReference : '_text');
             return references
-        },
-        feature(state) {
-
         }
 
     },
@@ -107,8 +112,7 @@ export default {
             let uniprotDoc = await fetch(`https://www.uniprot.org/uniprot/?${qs}`)
                 .then(response => response.text())
                 .then(responseJson => JSON.parse(convert.xml2json(responseJson, { compact: true, spaces: 4 })))
-
-            closeAlert(alertID);
+                .finally(() => closeAlert(alertID));
 
             if (!!uniprotDoc) {
                 context.commit('setUniprotDoc', uniprotDoc)

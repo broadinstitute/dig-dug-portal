@@ -1,50 +1,95 @@
 <template>
     <div class="eglt-table-wrapper" :id="dataset">
-        <!--<div id="igv-div" v-show="igvBrowser">
-            <div style="height:40px;">
-                <b-btn-close @click="igvBrowser = false">
-                    <b-icon-x-circle></b-icon-x-circle>
-                </b-btn-close>
-            </div>
-            <div id="igv-content"></div>
-        </div>-->
         <b-container
             fluid
-            v-if="!!config && !!tableData && config[dataset].filters != undefined"
+            v-if="
+                !!config && !!tableData && config[dataset].filters != undefined
+            "
             class="filtering-ui-wrapper"
         >
             <b-row class="filtering-ui-content">
-                <b-col v-for="filter in config[dataset]['filters']" :key="filter.field">
+                <b-col
+                    v-for="filter in config[dataset]['filters']"
+                    :key="filter.field"
+                >
                     <div class="label" v-html="filter.label"></div>
                     <template v-if="filter.type.includes('search')">
-                        <b-form-input
+                        <input
                             type="text"
-                            @change="filterData($event, filter.field, filter.type)"
-                        ></b-form-input>
+                            class="form-control"
+                            :id="'filter_' + filter.field.replace(/ /g, '')"
+                            @change="
+                                filterData($event, filter.field, filter.type)
+                            "
+                        />
                     </template>
                     <template v-else-if="filter.type == 'dropdown'">
-                        <b-form-select
-                            :options="buildOptions(filter.field)"
-                            @change="filterData($event, filter.field, filter.type)"
-                        ></b-form-select>
+                        <select
+                            :id="'filter_' + filter.field"
+                            @change="
+                                filterData(
+                                    $event,
+                                    filter.field,
+                                    filter.type,
+                                    filter.dataType
+                                )
+                            "
+                            class="custom-select"
+                        >
+                            <option></option>
+                            <option
+                                v-for="value in buildOptions(filter.field)"
+                                :key="value"
+                                :value="value"
+                            >
+                                {{ value }}
+                            </option>
+                        </select>
                     </template>
                 </b-col>
             </b-row>
         </b-container>
         <b-container class="search-fields-wrapper">
-            <div v-for="(value,name,index) in this.filtersIndex" :class="'search-field f-'+index">
+            <div
+                v-for="(value, name, index) in this.filtersIndex"
+                :class="'search-field f-' + index"
+            >
                 <b-badge
                     pill
                     v-if="value.search.length > 0"
-                    v-for="(v,i) in value.search"
+                    v-for="(v, i) in value.search"
                     :key="v"
-                    :class="'btn search-bubble '+i"
-                    @click="removeFilter(value.field,i)"
-                    v-html="v+'&nbsp;<span class=\'remove\'>X</span>'"
+                    :class="'btn search-bubble ' + i"
+                    @click="removeFilter(value.field, i)"
+                    v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
                 ></b-badge>
             </div>
         </b-container>
-        <b-container fluid v-if="!!config && !!tableData" class="legend-wrapper">
+
+        <b-container
+            fluid
+            v-if="
+                !!config &&
+                !!filteredData &&
+                config[dataset]['render_m_plot'] == true
+            "
+            class="egl-m-plot-wrapper"
+        >
+            <effector-genes-m-plot
+                :plotData="filteredData"
+                :locusKey="config[dataset]['m_plot_config']['locusKey']"
+                :scoreKey="config[dataset]['m_plot_config']['scoreKey']"
+                :renderBy="config[dataset]['m_plot_config']['renderBy']"
+                :yAxisLabel="config[dataset]['m_plot_config']['yAxisLabel']"
+                :popUpContent="config[dataset]['m_plot_config']['hoverContent']"
+            ></effector-genes-m-plot>
+        </b-container>
+
+        <b-container
+            fluid
+            v-if="!!config && !!tableData"
+            class="legend-wrapper"
+        >
             <b-row
                 class="each-legend"
                 v-for="(legend, i) in config[dataset]['legend']"
@@ -52,46 +97,146 @@
                 :key="i"
             ></b-row>
         </b-container>
-        <div :class="'EGLT-table '+this.dataset">
+        <b-container
+            fluid
+            v-if="!!config && !!tableData"
+            class="table-ui-wrapper"
+        >
+            <b-row>
+                <div class="col-md-12 egl-table-ui-options">
+                    <div class="show-all-features-wrapper">
+                        <input
+                            type="checkbox"
+                            v-model="showAllFeaturesChk"
+                            id="show_all_features"
+                            @change="showAllFeatures()"
+                        />
+                        <label for="show_all_features"
+                            >Show all feature rows</label
+                        >
+                    </div>
+                    <div class="hide-all-feature-headers-wrapper">
+                        <input
+                            type="checkbox"
+                            v-model="hideAllFeatureHeadersChk"
+                            id="hide_all_feature_headers"
+                            @change="hideAllFeatureHeaders()"
+                        />
+                        <label for="hide_all_feature_headers"
+                            >Hide feature headers</label
+                        >
+                    </div>
+                    <div class="hide-top-level-wrapper">
+                        <input
+                            type="checkbox"
+                            v-model="hideTopLevelRowsChk"
+                            id="hide_top_level_rows"
+                            @change="hideTopLevelRows()"
+                        />
+                        <label for="hide_top_level_rows"
+                            >Hide top level rows</label
+                        >
+                    </div>
+                </div>
+            </b-row>
+        </b-container>
+        <div :class="'EGLT-table ' + this.dataset">
             <b-container fluid v-if="!!config && !!filteredData" class>
                 <b-row class="top-level-header">
                     <div
-                        v-for="name in config[dataset]['topLevelRender']"
-                        :class="'top-level-header-item ' + name"
-                        v-html="name"
+                        v-for="(value, key) in config[dataset][
+                            'topLevelRender'
+                        ]"
+                        :key="key"
+                        :class="'sortable top-level-header-item ' + value"
+                        v-html="value"
+                        @click="applySorting(key)"
                     ></div>
-                    <div class="top-level-header-item">View</div>
+                    <div
+                        class="top-level-header-item"
+                        v-if="
+                            config[dataset]['render_feature'] == true ||
+                            config[dataset]['plots']['render'] == true
+                        "
+                    >
+                        View
+                    </div>
                 </b-row>
-                <b-row v-for="(value,index) in filteredData" class="top-level-value" :key="index">
-                    <template v-for="(col, i) in config[dataset]['topLevelRender']">
+                <b-row
+                    v-for="(value, index) in filteredData"
+                    class="top-level-value"
+                    :key="index"
+                >
+                    <template
+                        v-for="(col, i) in config[dataset]['topLevelRender']"
+                    >
                         <div
-                            :class="'top-level-value-item '+i+' '+i+'-'+value[i]"
+                            v-if="i == config[dataset]['topLevelPrime']"
+                            :class="
+                                'top-level-value-item prime ' +
+                                i +
+                                ' ' +
+                                i +
+                                '-' +
+                                value[i]
+                            "
                             :key="i"
-                            v-html="formatContent(i,value[i],'top')"
+                            v-html="formatContent(i, value[i], 'top')"
+                        ></div>
+                        <div
+                            v-else
+                            :class="
+                                'top-level-value-item ' +
+                                i +
+                                ' ' +
+                                i +
+                                '-' +
+                                value[i]
+                            "
+                            :key="i"
+                            v-html="formatContent(i, value[i], 'top')"
                         ></div>
                     </template>
-                    <div class="top-level-value-item">
+                    <div
+                        class="top-level-value-item"
+                        v-if="
+                            config[dataset]['render_feature'] == true ||
+                            config[dataset]['plots']['render'] == true
+                        "
+                    >
                         <b-button
+                            v-if="config[dataset]['render_feature'] == true"
                             @click="showFeatures(index)"
                             class="view-features-btn"
-                            v-html="config[dataset]['feature_btn_name']? config[dataset]['feature_btn_name']:'Features'"
+                            v-html="
+                                config[dataset]['feature_btn_name']
+                                    ? config[dataset]['feature_btn_name']
+                                    : 'Features'
+                            "
                         ></b-button>
-                        <template v-if="config[dataset]['plots']['render'] == true">
+                        <template
+                            v-if="config[dataset]['plots']['render'] == true"
+                        >
                             <b-button
-                                @click="showVisualizer(value[config[dataset]['plots']['openerField']])"
+                                @click="
+                                    showVisualizer(
+                                        value[
+                                            config[dataset]['plots'][
+                                                'openerField'
+                                            ]
+                                        ]
+                                    )
+                                "
                                 class="view-visualizer-btn"
                                 v-html="config[dataset]['plots']['btnName']"
                             ></b-button>
                         </template>
-                        <!--<template v-if="config[dataset]['browser']">
-                            <b-button
-                                @click="showIGV(value.location, value.gene)"
-                                class="view-igv-btn"
-                            >IGV Browser</b-button>
-                        </template>-->
                     </div>
-
-                    <effector-genes-features :features="value.features" :featureIndex="index"></effector-genes-features>
+                    <effector-genes-features
+                        :features="value.features"
+                        :featureIndex="index"
+                        :columnHeader="value[config[dataset]['topLevelPrime']]"
+                    ></effector-genes-features>
                 </b-row>
             </b-container>
         </div>
@@ -103,7 +248,9 @@ import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 //import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
+import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 
 Vue.use(BootstrapVueIcons);
 
@@ -115,13 +262,18 @@ export default Vue.component("effector-genes-table", {
             filtersIndex: {},
             highestScores: { features: {} },
             lowestScores: { features: {} },
+            showAllFeaturesChk: null,
+            hideTopLevelRowsChk: null,
+            hideAllFeatureHeadersChk: null,
+            sortTableSelect: null,
+            sortDirection: "asc",
             /*igvBrowser: false,*/
         };
     },
     modules: {
         uiUtils,
     },
-    components: { EffectorGenesFeatures },
+    components: { EffectorGenesFeatures, EffectorGenesMPlot },
     created() {
         this.$store.dispatch("fetchConfig", {
             dataset: this.dataset,
@@ -163,7 +315,7 @@ export default Vue.component("effector-genes-table", {
             }
         },
         tableData(data) {
-            uiUtils.showHideElement("data-loading-indicator");
+            uiUtils.hideElement("data-loading-indicator");
         },
     },
     methods: {
@@ -172,10 +324,94 @@ export default Vue.component("effector-genes-table", {
                 .map((v) => v[field])
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
-            return options;
+            return options.sort();
         },
-        filterData(search, field, type) {
-            this.filtersIndex[field]["search"].push(search);
+        applySorting(key) {
+            if (key != this.config[this.dataset]["locus_key"]) {
+                let filtered = this.filteredData;
+                let sortDirection = this.sortDirection == "asc" ? false : true;
+                this.sortDirection =
+                    this.sortDirection == "asc" ? "desc" : "asc";
+                let keyData = filtered[0][key];
+                let isNumeric = typeof keyData != "number" ? false : true;
+
+                sortUtils.sortEGLTableData(
+                    filtered,
+                    key,
+                    isNumeric,
+                    sortDirection
+                );
+                this.$store.dispatch("filteredData", filtered);
+            } else if (key == this.config[this.dataset]["locus_key"]) {
+                let sortKey = this.config[this.dataset]["locus_key"];
+                let filtered = this.filteredData;
+                let sortDirection = this.sortDirection == "asc" ? false : true;
+                this.sortDirection =
+                    this.sortDirection == "asc" ? "desc" : "asc";
+
+                filtered.map(function (g) {
+                    let locusArr = g[sortKey].split(":");
+                    let chrNum = locusArr[0].trim();
+                    let bpNum;
+                    if (!!locusArr[1]) {
+                        bpNum =
+                            locusArr[1].includes("-") == true
+                                ? (Number(locusArr[1].split("-")[0].trim()) +
+                                      Number(
+                                          locusArr[1].split("-")[1].trim()
+                                      )) /
+                                  2
+                                : Number(locusArr[1]);
+                    } else {
+                        bpNum = 0;
+                    }
+
+                    g["chr"] =
+                        chrNum != "X" && chrNum != "Y"
+                            ? Number(chrNum)
+                            : chrNum == "X"
+                            ? 23
+                            : 24;
+
+                    g["bp"] = bpNum;
+                });
+
+                sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+                sortUtils.sortEGLTableData(
+                    filtered,
+                    "chr",
+                    true,
+                    sortDirection
+                );
+                this.$store.dispatch("filteredData", filtered);
+            }
+        },
+        filterData(EVENT, FIELD, TYPE, DATATYPE) {
+            let searchValue = EVENT.target.value;
+            let id = "#filter_" + FIELD.replace(/ /g, "");
+            let inputField = document.querySelector(id);
+
+            inputField.blur();
+            inputField.value = "";
+
+            if (TYPE == "search") {
+                let searchTerms = searchValue.split(",");
+                searchTerms.map((searchTerm) => {
+                    this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
+                });
+            } else if (TYPE == "search_gt" || TYPE == "search_lt") {
+                this.filtersIndex[FIELD]["search"] = [searchValue];
+            } else {
+                if (DATATYPE == "number") {
+                    this.filtersIndex[FIELD]["search"].push(
+                        Number(searchValue)
+                    );
+                } else {
+                    this.filtersIndex[FIELD]["search"].push(searchValue);
+                }
+            }
+
+            //console.log("filtersIndex", this.filtersIndex);
 
             this.applyFilters();
         },
@@ -183,6 +419,7 @@ export default Vue.component("effector-genes-table", {
             let filtered = this.tableData;
             let tempFiltered = [];
             let i = 0;
+
             for (var f in this.filtersIndex) {
                 let searchIndex = this.filtersIndex[f];
 
@@ -238,6 +475,94 @@ export default Vue.component("effector-genes-table", {
         showFeatures(INDEX) {
             uiUtils.showHideElement("feature-content-wrapper-" + INDEX);
         },
+        showAllFeatures(INDEX) {
+            let checked = document.getElementById("show_all_features").checked;
+            let topLevelChecked = document.getElementById("hide_top_level_rows")
+                .checked;
+
+            let featureWrappers = document.querySelectorAll(
+                ".feature-content-wrapper"
+            );
+
+            featureWrappers.forEach(function (featureWrapper) {
+                checked == true
+                    ? featureWrapper.classList.remove("hidden")
+                    : featureWrapper.classList.add("hidden");
+                topLevelChecked == true
+                    ? featureWrapper.classList.add("open-all")
+                    : featureWrapper.classList.remove("open-all");
+            });
+        },
+        hideAllFeatureHeaders() {
+            let checked = document.getElementById("hide_all_feature_headers")
+                .checked;
+
+            let primeFeatureHeadersLength = document
+                .getElementsByClassName("feature-content-wrapper")[0]
+                .querySelectorAll(".feature-headers").length;
+
+            let allFeatureHeaderLength = document.querySelectorAll(
+                ".feature-headers"
+            ).length;
+
+            for (
+                let i = primeFeatureHeadersLength;
+                i < allFeatureHeaderLength;
+                i++
+            ) {
+                checked == true
+                    ? document
+                          .getElementsByClassName("feature-headers")
+                          [i].classList.add("hidden")
+                    : document
+                          .getElementsByClassName("feature-headers")
+                          [i].classList.remove("hidden");
+            }
+        },
+        hideTopLevelRows(INDEX) {
+            let checked = document.getElementById("hide_top_level_rows")
+                .checked;
+
+            checked == true
+                ? document
+                      .getElementsByClassName("top-level-header")[0]
+                      .classList.add("hidden")
+                : document
+                      .getElementsByClassName("top-level-header")[0]
+                      .classList.remove("hidden");
+
+            let topLevelRows = document.querySelectorAll(".top-level-value");
+
+            topLevelRows.forEach(function (topLevelRow) {
+                let topLevelItems = topLevelRow.querySelectorAll(
+                    ".top-level-value-item"
+                );
+
+                for (let i = 0; i < topLevelItems.length; i++) {
+                    if (topLevelItems[i].classList.contains("prime")) {
+                        checked == true
+                            ? topLevelItems[i].classList.add("top-prime-column")
+                            : topLevelItems[i].classList.remove(
+                                  "top-prime-column"
+                              );
+                    } else {
+                        checked == true
+                            ? topLevelItems[i].classList.add("hidden")
+                            : topLevelItems[i].classList.remove("hidden");
+                    }
+                }
+            });
+
+            let featureWrappers = document.querySelectorAll(
+                ".feature-content-wrapper"
+            );
+
+            featureWrappers.forEach(function (featureWrapper) {
+                checked == true
+                    ? featureWrapper.classList.add("open-all")
+                    : featureWrapper.classList.remove("open-all");
+            });
+        },
         showVisualizer(ITEM) {
             this.$store.dispatch("selectGene", ITEM);
             uiUtils.showElement("feature-scores-wrapper");
@@ -274,70 +599,86 @@ export default Vue.component("effector-genes-table", {
                         let contentLink = "";
                         switch (linkPage) {
                             case "gene":
-                                contentLink =
-                                    '<a href="/gene.html?gene=' +
-                                    VALUE +
-                                    '">' +
-                                    VALUE +
-                                    "</a>";
-                                return contentLink;
+                                if (VALUE != "") {
+                                    contentLink =
+                                        '<a href="/gene.html?gene=' +
+                                        VALUE +
+                                        '">' +
+                                        VALUE +
+                                        "</a>";
+                                    return contentLink;
+                                } else {
+                                    return "";
+                                }
 
                                 break;
                             case "variant":
-                                contentLink =
-                                    '<a href="/variant.html?variant=' +
-                                    VALUE +
-                                    '">' +
-                                    VALUE +
-                                    "</a>";
-                                return contentLink;
+                                if (VALUE != "") {
+                                    contentLink =
+                                        '<a href="/variant.html?variant=' +
+                                        VALUE +
+                                        '">' +
+                                        VALUE +
+                                        "</a>";
+                                    return contentLink;
+                                } else {
+                                    return "";
+                                }
 
                                 break;
                             case "region":
-                                let chr = VALUE.split(":")[0];
-                                let start = VALUE.split(":")[1]
-                                    .split("-")[0]
-                                    .trim();
-                                let end = VALUE.split(":")[1]
-                                    .split("-")[1]
-                                    .trim();
-                                contentLink =
-                                    '<a href="/region.html?chr=' +
-                                    chr +
-                                    "&start=" +
-                                    start +
-                                    "&end=" +
-                                    end +
-                                    '">' +
-                                    VALUE +
-                                    "</a>";
-                                return contentLink;
+                                if (VALUE != "") {
+                                    let chr = VALUE.split(":")[0];
+                                    let start = VALUE.split(":")[1]
+                                        .split("-")[0]
+                                        .trim();
+                                    let end = VALUE.split(":")[1]
+                                        .split("-")[1]
+                                        .trim();
+                                    contentLink =
+                                        '<a href="/region.html?chr=' +
+                                        chr +
+                                        "&start=" +
+                                        start +
+                                        "&end=" +
+                                        end +
+                                        '">' +
+                                        VALUE +
+                                        "</a>";
+                                    return contentLink;
+                                } else {
+                                    return "";
+                                }
 
                                 break;
                             case "phenotype":
-                                let valueName = null;
+                                if (VALUE != "") {
+                                    let valueName = null;
 
-                                this.$store.state.bioPortal.phenotypes.map(
-                                    (x) => {
-                                        if (
-                                            x.name.toLowerCase() ==
-                                            VALUE.toLowerCase()
-                                        ) {
-                                            valueName = x.description;
+                                    this.$store.state.bioPortal.phenotypes.map(
+                                        (x) => {
+                                            if (
+                                                x.name.toLowerCase() ==
+                                                VALUE.toLowerCase()
+                                            ) {
+                                                valueName = x.description;
+                                            }
                                         }
-                                    }
-                                );
+                                    );
 
-                                contentLink =
-                                    valueName != null
-                                        ? '<a href="/phenotype.html?phenotype=' +
-                                          VALUE +
-                                          '">' +
-                                          valueName +
-                                          "</a>"
-                                        : VALUE;
+                                    contentLink =
+                                        valueName != null
+                                            ? '<a href="/phenotype.html?phenotype=' +
+                                              VALUE +
+                                              '">' +
+                                              valueName +
+                                              "</a>"
+                                            : VALUE;
 
-                                return contentLink;
+                                    return contentLink;
+                                } else {
+                                    return "";
+                                }
 
                                 break;
                         }
@@ -377,6 +718,7 @@ export default Vue.component("effector-genes-table", {
 
                         if (columnHighestScore == undefined) {
                             let countingColumns = formatting["count"];
+
                             if (LEVEL == "top") {
                                 let tempArr = [];
                                 this.tableData.map((r) => {
@@ -407,7 +749,7 @@ export default Vue.component("effector-genes-table", {
                                                 tempArr.push(Number(t[cc]));
                                             });
                                         } else {
-                                            if (t[COLUMN[1]]) {
+                                            if (t[COLUMN[1]] != undefined) {
                                                 tempArr.push(
                                                     Number(t[COLUMN[1]])
                                                 );
@@ -435,40 +777,7 @@ export default Vue.component("effector-genes-table", {
                                     COLUMN[0]
                                 ][COLUMN[1]];
                             }
-
-                            /*let percentileValue = Math.abs(
-                                Math.floor(
-                                    ((Number(VALUE) - columnLowestScore) /
-                                        (columnHighestScore -
-                                            columnLowestScore)) *
-                                        100
-                                )
-                            );
-
-                            return (
-                                "<span class='cell-weight-" +
-                                percentileValue +
-                                "'>" +
-                                VALUE +
-                                "</span>"
-                            );*/
                         } else {
-                            /*let percentileValue = Math.abs(
-                                Math.floor(
-                                    ((Number(VALUE) - columnLowestScore) /
-                                        (columnHighestScore -
-                                            columnLowestScore)) *
-                                        100
-                                )
-                            );
-
-                            return (
-                                "<span class='cell-weight-" +
-                                percentileValue +
-                                "'>" +
-                                VALUE +
-                                "</span>"
-                            );*/
                         }
 
                         let percentileValue = Math.abs(

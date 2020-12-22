@@ -4,7 +4,7 @@
             hover
             small
             responsive="sm"
-            :items="sortedCredibleVariants"
+            :items="tableData"
             :fields="fields"
             :per-page="perPage"
             :current-page="currentPage"
@@ -30,7 +30,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
 export default Vue.component("credible-variants-table", {
-    props: ["credibleVariants"],
+    props: ["credibleVariants", "filter"],
     data() {
         return {
             fields: [
@@ -55,12 +55,21 @@ export default Vue.component("credible-variants-table", {
     },
     computed: {
         rows() {
-            return this.crediblevariants.length;
+            return this.tableData.length;
         },
         sortedCredibleVariants() {
             // TODO
             return this.crediblevariants;
             // .sort((a, b) => b.subjects - a.subjects);
+        },
+        tableData() {
+            let dataRows = this.crediblevariants;
+            if (!!this.filter) {
+                dataRows = dataRows.filter(variant => {
+                    return this.filter(variant);
+                });
+            }
+            return dataRows;
         },
     },
 });

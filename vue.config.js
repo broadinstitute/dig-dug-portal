@@ -21,7 +21,7 @@ let pages = {
         entry: "src/views/Phenotype/main.js",
         template: "public/index.html",
         filename: "phenotype.html",
-        title: "Phenotype Page",
+        title: "Phenotype",
         chunks: ["chunk-vendors", "chunk-common", "phenotype"]
     },
     region: {
@@ -119,7 +119,7 @@ let pages = {
         entry: "src/views/Apis/main.js",
         template: "public/index.html",
         filename: "apis.html",
-        title: "Apis",
+        title: "APIs",
         chunks: ["chunk-vendors", "chunk-common", "apis"]
     },
     epigeneticdatasets: {
@@ -133,15 +133,52 @@ let pages = {
         entry: "src/views/EffectorGenes/main.js",
         template: "public/index.html",
         filename: "effectorgenes.html",
-        title: "Predicted effector genes research methods",
+        title: "Predicted Effector Genes Research Methods",
         chunks: ["chunk-vendors", "chunk-common", "effectorgenes"]
     },
     eglmethod: {
         entry: "src/views/EglMethod/main.js",
         template: "public/index.html",
         filename: "method.html",
-        title: "Research method",
+        title: "Research Method",
         chunks: ["chunk-vendors", "chunk-common", "eglmethod"]
+    },
+    hugecalculator: {
+        entry: "src/views/HuGeCalculator/main.js",
+        template: "public/index.html",
+        filename: "hugecalculator.html",
+        title: "HuGe Calculator",
+        chunks: ["chunk-vendors", "chunk-common", "hugecalculator"]
+    },
+    genefinder: {
+        entry: "src/views/GeneFinder/main.js",
+        template: "public/index.html",
+        filename: "genefinder.html",
+        title: "Gene Finder",
+        chunks: ["chunk-vendors", "chunk-common", "genefinder"]
+    },
+
+    complicationsviewer: {
+        entry: "src/views/ComplicationsViewer/main.js",
+        template: "public/index.html",
+        filename: "complicationsviewer.html",
+        title: "Complications Viewer",
+        chunks: ["chunk-vendors", "chunk-common", "complicationsviewer"]
+    },
+
+    page404: {
+        entry: "src/views/404/main.js",
+        template: "public/index.html",
+        filename: "404.html",
+        title: "Page Not Found",
+        chunks: ["chunk-vendors", "chunk-common", "page404"]
+    },
+    gait: {
+        entry: "src/views/GAIT/main.js",
+        template: "public/index.html",
+        filename: "gait.html",
+        title: "Genetic Association Interactive Tool",
+        chunks: ["chunk-vendors", "chunk-common", "gait"]
     }
 };
 
@@ -183,7 +220,10 @@ module.exports = {
 
         // create inline maps for dev builds
         if (process.env.NODE_ENV !== "production") {
-            config.devtool = "inline-source-map";
+            //config.devtool = "inline-source-map";
+
+            //https://stackoverflow.com/questions/48047150/chrome-extension-compiled-by-webpack-throws-unsafe-eval-error
+            config.devtool = "cheap-module-source-map";
         }
     },
     productionSourceMap: false,

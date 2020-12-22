@@ -12,46 +12,67 @@ a:hover {
     text-decoration: none !important;
 }
 
+/*huge calculator*/
+#posteriorpriorplot .center-posterior-prior-plot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    border: 3px solid green;
+}
+
 /* front page */
 .front-top-banner-mdkp {
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/mdkp_front_bg.png),
         linear-gradient(#0097d6, #8ed8f8);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-cvdkp {
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/cvdkp_front_bg.png),
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/cvdkp_front_bg.png),
         linear-gradient(#f58752, #fdbc63);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-sleepkp {
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/sleepkp_front_bg.png),
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/sleepkp_front_bg.png),
         linear-gradient(#74b9e2, #477cbf);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-t2dkp {
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/t2dkp_front_bg.png),
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/t2dkp_front_bg.png),
         linear-gradient(#55aaee, #3c80bd);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-cdkp {
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/cdkp_front_bg.png),
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/cdkp_front_bg.png),
         linear-gradient(#73d253, #38942d);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-v2fkp {
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/v2fkp_front_bg.png),
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/v2fkp_front_bg.png),
         linear-gradient(#f7835c, #bd516f);
     background-position: 120% 100px, top left;
 }
 
 .front-top-banner-t1dkp {
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/t1dkp_front_bg.png),
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/t1dkp_front_bg.png),
         linear-gradient(#aec5e7, #5481c1);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-mskkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/mskkp_front_bg.png),
+        linear-gradient(#bcafd6, #918bc3);
+    background-position: 120% 100px, top left;
+}
+
+.front-top-banner-lungkp {
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/lungkp_front_bg.png),
+        linear-gradient(#7accc8, #08b89d);
     background-position: 120% 100px, top left;
 }
 
@@ -100,6 +121,10 @@ a:hover {
     width: 430px;
 }
 
+.front-top-banner-mskkp .front-logo-img {
+    width: 470px;
+}
+
 .front-banner-btn {
     border-radius: 30px !important;
     width: 250px;
@@ -144,6 +169,14 @@ a:hover {
     transform: translate(0%, 20%);
 }
 
+.front-logo-tagline-mskkp {
+    transform: translate(0%, 25%);
+}
+
+.front-logo-tagline-lungkp {
+    transform: translate(0%, 85%);
+}
+
 .front-banner-ui-tabs {
     width: 800px;
     margin-left: auto;
@@ -158,19 +191,19 @@ a:hover {
 
 .amp-header {
     height: 70px;
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/amp_banner_middle.png);
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_middle.png);
     background-size: 100% 70px;
 }
 .amp-banner-right {
     width: 100%;
     height: 70px;
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/amp_banner_right.png);
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_right.png);
     background-repeat: no-repeat;
     background-position: right;
 }
 .amp-banner-left {
     height: 70px;
-    background-image: url(https://kp4cd.org/sites/default/files/vueportal/amp_banner_left.png);
+    background-image: url(//kp4cd.org/sites/default/files/vueportal/amp_banner_left.png);
     background-repeat: no-repeat;
     background-position: left top;
     padding: 15px 0 0 20px;
@@ -212,52 +245,12 @@ a:hover {
     height: 50px;
 }
 
-.mdkp-menu-wrapper,
-.cvdkp-menu-wrapper,
-.sleepkp-menu-wrapper,
-.t2dkp-menu-wrapper,
-.cdkp-menu-wrapper,
-.v2fkp-menu-wrapper,
-.t1dkp-menu-wrapper {
-    text-align: right;
+.mskkp-logo {
+    height: 50px;
 }
 
-.mdkp-menu li,
-.cvdkp-menu li,
-.sleepkp-menu li,
-.cdkp-menu li,
-.t2dkp-menu li,
-.v2fkp-menu li,
-.t1dkp-menu li {
-    list-style: none;
-    display: inline-block;
-    padding-top: 15px;
-}
-
-.mdkp-menu li a,
-.cvdkp-menu li a,
-.sleepkp-menu li a,
-.cdkp-menu li a,
-.t2dkp-menu li a,
-.v2fkp-menu li a,
-.t1dkp-menu li a {
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    color: #fff !important;
-    font-size: 16px;
-    font-weight: 300;
-}
-
-.mdkp-menu li a.mdkp-login,
-.cvdkp-menu li a.cvdkp-login,
-.sleepkp-menu li a.sleepkp-login,
-.cdkp-menu li a.cdkp-login,
-.t2dkp-menu li a.t2dkp-login,
-.v2fkp-menu li a.v2fkp-login,
-.t1dkp-menu li a.t1dkp-login {
-    border-left: solid 1px #fff;
+.lungkp-logo {
+    height: 50px;
 }
 
 .mdkp-header,
@@ -302,12 +295,63 @@ a:hover {
     height: 50px;
 }
 
-.am-menu {
-    display: inline-block;
-    position: relative;
+.mskkp-header,
+.mskkp-footer {
+    background-color: #bcafd6;
+    height: 50px;
 }
 
-.am-menu > .am-submenu {
+.lungkp-header,
+.lungkp-footer {
+    background-color: #7accc8;
+    height: 50px;
+}
+
+.kp-menu-wrapper {
+    text-align: right;
+}
+
+.portal-menu-wrapper,
+.login-menu-wrapper {
+    display: inline-block;
+}
+
+.portal-menu-wrapper ul,
+.login-menu-wrapper ul,
+.portal-menu-wrapper,
+.login-menu-wrapper {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.portal-menu-wrapper > ul > li,
+.login-menu-wrapper > ul > li {
+    display: inline-block;
+    position: relative;
+    padding-top: 15px;
+}
+
+.login-menu-wrapper > ul > li > a {
+    border-left: solid 1px #fff;
+}
+
+.portal-menu-wrapper > ul > li > a,
+.login-menu-wrapper > ul > li > a {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: #fff !important;
+    font-size: 16px;
+    font-weight: 300;
+}
+
+.portal-menu-wrapper .item + .item:before {
+    content: "" !important;
+}
+
+.portal-menu-wrapper > ul > li > ul {
     display: none;
     position: absolute;
     z-index: 100000;
@@ -315,36 +359,33 @@ a:hover {
     margin: 0;
 }
 
-.am-menu:hover > .am-submenu {
+.portal-menu-wrapper > ul > li:hover > ul {
     display: block;
 }
 
-.am-submenu > li {
+.portal-menu-wrapper > ul > li > ul > li {
     width: 100%;
-    background-color: rgba(100, 100, 100, 0.85);
+    padding: 0 !important;
     font-size: 0.8em;
+    background-color: rgba(100, 100, 100, 0.85);
+    text-align: left;
+    list-style: none;
+}
+
+.portal-menu-wrapper > ul > li > ul > li:hover {
+    background-color: rgba(90, 90, 90, 1);
+}
+
+.portal-menu-wrapper > ul > li > ul > li > a {
+    display: block;
+    width: 100%;
     padding: 5px 15px 5px 15px;
     border-bottom: solid 1px #666;
-    text-align: left;
     list-style: none;
     white-space: nowrap;
-}
-
-.am-submenu > li:hover {
-    background-color: rgba(90, 90, 90, 1);
-    font-size: 0.8em;
-    padding: 5px 15px 5px 15px;
-    border-bottom: solid 1px #666;
-    text-align: left;
-    list-style: none;
-}
-
-.am-submenu > li > a {
-    color: #fff;
-}
-
-.am-menu:hover > .am-submenu {
-    display: block;
+    color: #ffffff !important;
+    font-size: 16px;
+    font-weight: 300;
 }
 
 .mdkp-footer,
@@ -353,7 +394,9 @@ a:hover {
 .t2dkp-footer,
 .cdkp-footer,
 .v2fkp-footer,
-.t1dkp-footer {
+.t1dkp-footer,
+.mskkp-footer,
+.lungkp-footer {
     text-align: center;
     padding-top: 15px;
     color: #fff;
@@ -367,7 +410,9 @@ a:hover {
 .t2dkp-body,
 .cdkp-body,
 .v2fkp-body,
-.t1dkp-body {
+.t1dkp-body,
+.mskkp-body,
+.lungkp-body {
     background-color: #eee;
     min-height: 400px;
     padding-top: 10px;
@@ -379,7 +424,9 @@ a:hover {
 .t2dkp-card,
 .cdkp-card,
 .v2fkp-card,
-.t1dkp-card {
+.t1dkp-card,
+.mskkp-card,
+.lungkp-card {
     margin-top: 10px;
     margin-bottom: 10px;
     min-width: 1024px !important;
@@ -448,6 +495,53 @@ a:hover {
     border-color: #fff;
 }
 
+/* front page datasets info graphs */
+
+.front-datasets-graph,
+.front-phenotypes-graph {
+    width: 50%;
+    padding: 0px 10px 20px 10px;
+    display: inline-block;
+    position: relative;
+}
+
+.front-datasets-graph .each-item,
+.front-phenotypes-graph .each-item {
+    font-size: 16px;
+    position: relative;
+    width: 100%;
+    height: 30px;
+    margin-bottom: 3px;
+}
+
+.front-datasets-graph .percent-bg,
+.front-phenotypes-graph .percent-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #ccc;
+    border-radius: 30px;
+    width: 0%;
+    transition: width 2s;
+    height: 30px;
+}
+
+.front-datasets-graph .percent-bg {
+    background-color: rgba(0, 185, 242, 0.5);
+}
+
+.front-phenotypes-graph .percent-bg {
+    background-color: rgba(128, 194, 66, 0.5);
+}
+
+.front-datasets-graph .info-label,
+.front-phenotypes-graph .info-label {
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    font-size: 14px;
+}
+
 .header-disease-group-select-wrapper {
     display: inline-block;
     border-left: solid 1px #ddd;
@@ -493,17 +587,27 @@ a.edit-btn:hover {
     position: absolute;
     top: 0;
     left: 0;
-    height: 65px;
+    /*height: 65px;*/
     width: 100%;
     background-color: #fff;
     font-size: 16px;
+    z-index: 10;
+}
+
+.shorten-when-full {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .gene-page-header-body {
-    height: 65px;
+    /*height: 65px;*/
     font-size: 25px;
     padding: 12px 0 12px 5px;
     border-left: solid 1px #eee;
+}
+
+.gene-page-header-search-holder {
 }
 
 div.filtering-tools {
@@ -573,8 +677,67 @@ div.filtering-tools table th {
     padding-left: 40px;
 }
 
+.search-header {
+    margin-top: -10px;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    background-color: #bbbbbb !important;
+    font-size: 14px !important;
+    padding: 1px !important;
+    color: #333333;
+    font-weight: 300 !important;
+    border: none !important;
+    position: relative;
+    z-index: 10;
+}
+
+.search-header.fixed-header {
+    position: fixed;
+    top: 8px;
+    width: calc(100% - 30px);
+    background-color: #bbbbbb;
+    left: 15px;
+}
+
+.search-header .row {
+    padding: 0 1.25rem;
+}
+
+.search-header div[class^="col-md-"] {
+    padding: 0;
+}
+
+.search-header .input-wrapper input[type="text"] {
+    border: none;
+    border-radius: 0;
+    border-right: solid 1px #ddd;
+    display: inline-block;
+}
+
+.reset-page-parameters {
+    position: relative;
+    display: block;
+    width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: -25px;
+    padding: 5px 15px;
+    background-color: #bbbbbb;
+    border-bottom-left-radius: 5px !important;
+    border-bottom-right-radius: 5px !important;
+    font-weight: 400;
+}
+
+.reset-page-parameters:hover {
+    cursor: pointer;
+}
+
 #regionSearchHolder .region-search {
     height: 100%;
+}
+
+.region-search > .input-wrapper {
+    display: inline-block !important;
 }
 
 .region-search-examples {
@@ -916,7 +1079,8 @@ polyline {
     background-image: url(../images/pop_out_over.svg);
 }
 
-.hidden {
+.hidden,
+.row.hidden {
     display: none;
 }
 
@@ -929,8 +1093,11 @@ polyline {
     border-radius: 25px;
     padding: 3px 10px;
     font-size: 15px;
-    width: fit-content;
+    /* width: fit-content;*/
     margin: auto;
+    width: intrinsic; /* Safari/WebKit uses a non-standard name */
+    width: -moz-max-content; /* Firefox/Gecko */
+    width: -webkit-max-content; /* Chrome */
 }
 
 .pagination.b-pagination .page-item {
@@ -1022,6 +1189,38 @@ div.filtering-ui-content .divider.col .or-text {
     border-radius: 14px;
 }
 
+#pageSearchParameters .divider.col {
+    width: 1px !important;
+    height: 61px;
+    padding: 0 1px 0 0;
+    background-color: #fff;
+    margin-bottom: -17px;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+#pageSearchParameters .divider.col .or-text {
+    display: block;
+    position: absolute;
+    left: -6px;
+    top: 35%;
+    font-size: 10px;
+    background-color: #666;
+    color: #fff;
+    padding: 2px 2px 1px 2px;
+    border-radius: 14px;
+    width: 18px;
+    font-weight: 500;
+    height: 18px;
+}
+
+#pageSearchParameters .btn.go {
+    border: 1px solid #ced4da;
+    border-radius: 0.25em;
+    height: 30px;
+    margin-top: -2px !important;
+}
+
 div.filtering-ui-content div.col {
     display: inline-block !important;
     width: auto !important;
@@ -1033,6 +1232,11 @@ div.filtering-ui-content div.col .label {
     font-weight: 600;
 }
 
+span div.label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
 div.filtering-ui-content div.col .form-control,
 div.filtering-ui-content div.col select,
 div.filtering-ui-content div.col .input {
@@ -1041,22 +1245,25 @@ div.filtering-ui-content div.col .input {
     font-size: 14px;
 }
 
-div.filtering-ui-content div.col.filter-col-sm .form-control,
+div.filtering-ui-content div.filter-col-sm .form-control,
 div.filtering-ui-content div.col.filter-col-sm select,
 div.filtering-ui-content div.col.filter-col-sm .input {
     width: 110px;
+    display: inline-block;
 }
 
 div.filtering-ui-content div.col.filter-col-md .form-control,
 div.filtering-ui-content div.col.filter-col-md select,
 div.filtering-ui-content div.col.filter-col-md .input {
     width: 220px;
+    display: inline-block;
 }
 
 div.filtering-ui-content div.col.filter-col-lg .form-control,
 div.filtering-ui-content div.col.filter-col-lg select,
 div.filtering-ui-content div.col.filter-col-lg .input {
     width: 300px;
+    display: inline-block;
 }
 
 .help-content.filter-wrapper-help {
@@ -1211,4 +1418,263 @@ a.to-previous-page {
 
 a.to-previous-page:hover {
     background-color: #00aaff95;
+}
+
+.dev-flag {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 20000;
+    width: 50px;
+    height: 50px;
+}
+
+.img .alert,
+.no-access .alert {
+    border-style: dashed;
+    border-width: 1px;
+    text-align: center;
+}
+
+.img .alert-warning,
+.no-access .alert-warning {
+    border-color: darkorange;
+}
+
+.img .alert-danger,
+.no-access .alert-danger {
+    border-color: darkred;
+}
+
+/* pheWAS dataset association table */
+#phewas-datasets {
+    border-right: none;
+    margin-top: 1rem;
+}
+#phewas-datasets div {
+    border-left: none;
+    border-right: none;
+}
+#phewas-datasets .top-level-value-item:first-child {
+    text-align: left;
+}
+#phewas-datasets .top-level-header,
+#phewas-datasets .top-level-value {
+    font-size: 1rem;
+}
+#phewas-datasets .top-level-value:hover {
+    background-color: #efefef;
+}
+#phewas-datasets .list {
+    margin-bottom: 1rem;
+}
+#phewas-datasets .feature-content-wrapper {
+    border-left: 4px solid #6c757d78;
+}
+#phewas-datasets .feature-header-item {
+    background-color: #d2d2d2;
+}
+
+.phenotype-gene-association {
+    position: relative;
+}
+
+.phenotype-gene-association > .options-4-actions {
+    display: none;
+    position: absolute;
+    background-color: #000000;
+    color: #fff;
+    font-weight: 400;
+    padding: 10px;
+    border-radius: 5px;
+    left: -12px;
+    top: 10px;
+    z-index: 20;
+    white-space: nowrap;
+    line-height: 1.5em;
+}
+
+.phenotype-gene-association > .options-4-actions {
+    left: 80%;
+    top: -30%;
+}
+
+.phenotype-gene-association:hover > .options-4-actions {
+    display: block;
+}
+
+.phenotype-gene-association:hover > .options-4-actions a {
+    color: #ffffff !important;
+}
+
+.phenotype-gene-association:hover > .options-4-actions a:hover {
+    color: #aaaaff !important;
+}
+/* for vue-bootstrap-typeahead */
+[type="search"] {
+    background: #fff
+        url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")
+        no-repeat right 0.75rem center/8px 10px;
+}
+
+[class*="filter-pill-"] {
+    margin-right: 2px;
+    margin-left: 2px;
+}
+
+/* !important is required to override the default pill styling from Bootstrap */
+.filter-pill-pValue {
+    background-color: #dc3545 !important;
+}
+
+.filter-pill-fold {
+    background-color: #dc3545 !important;
+}
+
+.filter-pill-beta {
+    background-color: #007bff !important;
+}
+
+.filter-pill-nearest {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-phenotype {
+    background-color: #28a745 !important;
+}
+.filter-pill-condition {
+    background-color: #28a745 !important;
+}
+.filter-pill-secondaryPhenotype {
+    background-color:  #007bff !important;
+}
+.filter-pill-primaryphenotype {
+    background-color: #28a745 !important;
+}
+.filter-pill-secondaryphenotype {
+    background-color: #007bff !important;
+}
+
+.filter-pill-nearest {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-gene {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-consequence {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-annotation {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-source {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-moleculeType {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-tech {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-method {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-tissue {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-ancestry {
+    background-color: #28a745 !important;
+}
+
+.filter-pill-collection {
+    margin: 10px 0 10px 0;
+}
+
+.filter-pill-collection.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* GAIT specific */
+#gait .accordion .card.mb-1 {
+    overflow: unset;
+}
+#gait .accordion .btn-block {
+    text-align: left;
+    position: relative;
+}
+#gait .accordion .btn-block.btn-outline-primary {
+    border-color: transparent;
+}
+#gait .accordion .criteria {
+    position: absolute;
+    right: 0.75rem;
+    top: unset;
+}
+#gait .criteria {
+    display: inline;
+    overflow: visible;
+}
+#gait .accordion .alert {
+    text-align: center;
+}
+#gait .reference > span {
+    color: white;
+}
+#gait .function {
+    text-align: center;
+    margin: 20px auto;
+}
+#gait .filter-tests.card {
+    border-style: dashed;
+}
+#gait .filter-tests > .card-header {
+    background-color: #cce5ff;
+    color: #004085;
+}
+#gait .filter-pill-dataset {
+    background-color: #8a2be2 !important;
+}
+#gait .filter-pill-gene {
+    background-color: #ff8c00 !important;
+}
+#gait .filter-pill-test {
+    background-color: #dc3545 !important;
+}
+#gait .form-group {
+    margin-bottom: auto;
+}
+#gait .alert-info {
+    padding: 0.1rem 1.25rem;
+}
+#gait .progress-bar-title {
+    position: absolute;
+    text-align: center;
+    line-height: 3rem; /* line-height should be equal to bar height */
+    overflow: hidden;
+    color: #0c5460;
+    font-size: 1rem;
+    right: 0;
+    left: 0;
+    top: 0;
+}
+#gait .variants {
+    margin-top: 2rem;
+}
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 1s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
 }

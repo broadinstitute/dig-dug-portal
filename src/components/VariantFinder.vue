@@ -125,6 +125,7 @@
             :associations="overlappingVariants"
             :phenotypes="phenotypes"
             :per-page="10"
+            
         ></associations-table>
     </div>
 </template>

@@ -69,8 +69,38 @@ const logErrorEvent = async function (context, message, page) {
     );
 }
 
+/**
+ * Issue an Pageview notification for Google Analytics (GA) reporting, to the server.
+ * `URI` is passed in by whoever is logging the pageview. Should usually be equal to whatever `window.location.href` returns.
+ *
+ * @param {string} [currentPage]
+ * @param {string} [previousPage]
+ * @return null
+ * @public
+ */
+const logPageView = async function (currentPage, previousPage) {
+    const qs = queryString.stringify({ currentPage, previousPage }, { skipNull: true });
+    return await fetch(`/pageview`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ currentPage, previousPage }),
+        })
+        .then(response => {
+            if (response) {
+                return response.data
+            } else {
+                throw new Error("Unknown outcome of Google Analytics Pageview Logging?")
+            }
+        })
+        .catch(error => {
+            console.log(error)
+        })
+}
 
 export default {
     logAnalyticsEvent,
     logErrorEvent,
+    logPageView,
 }

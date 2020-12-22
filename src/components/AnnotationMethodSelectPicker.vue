@@ -7,7 +7,7 @@
         :serializer="s => s.annotation"
         :showOnFocus="true"
         :minMatchingChars="0"
-        :maxMatches="30"
+        :maxMatches="1000"
         @hit="onAnnotationSelect($event)"
     >
         <template slot="suggestion" slot-scope="{ data, htmlText }">
@@ -19,7 +19,6 @@
 
 <script>
 import Vue from "vue";
-import _ from "lodash";
 
 import EventBus from "@/utils/eventBus";
 

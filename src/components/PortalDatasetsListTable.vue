@@ -156,7 +156,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 export default Vue.component("portal-datasets-list-table", {
-    props: ["diseaseGroups", "phenotypes", "diseaseGroup", "datasetsList"],
+    props: ["diseaseGroups", "phenotypes", "diseaseGroup", "datasetsList", "filter"],
     modules: {
         ...sortUtils
     },
@@ -329,7 +329,18 @@ export default Vue.component("portal-datasets-list-table", {
             content.push("Show all");
 
             return content;
-        }
+        },
+
+        tableData() {
+            let dataRows = this.groupedAnnotations;
+            if (!!this.filter) {
+                dataRows = dataRows.filter(annotation => {
+                    const regularAnnotation = decodeNamespace(annotation, { prefix: `${annotation.phenotype}_` });
+                    return this.filter(regularAnnotation);
+                });
+            }
+            return dataRows;
+        },
     },
     methods: {
         setSeletedDiseaseGroup(diseaseGroup) {

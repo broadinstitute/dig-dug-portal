@@ -9,11 +9,24 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable";
+import GeneAssociationsMasks from "@/components/GeneAssociationsMasks";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import Formatters from "@/utils/formatters";
+
+import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomPhewasPanel from "@/components/lz/panels/LocusZoomPhewasPanel";
+
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+import FilterPValue from "@/components/criterion/FilterPValue.vue"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
 import Alert, {
     postAlert,
@@ -34,32 +47,62 @@ new Vue({
         PageFooter,
         Alert,
         UniprotReferencesTable,
+        GeneAssociationsTable,
+        GeneAssociationsMasks,
         Documentation,
         Autocomplete,
         GeneSelectPicker,
+        UnauthorizedMessage,
+        CriterionFunctionGroup,
+        FilterPValue,
+        FilterEnumeration,
+        FilterGreaterThan,
+        LocusZoom,
+        LocusZoomPhewasPanel,
+        SearchHeaderWrapper,
     },
 
     data() {
         return {
             counter: 0,
             externalResources: {
-                ensembl:
-                    "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=",
-                hgnc:
-                    "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
-                mgd: "http://www.informatics.jax.org/marker/",
-                rgd: "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id=",
-                ucsc: "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+                ensembl: {
+                    title: "Ensembl",
+                    link:
+                        "https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g="
+                },
+                hgnc: {
+                    title: "HUGO Gene Nomenclature Committee",
+                    link:
+                        "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/"
+                },
+                mgd: {
+                    title: "Mouse Genome Database",
+                    link: "http://www.informatics.jax.org/marker/"
+                },
+                rgd: {
+                    title: "Rat Genome Database",
+                    link: "https://rgd.mcw.edu/rgdweb/report/gene/main.html?id="
+                },
+                ucsc: {
+                    title: "USSC Genome Browser",
+                    link:
+                        "http://genome.ucsc.edu/cgi-bin/hgGene?db=hg19&hgg_gene="
+                },
+                uniprot: {
+                    title: "Universal Protein Resource",
+                    link: "https://www.uniprot.org/uniprot/"
+                }
             }
         };
     },
 
     created() {
         this.$store.dispatch("queryGeneName", this.$store.state.geneName);
+        //this.$store.dispatch("queryAssociations");
         // get the disease group and set of phenotypes available
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
-
     },
 
     render(createElement, context) {
@@ -78,7 +121,9 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                window.location.href = `./region.html?chr=${r.chromosome}&start=${r.start - expanded}&end=${r.end + expanded}`;
+                window.location.href = `./region.html?chr=${
+                    r.chromosome
+                }&start=${r.start - expanded}&end=${r.end + expanded}`;
             }
         }
     },
@@ -148,9 +193,11 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                return `${r.chromosome}:${Formatters.intFormatter(r.start)}-${Formatters.intFormatter(r.end)}`;
+                return `${r.chromosome}:${Formatters.intFormatter(
+                    r.start
+                )}-${Formatters.intFormatter(r.end)}`;
             } else {
-                return '';
+                return "";
             }
         },
 
@@ -158,10 +205,16 @@ new Vue({
             let r = this.region;
 
             if (!!r) {
-                return `${r.chromosome}:${Formatters.intFormatter(r.start - 50000)}-${Formatters.intFormatter(r.end + 50000)}`;
+                return `${r.chromosome}:${Formatters.intFormatter(
+                    r.start - 50000
+                )}-${Formatters.intFormatter(r.end + 50000)}`;
             } else {
-                return '';
+                return "";
             }
+        },
+
+        associationPhenotypes() {
+            return this.$store.state.associations.data.map(a => a.phenotype);
         },
 
         documentationMap() {
@@ -171,14 +224,15 @@ new Vue({
             if (!!symbol && !!r) {
                 return {
                     gene: symbol,
-                    region: `${r.chromosome}:${Formatters.intFormatter(r.start)}-${Formatters.intFormatter(r.end)}`,
-                }
+                    region: `${r.chromosome}:${Formatters.intFormatter(
+                        r.start
+                    )}-${Formatters.intFormatter(r.end)}`
+                };
             }
-        },
+        }
     },
 
     watch: {
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
@@ -192,6 +246,7 @@ new Vue({
         // the canonical symbol was found
         symbolName(symbol) {
             this.$store.dispatch("queryUniprot", symbol);
+            this.$store.dispatch("queryAssociations");
         }
     }
 }).$mount("#app");

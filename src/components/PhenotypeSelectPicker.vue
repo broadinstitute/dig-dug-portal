@@ -4,7 +4,7 @@
         ref="phenotypeSelect"
         placeholder="Type in a phenotype ..."
         :data="phenotypeOptions"
-        :serializer="s => s.description"
+        :serializer="(s) => s.description"
         :maxMatches="1000"
         :minMatchingChars="0"
         :showOnFocus="true"
@@ -19,7 +19,6 @@
 
 <script>
 import Vue from "vue";
-import _ from "lodash";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
