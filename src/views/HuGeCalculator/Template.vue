@@ -6,7 +6,7 @@
                 <div class="card-body">
                     <h1 class="card-title">Huge Calculator</h1>
 
-                    <documentation style="margin-bottom: 30px" name="tools.genefinder.subheader"></documentation>
+                    <documentation style="margin-bottom: 30px" name="tools.hugecal.subheader"></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
 
@@ -157,20 +157,8 @@
                                                 ></color-bar-plot>
                                             </div>
                                             <hr style="margin: 40px" />
-                                            <div>
-                                                <h5>
-                                                    <documentation
-                                                        name="hugecal.commonVaration.header.gwasSignificant"
-                                                        :content-fill="$parent.documentationMap"
-                                                    ></documentation>
-                                                </h5>
-
-                                                <h6>
-                                                    <documentation
-                                                        name="hugecal.commonVaration.subheader.gwasSignificant"
-                                                        :content-fill="$parent.documentationMap"
-                                                    ></documentation>
-                                                </h6>
+                                            <div v-if="$parent.isGWASSignificantAssociation">
+                                                <h5>{{$parent.selectedGene[0]}} is GWAS significant</h5>
                                                 <locuszoom
                                                     v-if="$parent.region"
                                                     ref="locuszoom"
@@ -244,19 +232,8 @@
                                             </div>
                                             <hr style="margin: 40px" />
                                             <div>
-                                                <h5>
-                                                    <documentation
-                                                        name="hugecal.commonVaration.header.gwasSignificant"
-                                                        :content-fill="$parent.documentationMap"
-                                                    ></documentation>
-                                                </h5>
+                                                <h5>{{$parent.selectedGene[0]}} is not GWAS significant</h5>
 
-                                                <h6>
-                                                    <documentation
-                                                        name="hugecal.commonVaration.subheader.gwasSignificant"
-                                                        :content-fill="$parent.documentationMap"
-                                                    ></documentation>
-                                                </h6>
                                                 <locuszoom
                                                     v-if="$parent.region"
                                                     ref="locuszoom"

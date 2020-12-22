@@ -300,22 +300,18 @@ new Vue({
                 query(`gene`, `${gene}`).then(regionData => {
                     this.$store.commit("setRegionData", regionData)
                 });
-                if (!!this.$store.state.regionData) {
-                    phenoRegionQuery = `${phenotype},${this.$store.state.regionData[0].chromosome}:${this.$store.state.regionData[0].start - 50000}-${this.$store.state.regionData[0].end + 50000}`;
-                    if (!!phenoRegionQuery) {
-                        query(`associations`, phenoRegionQuery).then(bioIndexData => {
-                            this.$store.commit("setAssociationsData", bioIndexData)
-                        });
-                    }
-                }
 
+                query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
+                    this.$store.commit("setAssociationsData", bioIndexData)
+                });
 
-
-                // this.$store.dispatch("queryGeneRegion", region)
-
-                this.$store.dispatch("get52KAssociationData", gene)
-                this.$store.dispatch("getEGLData", phenotype[0]);
             }
+
+            // this.$store.dispatch("queryGeneRegion", region)
+
+            this.$store.dispatch("get52KAssociationData", gene)
+            this.$store.dispatch("getEGLData", phenotype[0]);
+
         },
     },
 
