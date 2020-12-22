@@ -1,3 +1,5 @@
+const d3 = require('d3')
+
 // Matches the .reference.color-N and .text.color-N values in colors.css
 // so they can be used in code by index as well.
 class SwingNumberSet {
@@ -23,7 +25,7 @@ class SwingNumberSet {
         }
     }
 
-    * swingNumber() {
+    * findNewNumber() {
         while(true) {
             let maybeNextSwingNumber = this.#numberGenerator.next();
             if (!maybeNextSwingNumber.done) {
@@ -37,8 +39,9 @@ class SwingNumberSet {
                 // increase the resolution of the swing numbers by increasing our depth
                 this.#depth += 1
                 // restart the process
+                // TODO: rewrite for memoization?
                 this.#numberGenerator = this.rationalNumberGenerator(this.#depth)
-                yield this.swingNumber().next()
+                yield this.findNewNumber().next()
             }
         }
     }
@@ -65,38 +68,39 @@ function makeSwingNumberSet(size, base=2) {
     let sns = new SwingNumberSet(depth, base);
     for (let i = 0; i < size; i++) {
         // the sequence is generated as a side effect of the generation
-        sns.swingNumber().next();
+        sns.findNewNumber().next();
     }
     return sns.sequence;
 }
 
-sns = makeSwingNumberSet(3000);
+let sns = makeSwingNumberSet(10000);
 console.log(sns)
 // take categoricals and map them into a color space
 class GlobalColorScheme {
     #itemValueMap
     #itemColorMap
-    constructor(items, colorScheme) {
+    constructor(items, colorScheme=d3.interpolateCubehelixDefault) {
         this.#itemValueMap = new Map();
         this.#itemColorMap = new Map();
 
         this.colorScheme = colorScheme;
 
         // TODO: refactor to D3 interpolator interface
-        const resolution = Math.ceil(Math.log(items.length) / Math.log(base));
-        this.swingNumberSet = new SwingNumberSet(resolution, base=2);
+        this.swingNumberSet = new SwingNumberSet(Math.ceil(Math.log(items.length) / Math.log(2)), 2);
 
     }
 
     addColor(itemName) {
         // associate to the item, a value that can be interpolated into a continuous color space (hopefully one with a lot of discontinuity)
-        const interpolationPoint = this.swingNumberSet.swingNumber().next();
+        // NOTE: when using swing numbers we can always guarantee another point
+        const interpolationPoint = this.swingNumberSet.findNewNumber().next();
         this.#itemValueMap.set(itemName, interpolationPoint);
         this.#itemColorMap.set(itemName, this.colorScheme(this.#itemValueMap.get(itemName)));
+        // console.log(this.#itemColorMap.get(itemName), this.#itemValueMap.set(itemName))
         return this.#itemColorMap.get(itemName);
     }
 
-    colorFor(itemName) {
+    getColor(itemName) {
         // guarantee that a color exists for an item
         const hasColor = this.#itemColorMap.has(itemName);
         if (!hasColor) {
@@ -106,24 +110,25 @@ class GlobalColorScheme {
     }
 }
 
-// export {
-//     GlobalColorScheme
-// }
+export {
+    GlobalColorScheme,
+    makeSwingNumberSet,
+}
 
-// export default [
-//     '#048845',
-//     '#8490C8',
-//     '#BF61A5',
-//     '#EE3124',
-//     '#FCD700',
-//     '#5555FF',
-//     '#9ACA3C',
-//     '#9F78AC',
-//     '#F88084',
-//     '#F5A4C7',
-//     '#CEE6C1',
-//     '#FFFF00',
-//     '#6FC7B6',
-//     '#D5A768',
-//     '#D4D4D4',
-// ];
+export default [
+    '#048845',
+    '#8490C8',
+    '#BF61A5',
+    '#EE3124',
+    '#FCD700',
+    '#5555FF',
+    '#9ACA3C',
+    '#9F78AC',
+    '#F88084',
+    '#F5A4C7',
+    '#CEE6C1',
+    '#FFFF00',
+    '#6FC7B6',
+    '#D5A768',
+    '#D4D4D4',
+];
