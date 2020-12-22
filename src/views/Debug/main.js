@@ -294,19 +294,26 @@ new Vue({
 
         updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
-            if (gene.length > 0) {
-
-            }
+            let phenoRegionQuery;
             if (phenotype.length > 0) {
-                query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
-                    this.$store.commit("setAssociationsData", bioIndexData)
+                this.$store.dispatch("gene/query", { q: gene })
+                query(`gene`, `${gene}`).then(regionData => {
+                    this.$store.commit("setRegionData", regionData)
                 });
+                if (!!this.$store.state.regionData) {
+                    phenoRegionQuery = `${phenotype},${this.$store.state.regionData[0].chromosome}:${this.$store.state.regionData[0].start - 50000}-${this.$store.state.regionData[0].end + 50000}`;
+                    if (!!phenoRegionQuery) {
+                        query(`associations`, phenoRegionQuery).then(bioIndexData => {
+                            this.$store.commit("setAssociationsData", bioIndexData)
+                        });
+                    }
+                }
+
+
 
                 // this.$store.dispatch("queryGeneRegion", region)
-                this.$store.dispatch("gene/query", {
-                    q: gene[0]
-                })
-                this.$store.dispatch("get52KAssociationData", gene[0])
+
+                this.$store.dispatch("get52KAssociationData", gene)
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
         },
@@ -322,7 +329,7 @@ new Vue({
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
             // ??DO THIS
-            this.updateAssociations(this.selectedGene, this.selectedPhenotype);
+            this.updateAssociations(this.selectedGene[0], this.selectedPhenotype, this.region);
         }
 
     }

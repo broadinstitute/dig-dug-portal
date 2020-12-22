@@ -23,12 +23,16 @@ export default new Vuex.Store({
     },
     state: {
         associationsData: {},
-        variants: []
+        variants: [],
+        regionData: {},
 
     },
     mutations: {
         setAssociationsData(state, associationsData) {
             state.associationsData = associationsData
+        },
+        setRegionData(state, regionData) {
+            state.regionData = regionData
         },
     },
     getters: {
