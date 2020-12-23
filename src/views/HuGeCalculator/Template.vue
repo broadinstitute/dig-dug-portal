@@ -194,7 +194,6 @@
                                                     <span
                                                         class="codingEvidence1C"
                                                     >{{$parent.eglData.genetic}}</span>
-                                                    <span>GWAS significant</span>
                                                 </li>
                                                 <li v-else-if="$parent.eglData.genetic == '2C'">
                                                     Coding evidence:
