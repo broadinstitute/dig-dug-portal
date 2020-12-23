@@ -160,7 +160,7 @@
                                             <div
                                                 v-if="$parent.isGWASSignificantAssociation == true"
                                             >
-                                                <h5>{{$parent.selectedGene[0]}} is GWAS significant</h5>
+                                                <h5>{{$parent.selectedGene[0]}} is GWAS Significant</h5>
                                                 <locuszoom
                                                     v-if="$parent.region"
                                                     ref="locuszoom"
@@ -201,6 +201,7 @@
                                                         class="codingEvidence2C"
                                                     >{{$parent.eglData.genetic}}</span>
                                                 </li>
+
                                                 <li v-if="$parent.eglData.genomic == '2R'">
                                                     Regulatory evidence:
                                                     <span
@@ -213,8 +214,11 @@
                                                         class="regulatoryEvidence3R"
                                                     >{{$parent.eglData.genomic }}</span>
                                                 </li>
-                                                <li v-if="$parent.eglData.genetic != '1C'">
-                                                    <span>Not Genome-wide significant - p-value greater than 5e-8</span>
+                                                <li v-if="$parent.eglData.genetic == '1C'">
+                                                    <span>Genome-wide significant - p-value is less than 5e-8</span>
+                                                </li>
+                                                <li v-if="$parent.eglData.genetic == '2C'">
+                                                    <span>Genome-wide significant - p-value is less than 5e-8</span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
@@ -234,9 +238,28 @@
                                             </div>
                                             <hr style="margin: 40px" />
                                             <div
-                                                v-if="$parent.isGWASSignificantAssociation == false && $parent.eglData.genetic != '1C'"
+                                                v-if="$parent.isGWASSignificantAssociation == false && $parent.eglData.genetic == '1C'"
                                             >
-                                                <h5>{{$parent.selectedGene[0]}} is not GWAS significant</h5>
+                                                <h5>{{$parent.selectedGene[0]}} is GWAS significant</h5>
+
+                                                <locuszoom
+                                                    v-if="$parent.region"
+                                                    ref="locuszoom"
+                                                    :chr="$parent.region.chromosome"
+                                                    :start="$parent.region.start - 50000"
+                                                    :end="$parent.region.end + 50000"
+                                                    :refSeq="true"
+                                                >
+                                                    <lz-associations-panel
+                                                        :phenotype="$parent.phenotype.name"
+                                                        :finishHandler="$parent.updateAssociationsTable"
+                                                    ></lz-associations-panel>
+                                                </locuszoom>
+                                            </div>
+                                            <div
+                                                v-if="$parent.isGWASSignificantAssociation == false && $parent.eglData.genetic == '2C'"
+                                            >
+                                                <h5>{{$parent.selectedGene[0]}} is GWAS significant</h5>
 
                                                 <locuszoom
                                                     v-if="$parent.region"
@@ -253,8 +276,10 @@
                                                 </locuszoom>
                                             </div>
 
-                                            <div v-else>
-                                                <h5>{{$parent.selectedGene[0]}} is GWAS significant</h5>
+                                            <div
+                                                v-else-if="$parent.isGWASSignificantAssociation == false && $parent.eglData.genetic != '1C' || $parent.eglData.genetic != '2C'"
+                                            >
+                                                <h5>{{$parent.selectedGene[0]}} is not GWAS significant</h5>
 
                                                 <locuszoom
                                                     v-if="$parent.region"
