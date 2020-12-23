@@ -103,6 +103,7 @@ new Vue({
             }
         },
         isGWASSignificantAssociation() {
+            let region = this.region;
             if (!!this.$store.state.associationsData.length > 0) {
                 let data = this.$store.state.associationsData;
                 for (let i = 0; i < data.length; i++) {
@@ -292,21 +293,32 @@ new Vue({
             }
         },
 
-        updateAssociations(gene, phenotype) {
+
+
+        updateAssociations(gene, phenotype, region) {
+
+
             //this call goes to store to get associations data
             let phenoRegionQuery;
             if (phenotype.length > 0) {
+                // let r = this.region;
+                // if (!!r) {
+                //     let chromosome = r.chromosome;
+                //     let start = r.start;
+                //     let end = r.end;
+                // }
                 this.$store.dispatch("gene/query", { q: gene })
                 query(`gene`, `${gene}`).then(regionData => {
                     this.$store.commit("setRegionData", regionData)
                 });
-
-                query(`associations`, `${phenotype},${gene}`).then(bioIndexData => {
+                let chr = this.$store.state.regionData[0].chromosome
+                let start = this.$store.state.regionData[0].start - 50000
+                let end = this.$store.state.regionData[0].end + 50000
+                let phenoRegionQuery = `${phenotype[0]},${chr}:${start}-${end}`;
+                query(`associations`, phenoRegionQuery).then(bioIndexData => {
                     this.$store.commit("setAssociationsData", bioIndexData)
                 });
-
             }
-
             // this.$store.dispatch("queryGeneRegion", region)
 
             this.$store.dispatch("get52KAssociationData", gene)
@@ -316,15 +328,22 @@ new Vue({
     },
 
     watch: {
-        // region(region) {
-        //     this.$store.dispatch("queryGeneRegion", region);
-        // },
+
+
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
             // ??DO THIS
+            if (!!this.selectedGene[0]) {
+                query(`gene`, `${this.selectedGene[0]}`).then(regionData => {
+                    let chr = regionData[0].chromosome
+                    let start = regionData[0].start
+                    let end = regionData[0].end
+                    this.$store.commit("setRegionData", regionData)
+                });
+            }
             this.updateAssociations(this.selectedGene[0], this.selectedPhenotype, this.region);
         }
 

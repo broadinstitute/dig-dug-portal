@@ -55,9 +55,13 @@ export default new Vuex.Store({
         //     let q = `${chromosome}:${start}-${end}`;
         //     context.dispatch('genes/query', { q });
         // },
+
+        async getRegion(context, gene) {
+            context.dispatch('gene/query', { q: gene });
+        },
         async getEGLData(context, phen) {
             let dataset = "mccarthy";
-            let trait = phen.toLowerCase();
+            let trait = "t2d";
             context.dispatch("kp4cd/getEglData", { dataset, trait });
         },
 
