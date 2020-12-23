@@ -180,7 +180,7 @@
                                         <!-- If NOT GWAS significant -->
                                         <div v-else class="col-md-6">
                                             <h4>
-                                                Common Variation - notgwas
+                                                Common Variation
                                                 <tooltip-documentation
                                                     name="gene.function.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
@@ -194,6 +194,7 @@
                                                     <span
                                                         class="codingEvidence1C"
                                                     >{{$parent.eglData.genetic}}</span>
+                                                    <span>GWAS significant</span>
                                                 </li>
                                                 <li v-else-if="$parent.eglData.genetic == '2C'">
                                                     Coding evidence:
@@ -213,7 +214,7 @@
                                                         class="regulatoryEvidence3R"
                                                     >{{$parent.eglData.genomic }}</span>
                                                 </li>
-                                                <li>
+                                                <li v-if="$parent.eglData.genetic != '1C'">
                                                     <span>Not Genome-wide significant - p-value greater than 5e-8</span>
                                                 </li>
                                                 <li>
@@ -234,7 +235,7 @@
                                             </div>
                                             <hr style="margin: 40px" />
                                             <div
-                                                v-if="$parent.isGWASSignificantAssociation == false"
+                                                v-if="$parent.isGWASSignificantAssociation == false && $parent.eglData.genetic != '1C'"
                                             >
                                                 <h5>{{$parent.selectedGene[0]}} is not GWAS significant</h5>
 
@@ -252,6 +253,25 @@
                                                     ></lz-associations-panel>
                                                 </locuszoom>
                                             </div>
+
+                                            <div v-else>
+                                                <h5>{{$parent.selectedGene[0]}} is GWAS significant</h5>
+
+                                                <locuszoom
+                                                    v-if="$parent.region"
+                                                    ref="locuszoom"
+                                                    :chr="$parent.region.chromosome"
+                                                    :start="$parent.region.start - 50000"
+                                                    :end="$parent.region.end + 50000"
+                                                    :refSeq="true"
+                                                >
+                                                    <lz-associations-panel
+                                                        :phenotype="$parent.phenotype.name"
+                                                        :finishHandler="$parent.updateAssociationsTable"
+                                                    ></lz-associations-panel>
+                                                </locuszoom>
+                                            </div>
+
                                             <!-- </div> -->
                                         </div>
 
