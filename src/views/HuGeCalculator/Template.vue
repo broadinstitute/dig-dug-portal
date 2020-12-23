@@ -157,7 +157,9 @@
                                                 ></color-bar-plot>
                                             </div>
                                             <hr style="margin: 40px" />
-                                            <div v-if="$parent.isGWASSignificantAssociation">
+                                            <div
+                                                v-if="$parent.isGWASSignificantAssociation == true"
+                                            >
                                                 <h5>{{$parent.selectedGene[0]}} is GWAS significant</h5>
                                                 <locuszoom
                                                     v-if="$parent.region"
@@ -178,7 +180,7 @@
                                         <!-- If NOT GWAS significant -->
                                         <div v-else class="col-md-6">
                                             <h4>
-                                                Common Variation
+                                                Common Variation - notgwas
                                                 <tooltip-documentation
                                                     name="gene.function.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
@@ -231,7 +233,9 @@
                                                 ></color-bar-plot>
                                             </div>
                                             <hr style="margin: 40px" />
-                                            <div>
+                                            <div
+                                                v-if="$parent.isGWASSignificantAssociation == false"
+                                            >
                                                 <h5>{{$parent.selectedGene[0]}} is not GWAS significant</h5>
 
                                                 <locuszoom

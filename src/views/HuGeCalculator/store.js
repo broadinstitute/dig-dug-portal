@@ -58,6 +58,7 @@ export default new Vuex.Store({
 
         async getRegion(context, gene) {
             context.dispatch('gene/query', { q: gene });
+            
         },
         async getEGLData(context, phen) {
             let dataset = "mccarthy";
