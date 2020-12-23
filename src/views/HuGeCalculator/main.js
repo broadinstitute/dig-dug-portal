@@ -294,14 +294,14 @@ new Vue({
 
 
 
-        updateAssociations(gene, phenotype, region) {
+        updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
             let phenoRegionQuery;
-            let chr;
-            let start;
-            let end;
+
             if (phenotype.length > 0) {
                 this.$store.dispatch("gene/query", { q: gene })
+                let r = this.$store.getters.region;
+
                 phenoRegionQuery = `${phenotype[0]},${gene}`;
                 query(`associations`, phenoRegionQuery).then(bioIndexData => {
                     this.$store.commit("setAssociationsData", bioIndexData)
@@ -313,22 +313,20 @@ new Vue({
     },
 
     watch: {
-
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
-            // ??DO THIS
             console.log("newCriterion", newCriterion)
-            console.log("old")
-            if (!!this.selectedGene) {
-                query(`gene`, `${this.selectedGene[0]}`).then(regionData => {
-                    this.$store.commit("setRegionData", regionData)
-                });
-            }
-            this.updateAssociations(this.selectedGene[0], this.selectedPhenotype, this.region);
-        }
+            console.log("oldCriterion", oldCriterion)
 
+            if (newCriterion.phenotype.length > 0) {
+                if (newCriterion.gene !== oldCriterion.gene) {
+                    this.$store.dispatch("gene/query", { q: newCriterion.gene })
+                    this.updateAssociations(newCriterion.gene, newCriterion.phenotype, this.region);
+                }
+            }
+        }
     }
 }).$mount("#app");
