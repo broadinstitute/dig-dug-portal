@@ -302,27 +302,17 @@ new Vue({
             let end;
             if (phenotype.length > 0) {
                 this.$store.dispatch("gene/query", { q: gene })
-                if (!!this.$store.state.regionData) {
-                    chr = this.$store.state.regionData[0].chromosome
-                    start = this.$store.state.regionData[0].start
-                    end = this.$store.state.regionData[0].end
-                    phenoRegionQuery = `${phenotype[0]},${gene}`;
-                    query(`associations`, phenoRegionQuery).then(bioIndexData => {
-                        this.$store.commit("setAssociationsData", bioIndexData)
-                    });
-                }
+                phenoRegionQuery = `${phenotype[0]},${gene}`;
+                query(`associations`, phenoRegionQuery).then(bioIndexData => {
+                    this.$store.commit("setAssociationsData", bioIndexData)
+                });
                 this.$store.dispatch("get52KAssociationData", gene)
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
-            // this.$store.dispatch("queryGeneRegion", region)
-
-
-
         },
     },
 
     watch: {
-
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
@@ -330,7 +320,9 @@ new Vue({
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
             // ??DO THIS
-            if (!!this.selectedGene[0]) {
+            console.log("newCriterion", newCriterion)
+            console.log("old")
+            if (!!this.selectedGene) {
                 query(`gene`, `${this.selectedGene[0]}`).then(regionData => {
                     this.$store.commit("setRegionData", regionData)
                 });
