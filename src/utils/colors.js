@@ -1,4 +1,4 @@
-const d3 = require('d3')
+import { interpolateRgbBasisClosed } from "d3";
 
 // take categoricals and map them into a color space
 const colors = [
@@ -98,7 +98,7 @@ class LazyRationalNumberPartition {
 export class ColorSchemeClosure {
     #colorMap
     #numberGenerator
-    constructor(items=[], colorScheme=d3.interpolateRgbBasisClosed(colors)) {
+    constructor(items=[], colorScheme=interpolateRgbBasisClosed(colors)) {
         this.colorScheme = colorScheme;
         this.#colorMap = new Map();
 
@@ -133,7 +133,7 @@ export class ColorSchemeClosure {
     }
 
     colorMap() {
-        return Array.from(this.#colorMap.entries());
+        return Object.fromEntries(this.#colorMap.entries());
     }
 
 }

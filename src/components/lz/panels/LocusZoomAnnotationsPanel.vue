@@ -10,7 +10,8 @@ import LocusZoom from "locuszoom";
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
 import idCounter from "@/utils/idCounter";
 
-import { scaleOrdinal, rgb, schemeSet1 } from 'd3';
+import { rgb, color } from 'd3';
+import { GLOBAL_COLOR_SCHEME } from "@/utils/colors";
 
 export default Vue.component("lz-annotation-intervals-panel", {
     props: {
@@ -99,12 +100,9 @@ export class LZAnnotationIntervalsPanel {
         this.queryStringMaker = (chr, start, end) => `${annotation},${chr}:${start}-${end}`
         this.translator = function (intervals) {
             const tissues = intervals.map(interval => interval.tissue);
-            const colorScheme = scaleOrdinal().domain(tissues).range(schemeSet1);
-
             const tissueIntervals = !!intervals ? intervals
                 .map((interval) => {
-                    const { r, g, b } = rgb(colorScheme(interval.tissue));
-
+                    const { r, g, b } = rgb(color(GLOBAL_COLOR_SCHEME.getColor(interval.tissue)));
                     let t = interval.tissueId || "NA";
                     let m = interval.method || "NA";
                     let key = `${t}_${m}_${interval.annotation}`;
