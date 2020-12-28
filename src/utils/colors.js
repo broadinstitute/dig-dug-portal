@@ -1,121 +1,7 @@
 const d3 = require('d3')
 
-// Matches the .reference.color-N and .text.color-N values in colors.css
-// so they can be used in code by index as well.
-class SwingNumberSet {
-
-    // private variable declarations
-    #depth
-    #base
-    #numberGenerator
-    #swingSequence
-
-    constructor(depth=2, base=2) {
-        this.#depth = depth;
-        this.#base = base;
-        this.#numberGenerator = this.rationalNumberGenerator(this.#depth)
-        this.#swingSequence = new Set([0,1])
-    }
-
-    * rationalNumberGenerator (depth) {
-        // enumerates all of the rationals that exist with a within a given base and order of magnitude
-        // because n is always less than denominator, it will never exceed 1, guaranteeing that the point stays within the interval
-        for (let numerator=1; numerator < this.#base**depth; numerator++) {
-            yield numerator / this.#base**depth
-        }
-    }
-
-    * findNewNumber() {
-        while(true) {
-            let maybeNextSwingNumber = this.#numberGenerator.next();
-            if (!maybeNextSwingNumber.done) {
-                if (!this.#swingSequence.has(maybeNextSwingNumber)) {
-                    this.#swingSequence.add(maybeNextSwingNumber.value)
-                    yield maybeNextSwingNumber
-                }
-            } else {
-                // else:
-                // if we've reached our maximum depth and are still looking for more,
-                // increase the resolution of the swing numbers by increasing our depth
-                this.#depth += 1
-                // restart the process
-                // TODO: rewrite for memoization?
-                this.#numberGenerator = this.rationalNumberGenerator(this.#depth)
-                yield this.findNewNumber().next()
-            }
-        }
-    }
-
-    interleave(sequence) {
-        const left = sequence.slice(0, Math.ceil(sequence.length / 2));
-        const right = sequence.slice(Math.ceil(sequence.length / 2), sequence.length).reverse();
-        let interleaved = [];
-        for (let i = 0; i < left.length || i < right.length; i++) {
-            // can't do double bang/!! - the items are numbers, which means it would skip over `0` which is a valid value.
-            if (typeof left[i !== 'undefined']) interleaved.push(left[i])
-            if (typeof right[i !== 'undefined']) interleaved.push(right[i])
-        }
-        return interleaved;
-    }
-
-    get sequence() {
-        return this.interleave(Array.from(this.#swingSequence).sort())
-    }
-}
-
-function makeSwingNumberSet(size, base=2) {
-    let depth = Math.ceil(Math.log(size)/Math.log(base));
-    let sns = new SwingNumberSet(depth, base);
-    for (let i = 0; i < size; i++) {
-        // the sequence is generated as a side effect of the generation
-        sns.findNewNumber().next();
-    }
-    return sns.sequence;
-}
-
-let sns = makeSwingNumberSet(10000);
-console.log(sns)
 // take categoricals and map them into a color space
-class GlobalColorScheme {
-    #itemValueMap
-    #itemColorMap
-    constructor(items, colorScheme=d3.interpolateCubehelixDefault) {
-        this.#itemValueMap = new Map();
-        this.#itemColorMap = new Map();
-
-        this.colorScheme = colorScheme;
-
-        // TODO: refactor to D3 interpolator interface
-        this.swingNumberSet = new SwingNumberSet(Math.ceil(Math.log(items.length) / Math.log(2)), 2);
-
-    }
-
-    addColor(itemName) {
-        // associate to the item, a value that can be interpolated into a continuous color space (hopefully one with a lot of discontinuity)
-        // NOTE: when using swing numbers we can always guarantee another point
-        const interpolationPoint = this.swingNumberSet.findNewNumber().next();
-        this.#itemValueMap.set(itemName, interpolationPoint);
-        this.#itemColorMap.set(itemName, this.colorScheme(this.#itemValueMap.get(itemName)));
-        // console.log(this.#itemColorMap.get(itemName), this.#itemValueMap.set(itemName))
-        return this.#itemColorMap.get(itemName);
-    }
-
-    getColor(itemName) {
-        // guarantee that a color exists for an item
-        const hasColor = this.#itemColorMap.has(itemName);
-        if (!hasColor) {
-            this.#itemColorMap[itemName] = this.addColor(itemName);
-        }
-        return this.#itemColorMap[itemName];
-    }
-}
-
-export {
-    GlobalColorScheme,
-    makeSwingNumberSet,
-}
-
-export default [
+const colors = [
     '#048845',
     '#8490C8',
     '#BF61A5',
@@ -132,3 +18,119 @@ export default [
     '#D5A768',
     '#D4D4D4',
 ];
+
+class LazyRationalNumberPartition {
+
+    // private variable declarations
+    #depth  // aka order of magnitude considered for the rationals involved
+    #base
+    #generator
+    #sequence
+
+    constructor(initialSize=0, force=false, base=2) {
+        this.#depth = initialSize > 0 ? Math.ceil(Math.log(initialSize)/Math.log(base)) : 2;
+        this.#base = base;
+        this.#generator = this.rationalNumberGenerator(this.#depth)
+        this.#sequence = new Set([0,1]);
+
+        if (initialSize && force) {
+            // force the populating of the sequence upto the size
+            for (let i = 0; i < initialSize; i++) {
+                this.number().next();
+            }
+        }
+
+    }
+
+    * rationalNumberGenerator (orderOfMagnitude) {
+
+        // enumerates all of the rationals that exist between 0 and 1, using a given number base and order of magnitude > 1
+        // e.g. for base = 2 and depth = 1, enumerate [1/2]
+        // e.g. for base = 2 and depth = 2, enumerate [1/4, 2/4, 3/4]
+        // e.g. for base = 2 and depth = 5, enumerate [1/32, 2/32, 3/32, 4/32... 31/32] (because 32 = 2^5)
+        // e.g. for base = 3 and depth = 2, enumerate [1/9, 2/9, 3/9... 8/9]
+
+        // the idea is that if we need new numbers but the interval is closed, we can't increment beyond the interval.
+        // for math nerds this is analogous to computing p-adic rationals given a base - but in the worst way I could come up with that still works
+
+        // we stop shy from either n^0 = 1, or numerator = denominator, since they are already added to the set `#sequence`
+        // because n is always less than denominator, it will never exceed 1, guaranteeing that the point stays within the interval [0,1]
+
+        for (let numerator=1; numerator < this.#base**orderOfMagnitude; numerator++) {
+            yield numerator / this.#base**orderOfMagnitude
+        }
+        
+    }
+
+    * number() {
+        while(true) {
+            let maybeNextNumber = this.#generator.next();
+            if (!maybeNextNumber.done) {
+                if (!this.#sequence.has(maybeNextNumber)) {
+                    this.#sequence.add(maybeNextNumber.value)
+                    yield maybeNextNumber;
+                }
+            } else {
+                // else:
+                // if we've reached our maximum depth and are still looking for more,
+                // increase the resolution of the swing numbers by increasing our depth
+                this.#depth += 1
+                // restart the process
+                // TODO: rewrite for memoization?
+                this.#generator = this.rationalNumberGenerator(this.#depth)
+                // with the new generator, try to get the next number
+                yield this.number().next().value;
+            }
+        }
+    }
+
+    get sequence() {
+        return Array.from(this.#sequence).sort()
+    }
+
+}
+export class GlobalColorScheme {
+    #items
+    #colorMap
+    #numberGenerator
+    constructor(items=[], colorScheme=d3.interpolateRgbBasisClosed(colors)) {
+        this.colorScheme = colorScheme;
+        this.#colorMap = new Map();
+
+        // create a sequence of n=`items.length` amount of rational numbers between 0 and 1
+        // the `force` flag being true for this instantiation, means that the sequence won't be lazy upto the size
+        // that means we can have n numbers to work with already, rather than having to generate it here
+        this.#numberGenerator = new LazyRationalNumberPartition(items.length, true);
+        if (items.length > 0) {
+            items.forEach((item, index) => this.addColor(item, this.#numberGenerator.sequence[index]));
+        }
+    }
+
+    addColor(item, scale) {
+        this.#colorMap.set(item, this.colorScheme(scale));
+        return this.#colorMap.get(item);
+    }
+
+    getColor(item) {
+        // guarantee that a color exists for an item
+
+        // first check if we have the color
+        const hasColor = this.#colorMap.has(item);
+
+        // if we don't have the color we need to make it
+        if (!hasColor) {
+            // we make a color for an item, by assigning it a unique scale value, then adding a color in the usual way (using a color scheme interpolator)
+            // we don't have to worry about if the color space is big enough - the number generator takes care of that for us
+            // TODO: refactor this call for generator to look make it look more clean?
+            this.#colorMap[item] = this.addColor(item, this.#numberGenerator.number().next().value.value);
+        }
+        return this.#colorMap.get(item);
+    }
+
+    colorMap() {
+        return Array.from(this.#colorMap.entries());
+    }
+
+}
+
+export default colors;
