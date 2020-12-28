@@ -42,22 +42,28 @@ class LazyRationalNumberPartition {
 
     }
 
-    * rationalNumberGenerator (orderOfMagnitude) {
+    * rationalNumberGenerator (depth) {
 
-        // enumerates all of the rationals that exist between 0 and 1, using a given number base and order of magnitude > 1
+        // Enumerates all of the rationals that exist between 0 and 1, using a given number base and order of magnitude > 1
         // e.g. for base = 2 and depth = 1, enumerate [1/2]
         // e.g. for base = 2 and depth = 2, enumerate [1/4, 2/4, 3/4]
         // e.g. for base = 2 and depth = 5, enumerate [1/32, 2/32, 3/32, 4/32... 31/32] (because 32 = 2^5)
         // e.g. for base = 3 and depth = 2, enumerate [1/9, 2/9, 3/9... 8/9]
 
-        // the idea is that if we need new numbers but the interval is closed, we can't increment beyond the interval.
-        // for math nerds this is analogous to computing p-adic rationals given a base - but in the worst way I could come up with that still works
+        // The idea is that if we need new numbers but the interval is closed, we can't increment beyond the interval using the usual i++ approach without normalizing.
+        // furthermore if we were to renormalize the colors each time the size of the sequence increased, the colors would be at risk of changing or creating collisions,
+        // which defeats the point of having a lazy map of guaranteed unique colors.
+        // The way we get around this is by increasing the "resolution" (i.e. "depth" or order of magnitude) of the color space, instead of its size.
+        // In other words we find more numbers in between the existing ones, rather than extending and then renormalizing without guarantees of uniqueness.
 
-        // we stop shy from either n^0 = 1, or numerator = denominator, since they are already added to the set `#sequence`
-        // because n is always less than denominator, it will never exceed 1, guaranteeing that the point stays within the interval [0,1]
+        // For math nerds this is analogous to computing p-adic rationals given a base - but in the worst way I could come up with that still works.
+        // Not to fear, this is just how ruler numbers are generated: https://en.wikipedia.org/wiki/Dyadic_rational.
 
-        for (let numerator=1; numerator < this.#base**orderOfMagnitude; numerator++) {
-            yield numerator / this.#base**orderOfMagnitude
+        // We stop shy from either n^0 = 1, or numerator = denominator, since they are already added to the set `#sequence`.
+        // Additionally, because n is always less than denominator, it will never exceed 1, guaranteeing that the point stays within the interval [0,1].
+
+        for (let numerator=1; numerator < this.#base**depth; numerator++) {
+            yield numerator / this.#base**depth
         }
 
     }
