@@ -59,7 +59,7 @@ class LazyRationalNumberPartition {
         for (let numerator=1; numerator < this.#base**orderOfMagnitude; numerator++) {
             yield numerator / this.#base**orderOfMagnitude
         }
-        
+
     }
 
     * number() {
@@ -89,8 +89,7 @@ class LazyRationalNumberPartition {
     }
 
 }
-export class GlobalColorScheme {
-    #items
+export class ColorSchemeClosure {
     #colorMap
     #numberGenerator
     constructor(items=[], colorScheme=d3.interpolateRgbBasisClosed(colors)) {
@@ -133,4 +132,5 @@ export class GlobalColorScheme {
 
 }
 
+export const GLOBAL_COLOR_SCHEME = new ColorSchemeClosure();
 export default colors;

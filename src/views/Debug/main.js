@@ -1,8 +1,7 @@
 import Vue from "vue";
 import Template from "./Template.vue";
+import { GLOBAL_COLOR_SCHEME } from "@/utils/colors";
 
-import * as d3 from "d3";
-import colors, { GlobalColorScheme, makeSwingNumberSet } from "@/utils/colors"
 new Vue({
     data() {
         return {
@@ -12,21 +11,21 @@ new Vue({
             resolution: 10,
         }
     },
-    created() {
-        this.globalColorScheme = new GlobalColorScheme(this.surnames_list.slice(0, this.surnames_list.length / 2));
-    },
+    // created() {
+    //     this.globalColorScheme = new ColorSchemeClosure(this.surnames_list.slice(0, this.surnames_list.length / 2));
+    // },
     computed: {
         sns() {
             return makeSwingNumberSet(this.resolution)
         },
         items() {
-            return this.surnames_list.map(item => [item, this.globalColorScheme.getColor(item)])
+            return this.surnames_list.map(item => [item, GLOBAL_COLOR_SCHEME.getColor(item)])
         },
-        colorMap() {
-            return this.globalColorScheme.colorMap();
-        }
+        // colorMap() {
+        //     return Object.fromEntries(GLOBAL_COLOR_SCHEME.colorMap());
+        // }
     },
-    render(createElement, context) {
+    render(createElement) {
         return createElement(Template);
     },
 }).$mount("#app");
