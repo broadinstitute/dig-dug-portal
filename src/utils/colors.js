@@ -96,15 +96,30 @@ class LazyRationalNumberPartition {
 
 }
 
-// "ColorRuler"
-// Purpose: Represent a color space of arbitrary categorical information
-// * When you instantiate a new ColorRuler, you can either add items to it, or get colors for items from it.
-//  * You can add initial items to the color scheme by default.
-//  * If you get colors for items that don't yet have colors, they are assigned colors automatically.
-// * You can add as many items as you want. The ColorRuler gets bigger and more precise, the more items you add.
-//   * Because the ColorRuler gets bigger when more items are added, you can add more items at as they come in,
-//     supposing if you don't know how many colors you need ahead of time (because you don't know the size of your data)
-// * You can use d3 interpolators and schemes, instead of the default colors.
+/* "ColorRuler"
+Purpose: Represent a color space of arbitrary categorical information
+* When you instantiate a new ColorRuler, you can either add items to it, or get colors for items from it.
+   * You can add initial items to the color scheme by default.
+   * If you get colors for items that don't yet have colors, they are assigned colors automatically.
+* You can add as many items as you want. The ColorRuler gets bigger and more precise, the more items you add.
+   * Because the ColorRuler gets bigger when more items are added, you can add more items at as they come in,
+     supposing if you don't know how many colors you need ahead of time (because you don't know the size of your data)
+* You can use d3 interpolators and schemes, instead of the default colors.
+
+An example application is the LocusZoom Annotation Track. We don't have unique colors for each annotation when it comes from the BioIndex. Additionally, we want colors to be both unique from other annotations if it comes in later; and we want it to stay the same if we move the track around (instead of recalculating it every time the data is used).
+
+By using `GLOBAL_COLOR_SCHEME`, we can ensure that each color is unique even as more data comes in (since the ruler just gets more precise, rather than overriding existing colors). Since `GLOBAL_COLOR_SCHEME` is in the widest scope possible, it will only change when more data comes in to add to colors to it. Otherwise, it's just a static object.
+
+`Debug.vue` has an example of its use:
+```js
+GLOBAL_COLOR_SCHEME.getColor('Smith')  // produces an rgb string for 'Smith', e.g. "rgb(100, 15, 22)"
+```
+
+*You may need to use `d3.color` as a helper to convert that string to a hexcode.*
+
+As a default, the color scheme for any `ColorRuler` is an interpolated version of the colors already in the utilities file, using `d3.interpolateRgbBasisClosed` to normalize them against the interval [0, 1].
+*/
+
 export class ColorRuler {
     #colorMap
     #numberGenerator
