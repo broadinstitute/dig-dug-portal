@@ -95,9 +95,23 @@ class LazyRationalNumberPartition {
     }
 
 }
+
+// "ColorRuler"
+// Purpose: Represent a color space of arbitrary categorical information
+// * When you instantiate a new ColorRuler, you can either add items to it, or get colors for items from it.
+//  * You can add initial items to the color scheme by default.
+//  * If you get colors for items that don't yet have colors, they are assigned colors automatically.
+// * You can add as many items as you want. The ColorRuler gets bigger and more precise, the more items you add.
+//   * Because the ColorRuler gets bigger when more items are added, you can add more items at as they come in,
+//     supposing if you don't know how many colors you need ahead of time (because you don't know the size of your data)
+// * You can use d3 interpolators and schemes, instead of the default colors.
 export class ColorRuler {
     #colorMap
     #numberGenerator
+
+    /*
+
+    */
     constructor(items=[], colorScheme=interpolateRgbBasisClosed(colors)) {
         this.colorScheme = colorScheme;
         this.#colorMap = new Map();
