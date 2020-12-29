@@ -132,7 +132,7 @@ export class ColorRuler {
         return this.#colorMap.get(item);
     }
 
-    colorMap() {
+    colors() {
         return Object.fromEntries(this.#colorMap.entries());
     }
 
