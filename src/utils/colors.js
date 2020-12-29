@@ -95,7 +95,7 @@ class LazyRationalNumberPartition {
     }
 
 }
-export class ColorSchemeClosure {
+export class ColorRuler {
     #colorMap
     #numberGenerator
     constructor(items=[], colorScheme=interpolateRgbBasisClosed(colors)) {
@@ -138,5 +138,5 @@ export class ColorSchemeClosure {
 
 }
 
-export const GLOBAL_COLOR_SCHEME = new ColorSchemeClosure();
+export const GLOBAL_COLOR_SCHEME = new ColorRuler();
 export default colors;
