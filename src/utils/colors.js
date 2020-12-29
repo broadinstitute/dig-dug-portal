@@ -128,10 +128,6 @@ As a default, the color scheme for any `ColorRuler` is an interpolated version o
 export class ColorRuler {
     #colorMap
     #numberGenerator
-
-    /*
-
-    */
     constructor(items=[], colorScheme=interpolateRgbBasisClosed(colors)) {
         this.colorScheme = colorScheme;
         this.#colorMap = new Map();
@@ -146,8 +142,10 @@ export class ColorRuler {
     }
 
     addColor(item, scale) {
-        this.#colorMap.set(item, this.colorScheme(scale));
-        return this.#colorMap.get(item);
+        if (scale >= 0 && scale <= 1) {
+            this.#colorMap.set(item, this.colorScheme(scale));
+            return this.#colorMap.get(item);
+        }
     }
 
     getColor(item) {
