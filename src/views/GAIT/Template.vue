@@ -373,7 +373,7 @@
                                                                   (phenotype) =>
                                                                       phenotype.name
                                                               )
-                                                            : ['T2D']
+                                                            : $parent.topmedDatasets
                                                     "
                                                     :labelFormatter="
                                                         (phenotype) =>

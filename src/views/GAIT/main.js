@@ -57,6 +57,7 @@ new Vue({
                 { text: "SKAT", value: "skat" },
                 { text: "SKAT Optimal", value: "skat-o" }
             ],
+            topmedDatasets: ["T2D", "FG", "FI"],
             selectedMethods: [],
             matchingGenes: [],
             showVariants: false,
