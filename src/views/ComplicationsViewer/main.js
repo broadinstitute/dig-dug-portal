@@ -158,7 +158,6 @@ new Vue({
                 let phenotypes = Object.keys(this.$store.state.bioPortal.complicationsMap[selectedComplication].phenotypes);
                 return phenotypes;
             }
-
         },
 
         complicationViewerPhenotypes() {
@@ -172,7 +171,6 @@ new Vue({
             if (secondaryPhenotype.length == 0) {
                 return []
             }
-
         },
         complicationsViewerPhenotype() {
             if (this.complicationViewerPhenotypes.length > 1) {
