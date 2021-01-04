@@ -90,11 +90,18 @@ export default {
                 };
             } else {
                 //TopMed dataset
+                const datasets = [
+                    { phenotype: "T2D", id: 7 },
+                    { phenotype: "FG", id: 8 },
+                    { phenotype: "FI", id: 6 }
+                ];
                 query = {
                     chrom: region.chromosome,
                     start: region.start,
                     stop: region.end,
-                    summaryStatisticDataset: 7, //for different version
+                    summaryStatisticDataset: datasets.find(
+                        p => p.phenotype === phenotype
+                    ).id, //for different version and phenotypes
                     variantFormat: "COLONS",
                     samples: "ALL",
                     genomeBuild: "GRCh37",
