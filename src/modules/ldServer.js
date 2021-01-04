@@ -91,9 +91,9 @@ export default {
             } else {
                 //TopMed dataset
                 const datasets = [
+                    { phenotype: "FG", id: 6 },
                     { phenotype: "T2D", id: 7 },
-                    { phenotype: "FG", id: 8 },
-                    { phenotype: "FI", id: 6 }
+                    { phenotype: "FI", id: 8 }
                 ];
                 query = {
                     chrom: region.chromosome,
