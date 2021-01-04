@@ -262,31 +262,22 @@ new Vue({
     watch: {
         searchCriteria: {
             handler(newData, oldData) {
-                // console.log("search changed");
-                // console.log("new", newData);
-                // console.log("old", oldData);
                 if (!isEqual(newData, oldData)) {
                     this.criteriaChanged = true;
-                    //console.log("not equal");
                 }
             },
             deep: true
         },
         selectedMethods: {
             handler(newData, oldData) {
-                // console.log("method changed");
-                // console.log("new", newData);
-                // console.log("old", oldData);
                 if (!isEqual(newData, oldData)) {
                     this.testChanged = true;
-                    // console.log("not equal");
                 }
             },
             deep: true
         },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
-                console.log("change");
                 this.selectedMethods = this.selectedMethods.filter(v => {
                     return v.field !== "phenotype";
                 });
@@ -299,7 +290,6 @@ new Vue({
             }
         },
         "$store.state.variants": function() {
-            console.log("change1");
             this.loadingVariants = false;
             if (
                 this.$store.state.variants &&
@@ -309,11 +299,9 @@ new Vue({
             }
         },
         "$store.state.ldServer.covariances": function() {
-            console.log("change2");
             this.loadingCovariances = false;
         },
         "$store.state.ldServer.runTestsError": function() {
-            console.log("change3");
             this.loadingCovariances = false;
         }
     }
