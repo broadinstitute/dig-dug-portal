@@ -1,33 +1,28 @@
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-
 import { BootstrapVue, BootstrapVueIcons, BIconMouse2 } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
-
 import Documentation from "@/components/Documentation.vue";
-import Autocomplete from "@/components/Autocomplete.vue";
-import LocusZoom from "@/components/lz/LocusZoom";
-import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
-import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel"
-import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
-import AssociationsTable from "@/components/AssociationsTable.vue";
-import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
-import ConfidenceIntervalPlot from "@/components/ConfidenceIntervalPlot.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterBasic from "@/components/criterion/FilterBasic";
+import Formatters from "@/utils/formatters";
+import keyParams from "@/utils/keyParams";
+import { match } from "@/utils/bioIndexUtils";
+import { pageMixin } from "@/mixins/pageMixin";
+import { isEqual, startCase } from "lodash";
+import { query } from "@/utils/bioIndexUtils";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
-import ForestPlot from "@/components/ForestPlot.vue";
-import uiUtils from "@/utils/uiUtils";
-
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert
-} from "@/components/Alert";
+import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
+import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
+import LocusZoom from "@/components/lz/LocusZoom";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -35,54 +30,235 @@ Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
-    modules: {},
+    mixins: [pageMixin],
     components: {
-        PageHeader,
-        PageFooter,
-        Alert,
         Documentation,
-        Autocomplete,
-        LocusZoom,
-        LocusZoomAssociationsPanel,
-        GeneSelectPicker,
-        PhenotypeSelectPicker,
-        AssociationsTable,
-        PosteriorProbabilityPlot,
-        ConfidenceIntervalPlot,
-        ForestPlot,
+        CriterionFunctionGroup,
+        CriterionListGroup,
+        FilterPValue,
+        FilterEnumeration,
+        FilterGreaterThan,
+        FilterBasic,
+        TooltipDocumentation,
         ColorBarPlot,
+        RareColorBarPlot,
+        PosteriorProbabilityPlot,
+        LocusZoom,
     },
-
-    data() {
-        return {
-            counter: 0,
-            showAssociations: false,
-            trait: "T2D"
-        };
-    },
-
-    created() {
-        this.$store.dispatch("queryGeneName", this.$store.state.geneName);
-        // get the disease group and set of phenotypes available
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-        this.$store.dispatch("bioPortal/getPhenotypes");
-    },
-
     render(createElement, context) {
         return createElement(Template);
     },
+    data() {
+        return {
+            matchingGenes: [],
+            phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
+            phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
+            hugecalSearchCriterion: keyParams.gene
+                ? [{
+                    field: "gene",
+                    threshold: keyParams.gene
+                }] : [],
+            priorVariance: 0.3696
+        };
+    },
+    created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
+        this.$store.dispatch("bioPortal/getDatasets");
+        this.$store.dispatch("ldServer/getPhenotypes");
+    },
+    computed: {
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
 
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        region() {
+            return this.$store.getters.region;
+        },
+        selectedGene() {
+            return this.hugecalSearchCriterion
+                .filter(v => {
+                    return v.field === "gene";
+                })
+                .map(v => v.threshold);
+        },
+        selectedPhenotype() {
+            return this.hugecalSearchCriterion
+                .filter(v => {
+                    return v.field === "phenotype";
+                })
+                .map(v => v.threshold);
+        },
+        criterion() {
+            return {
+                gene: this.selectedGene,
+                phenotype: this.selectedPhenotype
+            }
+        },
+        isGWASSignificantAssociation() {
+            if (!!this.$store.state.associationsData.length > 0) {
+                let data = this.$store.state.associationsData;
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].pValue <= 5e-8) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        },
+        eglData() {
+            let geneSymbol = this.selectedGene[0];
+            if (!!this.$store.state.kp4cd.eglData.data) {
+                let effectordata = this.$store.state.kp4cd.eglData.data;
+                let effectorGeneData = {}
+
+                for (var i = 0; i < effectordata.length; ++i) {
+                    if (effectordata[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
+                        effectorGeneData = effectordata[i];
+
+                        if (effectorGeneData.category == "(T2D_related)") {
+                            effectorGeneData.category = "No Evidence"
+                        }
+                        break;
+                    }
+                    //if the gene is in GWAS but not in mccarthy data
+                    else {
+                        effectorGeneData["category"] = "in GWAS"
+                    }
+                }
+                return effectorGeneData;
+            }
+        },
+
+        bayesFactorCommonVariation() {
+            let firstBF = 1;
+            let secondBF = 1;
+            let thirdBF = 1;
+            let commonBF = 1;
+            if (!!this.$store.state.associationsData.length > 0) {
+                let data = this.$store.state.associationsData;
+                for (let i = 0; i < data.length; i++) {
+                    //if GWAS evidence
+                    if (data[i].pValue <= 5e-8) {
+                        firstBF = 3.3
+                    }
+                }
+                if (!!this.eglData) {
+                    if (!!this.eglData.genetic && this.eglData.genetic == "1C") {
+                        secondBF = 500
+                    }
+                    if (!!this.eglData.genetic && this.eglData.genetic == "2C") {
+                        secondBF = 5
+                    }
+                    if (!!this.eglData.genomic && this.eglData.genomic == "2R") {
+                        thirdBF = 5
+                    }
+                    if (!!this.eglData.genomic && this.eglData.genomic == "3R") {
+                        thirdBF = 2.2
+                    }
+                }
+            }
+
+            commonBF = firstBF * secondBF * thirdBF
+            return commonBF;
+        },
+
+
+
+        bayesFactorRareVariation() {
+            let masks = [];
+            let rarebayesfactor = 1;
+            let beta;
+            let stdErr;
+            if (this.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)) {
+                rarebayesfactor = 1650;
+            }
+            else {
+                if (this.$store.state.geneAssociations52k.data.length > 0) {
+                    for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
+                        if (!!this.$store.state.geneAssociations52k.data[i].phenotype && this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]) {
+                            //filter with selected phenotype
+                            masks = this.$store.state.geneAssociations52k.data[i].masks
+                            let d = masks.sort(
+                                (a, b) => a.pValue - b.pValue
+                            );
+                            let mostSignificantMask = d[0];
+                            stdErr = mostSignificantMask.stdErr;
+                            if (this.phenotype.isDichotomous) {
+                                beta = mostSignificantMask.beta;
+                            } else {
+                                beta = Math.log(mostSignificantMask.oddsRatio);
+                            }
+                        }
+                    }
+
+                    rarebayesfactor = this.bayes_factor(beta, stdErr);
+                    if (rarebayesfactor < 1) {
+                        rarebayesfactor = 1
+                    }
+                }
+            }
+            return rarebayesfactor;
+        },
+        geneAssociations52k() {
+            if (!!this.$store.state.geneAssociations52k) {
+                if (!!this.$store.state.geneAssociations52k.data.length) {
+                    let data = this.$store.state.geneAssociations52k.data;
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].phenotype == this.phenotype.name) {
+                            return data[i];
+                        }
+                    }
+                }
+            }
+        },
+        documentationMap() {
+            let gene = this.selectedGene[0];
+            let phenotype = this.selectedPhenotype[0];
+            let rareVariationEvidence;
+            let priorVariance = this.priorVariance;
+
+
+            return {
+                gene: gene,
+                phenotype: phenotype,
+                priorVariance: priorVariance
+            }
+        },
+
+    },
     methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
-
-
         updateAssociationsTable(data) {
-
             this.$store.commit(`associations/setResponse`, { data });
+        },
+        bayesFactorCombinedEvidence(commonBF, rareBF) {
+            return commonBF * rareBF;
+        },
+        determineCategory(bayesfactor) {
+            let category;
+            if (bayesfactor < 2.1) {
+                category = "No";
+            } else if (bayesfactor >= 2.1 && bayesfactor < 7.26) {
+                category = "Weak";
+            } else if (bayesfactor >= 7.26 && bayesfactor < 16.5) {
+                category = "Potential";
+            } else if (bayesfactor >= 16.5 && bayesfactor < 36.3) {
+                category = "Possible";
+            } else if (bayesfactor >= 36.3 && bayesfactor < 82.5) {
+                category = "Moderate";
+            } else if (bayesfactor >= 82.5 && bayesfactor < 1650) {
+                category = "Strong";
+            } else if (bayesfactor >= 1650) {
+                category = "Causal";
+            }
+            return category;
         },
         bayes_factor(beta, stdErr) {
             let w = 0.3696;
@@ -96,368 +272,61 @@ new Vue({
             return bayes_factor;
         },
 
-        calculateCategoryScore(category) {
-            let score;
-            if (category == "WEAK") {
-                score = 1;
-                return score;
-            }
-            else if (category == "POSSIBLE") {
-                score = 2;
-                return score;
-            }
-            else if (category == "MODERATE") {
-                score = 3;
-                return score;
-            }
-            else if (category == "STRONG") {
-                score = 4;
-                return score;
-            }
-            else if (category == "CAUSAL") {
-                score = 5;
-                return score;
-            }
-            else if (category == "No") {
-                score = 0;
-                return score;
-            }
-
-        },
-        calculateCombinedVariationABF(rareVariationABF, commonVariationABF) {
-            let combinedVariationABF = 1;
-            combinedVariationABF = rareVariationABF * commonVariationABF;
-            return combinedVariationABF;
-        },
-        //determine categories using cutoffs for bayes factor - can be used for rare of common or combined
-        // Weak: ABF >= 2.1
-        // Potential: ABF >= 7.26
-        // Possible: ABF >= 16.5
-        // Moderate: ABF >= 36.3
-        // Strong: ABF > 82.5
-        // Causal: ABF > 1, 650
-        determineCategory(bayes_factor) {
-            let category;
-            let categorymap = {};
-            if (bayes_factor < 2.1) {
-                category = "No"
-                categorymap = {
-                    "category": category, "categoryScore": bayes_factor
-                }
-            }
-            else if (bayes_factor >= 2.1 && bayes_factor < 7.26) {
-                category = "Weak"
-                categorymap = {
-                    "category": category, "categoryScore": bayes_factor
-                }
-            }
-            else if (bayes_factor >= 7.26 && bayes_factor < 16.5) {
-                category = "Potential"
-                categorymap = {
-                    "category": category, "categoryScore": bayes_factor
-                }
-            }
-            else if (bayes_factor >= 16.5 && bayes_factor < 36.3) {
-                category = "Possible"
-                categorymap = {
-                    "category": category, "categoryScore": bayes_factor
-                }
-            }
-            else if (bayes_factor >= 36.3 && bayes_factor < 82.5) {
-                category = "Moderate"
-                categorymap = {
-                    "category": category, "categoryScore": bayes_factor
-                }
-            }
-            else if (bayes_factor >= 82.5 && bayes_factor < 1650) {
-                category = "Strong"
-                categorymap = {
-                    "category": category, "categoryScore": bayes_factor
-                }
-            }
-            else if (bayes_factor >= 1650) {
-                category = "Causal"
-                categorymap = {
-                    "category": category, "categoryScore": bayes_factor
-                }
-            }
-            return categorymap;
-        },
-
-    },
-    mounted() {
-
-    },
-    computed: {
-
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-
-        region() {
-            return this.$store.getters.region;
-        },
-
-        symbolName() {
-            return this.$store.getters.canonicalSymbol;
-        },
-
-        gene() {
-            let data = this.$store.state.gene;
-            if (data.length > 0) {
-                return data[0];
-            }
-            return {};
-        },
-
-        phenotypes() {
-            return [this.$store.state.phenotype];
-        },
-
-
-        associationsData() {
-            if (!!this.$store.state.associations.data.length) {
-                let data = this.$store.state.associations.data;
-                let filteredData = [];
-                data.forEach(function (row) {
-                    if (!!row.consequence) {
-                        if (row.consequence == "missense_variant") {
-                            filteredData.push(row);
-                        }
-                    }
-                })
-                return filteredData;
-            }
-        },
-        //stage 1 - Significant association? (common Variation)
-        //this makes sure the gene is in GWAS region or not
-        isSignificantAssociationCommonVariation() {
-            if (!!this.$store.state.associations.data.length) {
-                let data = this.$store.state.associations.data;
+        isExomeWideSignificant(data) {
+            let trait = "T2D";
+            if (!!data.length) {
                 for (let i = 0; i < data.length; i++) {
-                    if (data[i].pValue <= 5e-8) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        },
-
-        isSignificant52kAssociationRareVariation() {
-            if (!!this.$store.state.geneAssociations52k.data.length) {
-                let data = this.$store.state.geneAssociations52k.data;
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == this.trait) {
+                    if (data[i].phenotype == trait) {
                         if (data[i].pValue <= 2.5e-6) {
                             return true;
                         }
                     }
-                }
-                return false;
-            }
-        },
-
-        geneAssociations52k() {
-            if (!!this.$store.state.geneAssociations52k) {
-                if (!!this.$store.state.geneAssociations52k.data.length) {
-                    let data = this.$store.state.geneAssociations52k.data;
-                    for (let i = 0; i < data.length; i++) {
-                        if (data[i].phenotype == this.trait) {
-                            return data[i];
-                        }
-                    }
+                    return false;
                 }
             }
         },
-
-
-        geneAssociationsLoftee() {
-            if (!!this.$store.state.geneAssociations52k.data.length) {
-                let data = this.$store.state.geneAssociations52k.data;
-                let lofteeData = [];
-                for (let i = 0; i < data.length; i++) {
-                    if (data[i].phenotype == this.trait) {
-                        data[i].masks.forEach(r => {
-                            if (r.mask == "LofTee") {
-                                lofteeData.push(r)
-                            }
-                        })
-                    }
-                }
-                return lofteeData;
-            }
-        },
-
-        eglData() {
-            let geneSymbol = this.$store.state.geneName;
-            if (!!this.$store.state.kp4cd.eglData.data) {
-                let effectordata = this.$store.state.kp4cd.eglData.data;
-                let effectorGeneData = {}
-
-                for (var i = 0; i < effectordata.length; ++i) {
-                    if (effectordata[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
-                        effectorGeneData = effectordata[i];
-
-                        if (effectorGeneData.category == "(T2D_related)") {
-                            effectorGeneData.category = "No"
-                        }
-                        break;
-                    }
-                    else {
-                        effectorGeneData["category"] = "in GWAS"
-                    }
-                }
-                return effectorGeneData;
-            }
-        },
-
-        //if GWAS Significant? -> yes -> Mccarthy list in T2D -> get the eglData (get the evidence and category)  ->Mccarthy list as T2D_unrelated -> "in GWAS"
-        // if not GWAS Significant -> category -> No Evidence:
-        //now calculate the ABF based on this.
-        commonVariationABF() {
-            let commonVariationABF = 1;
-            if (this.isSignificantAssociationCommonVariation) {
-                let abf1 = 1;
-                let abf2 = 1;
-                let abf3 = 1;
-                //abf = 3 if its in GWAS (essentially it has significant common variation)
-                if (this.eglData.genetic == "1C") {
-                    abf1 = 500 * 3.3;
-                }
-                if (this.eglData.genetic == "2C" || this.eglData.regulatory == "2R") {
-                    abf2 = 5 * 3.3;
-                }
-                if (this.eglData.perturbational == "3P" || this.eglData.regulatory == "3R") {
-                    abf3 = 2.2 * 3.3
-                }
-                else if (!this.eglData) {
-                    abf1 = 3.3
-                    //return commonVariationABF;
-                }
-                commonVariationABF = abf1 * abf2 * abf3
-            }
-            return commonVariationABF;
-        },
-
-        //calculate only if its not exome wide significant
-        //if ABF is <1, then we will set the ABF =1 - which means no change (when multiplied by common abf)
-        rareVariationABF() {
-            let masks = [];
-
-            let rare_bayes_factor = 1;
-            if (this.isSignificant52kAssociationRareVariation) {
-                rare_bayes_factor = 1650;
-            }
-            else {
-                if (!!this.$store.state.geneAssociations52k.data[0]) {
-                    masks = this.$store.state.geneAssociations52k.data[0].masks
-                    let d = masks.sort(
-                        (a, b) => a.pValue - b.pValue
-                    );
-                    let mostSignificantMask = d[0];
-                    let stdErr = mostSignificantMask.stdErr;
-                    let beta;
-                    if (this.$store.state.phenotype.isDichotomous) {
-                        beta = mostSignificantMask.beta;
-                    } else {
-                        beta = Math.log(mostSignificantMask.oddsRatio);
-                    }
-
-                    rare_bayes_factor = this.bayes_factor(beta, stdErr);
-                }
-            }
-
-            return rare_bayes_factor;
-        },
-
-        combinedVariationABF() {
-            return this.calculateCombinedVariationABF(this.rareVariationABF, this.commonVariationABF)
-        },
-        combinedVariationCategory() {
-            let bayes_factor = this.calculateCombinedVariationABF(this.rareVariationABF, this.commonVariationABF)
-            let categorymap = {}
-            categorymap = this.determineCategory(bayes_factor);
-            return categorymap;
-
-        },
-        commonVariationCategory() {
-            let categorymap = {};
-
-            if (!!this.eglData) {
-                let bayes_factor = this.commonVariationABF
-                categorymap = this.determineCategory(bayes_factor);
-            }
-
-            return categorymap;
-        },
-
-        rareVariationCategory() {
-            let categorymap = {};
-            let bayes_factor = this.rareVariationABF
-            if (!!this.$store.state.geneAssociations52k.data[0]) {
-                categorymap = this.determineCategory(bayes_factor);
-            }
-
-            return categorymap;
-        },
-
-
-        //when the gene has significant association  (if exome wide significant)
-        //(Rare Variation), that means there is Strong coding evidence
-        //show the following instead of stage 2 plot
-        stage2Category() {
-            return { "category": "CAUSAL", "evidence": "Strong Coding Evidence", "genetic": "1C" }
-        },
-        documentationMap() {
-            let gene = this.$store.state.geneName;
-            let phenotype = this.$store.state.phenotype.description;
-            let rareVariationEvidence;
-            let priorVariance = this.$store.state.priorVariance;
-
-            let abf;
-            if (!!this.$store.state.geneAssociations52k.data[0]) {
-                rareVariationEvidence = this.rareVariationCategory.category;
-                abf = this.rareVariationABF;
-            }
-            return {
-                gene: gene,
-                phenotype: phenotype,
-                category: rareVariationEvidence,
-                abf: abf,
-                priorVariance: priorVariance
+        async lookupGenes(input) {
+            if (!!input) {
+                let matches = await match("gene", input, { limit: 10 });
+                this.matchingGenes = matches;
             }
         },
 
 
+
+        updateAssociations(gene, phenotype) {
+            //this call goes to store to get associations data
+            let phenoRegionQuery;
+
+            if (phenotype.length > 0) {
+                this.$store.dispatch("gene/query", { q: gene })
+                let r = this.$store.getters.region;
+
+                phenoRegionQuery = `${phenotype[0]},${gene}`;
+                query(`associations`, phenoRegionQuery).then(bioIndexData => {
+                    this.$store.commit("setAssociationsData", bioIndexData)
+                });
+                this.$store.dispatch("get52KAssociationData", gene)
+                this.$store.dispatch("getEGLData", phenotype[0]);
+            }
+        },
     },
-
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
+        criterion(newCriterion, oldCriterion) {
+            //check if the old and new criterion are different only then update the Associations
+            console.log("newCriterion", newCriterion)
+            console.log("oldCriterion", oldCriterion)
 
-        // the region for the gene was found
-        region(region) {
-            this.hideElement("variantSearchHolder");
-            this.$store.dispatch("queryGeneRegion", region);
-        },
-        // the canonical symbol was found
-        symbolName(symbol) {
-            this.$store.dispatch("query52kGeneAssociations", symbol);
-        },
-        "$store.state.phenotype": function (phenotype) {
-            this.$store.dispatch("queryGeneName");
-            uiUtils.hideElement("phenotypeSearchHolder");
-        },
-
+            if (newCriterion.phenotype.length > 0) {
+                if (newCriterion.gene !== oldCriterion.gene) {
+                    this.$store.dispatch("gene/query", { q: newCriterion.gene })
+                    this.updateAssociations(newCriterion.gene, newCriterion.phenotype, this.region);
+                }
+            }
+        }
     }
 }).$mount("#app");

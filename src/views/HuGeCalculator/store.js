@@ -1,12 +1,13 @@
-
-
 import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
-import bioIndex from "@/modules/bioIndex";
 import kp4cd from "@/modules/kp4cd";
+import bioIndex from "@/modules/bioIndex";
+import ldServer from "@/modules/ldServer";
 import keyParams from "@/utils/keyParams";
+import { query } from "@/utils/bioIndexUtils";
+import { uniqBy } from "lodash";
 
 Vue.use(Vuex);
 
@@ -14,47 +15,29 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
+        ldServer,
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
         geneAssociations52k: bioIndex("gene-associations-52k"),
     },
     state: {
-        geneName: keyParams.gene || "SLC30A8",
-        phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
-        phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
-        effectorGeneData: [],
-        priorVariance: 0.3696,
-    },
+        associationsData: {},
+        variants: [],
+        regionData: {},
 
+    },
     mutations: {
-        setGeneName(state, geneName) {
-            state.geneName = geneName || state.geneName;
-            keyParams.set({ gene: state.geneName });
+        setAssociationsData(state, associationsData) {
+            state.associationsData = associationsData
         },
-        setGene(state, { name, chromosome, start, end }) {
-            state.geneName = name;
-            state.geneRegion = `${chromosome}:${start}-${end}`;
+        setRegionData(state, regionData) {
+            state.regionData = regionData
         },
-        setSelectedPhenotype(state, phenotype) {
-            state.phenotype = phenotype;
-        },
-        setEffectorGeneData(state, effectorGeneData) {
-            state.effectorGeneData = effectorGeneData;
-        },
-
-        setPriorVariance(state, priorVariance) {
-            state.priorVariance = priorVariance;
-        },
-        setPhenotype(state, phenotype) {
-            state.phenotype = phenotype
-        }
     },
-
     getters: {
         region(state) {
             let data = state.gene.data;
-
             if (data.length > 0) {
                 let gene = data[0];
 
@@ -65,51 +48,27 @@ export default new Vuex.Store({
                 }
             }
         },
-
-        canonicalSymbol(state) {
-            let data = state.genes.data;
-            for (let i in data) {
-                if (data[i].source === 'symbol') {
-                    return data[i].name;
-                }
-            }
-        },
-
     },
-
     actions: {
-        onPhenotypeChange(context, phenotype) {
-            context.commit("setPhenotype", phenotype);
-            keyParams.set({ phenotype: phenotype.name });
+        // async queryGeneRegion(context, region) {
+        //     let { chromosome, start, end } = region || context.getters.region;
+        //     let q = `${chromosome}:${start}-${end}`;
+        //     context.dispatch('genes/query', { q });
+        // },
+
+        async getRegion(context, gene) {
+            context.dispatch('gene/query', { q: gene });
+            
+
+        },
+        async getEGLData(context, phen) {
+            let dataset = "mccarthy";
+            let trait = "t2d";
+            context.dispatch("kp4cd/getEglData", { dataset, trait });
         },
 
-        async queryGeneName(context, symbol) {
-            let name = symbol || context.state.geneName;
-            let phenotype = this.state.phenotype.name;
-            let dataset = "mccarthy"
-            context.commit('setGeneName', name);
-            let query = {
-                q: `${phenotype},${name}`
-            };
-
-            if (!!name) {
-                context.dispatch('gene/query', { q: name });
-                let trait = phenotype.toLowerCase(); //for egldata
-                context.dispatch("kp4cd/getEglData", { dataset, trait });
-                context.dispatch('associations/query', query);
-                context.dispatch('geneAssociations52k/query', { q: name });
-
-            }
-        },
-
-        async query52kGeneAssociations(context, symbol) {
-            context.dispatch('geneAssociations52k/query', { q: symbol });
-        },
-
-        async queryGeneRegion(context, region) {
-            let { chromosome, start, end } = region || context.getters.region;
-            let q = `${chromosome}:${start}-${end}`;
-            context.dispatch('genes/query', { q });
-        },
-    },
+        async get52KAssociationData(context, gene) {
+            context.dispatch('geneAssociations52k/query', { q: gene });
+        }
+    }
 });

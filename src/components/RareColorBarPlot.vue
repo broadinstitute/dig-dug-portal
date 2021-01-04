@@ -2,13 +2,13 @@
     <div :id="elementid">
         <div style="width: 700px">
             <br />
-            <div v-if="this.category == 'Causal' " class="arrow-up causalclass"></div>
-            <div v-if="this.category == 'Strong'" class="arrow-up strongclass"></div>
-            <div v-if="this.category == 'Moderate'" class="arrow-up moderateclass"></div>
-            <div v-if="this.category == 'Possible'" class="arrow-up possibleclass"></div>
-            <div v-if="this.category == 'Potential'" class="arrow-up potentialclass"></div>
-            <div v-if="this.category== 'Weak'" class="arrow-up weakclass"></div>
-            <div v-if="this.category== 'No'" class="arrow-up noEvidenceclass"></div>
+            <div v-if="this.category == 'CAUSAL' " class="arrow-up rarecausalclass"></div>
+            <div v-if="this.category == 'STRONG'" class="arrow-up rarestrongclass"></div>
+            <div v-if="this.category == 'MODERATE'" class="arrow-up raremoderateclass"></div>
+            <div v-if="this.category == 'POSSIBLE'" class="arrow-up rarepossibleclass"></div>
+            <div v-if="this.category == 'POTENTIAL'" class="arrow-up rarepotentialclass"></div>
+            <div v-if="this.category== 'WEAK'" class="arrow-up rareweakclass"></div>
+            <div v-if="this.category== 'NO'" class="arrow-up rarenoEvidenceclass"></div>
             <div>
                 <div class="container">
                     <div class="row">
@@ -44,7 +44,7 @@
 <script>
 import Vue from "vue";
 
-export default Vue.component("color-bar-plot", {
+export default Vue.component("rare-color-bar-plot", {
     props: {
         elementid: {
             type: String
