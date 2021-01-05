@@ -1,7 +1,7 @@
 import { BaseWidget, _Button } from "locuszoom/esm/components/toolbar/widgets";
 import jsonQuery from "json-query";
 
-export class ToggleLogLog extends BaseWidget {
+class ToggleLogLog extends BaseWidget {
     /**
      * @param {string} [layout.button_html="Download SVG"]
      * @param {string} [layout.button_title="Download image of the current plot as locuszoom.svg"]
@@ -73,4 +73,39 @@ export class ToggleLogLog extends BaseWidget {
         this.button.show();
         return this;
     }
+}
+
+
+const ldlz2_pop_selector_menu = {
+    // **Note**: this widget is aimed at the LDServer datasource, and the UM 1000G LDServer
+    type: 'set_state',
+    position: 'right',
+    color: 'blue',
+    button_html: 'LD Population: ',
+    show_selected: true,
+    button_title: 'Select LD Population: ',
+    state_field: 'ld_pop',
+    // This list below is hardcoded to work with the UMich LDServer, default 1000G populations
+    //  It can be customized to work with other LD servers that specify population differently
+    // https://portaldev.sph.umich.edu/ld/genome_builds/GRCh37/references/1000G/populations
+    options: [
+        { display_name: 'ALL (default)', value: 'ALL' },
+        { display_name: 'AFR', value: 'AFR' },
+        { display_name: 'AMR', value: 'AMR' },
+        { display_name: 'EAS', value: 'EAS' },
+        { display_name: 'EUR', value: 'EUR' },
+        { display_name: 'SAS', value: 'SAS' },
+    ],
+};
+
+const download_png = {
+    type: "download_png",
+    color: "green",
+    position: "right"
+}
+
+export {
+    ToggleLogLog,
+    ldlz2_pop_selector_menu,
+    download_png
 }
