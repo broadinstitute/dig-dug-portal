@@ -73,7 +73,6 @@
                 !!filteredData &&
                 config[dataset]['render_m_plot'] == true
             "
-            class="egl-m-plot-wrapper"
         >
             <effector-genes-m-plot
                 :plotData="filteredData"

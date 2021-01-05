@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="showPlot">
+        <!--<div v-if="showPlot">
             <manhattan-plot
                 :associations="combinedAssociations"
                 style="margin-bottom: 10px"
@@ -16,18 +16,19 @@
                     >
                 </b>
             </center>
-        </div>
+        </div>-->
 
-        <div v-if="showPlot && mPlotData.length" class="egl-m-plot-wrapper">
+        <div v-if="showPlot && mPlotData.length">
             <effector-genes-m-plot
                 :plotData="mPlotData"
                 :locusKey="'region'"
                 :scoreKey="'pValue'"
                 :renderBy="'gene'"
                 :yAxisLabel="'-log10(p)'"
+                :yAxisRound="true"
                 :popUpContent="['p-Value', 'region']"
             ></effector-genes-m-plot>
-            <center style="margin-bottom: 30px">
+            <center style="margin: -25px 0 30px 0">
                 <b v-show="!!this.showChiSquared"
                     >Combined P-Value(Χ²) across
                     <a

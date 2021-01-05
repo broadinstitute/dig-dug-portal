@@ -1,35 +1,37 @@
 <template>
-    <div class="egl-m-plot-content">
-        <div class="bunch-by-locus">
-            <div class="bunch-ui">
-                <input
-                    type="checkbox"
-                    id="groupByLocusCheck"
-                    class="form-control"
-                    @click="renderPlot()"
-                />
-                Render by region
+    <div class="egl-m-plot-wrapper">
+        <div class="egl-m-plot-content">
+            <div class="bunch-by-locus">
+                <div class="bunch-ui">
+                    <input
+                        type="checkbox"
+                        id="groupByLocusCheck"
+                        class="form-control"
+                        @click="renderPlot()"
+                    />
+                    Render by region
+                </div>
+                <div class="bunch-ui">
+                    Count region by:
+                    <select
+                        id="mergeByNumber"
+                        @change="renderPlot()"
+                        class="form-control"
+                    >
+                        <option value="1">1</option>
+                        <option value="1000">1K</option>
+                        <option value="10000">10K</option>
+                        <option value="100000">100K</option>
+                        <option value="1000000">1M</option>
+                        <option value="10000000">10M</option>
+                    </select>
+                    bp
+                </div>
             </div>
-            <div class="bunch-ui">
-                Count region by:
-                <select
-                    id="mergeByNumber"
-                    @change="renderPlot()"
-                    class="form-control"
-                >
-                    <option value="1">1</option>
-                    <option value="1000">1K</option>
-                    <option value="10000">10K</option>
-                    <option value="100000">100K</option>
-                    <option value="1000000">1M</option>
-                    <option value="10000000">10M</option>
-                </select>
-                bp
-            </div>
+            <div class="y-axis-label">{{ yAxisLabel }}</div>
+            <div id="egl_m_plot_y"></div>
+            <div class="egl-m-plot" id="egl_m_plot"></div>
         </div>
-        <div class="y-axis-label">{{ yAxisLabel }}</div>
-        <div id="egl_m_plot_y"></div>
-        <div class="egl-m-plot" id="egl_m_plot"></div>
     </div>
 </template>
 
@@ -49,6 +51,7 @@ export default Vue.component("effector-genes-m-plot", {
         "renderBy",
         "popUpContent",
         "yAxisLabel",
+        "yAxisRound",
     ],
     data() {
         return {};
@@ -146,8 +149,12 @@ export default Vue.component("effector-genes-m-plot", {
                 return b - a;
             });
 
-            let hScore = scores[0];
-            let lScore = scores[scores.length - 1];
+            let hScore =
+                this.yAxisRound != true ? scores[0] : Math.ceil(scores[0]);
+            let lScore =
+                this.yAxisRound != true
+                    ? scores[scores.length - 1]
+                    : Math.floor(scores[scores.length - 1]);
 
             let popUpContentPaths = this.popUpContent;
 
@@ -155,7 +162,9 @@ export default Vue.component("effector-genes-m-plot", {
 
             // render y axis
             let yAxisContent = "";
+
             let hScoreLabel = hScore % 1 != 0 ? hScore.toFixed(3) : hScore;
+
             yAxisContent +=
                 "<div class='tick'><span class='tick-num'>" +
                 hScoreLabel +
@@ -165,9 +174,12 @@ export default Vue.component("effector-genes-m-plot", {
                 let countUnit = (hScore - lScore) / 4;
                 let unitNum = hScore - countUnit * i;
                 let unitLabel = unitNum % 1 != 0 ? unitNum.toFixed(3) : unitNum;
+
+                //console.log(unitNum % 1, parseFloat(unitLabel));
+
                 yAxisContent +=
                     "<div class='tick'><span class='tick-num'>" +
-                    unitLabel +
+                    parseFloat(unitLabel) +
                     "</span></div>";
             }
 
