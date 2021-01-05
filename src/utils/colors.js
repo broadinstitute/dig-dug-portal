@@ -1,6 +1,7 @@
 import { interpolateRgbBasisClosed } from "d3";
 
-// take categoricals and map them into a color space
+// Matches the .reference.color-N and .text.color-N values in colors.css
+// so they can be used in code by index as well.
 const colors = [
     '#048845',
     '#8490C8',
@@ -60,7 +61,7 @@ class LazyRulerNumbers {
         // For math nerds, this is analogous to computing p-adic rationals given a base - but in the worst way I could come up with that still works.
         // Not to fear, this is just how ruler numbers are generated: https://en.wikipedia.org/wiki/Dyadic_rational.
 
-        // We stop shy from either n^0 = 1, or numerator = denominator as boundary conditions, since 0 and 1 are already added to the set `#sequence`.
+        // We stop shy from either n^0 = 1, or numerator = denominator as boundary conditions, since 0 and 1 are already added to the set `#sequence` within ColorRuler.
         // Additionally, because n is always less than denominator, it will never exceed 1, guaranteeing that the point stays within the interval [0,1].
 
         for (let numerator=1; numerator < this.#base**depth; numerator++) {
