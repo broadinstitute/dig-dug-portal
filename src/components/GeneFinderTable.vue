@@ -18,7 +18,7 @@
             </center>
         </div>
 
-        <div v-if="showPlot && mPlotData.length" class="egl-m-plot-wrapper">
+        <!--<div v-if="showPlot && mPlotData.length" class="egl-m-plot-wrapper">
             <effector-genes-m-plot
                 :plotData="mPlotData"
                 :locusKey="'region'"
@@ -38,7 +38,7 @@
                     >
                 </b>
             </center>
-        </div>
+        </div>-->
         <div v-if="tableData.length > 0">
             <b-table
                 hover
