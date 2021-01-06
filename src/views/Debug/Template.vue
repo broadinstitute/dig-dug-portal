@@ -178,6 +178,7 @@
                                                     :start="$parent.region.start - 50000"
                                                     :end="$parent.region.end + 50000"
                                                     :refSeq="true"
+                                                    :ldpop="true"
                                                 >
                                                     <lz-associations-panel
                                                         :phenotype="$parent.phenotype.name"
@@ -264,6 +265,7 @@
                                                     :start="$parent.region.start - 50000"
                                                     :end="$parent.region.end + 50000"
                                                     :refSeq="true"
+                                                    :ldpop="true"
                                                 >
                                                     <lz-associations-panel
                                                         :phenotype="$parent.phenotype.name"

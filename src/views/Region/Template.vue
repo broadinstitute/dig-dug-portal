@@ -285,7 +285,7 @@
                                     @regionchanged="
                                         $parent.requestCredibleSets($event.data)
                                     "
-                                    :loglog="true"
+                                    :ldpop="true"
                                     :refSeq="true"
                                 >
                                     <lz-associations-panel
