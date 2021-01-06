@@ -168,6 +168,7 @@
                                                     :start="$parent.region.start - 50000"
                                                     :end="$parent.region.end + 50000"
                                                     :refSeq="true"
+                                                    :ldpop="true"
                                                 >
                                                     <lz-associations-panel
                                                         :phenotype="$parent.phenotype.name"
@@ -248,6 +249,7 @@
                                                     :chr="$parent.region.chromosome"
                                                     :start="$parent.region.start - 50000"
                                                     :end="$parent.region.end + 50000"
+                                                    :ldpop="true"
                                                     :refSeq="true"
                                                 >
                                                     <lz-associations-panel
@@ -267,6 +269,7 @@
                                                     :chr="$parent.region.chromosome"
                                                     :start="$parent.region.start - 50000"
                                                     :end="$parent.region.end + 50000"
+                                                    :ldpop="true"
                                                     :refSeq="true"
                                                 >
                                                     <lz-associations-panel
@@ -288,6 +291,7 @@
                                                     :start="$parent.region.start - 50000"
                                                     :end="$parent.region.end + 50000"
                                                     :refSeq="true"
+                                                    :ldpop="true"
                                                 >
                                                     <lz-associations-panel
                                                         :phenotype="$parent.phenotype.name"

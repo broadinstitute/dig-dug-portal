@@ -18,6 +18,27 @@
             </center>
         </div>
 
+        <!--<div v-if="showPlot && mPlotData.length" class="egl-m-plot-wrapper">
+            <effector-genes-m-plot
+                :plotData="mPlotData"
+                :locusKey="'region'"
+                :scoreKey="'pValue'"
+                :renderBy="'gene'"
+                :yAxisLabel="'-log10(p)'"
+                :popUpContent="['p-Value', 'region']"
+            ></effector-genes-m-plot>
+            <center style="margin-bottom: 30px">
+                <b v-show="!!this.showChiSquared"
+                    >Combined P-Value(Χ²) across
+                    <a
+                        v-for="p in phenotypes"
+                        class="item"
+                        :href="`/phenotype.html?phenotype=${p}`"
+                        >{{ phenotypeMap[p].description }}</a
+                    >
+                </b>
+            </center>
+        </div>-->
         <div v-if="tableData.length > 0">
             <b-table
                 hover
@@ -96,6 +117,8 @@ import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 import Filters from "@/utils/filters";
 
+import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
+
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
@@ -118,6 +141,8 @@ export default Vue.component("gene-finder-table", {
     components: {
         Documentation,
         TooltipDocumentation,
+
+        EffectorGenesMPlot,
     },
     data() {
         return {
@@ -254,11 +279,23 @@ export default Vue.component("gene-finder-table", {
         },
 
         combinedAssociations() {
+            console.log(this.groupedAssociations);
             return this.groupedAssociations.map((a) => {
                 return {
                     pValue: a.chiSquared,
                     chromosome: a.chromosome,
                     position: (a.start + a.end) / 2,
+                };
+            });
+        },
+
+        mPlotData() {
+            return this.groupedAssociations.map((a) => {
+                return {
+                    pValue: -Math.log10(a.chiSquared),
+                    "p-Value": this.pValueFormatter(a.chiSquared),
+                    region: a.chromosome + ":" + a.start + "-" + a.end,
+                    gene: a.gene,
                 };
             });
         },
@@ -300,3 +337,7 @@ export default Vue.component("gene-finder-table", {
     },
 });
 </script>
+
+<style>
+@import url("/css/effectorGenes.css");
+</style>

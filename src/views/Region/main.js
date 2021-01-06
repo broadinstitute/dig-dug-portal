@@ -242,10 +242,10 @@ new Vue({
             );
         },
         associationConsequences() {
-            return this.$store.state.associations.data.map(v => v.consequence);
+            return this.pageAssociations.map(v => v.consequence);
         },
         associationNearestGenes() {
-            return this.$store.state.associations.data.flatMap(
+            return this.pageAssociations.flatMap(
                 assoc => assoc.nearest
             );
         }

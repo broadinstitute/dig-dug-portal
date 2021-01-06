@@ -22,7 +22,7 @@ import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoo
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
 
 import { makeSource, makeLayout, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
-import { ToggleLogLog } from "./widgets"
+import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets"
 
 import jsonQuery from "json-query";
 import idCounter from "@/utils/idCounter";
@@ -34,6 +34,7 @@ LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
 
 LocusZoom.Widgets.add('toggleloglog', ToggleLogLog);
+LocusZoom.Widgets.add();
 
 export default Vue.component("locuszoom", {
     props: [
@@ -42,6 +43,7 @@ export default Vue.component("locuszoom", {
         "end",
         "scoring",
         "refSeq",
+        "ldpop",
         "filter",
         "filterAssociations",
         "filterAnnotations",
@@ -65,6 +67,10 @@ export default Vue.component("locuszoom", {
                 }
             }
         });
+        console.log(LocusZoom.Layouts.get("plot", "standard_association"))
+
+        let widgets = [ download_png ];
+        if (!!this.ldpop) widgets.push(ldlz2_pop_selector_menu);
 
         this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "both",
@@ -74,14 +80,10 @@ export default Vue.component("locuszoom", {
                 end: this.end,
             },
             toolbar: {
-                widgets: [
-                    {
-                        type: "download_png",
-                        color: "green",
-                        position: "right"
-                    }
-                ]
+                // top-to-bottom in the array => right-to-left on the layout
+                widgets
             },
+
         });
         this.locuszoommounted = true;
 
