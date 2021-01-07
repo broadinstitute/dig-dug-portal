@@ -19,15 +19,16 @@
         </div>-->
 
         <div v-if="showPlot && mPlotData.length">
-            <effector-genes-m-plot
+            <m-plot-html
                 :plotData="mPlotData"
                 :locusKey="'region'"
                 :scoreKey="'pValue'"
                 :renderBy="'gene'"
+                :renderThreshold="['p-Value', 'lt', 2.5e-6]"
                 :yAxisLabel="'-log10(p)'"
                 :yAxisRound="true"
                 :popUpContent="['p-Value', 'region']"
-            ></effector-genes-m-plot>
+            ></m-plot-html>
             <center style="margin: -25px 0 30px 0">
                 <b v-show="!!this.showChiSquared"
                     >Combined P-Value(Χ²) across
@@ -118,7 +119,7 @@ import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 import Filters from "@/utils/filters";
 
-import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
+import MPlotHtml from "@/components/eglt/MPlotHtml";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -143,7 +144,7 @@ export default Vue.component("gene-finder-table", {
         Documentation,
         TooltipDocumentation,
 
-        EffectorGenesMPlot,
+        MPlotHtml,
     },
     data() {
         return {

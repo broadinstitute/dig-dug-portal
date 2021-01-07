@@ -922,9 +922,9 @@ span.weight-blue {
 
 
 /* EGL M-Plot */
-.egl-m-plot-wrapper {
+.m-plot-html-wrapper {
     height: 300px;
-    margin-top: 10px !important;
+    margin-top: 40px !important;
     margin-bottom: 30px !important;
     position: relative;
 }
@@ -932,7 +932,7 @@ span.weight-blue {
 .bunch-by-locus {
     position: absolute;
     right: 0;
-    top: -30px;
+    top: -40px;
     z-index: 10;
 }
 
@@ -960,7 +960,7 @@ span.weight-blue {
     padding: 0 3px;
 }
 
-.egl-m-plot-content {
+.m-plot-html-content {
     height: 100%;
     position: relative;
 }
@@ -975,7 +975,7 @@ span.weight-blue {
     font-size: 12px;
 }
 
-#egl_m_plot_y {
+#m_plot_html_y {
     width: 50px;
     height: calc(100% - 30px);
     border-right: solid 1px #000;
@@ -984,20 +984,20 @@ span.weight-blue {
     position: relative;
 }
 
-#egl_m_plot_y .tick {
+#m_plot_html_y .tick {
     text-align: right;
     height: 25%;
     position: relative;
 }
 
-#egl_m_plot_y .tick span.tick-num {
+#m_plot_html_y .tick span.tick-num {
     display:block;
     position: absolute;
     top: -12px;
     right: 6px;
 }
 
-.egl-m-plot {
+.m-plot-html {
     width: calc(100% - 50px);
     height: 100%;
     display: inline-block;
@@ -1005,28 +1005,28 @@ span.weight-blue {
     font-size: 14px;
 }
 
-.egl-m-plot .chr_wrapper {
+.m-plot-html .chr_wrapper {
     display: inline-block;
     height: 100%;
 }
 
-.egl-m-plot .chr_wrapper.collapsed-chr {
+.m-plot-html .chr_wrapper.collapsed-chr {
     width: 1.5% !important;
     transition: width 0.05s;
 }
 
-.egl-m-plot .chr_wrapper.collapsed-chr.expanded-chr {
+.m-plot-html .chr_wrapper.collapsed-chr.expanded-chr {
     width: 65% !important;
     /*background-color: #fffeb9;*/
     transition: width 0.05s;
 }
 
-.egl-m-plot .chr_wrapper.collapsed-chr.expanded-chr .chr_number {
+.m-plot-html .chr_wrapper.collapsed-chr.expanded-chr .chr_number {
     border-top: solid 2px #999;
     background-color: #fffeb9;
 }
 
-.egl-m-plot .chr_wrapper .chr_dots_wrapper {
+.m-plot-html .chr_wrapper .chr_dots_wrapper {
     height: calc(100% - 35px);
     /*border-right: solid 1px #eee;*/
     margin-bottom: 5px;
@@ -1035,7 +1035,7 @@ span.weight-blue {
     margin: 0 5px 5px 5px;
 }
 
-.egl-m-plot .chr_wrapper .chr_number {
+.m-plot-html .chr_wrapper .chr_number {
     width: 100%;
     border-top: solid 1px #000;
     height: 30px;
@@ -1046,11 +1046,11 @@ span.weight-blue {
     color: #0067A6;
 }
 
-.egl-m-plot .chr_wrapper.expanded-chr .chr_number {
+.m-plot-html .chr_wrapper.expanded-chr .chr_number {
     font-weight: 500;
 }
 
-.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot {
+.m-plot-html .chr_wrapper .chr_dots_wrapper .dot {
     width: 10px !important;
     height: 10px !important;
     border-radius: 15px;
@@ -1059,7 +1059,7 @@ span.weight-blue {
     position: absolute;
 }
 
-.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot .dot-content {
+.m-plot-html .chr_wrapper .chr_dots_wrapper .dot .dot-content {
     position: absolute;
     display: none;
     color: #fff;
@@ -1076,15 +1076,19 @@ span.weight-blue {
     border: solid 1px #666;
 }
 
-.egl-m-plot .chr_wrapper .chr_dots_wrapper .dot:hover .dot-content {
-    display: block;
+.m-plot-html .chr_wrapper .chr_dots_wrapper .dot:hover .dot-content {
     cursor: pointer;
+    display: block;
 }
 
-.egl-m-plot .dot-content > strong {
+.m-plot-html .dot-content > strong {
     color: #cccc00;
     border-radius: 10px;
     margin-top: 3px;
+}
+
+.m-plot-html .dot-content > strong.key-gene {
+    color: #ffffff;
 }
 
 .num-of-genes {
@@ -1099,17 +1103,17 @@ html {
     --scrollbarBG: #666666;
     --thumbBG: #bbbbbb;
   }
-  .egl-m-plot .dot-content::-webkit-scrollbar {
+  .m-plot-html .dot-content::-webkit-scrollbar {
     width: 11px;
   }
-  .egl-m-plot .dot-content {
+  .m-plot-html .dot-content {
     scrollbar-width: thin;
     scrollbar-color: var(--thumbBG) var(--scrollbarBG);
   }
-  .egl-m-plot .dot-content::-webkit-scrollbar-track {
+  .m-plot-html .dot-content::-webkit-scrollbar-track {
     background: var(--scrollbarBG);
   }
-  .egl-m-plot .dot-content::-webkit-scrollbar-thumb {
+  .m-plot-html .dot-content::-webkit-scrollbar-thumb {
     background-color: var(--thumbBG) ;
     border-radius: 6px;
     border: 3px solid var(--scrollbarBG);

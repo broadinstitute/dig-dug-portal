@@ -1,6 +1,6 @@
 <template>
-    <div class="egl-m-plot-wrapper">
-        <div class="egl-m-plot-content">
+    <div class="m-plot-html-wrapper">
+        <div class="m-plot-html-content">
             <div class="bunch-by-locus">
                 <div class="bunch-ui">
                     <input
@@ -29,8 +29,8 @@
                 </div>
             </div>
             <div class="y-axis-label">{{ yAxisLabel }}</div>
-            <div id="egl_m_plot_y"></div>
-            <div class="egl-m-plot" id="egl_m_plot"></div>
+            <div id="m_plot_html_y"></div>
+            <div class="m-plot-html" id="m_plot_html"></div>
         </div>
     </div>
 </template>
@@ -43,12 +43,13 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("effector-genes-m-plot", {
+export default Vue.component("m-plot-html", {
     props: [
         "plotData",
         "locusKey",
         "scoreKey",
         "renderBy",
+        "renderThreshold",
         "popUpContent",
         "yAxisLabel",
         "yAxisRound",
@@ -71,7 +72,7 @@ export default Vue.component("effector-genes-m-plot", {
         renderPlot() {
             let grouped = document.getElementById("groupByLocusCheck").checked;
 
-            document.getElementById("egl_m_plot").innerHTML = "";
+            document.getElementById("m_plot_html").innerHTML = "";
             let chromosomeLength = {
                 //chromosome name, length
                 1: 248956422,
@@ -101,12 +102,12 @@ export default Vue.component("effector-genes-m-plot", {
             };
 
             let chromosomeColors = [
+                "#cb181d",
                 "#08306b",
                 "#41ab5d",
                 "#000000",
                 "#f16913",
                 "#3f007d",
-                "#cb181d",
             ];
 
             let dnaLength = 0;
@@ -115,7 +116,7 @@ export default Vue.component("effector-genes-m-plot", {
                 dnaLength += chromosomeLength[chr];
             }
 
-            let plotWrapper = document.getElementById("egl_m_plot");
+            let plotWrapper = document.getElementById("m_plot_html");
 
             for (const chr in chromosomeLength) {
                 let chrLength = (chromosomeLength[chr] / dnaLength) * 100;
@@ -158,8 +159,6 @@ export default Vue.component("effector-genes-m-plot", {
 
             let popUpContentPaths = this.popUpContent;
 
-            //console.log(this.plotData);
-
             // render y axis
             let yAxisContent = "";
 
@@ -175,18 +174,54 @@ export default Vue.component("effector-genes-m-plot", {
                 let unitNum = hScore - countUnit * i;
                 let unitLabel = unitNum % 1 != 0 ? unitNum.toFixed(3) : unitNum;
 
-                //console.log(unitNum % 1, parseFloat(unitLabel));
-
                 yAxisContent +=
                     "<div class='tick'><span class='tick-num'>" +
                     parseFloat(unitLabel) +
                     "</span></div>";
             }
 
-            document.getElementById("egl_m_plot_y").innerHTML = yAxisContent;
+            document.getElementById("m_plot_html_y").innerHTML = yAxisContent;
+
+            let filteredData = [];
+            let dotCount = 0;
+            let filterCondition = this.renderThreshold;
+
+            if (this.plotData.length > 1000) {
+                this.plotData.map(function (p) {
+                    if (
+                        filterCondition != undefined &&
+                        filterCondition != null
+                    ) {
+                        if (filterCondition[1] == "lt") {
+                            if (
+                                p[filterCondition[0]] <= filterCondition[2] ||
+                                dotCount < 1000
+                            ) {
+                                filteredData.push(p);
+                            }
+                        } else if (filterCondition[1] == "gt") {
+                            if (
+                                p[filterCondition[0]] >= filterCondition[2] ||
+                                dotCount < 1000
+                            ) {
+                                filteredData.push(p);
+                            }
+                        }
+                    } else {
+                        if (dotCount < 1000) {
+                            filteredData.push(p);
+                        }
+                    }
+                    dotCount++;
+                });
+            } else {
+                filteredData = this.plotData;
+            }
+
+            //console.log("index", index);
 
             if (grouped == false) {
-                this.plotData.map(function (p) {
+                filteredData.map(function (p) {
                     let LType =
                         p[LKey].includes("-") == true ? "region" : "snp";
 
@@ -211,9 +246,9 @@ export default Vue.component("effector-genes-m-plot", {
                                 100;
 
                         let dotContent =
-                            '<div class="dot-content"><strong>' +
+                            "<div class='dot-content'><strong class='key-gene'>" +
                             p[renderKey] +
-                            "</strong>";
+                            "</strong></br>";
                         if (popUpContentPaths != null) {
                             popUpContentPaths.map(function (pc) {
                                 if (pc.includes("features") == true) {
@@ -222,19 +257,19 @@ export default Vue.component("effector-genes-m-plot", {
                                     //
                                     for (const featureProperty in featurePath) {
                                         dotContent +=
-                                            "<div><strong class='property-key'>" +
+                                            "<strong class='property-key'>" +
                                             featureProperty +
                                             "</strong>: " +
                                             featurePath[featureProperty] +
-                                            "</div>";
+                                            "</br>";
                                     }
                                 } else {
                                     dotContent +=
-                                        "<div><strong class='property-key'>" +
+                                        "<strong class='property-key'>" +
                                         pc +
                                         "</strong>: " +
                                         p[pc] +
-                                        "</div>";
+                                        "</br>";
                                 }
                             });
                         }
@@ -276,9 +311,9 @@ export default Vue.component("effector-genes-m-plot", {
 
                 groupByChr["NA"] = {};
 
-                this.plotData.map(function (p) {
+                filteredData.map(function (p) {
                     let locusArr = p[LKey].split(":");
-                    //console.log("locusArr[0]", locusArr[0]);
+
                     let chr =
                         locusArr[0] == null ||
                         locusArr[0] == "" ||
@@ -312,8 +347,6 @@ export default Vue.component("effector-genes-m-plot", {
                     }
                 });
 
-                //console.log(groupByChr);
-
                 for (const chr in groupByChr) {
                     let chrGroup = groupByChr[chr];
                     if (chr != "NA") {
@@ -335,7 +368,6 @@ export default Vue.component("effector-genes-m-plot", {
                             bpVLocArr.sort(function (a, b) {
                                 return b - a;
                             });
-                            //console.log(bpVLocArr);
 
                             let bpVLoc =
                                 100 -
@@ -351,8 +383,6 @@ export default Vue.component("effector-genes-m-plot", {
                                     100 -
                                 bpVLoc;
 
-                            //console.log("bpSpread", bpSpread);
-
                             let bpHeight =
                                 bpSpread < 5
                                     ? "10px !important"
@@ -364,34 +394,35 @@ export default Vue.component("effector-genes-m-plot", {
                                 chromosomeColors[chr % chromosomeColors.length];
                             let dotOppacity = "75";
 
-                            let dotContent = '<div class="dot-content">';
+                            let dotContent = "<div class='dot-content'>";
                             chrGroup[bpNum].map(function (p) {
-                                //console.log(l[renderKey]);
                                 dotContent +=
-                                    "<strong>" + p[renderKey] + "</strong>";
+                                    "<strong class='key-gene'>" +
+                                    p[renderKey] +
+                                    "</strong></br>";
                                 if (popUpContentPaths != null) {
                                     popUpContentPaths.map(function (pc) {
                                         if (pc.includes("features") == true) {
                                             let featurePath =
                                                 p.features[pc.split(":")[1]][0];
-                                            //
+
                                             for (const featureProperty in featurePath) {
                                                 dotContent +=
-                                                    "<div><strong class='property-key'>" +
+                                                    "<strong class='property-key'>" +
                                                     featureProperty +
                                                     "</strong>: " +
                                                     featurePath[
                                                         featureProperty
                                                     ] +
-                                                    "</div>";
+                                                    "</br>";
                                             }
                                         } else {
                                             dotContent +=
-                                                "<div><strong class='property-key'>" +
+                                                "<strong class='property-key'>" +
                                                 pc +
                                                 "</strong>: " +
                                                 p[pc] +
-                                                "</div>";
+                                                "</br>";
                                         }
                                     });
                                 }
@@ -404,7 +435,7 @@ export default Vue.component("effector-genes-m-plot", {
                             document.getElementById(
                                 "chr_dots_" + chr
                             ).innerHTML +=
-                                '<a  href="/region.html?chr=' +
+                                '<a href="/region.html?chr=' +
                                 chr +
                                 "&end=" +
                                 endPos +
@@ -419,6 +450,8 @@ export default Vue.component("effector-genes-m-plot", {
                                 "; background-color:" +
                                 dotColor +
                                 dotOppacity +
+                                '" data="' +
+                                dotContent +
                                 '">' +
                                 "<span class='num-of-genes'>" +
                                 numOfGenes +

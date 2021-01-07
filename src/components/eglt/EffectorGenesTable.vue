@@ -74,14 +74,14 @@
                 config[dataset]['render_m_plot'] == true
             "
         >
-            <effector-genes-m-plot
+            <m-plot-html
                 :plotData="filteredData"
                 :locusKey="config[dataset]['m_plot_config']['locusKey']"
                 :scoreKey="config[dataset]['m_plot_config']['scoreKey']"
                 :renderBy="config[dataset]['m_plot_config']['renderBy']"
                 :yAxisLabel="config[dataset]['m_plot_config']['yAxisLabel']"
                 :popUpContent="config[dataset]['m_plot_config']['hoverContent']"
-            ></effector-genes-m-plot>
+            ></m-plot-html>
         </b-container>
 
         <b-container
@@ -247,7 +247,7 @@ import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 //import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
-import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
+import MPlotHtml from "@/components/eglt/MPlotHtml";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
@@ -272,7 +272,7 @@ export default Vue.component("effector-genes-table", {
     modules: {
         uiUtils,
     },
-    components: { EffectorGenesFeatures, EffectorGenesMPlot },
+    components: { EffectorGenesFeatures, MPlotHtml },
     created() {
         this.$store.dispatch("fetchConfig", {
             dataset: this.dataset,
