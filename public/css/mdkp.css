@@ -1673,7 +1673,8 @@ a.to-previous-page:hover {
 }
 #gait .forest-plot-simple {
     position: relative;
-    padding-top: 10px;
+    padding-top: 20px;
+    padding-bottom: 10px;
     overflow-x: hidden;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
