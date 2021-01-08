@@ -70,12 +70,10 @@ export default new Vuex.Store({
             let data = await Promise.all(queries)
                 .then(results => results.flatMap(data => data))
                 .then(data => uniqBy(data, "varId"));
-
             //let unique = uniqBy(data, "varId");
+            //console.log("data", unique);
 
             context.commit("setVariants", data);
-
-            //console.log("data", unique);
         }
     }
 });

@@ -99,14 +99,6 @@
                                         v-model="$parent.searchCriteria"
                                         :header="'Search Criteria'"
                                     >
-                                        <!-- <filter-basic-control
-                                            ref="gene"
-                                            :field="'gene'"
-                                            placeholder="Select a gene ..."
-                                        >
-                                            <div class="label">Gene</div>
-                                        </filter-basic-control> -->
-
                                         <filter-enumeration-control
                                             ref="gene"
                                             :field="'gene'"
