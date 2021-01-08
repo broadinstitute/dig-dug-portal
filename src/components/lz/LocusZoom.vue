@@ -16,6 +16,7 @@ import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
 import { LZAssociationsPanel } from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnnotationsPanel";
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
@@ -67,24 +68,24 @@ export default Vue.component("locuszoom", {
                 }
             }
         });
-        console.log(LocusZoom.Layouts.get("plot", "standard_association"))
 
         let widgets = [ download_png ];
         if (!!this.ldpop) widgets.push(ldlz2_pop_selector_menu);
 
-        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
-            responsive_resize: "both",
-            state: {
-                chr: this.chr,
-                start: this.start,
-                end: this.end,
-            },
-            toolbar: {
-                // top-to-bottom in the array => right-to-left on the layout
-                widgets
-            },
-
-        });
+        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, 
+            LocusZoom.Layouts.get("plot", "association_catalog", {
+                responsive_resize: "both",
+                state: {
+                    chr: this.chr,
+                    start: this.start,
+                    end: this.end,
+                },
+                toolbar: {
+                    // top-to-bottom in the array => right-to-left on the layout
+                    widgets
+                },
+            })
+        );
         this.locuszoommounted = true;
 
         // event listeners
@@ -102,17 +103,17 @@ export default Vue.component("locuszoom", {
 
         if (this.refSeq) {
             // adding default panel for gene reference track
-            this.plot.addPanel(
-                LocusZoom.Layouts.get("panel", "genes", {
-                    height: 120,
-                    // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
-                    // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
-                    // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
-                    min_height: 120,
-                    // bottom section
-                    y_index: 3,
-                })
-            );
+            // this.plot.addPanel(
+            //     LocusZoom.Layouts.get("panel", "genes", {
+            //         height: 120,
+            //         // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
+            //         // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
+            //         // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
+            //         min_height: 120,
+            //         // bottom section
+            //         y_index: 3,
+            //     })
+            // );
         }
     },
     methods: {
@@ -125,28 +126,31 @@ export default Vue.component("locuszoom", {
             const layout = makeLayout(panelClass);
             const source = makeSource(panelClass);
 
-            this.dataSources.add(
-                source.givingDataSourceName,
-                source.withDataSourceReader
-            );
-
-            let panelOptions = {
-                namespace: {
-                    [layout.forDataSourceType]: layout.takingDataSourceName,
-                },
-                id: layout.id,
-                ...layout.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
-            };
-
-            this.plot
-                .addPanel(
-                    LocusZoom.Layouts.get(
-                        "panel",
-                        layout.panelLayoutType,
-                        panelOptions
+            const panels = [].concat(layout.panelLayoutType); // no matter if layout.panelLayoutType is a list or a string, return a list;
+            panels.forEach((panelType, index) => {
+                let panelId = idCounter.getUniqueId(panelType)
+                this.dataSources.add(
+                    `${panelId}_src`,
+                    source.asDataSourceReader
+                );
+                let panelOptions = {
+                    id: panelId,
+                    namespace: {
+                        [layout.forDataSourceType]: `${panelId}_src`,
+                    },
+                    // ...layout.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
+                };
+                this.plot
+                    .addPanel(
+                        LocusZoom.Layouts.get(
+                            "panel",
+                            panelType,
+                            panelOptions
+                        )
                     )
-                )
-                .addBasicLoader();
+                    .addBasicLoader() 
+            });
+            
 
             // TODO: make this more abstract
                 // CAN USE NAMED V-MODEL/BINDINGS in Vue3?
@@ -180,6 +184,21 @@ export default Vue.component("locuszoom", {
                     initialData
                 )
             );
+            return panelId;
+        },
+        addCatalogAnnotationsPanel: function ( 
+                finishHandler,
+                resolveHandler,
+                errHandler,
+                initialData
+            ) {
+            const panelId = this.addPanelAndDataSource(
+                new LZCatalogAnnotationsPanel(
+                    finishHandler,
+                    resolveHandler,
+                    errHandler,
+                    initialData
+                ))
             return panelId;
         },
         addAnnotationIntervalsPanel: function (
@@ -336,6 +355,16 @@ export default Vue.component("locuszoom", {
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {
+    "assoc": [ 
+        "AssociationLZ", 
+        { 
+            url: "https://portaldev.sph.umich.edu/api/v1/statistic/single/", 
+            params: { 
+                source: 45, 
+                id_field: "variant" 
+            } 
+        } 
+    ],
     gene: [
         "GeneLZ",
         {
@@ -346,7 +375,7 @@ const LZDataSources = {
         },
     ],
     ld: [
-        "LDLZ2",
+        "LDServer",
         {
             url: "https://portaldev.sph.umich.edu/ld/",
             params: {
@@ -355,6 +384,15 @@ const LZDataSources = {
                 population: "ALL",
             },
         },
+    ],
+    catalog: [
+        "GwasCatalogLZ", 
+        { 
+            url: "https://portaldev.sph.umich.edu/api/v1/annotation/gwascatalog/results/",
+            params: {
+                build: HUMAN_GENOME_BUILD_VERSION,
+            }
+        }
     ],
     recomb: [
         "RecombLZ",

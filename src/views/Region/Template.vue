@@ -288,6 +288,7 @@
                                     :ldpop="true"
                                     :refSeq="true"
                                 >
+                                    <lz-catalog-annotations-panel></lz-catalog-annotations-panel>
                                     <lz-associations-panel
                                         :phenotype="$store.state.phenotype.name"
                                         :finishHandler="

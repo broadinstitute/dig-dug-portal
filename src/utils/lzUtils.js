@@ -19,13 +19,12 @@ export const makeSource = function(that) {
     return {
         isDataSourceType: that.datasource_type,
         givingDataSourceName: that.datasource_namespace_symbol_for_panel,
-        withDataSourceReader: that.bioIndexToLZReader,
+        asDataSourceReader: that.bioIndexToLZReader,
     }
 }
 
 export const makeLayout = function(that) {
     return {
-        id: that.panel_id,
         panelLayoutType: that.panel_layout_type,
         takingDataSourceName: that.datasource_namespace_symbol_for_panel,
         forDataSourceType: that.datasource_type,
