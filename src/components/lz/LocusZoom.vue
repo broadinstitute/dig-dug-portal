@@ -73,7 +73,7 @@ export default Vue.component("locuszoom", {
         if (!!this.ldpop) widgets.push(ldlz2_pop_selector_menu);
 
         this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, 
-            LocusZoom.Layouts.get("plot", "association_catalog", {
+            {
                 responsive_resize: "both",
                 state: {
                     chr: this.chr,
@@ -84,7 +84,7 @@ export default Vue.component("locuszoom", {
                     // top-to-bottom in the array => right-to-left on the layout
                     widgets
                 },
-            })
+            }
         );
         this.locuszoommounted = true;
 
@@ -103,17 +103,17 @@ export default Vue.component("locuszoom", {
 
         if (this.refSeq) {
             // adding default panel for gene reference track
-            // this.plot.addPanel(
-            //     LocusZoom.Layouts.get("panel", "genes", {
-            //         height: 120,
-            //         // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
-            //         // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
-            //         // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
-            //         min_height: 120,
-            //         // bottom section
-            //         y_index: 3,
-            //     })
-            // );
+            this.plot.addPanel(
+                LocusZoom.Layouts.get("panel", "genes", {
+                    height: 120,
+                    // `min_height` is authoratative to locuszoom on what the "natural" height of the track ought to be; i.e. `height` can change, but `min_height` cannot, and so `min_height` can be the layout's default height without any other information.
+                    // this means when we delete a panel in between two other panels, locuszoom knows what height each other panel ought to be, the `min_height`, rather than resizing both panels to fill the space left in the middle.
+                    // so we should define min_height across all panels if we want to stop them from changing each other's sizes when any of them are removed.
+                    min_height: 120,
+                    // bottom section
+                    y_index: 3,
+                })
+            );
         }
     },
     methods: {
@@ -127,12 +127,21 @@ export default Vue.component("locuszoom", {
             const source = makeSource(panelClass);
 
             const panels = [].concat(layout.panelLayoutType); // no matter if layout.panelLayoutType is a list or a string, return a list;
+            
             panels.forEach((panelType, index) => {
                 let panelId = idCounter.getUniqueId(panelType)
-                this.dataSources.add(
-                    `${panelId}_src`,
-                    source.asDataSourceReader
-                );
+                if (!!source.asDataSourceReader) {
+                    this.dataSources.add(
+                        `${panelId}_src`,
+                        source.asDataSourceReader
+                    );
+                }
+                // if (!!LZDataSources[layout.forDataSourceType]) {
+                //     this.dataSources.add(
+                //         `${panelId}_src`,
+                //         LZDataSources[layout.forDataSourceType]
+                //     ); 
+                // }
                 let panelOptions = {
                     id: panelId,
                     namespace: {
@@ -355,16 +364,6 @@ export default Vue.component("locuszoom", {
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {
-    "assoc": [ 
-        "AssociationLZ", 
-        { 
-            url: "https://portaldev.sph.umich.edu/api/v1/statistic/single/", 
-            params: { 
-                source: 45, 
-                id_field: "variant" 
-            } 
-        } 
-    ],
     gene: [
         "GeneLZ",
         {
