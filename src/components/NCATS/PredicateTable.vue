@@ -34,13 +34,14 @@ import queryString from "query-string";
 const myGeneAPI = 'https://mygene.info/v3';
 
 export default Vue.component("ncats-predicate-table", {
-    props: ["title", "geneSymbol", "field"],
+    props: ["title", "geneSymbol", "field", "filter"],
     data() {
         return {
             id: this.geneSymbol+this.fields+this.title,
             currentPage: 1,
             perPage: 10,
             rawGeneInfo: [],
+            myFilter: id => true,
         }
     },
     async created() {
@@ -62,7 +63,7 @@ export default Vue.component("ncats-predicate-table", {
     },
     computed: {
         geneInfo() {
-            return this.geneInfoForField(this.rawGeneInfo, this.field);
+            return this.geneInfoForField(this.rawGeneInfo, this.field).filter(this.myFilter);
         }
     },
     methods: {
