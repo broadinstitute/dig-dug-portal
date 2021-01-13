@@ -5,9 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
 import ldServer from "@/modules/ldServer";
-import keyParams from "@/utils/keyParams";
-import { query } from "@/utils/bioIndexUtils";
-import { uniqBy } from "lodash";
+import myGeneInfo from "@/modules/mygene"
 
 Vue.use(Vuex);
 
@@ -20,6 +18,7 @@ export default new Vuex.Store({
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
         geneAssociations52k: bioIndex("gene-associations-52k"),
+        myGeneInfo
     },
     state: {
         associationsData: {},
