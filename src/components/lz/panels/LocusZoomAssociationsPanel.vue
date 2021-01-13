@@ -78,7 +78,7 @@ export class LZAssociationsPanel {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
-        this.panel_layout_type = ['association_catalog'];
+        this.panel_layout_type = ['association_catalog', 'annotation_catalog'];
         this.datasource_type = 'assoc';
 
         // this is arbitrary, but we want to base it on the ID
@@ -91,19 +91,32 @@ export class LZAssociationsPanel {
             console.log(id);
             return id;
         }
+
+
+
         this.translator = associations => {
+
+            function varId2OtherVarId(varId) {
+                // "9:22132076:A:G"
+                // "9:22132076_C/A,G" ; OR
+                // "9:22132076_G/A"
+                const [a, b, c, d] = varId.split(':'); // ['9', '22132076', 'A', 'G']
+                return `${a}:${b}_${c}/${d}`
+            };
+
             return associations.map(association => ({
-                chromsome: 8,
-                id: association.varId,
+                chromosome: association.chromosome,
+                id: varId2OtherVarId(association.varId),
                 position: association.position,
                 pValue: association.pValue,
                 log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
-                variant: association.varId,
-                ref_allele: association.varId,
+                variant: varId2OtherVarId(association.varId),
+                ref_allele: varId2OtherVarId(association.varId),
                 consequence: association.consequence,
                 beta: association.beta,
                 nearest: association.nearest,
             }))
+            
         };
         this.initialData = initialData;
 

@@ -130,22 +130,26 @@ export default Vue.component("locuszoom", {
             
             panels.forEach((panelType, index) => {
                 let panelId = idCounter.getUniqueId(panelType)
-                if (!!source.asDataSourceReader) {
+                console.log(`${panelId}_src_${layout.forDataSourceType}`)
+
+                if (!!LZDataSources[layout.forDataSourceType]) {
                     this.dataSources.add(
-                        `${panelId}_src`,
+                        `${panelId}_src_${layout.forDataSourceType}`,
+                        LZDataSources[layout.forDataSourceType]
+                    ); 
+                } else 
+                    if (!!source.asDataSourceReader) {
+                    this.dataSources.add(
+                        `${panelId}_src_${layout.forDataSourceType}`,
                         source.asDataSourceReader
                     );
+                
                 }
-                // if (!!LZDataSources[layout.forDataSourceType]) {
-                //     this.dataSources.add(
-                //         `${panelId}_src`,
-                //         LZDataSources[layout.forDataSourceType]
-                //     ); 
-                // }
                 let panelOptions = {
                     id: panelId,
+                    // TODO: is this being done correctly?
                     namespace: {
-                        [layout.forDataSourceType]: `${panelId}_src`,
+                        [layout.forDataSourceType]: `${panelId}_src_${layout.forDataSourceType}`,
                     },
                     // ...layout.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
                 };
@@ -364,7 +368,7 @@ export default Vue.component("locuszoom", {
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {
-    "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/statistic/single/", params: { source: 45, id_field: "variant" } }],
+    // "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/statistic/single/", params: { source: 45, id_field: "variant" } }],
     gene: [
         "GeneLZ",
         {
