@@ -115,6 +115,13 @@ let pages = {
         title: "Contacts",
         chunks: ["chunk-vendors", "chunk-common", "contacts"]
     },
+    kplab: {
+        entry: "src/views/KPLab/main.js",
+        template: "public/index.html",
+        filename: "kplab.html",
+        title: "KP Lab",
+        chunks: ["chunk-vendors", "chunk-common", "kplab"]
+    },
     apis: {
         entry: "src/views/Apis/main.js",
         template: "public/index.html",
