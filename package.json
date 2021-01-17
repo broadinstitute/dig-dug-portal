@@ -28,6 +28,7 @@
     "save": "^2.4.0",
     "showdown": "^1.9.1",
     "string-replace-loader": "^2.3.0",
+    "trapi-client": "^0.0.3",
     "url-parse": "^1.4.7",
     "vue": "^2.6.12",
     "vue-cookies": "^1.7.4",
