@@ -1,6 +1,6 @@
 import queryString from "query-string";
 /**
- * This is the module to pull data through Lunaris.
+ * This is the module to pull data from mygene.info service
 
  */
 const myGeneAPI = 'https://mygene.info/v3';
@@ -36,7 +36,7 @@ export default {
                     } else {
                         throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
                     }
-                }) 
+                })
                 .then(json => context.commit('setGeneInfo', json))
                 .catch(error => console.error(error));
             return json;
