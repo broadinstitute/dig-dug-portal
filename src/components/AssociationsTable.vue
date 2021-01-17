@@ -117,6 +117,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 import { decodeNamespace } from "@/utils/filterHelpers";
+import { isEqual } from "lodash";
 
 export default Vue.component("associations-table", {
     props: ["associations", "phenotypes", "filter", "exclusive"],
@@ -254,7 +255,6 @@ export default Vue.component("associations-table", {
             return dataRows;
         },
     },
-
     methods: {
         phenotypeBetaColumn(phenotype) {
             return `cell(${phenotype.name}:beta)`;
@@ -279,6 +279,16 @@ export default Vue.component("associations-table", {
         },
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);
+        },
+    },
+    watch: {
+        phenotypes: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.currentPage = 1;
+                }
+            },
+            deep: true,
         },
     },
 });

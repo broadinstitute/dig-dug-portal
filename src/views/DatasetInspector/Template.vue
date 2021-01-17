@@ -22,6 +22,7 @@
                     <phenotype-selectpicker
                         v-if="$store.state.bioPortal.phenotypeMap"
                         :phenotypes="$parent.datasetPhenotypes"
+                        :clearOnSelected="true"
                     ></phenotype-selectpicker>
                 </div>
             </search-header-wrapper>
