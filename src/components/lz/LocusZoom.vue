@@ -72,7 +72,7 @@ export default Vue.component("locuszoom", {
         let widgets = [ download_png ];
         if (!!this.ldpop) widgets.push(ldlz2_pop_selector_menu);
 
-        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, 
+        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources,
             {
                 responsive_resize: "both",
                 state: {
@@ -127,28 +127,34 @@ export default Vue.component("locuszoom", {
             const source = makeSource(panelClass);
 
             const panels = [].concat(layout.panelLayoutType); // no matter if layout.panelLayoutType is a list or a string, return a list;
-            
             panels.forEach((panelType, index) => {
-                let panelId = idCounter.getUniqueId(panelType)
-                if (!!source.asDataSourceReader) {
-                    this.dataSources.add(
-                        `${panelId}_src`,
-                        source.asDataSourceReader
-                    );
-                }
-                // if (!!LZDataSources[layout.forDataSourceType]) {
-                //     this.dataSources.add(
-                //         `${panelId}_src`,
-                //         LZDataSources[layout.forDataSourceType]
-                //     ); 
-                // }
+
+                let panelId = idCounter.getUniqueId(panelType);
+
+                const dataSources = [].concat(panelClass.datasource_type)
+                const namespace = {};
+                dataSources.forEach((dataSourceType, index) => {
+                    let dataSourceName = `${dataSourceType}_${panelId}`
+                    if (!!LZDataSources[layout.forDataSourceType]) {
+                        this.dataSources.add(
+                            dataSourceName,
+                            LZDataSources[layout.forDataSourceType]
+                        );
+                    } else if (!!source.asDataSourceReader) {
+                        this.dataSources.add(
+                            dataSourceName,
+                            source.asDataSourceReader
+                        );
+                    }
+                    namespace[dataSourceType] = dataSourceName;
+                })
+
                 let panelOptions = {
+                     ...panelClass.locusZoomPanelOptions,
                     id: panelId,
-                    namespace: {
-                        [layout.forDataSourceType]: `${panelId}_src`,
-                    },
-                    // ...layout.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
+                    namespace,
                 };
+
                 this.plot
                     .addPanel(
                         LocusZoom.Layouts.get(
@@ -156,10 +162,8 @@ export default Vue.component("locuszoom", {
                             panelType,
                             panelOptions
                         )
-                    )
-                    .addBasicLoader() 
+                    ).addBasicLoader()
             });
-            
 
             // TODO: make this more abstract
                 // CAN USE NAMED V-MODEL/BINDINGS in Vue3?
@@ -195,7 +199,8 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        addCatalogAnnotationsPanel: function ( 
+        addCatalogAnnotationsPanel: function (
+                phenotype,
                 finishHandler,
                 resolveHandler,
                 errHandler,
@@ -203,6 +208,7 @@ export default Vue.component("locuszoom", {
             ) {
             const panelId = this.addPanelAndDataSource(
                 new LZCatalogAnnotationsPanel(
+                    phenotype,
                     finishHandler,
                     resolveHandler,
                     errHandler,
@@ -364,6 +370,7 @@ export default Vue.component("locuszoom", {
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {
+    // "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/statistic/single/", params: { source: 45, id_field: "variant" } }],
     gene: [
         "GeneLZ",
         {
@@ -385,8 +392,8 @@ const LZDataSources = {
         },
     ],
     catalog: [
-        "GwasCatalogLZ", 
-        { 
+        "GwasCatalogLZ",
+        {
             url: "https://portaldev.sph.umich.edu/api/v1/annotation/gwascatalog/results/",
             params: {
                 build: HUMAN_GENOME_BUILD_VERSION,

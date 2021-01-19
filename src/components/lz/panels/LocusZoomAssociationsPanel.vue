@@ -78,12 +78,12 @@ export class LZAssociationsPanel {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
-        this.panel_layout_type = ['association_catalog'];
+        this.panel_layout_type = 'association_catalog';
         this.datasource_type = 'assoc';
 
         // this is arbitrary, but we want to base it on the ID
         this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
-        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+        this.datasource_namespace_symbol_for_panel = 'assoc';
 
         this.index = 'associations'
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
@@ -93,7 +93,7 @@ export class LZAssociationsPanel {
         }
         this.translator = associations => {
             return associations.map(association => ({
-                chromsome: 8,
+                chromosome: association.chromosome,
                 id: association.varId,
                 position: association.position,
                 pValue: association.pValue,
