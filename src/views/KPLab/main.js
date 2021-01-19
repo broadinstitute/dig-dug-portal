@@ -1,81 +1,60 @@
 import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
 import Template from "./Template.vue";
 import store from "./store.js";
 
-Vue.use(BootstrapVue);
+import "bootstrap/dist/css/bootstrap.css";
+import "bootstrap-vue/dist/bootstrap-vue.css"
+import BootstrapVue from "bootstrap-vue"
+
+import NCATSPredicateTable from "@/components/NCATS/PredicateTable"
+import jsonQuery from "json-query"
+
 Vue.config.productionTip = false;
-
-
-import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
-import StaticPageInfo from "@/components/StaticPageInfo.vue";
-import uiUtils from "@/utils/uiUtils";
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert
-} from "@/components/Alert";
+Vue.use(BootstrapVue);
 
 new Vue({
     store,
-
     components: {
-        StaticPageInfo,
-        PageHeader,
-        PageFooter,
-        PortalDatasetsListTable,
-        Alert,
+        NCATSPredicateTable
     },
-
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-    },
-
     render(createElement, context) {
         return createElement(Template);
     },
-
-    methods: {
-        ...uiUtils,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert
+    data() {
+        return {
+            geneInfo: [],
+            fields: ['pathway', 'go'],
+            currentPage: 1,
+        };
     },
-
+    mounted() {
+       this.$store.dispatch('myGeneInfo/infoForGeneSymbol', { geneSymbol: 'PCSK9', fields: ['pathway', 'go'] });
+    },
     computed: {
-
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
+        goTerms: function() {
+            return this.geneInfoForField(this.$store.state.myGeneInfo.geneInfo, 'go');
         },
-
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-
-            if (contents.length === 0) {
-                return {};
+        pathway: function() {
+            return this.geneInfoForField(this.$store.state.myGeneInfo.geneInfo, 'pathway');
+        }
+    },
+    methods: {
+        geneInfoForField(geneInfo, field) {
+            const helpers = {
+                aggregateNestedLists: function(elements) {
+                    const element = elements.flatMap(element => Object.entries(element).filter(element => element[1].length > 0).flatMap(entry => entry[1]))
+                    return element;
+                }
             }
-            return contents[0];
-        },
-
-        pageInfo() {
-            let contents = this.$store.state.kp4cd.pageInfo;
-
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents;
+            return jsonQuery(`geneInfo[${field}]:aggregateNestedLists`, {
+                data: {
+                    geneInfo
+                },
+                allowRegexp: true,
+                locals: helpers
+            }).value;
         },
     },
-
     watch: {
-        diseaseGroup(group) {
-            this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getPageInfo", { "page": "kplab", "portal": group.name });
-        },
-
     }
 }).$mount("#app");

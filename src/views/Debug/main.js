@@ -24,6 +24,8 @@ import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
 
+import PredicateTable from "@/components/NCATS/PredicateTable"
+
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
@@ -44,6 +46,7 @@ new Vue({
         RareColorBarPlot,
         PosteriorProbabilityPlot,
         LocusZoom,
+        PredicateTable,
     },
     render(createElement, context) {
         return createElement(Template);
