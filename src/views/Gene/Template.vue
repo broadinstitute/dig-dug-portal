@@ -198,6 +198,36 @@
                     </div>
                 </div>
             </div>
+
+           <div class="card mdkp-card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        NCATS Translator
+                        <tooltip-documentation
+                            :content-fill="$parent.documentationMap"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
+                    </h4>
+                    <b-tabs content-class="mt-3" v-if="!!$parent.symbolName">
+                        <b-tab title="Pathway" active>                    
+                            <ncats-predicate-table
+                            :title="'Pathway'"
+                            :geneSymbol="$parent.symbolName"
+                            :field="'pathway'">
+                            </ncats-predicate-table>
+                        </b-tab>
+                        <b-tab title="Gene Ontology">
+                            <ncats-predicate-table
+                                :title="'GO Terms'"
+                                :geneSymbol="$parent.symbolName"
+                                :field="'go'">
+                            </ncats-predicate-table>
+                        </b-tab>
+                    </b-tabs>
+                </div>
+            </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
@@ -223,6 +253,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">

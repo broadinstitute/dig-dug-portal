@@ -16,10 +16,20 @@
                 :per-page="perPage"
                 :current-page="currentPage"
                 small>
-                
+
                 <!-- Custom rendering for known special cases -->
                 <template #cell(pubmed)="data">
-                    {{data.item.pubmed}}
+                    <ncats-predicate-link
+                        :domain="'pubmed'"
+                        :content="data.item.pubmed"
+                    ></ncats-predicate-link>
+                </template>
+
+                <template #cell(id)="data">
+                    <ncats-predicate-link
+                        :domain="field"
+                        :content="data.item.id"
+                    ></ncats-predicate-link>
                 </template>
 
             </b-table>
@@ -30,11 +40,16 @@
 import Vue from "vue";
 import jsonQuery from "json-query";
 import queryString from "query-string";
+import ncatsUtils from "./ncatsUtils";
+import PredicateLink from "@/components/NCATS/PredicateLink"
 
 const myGeneAPI = 'https://mygene.info/v3';
 
 export default Vue.component("ncats-predicate-table", {
     props: ["title", "geneSymbol", "field", "filter"],
+    components: {
+        PredicateLink
+    },
     data() {
         return {
             id: this.geneSymbol+this.fields+this.title,

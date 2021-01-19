@@ -5,22 +5,23 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h1 class="card-title">KPLab</h1>
-                    <ncats-predicate-table
+                    <b-tabs content-class="mt-3">
+                    <b-tab title="Pathway" active>                    
+                        <ncats-predicate-table
                         :title="'Pathway'"
                         :geneSymbol="'PCSK9'"
                         :field="'pathway'">
-                    </ncats-predicate-table>
-                    <ncats-predicate-table
-                        :title="'GO Terms'"
-                        :geneSymbol="'PCSK9'"
-                        :field="'go'">
-                    </ncats-predicate-table>
-                                      <b-tabs content-class="mt-3">
-                    <b-tab title="First" active><p>I'm the first tab</p></b-tab>
-                    <b-tab title="Second"><p>I'm the second tab</p></b-tab>
+                        </ncats-predicate-table>
+                    </b-tab>
+                    <b-tab title="Gene Ontology">
+                        <ncats-predicate-table
+                            :title="'GO Terms'"
+                            :geneSymbol="'PCSK9'"
+                            :field="'go'">
+                        </ncats-predicate-table>
+                    </b-tab>
                 </b-tabs>
                 </div>
-
             </div>
         </div>
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>

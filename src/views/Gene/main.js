@@ -28,6 +28,8 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
+import NCATSPredicateTable from "@/components/NCATS/PredicateTable"
+
 import Alert, {
     postAlert,
     postAlertNotice,
