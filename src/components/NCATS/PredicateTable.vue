@@ -1,40 +1,38 @@
 <template>
-    <b-card
-        class="mb-2">
-        <b-row no-gutters>
-            <b-card-body :title="title">
-            </b-card-body>
-            <b-pagination
-                v-model="currentPage"
-                :total-rows="geneInfo.length"
-                :per-page="perPage"
-                :aria-controls="id"
-            ></b-pagination>
-            <b-table
-                :id="id"
-                :items="geneInfo"
-                :per-page="perPage"
-                :current-page="currentPage"
-                small>
+    <b-row no-gutters>
+        <!-- <b-card-body :title="title">
+        </b-card-body> -->
 
-                <!-- Custom rendering for known special cases -->
-                <template #cell(pubmed)="data">
-                    <ncats-predicate-link
-                        :domain="'pubmed'"
-                        :content="data.item.pubmed"
-                    ></ncats-predicate-link>
-                </template>
+        <b-table
+            :id="id"
+            :items="geneInfo"
+            :per-page="perPage"
+            :current-page="currentPage"
+            small>
 
-                <template #cell(id)="data">
-                    <ncats-predicate-link
-                        :domain="field"
-                        :content="data.item.id"
-                    ></ncats-predicate-link>
-                </template>
+            <!-- Custom rendering for known special cases -->
+            <template #cell(pubmed)="data">
+                <ncats-predicate-link
+                    :domain="'pubmed'"
+                    :content="data.item.pubmed"
+                ></ncats-predicate-link>
+            </template>
 
-            </b-table>
-        </b-row>
-    </b-card>
+            <template #cell(id)="data">
+                <ncats-predicate-link
+                    :domain="field"
+                    :content="data.item.id"
+                ></ncats-predicate-link>
+            </template>
+
+        </b-table>
+        <b-pagination
+            v-model="currentPage"
+            :total-rows="geneInfo.length"
+            :per-page="perPage"
+            :aria-controls="id"
+        ></b-pagination>
+    </b-row>
 </template>
 <script>
 import Vue from "vue";
@@ -72,7 +70,7 @@ export default Vue.component("ncats-predicate-table", {
                 } else {
                     throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
                 }
-            }) 
+            })
             .then(json => { this.rawGeneInfo = json; })
             .catch(error => console.error(error));
     },
@@ -86,10 +84,10 @@ export default Vue.component("ncats-predicate-table", {
             const helpers = {
                 aggregateNestedLists: function(elements) {
                     const element = elements
-                        .flatMap(element => 
+                        .flatMap(element =>
                         Object.entries(element)
                             .filter(element => element[1].length > 0)
-                            .flatMap(thisEntry => 
+                            .flatMap(thisEntry =>
                                 thisEntry[1].map(entry => { entry['source'] = thisEntry[0]; return entry })))
                     console.log(element)
                     return element;

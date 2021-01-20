@@ -195,6 +195,7 @@
                                 ></gene-associations-table>
                             </template>
                         </criterion-function-group>
+
                     </div>
                 </div>
             </div>
@@ -202,21 +203,34 @@
            <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        NCATS Translator
+                        Translator
                         <tooltip-documentation
                             :content-fill="$parent.documentationMap"
                             :isHover="true"
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h4>
+
                     <b-tabs content-class="mt-3" v-if="!!$parent.symbolName">
-                        <b-tab title="Pathway" active>                    
-                            <ncats-predicate-table
-                            :title="'Pathway'"
-                            :geneSymbol="$parent.symbolName"
-                            :field="'pathway'">
-                            </ncats-predicate-table>
+
+                        <b-tab title="Pathway" active>
+                            <criterion-function-group>
+                                <filter-enumeration-control
+                                    :options="[]"
+                                    :field="'phenotype'">
+                                    <div class="label">Source</div>
+                                </filter-enumeration-control>
+                                <template slot="filtered" slot-scope="{ filter }">
+                                    <ncats-predicate-table
+                                    :title="'Pathway'"
+                                    :geneSymbol="$parent.symbolName"
+                                    :field="'pathway'"
+                                    :filter="filter">
+                                    </ncats-predicate-table>
+                                </template>
+                            </criterion-function-group>
                         </b-tab>
+
                         <b-tab title="Gene Ontology">
                             <ncats-predicate-table
                                 :title="'GO Terms'"
@@ -224,6 +238,7 @@
                                 :field="'go'">
                             </ncats-predicate-table>
                         </b-tab>
+
                     </b-tabs>
                 </div>
             </div>

@@ -2,22 +2,9 @@
     <b-card
         class="mb-2">
         <b-row no-gutters>
-            <b-card-body 
+            <b-card-body
                 title="Pathways">
             </b-card-body>
-            <b-pagination
-                v-model="currentPage"
-                :total-rows="geneInfo.length"
-                :per-page="perPage"
-                :aria-controls="id"
-            ></b-pagination>
-            <b-table
-                :id="id"
-                :items="geneInfo"
-                :per-page="perPage"
-                :current-page="currentPage"
-                small
-            ></b-table>
         </b-row>
     </b-card>
 </template>
@@ -46,7 +33,7 @@ export default Vue.component("ncats-predicate-table", {
                 } else {
                     throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
                 }
-            }) 
+            })
             .then(json => { this.geneInfoData = json; })
             .catch(error => console.error(error));
     }

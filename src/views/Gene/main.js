@@ -67,6 +67,7 @@ new Vue({
     data() {
         return {
             counter: 0,
+            // TODO: replace with prefixcommons outlink?
             externalResources: {
                 ensembl: {
                     title: "Ensembl",
