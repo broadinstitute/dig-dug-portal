@@ -94,7 +94,10 @@
             "
             class="volcano-plot-wrapper"
         >
-            <volcano-plot :plotData="filteredData"></volcano-plot>
+            <volcano-plot
+                :plotData="filteredData"
+                :renderConfig="config[dataset]['volcano_plot_config']"
+            ></volcano-plot>
         </b-container>
 
         <b-container
