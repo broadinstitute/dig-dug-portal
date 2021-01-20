@@ -186,7 +186,14 @@ let pages = {
         filename: "gait.html",
         title: "Genetic Association Interactive Tool",
         chunks: ["chunk-vendors", "chunk-common", "gait"]
-    }
+    },
+    paper: {
+        entry: "src/views/Paper/main.js",
+        template: "public/index.html",
+        filename: "paper.html",
+        title: "Paper data",
+        chunks: ["chunk-vendors", "chunk-common", "paper"]
+    },
 };
 
 // remove the debug page in production

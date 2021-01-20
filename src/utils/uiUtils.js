@@ -147,6 +147,31 @@ let onScroll = function (e) {
     }
 }
 
+let convertJson2Csv = function (DATA, FILENAME) {
+    const items = DATA;
+    const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
+    const header = Object.keys(items[0]);
+    const csv = [
+        header.join(","), // header row first
+        ...items.map((row) =>
+            header
+                .map((fieldName) =>
+                    JSON.stringify(row[fieldName], replacer)
+                )
+                .join(",")
+        ),
+    ].join("\r\n");
+
+    var downloadLink = document.createElement("a");
+    var blob = new Blob(["\ufeff", csv]);
+    var url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = FILENAME + ".csv"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
 
 export default {
     popOutElement,
@@ -159,4 +184,5 @@ export default {
     switchViews,
     getToolTipPosition,
     onScroll,
+    convertJson2Csv,
 }

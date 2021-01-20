@@ -1098,19 +1098,23 @@ span.weight-blue {
 html {
     --scrollbarBG: #666666;
     --thumbBG: #bbbbbb;
-  }
-  .egl-m-plot .dot-content::-webkit-scrollbar {
+}
+.egl-m-plot .dot-content::-webkit-scrollbar {
     width: 11px;
-  }
-  .egl-m-plot .dot-content {
+}
+.egl-m-plot .dot-content {
     scrollbar-width: thin;
     scrollbar-color: var(--thumbBG) var(--scrollbarBG);
-  }
-  .egl-m-plot .dot-content::-webkit-scrollbar-track {
+}
+.egl-m-plot .dot-content::-webkit-scrollbar-track {
     background: var(--scrollbarBG);
-  }
-  .egl-m-plot .dot-content::-webkit-scrollbar-thumb {
+}
+.egl-m-plot .dot-content::-webkit-scrollbar-thumb {
     background-color: var(--thumbBG) ;
     border-radius: 6px;
     border: 3px solid var(--scrollbarBG);
-  }
+}
+
+.egl-table-page-ui-wrapper {
+    margin-top: 30px;
+}

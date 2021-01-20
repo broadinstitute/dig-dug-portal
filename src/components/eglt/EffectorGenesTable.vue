@@ -71,7 +71,7 @@
             v-if="
                 !!config &&
                 !!filteredData &&
-                config[dataset]['render_m_plot'] == true
+                !!config[dataset]['render_m_plot'] == true
             "
             class="egl-m-plot-wrapper"
         >
@@ -83,6 +83,18 @@
                 :yAxisLabel="config[dataset]['m_plot_config']['yAxisLabel']"
                 :popUpContent="config[dataset]['m_plot_config']['hoverContent']"
             ></effector-genes-m-plot>
+        </b-container>
+
+        <b-container
+            fluid
+            v-if="
+                !!config &&
+                !!filteredData &&
+                !!config[dataset]['render_volcano_plot'] == true
+            "
+            class="volcano-plot-wrapper"
+        >
+            <volcano-plot :plotData="filteredData"></volcano-plot>
         </b-container>
 
         <b-container
@@ -99,7 +111,11 @@
         </b-container>
         <b-container
             fluid
-            v-if="!!config && !!tableData"
+            v-if="
+                !!config &&
+                !!tableData &&
+                config[dataset]['render_feature'] == true
+            "
             class="table-ui-wrapper"
         >
             <b-row>
@@ -140,6 +156,17 @@
                 </div>
             </b-row>
         </b-container>
+        <!-- convertJson2Csv works only for tables with no feature tables -->
+        <b-container
+            v-if="!!config && !!config[dataset]['convert_2_csv']"
+            class="convert-2-csv"
+        >
+            <a
+                href="javascript:;"
+                @click="convertJson2Csv(filteredData, dataset + '_filtered')"
+                >Save table as CSV</a
+            >
+        </b-container>
         <div :class="'EGLT-table ' + this.dataset">
             <b-container fluid v-if="!!config && !!filteredData" class>
                 <b-row class="top-level-header">
@@ -163,7 +190,7 @@
                     </div>
                 </b-row>
                 <b-row
-                    v-for="(value, index) in filteredData"
+                    v-for="(value, index) in pagedData"
                     class="top-level-value"
                     :key="index"
                 >
@@ -240,6 +267,17 @@
                 </b-row>
             </b-container>
         </div>
+        <b-container
+            v-if="!!config && !!config[dataset].pageUI"
+            class="egl-table-page-ui-wrapper"
+        >
+            <b-pagination
+                class="pagination-sm justify-content-center"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+            ></b-pagination>
+        </b-container>
     </div>
 </template>
 
@@ -249,6 +287,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 //import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
+import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
@@ -268,12 +307,14 @@ export default Vue.component("effector-genes-table", {
             sortTableSelect: null,
             sortDirection: "asc",
             /*igvBrowser: false,*/
+            perPage: 25,
+            currentPage: 1,
         };
     },
     modules: {
         uiUtils,
     },
-    components: { EffectorGenesFeatures, EffectorGenesMPlot },
+    components: { EffectorGenesFeatures, EffectorGenesMPlot, VolcanoPlot },
     created() {
         this.$store.dispatch("fetchConfig", {
             dataset: this.dataset,
@@ -296,8 +337,32 @@ export default Vue.component("effector-genes-table", {
         filteredData() {
             return this.$store.state.filteredData;
         },
+        pagedData() {
+            if (!!this.config[this.dataset].pageUI) {
+                let filtered = this.$store.state.filteredData;
+                let paged = [];
+                let perPage = this.config[this.dataset].pageUI.perPage;
+
+                let startIndex = (this.currentPage - 1) * perPage;
+                let endIndex =
+                    this.rows - this.currentPage * perPage > perPage
+                        ? this.currentPage * perPage
+                        : this.rows;
+
+                for (let i = startIndex; i < endIndex; i++) {
+                    paged.push(filtered[i]);
+                }
+
+                return paged;
+            } else {
+                return this.$store.state.filteredData;
+            }
+        },
         config() {
             return this.$store.state.config;
+        },
+        rows() {
+            return this.$store.state.filteredData.length;
         },
     },
     watch: {
@@ -319,6 +384,9 @@ export default Vue.component("effector-genes-table", {
         },
     },
     methods: {
+        convertJson2Csv(DATA, FILENAME) {
+            uiUtils.convertJson2Csv(DATA, FILENAME);
+        },
         buildOptions(field) {
             let options = this.tableData
                 .map((v) => v[field])
