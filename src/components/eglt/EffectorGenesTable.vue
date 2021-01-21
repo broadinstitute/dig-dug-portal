@@ -161,13 +161,14 @@
         </b-container>
         <!-- convertJson2Csv works only for tables with no feature tables -->
         <b-container
+            fluid
             v-if="!!config && !!config[dataset]['convert_2_csv']"
             class="convert-2-csv"
         >
-            <a
-                href="javascript:;"
+            <b-btn
+                class="btn-sm"
                 @click="convertJson2Csv(filteredData, dataset + '_filtered')"
-                >Save table as CSV</a
+                >Save as CSV</b-btn
             >
         </b-container>
         <div :class="'EGLT-table ' + this.dataset">

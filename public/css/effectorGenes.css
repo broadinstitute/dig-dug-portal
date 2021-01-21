@@ -1118,3 +1118,8 @@ html {
 .egl-table-page-ui-wrapper {
     margin-top: 30px;
 }
+
+.convert-2-csv {
+    margin-bottom: 5px;
+    text-align: right;
+}
