@@ -176,6 +176,7 @@ let getAxisTicks = function (lo, hi) {
     let step = 10 ** (Math.round(Math.log10(hi - lo)) - 1);
     let value = (Math.floor((lo + step) / step) - 1) * step;
     let halfStep = step / 2;
+    //console.log("step", step, "half", halfStep);
     let ticks = {};
     // update the actual lo to be the initial value
     lo = value;
