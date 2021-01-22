@@ -186,6 +186,13 @@ let pages = {
         filename: "gait.html",
         title: "Genetic Association Interactive Tool",
         chunks: ["chunk-vendors", "chunk-common", "gait"]
+    },
+    variantsearch: {
+        entry: "src/views/VariantSearch/main.js",
+        template: "public/index.html",
+        filename: "variantsearch.html",
+        title: "Variant Search",
+        chunks: ["chunk-vendors", "chunk-common", "variantsearch"]
     }
 };
 
