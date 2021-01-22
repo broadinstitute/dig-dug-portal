@@ -137,12 +137,6 @@ export class LZComputedCredibleVariantsPanel {
                 }
             },
             data_layers: [
-                // LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
-                //     namespace: {
-                //         assoc: this.datasource_namespace_symbol_for_panel,
-                //         credset: this.datasource_namespace_symbol_for_panel
-                //     },
-                // }),
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,

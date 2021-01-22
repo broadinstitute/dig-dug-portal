@@ -85,20 +85,14 @@ export class LZCatalogAnnotationsPanel {
         this.index = 'associations'
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
         this.translator = associations => {
-
-            function varId2OtherVarId(varId) {
-                const [a, b, c, d] = varId.split(':'); // ['9', '22132076', 'A', 'G']
-                return `${a}:${b}_${c}/${d}`
-            };
-
             return associations.map(association => ({
                 chromosome: association.chromosome,
-                id: varId2OtherVarId(association.varId),
+                id: (association.varId),
                 position: association.position,
                 pValue: association.pValue,
                 log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
-                variant: varId2OtherVarId(association.varId),
-                ref_allele: varId2OtherVarId(association.varId),
+                variant: (association.varId),
+                ref_allele: (association.varId),
                 consequence: association.consequence,
                 beta: association.beta,
                 nearest: association.nearest,
@@ -106,7 +100,7 @@ export class LZCatalogAnnotationsPanel {
 
         };
         this.initialData = initialData;
-
+        // console.log({...LocusZoom.Layouts.get("data_layer", "annotation_catalog").namespace})
         this.layouts = [
             LocusZoom.Layouts.get("panel", "annotation_catalog", {
                 y_index: 0,
@@ -114,9 +108,13 @@ export class LZCatalogAnnotationsPanel {
                 data_layers: [
                     Object.assign(LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0], {
                         namespace: {
-                            ...LocusZoom.Layouts.get("data_layer", "annotation_catalog").namespace,
-                            [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
+                            catalog: "catalog",
+                            [this.datasource_type]: this.datasource_type,
                         },
+                        filter: [
+                            // Hack to exclude incomplete datapoints
+                            { field: 'catalog:pos', operator: '>', value: 0 }
+                        ],
                         match: { send: 'catalog:pos', receive: 'catalog:pos' },
                         color: [
                             {

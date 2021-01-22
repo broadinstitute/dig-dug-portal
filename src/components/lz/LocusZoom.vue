@@ -314,14 +314,17 @@ export default Vue.component("locuszoom", {
             //             data_layer.parent.id.includes(panelType)
             //         );
             // }
-            console.log('apply filter')
+
             data_layers.forEach((data_layer) => {
-                data_layer.setFilter((obj) => {
-                    let regularObject = decodeNamespace(obj, {
-                        prefix: new RegExp('.+:')
+                if (!(data_layer.id === 'annotation_catalog')) {
+                    data_layer.setFilter((obj) => {
+                        let regularObject = decodeNamespace(obj, {
+                            prefix: new RegExp('.+:')
+                        });
+                        return filter(regularObject);
                     });
-                    return filter(regularObject);
-                });
+                }
+
             });
 
         },
@@ -352,20 +355,26 @@ export default Vue.component("locuszoom", {
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
+            let data_layers = this.getDataLayers();
+            console.log(data_layers)
         },
         filterAnnotations(annotationsFilter) {
             this.applyFilter(annotationsFilter, "intervals");
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
+
         },
     },
 });
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {
+    // "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/annotation/statistic/single/", params: { source: 45, id_field: "variant" } }],
     catalog: ["GwasCatalogLZ",
-                { url: "https://portaldev.sph.umich.edu/api/v1/annotation/gwascatalog/results/",
+                {
+                    _enableCache: false,
+                    url: "https://portaldev.sph.umich.edu/api/v1/annotation/gwascatalog/results/?decompose=1&variant_format=colons",
                     params: {
                         build: HUMAN_GENOME_BUILD_VERSION,
                     }

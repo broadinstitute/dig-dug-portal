@@ -47,8 +47,6 @@ export class LZBioIndexSource extends BaseAdapter {
         this.onError = onError;
     };
     getCacheKey(state /*, chain, fields*/) {
-        // In generic form, Tabix queries are based on chr, start, and end. The cache is thus controlled by the query,
-        //  not the URL
         return [state.chr, state.start, state.end].join('_');
     }
     fetchRequest(state, chain, fields) {

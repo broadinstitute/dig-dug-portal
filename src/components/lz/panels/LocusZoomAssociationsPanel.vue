@@ -84,13 +84,12 @@ export class LZAssociationsPanel {
 
         this.index = 'associations'
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
+        function varId2OtherVarId(varId) {
+            // const [a, b, c, d] = varId.split(':'); // ['9', '22132076', 'A', 'G']
+            // return `${a}:${b}_${c}/${d}`
+            return varId;
+        };
         this.translator = associations => {
-
-            function varId2OtherVarId(varId) {
-                const [a, b, c, d] = varId.split(':'); // ['9', '22132076', 'A', 'G']
-                return `${a}:${b}_${c}/${d}`
-            };
-
             return associations.map(association => ({
                 chromosome: association.chromosome,
                 id: varId2OtherVarId(association.varId),
