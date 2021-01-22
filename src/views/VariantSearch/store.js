@@ -9,6 +9,6 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        bioIndex
+        variants: bioIndex("gene-variants")
     }
 });
