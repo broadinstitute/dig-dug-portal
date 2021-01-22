@@ -132,10 +132,10 @@ new Vue({
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
-            let finishHandler = this.updateAssociationsTable;
+            let onLoad = this.updateAssociationsTable;
             const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
                 phenotype,
-                finishHandler
+                onLoad
             );
             return newAssociationsPanelId;
         },

@@ -37,14 +37,14 @@ export class LZBioIndexSource extends BaseAdapter {
         super(params)
     }
     parseInit(params) {
-        const { index, queryStringMaker, translator, finishHandler, resolveHandler, errHandler } = params;
+        const { index, queryStringMaker, translator, onLoad, onResolve, onError } = params;
         this.params = params;
         this.queryStringMaker = queryStringMaker;
         this.index = index;
         this.translator = translator;
-        this.finishHandler = finishHandler;
-        this.resolveHandler = resolveHandler;
-        this.errHandler = errHandler;
+        this.onLoad = onLoad;
+        this.onResolve = onResolve;
+        this.onError = onError;
     };
     getCacheKey(state /*, chain, fields*/) {
         // In generic form, Tabix queries are based on chr, start, and end. The cache is thus controlled by the query,
@@ -60,11 +60,11 @@ export class LZBioIndexSource extends BaseAdapter {
             } else {
                 const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
                 query(self.index, self.queryStringMaker(state.chr, state.start, state.end), {
-                    // resolveHandler: self.resolveHandler,
+                    // onResolve: self.onResolve,
                 })
                 .then(async bioIndexResults => {
-                    if(!!self.finishHandler) {
-                        self.finishHandler(bioIndexResults);
+                    if(!!self.onLoad) {
+                        self.onLoad(bioIndexResults);
                     }
                     resolve(self.translator(bioIndexResults));
                 })

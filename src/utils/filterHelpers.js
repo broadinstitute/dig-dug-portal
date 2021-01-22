@@ -100,6 +100,7 @@ export function predicateFromSpec(
     return {
         inclusive,
         func: (obj) => {
+            
             // TODO: other ways of doing matches?
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
@@ -174,6 +175,7 @@ export function encodeNamespace(
 
 export function decodeNamespace(
     namespacedObject,
+    // NOTE! These can be strings OR instances of regular expressions (wrapped in `new RegExp(<pattern>)`)
     { prefix = "", suffix = "", pDelimiter = "", sDelimiter = "" }
 ) {
     // strip prefixes and suffixes from object properties given that they have them,
@@ -182,8 +184,6 @@ export function decodeNamespace(
     let tempObject = {};
     Object.entries(namespacedObject).forEach(entry => {
         const [key, value] = entry;
-        // TODO: replace with disjoint regex?
-        // for fun: regex crosswords https://regexcrossword.com
         const newKey = key.replace(prefix, '').replace(suffix, '')
             .replace(pDelimiter, '')
             .replace(sDelimiter, '');

@@ -96,7 +96,7 @@ export default function (index, extend) {
                         limit: limit || context.state.limit,
                         limitWhile: limitWhile,
                         // updates progress
-                        resolveHandler: json => {
+                        onResolve: json => {
                             profile.fetch += json.profile.fetch || 0;
                             profile.query += json.profile.query || 0;
 
@@ -105,7 +105,7 @@ export default function (index, extend) {
                             context.commit("setProgress", json.progress);
                         },
                         // report errors
-                        errHandler: error => {
+                        onError: error => {
                             closeAlert(alertID);
                             postAlertError(error.detail);
                             context.commit('setError', error.detail);

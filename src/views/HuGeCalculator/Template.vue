@@ -172,7 +172,7 @@
                                                 >
                                                     <lz-associations-panel
                                                         :phenotype="$parent.phenotype.name"
-                                                        :finishHandler="$parent.updateAssociationsTable"
+                                                        @input="$parent.updateAssociationsTable"
                                                     ></lz-associations-panel>
                                                 </locuszoom>
                                             </div>
@@ -254,7 +254,7 @@
                                                 >
                                                     <lz-associations-panel
                                                         :phenotype="$parent.phenotype.name"
-                                                        :finishHandler="$parent.updateAssociationsTable"
+                                                        @input="$parent.updateAssociationsTable"
                                                     ></lz-associations-panel>
                                                 </locuszoom>
                                             </div>
@@ -274,7 +274,7 @@
                                                 >
                                                     <lz-associations-panel
                                                         :phenotype="$parent.phenotype.name"
-                                                        :finishHandler="$parent.updateAssociationsTable"
+                                                        @input="$parent.updateAssociationsTable"
                                                     ></lz-associations-panel>
                                                 </locuszoom>
                                             </div>
@@ -295,7 +295,7 @@
                                                 >
                                                     <lz-associations-panel
                                                         :phenotype="$parent.phenotype.name"
-                                                        :finishHandler="$parent.updateAssociationsTable"
+                                                        @input="$parent.updateAssociationsTable"
                                                     ></lz-associations-panel>
                                                 </locuszoom>
                                             </div>

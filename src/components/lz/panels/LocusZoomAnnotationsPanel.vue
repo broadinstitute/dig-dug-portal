@@ -30,9 +30,9 @@ export default Vue.component("lz-annotation-intervals-panel", {
         value: {
             required: false
         },
-        finishHandler: Function,
-        resolveHandler: Function,
-        errHandler: Function,
+        onLoad: Function,
+        onResolve: Function,
+        onError: Function,
     },
     data() {
         return {
@@ -45,15 +45,15 @@ export default Vue.component("lz-annotation-intervals-panel", {
     methods: {
         updatePanel() {
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const finishHandler = !!!this.finishHandler ? result => this.$emit('input', result) : this.finishHandler;
+            const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
             this.panelId = this.$parent.addAnnotationIntervalsPanel(
                 this.annotation,
                 this.method,
                 this.scoring,
                 this.initialData,
-                finishHandler,
-                this.resolveHandler,
-                this.errHandler
+                onLoad,
+                this.onResolve,
+                this.onError
             );
         },
     },
@@ -84,7 +84,7 @@ export default Vue.component("lz-annotation-intervals-panel", {
 });
 
 export class LZAnnotationIntervalsPanel {
-    constructor(annotation, method, finishHandler, resolveHandler, errHandler, initialData, scoring) {
+    constructor(annotation, method, onLoad, onResolve, onError, initialData, scoring) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -137,7 +137,7 @@ export class LZAnnotationIntervalsPanel {
         // If there's not a lot in here it's because we're overriding defaults.
         this.locusZoomPanelOptions = {
             ...BASE_PANEL_OPTIONS,
-            y_index: 1,
+            y_index: 2,
             title: {
                 text: `${annotation} ${method ? method : ''}`
             },
@@ -158,9 +158,9 @@ export class LZAnnotationIntervalsPanel {
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
-            finishHandler,
-            resolveHandler,
-            errHandler,
+            onLoad,
+            onResolve,
+            onError,
             initialData: this.initialData,
         });
     }
