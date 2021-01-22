@@ -22,7 +22,7 @@ import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibl
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import { makeSource, makeLayout, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
+import { makeSource, makeLayout, hasDataLayer } from "@/utils/lzUtils";
 import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets"
 
 import jsonQuery from "json-query";
@@ -35,7 +35,6 @@ LocusZoom.use(credibleSets);
 LocusZoom.use(toolbar_addons);
 
 LocusZoom.Widgets.add('toggleloglog', ToggleLogLog);
-LocusZoom.Widgets.add();
 
 export default Vue.component("locuszoom", {
     props: [
@@ -48,6 +47,7 @@ export default Vue.component("locuszoom", {
         "filter",
         "filterAssociations",
         "filterAnnotations",
+        "filterPolicy",
     ],
     data() {
         return {
@@ -121,6 +121,7 @@ export default Vue.component("locuszoom", {
 
             const layout = makeLayout(panelClass);
             const source = makeSource(panelClass);
+
             let panel;
             if (!!panelClass.layouts) {
                 if (!!this.dataSources._items.has(panelClass.datasource_type)) {
@@ -165,9 +166,9 @@ export default Vue.component("locuszoom", {
             // This is optimized to only run filters that are actually associated with the layout being added
             // applyState runs on the end so we don't refresh this multiple times on accident.
             if (!!this.filter) this.applyFilter(this.filter);
-            if (!!this.filterAssociations && layout.panelLayoutType === "association_catalog")
-                this.applyFilter(this.filterAssociations, "association_catalog");
-            if (!!this.filterAnnotations && layout.panelLayoutType === "intervals")
+            if (!!this.filterAssociations && hasDataLayer(panelClass, "associationpvaluescatalog"))
+                this.applyFilter(this.filterAssociations, "associationpvaluescatalog");
+            if (!!this.filterAnnotations && hasDataLayer(panelClass, "intervals"))
                 this.applyFilter(this.filterAnnotations, "intervals");
             this.plot.applyState();
 
@@ -305,15 +306,16 @@ export default Vue.component("locuszoom", {
             let data_layers = this.getDataLayers();
 
             // TODO needs a rework
-            // if (panelType !== "") {
-            //     data_layers = data_layers
-            //         .map((data_layer) => {
-            //             return data_layer;
-            //         })
-            //         .filter((data_layer) =>
-            //             data_layer.parent.id.includes(panelType)
-            //         );
-            // }
+            if (panelType !== "") {
+                data_layers = data_layers
+                    .map((data_layer) => {
+                        return data_layer;
+                    })
+                    .filter((data_layer) =>
+                        data_layer.parent.id.includes(panelType)
+                    );
+                console.log(this.getDataLayers(), 'filtered data layers', data_layers)
+            }
 
             data_layers.forEach((data_layer) => {
                 if (!(data_layer.id === 'annotation_catalog')) {
@@ -351,20 +353,24 @@ export default Vue.component("locuszoom", {
             this.plot.applyState();
         },
         filterAssociations(associationsFilter) {
-            this.applyFilter(associationsFilter, "association_catalog");
+            this.applyFilter(associationsFilter, "associationpvaluescatalog");
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
-            let data_layers = this.getDataLayers();
-            console.log(data_layers)
+
         },
         filterAnnotations(annotationsFilter) {
             this.applyFilter(annotationsFilter, "intervals");
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
-
         },
+        // TODO
+        // filterPolicy(critera) {
+        //     critera.forEach(criterion => {
+        //         LocusZoom.MatchFunctions.add(criterion.field, criterion.predicate, true);
+        //     })
+        // }
     },
 });
 

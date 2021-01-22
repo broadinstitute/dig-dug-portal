@@ -227,12 +227,16 @@ export default Vue.component("criterion-group-template", {
         filterList: {
             handler: function (newFilterList, oldFilterList) {
                 if (newFilterList.length > 0) {
-                    const predicates = newFilterList.map((predicateSpec) =>
-                        this.makePredicate(predicateSpec, {
+                    const predicates = newFilterList.map((predicateSpec) => {
+                        const predicate = this.makePredicate(predicateSpec, {
                             strictCase: this.strictCase,
                             notStrictMatch: this.looseMatch,
                         })
-                    );
+                        return {
+                            ...predicateSpec,
+                            ...predicate
+                        };
+                    });
                     this.filterFunction = this.makeFilter(
                         predicates,
                         !!this.inclusive

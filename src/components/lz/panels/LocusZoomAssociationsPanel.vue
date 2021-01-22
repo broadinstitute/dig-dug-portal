@@ -7,7 +7,7 @@ import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 
 import LocusZoom from "locuszoom";
-import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
+import { LZBioIndexSource, LZLayout } from "@/utils/lzUtils"
 import idCounter from "@/utils/idCounter";
 
 export default Vue.component("lz-associations-panel", {
@@ -82,91 +82,24 @@ export class LZAssociationsPanel {
         this.panel_id = idCounter.getUniqueId();
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
+
         this.index = 'associations'
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
-        function varId2OtherVarId(varId) {
-            // const [a, b, c, d] = varId.split(':'); // ['9', '22132076', 'A', 'G']
-            // return `${a}:${b}_${c}/${d}`
-            return varId;
-        };
         this.translator = associations => {
             return associations.map(association => ({
                 chromosome: association.chromosome,
-                id: varId2OtherVarId(association.varId),
+                id: (association.varId),
                 position: association.position,
                 pValue: association.pValue,
                 log_pvalue: ((-1) * Math.log10(association.pValue)), // .toPrecision(4),
-                variant: varId2OtherVarId(association.varId),
-                ref_allele: varId2OtherVarId(association.varId),
+                variant: (association.varId),
+                ref_allele: (association.varId),
                 consequence: association.consequence,
                 beta: association.beta,
                 nearest: association.nearest,
             }))
-
         };
         this.initialData = initialData;
-
-        this.layouts = [
-            LocusZoom.Layouts.get("panel", "association_catalog", {
-                id: this.panel_id,
-                y_index: 0,
-                data_layers: [
-                    LocusZoom.Layouts.get("panel", "association_catalog").data_layers[0],
-                    LocusZoom.Layouts.get("panel", "association_catalog").data_layers[1],
-                    LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog', {
-                        // namespace: {
-                        //     ...LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog").namespace,
-                        //     [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
-                        // },
-                        y_axis: {
-                            axis: 1,
-                            field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
-                            upper_buffer: 0.10,
-                        },
-                        toolbar: {
-                            widgets: [
-                                {
-                                    type: "remove_panel",
-                                    color: "red",
-                                    position: "right"
-                                },
-                                {
-                                    type: "toggle_legend",
-                                    position: "right"
-                                },
-                                {
-                                    type: "toggleloglog",
-                                    color: "gray",
-                                    position: "right"
-                                },
-                            ]
-                        },
-                        fields: [
-                            `{{namespace[${this.datasource_type}]}}position`,  // adding this piece of data irrelevant to the graphic will help us filter later
-                            `{{namespace[${this.datasource_type}]}}pValue`,  // adding this piece of data irrelevant to the graphic will help us filter later
-                            `{{namespace[${this.datasource_type}]}}consequence`,  // adding this piece of data irrelevant to the graphic will help us filter later
-                            `{{namespace[${this.datasource_type}]}}nearest`,  // adding this piece of data irrelevant to the graphic will help us filter later
-                            // we need to call out the fields directly since merge algorithm doesn't combine arrays
-                            `{{namespace[${this.datasource_type}]}}beta`,
-                            ...LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog', { unnamespaced: true }).fields,
-                        ],
-                        match: { send: `assoc:position`, receive: `assoc:position` },
-                        color: [
-                                {
-                                    field: 'lz_highlight_match',  // Special field name whose presence triggers custom rendering
-                                    scale_function: 'if',
-                                    parameters: {
-                                        field_value: true,
-                                        then: '#FF00FF'
-                                    }
-                                },
-                                ...LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog', { unnamespaced: true }).color,
-                        ]
-                    })
-                ]
-            }),
-        ];
-
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
@@ -177,7 +110,71 @@ export class LZAssociationsPanel {
             initialData: this.initialData,
         });
 
-        this.sources = { 'assoc': this.bioIndexToLZReader };
+
+        this.layouts = [
+            new LZLayout(
+                LocusZoom.Layouts.get("panel", "association_catalog", {
+                    id: this.panel_id,
+                    y_index: 0,
+                    data_layers: [
+                        LocusZoom.Layouts.get("panel", "association_catalog").data_layers[0],
+                        LocusZoom.Layouts.get("panel", "association_catalog").data_layers[1],
+                        LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog', {
+                            // namespace: {
+                            //     ...LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog").namespace,
+                            //     [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
+                            // },
+                            y_axis: {
+                                axis: 1,
+                                field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
+                                upper_buffer: 0.10,
+                            },
+                            toolbar: {
+                                widgets: [
+                                    {
+                                        type: "remove_panel",
+                                        color: "red",
+                                        position: "right"
+                                    },
+                                    {
+                                        type: "toggle_legend",
+                                        position: "right"
+                                    },
+                                    {
+                                        type: "toggleloglog",
+                                        color: "gray",
+                                        position: "right"
+                                    },
+                                ]
+                            },
+                            match: { send: `assoc:position`, receive: `assoc:position` },
+                            color: [
+                                    {
+                                        field: 'lz_is_match',  // Special field name whose presence triggers custom rendering
+                                        scale_function: 'if',
+                                        parameters: {
+                                            field_value: true,
+                                            then: '#FF00FF'
+                                        }
+                                    },
+                                    ...LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog', { unnamespaced: true }).color,
+                            ]
+                        })
+                    ]
+                })
+            )
+            .addField("associationpvaluescatalog", this.datasource_type, 'position')
+            .addField("associationpvaluescatalog", this.datasource_type, 'pValue')
+            .addField("associationpvaluescatalog", this.datasource_type, 'consequence')
+            .addField("associationpvaluescatalog", this.datasource_type, 'nearest')
+            .addField("associationpvaluescatalog", this.datasource_type, 'beta')
+            // .addFilter("associationpvaluescatalog", this.datasource_type, 'position')
+            // .addFilter("associationpvaluescatalog", this.datasource_type, 'pValue')
+            // .addFilter("associationpvaluescatalog", this.datasource_type, 'consequence')
+            // .addFilter("associationpvaluescatalog", this.datasource_type, 'nearest')
+            // .addFilter("associationpvaluescatalog", this.datasource_type, 'beta')
+            .json()
+        ];
 
     }
 }

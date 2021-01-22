@@ -20,7 +20,7 @@
     "gwas-credible-sets": "^0.1.0",
     "jquery": "^3.5.1",
     "json-query": "^2.2.2",
-    "locuszoom": "^0.12.2",
+    "locuszoom": "statgen/locuszoom#e48da5f668d34432587ad04adb4674b0dd6a3294",
     "lodash": "^4.17.20",
     "lodash.merge": "^4.6.2",
     "query-string": "^6.13.5",

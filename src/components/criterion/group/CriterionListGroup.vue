@@ -18,6 +18,9 @@ import Vue from "vue"
 import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue"
 
 export default Vue.component('criterion-list-group', {
+    components: {
+        CriterionGroupTemplate
+    },
     props: {
         value: {
             type: Array,

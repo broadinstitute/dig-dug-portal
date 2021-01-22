@@ -5,6 +5,8 @@ import {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import LocusZoom from "locuszoom";
+import jsonQuery from "json-query";
 
 export const BASE_PANEL_OPTIONS = {
     height: 240,
@@ -74,4 +76,57 @@ export class LZBioIndexSource extends BaseAdapter {
             }
         });
     };
+}
+
+export class LZLayout {
+    #layout
+    constructor(initialLayout) {
+        this.#layout = initialLayout;
+        console.log(this.#layout)
+    }
+
+    addFilter(data_layer, rawNamespaceKey, rawField) {
+
+        // // side effect: since matching functions can't be undefined when they're called, we have to guarantee their registry before this layout is instanced
+        // // no final flag = not overriding current registered match function to handle case where this was already done somewhere else, or at least once through this method
+        // wrap in guard against being undefined to ensure execution only once
+        if (typeof LocusZoom.MatchFunctions._items.get(rawField) !== 'undefined') {
+            LocusZoom.MatchFunctions.add(rawField, () => true);
+        }
+
+        const data_layer_id = data_layer //.replaceAll('_', '');
+        const filter = {
+            field: `${rawNamespaceKey}:${rawField}`,
+            operator: rawField,
+            value: null,
+        };
+        const data_layer_object = this.#layout.data_layers.filter(dl => dl.id === data_layer_id)[0];
+
+        if (!!!data_layer_object.filters) {
+            data_layer_object.filters = [];
+        }
+
+        data_layer_object.filters.unshift(filter);
+
+        return this;
+    }
+
+    addField(data_layer, rawNamespaceKey, rawField) {
+        const data_layer_id = data_layer //.replaceAll('_', '');
+        const data_layer_object = this.#layout.data_layers.filter(dl => dl.id === data_layer_id)[0];
+
+        data_layer_object.fields.unshift(`${rawNamespaceKey}:${rawField}`);
+
+        return this;
+    }
+
+    json() {
+        return this.#layout;
+    }
+}
+
+export function hasDataLayer(data_layer_id, panelClass) {
+    return jsonQuery(`layouts[*]data_layers[*id=${data_layer_id}]`, {
+        data: panelClass
+    }).value.length > 0
 }

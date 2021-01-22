@@ -35,6 +35,8 @@ import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
+import { makeFilterFunction } from "@/utils/filterHelpers";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -93,7 +95,7 @@ new Vue({
 
     data() {
         return {
-            associationsFilter: function (id) { return true; },
+            associationsFilter: () => true,
             pageAssociations: [],
             tissueScoring: null,
         };
@@ -101,6 +103,7 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        makeFilterFunction,
         postAlert,
         postAlertNotice,
         postAlertError,

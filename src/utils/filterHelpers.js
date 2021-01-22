@@ -96,11 +96,10 @@ export function predicateFromSpec(
     //   * "notStrict": if it's important that all objects that the filter is applied to must have the property in question, then `notStrict` should be false.
     //      else if e.g. different components have slightly different properties such that a part of the filter applies to one component and not the other,
     //   * "strictCase": if the field has similar names but different casings, and we don't want it to fail a match (for instance `pvalue` and `pValue`), then this should be "false". else it is "true" and we take the field as-is.
-
-    return {
+    const result = {
         inclusive,
         func: (obj) => {
-            
+
             // TODO: other ways of doing matches?
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
@@ -119,6 +118,12 @@ export function predicateFromSpec(
             }
         }
     };
+    console.log('execute predicate from spec', result)
+    return result;
+}
+
+export function makeFilterFunction(specs, inclusive) {
+    return filterFromPredicates(specs.map(predicateFromSpec), inclusive)
 }
 
 // TODO

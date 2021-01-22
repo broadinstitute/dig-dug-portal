@@ -272,16 +272,17 @@
                             </span>
 
                             <template slot="filtered" slot-scope="{ filter }">
+
                                 <locuszoom
                                     v-if="$parent.tissueScoring !== null"
                                     ref="locuszoom"
                                     :chr="$store.state.chr"
                                     :start="$store.state.start"
                                     :end="$store.state.end"
-                                    :filterAssociations="
-                                        $parent.associationsFilter
-                                    "
+
                                     :filterAnnotations="filter"
+                                    :filterAssociations="$parent.associationsFilter"
+
                                     @regionchanged="
                                         $parent.requestCredibleSets($event.data)
                                     "
@@ -294,7 +295,9 @@
                                     <lz-catalog-annotations-panel
                                         :phenotype="$store.state.phenotype.name"
                                     ></lz-catalog-annotations-panel>
+
                                 </locuszoom>
+
                             </template>
                         </criterion-function-group>
 

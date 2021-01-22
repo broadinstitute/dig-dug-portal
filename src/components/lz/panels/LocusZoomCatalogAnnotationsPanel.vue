@@ -7,9 +7,7 @@ import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 
 import LocusZoom from "locuszoom";
-import { GwasCatalogLZ } from "locuszoom/esm/data/adapters/";
-
-import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
+import { LZBioIndexSource, LZLayout } from "@/utils/lzUtils"
 import idCounter from "@/utils/idCounter";
 
 export default Vue.component("lz-catalog-annotations-panel", {
@@ -73,14 +71,13 @@ export default Vue.component("lz-catalog-annotations-panel", {
 export class LZCatalogAnnotationsPanel {
     constructor(phenotype, onLoad, onResolve, onError, initialData) {
 
-        // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
-        // however they are also jointly necessary for LocusZoom –
-        // this.panel_layout_type = ['association_catalog'];
+
 
         this.datasource_type = 'assoc';
         // this is arbitrary, but we want to base it on the ID
         this.panel_id = idCounter.getUniqueId();
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+
 
         this.index = 'associations'
         this.queryStringMaker = (chr, start, end) => `${phenotype},${chr}:${start}-${end}`
@@ -97,41 +94,8 @@ export class LZCatalogAnnotationsPanel {
                 beta: association.beta,
                 nearest: association.nearest,
             }))
-
         };
         this.initialData = initialData;
-        // console.log({...LocusZoom.Layouts.get("data_layer", "annotation_catalog").namespace})
-        this.layouts = [
-            LocusZoom.Layouts.get("panel", "annotation_catalog", {
-                y_index: 0,
-                id: this.panel_id,
-                data_layers: [
-                    Object.assign(LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0], {
-                        namespace: {
-                            catalog: "catalog",
-                            [this.datasource_type]: this.datasource_type,
-                        },
-                        filter: [
-                            // Hack to exclude incomplete datapoints
-                            { field: 'catalog:pos', operator: '>', value: 0 }
-                        ],
-                        match: { send: 'catalog:pos', receive: 'catalog:pos' },
-                        color: [
-                            {
-                                field: 'lz_highlight_match',  // Special field name whose presence triggers custom rendering
-                                scale_function: 'if',
-                                parameters: {
-                                        field_value: true,
-                                        then: 'red'
-                                    },
-                            },
-                            '#0000CC'
-                        ]
-                    })
-                ]
-            }),
-        ];
-
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,
@@ -141,6 +105,47 @@ export class LZCatalogAnnotationsPanel {
             onError,
             initialData: this.initialData,
         });
+
+
+        this.layouts = [
+            new LZLayout(
+                LocusZoom.Layouts.get("panel", "annotation_catalog", {
+                    y_index: 0,
+                    id: this.panel_id,
+                    data_layers: [
+                        Object.assign(LocusZoom.Layouts.get("data_layer", "annotation_catalog"), {
+                            namespace: {
+                                catalog: "catalog",
+                                [this.datasource_type]: this.datasource_type,
+                            },
+                            match: { send: 'catalog:pos', receive: 'catalog:pos' },
+                            color: [
+                                {
+                                    field: 'lz_is_match',  // Special field name whose presence triggers custom rendering
+                                    scale_function: 'if',
+                                    parameters: {
+                                            field_value: true,
+                                            then: 'red'
+                                        },
+                                },
+                                '#0000CC'
+                            ]
+                        })
+                    ]
+                }),
+            )
+            // .addField("annotation_catalog", this.datasource_type, 'position')
+            // .addField("annotation_catalog", this.datasource_type, 'pValue')
+            // .addField("annotation_catalog", this.datasource_type, 'consequence')
+            // .addField("annotation_catalog", this.datasource_type, 'nearest')
+            // .addField("annotation_catalog", this.datasource_type, 'beta')
+            // // .addFilter("annotation_catalog", this.datasource_type, 'position')
+            // // .addFilter("annotation_catalog", this.datasource_type, 'pValue')
+            // // .addFilter("annotation_catalog", this.datasource_type, 'consequence')
+            // // .addFilter("annotation_catalog", this.datasource_type, 'nearest')
+            // // .addFilter("annotation_catalog", this.datasource_type, 'beta')
+            .json()
+        ];
     }
 }
 
