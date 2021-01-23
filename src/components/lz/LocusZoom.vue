@@ -318,6 +318,7 @@ export default Vue.component("locuszoom", {
             }
 
             data_layers.forEach((data_layer) => {
+                // HACK until matching in LocusZoom 0.13.4 figured out.
                 if (!(data_layer.id === 'annotation_catalog')) {
                     data_layer.setFilter((obj) => {
                         let regularObject = decodeNamespace(obj, {
