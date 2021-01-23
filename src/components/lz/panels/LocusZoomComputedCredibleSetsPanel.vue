@@ -137,6 +137,7 @@ export class LZComputedCredibleVariantsPanel {
                 }
             },
             data_layers: [
+
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,

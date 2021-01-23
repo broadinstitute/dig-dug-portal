@@ -165,9 +165,9 @@ export default Vue.component("locuszoom", {
             // This is optimized to only run filters that are actually associated with the layout being added
             // applyState runs on the end so we don't refresh this multiple times on accident.
             if (!!this.filter) this.applyFilter(this.filter);
-            if (!!this.filterAssociations && layout.panelLayoutType === "association_catalog")
-                this.applyFilter(this.filterAssociations, "association_catalog");
-            if (!!this.filterAnnotations && layout.panelLayoutType === "intervals")
+            if (!!this.filterAssociations && panelClass.panel_layout_type.includes("association"))
+                this.applyFilter(this.filterAssociations, "association");
+            if (!!this.filterAnnotations && panelClass.panel_layout_type.includes("intervals"))
                 this.applyFilter(this.filterAnnotations, "intervals");
             this.plot.applyState();
 
@@ -305,15 +305,17 @@ export default Vue.component("locuszoom", {
             let data_layers = this.getDataLayers();
 
             // TODO needs a rework
-            // if (panelType !== "") {
-            //     data_layers = data_layers
-            //         .map((data_layer) => {
-            //             return data_layer;
-            //         })
-            //         .filter((data_layer) =>
-            //             data_layer.parent.id.includes(panelType)
-            //         );
-            // }
+            if (panelType !== "") {
+                data_layers = data_layers
+                    .map((data_layer) => {
+                        return data_layer;
+                    })
+                    .filter((data_layer) =>{
+                        return data_layer.id.includes(panelType)
+
+                    });
+                console.log(this.getDataLayers(), data_layers)
+            }
 
             data_layers.forEach((data_layer) => {
                 if (!(data_layer.id === 'annotation_catalog')) {
@@ -351,7 +353,7 @@ export default Vue.component("locuszoom", {
             this.plot.applyState();
         },
         filterAssociations(associationsFilter) {
-            this.applyFilter(associationsFilter, "association_catalog");
+            this.applyFilter(associationsFilter, "association");
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();

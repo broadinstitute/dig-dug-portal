@@ -75,7 +75,7 @@ export class LZCatalogAnnotationsPanel {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
-        // this.panel_layout_type = ['association_catalog'];
+        this.panel_layout_type = 'annotation_catalog';
 
         this.datasource_type = 'assoc';
         // this is arbitrary, but we want to base it on the ID
@@ -100,7 +100,6 @@ export class LZCatalogAnnotationsPanel {
 
         };
         this.initialData = initialData;
-        // console.log({...LocusZoom.Layouts.get("data_layer", "annotation_catalog").namespace})
         this.layouts = [
             LocusZoom.Layouts.get("panel", "annotation_catalog", {
                 y_index: 0,

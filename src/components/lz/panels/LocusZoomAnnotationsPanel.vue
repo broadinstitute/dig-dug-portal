@@ -136,7 +136,6 @@ export class LZAnnotationIntervalsPanel {
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
         // If there's not a lot in here it's because we're overriding defaults.
         this.locusZoomPanelOptions = {
-            ...BASE_PANEL_OPTIONS,
             y_index: 2,
             title: {
                 text: `${annotation} ${method ? method : ''}`
@@ -148,7 +147,7 @@ export class LZAnnotationIntervalsPanel {
                             `{{namespace[${this.datasource_type}]}}pValue`,
                             `{{namespace[${this.datasource_type}]}}fold`,
                             ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
-                        ]
+                        ],
                     },
                     LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }),
                 ),
