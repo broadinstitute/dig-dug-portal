@@ -15,6 +15,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div class="row">
@@ -22,6 +23,25 @@
                             <documentation
                                 name="egl.summaries.info"
                             ></documentation>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h2 v-if="!!$parent.pageInfo[0]">
+                                {{ $parent.pageInfo[0].title[0].value }}
+                            </h2>
+                            <static-page-info-section
+                                :pageInfo="$parent.pageInfo"
+                            ></static-page-info-section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h2>Contributing research methods</h2>
                         </div>
                     </div>
                     <div
