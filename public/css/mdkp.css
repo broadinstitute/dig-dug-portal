@@ -60,7 +60,7 @@ a:hover {
 
 .front-top-banner-t1dkp {
     background-image: url(//kp4cd.org/sites/default/files/vueportal/t1dkp_front_bg.png),
-        linear-gradient(#aec5e7, #5481c1);
+        linear-gradient(#5481c1, #aec5e7);
     background-position: 120% 100px, top left;
 }
 
@@ -1339,8 +1339,8 @@ div.filtering-ui-content div.col.filter-col-lg .input {
 
 .egl-research-method-wrapper {
     display: block;
-    border-top: solid 2px #ccc;
-    margin-top: 35px;
+    border-bottom: solid 1px #ccc;
+    padding-bottom: 35px;
     padding: 35px 35px 0 35px !important;
 }
 
@@ -1546,7 +1546,7 @@ a.to-previous-page:hover {
     background-color: #28a745 !important;
 }
 .filter-pill-secondaryPhenotype {
-    background-color:  #007bff !important;
+    background-color: #007bff !important;
 }
 .filter-pill-primaryphenotype {
     background-color: #28a745 !important;
@@ -1657,20 +1657,45 @@ a.to-previous-page:hover {
 #gait .alert-info {
     padding: 0.1rem 1.25rem;
 }
-#gait .progress-bar-title {
-    position: absolute;
-    text-align: center;
-    line-height: 3rem; /* line-height should be equal to bar height */
-    overflow: hidden;
-    color: #0c5460;
-    font-size: 1rem;
-    right: 0;
-    left: 0;
-    top: 0;
+#gait .b-table-details {
+    background-color: unset;
+}
+#gait .b-table-details td {
+    padding: 0;
 }
 #gait .variants {
     margin-top: 2rem;
 }
+#gait .btn-mini {
+    padding: 0.1rem 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1.25;
+}
+#gait .forest-plot-simple {
+    position: relative;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    overflow-x: hidden;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    line-height: 2rem;
+    border-left: 4px solid #ddd;
+    color: #aaa;
+    margin-left: 15px;
+}
+#gait .forest-plot-html-row {
+    margin-top: 10px auto;
+}
+#gait .forest-plot-html-row:hover {
+    background-color: unset;
+}
+#gait .beta-box {
+    background-color: #55aaee;
+}
+#gait .plot {
+    overflow: hidden;
+}
+
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity 1s;

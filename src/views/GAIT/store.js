@@ -17,16 +17,9 @@ export default new Vuex.Store({
         kp4cd,
         ldServer,
         gene: bioIndex("gene")
-        //genes: bioIndex("gene-finder")
-        //burden: bioIndex("burden")
     },
     state: {
-        // phenotypes needs to be an array so colors don't change!
-        //searchGene: "slc30a8", //!static for test
-        //binID: "bin1_7" //!can move to data prop later
-        //binID: ["bin1_7"],
         variants: []
-        //genes: [] //list of genes for autocomplete select
     },
     mutations: {
         setPhenotype(state, phenotype) {
@@ -35,9 +28,6 @@ export default new Vuex.Store({
         setVariants(state, data) {
             state.variants = data;
         }
-        // setGenes(state, data) {
-        //     state.genes = data;
-        // }
     },
     getters: {
         region(state) {
@@ -59,43 +49,31 @@ export default new Vuex.Store({
             context.commit("setPhenotype", phenotypes);
             //TODO: set url params for bookmark
             //keyParams.set({ phenotypes: phenotypes.join(",") });
-
-            //not needed for autocomplete anymore
-            //context.dispatch("queryGenes", phenotypes);
         },
 
         async queryGenes(context, phenotypes) {
-            //let query = { q: context.state.phenotype.name };
-            //let geneQuery = { ...query, limit: 500 };
-
             let queries = phenotypes.map(phenotype =>
                 query("gene-finder", phenotype)
             );
+
             let data = await Promise.all(queries)
                 .then(results => results.flatMap(data => data))
                 .then(data => uniqBy(data, "gene"));
-            //context.dispatch("genes/query", geneQuery);
+
             context.commit("setGenes", data);
         },
 
         async queryBurden(context, { gene, binID }) {
-            //let gene = context.state.searchGene;
-            //let binID = context.state.binID;
-
-            // let q = `${gene},${binID}`;
-
-            // //TODO: set url params for bookmark
+            // TODO: set url params for bookmark
             // context.dispatch("burden/query", { q });
             let queries = binID.map(bin => query("burden", `${gene},${bin}`));
             let data = await Promise.all(queries)
                 .then(results => results.flatMap(data => data))
                 .then(data => uniqBy(data, "varId"));
-
             //let unique = uniqBy(data, "varId");
+            //console.log("data", unique);
 
             context.commit("setVariants", data);
-
-            //console.log("data", unique);
         }
     }
 });

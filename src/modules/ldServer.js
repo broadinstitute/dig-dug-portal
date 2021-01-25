@@ -28,13 +28,6 @@ export default {
             state.runTestsError = data;
         }
     },
-    // getters: {
-    //     covarianceCount(state) {
-    //         return state.covariances.groups
-    //             ? state.covariances.groups[0].variants.length
-    //             : 0;
-    //     }
-    // },
     actions: {
         // fetch all the phenotypes available
         async getPhenotypes({ state, commit }) {
@@ -49,16 +42,6 @@ export default {
             );
         },
         async getCovariances(context, { variants, phenotype, dataset, tests }) {
-            //console.log("state", state);
-            //let variants = state.variants;
-            // let gene = await state.gene.data[0];
-            // let chrom = gene.chromosome;
-            // let start = gene.start;
-            // let stop = gene.end;
-
-            //console.log("variants", variants);
-            //console.log("gene", gene);
-            //console.log("context", context);
             let samples = {};
             let query = {};
             let region = context.rootGetters.region;
@@ -90,11 +73,18 @@ export default {
                 };
             } else {
                 //TopMed dataset
+                const datasets = [
+                    { phenotype: "FG", id: 6 },
+                    { phenotype: "T2D", id: 7 },
+                    { phenotype: "FI", id: 8 }
+                ];
                 query = {
                     chrom: region.chromosome,
                     start: region.start,
                     stop: region.end,
-                    summaryStatisticDataset: 7, //for different version
+                    summaryStatisticDataset: datasets.find(
+                        p => p.phenotype === phenotype
+                    ).id, //for different versions and phenotypes
                     variantFormat: "COLONS",
                     samples: "ALL",
                     genomeBuild: "GRCh37",
@@ -145,12 +135,8 @@ export default {
                         groups,
                         variants,
                         tests
-                        //[
                         // One or more test names can be specified!
-                        //"burden",
-                        //"skat-o"
-                        //"vt"
-                        //]
+                        //["burden", "skat", "skat-o", "vt"]
                     );
                     return runner.run();
                 });

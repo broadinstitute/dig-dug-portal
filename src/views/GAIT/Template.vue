@@ -99,14 +99,6 @@
                                         v-model="$parent.searchCriteria"
                                         :header="'Search Criteria'"
                                     >
-                                        <!-- <filter-basic-control
-                                            ref="gene"
-                                            :field="'gene'"
-                                            placeholder="Select a gene ..."
-                                        >
-                                            <div class="label">Gene</div>
-                                        </filter-basic-control> -->
-
                                         <filter-enumeration-control
                                             ref="gene"
                                             :field="'gene'"
@@ -373,7 +365,7 @@
                                                                   (phenotype) =>
                                                                       phenotype.name
                                                               )
-                                                            : ['T2D']
+                                                            : $parent.topmedDatasets
                                                     "
                                                     :labelFormatter="
                                                         (phenotype) =>
@@ -674,6 +666,37 @@
                                                         </b-th>
                                                     </template>
 
+                                                    <template
+                                                        #cell(test)="data"
+                                                    >
+                                                        {{
+                                                            $parent.testMethods.find(
+                                                                (t) =>
+                                                                    t.value ===
+                                                                    data.value
+                                                            ).text
+                                                        }}
+                                                        <b-button
+                                                            v-if="
+                                                                data.value ==
+                                                                'burden'
+                                                            "
+                                                            size="sm"
+                                                            variant="outline-primary"
+                                                            @click="
+                                                                data.toggleDetails
+                                                            "
+                                                            class="mr-2 btn-mini"
+                                                        >
+                                                            {{
+                                                                data.detailsShowing
+                                                                    ? "Hide"
+                                                                    : "Show"
+                                                            }}
+                                                            Plot
+                                                        </b-button>
+                                                    </template>
+
                                                     <template #head(zscore)>
                                                         Z-Score
                                                     </template>
@@ -798,6 +821,23 @@
                                                                 data.value
                                                             )
                                                         }}
+                                                    </template>
+
+                                                    <template
+                                                        #row-details="row"
+                                                    >
+                                                        <forest-plot-simple
+                                                            :se="row.item.se"
+                                                            :effect="
+                                                                row.item.effect
+                                                            "
+                                                            :dichotomous="
+                                                                !!$parent
+                                                                    .phenotypeMap[
+                                                                    p.phenotype
+                                                                ].dichotomous
+                                                            "
+                                                        ></forest-plot-simple>
                                                     </template>
                                                 </b-table>
                                             </template>

@@ -68,9 +68,7 @@
                         <phenotype-selectpicker
                             v-if="$store.state.phenotype"
                             :phenotypes="$store.state.bioPortal.phenotypes"
-                            :default-phenotype="
-                                $store.state.phenotype.description
-                            "
+                            :clearOnSelected="true"
                         ></phenotype-selectpicker>
                     </div>
                 </div>
@@ -181,7 +179,9 @@
                             name="region.variantassociation.subheader"
                         ></documentation>
 
-                        <criterion-function-group v-model="$parent.associationsFilter">
+                        <criterion-function-group
+                            v-model="$parent.associationsFilter"
+                        >
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="$parent.associationConsequences"
@@ -297,7 +297,6 @@
                                 </locuszoom>
                             </template>
                         </criterion-function-group>
-
                     </div>
                 </div>
             </div>

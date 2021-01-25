@@ -10,6 +10,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 import FilterBasic from "@/components/criterion/FilterBasic";
+import ForestPlotSimple from "@/components/ForestPlotSimple";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
@@ -29,7 +30,8 @@ new Vue({
         FilterPValue,
         FilterEnumeration,
         FilterGreaterThan,
-        FilterBasic
+        FilterBasic,
+        ForestPlotSimple
     },
     render(createElement, context) {
         return createElement(Template);
@@ -55,6 +57,7 @@ new Vue({
                 { text: "SKAT", value: "skat" },
                 { text: "SKAT Optimal", value: "skat-o" }
             ],
+            topmedDatasets: ["T2D", "FG", "FI"],
             selectedMethods: [],
             matchingGenes: [],
             showVariants: false,
@@ -238,8 +241,7 @@ new Vue({
             let formatted = [];
             data.map(test => {
                 formatted.push({
-                    test: this.testMethods.find(t => t.value === test.test)
-                        .text,
+                    test: test.test,
                     variants: test.variants.length,
                     zscore: test.stat,
                     pvalue: test.pvalue,
@@ -260,31 +262,22 @@ new Vue({
     watch: {
         searchCriteria: {
             handler(newData, oldData) {
-                // console.log("search changed");
-                // console.log("new", newData);
-                // console.log("old", oldData);
                 if (!isEqual(newData, oldData)) {
                     this.criteriaChanged = true;
-                    //console.log("not equal");
                 }
             },
             deep: true
         },
         selectedMethods: {
             handler(newData, oldData) {
-                // console.log("method changed");
-                // console.log("new", newData);
-                // console.log("old", oldData);
                 if (!isEqual(newData, oldData)) {
                     this.testChanged = true;
-                    // console.log("not equal");
                 }
             },
             deep: true
         },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
-                console.log("change");
                 this.selectedMethods = this.selectedMethods.filter(v => {
                     return v.field !== "phenotype";
                 });
@@ -297,7 +290,6 @@ new Vue({
             }
         },
         "$store.state.variants": function() {
-            console.log("change1");
             this.loadingVariants = false;
             if (
                 this.$store.state.variants &&
@@ -307,11 +299,9 @@ new Vue({
             }
         },
         "$store.state.ldServer.covariances": function() {
-            console.log("change2");
             this.loadingCovariances = false;
         },
         "$store.state.ldServer.runTestsError": function() {
-            console.log("change3");
             this.loadingCovariances = false;
         }
     }
