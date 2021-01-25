@@ -5,6 +5,7 @@ import {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import { ColorRuler } from "color-ruler"
 
 export const BASE_PANEL_OPTIONS = {
     height: 240,
@@ -75,3 +76,6 @@ export class LZBioIndexSource extends BaseAdapter {
         });
     };
 }
+
+export const LZColorScheme = new ColorRuler();
+console.log(LZColorScheme.getColor('kenneth'))
