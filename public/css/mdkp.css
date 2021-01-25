@@ -1239,10 +1239,14 @@ span div.label {
 
 div.filtering-ui-content div.col .form-control,
 div.filtering-ui-content div.col select,
-div.filtering-ui-content div.col .input {
+div.filtering-ui-content div.col input {
     height: 30px;
     width: 175px;
     font-size: 14px;
+}
+
+div.filtering-ui-content div.col input.or-half-gt, div.filtering-ui-content div.col input.or-half-lt {
+    width: 70px;
 }
 
 div.filtering-ui-content div.filter-col-sm .form-control,

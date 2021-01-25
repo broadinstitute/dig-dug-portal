@@ -53,7 +53,9 @@
                                         v-on:scroll.native="handleScroll"
                                     ></effector-genes-table>
                                 </b-tab>
-                                <b-tab title="View research method">
+                                <b-tab
+                                    title="Research method / supplementary data"
+                                >
                                     <research-method-section
                                         v-if="$parent.researchMethod != null"
                                         :researchMethod="$parent.researchMethod"

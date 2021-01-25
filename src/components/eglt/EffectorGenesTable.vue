@@ -473,6 +473,10 @@ export default Vue.component("effector-genes-table", {
                 });
             } else if (TYPE == "search_gt" || TYPE == "search_lt") {
                 this.filtersIndex[FIELD]["search"] = [searchValue];
+            } else if (TYPE == "search_or") {
+                this.filtersIndex[FIELD]["search"] = [searchValue];
+            } else if (TYPE == "search_and") {
+                this.filtersIndex[FIELD]["search"] = [searchValue];
             } else {
                 if (DATATYPE == "number") {
                     this.filtersIndex[FIELD]["search"].push(
@@ -483,7 +487,7 @@ export default Vue.component("effector-genes-table", {
                 }
             }
 
-            //console.log("filtersIndex", this.filtersIndex);
+            console.log("filtersIndex", this.filtersIndex);
 
             this.applyFilters();
         },
@@ -525,6 +529,30 @@ export default Vue.component("effector-genes-table", {
                         } else if (searchIndex.type == "search_lt") {
                             targetData.filter((row) => {
                                 if (row[searchIndex.field] <= search) {
+                                    tempFiltered.push(row);
+                                }
+                            });
+                        } else if (searchIndex.type == "search_or") {
+                            let searchVals = search.split(",");
+                            targetData.filter((row) => {
+                                if (
+                                    row[searchIndex.field] <=
+                                        searchVals[0].trim() ||
+                                    row[searchIndex.field] >=
+                                        searchVals[1].trim()
+                                ) {
+                                    tempFiltered.push(row);
+                                }
+                            });
+                        } else if (searchIndex.type == "search_and") {
+                            let searchVals = search.split(",");
+                            targetData.filter((row) => {
+                                if (
+                                    row[searchIndex.field] >=
+                                        searchVals[0].trim() &&
+                                    row[searchIndex.field] <=
+                                        searchVals[1].trim()
+                                ) {
                                     tempFiltered.push(row);
                                 }
                             });

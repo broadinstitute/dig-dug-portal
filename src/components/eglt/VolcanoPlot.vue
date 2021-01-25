@@ -25,6 +25,7 @@ import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import { BootstrapVueIcons } from "bootstrap-vue";
+import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
@@ -35,6 +36,7 @@ export default Vue.component("volcano-plot", {
     },
     modules: {
         uiUtils,
+        Formatters,
     },
     mounted: function () {
         this.renderPlot();
@@ -89,7 +91,7 @@ export default Vue.component("volcano-plot", {
             let xBump = this.renderConfig.width * 0.02;
             let yBump = this.renderConfig.height * 0.02;
 
-            console.log("xBump", xBump, "yBump", yBump);
+            //console.log("xBump", xBump, "yBump", yBump);
 
             var c = document.getElementById("volcanoPlot");
             var ctx = c.getContext("2d");
@@ -141,7 +143,9 @@ export default Vue.component("volcano-plot", {
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#000000";
                 ctx.fillText(
-                    xAxisTicks.lo + i * xAxisTicks.step,
+                    Formatters.floatFormatter(
+                        xAxisTicks.lo + i * xAxisTicks.step
+                    ),
                     leftMargin + i * xTickDistance + xBump,
                     topMargin + canvasHeight + 17 + yBump
                 );
@@ -170,7 +174,9 @@ export default Vue.component("volcano-plot", {
                 ctx.textAlign = "right";
                 ctx.fillStyle = "#000000";
                 ctx.fillText(
-                    yAxisTicks.lo + yAxisTicks.step * i,
+                    Formatters.floatFormatter(
+                        yAxisTicks.lo + yAxisTicks.step * i
+                    ),
                     leftMargin - 7,
                     topMargin + (5 - i) * yTickDistance + 3
                 );
@@ -193,8 +199,9 @@ export default Vue.component("volcano-plot", {
             let yPosMax = yAxisTicks.lo + yAxisTicks.step * 5;
 
             let xCondition = this.renderConfig.xCondition;
-            console.log(xCondition);
-            console.log(this.renderConfig.yCondition);
+            //console.log(xCondition);
+            //console.log(this.renderConfig.yCondition);
+            //console.log("render data", this.renderData);
 
             this.renderData.map((d) => {
                 let xPos =
