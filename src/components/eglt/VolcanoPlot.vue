@@ -157,7 +157,7 @@ export default Vue.component("volcano-plot", {
             ctx.fillText(
                 this.renderConfig.xAxisLabel,
                 leftMargin + canvasWidth / 2,
-                topMargin + canvasHeight + 35 + yBump
+                topMargin + canvasHeight + 45 + yBump
             );
 
             // render y axis
@@ -190,7 +190,7 @@ export default Vue.component("volcano-plot", {
             ctx.fillText(
                 this.renderConfig.yAxisLabel,
                 -(topMargin + canvasHeight / 2),
-                leftMargin - 35
+                leftMargin - 55
             );
 
             //render dots

@@ -1123,3 +1123,26 @@ html {
     margin-bottom: 5px;
     text-align: right;
 }
+
+.image-popup-link {
+    position: relative;
+}
+
+.image-popup-link .image-popup-wrapper{
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    padding: 15px;
+    border: solid 1px #ddd;
+    border-radius: 5px;
+    margin: 5% auto; /* Will not center vertically and won't work in IE6/7. */
+    left: 100%;
+    top: -100%;
+    box-shadow: 5px 5px 5px #00000050;
+    z-index: 10;
+}
+
+.image-popup-link:hover .image-popup-wrapper {
+    display: block;
+
+}

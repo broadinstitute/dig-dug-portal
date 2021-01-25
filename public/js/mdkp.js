@@ -17,3 +17,4 @@ var showSection = function (event) {
     let newStyle = (x.includes("none")) ? "display: block" : "display: none";
     event.target.nextElementSibling.setAttribute("style", newStyle);
 }
+
