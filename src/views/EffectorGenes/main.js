@@ -10,6 +10,7 @@ import Documentation from "@/components/Documentation.vue";
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
+import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -22,6 +23,7 @@ new Vue({
     store,
 
     components: {
+        StaticPageInfo,
         Documentation,
         PageHeader,
         PageFooter,

@@ -1339,8 +1339,8 @@ div.filtering-ui-content div.col.filter-col-lg .input {
 
 .egl-research-method-wrapper {
     display: block;
-    border-top: solid 2px #ccc;
-    margin-top: 35px;
+    border-bottom: solid 1px #ccc;
+    padding-bottom: 35px;
     padding: 35px 35px 0 35px !important;
 }
 
