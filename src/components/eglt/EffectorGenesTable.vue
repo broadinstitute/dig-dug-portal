@@ -13,10 +13,41 @@
                     :key="filter.field"
                 >
                     <div class="label" v-html="filter.label"></div>
-                    <template v-if="filter.type.includes('search')">
+                    <template
+                        v-if="
+                            filter.type == 'search' ||
+                            filter.type == 'search_gt' ||
+                            filter.type == 'search_lt' ||
+                            filter.type == 'search_or' ||
+                            filter.type == 'search_and'
+                        "
+                    >
                         <input
                             type="text"
                             class="form-control"
+                            :id="'filter_' + filter.field.replace(/ /g, '')"
+                            @change="
+                                filterData($event, filter.field, filter.type)
+                            "
+                        />
+                    </template>
+                    <template v-if="filter.type == 'search_cd'">
+                        <select
+                            class="egl-filter-direction"
+                            :id="
+                                'filter_' +
+                                filter.field.replace(/ /g, '') +
+                                '_direction'
+                            "
+                        >
+                            <option value="lt" selected="selected">
+                                &lt;&equals;
+                            </option>
+                            <option value="gt">&gt;&equals;</option>
+                        </select>
+                        <input
+                            type="text"
+                            class="form-control egl-filter-cd-input"
                             :id="'filter_' + filter.field.replace(/ /g, '')"
                             @change="
                                 filterData($event, filter.field, filter.type)
@@ -471,11 +502,12 @@ export default Vue.component("effector-genes-table", {
                 searchTerms.map((searchTerm) => {
                     this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
                 });
-            } else if (TYPE == "search_gt" || TYPE == "search_lt") {
-                this.filtersIndex[FIELD]["search"] = [searchValue];
-            } else if (TYPE == "search_or") {
-                this.filtersIndex[FIELD]["search"] = [searchValue];
-            } else if (TYPE == "search_and") {
+            } else if (
+                TYPE == "search_gt" ||
+                TYPE == "search_lt" ||
+                TYPE == "search_or" ||
+                TYPE == "search_and"
+            ) {
                 this.filtersIndex[FIELD]["search"] = [searchValue];
             } else {
                 if (DATATYPE == "number") {
@@ -487,7 +519,7 @@ export default Vue.component("effector-genes-table", {
                 }
             }
 
-            console.log("filtersIndex", this.filtersIndex);
+            //console.log("filtersIndex", this.filtersIndex);
 
             this.applyFilters();
         },
@@ -542,6 +574,22 @@ export default Vue.component("effector-genes-table", {
                                         searchVals[1].trim()
                                 ) {
                                     tempFiltered.push(row);
+                                }
+                            });
+                        } else if (searchIndex.type == "search_cd") {
+                            let searchDirection = document.getElementById(
+                                "filter_" + searchIndex.field + "_direction"
+                            ).value;
+
+                            targetData.filter((row) => {
+                                if (searchDirection == "lt") {
+                                    if (row[searchIndex.field] <= search) {
+                                        tempFiltered.push(row);
+                                    }
+                                } else if (searchDirection == "gt") {
+                                    if (row[searchIndex.field] >= search) {
+                                        tempFiltered.push(row);
+                                    }
                                 }
                             });
                         } else if (searchIndex.type == "search_and") {
