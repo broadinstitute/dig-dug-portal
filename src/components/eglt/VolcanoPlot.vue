@@ -8,6 +8,7 @@
         <canvas
             v-if="!!renderConfig"
             id="volcanoPlot"
+            @click="checkPosition"
             :width="renderConfig.width + 120"
             :height="renderConfig.height + 120"
         >
@@ -60,6 +61,69 @@ export default Vue.component("volcano-plot", {
 
             return massagedData;
         },
+        volcanoDotPos() {
+            let xAxisData = [];
+            let yAxisData = [];
+            let canvasWidth = this.renderConfig.width;
+            let canvasHeight = this.renderConfig.height;
+            let leftMargin = 74.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
+            let topMargin = 44.5; // -0.5 to draw crisp line
+
+            let xBump = this.renderConfig.width * 0.02;
+            let yBump = this.renderConfig.height * 0.02;
+            this.renderData.map((d) => {
+                xAxisData.push(d[this.renderConfig.xAxisField]);
+                yAxisData.push(d[this.renderConfig.yAxisField]);
+            });
+
+            let xMin = Math.min.apply(Math, xAxisData);
+            let xMax = Math.max.apply(Math, xAxisData);
+
+            let yMin = Math.min.apply(Math, yAxisData);
+            let yMax = Math.max.apply(Math, yAxisData);
+
+            let xAxisTicks = uiUtils.getAxisTicks(xMin, xMax);
+            let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
+            let xPosMax = xAxisTicks.lo + xAxisTicks.step * 5;
+            let yPosMax = yAxisTicks.lo + yAxisTicks.step * 5;
+            let dotPos = {};
+
+            this.renderData.map((d) => {
+                //Actual rendering position
+                let xPos =
+                    leftMargin +
+                    xBump +
+                    canvasWidth *
+                        ((d[this.renderConfig.xAxisField] - xAxisTicks.lo) /
+                            (xPosMax - xAxisTicks.lo));
+                let yPos =
+                    topMargin +
+                    canvasHeight -
+                    canvasHeight *
+                        ((d[this.renderConfig.yAxisField] - yAxisTicks.lo) /
+                            (yPosMax - yAxisTicks.lo));
+
+                dotPos[
+                    Formatters.intFormatter(xPos) +
+                        "_" +
+                        Formatters.intFormatter(yPos)
+                ] = d[this.renderConfig.renderBy];
+
+                if (!!dotPos[Formatters.intFormatter(xPos)]) {
+                    dotPos[Formatters.intFormatter(xPos)][
+                        Formatters.intFormatter(yPos)
+                    ] = d[this.renderConfig.renderBy];
+                } else {
+                    dotPos[Formatters.intFormatter(xPos)] = {};
+                    dotPos[Formatters.intFormatter(xPos)][
+                        Formatters.intFormatter(yPos)
+                    ] = d[this.renderConfig.renderBy];
+                }
+            });
+
+            //console.log("dotPos", dotPos);
+            return dotPos;
+        },
     },
     watch: {
         renderData() {
@@ -69,6 +133,20 @@ export default Vue.component("volcano-plot", {
     },
     methods: {
         ...uiUtils,
+        checkPosition(event) {
+            let e = event;
+            var rect = e.target.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+            console.log("Left? : " + x + " ; Top? : " + y + ".");
+            for (let h = -3; h <= 3; h++) {
+                for (let v = -3; v <= 3; v++) {
+                    if (this.volcanoDotPos[x + h] != undefined) {
+                        console.log(this.volcanoDotPos[x + h][y + v]);
+                    }
+                }
+            }
+        },
         clearPlot() {
             var c = document.getElementById("volcanoPlot");
             var ctx = c.getContext("2d");
@@ -194,16 +272,15 @@ export default Vue.component("volcano-plot", {
             );
 
             //render dots
+
             ctx.rotate((Math.PI * 2) / 4);
             let xPosMax = xAxisTicks.lo + xAxisTicks.step * 5;
             let yPosMax = yAxisTicks.lo + yAxisTicks.step * 5;
 
             let xCondition = this.renderConfig.xCondition;
-            //console.log(xCondition);
-            //console.log(this.renderConfig.yCondition);
-            //console.log("render data", this.renderData);
 
             this.renderData.map((d) => {
+                //Actual rendering position
                 let xPos =
                     leftMargin +
                     xBump +
@@ -574,4 +651,6 @@ export default Vue.component("volcano-plot", {
 
 $(function () {});
 </script>
+
+
 
