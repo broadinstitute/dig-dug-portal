@@ -152,7 +152,7 @@ new Vue({
                 }
                 if (!!this.eglData) {
                     if (!!this.eglData.genetic && this.eglData.genetic == "1C") {
-                        secondBF = 500
+                        secondBF = 116
                     }
                     if (!!this.eglData.genetic && this.eglData.genetic == "2C") {
                         secondBF = 5
