@@ -6,6 +6,12 @@
                 <div class="card-body">
                     <h1 class="card-title">HuGe Calculator</h1>
 
+                    <div class="card mdkp-card">
+                        <div class="card-body temporary-card">
+                            <documentation name="region.trait.info"></documentation>
+                        </div>
+                    </div>
+
                     <documentation style="margin-bottom: 30px" name="tools.hugecal.subheader"></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
