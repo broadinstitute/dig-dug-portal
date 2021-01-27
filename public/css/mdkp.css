@@ -1743,3 +1743,30 @@ span.volcano-score-1 {
 span.volcano-score-2 {
     background-color: #ff003780;
 }
+
+#clicked_dot_value {
+    position: absolute;
+    background-color: #fff;
+    border: solid 1px #aaa;
+    box-shadow: 0 0 5px #00000075;
+    font-size: 12px;
+    padding: 0px 0 5px 10px;
+    max-width: 300px;
+    border-radius: 5px;
+    z-index: 10;
+    width: auto;
+}
+
+.gene-on-clicked-dot {
+    /*
+    background-color: #ddd;
+    border: solid 1px #aaa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    */
+
+    display: inline-block;
+    margin-right: 10px;
+    margin-top: 3px;
+
+}

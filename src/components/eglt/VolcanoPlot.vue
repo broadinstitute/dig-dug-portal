@@ -1,5 +1,6 @@
 <template>
     <div class="volcano-plot-content">
+        <div id="clicked_dot_value" class="hidden"></div>
         <div
             v-if="!!renderConfig.legend"
             class="volcano-plot-legend"
@@ -121,7 +122,6 @@ export default Vue.component("volcano-plot", {
                 }
             });
 
-            //console.log("dotPos", dotPos);
             return dotPos;
         },
     },
@@ -138,13 +138,31 @@ export default Vue.component("volcano-plot", {
             var rect = e.target.getBoundingClientRect();
             var x = e.clientX - rect.left;
             var y = e.clientY - rect.top;
-            console.log("Left? : " + x + " ; Top? : " + y + ".");
+            let clickedDotValue = "";
+            //console.log("Left? : " + x + " ; Top? : " + y + ".");
             for (let h = -3; h <= 3; h++) {
                 for (let v = -3; v <= 3; v++) {
                     if (this.volcanoDotPos[x + h] != undefined) {
-                        console.log(this.volcanoDotPos[x + h][y + v]);
+                        if (this.volcanoDotPos[x + h][y + v] != undefined) {
+                            //console.log(this.volcanoDotPos[x + h][y + v]);
+                            clickedDotValue +=
+                                '<span class="gene-on-clicked-dot">' +
+                                this.volcanoDotPos[x + h][y + v] +
+                                "</span>";
+                        }
                     }
                 }
+            }
+
+            let wrapper = document.getElementById("clicked_dot_value");
+            let canvas = document.getElementById("volcanoPlot");
+            if (clickedDotValue != "") {
+                wrapper.innerHTML = clickedDotValue;
+                wrapper.classList.remove("hidden");
+                wrapper.style.top = y + canvas.offsetTop + "px";
+                wrapper.style.left = x + canvas.offsetLeft + "px";
+            } else {
+                wrapper.classList.add("hidden");
             }
         },
         clearPlot() {
@@ -169,8 +187,6 @@ export default Vue.component("volcano-plot", {
             let xBump = this.renderConfig.width * 0.02;
             let yBump = this.renderConfig.height * 0.02;
 
-            //console.log("xBump", xBump, "yBump", yBump);
-
             var c = document.getElementById("volcanoPlot");
             var ctx = c.getContext("2d");
 
@@ -192,11 +208,6 @@ export default Vue.component("volcano-plot", {
 
             let xAxisTicks = uiUtils.getAxisTicks(xMin, xMax);
             let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
-
-            //console.log("x", xAxisTicks);
-            //console.log("y", yAxisTicks);
-
-            // render x axis
 
             ctx.moveTo(leftMargin, canvasHeight + topMargin + yBump);
             ctx.lineTo(
@@ -251,13 +262,22 @@ export default Vue.component("volcano-plot", {
                 ctx.font = "12px Arial";
                 ctx.textAlign = "right";
                 ctx.fillStyle = "#000000";
-                ctx.fillText(
-                    Formatters.floatFormatter(
-                        yAxisTicks.lo + yAxisTicks.step * i
-                    ),
-                    leftMargin - 7,
-                    topMargin + (5 - i) * yTickDistance + 3
-                );
+
+                if (yAxisTicks.lo + yAxisTicks.step * i == 0) {
+                    ctx.fillText(
+                        0,
+                        leftMargin - 7,
+                        topMargin + (5 - i) * yTickDistance + 3
+                    );
+                } else {
+                    ctx.fillText(
+                        Formatters.floatFormatter(
+                            yAxisTicks.lo + yAxisTicks.step * i
+                        ),
+                        leftMargin - 7,
+                        topMargin + (5 - i) * yTickDistance + 3
+                    );
+                }
             }
 
             //Render y axis label
@@ -280,7 +300,7 @@ export default Vue.component("volcano-plot", {
             let xCondition = this.renderConfig.xCondition;
 
             this.renderData.map((d) => {
-                //Actual rendering position
+                //rendering position
                 let xPos =
                     leftMargin +
                     xBump +
@@ -297,84 +317,66 @@ export default Vue.component("volcano-plot", {
                 let fillScore = 0;
 
                 if (!!this.renderConfig.xCondition) {
-                    switch (this.renderConfig.xCondition.combination) {
-                        case "gt":
-                            if (
-                                d[this.renderConfig.xAxisField] >
-                                this.renderConfig.xCondition.gt
-                            ) {
-                                fillScore++;
-                            }
-                            break;
-                        case "lt":
-                            if (
-                                d[this.renderConfig.xAxisField] <
-                                this.renderConfig.xCondition.lt
-                            ) {
-                                fillScore++;
-                            }
-                            break;
-                        case "and":
-                            if (
-                                d[this.renderConfig.xAxisField] <
-                                    this.renderConfig.xCondition.lt &&
-                                d[this.renderConfig.xAxisField] >
-                                    this.renderConfig.xCondition.gt
-                            ) {
-                                fillScore++;
-                            }
-                            break;
-                        case "or":
-                            if (
-                                d[this.renderConfig.xAxisField] <
-                                    this.renderConfig.xCondition.lt ||
-                                d[this.renderConfig.xAxisField] >
-                                    this.renderConfig.xCondition.gt
-                            ) {
-                                fillScore++;
-                            }
-                            break;
+                    let xCondiCombi = this.renderConfig.xCondition.combination;
+                    let xFieldVal = d[this.renderConfig.xAxisField];
+
+                    if (
+                        xCondiCombi == "gt" &&
+                        xFieldVal > this.renderConfig.xCondition.gt
+                    ) {
+                        fillScore++;
+                    }
+                    if (
+                        xCondiCombi == "lt" &&
+                        xFieldVal < this.renderConfig.xCondition.lt
+                    ) {
+                        fillScore++;
+                    }
+                    if (
+                        xCondiCombi == "and" &&
+                        xFieldVal > this.renderConfig.xCondition.gt &&
+                        xFieldVal < this.renderConfig.xCondition.lt
+                    ) {
+                        fillScore++;
+                    }
+                    if (
+                        (xCondiCombi == "or" &&
+                            xFieldVal > this.renderConfig.xCondition.gt) ||
+                        xFieldVal < this.renderConfig.xCondition.lt
+                    ) {
+                        fillScore++;
                     }
                 }
 
                 if (!!this.renderConfig.yCondition) {
-                    switch (this.renderConfig.yCondition.combination) {
-                        case "gt":
-                            if (
-                                d[this.renderConfig.yAxisField] >
-                                this.renderConfig.yCondition.gt
-                            ) {
-                                fillScore++;
-                            }
-                            break;
-                        case "lt":
-                            if (
-                                d[this.renderConfig.yAxisField] <
-                                this.renderConfig.yCondition.lt
-                            ) {
-                                fillScore++;
-                            }
-                            break;
-                        case "and":
-                            if (
-                                d[this.renderConfig.yAxisField] <
-                                    this.renderConfig.yCondition.lt &&
-                                d[this.renderConfig.yAxisField] >
-                                    this.renderConfig.yCondition.gt
-                            ) {
-                                fillScore++;
-                            }
-                            break;
-                        case "or":
-                            if (
-                                d[this.renderConfig.yAxisField] <
-                                    this.renderConfig.yCondition.lt ||
-                                d[this.renderConfig.yAxisField] >
-                                    this.renderConfig.yCondition.gt
-                            ) {
-                                fillScore++;
-                            }
-                            break;
+                    let yCondiCombi = this.renderConfig.yCondition.combination;
+                    let yFieldVal = d[this.renderConfig.yAxisField];
+
+                    if (
+                        yCondiCombi == "gt" &&
+                        yFieldVal > this.renderConfig.yCondition.gt
+                    ) {
+                        fillScore++;
+                    }
+                    if (
+                        yCondiCombi == "lt" &&
+                        yFieldVal < this.renderConfig.yCondition.lt
+                    ) {
+                        fillScore++;
+                    }
+                    if (
+                        yCondiCombi == "and" &&
+                        yFieldVal > this.renderConfig.yCondition.gt &&
+                        yFieldVal < this.renderConfig.yCondition.lt
+                    ) {
+                        fillScore++;
+                    }
+                    if (
+                        (yCondiCombi == "or" &&
+                            yFieldVal > this.renderConfig.yCondition.gt) ||
+                        yFieldVal < this.renderConfig.yCondition.lt
+                    ) {
+                        fillScore++;
                     }
                 }
 
@@ -405,246 +407,130 @@ export default Vue.component("volcano-plot", {
                 }
             });
 
+            //render dashed line
             if (!!this.renderConfig.xCondition) {
-                switch (this.renderConfig.xCondition.combination) {
-                    case "gt":
-                        let xGTPos =
-                            leftMargin +
-                            xBump +
-                            canvasWidth *
-                                ((this.renderConfig.xCondition.gt -
-                                    xAxisTicks.lo) /
-                                    (xPosMax - xAxisTicks.lo));
+                let xCondiCombi = this.renderConfig.xCondition.combination;
 
-                        this.renderDash(
-                            xGTPos,
-                            xGTPos,
-                            topMargin,
-                            canvasHeight + topMargin + yBump,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        break;
+                let xGTPos = null,
+                    xLTPos = null;
 
-                    case "lt":
-                        let xLTPos =
-                            leftMargin +
-                            xBump +
-                            canvasWidth *
-                                ((this.renderConfig.xCondition.lt -
-                                    xAxisTicks.lo) /
-                                    (xPosMax - xAxisTicks.lo));
+                if (
+                    xCondiCombi == "gt" ||
+                    xCondiCombi == "or" ||
+                    xCondiCombi == "and"
+                ) {
+                    xGTPos =
+                        leftMargin +
+                        xBump +
+                        canvasWidth *
+                            ((this.renderConfig.xCondition.gt - xAxisTicks.lo) /
+                                (xPosMax - xAxisTicks.lo));
+                }
 
-                        this.renderDash(
-                            xLTPos,
-                            xLTPos,
-                            topMargin,
-                            canvasHeight + topMargin + yBump,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
+                if (
+                    xCondiCombi == "lt" ||
+                    xCondiCombi == "or" ||
+                    xCondiCombi == "and"
+                ) {
+                    xLTPos =
+                        leftMargin +
+                        xBump +
+                        canvasWidth *
+                            ((this.renderConfig.xCondition.lt - xAxisTicks.lo) /
+                                (xPosMax - xAxisTicks.lo));
+                }
 
-                        break;
-                    case "and":
-                        xLTPos =
-                            leftMargin +
-                            xBump +
-                            canvasWidth *
-                                ((this.renderConfig.xCondition.lt -
-                                    xAxisTicks.lo) /
-                                    (xPosMax - xAxisTicks.lo));
-                        xGTPos =
-                            leftMargin +
-                            xBump +
-                            canvasWidth *
-                                ((this.renderConfig.xCondition.gt -
-                                    xAxisTicks.lo) /
-                                    (xPosMax - xAxisTicks.lo));
+                if (xGTPos != null) {
+                    this.renderDash(
+                        xGTPos,
+                        xGTPos,
+                        topMargin,
+                        canvasHeight + topMargin + yBump,
+                        "#999999",
+                        1,
+                        [5, 5]
+                    );
+                }
 
-                        this.renderDash(
-                            xLTPos,
-                            xLTPos,
-                            topMargin,
-                            canvasHeight + topMargin + yBump,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        this.renderDash(
-                            xGTPos,
-                            xGTPos,
-                            topMargin,
-                            canvasHeight + topMargin + yBump,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        break;
-                    case "or":
-                        xLTPos =
-                            leftMargin +
-                            xBump +
-                            canvasWidth *
-                                ((this.renderConfig.xCondition.lt -
-                                    xAxisTicks.lo) /
-                                    (xPosMax - xAxisTicks.lo));
-                        xGTPos =
-                            leftMargin +
-                            xBump +
-                            canvasWidth *
-                                ((this.renderConfig.xCondition.gt -
-                                    xAxisTicks.lo) /
-                                    (xPosMax - xAxisTicks.lo));
-
-                        this.renderDash(
-                            xLTPos,
-                            xLTPos,
-                            topMargin,
-                            canvasHeight + topMargin + yBump,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        this.renderDash(
-                            xGTPos,
-                            xGTPos,
-                            topMargin,
-                            canvasHeight + topMargin + yBump,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        break;
+                if (xLTPos != null) {
+                    this.renderDash(
+                        xLTPos,
+                        xLTPos,
+                        topMargin,
+                        canvasHeight + topMargin + yBump,
+                        "#999999",
+                        1,
+                        [5, 5]
+                    );
                 }
             }
 
             if (!!this.renderConfig.yCondition) {
-                switch (this.renderConfig.yCondition.combination) {
-                    case "gt":
-                        let yGTPos =
-                            topMargin +
-                            canvasHeight -
-                            canvasHeight *
-                                ((this.renderConfig.yCondition.gt -
-                                    yAxisTicks.lo) /
-                                    (yPosMax - yAxisTicks.lo));
+                let yCondiCombi = this.renderConfig.yCondition.combination;
 
-                        this.renderDash(
-                            leftMargin,
-                            leftMargin + canvasWidth + xBump,
-                            yGTPos,
-                            yGTPos,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        break;
-                    case "lt":
-                        let yLTPos =
-                            topMargin +
-                            canvasHeight -
-                            canvasHeight *
-                                ((this.renderConfig.yCondition.lt -
-                                    yAxisTicks.lo) /
-                                    (yPosMax - yAxisTicks.lo));
+                let yGTPos = null,
+                    yLTPos = null;
 
-                        this.renderDash(
-                            leftMargin,
-                            leftMargin + canvasWidth + xBump,
-                            yLTPos,
-                            yLTPos,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
+                if (
+                    yCondiCombi == "gt" ||
+                    yCondiCombi == "or" ||
+                    yCondiCombi == "and"
+                ) {
+                    yGTPos =
+                        topMargin +
+                        canvasHeight -
+                        canvasHeight *
+                            ((this.renderConfig.yCondition.gt - yAxisTicks.lo) /
+                                (yPosMax - yAxisTicks.lo));
+                }
 
-                        break;
-                    case "and":
-                        yLTPos =
-                            topMargin +
-                            canvasHeight -
-                            canvasHeight *
-                                ((this.renderConfig.yCondition.lt -
-                                    yAxisTicks.lo) /
-                                    (yPosMax - yAxisTicks.lo));
+                if (
+                    yCondiCombi == "lt" ||
+                    yCondiCombi == "or" ||
+                    yCondiCombi == "and"
+                ) {
+                    yLTPos =
+                        topMargin +
+                        canvasHeight -
+                        canvasHeight *
+                            ((this.renderConfig.yCondition.lt - yAxisTicks.lo) /
+                                (yPosMax - yAxisTicks.lo));
+                }
 
-                        this.renderDash(
-                            leftMargin,
-                            leftMargin + canvasWidth + xBump,
-                            yLTPos,
-                            yLTPos,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        yGTPos =
-                            topMargin +
-                            canvasHeight -
-                            canvasHeight *
-                                ((this.renderConfig.yCondition.gt -
-                                    yAxisTicks.lo) /
-                                    (yPosMax - yAxisTicks.lo));
+                if (yGTPos != null) {
+                    this.renderDash(
+                        leftMargin,
+                        leftMargin + canvasWidth + xBump,
+                        yGTPos,
+                        yGTPos,
+                        "#999999",
+                        1,
+                        [5, 5]
+                    );
+                }
 
-                        this.renderDash(
-                            leftMargin,
-                            leftMargin + canvasWidth + xBump,
-                            yGTPos,
-                            yGTPos,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        break;
-                    case "or":
-                        yLTPos =
-                            topMargin +
-                            canvasHeight -
-                            canvasHeight *
-                                ((this.renderConfig.yCondition.lt -
-                                    yAxisTicks.lo) /
-                                    (yPosMax - yAxisTicks.lo));
-
-                        this.renderDash(
-                            leftMargin,
-                            leftMargin + canvasWidth + xBump,
-                            yLTPos,
-                            yLTPos,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        yGTPos =
-                            topMargin +
-                            canvasHeight -
-                            canvasHeight *
-                                ((this.renderConfig.yCondition.gt -
-                                    yAxisTicks.lo) /
-                                    (yPosMax - yAxisTicks.lo));
-
-                        this.renderDash(
-                            leftMargin,
-                            leftMargin + canvasWidth + xBump,
-                            yGTPos,
-                            yGTPos,
-                            "#999999",
-                            1,
-                            [5, 5]
-                        );
-                        break;
+                if (yLTPos != null) {
+                    this.renderDash(
+                        leftMargin,
+                        leftMargin + canvasWidth + xBump,
+                        yLTPos,
+                        yLTPos,
+                        "#999999",
+                        1,
+                        [5, 5]
+                    );
                 }
             }
         },
         renderDash(X1, X2, Y1, Y2, COLOR, WIDTH, DASH) {
-            var c = document.getElementById("volcanoPlot");
-            var ctx = c.getContext("2d");
-            ctx.strokeStyle = COLOR;
-            ctx.lineWidth = WIDTH;
-            ctx.setLineDash(DASH);
-            ctx.moveTo(X1, Y1);
-            ctx.lineTo(X2, Y2);
-            ctx.stroke();
+            var d = document.getElementById("volcanoPlot");
+            var dtx = d.getContext("2d");
+            dtx.strokeStyle = COLOR;
+            dtx.lineWidth = WIDTH;
+            dtx.setLineDash(DASH);
+            dtx.moveTo(X1, Y1);
+            dtx.lineTo(X2, Y2);
+            dtx.stroke();
         },
     },
 });
