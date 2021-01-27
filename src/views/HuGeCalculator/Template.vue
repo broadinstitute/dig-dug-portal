@@ -4,7 +4,13 @@
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h1 class="card-title">Huge Calculator</h1>
+                    <h1 class="card-title">HuGe Calculator</h1>
+
+                    <div class="card mdkp-card">
+                        <div class="card-body temporary-card">
+                            <documentation name="hugecal.header.info"></documentation>
+                        </div>
+                    </div>
 
                     <documentation style="margin-bottom: 30px" name="tools.hugecal.subheader"></documentation>
 

@@ -6,6 +6,11 @@
                 <div class="card-body">
                     <h1 class="card-title">Complications Association Browser</h1>
 
+                    <div class="card mdkp-card">
+                        <div class="card-body temporary-card">
+                            <documentation name="complicationsviewer.header.info"></documentation>
+                        </div>
+                    </div>
                     <documentation
                         style="margin-bottom: 30px"
                         name="tools.complicationsviewer.subheader"
