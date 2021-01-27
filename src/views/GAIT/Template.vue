@@ -12,6 +12,12 @@
                 <div class="row card-body">
                     <div class="col-md-12">
                         <h2>Genetic Association Interactive Tool</h2>
+
+                    <div class="card mdkp-card">
+                        <div class="card-body temporary-card">
+                            <documentation name="region.trait.info"></documentation>
+                        </div>
+                    </div>
                         <documentation
                             style="margin-top: 20px"
                             name="tools.gait.subheader"
