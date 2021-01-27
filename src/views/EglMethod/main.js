@@ -10,6 +10,7 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
+import Documentation from "@/components/Documentation.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import ResearchMethod from "@/components/eglt/ResearchMethod.vue";
@@ -32,7 +33,8 @@ new Vue({
         Alert,
         ResearchMethod,
         EffectorGenesPlotsLine,
-        EffectorGenesTable
+        EffectorGenesTable,
+        Documentation,
     },
 
     created() {

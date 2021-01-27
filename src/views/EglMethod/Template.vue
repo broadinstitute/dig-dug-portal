@@ -9,6 +9,11 @@
                 href="/effectorgenes.html"
                 class="btn to-previous-page"
             >&#60;&#60; Predicted effector genes methods</a>
+            <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <documentation name="region.trait.info"></documentation>
+                </div>
+            </div>
             <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title"></div>
