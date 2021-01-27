@@ -8,7 +8,7 @@
 
                     <div class="card mdkp-card">
                         <div class="card-body temporary-card">
-                            <documentation name="region.trait.info"></documentation>
+                            <documentation name="hugecal.header.info"></documentation>
                         </div>
                     </div>
 

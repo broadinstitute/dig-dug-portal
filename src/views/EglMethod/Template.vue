@@ -11,7 +11,7 @@
             >&#60;&#60; Predicted effector genes methods</a>
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <documentation name="region.trait.info"></documentation>
+                    <documentation name="eglmethod.header.info"></documentation>
                 </div>
             </div>
             <div class="card mdkp-card gene-page-header">

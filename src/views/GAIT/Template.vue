@@ -15,7 +15,7 @@
 
                     <div class="card mdkp-card">
                         <div class="card-body temporary-card">
-                            <documentation name="region.trait.info"></documentation>
+                            <documentation name="gait.header.info"></documentation>
                         </div>
                     </div>
                         <documentation
