@@ -1,6 +1,6 @@
 <template>
     <div :id="elementid">
-        <div style="width: 700px">
+        <div style="width: 800px">
             <br />
             <div v-if="this.category == 'Causal' " class="arrow-up causalclass"></div>
             <div v-if="this.category == 'Strong'" class="arrow-up strongclass"></div>
@@ -8,6 +8,7 @@
             <div v-if="this.category == 'Possible'" class="arrow-up possibleclass"></div>
             <div v-if="this.category == 'Potential'" class="arrow-up potentialclass"></div>
             <div v-if="this.category== 'Weak'" class="arrow-up weakclass"></div>
+            <div v-if="this.category== 'Equivocal'" class="arrow-up equivocalclass"></div>
             <div v-if="this.category== 'No'" class="arrow-up noEvidenceclass"></div>
             <div>
                 <div class="container">
@@ -29,6 +30,9 @@
                         </div>
                         <div class="col-sm variationWeak">
                             <strong>Weak</strong>
+                        </div>
+                        <div class="col-sm variationEquivocal">
+                            <strong>Equivocal</strong>
                         </div>
                         <div class="col- variationNoEvidence">
                             <strong>No Evidence</strong>

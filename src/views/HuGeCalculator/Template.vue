@@ -476,8 +476,12 @@
     background-color: #e6c7f3;
 }
 
+#commonVariation .variationEquivocal {
+    background-color: #edd7f6;
+}
+
 #commonVariation .variationNoEvidence {
-    background-color: #eaddee;
+    background-color: #efe6f1;
 }
 #rareVariation .variationCausal {
     background-color: #f1c206;
@@ -551,9 +555,13 @@
     position: absolute;
     left: 580px;
 }
-.noEvidenceclass {
+.equivocalclass {
     position: absolute;
     left: 680px;
+}
+.noEvidenceclass {
+    position: absolute;
+    left: 780px;
 }
 
 /* rare arrow distance */

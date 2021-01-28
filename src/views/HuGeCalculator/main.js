@@ -243,8 +243,11 @@ new Vue({
         },
         determineCategory(bayesfactor) {
             let category;
-            if (bayesfactor < 2.1) {
+            if (bayesfactor <= 1) {
                 category = "No";
+            }
+            if (bayesfactor > 1 && bayesfactor < 2.1) {
+                category = "Equivocal";
             } else if (bayesfactor >= 2.1 && bayesfactor < 7.26) {
                 category = "Weak";
             } else if (bayesfactor >= 7.26 && bayesfactor < 16.5) {
