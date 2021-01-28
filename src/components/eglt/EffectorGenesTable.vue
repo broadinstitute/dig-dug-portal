@@ -3,6 +3,16 @@
         <b-container
             fluid
             v-if="
+                !!config &&
+                config[dataset].extra_content != undefined &&
+                config[dataset].extra_content.position == 'top'
+            "
+            v-html="config[dataset].extra_content.content"
+        >
+        </b-container>
+        <b-container
+            fluid
+            v-if="
                 !!config && !!tableData && config[dataset].filters != undefined
             "
             class="filtering-ui-wrapper"
@@ -312,6 +322,16 @@
                 :total-rows="rows"
                 :per-page="perPage"
             ></b-pagination>
+        </b-container>
+        <b-container
+            fluid
+            v-if="
+                !!config &&
+                config[dataset].extra_content != undefined &&
+                config[dataset].extra_content.position == 'bottom'
+            "
+            v-html="config[dataset].extra_content.content"
+        >
         </b-container>
     </div>
 </template>
