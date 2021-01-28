@@ -778,11 +778,26 @@ export default Vue.component("effector-genes-table", {
                                 VALUE +
                                 imageLinkRoot["after_value"];
                             contentLink =
-                                '<a class="image-popup-link" href="javascript:;">' +
-                                VALUE +
-                                "<span class='image-popup-wrapper'><img src='" +
+                                '<a class="image-popup-link" href="javascript:;"><img src="' +
                                 imageLink +
-                                "'></span></a>";
+                                '" style="width: 50%;margin-left:auto;margin-right: auto;"><span class="image-popup-wrapper"><img src="' +
+                                imageLink +
+                                '"></span></a>';
+                            return contentLink;
+                        } else {
+                            return "";
+                        }
+                        break;
+                    case "custom_link":
+                        let linkTo = formatting["link_to"];
+                        if (VALUE != "") {
+                            contentLink =
+                                '<a href="' +
+                                linkTo +
+                                VALUE +
+                                '">' +
+                                VALUE +
+                                "</a>";
                             return contentLink;
                         } else {
                             return "";
