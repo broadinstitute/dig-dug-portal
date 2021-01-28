@@ -32,9 +32,9 @@ export default Vue.component("lz-computed-credset-panel", {
         value: {
             required: false
         },
-        finishHandler: Function,
-        resolveHandler: Function,
-        errHandler: Function,
+        onLoad: Function,
+        onResolve: Function,
+        onError: Function,
     },
     data() {
         return {
@@ -47,14 +47,14 @@ export default Vue.component("lz-computed-credset-panel", {
     methods: {
         updatePanel() {
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const finishHandler = !!!this.finishHandler ? result => this.$emit('input', result) : this.finishHandler;
+            const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
             this.panelId = this.$parent.addCredibleVariantsPanel(
                 this.phenotype,
                 this.credibleSetId,
                 this.initialData,
-                finishHandler,
-                this.resolveHandler,
-                this.errHandler
+                onLoad,
+                this.onResolve,
+                this.onError
             );
         },
     },
@@ -122,7 +122,7 @@ export class LZComputedCredibleVariantsPanel {
         this.locusZoomPanelOptions = {
             ...BASE_PANEL_OPTIONS,
             title: { text: 'SNPs in 95% credible set', style: { 'font-size': '18px' }, x: -0.5 },
-            y_index: 1,
+            y_index: 2,
             margin: { bottom: 28  },
             axes: {
                 x: {
@@ -137,12 +137,7 @@ export class LZComputedCredibleVariantsPanel {
                 }
             },
             data_layers: [
-                // LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', {
-                //     namespace: {
-                //         assoc: this.datasource_namespace_symbol_for_panel,
-                //         credset: this.datasource_namespace_symbol_for_panel
-                //     },
-                // }),
+
                 {
                     "namespace": this.datasource_namespace_symbol_for_panel,
                     "id": this.panel_id,

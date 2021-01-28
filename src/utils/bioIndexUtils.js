@@ -48,20 +48,20 @@ export async function request(path, query_params) {
 /* Perform a BioIndex query.
  */
 export async function query(index, q, opts = {}) {
-    let { limit, resolveHandler, errHandler, finishHandler, limitWhile } = opts;
+    let { limit, onResolve, onError, onLoad, limitWhile } = opts;
     let req = request(`/api/bio/query/${index}`, { q, limit });
 
-    return await processRequest(req, resolveHandler, errHandler, finishHandler, limitWhile);
+    return await processRequest(req, onResolve, onError, onLoad, limitWhile);
 }
 
 /* Perform a BioIndex match.
  */
 export async function match(index, q, opts = {}) {
-    let { limit, finishHandler, resolveHandler, errHandler } = opts;
+    let { limit, onLoad, onResolve, onError } = opts;
     let req = request(`/api/bio/match/${index}`, { q, limit });
 
     // perform the fetch, make sure it succeeds
-    return await processRequest(req, resolveHandler, errHandler, finishHandler);
+    return await processRequest(req, onResolve, onError, onLoad);
 }
 
 /* Alters the json to filter results and stop continuing.
@@ -83,7 +83,7 @@ function limitRecordsWhile(json, limitWhile) {
 
 /* Follow continuations and continue reading all data.
  */
-async function processRequest(req, resolveHandler, errHandler, finishHandler, limitWhile) {
+async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
     let resp = await req;
     let json = await resp.json();
     let data = [];
@@ -97,8 +97,8 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler, li
     if (resp.status === 200) {
         data = limitRecordsWhile(json, limitWhile);
 
-        if (!!resolveHandler) {
-            resolveHandler(json);
+        if (!!onResolve) {
+            onResolve(json);
         }
 
         // this will also fail if resp.status !== 200
@@ -112,21 +112,21 @@ async function processRequest(req, resolveHandler, errHandler, finishHandler, li
             if (resp.status === 200) {
                 data = data.concat(limitRecordsWhile(json, limitWhile));
 
-                if (!!resolveHandler) {
-                    resolveHandler(json);
+                if (!!onResolve) {
+                    onResolve(json);
                 }
             }
         }
 
         // done
-        if (!!finishHandler) {
-            finishHandler(json);
+        if (!!onLoad) {
+            onLoad(json);
         }
     }
 
     if (resp.status !== 200) {
-        if (!!errHandler) {
-            errHandler(json);
+        if (!!onError) {
+            onError(json);
         }
     }
     return data;
