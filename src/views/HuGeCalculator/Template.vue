@@ -1,9 +1,6 @@
 <template>
     <div>
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
@@ -14,10 +11,7 @@
                 <div class="card-body">
                     <h1 class="card-title">HuGe Calculator</h1>
 
-                    <documentation
-                        style="margin-bottom: 30px"
-                        name="tools.hugecal.subheader"
-                    ></documentation>
+                    <documentation style="margin-bottom: 30px" name="tools.hugecal.subheader"></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
 
@@ -69,10 +63,7 @@
                     >
                         <div>
                             <div class="card mdkp-card">
-                                <div
-                                    class="card-body"
-                                    style="margin-block-end: 20px"
-                                >
+                                <div class="card-body" style="margin-block-end: 20px">
                                     <div class="row">
                                         <div
                                             class="col-md-6"
@@ -96,26 +87,28 @@
                                             </h4>
                                             <ul>
                                                 <li>
-                                                    <span
-                                                        >{{
-                                                            $parent.determineCategory(
-                                                                $parent.bayesFactorCombinedEvidence(
-                                                                    $parent.bayesFactorCommonVariation,
-                                                                    $parent.bayesFactorRareVariation
-                                                                )
-                                                            )
+                                                    <span>
+                                                        {{
+                                                        $parent.determineCategory(
+                                                        $parent.bayesFactorCombinedEvidence(
+                                                        $parent.bayesFactorCommonVariation,
+                                                        $parent.bayesFactorRareVariation
+                                                        )
+                                                        )
                                                         }}
-                                                        Evidence</span
-                                                    >
+                                                        Evidence
+                                                    </span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{
+                                                    <span>
+                                                        {{
                                                         $parent.bayesFactorCombinedEvidence(
-                                                            $parent.bayesFactorCommonVariation,
-                                                            $parent.bayesFactorRareVariation
+                                                        $parent.bayesFactorCommonVariation,
+                                                        $parent.bayesFactorRareVariation
                                                         )
-                                                    }}</span>
+                                                        }}
+                                                    </span>
                                                 </li>
                                             </ul>
                                             <div style="width: 700px">
@@ -136,10 +129,7 @@
                                                 ></color-bar-plot>
                                             </div>
                                         </div>
-                                        <div
-                                            class="col-md-6"
-                                            style="border-left: 1px dashed #444"
-                                        >
+                                        <div class="col-md-6" style="border-left: 1px dashed #444">
                                             <posterior-probability-plot
                                                 v-if="
                                                     $parent.geneAssociations52k
@@ -163,10 +153,7 @@
                                 </div>
                             </div>
                             <div class="card mdkp-card">
-                                <div
-                                    class="card-body"
-                                    style="margin-block-end: 20px"
-                                >
+                                <div class="card-body" style="margin-block-end: 20px">
                                     <div class="row">
                                         <div
                                             class="col-md-6"
@@ -187,11 +174,11 @@
                                             </h4>
                                             <ul v-if="$parent.eglData">
                                                 <li>
-                                                    <span
-                                                        >Genome-wide significant
+                                                    <span>
+                                                        Genome-wide significant
                                                         - pvalue less than
-                                                        5e-8</span
-                                                    >
+                                                        5e-8
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-if="
@@ -200,13 +187,12 @@
                                                     "
                                                 >
                                                     Coding evidence:
-                                                    <span
-                                                        class="codingEvidence1C"
-                                                        >{{
-                                                            $parent.eglData
-                                                                .genetic
-                                                        }}</span
-                                                    >
+                                                    <span class="codingEvidence1C">
+                                                        {{
+                                                        $parent.eglData
+                                                        .genetic
+                                                        }}
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-else-if="
@@ -215,13 +201,12 @@
                                                     "
                                                 >
                                                     Coding evidence:
-                                                    <span
-                                                        class="codingEvidence2C"
-                                                        >{{
-                                                            $parent.eglData
-                                                                .genetic
-                                                        }}</span
-                                                    >
+                                                    <span class="codingEvidence2C">
+                                                        {{
+                                                        $parent.eglData
+                                                        .genetic
+                                                        }}
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-if="
@@ -232,11 +217,12 @@
                                                     Regulatory evidence:
                                                     <span
                                                         class="regulatoryEvidence2R"
-                                                        >{{
-                                                            $parent.eglData
-                                                                .genomic
-                                                        }}</span
                                                     >
+                                                        {{
+                                                        $parent.eglData
+                                                        .genomic
+                                                        }}
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-if="
@@ -247,11 +233,12 @@
                                                     Regulatory evidence:
                                                     <span
                                                         class="regulatoryEvidence3R"
-                                                        >{{
-                                                            $parent.eglData
-                                                                .genomic
-                                                        }}</span
                                                     >
+                                                        {{
+                                                        $parent.eglData
+                                                        .genomic
+                                                        }}
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-if="
@@ -260,12 +247,12 @@
                                                         'in GWAS'
                                                     "
                                                 >
-                                                    <span
-                                                        >Genome-wide significant
+                                                    <span>
+                                                        Genome-wide significant
                                                         but no coding or
                                                         regulatory
-                                                        evidence</span
-                                                    >
+                                                        evidence
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-if="
@@ -274,26 +261,25 @@
                                                         'No Evidence'
                                                     "
                                                 >
-                                                    <span
-                                                        >Genome-wide significant
+                                                    <span>
+                                                        Genome-wide significant
                                                         but no coding or
                                                         regulatory evidence
                                                         associated with Type 2
-                                                        diabetes</span
-                                                    >
+                                                        diabetes
+                                                    </span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{
+                                                    <span>
+                                                        {{
                                                         $parent.bayesFactorCommonVariation
-                                                    }}</span>
+                                                        }}
+                                                    </span>
                                                 </li>
                                             </ul>
                                             <!-- Common variation color bar plot -->
-                                            <div
-                                                style="width: 700px"
-                                                v-if="$parent.eglData"
-                                            >
+                                            <div style="width: 700px" v-if="$parent.eglData">
                                                 <br />
                                                 <color-bar-plot
                                                     v-if="
@@ -316,7 +302,7 @@
                                             >
                                                 <h5>
                                                     {{
-                                                        $parent.selectedGene[0]
+                                                    $parent.selectedGene[0]
                                                     }}
                                                     is GWAS Significant
                                                 </h5>
@@ -372,13 +358,12 @@
                                                     "
                                                 >
                                                     Coding evidence:
-                                                    <span
-                                                        class="codingEvidence1C"
-                                                        >{{
-                                                            $parent.eglData
-                                                                .genetic
-                                                        }}</span
-                                                    >
+                                                    <span class="codingEvidence1C">
+                                                        {{
+                                                        $parent.eglData
+                                                        .genetic
+                                                        }}
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-else-if="
@@ -387,13 +372,12 @@
                                                     "
                                                 >
                                                     Coding evidence:
-                                                    <span
-                                                        class="codingEvidence2C"
-                                                        >{{
-                                                            $parent.eglData
-                                                                .genetic
-                                                        }}</span
-                                                    >
+                                                    <span class="codingEvidence2C">
+                                                        {{
+                                                        $parent.eglData
+                                                        .genetic
+                                                        }}
+                                                    </span>
                                                 </li>
 
                                                 <li
@@ -405,11 +389,12 @@
                                                     Regulatory evidence:
                                                     <span
                                                         class="regulatoryEvidence2R"
-                                                        >{{
-                                                            $parent.eglData
-                                                                .genomic
-                                                        }}</span
                                                     >
+                                                        {{
+                                                        $parent.eglData
+                                                        .genomic
+                                                        }}
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-if="
@@ -420,11 +405,12 @@
                                                     Regulatory evidence:
                                                     <span
                                                         class="regulatoryEvidence3R"
-                                                        >{{
-                                                            $parent.eglData
-                                                                .genomic
-                                                        }}</span
                                                     >
+                                                        {{
+                                                        $parent.eglData
+                                                        .genomic
+                                                        }}
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-if="
@@ -432,11 +418,11 @@
                                                             .genetic == '1C'
                                                     "
                                                 >
-                                                    <span
-                                                        >Genome-wide significant
+                                                    <span>
+                                                        Genome-wide significant
                                                         - p-value is less than
-                                                        5e-8</span
-                                                    >
+                                                        5e-8
+                                                    </span>
                                                 </li>
                                                 <li
                                                     v-if="
@@ -444,17 +430,19 @@
                                                             .genetic == '2C'
                                                     "
                                                 >
-                                                    <span
-                                                        >Genome-wide significant
+                                                    <span>
+                                                        Genome-wide significant
                                                         - p-value is less than
-                                                        5e-8</span
-                                                    >
+                                                        5e-8
+                                                    </span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{
+                                                    <span>
+                                                        {{
                                                         $parent.bayesFactorCommonVariation
-                                                    }}</span>
+                                                        }}
+                                                    </span>
                                                 </li>
                                             </ul>
                                             <!-- <div
@@ -485,7 +473,7 @@
                                             >
                                                 <h5>
                                                     {{
-                                                        $parent.selectedGene[0]
+                                                    $parent.selectedGene[0]
                                                     }}
                                                     is GWAS significant
                                                 </h5>
@@ -529,7 +517,7 @@
                                             >
                                                 <h5>
                                                     {{
-                                                        $parent.selectedGene[0]
+                                                    $parent.selectedGene[0]
                                                     }}
                                                     is GWAS significant
                                                 </h5>
@@ -576,7 +564,7 @@
                                             >
                                                 <h5>
                                                     {{
-                                                        $parent.selectedGene[0]
+                                                    $parent.selectedGene[0]
                                                     }}
                                                     is not GWAS significant
                                                 </h5>
@@ -642,21 +630,21 @@
                                                     <span>Causal</span>
                                                 </li>
                                                 <li>
-                                                    <span
-                                                        >Exome-Wide significant
+                                                    <span>
+                                                        Exome-Wide significant
                                                         - p-value less than
-                                                        2.5e-6</span
-                                                    >
+                                                        2.5e-6
+                                                    </span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{
+                                                    <span>
+                                                        {{
                                                         $parent.bayesFactorRareVariation
-                                                    }}</span>
+                                                        }}
+                                                    </span>
                                                 </li>
-                                                <div
-                                                    style="width: 700px padding:10px"
-                                                >
+                                                <div style="width: 700px padding:10px">
                                                     <br />
                                                     <color-bar-plot
                                                         v-if="
@@ -692,29 +680,31 @@
                                             </h4>
                                             <ul>
                                                 <li>
-                                                    <span
-                                                        >Not Exome-Wide
+                                                    <span>
+                                                        Not Exome-Wide
                                                         significant - p-value
                                                         greater than
-                                                        2.5e-6</span
-                                                    >
+                                                        2.5e-6
+                                                    </span>
                                                 </li>
                                                 <li>
-                                                    <span
-                                                        >{{
-                                                            $parent.determineCategory(
-                                                                $parent.bayesFactorRareVariation
-                                                            )
+                                                    <span>
+                                                        {{
+                                                        $parent.determineCategory(
+                                                        $parent.bayesFactorRareVariation
+                                                        )
                                                         }}
-                                                        Evidence</span
-                                                    >
+                                                        Evidence
+                                                    </span>
                                                 </li>
 
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{
+                                                    <span>
+                                                        {{
                                                         $parent.bayesFactorRareVariation
-                                                    }}</span>
+                                                        }}
+                                                    </span>
                                                 </li>
                                                 <div style="width: 700px">
                                                     <br />
@@ -856,7 +846,9 @@
 #rareVariation .variationWeak {
     background-color: #f3e9c5;
 }
-
+#rareVariation .variationEquivocal {
+    background-color: #eee8d4;
+}
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
 }
@@ -879,9 +871,11 @@
 #combinedVariation .variationWeak {
     background-color: rgb(120, 228, 219);
 }
-
+#combinedVariation .variationEquivocal {
+    background-color: rgb(144, 235, 227);
+}
 #combinedVariation .variationNoEvidence {
-    background-color: rgb(168, 240, 234);
+    background-color: rgb(200, 243, 239);
 }
 
 /* arrow distance */
