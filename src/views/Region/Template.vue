@@ -286,14 +286,14 @@
                                         $parent.requestCredibleSets($event.data)
                                     "
                                     :ldpop="true"
-                                    :refSeq="true"
-                                >
+                                    :refSeq="true">
                                     <lz-associations-panel
                                         :phenotype="$store.state.phenotype.name"
-                                        :finishHandler="
-                                            $parent.updatePageAssociations
-                                        "
+                                        @input="$parent.updatePageAssociations"
                                     ></lz-associations-panel>
+                                    <lz-catalog-annotations-panel
+                                        :phenotype="$store.state.phenotype.name"
+                                    ></lz-catalog-annotations-panel>
                                 </locuszoom>
                             </template>
                         </criterion-function-group>
