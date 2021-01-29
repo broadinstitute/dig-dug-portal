@@ -1,8 +1,8 @@
 <template>
     <div>
         <div
-            :class="`feature-headers-${index}`"
-            class="feature-content-wrapper hidden"
+            :class="[`feature-headers-${index}`, isHidden ? 'hidden' : '']"
+            class="feature-content-wrapper"
             :key="`features_${index}`"
         >
             <b-row class="feature-header">
@@ -100,7 +100,12 @@ import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 am4core.useTheme(am4themes_animated);
 
 export default Vue.component("mask-table", {
-    props: ["maskData", "index", "dichotomous"],
+    props: {
+        maskData: Array,
+        index: [String, Number],
+        dichotomous: Boolean,
+        isHidden: { type: Boolean, default: true },
+    },
     component: ForestPlot,
     data() {
         return {
@@ -145,3 +150,6 @@ export default Vue.component("mask-table", {
     },
 });
 </script>
+<style>
+@import url("/css/effectorGenes.css");
+</style>
