@@ -684,11 +684,15 @@
                                                     ></color-bar-plot>
                                                 </div>
                                             </ul>
-                                            <mask-table
-                                                :maskData="$parent.masks"
-                                                :index="0"
-                                                :dichotomous="true"
-                                            ></mask-table>
+                                            <div
+                                                class="EGLT-table fiftytwo masktable"
+                                            >
+                                                <mask-table
+                                                    :maskData="$parent.masks"
+                                                    :index="0"
+                                                    :dichotomous="true"
+                                                ></mask-table>
+                                            </div>
                                         </div>
 
                                         <!-- Rare Variation - If not Exome wide significant -->
@@ -750,12 +754,15 @@
                                                     ></color-bar-plot>
                                                 </div>
                                             </ul>
-
-                                            <mask-table
-                                                :maskData="$parent.masks"
-                                                :index="1"
-                                                :dichotomous="true"
-                                            ></mask-table>
+                                            <div
+                                                class="EGLT-table fiftytwo masktable"
+                                            >
+                                                <mask-table
+                                                    :maskData="$parent.masks"
+                                                    :index="1"
+                                                    :dichotomous="true"
+                                                ></mask-table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -978,5 +985,14 @@
 .rarenoEvidenceclass {
     position: absolute;
     left: 1620px;
+}
+.EGLT-table.fiftytwo.masktable {
+    margin-top: 40px;
+}
+
+.EGLT-table.fiftytwo.masktable .feature-content-wrapper,
+.EGLT-table.fiftytwo.masktable .feature-plot-wrapper {
+    margin: auto;
+    width: 100%;
 }
 </style>
