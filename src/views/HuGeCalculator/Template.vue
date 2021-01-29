@@ -465,11 +465,9 @@
                                             <hr style="margin: 40px" />
                                             <div
                                                 v-if="
-                                                    $parent.isGWASSignificantAssociation ==
-                                                        false &&
+                                                    $parent.isGWASSignificantAssociation ==false &&
                                                     $parent.eglData.genetic ==
-                                                        '1C'
-                                                "
+                                                        '1C' "
                                             >
                                                 <h5>
                                                     {{
@@ -525,29 +523,15 @@
                                                 <locuszoom
                                                     v-if="$parent.region"
                                                     ref="locuszoom"
-                                                    :chr="
-                                                        $parent.region
-                                                            .chromosome
-                                                    "
-                                                    :start="
-                                                        $parent.region.start -
-                                                        50000
-                                                    "
-                                                    :end="
-                                                        $parent.region.end +
-                                                        50000
-                                                    "
+                                                    :chr="$parent.region.chromosome"
+                                                    :start="$parent.region.start -50000"
+                                                    :end="$parent.region.end +50000"
                                                     :ldpop="true"
                                                     :refSeq="true"
                                                 >
                                                     <lz-associations-panel
-                                                        :phenotype="
-                                                            $parent.phenotype
-                                                                .name
-                                                        "
-                                                        @input="
-                                                            $parent.updateAssociationsTable
-                                                        "
+                                                        :phenotype="$parent.phenotype.name"
+                                                        @input="$parent.updateAssociationsTable"
                                                     ></lz-associations-panel>
                                                 </locuszoom>
                                             </div>
@@ -658,6 +642,12 @@
                                                         :elementid="'rareVariation'"
                                                     ></color-bar-plot>
                                                 </div>
+
+                                                <mask-table
+                                                    :maskData="$parent.masks"
+                                                    :index="0"
+                                                    :dichotomous="true"
+                                                ></mask-table>
                                             </ul>
                                         </div>
 
@@ -709,18 +699,17 @@
                                                 <div style="width: 700px">
                                                     <br />
                                                     <color-bar-plot
-                                                        v-if="
-                                                            $parent.bayesFactorRareVariation
-                                                        "
-                                                        :category="
-                                                            $parent.determineCategory(
-                                                                $parent.bayesFactorRareVariation
-                                                            )
-                                                        "
+                                                        v-if="$parent.bayesFactorRareVariation"
+                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
                                                         :elementid="'rareVariation'"
                                                     ></color-bar-plot>
                                                 </div>
                                             </ul>
+                                            <mask-table
+                                                :maskData="$parent.masks"
+                                                :index="1"
+                                                :dichotomous="true"
+                                            ></mask-table>
                                         </div>
                                     </div>
                                 </div>
@@ -730,6 +719,7 @@
                 </div>
             </div>
         </div>
+
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>

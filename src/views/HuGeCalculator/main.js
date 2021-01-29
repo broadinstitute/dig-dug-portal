@@ -23,6 +23,7 @@ import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
+import MaskTable from "@/components/MaskTable";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -44,6 +45,7 @@ new Vue({
         RareColorBarPlot,
         PosteriorProbabilityPlot,
         LocusZoom,
+        MaskTable,
     },
     render(createElement, context) {
         return createElement(Template);
@@ -167,9 +169,21 @@ new Vue({
             }
 
             commonBF = firstBF * secondBF * thirdBF
-            return commonBF;
+            return Number.parseFloat(commonBF).toFixed(2)
         },
 
+        masks() {
+            let maskdata = []
+            if (this.$store.state.geneAssociations52k.data.length > 0) {
+                for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
+                    if (!!this.$store.state.geneAssociations52k.data[i].phenotype && this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]) {
+                        //filter with selected phenotype
+                        maskdata = this.$store.state.geneAssociations52k.data[i].masks
+                    }
+                }
+            }
+            return maskdata;
+        },
 
 
         bayesFactorRareVariation() {
@@ -205,7 +219,8 @@ new Vue({
                     }
                 }
             }
-            return rarebayesfactor;
+            return Number.parseFloat(rarebayesfactor).toFixed(2)
+
         },
         geneAssociations52k() {
             if (!!this.$store.state.geneAssociations52k) {
