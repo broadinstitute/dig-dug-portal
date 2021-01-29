@@ -683,14 +683,12 @@
                                                         :elementid="'rareVariation'"
                                                     ></color-bar-plot>
                                                 </div>
-
-                                                <mask-table
-                                                    :maskData="$parent.masks"
-                                                    :index="0"
-                                                    :dichotomous="true"
-                                                    :isHidden="false"
-                                                ></mask-table>
                                             </ul>
+                                            <mask-table
+                                                :maskData="$parent.masks"
+                                                :index="0"
+                                                :dichotomous="true"
+                                            ></mask-table>
                                         </div>
 
                                         <!-- Rare Variation - If not Exome wide significant -->
@@ -752,12 +750,11 @@
                                                     ></color-bar-plot>
                                                 </div>
                                             </ul>
-                                            something there 1
+
                                             <mask-table
                                                 :maskData="$parent.masks"
                                                 :index="1"
                                                 :dichotomous="true"
-                                                :isHidden="false"
                                             ></mask-table>
                                         </div>
                                     </div>

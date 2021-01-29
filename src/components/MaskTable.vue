@@ -72,8 +72,8 @@
             </template>
         </div>
         <div
-            class="feature-plot-wrapper hidden"
-            :class="`feature-plot-${index}`"
+            class="feature-plot-wrapper"
+            :class="[`feature-plot-${index}`, isHidden ? 'hidden' : '']"
             :key="`plot_${index}`"
         >
             <b-col>Forest Plot</b-col>
@@ -104,7 +104,7 @@ export default Vue.component("mask-table", {
         maskData: Array,
         index: [String, Number],
         dichotomous: Boolean,
-        isHidden: { type: Boolean, default: true },
+        isHidden: { type: Boolean, default: false },
     },
     component: ForestPlot,
     data() {
