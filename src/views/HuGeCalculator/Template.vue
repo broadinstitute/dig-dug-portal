@@ -1,6 +1,9 @@
 <template>
     <div>
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
@@ -11,7 +14,10 @@
                 <div class="card-body">
                     <h1 class="card-title">HuGe Calculator</h1>
 
-                    <documentation style="margin-bottom: 30px" name="tools.hugecal.subheader"></documentation>
+                    <documentation
+                        style="margin-bottom: 30px"
+                        name="tools.hugecal.subheader"
+                    ></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
 
@@ -63,7 +69,10 @@
                     >
                         <div>
                             <div class="card mdkp-card">
-                                <div class="card-body" style="margin-block-end: 20px">
+                                <div
+                                    class="card-body"
+                                    style="margin-block-end: 20px"
+                                >
                                     <div class="row">
                                         <div
                                             class="col-md-6"
@@ -89,12 +98,12 @@
                                                 <li>
                                                     <span>
                                                         {{
-                                                        $parent.determineCategory(
-                                                        $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation
-                                                        )
-                                                        )
+                                                            $parent.determineCategory(
+                                                                $parent.bayesFactorCombinedEvidence(
+                                                                    $parent.bayesFactorCommonVariation,
+                                                                    $parent.bayesFactorRareVariation
+                                                                )
+                                                            )
                                                         }}
                                                         Evidence
                                                     </span>
@@ -103,10 +112,10 @@
                                                     Bayes Factor:
                                                     <span>
                                                         {{
-                                                        $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation
-                                                        )
+                                                            $parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation
+                                                            )
                                                         }}
                                                     </span>
                                                 </li>
@@ -129,7 +138,10 @@
                                                 ></color-bar-plot>
                                             </div>
                                         </div>
-                                        <div class="col-md-6" style="border-left: 1px dashed #444">
+                                        <div
+                                            class="col-md-6"
+                                            style="border-left: 1px dashed #444"
+                                        >
                                             <posterior-probability-plot
                                                 v-if="
                                                     $parent.geneAssociations52k
@@ -153,7 +165,10 @@
                                 </div>
                             </div>
                             <div class="card mdkp-card">
-                                <div class="card-body" style="margin-block-end: 20px">
+                                <div
+                                    class="card-body"
+                                    style="margin-block-end: 20px"
+                                >
                                     <div class="row">
                                         <div
                                             class="col-md-6"
@@ -176,8 +191,7 @@
                                                 <li>
                                                     <span>
                                                         Genome-wide significant
-                                                        - pvalue less than
-                                                        5e-8
+                                                        - pvalue less than 5e-8
                                                     </span>
                                                 </li>
                                                 <li
@@ -187,10 +201,12 @@
                                                     "
                                                 >
                                                     Coding evidence:
-                                                    <span class="codingEvidence1C">
+                                                    <span
+                                                        class="codingEvidence1C"
+                                                    >
                                                         {{
-                                                        $parent.eglData
-                                                        .genetic
+                                                            $parent.eglData
+                                                                .genetic
                                                         }}
                                                     </span>
                                                 </li>
@@ -201,10 +217,12 @@
                                                     "
                                                 >
                                                     Coding evidence:
-                                                    <span class="codingEvidence2C">
+                                                    <span
+                                                        class="codingEvidence2C"
+                                                    >
                                                         {{
-                                                        $parent.eglData
-                                                        .genetic
+                                                            $parent.eglData
+                                                                .genetic
                                                         }}
                                                     </span>
                                                 </li>
@@ -219,8 +237,8 @@
                                                         class="regulatoryEvidence2R"
                                                     >
                                                         {{
-                                                        $parent.eglData
-                                                        .genomic
+                                                            $parent.eglData
+                                                                .genomic
                                                         }}
                                                     </span>
                                                 </li>
@@ -235,8 +253,8 @@
                                                         class="regulatoryEvidence3R"
                                                     >
                                                         {{
-                                                        $parent.eglData
-                                                        .genomic
+                                                            $parent.eglData
+                                                                .genomic
                                                         }}
                                                     </span>
                                                 </li>
@@ -250,8 +268,7 @@
                                                     <span>
                                                         Genome-wide significant
                                                         but no coding or
-                                                        regulatory
-                                                        evidence
+                                                        regulatory evidence
                                                     </span>
                                                 </li>
                                                 <li
@@ -273,13 +290,16 @@
                                                     Bayes Factor:
                                                     <span>
                                                         {{
-                                                        $parent.bayesFactorCommonVariation
+                                                            $parent.bayesFactorCommonVariation
                                                         }}
                                                     </span>
                                                 </li>
                                             </ul>
                                             <!-- Common variation color bar plot -->
-                                            <div style="width: 700px" v-if="$parent.eglData">
+                                            <div
+                                                style="width: 700px"
+                                                v-if="$parent.eglData"
+                                            >
                                                 <br />
                                                 <color-bar-plot
                                                     v-if="
@@ -302,7 +322,7 @@
                                             >
                                                 <h5>
                                                     {{
-                                                    $parent.selectedGene[0]
+                                                        $parent.selectedGene[0]
                                                     }}
                                                     is GWAS Significant
                                                 </h5>
@@ -358,10 +378,12 @@
                                                     "
                                                 >
                                                     Coding evidence:
-                                                    <span class="codingEvidence1C">
+                                                    <span
+                                                        class="codingEvidence1C"
+                                                    >
                                                         {{
-                                                        $parent.eglData
-                                                        .genetic
+                                                            $parent.eglData
+                                                                .genetic
                                                         }}
                                                     </span>
                                                 </li>
@@ -372,10 +394,12 @@
                                                     "
                                                 >
                                                     Coding evidence:
-                                                    <span class="codingEvidence2C">
+                                                    <span
+                                                        class="codingEvidence2C"
+                                                    >
                                                         {{
-                                                        $parent.eglData
-                                                        .genetic
+                                                            $parent.eglData
+                                                                .genetic
                                                         }}
                                                     </span>
                                                 </li>
@@ -391,8 +415,8 @@
                                                         class="regulatoryEvidence2R"
                                                     >
                                                         {{
-                                                        $parent.eglData
-                                                        .genomic
+                                                            $parent.eglData
+                                                                .genomic
                                                         }}
                                                     </span>
                                                 </li>
@@ -407,8 +431,8 @@
                                                         class="regulatoryEvidence3R"
                                                     >
                                                         {{
-                                                        $parent.eglData
-                                                        .genomic
+                                                            $parent.eglData
+                                                                .genomic
                                                         }}
                                                     </span>
                                                 </li>
@@ -440,7 +464,7 @@
                                                     Bayes Factor:
                                                     <span>
                                                         {{
-                                                        $parent.bayesFactorCommonVariation
+                                                            $parent.bayesFactorCommonVariation
                                                         }}
                                                     </span>
                                                 </li>
@@ -465,13 +489,15 @@
                                             <hr style="margin: 40px" />
                                             <div
                                                 v-if="
-                                                    $parent.isGWASSignificantAssociation ==false &&
+                                                    $parent.isGWASSignificantAssociation ==
+                                                        false &&
                                                     $parent.eglData.genetic ==
-                                                        '1C' "
+                                                        '1C'
+                                                "
                                             >
                                                 <h5>
                                                     {{
-                                                    $parent.selectedGene[0]
+                                                        $parent.selectedGene[0]
                                                     }}
                                                     is GWAS significant
                                                 </h5>
@@ -515,7 +541,7 @@
                                             >
                                                 <h5>
                                                     {{
-                                                    $parent.selectedGene[0]
+                                                        $parent.selectedGene[0]
                                                     }}
                                                     is GWAS significant
                                                 </h5>
@@ -523,15 +549,29 @@
                                                 <locuszoom
                                                     v-if="$parent.region"
                                                     ref="locuszoom"
-                                                    :chr="$parent.region.chromosome"
-                                                    :start="$parent.region.start -50000"
-                                                    :end="$parent.region.end +50000"
+                                                    :chr="
+                                                        $parent.region
+                                                            .chromosome
+                                                    "
+                                                    :start="
+                                                        $parent.region.start -
+                                                        50000
+                                                    "
+                                                    :end="
+                                                        $parent.region.end +
+                                                        50000
+                                                    "
                                                     :ldpop="true"
                                                     :refSeq="true"
                                                 >
                                                     <lz-associations-panel
-                                                        :phenotype="$parent.phenotype.name"
-                                                        @input="$parent.updateAssociationsTable"
+                                                        :phenotype="
+                                                            $parent.phenotype
+                                                                .name
+                                                        "
+                                                        @input="
+                                                            $parent.updateAssociationsTable
+                                                        "
                                                     ></lz-associations-panel>
                                                 </locuszoom>
                                             </div>
@@ -548,7 +588,7 @@
                                             >
                                                 <h5>
                                                     {{
-                                                    $parent.selectedGene[0]
+                                                        $parent.selectedGene[0]
                                                     }}
                                                     is not GWAS significant
                                                 </h5>
@@ -615,20 +655,21 @@
                                                 </li>
                                                 <li>
                                                     <span>
-                                                        Exome-Wide significant
-                                                        - p-value less than
-                                                        2.5e-6
+                                                        Exome-Wide significant -
+                                                        p-value less than 2.5e-6
                                                     </span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
                                                     <span>
                                                         {{
-                                                        $parent.bayesFactorRareVariation
+                                                            $parent.bayesFactorRareVariation
                                                         }}
                                                     </span>
                                                 </li>
-                                                <div style="width: 700px padding:10px">
+                                                <div
+                                                    style="width: 700px padding:10px"
+                                                >
                                                     <br />
                                                     <color-bar-plot
                                                         v-if="
@@ -642,13 +683,16 @@
                                                         :elementid="'rareVariation'"
                                                     ></color-bar-plot>
                                                 </div>
-
+                                            </ul>
+                                            <div
+                                                class="EGLT-table fiftytwo masktable"
+                                            >
                                                 <mask-table
                                                     :maskData="$parent.masks"
                                                     :index="0"
                                                     :dichotomous="true"
                                                 ></mask-table>
-                                            </ul>
+                                            </div>
                                         </div>
 
                                         <!-- Rare Variation - If not Exome wide significant -->
@@ -673,16 +717,15 @@
                                                     <span>
                                                         Not Exome-Wide
                                                         significant - p-value
-                                                        greater than
-                                                        2.5e-6
+                                                        greater than 2.5e-6
                                                     </span>
                                                 </li>
                                                 <li>
                                                     <span>
                                                         {{
-                                                        $parent.determineCategory(
-                                                        $parent.bayesFactorRareVariation
-                                                        )
+                                                            $parent.determineCategory(
+                                                                $parent.bayesFactorRareVariation
+                                                            )
                                                         }}
                                                         Evidence
                                                     </span>
@@ -692,24 +735,34 @@
                                                     Bayes Factor:
                                                     <span>
                                                         {{
-                                                        $parent.bayesFactorRareVariation
+                                                            $parent.bayesFactorRareVariation
                                                         }}
                                                     </span>
                                                 </li>
                                                 <div style="width: 700px">
                                                     <br />
                                                     <color-bar-plot
-                                                        v-if="$parent.bayesFactorRareVariation"
-                                                        :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
+                                                        v-if="
+                                                            $parent.bayesFactorRareVariation
+                                                        "
+                                                        :category="
+                                                            $parent.determineCategory(
+                                                                $parent.bayesFactorRareVariation
+                                                            )
+                                                        "
                                                         :elementid="'rareVariation'"
                                                     ></color-bar-plot>
                                                 </div>
                                             </ul>
-                                            <mask-table
-                                                :maskData="$parent.masks"
-                                                :index="1"
-                                                :dichotomous="true"
-                                            ></mask-table>
+                                            <div
+                                                class="EGLT-table fiftytwo masktable"
+                                            >
+                                                <mask-table
+                                                    :maskData="$parent.masks"
+                                                    :index="1"
+                                                    :dichotomous="true"
+                                                ></mask-table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -932,5 +985,14 @@
 .rarenoEvidenceclass {
     position: absolute;
     left: 1620px;
+}
+.EGLT-table.fiftytwo.masktable {
+    margin-top: 40px;
+}
+
+.EGLT-table.fiftytwo.masktable .feature-content-wrapper,
+.EGLT-table.fiftytwo.masktable .feature-plot-wrapper {
+    margin: auto;
+    width: 100%;
 }
 </style>
