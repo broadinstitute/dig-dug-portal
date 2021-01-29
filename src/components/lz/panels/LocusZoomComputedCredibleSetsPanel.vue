@@ -162,7 +162,19 @@ export class LZComputedCredibleVariantsPanel {
                         // normalizing the scale to probability space
                         "floor": 0,
                         "ceiling": 1
-                    }
+                    },
+                    match: { send: `${this.datasource_namespace_symbol_for_panel}:position`, receive: `${this.datasource_namespace_symbol_for_panel}:position` },
+                    color: [
+                            {
+                                field: 'lz_is_match',  // Special field name whose presence triggers custom rendering
+                                scale_function: 'if',
+                                parameters: {
+                                    field_value: true,
+                                    then: '#FF00FF'
+                                }
+                            },
+                            ...LocusZoom.Layouts.get('data_layer', 'annotation_credible_set', { unnamespaced: true }).color,
+                    ]
                 },
             ],
         },

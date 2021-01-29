@@ -114,7 +114,7 @@ export class LZAnnotationIntervalsPanel {
                         fold: scoring[key].maxFold,
                         state_id: `${interval.tissueId}`,
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
-                        state_name: `${interval.tissue}`,
+                        state_name: `${interval.tissue || interval.tissueId}`,
                         // a string-encoded list of RGB coords, e.g. '255,0,128'
                         itemRgb: [r, g, b].join(),
                     } : null;

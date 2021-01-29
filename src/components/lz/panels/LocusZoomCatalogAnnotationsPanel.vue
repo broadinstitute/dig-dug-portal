@@ -117,11 +117,11 @@ export class LZCatalogAnnotationsPanel {
                         match: { send: 'catalog:pos', receive: 'catalog:pos' },
                         color: [
                             {
-                                field: 'lz_highlight_match',  // Special field name whose presence triggers custom rendering
+                                field: 'lz_is_match',  // Special field name whose presence triggers custom rendering
                                 scale_function: 'if',
                                 parameters: {
                                         field_value: true,
-                                        then: 'red'
+                                        then: '#FF00FF'
                                     },
                             },
                             '#0000CC'

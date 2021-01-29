@@ -153,7 +153,7 @@ export class LZAssociationsPanel {
                         match: { send: `assoc:position`, receive: `assoc:position` },
                         color: [
                                 {
-                                    field: 'lz_highlight_match',  // Special field name whose presence triggers custom rendering
+                                    field: 'lz_is_match',  // Special field name whose presence triggers custom rendering
                                     scale_function: 'if',
                                     parameters: {
                                         field_value: true,
