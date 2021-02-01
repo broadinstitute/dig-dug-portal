@@ -1,8 +1,6 @@
 <template>
     <div>
-        {{ maskData }} <br />HERE<br />
-        {{ formattedMasks }}
-        <!-- <div
+        <div
             :class="[`feature-headers-${index}`, isHidden ? 'hidden' : '']"
             class="feature-content-wrapper"
             :key="`features_${index}`"
@@ -70,7 +68,6 @@
                     </b-col>
                 </b-row>
             </template>
-            {{ formattedMasks }}
         </div>
         <div
             class="feature-plot-wrapper"
@@ -78,7 +75,6 @@
             :key="`plot_${index}`"
         >
             <b-col>Forest Plot</b-col>
-
             <forest-plot
                 :data="formattedMasks"
                 :id="`fplot_${index}`"
@@ -86,8 +82,7 @@
                 :dichotomous="dichotomous"
                 :ref="`fplot_${index}`"
             ></forest-plot>
-            THEREEEEEE
-        </div> -->
+        </div>
     </div>
 </template>
 
@@ -135,65 +130,16 @@ export default Vue.component("mask-table", {
     computed: {
         formattedMasks() {
             console.log("inside");
-            let sorted = [];
-            // let keys = Object.keys(this.masks);
-            // keys.forEach((key, index) => {
-            //     console.log("key", key);
-            //     console.log("index", index);
-            //     this.maskData.forEach((item, j) => {
-            //         if (item.mask == key) {
-            //             console.log("yes", key);
-            //             this.sorted.push(this.maskData[j]);
-            //         }
-            //     });
-            // });
-            // // for (let i = 0; i < this.maskData.length; i++) {
-            // //     console.log("test", this.masks[i]);
-            // //     let found = this.maskData.indexOf(this.masks[i]);
-            // //     if (found > -1) {
-            // //         console.log("found", found);
-            // //         this.sorted.push(this.maskData[found]);
-            // //     }
-            // // }
-            // return sorted;
-
-            // console.log("changed");
-            // // let sorted = this.maskData.sort((a, b) => {
-            // //     if (this.maskData[a.mask].sort < this.masks[b.mask].sort) {
-            // //         console.log("less");
-            // //         console.log("a", this.masks[a.mask]);
-            // //         console.log("b", this.masks[b.mask]);
-            // //         return -1;
-            // //     } else if (this.maskData[a.mask].sort > this.masks[b.mask].sort) {
-            // //         console.log("more");
-            // //         console.log("a", this.masks[a.mask]);
-            // //         console.log("b", this.masks[b.mask]);
-            // //         return 1;
-            // //     }
-            // //     console.log("equal");
-            // //     return 0;
-            // // });
-            sorted = this.maskData.slice().sort((a, b) => {
-                // console.log("a", a);
-                // console.log("b", b);
-                // if (this.masks[a.mask].sort < this.masks[b.mask].sort) {
-                //     console.log("less");
-                //     return -1;
-                // } else if (this.masks[a.mask].sort > this.masks[b.mask].sort) {
-                //     console.log("more");
-
-                //     return 1;
-                // }
-                // console.log("equal");
-                // return 0;
-                console.log("here");
-                return this.masks[a.mask].sort - this.masks[b.mask].sort;
+            let sorted = this.maskData.slice().sort((a, b) => {
+                if (this.masks[a.mask].sort < this.masks[b.mask].sort)
+                    return -1;
+                if (this.masks[b.mask].sort < this.masks[a.mask].sort) return 1;
+                return 0;
             });
-            // return sorted.map((m) => ({
-            //     ...m,
-            //     mask: this.masks[m.mask].description,
-            // }));
-            return sorted;
+            return sorted.map((m) => ({
+                ...m,
+                mask: this.masks[m.mask].description,
+            }));
         },
     },
     watch: {
