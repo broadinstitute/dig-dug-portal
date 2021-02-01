@@ -1,6 +1,8 @@
 <template>
     <div>
-        <div
+        {{ maskData }} <br />HERE<br />
+        {{ formattedMasks }}
+        <!-- <div
             :class="[`feature-headers-${index}`, isHidden ? 'hidden' : '']"
             class="feature-content-wrapper"
             :key="`features_${index}`"
@@ -15,9 +17,7 @@
                 <b-col class="feature-header-item" v-if="!dichotomous"
                     >Beta</b-col
                 >
-                <b-col class="feature-header-item" v-if="!!dichotomous"
-                    >Odds Ratio</b-col
-                >
+                <b-col class="feature-header-item" v-else>Odds Ratio</b-col>
             </b-row>
             <template v-for="(mask, j) in formattedMasks">
                 <b-row
@@ -55,7 +55,7 @@
                         >
                         {{ effectFormatter(mask.beta) }}
                     </b-col>
-                    <b-col class="feature-content-item" v-if="!!dichotomous">
+                    <b-col class="feature-content-item" v-else>
                         <span
                             :class="
                                 Math.exp(mask.beta) < 1
@@ -70,6 +70,7 @@
                     </b-col>
                 </b-row>
             </template>
+            {{ formattedMasks }}
         </div>
         <div
             class="feature-plot-wrapper"
@@ -77,7 +78,7 @@
             :key="`plot_${index}`"
         >
             <b-col>Forest Plot</b-col>
-            <!-- <div :id="`plot_${index}`" class="plots"></div> -->
+
             <forest-plot
                 :data="formattedMasks"
                 :id="`fplot_${index}`"
@@ -85,7 +86,8 @@
                 :dichotomous="dichotomous"
                 :ref="`fplot_${index}`"
             ></forest-plot>
-        </div>
+            THEREEEEEE
+        </div> -->
     </div>
 </template>
 
@@ -94,10 +96,10 @@ import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import ForestPlot from "@/components/ForestPlot";
 
-import * as am4core from "@amcharts/amcharts4/core";
-import * as am4charts from "@amcharts/amcharts4/charts";
-import am4themes_animated from "@amcharts/amcharts4/themes/animated";
-am4core.useTheme(am4themes_animated);
+// import * as am4core from "@amcharts/amcharts4/core";
+// import * as am4charts from "@amcharts/amcharts4/charts";
+// import am4themes_animated from "@amcharts/amcharts4/themes/animated";
+// am4core.useTheme(am4themes_animated);
 
 export default Vue.component("mask-table", {
     props: {
@@ -129,20 +131,77 @@ export default Vue.component("mask-table", {
             },
         };
     },
+    created() {},
     computed: {
         formattedMasks() {
-            let sorted = this.maskData.sort((a, b) => {
-                if (this.masks[a.mask].sort < this.masks[b.mask].sort)
-                    return -1;
-                if (this.masks[b.mask].sort < this.masks[a.mask].sort) return 1;
-                return 0;
+            console.log("inside");
+            let sorted = [];
+            // let keys = Object.keys(this.masks);
+            // keys.forEach((key, index) => {
+            //     console.log("key", key);
+            //     console.log("index", index);
+            //     this.maskData.forEach((item, j) => {
+            //         if (item.mask == key) {
+            //             console.log("yes", key);
+            //             this.sorted.push(this.maskData[j]);
+            //         }
+            //     });
+            // });
+            // // for (let i = 0; i < this.maskData.length; i++) {
+            // //     console.log("test", this.masks[i]);
+            // //     let found = this.maskData.indexOf(this.masks[i]);
+            // //     if (found > -1) {
+            // //         console.log("found", found);
+            // //         this.sorted.push(this.maskData[found]);
+            // //     }
+            // // }
+            // return sorted;
+
+            // console.log("changed");
+            // // let sorted = this.maskData.sort((a, b) => {
+            // //     if (this.maskData[a.mask].sort < this.masks[b.mask].sort) {
+            // //         console.log("less");
+            // //         console.log("a", this.masks[a.mask]);
+            // //         console.log("b", this.masks[b.mask]);
+            // //         return -1;
+            // //     } else if (this.maskData[a.mask].sort > this.masks[b.mask].sort) {
+            // //         console.log("more");
+            // //         console.log("a", this.masks[a.mask]);
+            // //         console.log("b", this.masks[b.mask]);
+            // //         return 1;
+            // //     }
+            // //     console.log("equal");
+            // //     return 0;
+            // // });
+            sorted = this.maskData.slice().sort((a, b) => {
+                // console.log("a", a);
+                // console.log("b", b);
+                // if (this.masks[a.mask].sort < this.masks[b.mask].sort) {
+                //     console.log("less");
+                //     return -1;
+                // } else if (this.masks[a.mask].sort > this.masks[b.mask].sort) {
+                //     console.log("more");
+
+                //     return 1;
+                // }
+                // console.log("equal");
+                // return 0;
+                console.log("here");
+                return this.masks[a.mask].sort - this.masks[b.mask].sort;
             });
-            return sorted.map((m) => ({
-                ...m,
-                mask: this.masks[m.mask].description,
-            }));
+            // return sorted.map((m) => ({
+            //     ...m,
+            //     mask: this.masks[m.mask].description,
+            // }));
+            return sorted;
         },
     },
+    watch: {
+        maskData(newData, oldData) {
+            console.log("watch changed", newData);
+        },
+    },
+
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
