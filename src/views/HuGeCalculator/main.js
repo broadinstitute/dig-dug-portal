@@ -194,6 +194,19 @@ new Vue({
             return Number.parseFloat(commonBF).toFixed(2);
         },
 
+        phenotyopes52KAssociations() {
+            let phenotypes = [];
+            if (this.$store.state.geneAssociations52k.data.length > 0) {
+                for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) { 
+                    this.masks.push(this.$store.state.geneAssociations52k.data[i].phenotype)
+
+                }
+            }
+
+
+
+        },
+
         masks() {
             let maskdata = [];
             if (this.$store.state.geneAssociations52k.data.length > 0) {
