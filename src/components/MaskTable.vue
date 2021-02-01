@@ -91,11 +91,6 @@ import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import ForestPlot from "@/components/ForestPlot";
 
-// import * as am4core from "@amcharts/amcharts4/core";
-// import * as am4charts from "@amcharts/amcharts4/charts";
-// import am4themes_animated from "@amcharts/amcharts4/themes/animated";
-// am4core.useTheme(am4themes_animated);
-
 export default Vue.component("mask-table", {
     props: {
         maskData: Array,
@@ -129,7 +124,6 @@ export default Vue.component("mask-table", {
     created() {},
     computed: {
         formattedMasks() {
-            console.log("inside");
             let sorted = this.maskData.slice().sort((a, b) => {
                 if (this.masks[a.mask].sort < this.masks[b.mask].sort)
                     return -1;
@@ -140,11 +134,6 @@ export default Vue.component("mask-table", {
                 ...m,
                 mask: this.masks[m.mask].description,
             }));
-        },
-    },
-    watch: {
-        maskData(newData, oldData) {
-            console.log("watch changed", newData);
         },
     },
 
