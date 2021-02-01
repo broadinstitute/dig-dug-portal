@@ -688,8 +688,9 @@
                                                 class="EGLT-table fiftytwo masktable"
                                             >
                                                 <mask-table
+                                                    v-if="$parent.masks.length"
                                                     :maskData="$parent.masks"
-                                                    :index="0"
+                                                    :index="`${$parent.selectedGene}_0`"
                                                     :dichotomous="true"
                                                 ></mask-table>
                                             </div>
@@ -758,8 +759,9 @@
                                                 class="EGLT-table fiftytwo masktable"
                                             >
                                                 <mask-table
+                                                    v-if="$parent.masks.length"
                                                     :maskData="$parent.masks"
-                                                    :index="1"
+                                                    :index="`${$parent.selectedGene}_1`"
                                                     :dichotomous="true"
                                                 ></mask-table>
                                             </div>
