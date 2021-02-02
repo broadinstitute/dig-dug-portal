@@ -53,12 +53,9 @@ new Vue({
     data() {
         return {
             matchingGenes: [],
-            phenotype: {
-                name: "T2D",
-                description: "Type 2 Diabetes",
-                isDichotomous: true
-            },
-            phenotypes: [{ name: "T2D", description: "Type 2 Diabetes" }],
+
+            phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
+            phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
             hugecalSearchCriterion: keyParams.gene
                 ? [
                       {
@@ -194,18 +191,7 @@ new Vue({
             return Number.parseFloat(commonBF).toFixed(2);
         },
 
-        phenotyopes52KAssociations() {
-            let phenotypes = [];
-            if (this.$store.state.geneAssociations52k.data.length > 0) {
-                for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) { 
-                    this.masks.push(this.$store.state.geneAssociations52k.data[i].phenotype)
 
-                }
-            }
-
-
-
-        },
 
         masks() {
             let maskdata = [];
@@ -299,8 +285,19 @@ new Vue({
                 gene: gene,
                 phenotype: phenotype,
                 priorVariance: priorVariance
-            };
-        }
+            }
+        },
+        phenotyopes52KAssociations() {
+            let phenotypes = [];
+            if (this.$store.state.geneAssociations52k.data.length > 0) {
+                for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
+                    phenotypes.push(this.$store.state.geneAssociations52k.data[i].phenotype)
+                }
+            }
+            return phenotypes;
+        },
+
+
     },
     methods: {
         updateAssociationsTable(data) {
