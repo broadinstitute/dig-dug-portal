@@ -1,28 +1,25 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <a
-                href="/effectorgenes.html"
-                class="btn to-previous-page"
-            >&#60;&#60; Predicted effector genes methods</a>
-            <div class="card mdkp-card">
-                <div class="card-body temporary-card">
-                    <documentation name="eglmethod.header.info"></documentation>
-                </div>
-            </div>
+            <a href="/effectorgenes.html" class="btn to-previous-page"
+                >&#60;&#60; Predicted effector genes methods</a
+            >
             <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
                     <div class="col-md-8 gene-page-header-title"></div>
                     <div class="col-md-4 gene-page-header-title">Phenotype</div>
                     <div class="col-md-8 gene-page-header-body">
-                        <h2>{{$store.state.pageTitle}}</h2>
+                        <h2>{{ $store.state.pageTitle }}</h2>
                     </div>
                     <div class="col-md-4 gene-page-header-body">
-                        <h4>{{$parent.trait}}</h4>
+                        <h4>{{ $parent.trait }}</h4>
                     </div>
                 </div>
             </div>
