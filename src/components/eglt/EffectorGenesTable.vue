@@ -126,6 +126,7 @@
             ></effector-genes-m-plot>
         </b-container>
 
+        <!-- if the page view is not single_gene_view -->
         <b-container
             fluid
             v-if="
@@ -136,203 +137,232 @@
             class="volcano-plot-wrapper"
         >
             <volcano-plot
-                :plotData="filteredData"
+                :plotData="
+                    !!config[dataset].single_gene_view
+                        ? tableData
+                        : filteredData
+                "
                 :renderConfig="config[dataset]['volcano_plot_config']"
+                :geneOfInterest="selectedGene"
+                v-model="selectedGene"
             ></volcano-plot>
         </b-container>
-
-        <b-container
-            fluid
-            v-if="!!config && !!tableData"
-            class="legend-wrapper"
+        <div
+            v-if="!!tableData && !!config && !!config[dataset].single_gene_view"
         >
-            <b-row
-                class="each-legend"
-                v-for="(legend, i) in config[dataset]['legend']"
-                v-html="legend"
-                :key="i"
-            ></b-row>
-        </b-container>
-        <b-container
-            fluid
-            v-if="
-                !!config &&
-                !!tableData &&
-                config[dataset]['render_feature'] == true
+            <single-gene-view
+                :geneViewData="tableData"
+                :renderConfig="config[dataset]"
+                :geneOfInterest="selectedGene"
+                v-model="selectedGene"
+            ></single-gene-view>
+        </div>
+        <div
+            :class="
+                !!config && !!config[dataset].single_gene_view ? 'hidden' : ''
             "
-            class="table-ui-wrapper"
         >
-            <b-row>
-                <div class="col-md-12 egl-table-ui-options">
-                    <div class="show-all-features-wrapper">
-                        <input
-                            type="checkbox"
-                            v-model="showAllFeaturesChk"
-                            id="show_all_features"
-                            @change="showAllFeatures()"
-                        />
-                        <label for="show_all_features"
-                            >Show all feature rows</label
-                        >
-                    </div>
-                    <div class="hide-all-feature-headers-wrapper">
-                        <input
-                            type="checkbox"
-                            v-model="hideAllFeatureHeadersChk"
-                            id="hide_all_feature_headers"
-                            @change="hideAllFeatureHeaders()"
-                        />
-                        <label for="hide_all_feature_headers"
-                            >Hide feature headers</label
-                        >
-                    </div>
-                    <div class="hide-top-level-wrapper">
-                        <input
-                            type="checkbox"
-                            v-model="hideTopLevelRowsChk"
-                            id="hide_top_level_rows"
-                            @change="hideTopLevelRows()"
-                        />
-                        <label for="hide_top_level_rows"
-                            >Hide top level rows</label
-                        >
-                    </div>
-                </div>
-            </b-row>
-        </b-container>
-        <!-- convertJson2Csv works only for tables with no feature tables -->
-        <b-container
-            fluid
-            v-if="!!config && !!config[dataset]['convert_2_csv']"
-            class="convert-2-csv"
-        >
-            <b-btn
-                class="btn-sm"
-                @click="convertJson2Csv(filteredData, dataset + '_filtered')"
-                >Save as CSV</b-btn
+            <b-container
+                fluid
+                v-if="!!config && !!tableData"
+                class="legend-wrapper"
             >
-        </b-container>
-        <div :class="'EGLT-table ' + this.dataset">
-            <b-container fluid v-if="!!config && !!filteredData" class>
-                <b-row class="top-level-header">
-                    <div
-                        v-for="(value, key) in config[dataset][
-                            'topLevelRender'
-                        ]"
-                        :key="key"
-                        :class="'sortable top-level-header-item ' + value"
-                        v-html="value"
-                        @click="applySorting(key)"
-                    ></div>
-                    <div
-                        class="top-level-header-item"
-                        v-if="
-                            config[dataset]['render_feature'] == true ||
-                            config[dataset]['plots']['render'] == true
-                        "
-                    >
-                        View
-                    </div>
-                </b-row>
                 <b-row
-                    v-for="(value, index) in pagedData"
-                    class="top-level-value"
-                    :key="index"
-                >
-                    <template
-                        v-for="(col, i) in config[dataset]['topLevelRender']"
-                    >
-                        <div
-                            v-if="i == config[dataset]['topLevelPrime']"
-                            :class="
-                                'top-level-value-item prime ' +
-                                i +
-                                ' ' +
-                                i +
-                                '-' +
-                                value[i]
-                            "
-                            :key="i"
-                            v-html="formatContent(i, value[i], 'top')"
-                        ></div>
-                        <div
-                            v-else
-                            :class="
-                                'top-level-value-item ' +
-                                i +
-                                ' ' +
-                                i +
-                                '-' +
-                                value[i]
-                            "
-                            :key="i"
-                            v-html="formatContent(i, value[i], 'top')"
-                        ></div>
-                    </template>
-                    <div
-                        class="top-level-value-item"
-                        v-if="
-                            config[dataset]['render_feature'] == true ||
-                            config[dataset]['plots']['render'] == true
-                        "
-                    >
-                        <b-button
-                            v-if="config[dataset]['render_feature'] == true"
-                            @click="showFeatures(index)"
-                            class="view-features-btn"
-                            v-html="
-                                config[dataset]['feature_btn_name']
-                                    ? config[dataset]['feature_btn_name']
-                                    : 'Features'
-                            "
-                        ></b-button>
-                        <template
-                            v-if="config[dataset]['plots']['render'] == true"
-                        >
-                            <b-button
-                                @click="
-                                    showVisualizer(
-                                        value[
-                                            config[dataset]['plots'][
-                                                'openerField'
-                                            ]
-                                        ]
-                                    )
-                                "
-                                class="view-visualizer-btn"
-                                v-html="config[dataset]['plots']['btnName']"
-                            ></b-button>
-                        </template>
+                    class="each-legend"
+                    v-for="(legend, i) in config[dataset]['legend']"
+                    v-html="legend"
+                    :key="i"
+                ></b-row>
+            </b-container>
+            <b-container
+                fluid
+                v-if="
+                    !!config &&
+                    !!tableData &&
+                    config[dataset]['render_feature'] == true
+                "
+                class="table-ui-wrapper"
+            >
+                <b-row>
+                    <div class="col-md-12 egl-table-ui-options">
+                        <div class="show-all-features-wrapper">
+                            <input
+                                type="checkbox"
+                                v-model="showAllFeaturesChk"
+                                id="show_all_features"
+                                @change="showAllFeatures()"
+                            />
+                            <label for="show_all_features"
+                                >Show all feature rows</label
+                            >
+                        </div>
+                        <div class="hide-all-feature-headers-wrapper">
+                            <input
+                                type="checkbox"
+                                v-model="hideAllFeatureHeadersChk"
+                                id="hide_all_feature_headers"
+                                @change="hideAllFeatureHeaders()"
+                            />
+                            <label for="hide_all_feature_headers"
+                                >Hide feature headers</label
+                            >
+                        </div>
+                        <div class="hide-top-level-wrapper">
+                            <input
+                                type="checkbox"
+                                v-model="hideTopLevelRowsChk"
+                                id="hide_top_level_rows"
+                                @change="hideTopLevelRows()"
+                            />
+                            <label for="hide_top_level_rows"
+                                >Hide top level rows</label
+                            >
+                        </div>
                     </div>
-                    <effector-genes-features
-                        :features="value.features"
-                        :featureIndex="index"
-                        :columnHeader="value[config[dataset]['topLevelPrime']]"
-                    ></effector-genes-features>
                 </b-row>
             </b-container>
+            <!-- convertJson2Csv works only for tables with no feature tables -->
+            <b-container
+                fluid
+                v-if="!!config && !!config[dataset]['convert_2_csv']"
+                class="convert-2-csv"
+            >
+                <b-btn
+                    class="btn-sm"
+                    @click="
+                        convertJson2Csv(filteredData, dataset + '_filtered')
+                    "
+                    >Save as CSV</b-btn
+                >
+            </b-container>
+            <div :class="'EGLT-table ' + this.dataset">
+                <b-container fluid v-if="!!config && !!filteredData" class>
+                    <b-row class="top-level-header">
+                        <div
+                            v-for="(value, key) in config[dataset][
+                                'topLevelRender'
+                            ]"
+                            :key="key"
+                            :class="'sortable top-level-header-item ' + value"
+                            v-html="value"
+                            @click="applySorting(key)"
+                        ></div>
+                        <div
+                            class="top-level-header-item"
+                            v-if="
+                                config[dataset]['render_feature'] == true ||
+                                config[dataset]['plots']['render'] == true
+                            "
+                        >
+                            View
+                        </div>
+                    </b-row>
+                    <b-row
+                        v-for="(value, index) in pagedData"
+                        class="top-level-value"
+                        :key="index"
+                    >
+                        <template
+                            v-for="(col, i) in config[dataset][
+                                'topLevelRender'
+                            ]"
+                        >
+                            <div
+                                v-if="i == config[dataset]['topLevelPrime']"
+                                :class="
+                                    'top-level-value-item prime ' +
+                                    i +
+                                    ' ' +
+                                    i +
+                                    '-' +
+                                    value[i]
+                                "
+                                :key="i"
+                                v-html="formatContent(i, value[i], 'top')"
+                            ></div>
+                            <div
+                                v-else
+                                :class="
+                                    'top-level-value-item ' +
+                                    i +
+                                    ' ' +
+                                    i +
+                                    '-' +
+                                    value[i]
+                                "
+                                :key="i"
+                                v-html="formatContent(i, value[i], 'top')"
+                            ></div>
+                        </template>
+                        <div
+                            class="top-level-value-item"
+                            v-if="
+                                config[dataset]['render_feature'] == true ||
+                                config[dataset]['plots']['render'] == true
+                            "
+                        >
+                            <b-button
+                                v-if="config[dataset]['render_feature'] == true"
+                                @click="showFeatures(index)"
+                                class="view-features-btn"
+                                v-html="
+                                    config[dataset]['feature_btn_name']
+                                        ? config[dataset]['feature_btn_name']
+                                        : 'Features'
+                                "
+                            ></b-button>
+                            <template
+                                v-if="
+                                    config[dataset]['plots']['render'] == true
+                                "
+                            >
+                                <b-button
+                                    @click="
+                                        showVisualizer(
+                                            value[
+                                                config[dataset]['plots'][
+                                                    'openerField'
+                                                ]
+                                            ]
+                                        )
+                                    "
+                                    class="view-visualizer-btn"
+                                    v-html="config[dataset]['plots']['btnName']"
+                                ></b-button>
+                            </template>
+                        </div>
+                        <effector-genes-features
+                            :features="value.features"
+                            :featureIndex="index"
+                            :columnHeader="
+                                value[config[dataset]['topLevelPrime']]
+                            "
+                        ></effector-genes-features>
+                    </b-row>
+                </b-container>
+            </div>
+            <b-container
+                v-if="!!config && !!config[dataset].pageUI"
+                class="egl-table-page-ui-wrapper"
+            >
+                <b-pagination
+                    class="pagination-sm justify-content-center"
+                    v-model="currentPage"
+                    :total-rows="rows"
+                    :per-page="perPage"
+                ></b-pagination>
+            </b-container>
+            <b-container
+                fluid
+                v-if="
+                    !!config &&
+                    config[dataset].extra_content != undefined &&
+                    config[dataset].extra_content.position == 'bottom'
+                "
+                v-html="config[dataset].extra_content.content"
+            >
+            </b-container>
         </div>
-        <b-container
-            v-if="!!config && !!config[dataset].pageUI"
-            class="egl-table-page-ui-wrapper"
-        >
-            <b-pagination
-                class="pagination-sm justify-content-center"
-                v-model="currentPage"
-                :total-rows="rows"
-                :per-page="perPage"
-            ></b-pagination>
-        </b-container>
-        <b-container
-            fluid
-            v-if="
-                !!config &&
-                config[dataset].extra_content != undefined &&
-                config[dataset].extra_content.position == 'bottom'
-            "
-            v-html="config[dataset].extra_content.content"
-        >
-        </b-container>
     </div>
 </template>
 
@@ -341,6 +371,7 @@ import Vue from "vue";
 import { BootstrapVueIcons } from "bootstrap-vue";
 //import igv from "../../node_modules/igv/dist/igv.esm";
 import EffectorGenesFeatures from "@/components/eglt/EffectorGenesFeatures";
+import SingleGeneView from "@/components/eglt/SingleGeneView.vue";
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 import uiUtils from "@/utils/uiUtils";
@@ -365,12 +396,19 @@ export default Vue.component("effector-genes-table", {
             /*igvBrowser: false,*/
             perPage: 25,
             currentPage: 1,
+            selectedGene: "",
         };
     },
     modules: {
         uiUtils,
+        keyParams,
     },
-    components: { EffectorGenesFeatures, EffectorGenesMPlot, VolcanoPlot },
+    components: {
+        EffectorGenesFeatures,
+        EffectorGenesMPlot,
+        VolcanoPlot,
+        SingleGeneView,
+    },
     created() {
         this.$store.dispatch("fetchConfig", {
             dataset: this.dataset,
@@ -385,6 +423,7 @@ export default Vue.component("effector-genes-table", {
 
     mounted() {
         uiUtils.showHideElement("data-rendering-indicator");
+        this.selectedGene = keyParams.gene;
     },
     updated() {
         /*test*/
@@ -542,10 +581,16 @@ export default Vue.component("effector-genes-table", {
             inputField.value = "";
 
             if (TYPE == "search") {
-                let searchTerms = searchValue.split(",");
-                searchTerms.map((searchTerm) => {
-                    this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
-                });
+                if (!!this.config[this.dataset].single_gene_view) {
+                    this.selectedGene = searchValue;
+                } else {
+                    let searchTerms = searchValue.split(",");
+                    searchTerms.map((searchTerm) => {
+                        this.filtersIndex[FIELD]["search"].push(
+                            searchTerm.trim()
+                        );
+                    });
+                }
             } else if (
                 TYPE == "search_gt" ||
                 TYPE == "search_lt" ||
@@ -786,6 +831,30 @@ export default Vue.component("effector-genes-table", {
                 let type = formatting["type"];
 
                 switch (type) {
+                    case "image":
+                        if (VALUE != "") {
+                            let imageLinkRoot =
+                                LEVEL == "top"
+                                    ? this.config[this.dataset].formatting[
+                                          COLUMN
+                                      ]
+                                    : this.config[this.dataset].formatting
+                                          .features[COLUMN[0]][COLUMN[1]];
+
+                            let imageLink =
+                                imageLinkRoot["image_link"] +
+                                imageLinkRoot["before_value"] +
+                                VALUE +
+                                imageLinkRoot["after_value"];
+                            contentLink =
+                                '<div class="single-gene-image-wrapper" href="javascript:;"><img src="' +
+                                imageLink +
+                                '" ></div>';
+                            return contentLink;
+                        } else {
+                            return "";
+                        }
+                        break;
                     case "image_popup":
                         if (VALUE != "") {
                             let imageLinkRoot =

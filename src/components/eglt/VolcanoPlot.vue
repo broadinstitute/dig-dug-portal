@@ -32,7 +32,7 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("volcano-plot", {
-    props: ["plotData", "renderConfig"],
+    props: ["plotData", "renderConfig", "geneOfInterest"],
     data() {
         return {};
     },
@@ -44,6 +44,9 @@ export default Vue.component("volcano-plot", {
         this.renderPlot();
     },
     computed: {
+        renderingGene() {
+            return this.geneOfInterest;
+        },
         renderData() {
             let rawData = this.plotData;
             let massagedData = [];
@@ -127,6 +130,10 @@ export default Vue.component("volcano-plot", {
     },
     watch: {
         renderData() {
+            this.clearPlot();
+            this.renderPlot();
+        },
+        renderingGene() {
             this.clearPlot();
             this.renderPlot();
         },
@@ -392,6 +399,7 @@ export default Vue.component("volcano-plot", {
                         break;
                 }
 
+                ctx.lineWidth = 0;
                 ctx.beginPath();
                 ctx.arc(xPos, yPos, 3, 0, 2 * Math.PI);
                 ctx.fill();
@@ -406,6 +414,47 @@ export default Vue.component("volcano-plot", {
                     ctx.fillText(d[this.renderConfig.renderBy], xPos, yPos - 4);
                 }
             });
+
+            //if selectedGene is not undefined
+            if (this.geneOfInterest != undefined) {
+                this.renderData.map((d) => {
+                    if (
+                        d[this.renderConfig.renderBy].toLowerCase() ==
+                        this.geneOfInterest.toLowerCase()
+                    ) {
+                        let xPos =
+                            leftMargin +
+                            xBump +
+                            canvasWidth *
+                                ((d[this.renderConfig.xAxisField] -
+                                    xAxisTicks.lo) /
+                                    (xPosMax - xAxisTicks.lo));
+                        let yPos =
+                            topMargin +
+                            canvasHeight -
+                            canvasHeight *
+                                ((d[this.renderConfig.yAxisField] -
+                                    yAxisTicks.lo) /
+                                    (yPosMax - yAxisTicks.lo));
+
+                        ctx.fillStyle = "#ff0000";
+                        ctx.lineWidth = 0;
+
+                        ctx.beginPath();
+                        ctx.arc(xPos, yPos, 5, 0, 2 * Math.PI);
+                        ctx.fill();
+
+                        ctx.font = "12px Arial";
+                        ctx.textAlign = "center";
+                        ctx.fillStyle = "#FF0000";
+                        ctx.fillText(
+                            d[this.renderConfig.renderBy],
+                            xPos,
+                            yPos - 6
+                        );
+                    }
+                });
+            }
 
             //render dashed line
             if (!!this.renderConfig.xCondition) {

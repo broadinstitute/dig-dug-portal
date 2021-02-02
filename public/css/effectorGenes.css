@@ -1156,3 +1156,21 @@ html {
 .egl-filter-cd-input {
     width: 135px !important;
 }
+
+.single-gene-view-info-box {
+    display: inline-flex;
+    border: solid 1px #ddd;
+    margin: 5px 5px;
+    padding: 15px;
+    border-radius: 15px;
+    background-color: #00aaff20;
+}
+
+.single-gene-view-info-box .key {
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 10px;
+}
+.single-gene-view-info-box .value {
+    font-size: 16px;
+}

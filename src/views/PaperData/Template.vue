@@ -36,6 +36,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div class="row">
@@ -47,6 +48,7 @@
                                         :dataset="$parent.dataset"
                                         :graphData="$store.state.tableData"
                                     ></component>
+
                                     <effector-genes-table
                                         :dataset="$parent.dataset"
                                         :trait="$parent.trait"
