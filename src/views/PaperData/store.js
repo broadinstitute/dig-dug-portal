@@ -27,7 +27,7 @@ export default new Vuex.Store({
         filteredData: "",
         config: "",
         pageTitle: "",
-        plotsConfig: ""
+        plotsConfig: "",
     },
     mutations: {
         setGene(state, gene) {

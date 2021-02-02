@@ -345,6 +345,7 @@ import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
+import keyParams from "@/utils/keyParams";
 
 Vue.use(BootstrapVueIcons);
 
@@ -384,6 +385,29 @@ export default Vue.component("effector-genes-table", {
 
     mounted() {
         uiUtils.showHideElement("data-rendering-indicator");
+    },
+    updated() {
+        /*test*/
+        /*console.log(this.config[this.dataset]["keyFilters"]);
+        if (
+            !!this.config &&
+            this.config[this.dataset]["keyFilters"] != undefined
+        ) {
+            for (const x in keyParams) {
+                if (this.config[this.dataset]["keyFilters"][x] != undefined) {
+                    console.log(x, keyParams[x]);
+                    console.log(this.config[this.dataset]["keyFilters"][x]);
+                    let id =
+                        "filter_" + this.config[this.dataset]["keyFilters"][x];
+                    console.log(id);
+                    let element = document.getElementById(id);
+                    if (!!element) {
+                        element.value = keyParams[x];
+                    }
+                }
+            }
+        }*/
+        ///
     },
     computed: {
         tableData() {
