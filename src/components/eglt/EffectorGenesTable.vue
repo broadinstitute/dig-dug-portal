@@ -603,11 +603,14 @@ export default Vue.component("effector-genes-table", {
                 if (!!this.config[this.dataset].single_gene_view) {
                     this.selectedGene = searchValue;
 
+                    /*console.log("protocol", window.location.protocol);
+                    console.log("host", window.location.host);
+                    console.log("pathname", window.location.pathname);*/
+
                     let newUrl =
                         window.location.protocol +
                         "//" +
                         window.location.host +
-                        "/" +
                         window.location.pathname +
                         "?trait=" +
                         keyParams.trait +
