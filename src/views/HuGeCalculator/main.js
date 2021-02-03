@@ -58,11 +58,11 @@ new Vue({
             phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
             hugecalSearchCriterion: keyParams.gene
                 ? [
-                      {
-                          field: "gene",
-                          threshold: keyParams.gene
-                      }
-                  ]
+                    {
+                        field: "gene",
+                        threshold: keyParams.gene
+                    }
+                ]
                 : [],
             priorVariance: 0.3696
         };
@@ -164,7 +164,7 @@ new Vue({
                         !!this.eglData.genetic &&
                         this.eglData.genetic == "1C"
                     ) {
-                        secondBF = 116;
+                        secondBF = 348;
                     }
                     if (
                         !!this.eglData.genetic &&
@@ -304,7 +304,8 @@ new Vue({
             this.$store.commit(`associations/setResponse`, { data });
         },
         bayesFactorCombinedEvidence(commonBF, rareBF) {
-            return commonBF * rareBF;
+            let combinedbf = commonBF * rareBF;
+            return Number.parseFloat(combinedbf).toFixed(2);
         },
         determineCategory(bayesfactor) {
             let category;
@@ -313,17 +314,17 @@ new Vue({
             }
             if (bayesfactor > 1 && bayesfactor < 2.1) {
                 category = "Equivocal";
-            } else if (bayesfactor >= 2.1 && bayesfactor < 7.26) {
+            } else if (bayesfactor >= 2.2 && bayesfactor < 6.6) {
                 category = "Weak";
-            } else if (bayesfactor >= 7.26 && bayesfactor < 16.5) {
+            } else if (bayesfactor >= 6.6 && bayesfactor < 15) {
                 category = "Potential";
-            } else if (bayesfactor >= 16.5 && bayesfactor < 36.3) {
+            } else if (bayesfactor >= 15 && bayesfactor < 33) {
                 category = "Possible";
-            } else if (bayesfactor >= 36.3 && bayesfactor < 82.5) {
+            } else if (bayesfactor >= 33 && bayesfactor < 75) {
                 category = "Moderate";
-            } else if (bayesfactor >= 82.5 && bayesfactor < 1650) {
+            } else if (bayesfactor >= 75 && bayesfactor < 348) {
                 category = "Strong";
-            } else if (bayesfactor >= 1650) {
+            } else if (bayesfactor >= 348) {
                 category = "Causal";
             }
             return category;
