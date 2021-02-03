@@ -178,6 +178,14 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("stroke-width", 0.5)
                 .attr("fill", "none");
 
+            svg.append('text')
+             .attr('class', 'barsEndlineText')
+             .attr('text-anchor', 'middle')
+              .attr("x", 60)
+             .attr("y", "-10em")
+             .text('I am label')
+                
+
             var path3 = svg
                 .append("path")
                 .attr("d", lineGen(data3))
