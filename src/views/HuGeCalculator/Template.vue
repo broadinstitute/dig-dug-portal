@@ -97,7 +97,7 @@
                                                     </span>
                                                 </li>
                                             </ul>
-                                            <div style="width: 700px">
+                                            <div>
                                                 <br />
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorRareVariation"
@@ -184,7 +184,7 @@
                                                 </li>
                                             </ul>
                                             <!-- Common variation color bar plot -->
-                                            <div style="width: 700px" v-if="$parent.eglData">
+                                            <div style v-if="$parent.eglData">
                                                 <br />
                                                 <color-bar-plot
                                                     v-if="
@@ -353,7 +353,7 @@
                                             <!-- <div
                                                 style="display:flex; align-items:center;justify-content:center;"
                                             >-->
-                                            <div style="width: 700px">
+                                            <div style>
                                                 <br />
                                                 <color-bar-plot
                                                     v-if="
@@ -514,42 +514,40 @@
                                                     :noIcon="false"
                                                 ></tooltip-documentation>
                                             </h4>
-                                            <div style="margin-block-end: 80px">
-                                                <ul>
-                                                    <li>
-                                                        <span>Causal</span>
-                                                    </li>
-                                                    <li>
-                                                        <span>
-                                                            Exome-Wide significant -
-                                                            p-value less than 2.5e-6
-                                                        </span>
-                                                    </li>
-                                                    <li>
-                                                        Bayes Factor:
-                                                        <span>
-                                                            {{
-                                                            $parent.bayesFactorRareVariation
-                                                            }}
-                                                        </span>
-                                                    </li>
-                                                    <div style="width: 700px padding:10px">
-                                                        <br />
-                                                        <color-bar-plot
-                                                            v-if="
-                                                            $parent.bayesFactorRareVariation
-                                                        "
-                                                            :category="
-                                                            $parent.determineCategory(
-                                                                $parent.bayesFactorRareVariation
-                                                            )
-                                                        "
-                                                            :elementid="'rareVariation'"
-                                                        ></color-bar-plot>
-                                                    </div>
-                                                </ul>
-                                            </div>
+                                            <ul style="margin-block-end: 40px ">
+                                                <li>
+                                                    <span>Causal</span>
+                                                </li>
+                                                <li>
+                                                    <span>
+                                                        Exome-Wide significant
+                                                        - p-value less than
+                                                        2.5e-6
+                                                    </span>
+                                                </li>
+                                                <li>
+                                                    Bayes Factor:
+                                                    <span>
+                                                        {{
+                                                        $parent.bayesFactorRareVariation
+                                                        }}
+                                                    </span>
+                                                </li>
+                                            </ul>
 
+                                            <div style="margin-block-end: 60px">
+                                                <color-bar-plot
+                                                    v-if="
+                                                        $parent.bayesFactorRareVariation
+                                                    "
+                                                    :category="
+                                                        $parent.determineCategory(
+                                                            $parent.bayesFactorRareVariation
+                                                        )
+                                                    "
+                                                    :elementid="'rareVariation'"
+                                                ></color-bar-plot>
+                                            </div>
                                             <div class="EGLT-table fiftytwo masktable">
                                                 <mask-table
                                                     v-if="$parent.masks.length"
@@ -587,8 +585,7 @@
                                                 </li>
                                                 <li>
                                                     <span>
-                                                        {{
-                                                        $parent.determineCategory(
+                                                        {{$parent.determineCategory(
                                                         $parent.bayesFactorRareVariation
                                                         )
                                                         }}
@@ -604,21 +601,21 @@
                                                         }}
                                                     </span>
                                                 </li>
-                                                <div style="width: 700px">
-                                                    <br />
-                                                    <color-bar-plot
-                                                        v-if="
-                                                            $parent.bayesFactorRareVariation
-                                                        "
-                                                        :category="
-                                                            $parent.determineCategory(
-                                                                $parent.bayesFactorRareVariation
-                                                            )
-                                                        "
-                                                        :elementid="'rareVariation'"
-                                                    ></color-bar-plot>
-                                                </div>
                                             </ul>
+                                            <div style="margin-block-end: 40px">
+                                                <br />
+                                                <color-bar-plot
+                                                    v-if="
+                                                        $parent.bayesFactorRareVariation
+                                                    "
+                                                    :category="
+                                                        $parent.determineCategory(
+                                                            $parent.bayesFactorRareVariation
+                                                        )
+                                                    "
+                                                    :elementid="'rareVariation'"
+                                                ></color-bar-plot>
+                                            </div>
                                             <div class="EGLT-table fiftytwo masktable">
                                                 <mask-table
                                                     v-if="$parent.masks.length"
@@ -643,6 +640,22 @@
 
 
 <style>
+.color-bar-plot-wrapper {
+    width: calc(100% - 32px);
+    margin-left: 16px;
+}
+
+.color-bars-wrapper {
+    background-color: #eee;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.color-bar-plot-wrapper .each-bar-section {
+    width: calc(100% / 7);
+    text-align: center;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -702,11 +715,13 @@
 /* color bar plot */
 .arrow-up {
     width: 0;
-    height: 40px;
+    /*height: 40px;*/
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-bottom: 10px solid black;
     animation: moveright 1s alternate 1s;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #commonVariation .variationCausal {
@@ -759,7 +774,7 @@
 #rareVariation .variationNoEvidence {
     background-color: #ebe8de;
 }
-
+/*
 #combinedVariation .variationCausal {
     background-color: rgb(20, 110, 103);
 }
@@ -784,8 +799,33 @@
 #combinedVariation .variationNoEvidence {
     background-color: rgb(200, 243, 239);
 }
+*/
+
+#combinedVariation .variationCausal {
+    background-color: rgba(48, 175, 164, 1);
+}
+#combinedVariation .variationStrong {
+    background-color: rgba(48, 175, 164, 0.85);
+}
+#combinedVariation .variationModerate {
+    background-color: rgba(48, 175, 164, 0.7);
+}
+#combinedVariation .variationPossible {
+    background-color: rgba(48, 175, 164, 0.55);
+}
+#combinedVariation .variationPotential {
+    background-color: rgba(48, 175, 164, 0.4);
+}
+#combinedVariation .variationWeak {
+    background-color: rgba(48, 175, 164, 0.25);
+}
+
+#combinedVariation .variationNoEvidence {
+    background-color: rgba(48, 175, 164, 0.1);
+}
 
 /* arrow distance */
+/*
 .causalclass {
     position: absolute;
     left: 70px;
@@ -819,8 +859,10 @@
     position: absolute;
     left: 780px;
 }
+}*/
 
 /* rare arrow distance */
+/*
 .rarecausalclass {
     position: absolute;
     left: 1020px;
@@ -849,14 +891,5 @@
 .rarenoEvidenceclass {
     position: absolute;
     left: 1620px;
-}
-.EGLT-table.fiftytwo.masktable {
-    margin-top: 40px;
-}
-
-.EGLT-table.fiftytwo.masktable .feature-content-wrapper,
-.EGLT-table.fiftytwo.masktable .feature-plot-wrapper {
-    margin: auto;
-    width: 100%;
-}
+}*/
 </style>
