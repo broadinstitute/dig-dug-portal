@@ -537,14 +537,8 @@
 
                                             <div style="margin-block-end: 60px">
                                                 <color-bar-plot
-                                                    v-if="
-                                                        $parent.bayesFactorRareVariation
-                                                    "
-                                                    :category="
-                                                        $parent.determineCategory(
-                                                            $parent.bayesFactorRareVariation
-                                                        )
-                                                    "
+                                                    v-if="$parent.bayesFactorRareVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
                                                     :elementid="'rareVariation'"
                                                 ></color-bar-plot>
                                             </div>
@@ -652,7 +646,7 @@
 }
 
 .color-bar-plot-wrapper .each-bar-section {
-    width: calc(100% / 7);
+    width: calc(100% / 8);
     text-align: center;
 }
 
@@ -818,6 +812,9 @@
 }
 #combinedVariation .variationWeak {
     background-color: rgba(48, 175, 164, 0.25);
+}
+#combinedVariation .variationEquivocal {
+    background-color: rgba(48, 175, 164, 0.15);
 }
 
 #combinedVariation .variationNoEvidence {
