@@ -602,6 +602,21 @@ export default Vue.component("effector-genes-table", {
             if (TYPE == "search") {
                 if (!!this.config[this.dataset].single_gene_view) {
                     this.selectedGene = searchValue;
+
+                    let newUrl =
+                        window.location.protocol +
+                        "//" +
+                        window.location.host +
+                        "/" +
+                        window.location.pathname +
+                        "?trait=" +
+                        keyParams.trait +
+                        "&dataset=" +
+                        keyParams.dataset +
+                        "&gene=" +
+                        searchValue;
+
+                    window.history.replaceState({}, null, newUrl);
                 } else {
                     let searchTerms = searchValue.split(",");
                     searchTerms.map((searchTerm) => {

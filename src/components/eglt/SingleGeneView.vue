@@ -34,24 +34,28 @@ export default Vue.component("single-gene-view", {
     mounted: function () {},
     computed: {
         geneData() {
-            //console.log(this.geneViewData);
-            //console.log(this.renderConfig);
+            console.log("this.geneOfInterest", this.geneOfInterest);
+            if (this.geneOfInterest != undefined) {
+                let filterByArr = this.renderConfig.single_gene_view.filterBy;
+                let data;
 
-            let filterByArr = this.renderConfig.single_gene_view.filterBy;
-            let data;
-
-            filterByArr.map((filterBy) => {
-                this.geneViewData.map((g) => {
-                    if (
-                        g[filterBy].toLowerCase() ==
-                        this.geneOfInterest.toLowerCase()
-                    ) {
-                        data = g;
-                    }
+                filterByArr.map((filterBy) => {
+                    this.geneViewData.map((g) => {
+                        if (
+                            g[filterBy].toLowerCase() ==
+                            this.geneOfInterest.toLowerCase()
+                        ) {
+                            data = g;
+                        }
+                    });
                 });
-            });
 
-            return data;
+                return data;
+            } else {
+                return {};
+            }
+
+            //console.log(this.renderConfig);
         },
     },
     watch: {},
