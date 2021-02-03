@@ -183,12 +183,14 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("d", lineGen(data3))
                 .attr("stroke", "gray")
                 .attr("stroke-width", 1)
+                .style("stroke-dasharray", ("3, 3"))
                 .attr("fill", "none");
 
             var path4 = svg
                 .append("path")
                 .attr("d", lineGen(data4))
                 .attr("stroke", "gray")
+                .style("stroke-dasharray", ("3, 3"))
                 .attr("stroke-width", 1)
                 .attr("fill", "none");
 
@@ -272,6 +274,7 @@ export default Vue.component("posterior-probability-plot", {
                     .attr("x", xScale(selectedData.prior) + 15)
                     .attr("y", yScale(selectedData.ppa));
             }
+
             function mouseout() {
                 focus.style("opacity", 0);
                 focus.style("visibility", "hidden");
