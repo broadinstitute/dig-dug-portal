@@ -206,7 +206,7 @@ export default Vue.component("posterior-probability-plot", {
             svg.append("text")
                 .attr("class", "x label")
                 .attr("text-anchor", "end")
-                .attr("x", width - 200)
+                .attr("x", 245)
                 .attr("y", height + 35)
                 .text("Prior");
 
