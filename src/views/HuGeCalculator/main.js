@@ -390,9 +390,6 @@ new Vue({
         },
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
-            console.log("newCriterion", newCriterion);
-            console.log("oldCriterion", oldCriterion);
-
             if (!isEqual(newCriterion, oldCriterion)) {
                 if (newCriterion.gene.length > 0) {
                     this.$store.dispatch("get52KAssociationData", newCriterion.gene[0]);

@@ -132,6 +132,21 @@ export default Vue.component("posterior-probability-plot", {
                 .attr("fill", "none");
 
 
+//append the reference line at 5%
+            // var path3 = svg
+            //     .append("path")
+            //     .attr("d", lineGen(data3))
+            //     .attr("stroke", "gray")
+            //     .attr("stroke-width", 0.5)
+            //     .attr("fill", "none");
+
+            svg.append("line")          // attach a line
+    .style("stroke", "black")  // colour the line
+    .attr("x1", 100)     // x position of the first end of the line
+    .attr("y1", 50)      // y position of the first end of the line
+    .attr("x2", 300)     // x position of the second end of the line
+    .attr("y2", 150);    // y position of the second end of the line
+
             //axis labeling
             svg.append("text")
                 .attr("class", "x label")
