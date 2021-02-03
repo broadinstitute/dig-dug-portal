@@ -53,6 +53,7 @@ new Vue({
     data() {
         return {
             matchingGenes: [],
+            phenotypelist: [],
 
             phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
             phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
@@ -275,6 +276,19 @@ new Vue({
                 }
             }
         },
+
+        phenotyopes52KAssociations() {
+
+
+            if (this.$store.state.geneAssociations52k.data.length > 0) {
+                for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
+                    let phenotype = {}
+                    phenotype["name"] = this.$store.state.geneAssociations52k.data[i].phenotype
+                    this.phenotypelist.push(phenotype);
+                }
+            }
+            return this.phenotypelist;
+        },
         documentationMap() {
             let gene = this.selectedGene[0];
             let phenotype = this.selectedPhenotype[0];
@@ -286,15 +300,6 @@ new Vue({
                 phenotype: phenotype,
                 priorVariance: priorVariance
             }
-        },
-        phenotyopes52KAssociations() {
-            let phenotypes = [];
-            if (this.$store.state.geneAssociations52k.data.length > 0) {
-                for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
-                    phenotypes.push(this.$store.state.geneAssociations52k.data[i].phenotype)
-                }
-            }
-            return phenotypes;
         },
 
 
@@ -387,12 +392,17 @@ new Vue({
             //check if the old and new criterion are different only then update the Associations
             console.log("newCriterion", newCriterion);
             console.log("oldCriterion", oldCriterion);
+
             if (!isEqual(newCriterion, oldCriterion)) {
+                if (newCriterion.gene.length > 0) {
+                    this.$store.dispatch("get52KAssociationData", newCriterion.gene[0]);
+                }
                 if (newCriterion.phenotype.length > 0) {
                     if (newCriterion.gene !== oldCriterion.gene) {
                         this.$store.dispatch("gene/query", {
                             q: newCriterion.gene
                         });
+
                         this.updateAssociations(
                             newCriterion.gene,
                             newCriterion.phenotype,

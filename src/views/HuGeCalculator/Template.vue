@@ -34,13 +34,12 @@
                             ref="phenotype"
                             :field="'phenotype'"
                             placeholder="Select a phenotype ..."
-                            :options="$parent.phenotypes.map((phenotype) => phenotype.name)"
+                            :options="$store.state.geneAssociations52k.data.map((association) => association.phenotype)"
                             :multiple="false"
-                            :labelFormatter="
-                                (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[phenotype.name]
-                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description
-                                        : phenotype"
+                            :labelFormatter="(phenotype) =>
+                                        !!$store.state.bioPortal.phenotypeMap[phenotype]
+                                            ? $store.state.bioPortal.phenotypeMap[phenotype].description
+                                            : phenotype"
                         >
                             <div class="label">Phenotype</div>
                         </filter-enumeration-control>
