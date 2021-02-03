@@ -125,6 +125,8 @@ export default Vue.component("volcano-plot", {
                 }
             });
 
+            //console.log("dotPos", dotPos);
+
             return dotPos;
         },
     },
@@ -143,10 +145,13 @@ export default Vue.component("volcano-plot", {
         checkPosition(event) {
             let e = event;
             var rect = e.target.getBoundingClientRect();
-            var x = e.clientX - rect.left;
-            var y = e.clientY - rect.top;
+            var x = Math.floor(e.clientX - rect.left);
+            var y = Math.floor(e.clientY - rect.top);
             let clickedDotValue = "";
-            //console.log("Left? : " + x + " ; Top? : " + y + ".");
+
+            //console.log("Left? : " + x + " ; Top? : " + y);
+            //console.log(this.volcanoDotPos);
+
             for (let h = -3; h <= 3; h++) {
                 for (let v = -3; v <= 3; v++) {
                     if (this.volcanoDotPos[x + h] != undefined) {
