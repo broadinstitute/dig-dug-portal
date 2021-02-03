@@ -417,10 +417,14 @@ export default Vue.component("volcano-plot", {
 
             //if selectedGene is not undefined
             if (this.geneOfInterest != undefined) {
+                let targetGene = this.$parent.convert2RenderBy(
+                    this.geneOfInterest
+                );
+
                 this.renderData.map((d) => {
                     if (
                         d[this.renderConfig.renderBy].toLowerCase() ==
-                        this.geneOfInterest.toLowerCase()
+                        targetGene.toLowerCase()
                     ) {
                         let xPos =
                             leftMargin +

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="single-gene-view-wrapper">
         <div
             v-for="(value, key) in this.geneData"
             class="single-gene-view-info-box"
@@ -35,19 +35,22 @@ export default Vue.component("single-gene-view", {
     computed: {
         geneData() {
             //console.log(this.geneViewData);
-            console.log(this.renderConfig);
+            //console.log(this.renderConfig);
 
-            let filterBy = this.renderConfig.single_gene_view.filterBy;
+            let filterByArr = this.renderConfig.single_gene_view.filterBy;
             let data;
 
-            this.geneViewData.map((g) => {
-                if (
-                    g[filterBy].toLowerCase() ==
-                    this.geneOfInterest.toLowerCase()
-                ) {
-                    data = g;
-                }
+            filterByArr.map((filterBy) => {
+                this.geneViewData.map((g) => {
+                    if (
+                        g[filterBy].toLowerCase() ==
+                        this.geneOfInterest.toLowerCase()
+                    ) {
+                        data = g;
+                    }
+                });
             });
+
             return data;
         },
     },

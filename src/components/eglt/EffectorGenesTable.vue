@@ -423,6 +423,7 @@ export default Vue.component("effector-genes-table", {
 
     mounted() {
         uiUtils.showHideElement("data-rendering-indicator");
+
         this.selectedGene = keyParams.gene;
     },
     updated() {
@@ -502,6 +503,24 @@ export default Vue.component("effector-genes-table", {
         },
     },
     methods: {
+        convert2RenderBy(GENE) {
+            if (!!this.tableData && this.config) {
+                let filterByArr = this.config[this.dataset].single_gene_view
+                    .filterBy;
+                let renderBy = this.config[this.dataset].topLevelPrime;
+                let filteredGene = "";
+
+                this.tableData.map((d) => {
+                    filterByArr.map((filterBy) => {
+                        if (d[filterBy].toLowerCase() == GENE.toLowerCase()) {
+                            filteredGene = d[renderBy];
+                        }
+                    });
+                });
+
+                return filteredGene == "" ? GENE : filteredGene;
+            }
+        },
         convertJson2Csv(DATA, FILENAME) {
             uiUtils.convertJson2Csv(DATA, FILENAME);
         },

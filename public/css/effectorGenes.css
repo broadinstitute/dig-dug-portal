@@ -1157,6 +1157,11 @@ html {
     width: 135px !important;
 }
 
+.single-gene-view-wrapper {
+    text-align: center;
+    margin-top: 50px;
+}
+
 .single-gene-view-info-box {
     display: inline-flex;
     border: solid 1px #ddd;
