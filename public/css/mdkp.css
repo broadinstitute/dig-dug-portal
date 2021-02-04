@@ -1239,10 +1239,14 @@ span div.label {
 
 div.filtering-ui-content div.col .form-control,
 div.filtering-ui-content div.col select,
-div.filtering-ui-content div.col .input {
+div.filtering-ui-content div.col input {
     height: 30px;
     width: 175px;
     font-size: 14px;
+}
+
+div.filtering-ui-content div.col input.or-half-gt, div.filtering-ui-content div.col input.or-half-lt {
+    width: 70px;
 }
 
 div.filtering-ui-content div.filter-col-sm .form-control,
@@ -1702,4 +1706,67 @@ a.to-previous-page:hover {
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
     opacity: 0;
+}
+
+/* for volcano plot. Move it to it's own CSS when there's too much */
+#volcanoPlot {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.volcano-plot-label {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.volcano-plot-legend {
+    text-align: center;
+    font-size: 14px;
+}
+
+span.volcano-score-0, span.volcano-score-1, span.volcano-score-2 {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    background-color: #00000050;
+    border-radius: 6px;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+span.volcano-score-1 {
+    background-color: #09910980;
+}
+
+span.volcano-score-2 {
+    background-color: #ff003780;
+}
+
+#clicked_dot_value {
+    position: absolute;
+    background-color: #fff;
+    border: solid 1px #aaa;
+    box-shadow: 0 0 5px #00000075;
+    font-size: 12px;
+    padding: 0px 0 5px 10px;
+    max-width: 300px;
+    border-radius: 5px;
+    z-index: 10;
+    width: auto;
+}
+
+.gene-on-clicked-dot {
+    /*
+    background-color: #ddd;
+    border: solid 1px #aaa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    */
+
+    display: inline-block;
+    margin-right: 10px;
+    margin-top: 3px;
+
 }
