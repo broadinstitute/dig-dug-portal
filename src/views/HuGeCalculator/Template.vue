@@ -532,6 +532,15 @@
                                                         }}
                                                     </span>
                                                 </li>
+                                                <li>
+                                                    <!-- input box for prior -->
+                                                    <input
+                                                        v-model.number="$store.state.priorVariance"
+                                                        type="number"
+                                                        placeholder="Prior Variance"
+                                                        id="prior_variance_input"
+                                                    />
+                                                </li>
                                             </ul>
 
                                             <div style="margin-block-end: 60px">
