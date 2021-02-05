@@ -108,7 +108,7 @@
                                             <posterior-probability-plot
                                                 v-if="$parent.geneAssociations52k"
                                                 :geneAssociationsData=" $parent.geneAssociations52k"
-                                                :priorVariance="$parent.priorVariance"
+                                                :priorVariance="this.$store.state.priorVariance"
                                                 :bayes_factor="$parent.bayesFactorCombinedEvidence(
                                                         $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation)"
@@ -360,6 +360,14 @@
                                                         $parent.bayesFactorRareVariation
                                                         }}
                                                     </span>
+                                                </li>
+                                                <li>
+                                                    <input
+                                                        v-model.number="$store.state.priorVariance"
+                                                        type="number"
+                                                        placeholder="Prior Variance"
+                                                        id="prior_variance_input"
+                                                    />
                                                 </li>
                                             </ul>
                                             <div style="margin-block-end: 40px">

@@ -27,6 +27,7 @@ export default new Vuex.Store({
         associationsData: {},
         variants: [],
         regionData: {},
+        prior: 0.3696
 
     },
     mutations: {
@@ -57,7 +58,7 @@ export default new Vuex.Store({
         },
     },
     actions: {
-     
+
         async getAssociationsData(context, phenoGeneInput) {
             let gene = phenoGeneInput["gene"];
             let phenotype = phenoGeneInput["phenotype"];
