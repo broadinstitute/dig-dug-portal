@@ -113,38 +113,42 @@ new Vue({
             if (!!this.$store.state.associationsData.length > 0) {
                 let data = this.$store.state.associationsData;
                 for (let i = 0; i < data.length; i++) {
-                    if (data[i].pValue <= 5e-8) {
-                        return true;
+                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                        if (data[i].pValue <= 5e-8) {
+                            console.log("I am GWAS significant" + data[i].pValue)
+                            return true;
+                        }
                     }
+
                 }
+
                 return false;
             }
         },
         eglData() {
             let geneSymbol = this.selectedGene[0];
-            if (!!this.$store.state.kp4cd.eglData.data) {
-                let effectordata = this.$store.state.kp4cd.eglData.data;
-                let effectorGeneData = {};
+            if (this.selectedPhenotype[0] == "T2D") {
+                if (!!this.$store.state.kp4cd.eglData.data) {
+                    let effectordata = this.$store.state.kp4cd.eglData.data;
+                    let effectorGeneData = {};
 
-                for (var i = 0; i < effectordata.length; ++i) {
-                    if (
-                        effectordata[i].gene.toLowerCase() ===
-                        geneSymbol.toLowerCase()
-                    ) {
-                        effectorGeneData = effectordata[i];
-
-                        if (effectorGeneData.category == "(T2D_related)") {
-                            effectorGeneData.category = "No Evidence";
+                    for (var i = 0; i < effectordata.length; ++i) {
+                        if (effectordata[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
+                            effectorGeneData = effectordata[i];
+                            if (effectorGeneData.category == "(T2D_related)") {
+                                effectorGeneData.category = "No Evidence";
+                            }
+                            break;
                         }
-                        break;
+                        //if the gene is in GWAS but not in mccarthy data
+                        // else {
+                        //     effectorGeneData["category"] = "in GWAS";
+                        // }
                     }
-                    //if the gene is in GWAS but not in mccarthy data
-                    else {
-                        effectorGeneData["category"] = "in GWAS";
-                    }
+                    return effectorGeneData;
                 }
-                return effectorGeneData;
             }
+
         },
 
         bayesFactorCommonVariation() {
@@ -156,8 +160,10 @@ new Vue({
                 let data = this.$store.state.associationsData;
                 for (let i = 0; i < data.length; i++) {
                     //if GWAS evidence
-                    if (data[i].pValue <= 5e-8) {
-                        firstBF = 3.3;
+                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                        if (data[i].pValue <= 5e-8) {
+                            firstBF = 3.3;
+                        }
                     }
                 }
                 if (!!this.eglData) {

@@ -214,9 +214,12 @@
                                         </div>
 
                                         <!-- If NOT GWAS significant -->
-                                        <div v-else class="col-md-6">
+                                        <div
+                                            v-else-if="$parent.isGWASSignificantAssociation == false"
+                                            class="col-md-6"
+                                        >
                                             <h4>
-                                                Common Variation
+                                                Common Variation - not sig
                                                 <tooltip-documentation
                                                     name="gene.function.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
@@ -225,41 +228,6 @@
                                                 ></tooltip-documentation>
                                             </h4>
                                             <ul>
-                                                <li v-if="$parent.eglData.genetic == '1C'">
-                                                    Coding evidence:
-                                                    <span
-                                                        class="codingEvidence1C"
-                                                    >{{$parent.eglData.genetic}}</span>
-                                                </li>
-                                                <li v-else-if="$parent.eglData.genetic == '2C'">
-                                                    Coding evidence:
-                                                    <span
-                                                        class="codingEvidence2C"
-                                                    >{{$parent.eglData.genetic}}</span>
-                                                </li>
-
-                                                <li v-if="$parent.eglData.genomic == '2R'">
-                                                    Regulatory evidence:
-                                                    <span
-                                                        class="regulatoryEvidence2R"
-                                                    >{{$parent.eglData.genomic}}</span>
-                                                </li>
-                                                <li v-if="$parent.eglData.genomic == '3R'">
-                                                    Regulatory evidence:
-                                                    <span
-                                                        class="regulatoryEvidence3R"
-                                                    >{{$parent.eglData.genomic}}</span>
-                                                </li>
-                                                <!-- <li v-if="$parent.eglData.genetic == '1C'">
-                                                    <span>
-                                                        Genome-wide significant
-                                                        - p-value is less than
-                                                        5e-8
-                                                    </span>
-                                                </li>
-                                                <li v-if="$parent.eglData.genetic == '2C'">
-                                                    <span>Genome-wide significant - p-value is less than 5e-8</span>
-                                                </li>-->
                                                 <li>
                                                     Bayes Factor:
                                                     <span>{{$parent.bayesFactorCommonVariation}}</span>
