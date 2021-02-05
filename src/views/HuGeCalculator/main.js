@@ -163,35 +163,37 @@ new Vue({
                     if (data[i].phenotype == this.selectedPhenotype[0]) {
                         if (data[i].pValue <= 5e-8) {
                             firstBF = 3.3;
+                            if (!!this.eglData) {
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "1C"
+                                ) {
+                                    secondBF = 348;
+                                }
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "2C"
+                                ) {
+                                    secondBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "2R"
+                                ) {
+                                    thirdBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "3R"
+                                ) {
+                                    thirdBF = 2.2;
+                                }
+                            }
                         }
                     }
+
                 }
-                if (!!this.eglData) {
-                    if (
-                        !!this.eglData.genetic &&
-                        this.eglData.genetic == "1C"
-                    ) {
-                        secondBF = 348;
-                    }
-                    if (
-                        !!this.eglData.genetic &&
-                        this.eglData.genetic == "2C"
-                    ) {
-                        secondBF = 5;
-                    }
-                    if (
-                        !!this.eglData.genomic &&
-                        this.eglData.genomic == "2R"
-                    ) {
-                        thirdBF = 5;
-                    }
-                    if (
-                        !!this.eglData.genomic &&
-                        this.eglData.genomic == "3R"
-                    ) {
-                        thirdBF = 2.2;
-                    }
-                }
+
             }
 
             commonBF = firstBF * secondBF * thirdBF;
@@ -228,29 +230,17 @@ new Vue({
             let rarebayesfactor = 1;
             let beta;
             let stdErr;
-            if (
-                this.isExomeWideSignificant(
-                    this.$store.state.geneAssociations52k.data
-                )
-            ) {
+            if (this.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)) {
                 rarebayesfactor = 1650;
             } else {
                 if (this.$store.state.geneAssociations52k.data.length > 0) {
-                    for (
-                        let i = 0;
-                        i < this.$store.state.geneAssociations52k.data.length;
-                        i++
-                    ) {
+                    for (let i = 0;i < this.$store.state.geneAssociations52k.data.length;i++) {
                         if (
-                            !!this.$store.state.geneAssociations52k.data[i]
-                                .phenotype &&
-                            this.$store.state.geneAssociations52k.data[i]
-                                .phenotype == this.selectedPhenotype[0]
+                            !!this.$store.state.geneAssociations52k.data[i].phenotype &&
+                            this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]
                         ) {
                             //filter with selected phenotype
-                            masks = this.$store.state.geneAssociations52k.data[
-                                i
-                            ].masks;
+                            masks = this.$store.state.geneAssociations52k.data[i].masks;
                             let d = masks.sort((a, b) => a.pValue - b.pValue);
                             let mostSignificantMask = d[0];
                             stdErr = mostSignificantMask.stdErr;
@@ -284,8 +274,6 @@ new Vue({
         },
 
         phenotyopes52KAssociations() {
-
-
             if (this.$store.state.geneAssociations52k.data.length > 0) {
                 for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
                     let phenotype = {}
@@ -300,14 +288,12 @@ new Vue({
             let phenotype = this.selectedPhenotype[0];
             let rareVariationEvidence;
             let priorVariance = this.priorVariance;
-
             return {
                 gene: gene,
                 phenotype: phenotype,
                 priorVariance: priorVariance
             }
         },
-
 
     },
     methods: {

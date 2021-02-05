@@ -219,7 +219,7 @@
                                             class="col-md-6"
                                         >
                                             <h4>
-                                                Common Variation - not sig
+                                                Common Variation
                                                 <tooltip-documentation
                                                     name="gene.function.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
@@ -266,56 +266,6 @@
                                                     ></lz-associations-panel>
                                                 </locuszoom>
                                             </div>
-                                            <!-- <div
-                                                v-if="$parent.isGWASSignificantAssociation ==false &&
-                                                    $parent.eglData.genetic =='2C'"
-                                            >
-                                                <h5>
-                                                    {{$parent.selectedGene[0]}}
-                                                    is GWAS significant
-                                                </h5>
-
-                                                <locuszoom
-                                                    v-if="$parent.region"
-                                                    ref="locuszoom"
-                                                    :chr="$parent.region.chromosome"
-                                                    :start="$parent.region.start - 50000"
-                                                    :end="$parent.region.end + 50000"
-                                                    :ldpop="true"
-                                                    :refSeq="true"
-                                                >
-                                                    <lz-associations-panel
-                                                        :phenotype="$parent.phenotype.name"
-                                                        @input="$parent.updateAssociationsTable"
-                                                    ></lz-associations-panel>
-                                                </locuszoom>
-                                            </div>-->
-
-                                            <div
-                                                v-else-if="$parent.isGWASSignificantAssociation ==false"
-                                            >
-                                                <h5>
-                                                    {{$parent.selectedGene[0]}}
-                                                    is not GWAS significant
-                                                </h5>
-
-                                                <locuszoom
-                                                    v-if="$parent.region"
-                                                    ref="locuszoom"
-                                                    :chr="$parent.region.chromosome"
-                                                    :start="$parent.region.start - 50000"
-                                                    :end="$parent.region.end + 50000"
-                                                    :refSeq="true"
-                                                    :ldpop="true"
-                                                >
-                                                    <lz-associations-panel
-                                                        :phenotype="$parent.phenotype.name"
-                                                        @input="$parent.updateAssociationsTable"
-                                                    ></lz-associations-panel>
-                                                </locuszoom>
-                                            </div>
-
-                                            <!-- </div> -->
                                         </div>
 
                                         <!-- Rare Variation - If EXOME WIDE SIGNIFICANT-->
