@@ -261,7 +261,7 @@
                                                     :refSeq="true"
                                                 >
                                                     <lz-associations-panel
-                                                        :phenotype="$parent.phenotype.name"
+                                                        :phenotype="$parent.selectedPhenotype[0]"
                                                         @input="$parent.updateAssociationsTable"
                                                     ></lz-associations-panel>
                                                 </locuszoom>
