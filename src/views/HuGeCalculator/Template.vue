@@ -263,7 +263,7 @@
 
                                         <!-- Rare Variation - If EXOME WIDE SIGNIFICANT-->
                                         <div
-                                            v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)"
+                                            v-if="$parent.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, $parent.selectedPhenotype[0])"
                                             class="col-md-6"
                                             style="border-left: 1px dashed #444 "
                                         >
@@ -281,11 +281,7 @@
                                                     <span>Causal</span>
                                                 </li>
                                                 <li>
-                                                    <span>
-                                                        Exome-Wide significant
-                                                        - p-value less than
-                                                        2.5e-6
-                                                    </span>
+                                                    <span>Exome-Wide significant - p-value less than 2.5e-6</span>
                                                 </li>
                                                 <li>
                                                     Bayes Factor:
@@ -373,14 +369,8 @@
                                             <div style="margin-block-end: 40px">
                                                 <br />
                                                 <color-bar-plot
-                                                    v-if="
-                                                        $parent.bayesFactorRareVariation
-                                                    "
-                                                    :category="
-                                                        $parent.determineCategory(
-                                                            $parent.bayesFactorRareVariation
-                                                        )
-                                                    "
+                                                    v-if="$parent.bayesFactorRareVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorRareVariation)"
                                                     :elementid="'rareVariation'"
                                                 ></color-bar-plot>
                                             </div>

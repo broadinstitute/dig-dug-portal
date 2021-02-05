@@ -185,7 +185,7 @@ new Vue({
             let beta;
             let stdErr;
             if (this.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)) {
-                rarebayesfactor = 1650;
+                rarebayesfactor = 348;
             } else {
                 if (this.$store.state.geneAssociations52k.data.length > 0) {
                     for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
@@ -204,6 +204,11 @@ new Vue({
                                 beta = Math.log(mostSignificantMask.oddsRatio);
                             }
                         }
+                        //if phenotype doesn't exist in 52K Associations data
+                        else {
+                            rarebayesfactor = 1;
+                        }
+
                     }
 
                     rarebayesfactor = this.bayes_factor(beta, stdErr);
@@ -225,13 +230,13 @@ new Vue({
                     //if GWAS evidence
                     if (data[i].phenotype == this.selectedPhenotype[0]) {
                         if (data[i].pValue <= 5e-8) {
-                            firstBF = 3.3;
+                            firstBF = 3;
                             if (!!this.eglData) {
                                 if (
                                     !!this.eglData.genetic &&
                                     this.eglData.genetic == "1C"
                                 ) {
-                                    secondBF = 348;
+                                    secondBF = 116;
                                 }
                                 if (
                                     !!this.eglData.genetic &&
@@ -341,8 +346,7 @@ new Vue({
             return bayes_factor;
         },
 
-        isExomeWideSignificant(data) {
-            let trait = "T2D";
+        isExomeWideSignificant(data,trait) {
             if (!!data.length) {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == trait) {

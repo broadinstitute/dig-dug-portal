@@ -81,7 +81,7 @@ export default new Vuex.Store({
 
 
         },
-        async getEGLData(context, phen) {
+        async getEGLData(context) {
             let dataset = "mccarthy";
             let trait = "t2d";
             context.dispatch("kp4cd/getEglData", { dataset, trait });
