@@ -195,7 +195,7 @@
                                             <hr style="margin: 40px" />
                                             <!-- LZ plot if GWAS significant (Common variation) -->
                                             <div v-if="$parent.isGWASSignificantAssociation ==true">
-                                                <h5>{{$parent.selectedGene[0]}} is GWAS Significant</h5>
+                                                <h5>{{$parent.selectedGene[0]}} is GWAS Significant for {{$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].description}}</h5>
                                                 <locuszoom
                                                     v-if="$parent.region"
                                                     ref="locuszoom"
@@ -248,7 +248,7 @@
                                             >
                                                 <h5>
                                                     {{ $parent.selectedGene[0]}}
-                                                    is not GWAS significant for {{$parent.selectedPhenotype[0]}}
+                                                    is not GWAS significant for {{$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].description}}
                                                 </h5>
 
                                                 <locuszoom
