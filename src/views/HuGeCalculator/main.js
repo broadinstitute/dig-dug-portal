@@ -214,6 +214,55 @@ new Vue({
             }
             return Number.parseFloat(rarebayesfactor).toFixed(2);
         },
+        bayesFactorCommonVariation() {
+            let firstBF = 1;
+            let secondBF = 1;
+            let thirdBF = 1;
+            let commonBF = 1;
+            let data = this.$store.state.associations.data;
+            if (!!data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
+                    //if GWAS evidence
+                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                        if (data[i].pValue <= 5e-8) {
+                            firstBF = 3.3;
+                            if (!!this.eglData) {
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "1C"
+                                ) {
+                                    secondBF = 348;
+                                }
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "2C"
+                                ) {
+                                    secondBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "2R"
+                                ) {
+                                    thirdBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "3R"
+                                ) {
+                                    thirdBF = 2.2;
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+            commonBF = firstBF * secondBF * thirdBF;
+            return Number.parseFloat(commonBF).toFixed(2);
+        },
+
         geneAssociations52k() {
             if (!!this.$store.state.geneAssociations52k) {
                 if (!!this.$store.state.geneAssociations52k.data.length) {
@@ -319,53 +368,8 @@ new Vue({
                 return false;
             }
         },
-        bayesFactorCommonVariation(data) {
-            let firstBF = 1;
-            let secondBF = 1;
-            let thirdBF = 1;
-            let commonBF = 1;
-            if (!!data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    //if GWAS evidence
-                    if (data[i].phenotype == this.selectedPhenotype[0]) {
-                        if (data[i].pValue <= 5e-8) {
-                            firstBF = 3.3;
-                            if (!!this.eglData) {
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "1C"
-                                ) {
-                                    secondBF = 348;
-                                }
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "2C"
-                                ) {
-                                    secondBF = 5;
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "2R"
-                                ) {
-                                    thirdBF = 5;
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "3R"
-                                ) {
-                                    thirdBF = 2.2;
-                                }
-                            }
-                        }
-                    }
 
-                }
 
-            }
-
-            commonBF = firstBF * secondBF * thirdBF;
-            return Number.parseFloat(commonBF).toFixed(2);
-        },
 
         async lookupGenes(input) {
             if (!!input) {

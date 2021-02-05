@@ -55,7 +55,7 @@
                                         <div
                                             class="col-md-6"
                                             v-if="$parent.bayesFactorCombinedEvidence(
-                                                    $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
+                                                    $parent.bayesFactorCommonVariation,
                                                     $parent.bayesFactorRareVariation) "
                                         >
                                             <h4>
@@ -73,7 +73,7 @@
                                                         {{
                                                         $parent.determineCategory(
                                                         $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
+                                                        $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation
                                                         )
                                                         )
@@ -86,7 +86,7 @@
                                                     <span>
                                                         {{
                                                         $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
+                                                        $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation
                                                         )
                                                         }}
@@ -98,7 +98,7 @@
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorRareVariation"
                                                     :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
+                                                                $parent.bayesFactorCommonVariation,
                                                                 $parent.bayesFactorRareVariation))"
                                                     :elementid="'combinedVariation'"
                                                 ></color-bar-plot>
@@ -110,7 +110,7 @@
                                                 :geneAssociationsData=" $parent.geneAssociations52k"
                                                 :priorVariance="$parent.priorVariance"
                                                 :bayes_factor="$parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
+                                                        $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation)"
                                                 :isDichotomous="true"
                                             ></posterior-probability-plot>
@@ -179,15 +179,15 @@
                                                 </li>-->
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{$parent.bayesFactorCommonVariation(this.$store.state.associations.data)}}</span>
+                                                    <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                 </li>
                                             </ul>
                                             <!-- Common variation color bar plot -->
                                             <div style v-if="$parent.eglData">
                                                 <br />
                                                 <color-bar-plot
-                                                    v-if="$parent.bayesFactorCommonVariation(this.$store.state.associations.data)"
-                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation(this.$store.state.associations.data))"
+                                                    v-if="$parent.bayesFactorCommonVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
@@ -225,15 +225,15 @@
                                             <ul>
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{$parent.bayesFactorCommonVariation(this.$store.state.associations.data)}}</span>
+                                                    <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                 </li>
                                             </ul>
 
                                             <div>
                                                 <br />
                                                 <color-bar-plot
-                                                    v-if="$parent.bayesFactorCommonVariation(this.$store.state.associations.data)"
-                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation(this.$store.state.associations.data))"
+                                                    v-if="$parent.bayesFactorCommonVariation"
+                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
