@@ -248,7 +248,7 @@
                                             >
                                                 <h5>
                                                     {{ $parent.selectedGene[0]}}
-                                                    is not GWAS significant
+                                                    is not GWAS significant for {{$parent.selectedPhenotype[0]}}
                                                 </h5>
 
                                                 <locuszoom
