@@ -184,15 +184,13 @@ new Vue({
             let rarebayesfactor = 1;
             let beta;
             let stdErr;
-            if (this.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)) {
+            if (this.isExomeWideSignificant(this.$store.state.geneAssociations52k.data, this.selectedPhenotype[0])) {
                 rarebayesfactor = 348;
             } else {
                 if (this.$store.state.geneAssociations52k.data.length > 0) {
                     for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
-                        if (
-                            !!this.$store.state.geneAssociations52k.data[i].phenotype &&
-                            this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]
-                        ) {
+                        if (!!this.$store.state.geneAssociations52k.data[i].phenotype &&
+                            this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]) {
                             //filter with selected phenotype
                             masks = this.$store.state.geneAssociations52k.data[i].masks;
                             let d = masks.sort((a, b) => a.pValue - b.pValue);
@@ -203,18 +201,18 @@ new Vue({
                             } else {
                                 beta = Math.log(mostSignificantMask.oddsRatio);
                             }
+                            rarebayesfactor = this.bayes_factor(beta, stdErr);
+                            if (rarebayesfactor < 1) {
+                                rarebayesfactor = 1;
+                            }
+                            return Number.parseFloat(rarebayesfactor).toFixed(2);
                         }
                         //if phenotype doesn't exist in 52K Associations data
                         else {
                             rarebayesfactor = 1;
                         }
-
                     }
 
-                    rarebayesfactor = this.bayes_factor(beta, stdErr);
-                    if (rarebayesfactor < 1) {
-                        rarebayesfactor = 1;
-                    }
                 }
             }
             return Number.parseFloat(rarebayesfactor).toFixed(2);
@@ -346,7 +344,7 @@ new Vue({
             return bayes_factor;
         },
 
-        isExomeWideSignificant(data,trait) {
+        isExomeWideSignificant(data, trait) {
             if (!!data.length) {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == trait) {
