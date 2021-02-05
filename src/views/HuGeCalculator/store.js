@@ -5,6 +5,7 @@ import bioPortal from "@/modules/bioPortal";
 import kp4cd from "@/modules/kp4cd";
 import bioIndex from "@/modules/bioIndex";
 import ldServer from "@/modules/ldServer";
+import regionUtils from "@/utils/regionUtils";
 import keyParams from "@/utils/keyParams";
 import { query } from "@/utils/bioIndexUtils";
 import { uniqBy } from "lodash";
@@ -18,6 +19,7 @@ export default new Vuex.Store({
         ldServer,
         gene: bioIndex("gene"),
         genes: bioIndex("genes"),
+        regions: bioIndex("regions"),
         associations: bioIndex("associations"),
         geneAssociations52k: bioIndex("gene-associations-52k"),
     },
@@ -34,6 +36,11 @@ export default new Vuex.Store({
         setRegionData(state, regionData) {
             state.regionData = regionData
         },
+        // setLocus(state, region = {}) {
+        //     state.chr = region.chr
+        //     state.start = region.start
+        //     state.end = region.end
+        // },
     },
     getters: {
         region(state) {
@@ -50,15 +57,27 @@ export default new Vuex.Store({
         },
     },
     actions: {
-        // async queryGeneRegion(context, region) {
-        //     let { chromosome, start, end } = region || context.getters.region;
-        //     let q = `${chromosome}:${start}-${end}`;
-        //     context.dispatch('genes/query', { q });
-        // },
+     
+        async getAssociationsData(context, phenoGeneInput) {
+            let gene = phenoGeneInput["gene"];
+            let phenotype = phenoGeneInput["phenotype"];
+            let locus = await regionUtils.parseRegion(gene, true, 50000);
+            // if (locus) {
+            //     context.state.newChr = locus.chr
+            //     context.state.newStart = locus.start;
+            //     context.state.newEnd = locus.end;
+
+            //     //update the locus
+            //     context.commit("setLocus");
+
+            // }
+            const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
+            context.dispatch('associations/query', { q: phenoRegionQuery });
+        },
 
         async getRegion(context, gene) {
             context.dispatch('gene/query', { q: gene });
-            
+
 
         },
         async getEGLData(context, phen) {

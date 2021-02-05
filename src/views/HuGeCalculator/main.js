@@ -109,9 +109,10 @@ new Vue({
                 phenotype: this.selectedPhenotype
             };
         },
+        //not used currently - remove it
         isGWASSignificantAssociation() {
-            if (!!this.$store.state.associationsData.length > 0) {
-                let data = this.$store.state.associationsData;
+            if (!!this.$store.state.associations.length > 0) {
+                let data = this.$store.state.associations;
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == this.selectedPhenotype[0]) {
                         if (data[i].pValue <= 5e-8) {
@@ -151,54 +152,7 @@ new Vue({
 
         },
 
-        bayesFactorCommonVariation() {
-            let firstBF = 1;
-            let secondBF = 1;
-            let thirdBF = 1;
-            let commonBF = 1;
-            if (!!this.$store.state.associationsData.length > 0) {
-                let data = this.$store.state.associationsData;
-                for (let i = 0; i < data.length; i++) {
-                    //if GWAS evidence
-                    if (data[i].phenotype == this.selectedPhenotype[0]) {
-                        if (data[i].pValue <= 5e-8) {
-                            firstBF = 3.3;
-                            if (!!this.eglData) {
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "1C"
-                                ) {
-                                    secondBF = 348;
-                                }
-                                if (
-                                    !!this.eglData.genetic &&
-                                    this.eglData.genetic == "2C"
-                                ) {
-                                    secondBF = 5;
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "2R"
-                                ) {
-                                    thirdBF = 5;
-                                }
-                                if (
-                                    !!this.eglData.genomic &&
-                                    this.eglData.genomic == "3R"
-                                ) {
-                                    thirdBF = 2.2;
-                                }
-                            }
-                        }
-                    }
 
-                }
-
-            }
-
-            commonBF = firstBF * secondBF * thirdBF;
-            return Number.parseFloat(commonBF).toFixed(2);
-        },
 
 
 
@@ -234,7 +188,7 @@ new Vue({
                 rarebayesfactor = 1650;
             } else {
                 if (this.$store.state.geneAssociations52k.data.length > 0) {
-                    for (let i = 0;i < this.$store.state.geneAssociations52k.data.length;i++) {
+                    for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
                         if (
                             !!this.$store.state.geneAssociations52k.data[i].phenotype &&
                             this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]
@@ -347,10 +301,72 @@ new Vue({
                             return true;
                         }
                     }
-                    return false;
+
                 }
+                return false;
             }
         },
+
+        isGenomeWideSignificant(data, trait) {
+            if (!!data.length) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        if (data[i].pValue <= 5e-8) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        },
+        bayesFactorCommonVariation(data) {
+            let firstBF = 1;
+            let secondBF = 1;
+            let thirdBF = 1;
+            let commonBF = 1;
+            if (!!data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
+                    //if GWAS evidence
+                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                        if (data[i].pValue <= 5e-8) {
+                            firstBF = 3.3;
+                            if (!!this.eglData) {
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "1C"
+                                ) {
+                                    secondBF = 348;
+                                }
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "2C"
+                                ) {
+                                    secondBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "2R"
+                                ) {
+                                    thirdBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "3R"
+                                ) {
+                                    thirdBF = 2.2;
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+            commonBF = firstBF * secondBF * thirdBF;
+            return Number.parseFloat(commonBF).toFixed(2);
+        },
+
         async lookupGenes(input) {
             if (!!input) {
                 let matches = await match("gene", input, { limit: 10 });
@@ -360,16 +376,13 @@ new Vue({
 
         updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
-            let phenoRegionQuery;
+            let phenoRegionQuery = {};
 
             if (phenotype.length > 0) {
                 this.$store.dispatch("gene/query", { q: gene });
                 let r = this.$store.getters.region;
-
-                phenoRegionQuery = `${phenotype[0]},${gene}`;
-                query(`associations`, phenoRegionQuery).then(bioIndexData => {
-                    this.$store.commit("setAssociationsData", bioIndexData);
-                });
+                phenoRegionQuery = { "gene": gene[0], "phenotype": phenotype[0] }
+                this.$store.dispatch('getAssociationsData', phenoRegionQuery);
                 this.$store.dispatch("get52KAssociationData", gene);
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
@@ -388,10 +401,8 @@ new Vue({
                 }
                 if (newCriterion.phenotype.length > 0) {
                     if (newCriterion.gene !== oldCriterion.gene) {
-                        this.$store.dispatch("gene/query", {
-                            q: newCriterion.gene
-                        });
-
+                        this.$store.dispatch("gene/query", { q: newCriterion.gene });
+                        this.$store.dispatch("regions/query", { q: newCriterion.gene })
                         this.updateAssociations(
                             newCriterion.gene,
                             newCriterion.phenotype,

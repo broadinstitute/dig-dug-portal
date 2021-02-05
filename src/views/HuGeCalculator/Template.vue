@@ -46,10 +46,7 @@
                     </criterion-list-group>
 
                     <div
-                        v-if="
-                            $store.state.associationsData.length > 0 &&
-                            $parent.selectedPhenotype.length != 0
-                        "
+                        v-if="this.$store.state.associations.data.length >0 && $parent.selectedPhenotype.length != 0"
                     >
                         <div>
                             <div class="card mdkp-card">
@@ -58,7 +55,7 @@
                                         <div
                                             class="col-md-6"
                                             v-if="$parent.bayesFactorCombinedEvidence(
-                                                    $parent.bayesFactorCommonVariation,
+                                                    $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
                                                     $parent.bayesFactorRareVariation) "
                                         >
                                             <h4>
@@ -76,7 +73,7 @@
                                                         {{
                                                         $parent.determineCategory(
                                                         $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
+                                                        $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
                                                         $parent.bayesFactorRareVariation
                                                         )
                                                         )
@@ -89,7 +86,7 @@
                                                     <span>
                                                         {{
                                                         $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
+                                                        $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
                                                         $parent.bayesFactorRareVariation
                                                         )
                                                         }}
@@ -101,7 +98,7 @@
                                                 <color-bar-plot
                                                     v-if="$parent.bayesFactorRareVariation"
                                                     :category=" $parent.determineCategory($parent.bayesFactorCombinedEvidence(
-                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
                                                                 $parent.bayesFactorRareVariation))"
                                                     :elementid="'combinedVariation'"
                                                 ></color-bar-plot>
@@ -113,7 +110,7 @@
                                                 :geneAssociationsData=" $parent.geneAssociations52k"
                                                 :priorVariance="$parent.priorVariance"
                                                 :bayes_factor="$parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
+                                                        $parent.bayesFactorCommonVariation(this.$store.state.associations.data),
                                                         $parent.bayesFactorRareVariation)"
                                                 :isDichotomous="true"
                                             ></posterior-probability-plot>
@@ -121,12 +118,14 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- COMMON VARIATION -->
                             <div class="card mdkp-card">
                                 <div class="card-body" style="margin-block-end: 20px">
-                                    <div class="row">
+                                    <div class="row" v-if="this.$store.state.associations.data">
                                         <div
                                             class="col-md-6"
-                                            v-if="$parent.isGWASSignificantAssociation"
+                                            v-if="$parent.isGenomeWideSignificant(this.$store.state.associations.data, $parent.selectedPhenotype[0])"
                                         >
                                             <h4>
                                                 Common Variation
@@ -180,46 +179,42 @@
                                                 </li>-->
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{$parent.bayesFactorCommonVariation}}</span>
+                                                    <span>{{$parent.bayesFactorCommonVariation(this.$store.state.associations.data)}}</span>
                                                 </li>
                                             </ul>
                                             <!-- Common variation color bar plot -->
                                             <div style v-if="$parent.eglData">
                                                 <br />
                                                 <color-bar-plot
-                                                    v-if="$parent.bayesFactorCommonVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
+                                                    v-if="$parent.bayesFactorCommonVariation(this.$store.state.associations.data)"
+                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation(this.$store.state.associations.data))"
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
                                             <hr style="margin: 40px" />
                                             <!-- LZ plot if GWAS significant (Common variation) -->
-                                            <div v-if="$parent.isGWASSignificantAssociation ==true">
-                                                <h5>{{$parent.selectedGene[0]}} is GWAS Significant for {{$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].description}}</h5>
-                                                <locuszoom
-                                                    v-if="$parent.region"
-                                                    ref="locuszoom"
-                                                    :chr="$parent.region.chromosome"
-                                                    :start="$parent.region.start -50000"
-                                                    :end="$parent.region.end +50000"
-                                                    :refSeq="true"
-                                                    :ldpop="true"
-                                                >
-                                                    <lz-associations-panel
-                                                        :phenotype="$parent.phenotype.name"
-                                                        @input="$parent.updateAssociationsTable"
-                                                    ></lz-associations-panel>
-                                                </locuszoom>
-                                            </div>
+
+                                            <h5>{{$parent.selectedGene[0]}} is GWAS Significant for {{$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].description}}</h5>
+                                            <locuszoom
+                                                v-if="$parent.region"
+                                                ref="locuszoom"
+                                                :chr="$parent.region.chromosome"
+                                                :start="$parent.region.start -50000"
+                                                :end="$parent.region.end +50000"
+                                                :refSeq="true"
+                                                :ldpop="true"
+                                            >
+                                                <lz-associations-panel
+                                                    :phenotype="$parent.selectedPhenotype[0]"
+                                                    @input="$parent.updateAssociationsTable"
+                                                ></lz-associations-panel>
+                                            </locuszoom>
                                         </div>
 
                                         <!-- If NOT GWAS significant -->
-                                        <div
-                                            v-else-if="$parent.isGWASSignificantAssociation == false"
-                                            class="col-md-6"
-                                        >
+                                        <div v-else class="col-md-6">
                                             <h4>
-                                                Common Variation
+                                                Common Variation - not significant
                                                 <tooltip-documentation
                                                     name="gene.function.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
@@ -230,22 +225,20 @@
                                             <ul>
                                                 <li>
                                                     Bayes Factor:
-                                                    <span>{{$parent.bayesFactorCommonVariation}}</span>
+                                                    <span>{{$parent.bayesFactorCommonVariation(this.$store.state.associations.data)}}</span>
                                                 </li>
                                             </ul>
 
-                                            <div style>
+                                            <div>
                                                 <br />
                                                 <color-bar-plot
-                                                    v-if="$parent.bayesFactorCommonVariation"
-                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation)"
+                                                    v-if="$parent.bayesFactorCommonVariation(this.$store.state.associations.data)"
+                                                    :category="$parent.determineCategory($parent.bayesFactorCommonVariation(this.$store.state.associations.data))"
                                                     :elementid="'commonVariation'"
                                                 ></color-bar-plot>
                                             </div>
                                             <hr style="margin: 40px" />
-                                            <div
-                                                v-if="$parent.isGWASSignificantAssociation ==false"
-                                            >
+                                            <div>
                                                 <h5>
                                                     {{ $parent.selectedGene[0]}}
                                                     is not GWAS significant for {{$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].description}}
