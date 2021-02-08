@@ -108,7 +108,7 @@
                                             <posterior-probability-plot
                                                 v-if="$parent.geneAssociations52k"
                                                 :geneAssociationsData=" $parent.geneAssociations52k"
-                                                :priorVariance="this.$store.state.priorVariance"
+                                                :priorVariance="this.$store.state.prior"
                                                 :bayes_factor="$parent.bayesFactorCombinedEvidence(
                                                         $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation)"
@@ -249,7 +249,7 @@
                                                     ref="locuszoom"
                                                     :chr="$parent.region.chromosome"
                                                     :start="$parent.region.start - 50000"
-                                                    :end="$parent.region.end +50000"
+                                                    :end="$parent.region.end + 50000"
                                                     :ldpop="true"
                                                     :refSeq="true"
                                                 >
@@ -290,7 +290,7 @@
                                                 <li>
                                                     <!-- input box for prior -->
                                                     <input
-                                                        v-model.number="$store.state.priorVariance"
+                                                        v-model.number="$store.state.prior"
                                                         type="number"
                                                         placeholder="Prior Variance"
                                                         id="prior_variance_input"
@@ -359,7 +359,7 @@
                                                 </li>
                                                 <li>
                                                     <input
-                                                        v-model.number="$store.state.priorVariance"
+                                                        v-model.number="$store.state.prior"
                                                         type="number"
                                                         placeholder="Prior Variance"
                                                         id="prior_variance_input"

@@ -65,7 +65,7 @@ new Vue({
                     }
                 ]
                 : [],
-            priorVariance: 0.3696
+           // priorVariance: 0.3696
         };
     },
     created() {

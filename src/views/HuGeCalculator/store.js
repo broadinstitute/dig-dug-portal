@@ -37,6 +37,9 @@ export default new Vuex.Store({
         setRegionData(state, regionData) {
             state.regionData = regionData
         },
+        setPrior(state, prior) {
+            state.prior = prior
+        }
         // setLocus(state, region = {}) {
         //     state.chr = region.chr
         //     state.start = region.start
