@@ -1179,3 +1179,15 @@ html {
 .single-gene-view-info-box .value {
     font-size: 16px;
 }
+
+.shrtened-string {
+    display: block;
+}
+
+.shrtened-string .remaining-string {
+    display: none;
+}
+
+.shrtened-string:hover .remaining-string {
+    display: block;
+}

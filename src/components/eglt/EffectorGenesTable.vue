@@ -868,6 +868,35 @@ export default Vue.component("effector-genes-table", {
                 let type = formatting["type"];
 
                 switch (type) {
+                    case "shorten":
+                        if (VALUE != "") {
+                            let shortenBy =
+                                LEVEL == "top"
+                                    ? this.config[this.dataset].formatting[
+                                          COLUMN
+                                      ]["shortenBy"]
+                                    : this.config[this.dataset].formatting
+                                          .features[COLUMN[0]][COLUMN[1]][
+                                          "shortenBy"
+                                      ];
+
+                            let shortString = VALUE.slice(0, shortenBy);
+                            let remaningString = VALUE.slice(
+                                -(VALUE.length - shortenBy)
+                            );
+                            let content =
+                                '<span class="shrtened-string">' +
+                                shortString +
+                                '<span class="remaining-string">' +
+                                remaningString +
+                                '</span><br /><a href="javascript:;">Show more</a></span>';
+
+                            return content;
+                        } else {
+                            return "";
+                        }
+
+                        break;
                     case "image":
                         if (VALUE != "") {
                             let imageLinkRoot =
