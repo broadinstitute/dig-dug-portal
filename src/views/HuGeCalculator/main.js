@@ -65,7 +65,7 @@ new Vue({
                     }
                 ]
                 : [],
-           // priorVariance: 0.3696
+            // priorVariance: 0.3696
         };
     },
     created() {
@@ -333,7 +333,7 @@ new Vue({
             return category;
         },
         bayes_factor(beta, stdErr) {
-            let w = 0.3696;
+            let w = this.$store.state.prior;
             let v = Math.pow(stdErr, 2);
             let f1 = v / (v + w);
             let sqrt_f1 = Math.sqrt(f1);
