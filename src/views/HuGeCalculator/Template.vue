@@ -244,6 +244,17 @@
                                                     is not GWAS significant for {{$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].description}}
                                                 </h5>
 
+                                                <div
+                                                    class="col-md-8 gene-page-header-body regionInfo"
+                                                >
+                                                    {{ $parent.regionString }}
+                                                    <button
+                                                        class="btn btn-primary text-nowrap text-right explore-region-btn"
+                                                        style="margin-left: 20px"
+                                                        @click="$parent.exploreExpanded()"
+                                                    >Expand &plusmn; 50 kb</button>
+                                                   
+                                                </div>
                                                 <locuszoom
                                                     v-if="$parent.region"
                                                     ref="locuszoom"

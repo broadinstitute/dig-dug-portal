@@ -27,8 +27,15 @@ export default new Vuex.Store({
         associationsData: {},
         variants: [],
         regionData: {},
-        prior: 0.3696
-
+        prior: 0.3696,
+        chr: keyParams.chr,
+        start: keyParams.start,
+        end: keyParams.end,
+        newChr: keyParams.chr,
+        newStart: keyParams.start,
+        newEnd: keyParams.end,
+        phenotypeParam: keyParams.phenotype,
+        phenotype: null,
     },
     mutations: {
         setAssociationsData(state, associationsData) {
@@ -39,12 +46,29 @@ export default new Vuex.Store({
         },
         setPrior(state, prior) {
             state.prior = prior
+        },
+        setLocus(state, region = {}) {
+
+            state.chr = region.chr || state.newChr || state.chr;
+            state.start = region.start || state.newStart || state.start;
+            state.end = region.end || state.newEnd || state.end;
+            state.newChr = state.chr;
+            state.newStart = state.start;
+            state.newEnd = state.end;
+            state.searchGene = null;
+
+            keyParams.set({
+                chr: state.chr,
+                start: state.start,
+                end: state.end
+            });
+        },
+        setPhenotype(state, phenotype) {
+            state.phenotypeParam = phenotype;
+            state.phenotype = state.bioPortal.phenotypeMap[phenotype];
+            keyParams.set({ phenotype: phenotype });
+
         }
-        // setLocus(state, region = {}) {
-        //     state.chr = region.chr
-        //     state.start = region.start
-        //     state.end = region.end
-        // },
     },
     getters: {
         region(state) {
@@ -66,15 +90,15 @@ export default new Vuex.Store({
             let gene = phenoGeneInput["gene"];
             let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
-            // if (locus) {
-            //     context.state.newChr = locus.chr
-            //     context.state.newStart = locus.start;
-            //     context.state.newEnd = locus.end;
+            if (locus) {
+                context.state.newChr = locus.chr
+                context.state.newStart = locus.start;
+                context.state.newEnd = locus.end;
+                //update the locus
+                context.commit("setLocus", locus);
+                context.commit("setPhenotype", phenotype);
 
-            //     //update the locus
-            //     context.commit("setLocus");
-
-            // }
+            }
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
             context.dispatch('associations/query', { q: phenoRegionQuery });
         },

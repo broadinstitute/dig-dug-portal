@@ -89,6 +89,12 @@ new Vue({
         region() {
             return this.$store.getters.region;
         },
+        regionString() {
+            let chr = this.$store.state.chr;
+            let start = Formatters.intFormatter(this.$store.state.start);
+            let end = Formatters.intFormatter(this.$store.state.end);
+            return Formatters.locusFormatter(chr, start, end);
+        },
         selectedGene() {
             return this.hugecalSearchCriterion
                 .filter(v => {
