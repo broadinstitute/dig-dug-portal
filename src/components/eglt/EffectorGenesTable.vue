@@ -377,6 +377,7 @@ import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 import keyParams from "@/utils/keyParams";
+import formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVueIcons);
 
@@ -402,6 +403,7 @@ export default Vue.component("effector-genes-table", {
     modules: {
         uiUtils,
         keyParams,
+        formatters,
     },
     components: {
         EffectorGenesFeatures,
@@ -868,6 +870,19 @@ export default Vue.component("effector-genes-table", {
                 let type = formatting["type"];
 
                 switch (type) {
+                    case "formatPvalue":
+                        if (VALUE != "" && VALUE != 0) {
+                            if (VALUE < 1e-2) {
+                                return VALUE.toExponential(2);
+                            } else {
+                                return VALUE;
+                            }
+                        } else if (VALUE == 0) {
+                            return VALUE;
+                        } else {
+                            return "";
+                        }
+                        break;
                     case "shorten":
                         if (VALUE != "") {
                             let shortenBy =
