@@ -147,6 +147,54 @@ let onScroll = function (e) {
     }
 }
 
+let convertJson2Csv = function (DATA, FILENAME) {
+    const items = DATA;
+    const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
+    const header = Object.keys(items[0]);
+    const csv = [
+        header.join(","), // header row first
+        ...items.map((row) =>
+            header
+                .map((fieldName) =>
+                    JSON.stringify(row[fieldName], replacer)
+                )
+                .join(",")
+        ),
+    ].join("\r\n");
+
+    var downloadLink = document.createElement("a");
+    var blob = new Blob(["\ufeff", csv]);
+    var url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = FILENAME + ".csv"; //Name the file here
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
+let getAxisTicks = function (lo, hi) {
+    let step = 10 ** (Math.round(Math.log10(hi - lo)) - 1);
+    let value = (Math.floor((lo + step) / step) - 1) * step;
+    let halfStep = step / 2;
+    //console.log("step", step, "half", halfStep);
+    let ticks = {};
+    // update the actual lo to be the initial value
+    lo = value;
+    // adjust the step so there's only 5 ticks
+    step =
+        Math.floor(
+            ((Math.floor((hi - value) / step) / 5) * step + halfStep) /
+            halfStep
+        ) * halfStep;
+    // adjust the hi value to extend to the next step if needed
+    hi = Math.floor((hi + halfStep) / step) * step;
+    do {
+        ticks[value] = (value - lo) / (hi - lo);
+        value += step;
+    } while (value <= hi + halfStep);
+    return { lo, hi, step, ticks };
+}
+
 
 export default {
     popOutElement,
@@ -159,4 +207,6 @@ export default {
     switchViews,
     getToolTipPosition,
     onScroll,
+    convertJson2Csv,
+    getAxisTicks,
 }

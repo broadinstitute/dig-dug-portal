@@ -21,6 +21,7 @@ export default {
             eglData: [],
             eglConfig: [],
             forestPlotData: {},
+            staticContent: [],
         };
     },
 
@@ -62,6 +63,9 @@ export default {
         },
         setForestPlotData(state, data) {
             state.forestPlotData = data;
+        },
+        setStaticContent(state, data) {
+            state.staticContent = data;
         }
     },
 
@@ -180,6 +184,14 @@ export default {
             ).then(resp => resp.json());
 
             context.commit("setForestPlotData", json);
-        }
+        },
+        async getStaticContent(context, page) {
+
+            let json = await fetch(
+                "https://kp4cd.org/rest/views/static_content?field_page=" + page
+            ).then(resp => resp.json());
+            // set the data
+            context.commit("setStaticContent", json);
+        },
     }
 };

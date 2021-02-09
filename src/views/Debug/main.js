@@ -9,6 +9,7 @@ import BootstrapVue from "bootstrap-vue"
 import NCATSPredicateTable from "@/components/NCATS/PredicateTable"
 import jsonQuery from "json-query"
 
+
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 

@@ -6,12 +6,13 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-import Documentation from "@/components/Documentation.vue";
+
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-import StaticPageInfo from "@/components/StaticPageInfo.vue";
+import ResearchMethod from "@/components/eglt/ResearchMethod.vue";
 import uiUtils from "@/utils/uiUtils";
+import keyParams from "@/utils/keyParams";
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -23,16 +24,16 @@ new Vue({
     store,
 
     components: {
-        StaticPageInfo,
-        Documentation,
         PageHeader,
         PageFooter,
         PortalDatasetsListTable,
         Alert,
+        ResearchMethod,
     },
 
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("kp4cd/getResearchMethod", keyParams.paper);
     },
 
     render(createElement, context) {
@@ -62,20 +63,11 @@ new Vue({
             return contents[0];
         },
 
-        pageInfo() {
-            let contents = this.$store.state.kp4cd.pageInfo;
+        researchMethod() {
+            let contents = this.$store.state.kp4cd.researchMethod;
 
             if (contents.length === 0) {
-                return {};
-            }
-            return contents;
-        },
-
-        eglSummaries() {
-            let contents = this.$store.state.kp4cd.eglSummaries;
-
-            if (contents.length === 0) {
-                return {};
+                return null;
             }
             return contents;
         },
@@ -84,8 +76,7 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-            this.$store.dispatch("kp4cd/getPageInfo", { "page": "eglmethodscollection", "portal": group.name });
-            this.$store.dispatch("kp4cd/getEglSummaries", group.name);
         },
+
     }
 }).$mount("#app");

@@ -13,6 +13,7 @@ import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import Documentation from "@/components/Documentation";
 import LocusZoom from "@/components/lz/LocusZoom";
+import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
 import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker";
@@ -56,6 +57,7 @@ new Vue({
 
         LocusZoom,
         LocusZoomAssociationsPanel,
+        LocusZoomCatalogAnnotationsPanel,
         AssociationsTable,
 
         PhenotypeSignalMixed,
@@ -130,10 +132,10 @@ new Vue({
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
-            let finishHandler = this.updateAssociationsTable;
+            let onLoad = this.updateAssociationsTable;
             const newAssociationsPanelId = this.$children[0].$refs.locuszoom.addAssociationsPanel(
                 phenotype,
-                finishHandler
+                onLoad
             );
             return newAssociationsPanelId;
         },
