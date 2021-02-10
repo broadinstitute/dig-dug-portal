@@ -282,8 +282,10 @@
                                         $parent.associationsFilter
                                     "
                                     :filterAnnotations="filter"
-                                    @regionchanged="
+                                    @regionchanged="($event) => {
                                         $parent.requestCredibleSets($event.data)
+                                        $parent.updateLocalRegion($event.data)
+                                    }
                                     "
                                     :ldpop="true"
                                     :refSeq="true">
@@ -297,6 +299,12 @@
                                 </locuszoom>
                             </template>
                         </criterion-function-group>
+                        <ncats-region-predicate-table
+                            v-if="$parent.localRegion"
+                            :region="$parent.localRegion"
+                            :title="'Pathways'"
+                            :field="'pathway'">
+                        </ncats-region-predicate-table>
                     </div>
                 </div>
             </div>

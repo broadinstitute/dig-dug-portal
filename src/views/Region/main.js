@@ -29,7 +29,10 @@ import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
+import RegionPredicateTable from "@/components/NCATS/predicateTables/RegionPredicateTable"
+
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
+
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
@@ -70,12 +73,12 @@ new Vue({
 
         CriterionListGroup,
         CriterionFunctionGroup,
-
-        CriterionFunctionGroup,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
+
+        RegionPredicateTable,
 
         SearchHeaderWrapper
     },
@@ -95,10 +98,13 @@ new Vue({
         return {
             associationsFilter: function (id) { return true; },
             pageAssociations: [],
+            localRegion: ``,
             tissueScoring: null,
         };
     },
-
+    mounted() {
+        this.localRegion = this.regionString;
+    },
     methods: {
         ...uiUtils,
         postAlert,
@@ -115,6 +121,19 @@ new Vue({
             }
         },
 
+        // TODO: refactor this away in favor of v-model
+        updatePageAssociations(data) {
+            this.pageAssociations = data;
+        },
+        updateLocalRegion(eventData) {
+            console.log(eventData)
+            const { start, end } = eventData;
+            if (!!start && !!end) {
+                this.localRegion = `${this.$store.state.chr}:${Number.parseInt(start)}-${Number.parseInt(end)}`
+                console.log(this.$store.state.chr,  Number.parseInt(start), Number.parseInt(end))
+            }
+        },
+
         exploreExpanded() {
             this.$store.commit("setLocus", {
                 chr: this.$store.state.chr,
@@ -122,11 +141,6 @@ new Vue({
                 end: this.$store.state.end + 50000
             });
             this.$store.dispatch("queryRegion");
-        },
-
-        // TODO: refactor this away in favor of v-model
-        updatePageAssociations(data) {
-            this.pageAssociations = data;
         },
 
         // LocusZoom has "Panels"
@@ -250,7 +264,8 @@ new Vue({
             return this.pageAssociations.flatMap(
                 assoc => assoc.nearest
             );
-        }
+        },
+
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {

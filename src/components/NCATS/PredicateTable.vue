@@ -16,7 +16,7 @@
                 :per-page="perPage"
                 :current-page="currentPage"
                 small>
-                
+
                 <!-- Custom rendering for known special cases -->
                 <template #cell(pubmed)="data">
                     {{data.item.pubmed}}
@@ -57,7 +57,7 @@ export default Vue.component("ncats-predicate-table", {
                 } else {
                     throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
                 }
-            }) 
+            })
             .then(json => { this.rawGeneInfo = json; })
             .catch(error => console.error(error));
     },
@@ -71,10 +71,10 @@ export default Vue.component("ncats-predicate-table", {
             const helpers = {
                 aggregateNestedLists: function(elements) {
                     const element = elements
-                        .flatMap(element => 
+                        .flatMap(element =>
                         Object.entries(element)
                             .filter(element => element[1].length > 0)
-                            .flatMap(thisEntry => 
+                            .flatMap(thisEntry =>
                                 thisEntry[1].map(entry => { entry['source'] = thisEntry[0]; return entry })))
                     console.log(element)
                     return element;
@@ -88,6 +88,25 @@ export default Vue.component("ncats-predicate-table", {
                 locals: helpers
             }).value;
         },
+    },
+    watch: {
+        geneSymbol() {
+            let qs = queryString.stringify({
+                q: this.geneSymbol,
+                fields: this.field,
+            }, { arrayFormat: 'comma' });
+            fetch(`${myGeneAPI}/query?${qs}`, { contentType: "application/json" })
+                .then(async resp => {
+                    if (resp.status === 200) {
+                        const geneSymbolMatches = await resp.json();
+                        return geneSymbolMatches.hits;
+                    } else {
+                        throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
+                    }
+                })
+                .then(json => { this.rawGeneInfo = json; })
+                .catch(error => console.error(error));
+        }
     }
 });
 </script>
