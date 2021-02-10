@@ -312,6 +312,15 @@ new Vue({
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, { data });
         },
+        exploreExpanded() {
+            this.$store.commit("setLocus", {
+                chr: this.$store.state.chr,
+                start: this.$store.state.start - 50000,
+                end: this.$store.state.end + 50000
+            });
+
+            this.$store.dispatch("queryRegion", { "phenotype": this.selectedPhenotype[0] });
+        },
         bayesFactorCombinedEvidence(commonBF, rareBF) {
             let combinedbf = commonBF * rareBF;
             return Number.parseFloat(combinedbf).toFixed(2);

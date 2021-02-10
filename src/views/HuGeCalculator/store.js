@@ -85,11 +85,28 @@ export default new Vuex.Store({
         },
     },
     actions: {
+        async queryRegion(context, regionPhenotypeMap) {
+            const newRegion = regionPhenotypeMap["region"] || context.getters.region;
+            const phenotype = regionPhenotypeMap["phenotype"];
+            context.commit("genes/clearData");
+            context.commit("associations/clearData");
+            if (
+                context.state.newChr !== context.state.chr ||
+                context.state.newStart !== context.state.start ||
+                context.state.newEnd !== context.state.end
+            ) {
+                context.commit("setLocus");
+            }
+
+            const phenoRegionQuery = `${phenotype},${newRegion.chromosome}:${newRegion.start}-${newRegion.end}`;
+            context.dispatch('associations/query', { q: phenoRegionQuery });
+        },
 
         async getAssociationsData(context, phenoGeneInput) {
             let gene = phenoGeneInput["gene"];
             let phenotype = phenoGeneInput["phenotype"];
             let locus = await regionUtils.parseRegion(gene, true, 50000);
+
             if (locus) {
                 context.state.newChr = locus.chr
                 context.state.newStart = locus.start;
