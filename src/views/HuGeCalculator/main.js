@@ -330,9 +330,9 @@ new Vue({
             if (bayesfactor <= 1) {
                 category = "No";
             }
-            if (bayesfactor > 1 && bayesfactor < 2.1) {
+            if (bayesfactor > 1 && bayesfactor < 3) {
                 category = "Equivocal";
-            } else if (bayesfactor >= 2.2 && bayesfactor < 6.6) {
+            } else if (bayesfactor >= 3 && bayesfactor < 6.6) {
                 category = "Weak";
             } else if (bayesfactor >= 6.6 && bayesfactor < 15) {
                 category = "Potential";
