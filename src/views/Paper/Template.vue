@@ -11,9 +11,10 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h2 v-if="$parent.researchMethod != null">
-                            {{ $parent.researchMethod[0].title }}
-                        </h2>
+                        <h2
+                            v-if="$parent.researchMethod != null"
+                            v-html="$parent.researchMethod[0].title"
+                        ></h2>
                     </div>
                 </div>
             </div>
