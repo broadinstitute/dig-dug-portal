@@ -28,6 +28,8 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
+import NCATSPredicateTable from "@/components/NCATS/PredicateTable.vue"
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -60,6 +62,7 @@ new Vue({
         LocusZoom,
         LocusZoomPhewasPanel,
         SearchHeaderWrapper,
+        NCATSPredicateTable
     },
 
     data() {

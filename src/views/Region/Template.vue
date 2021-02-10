@@ -301,8 +301,8 @@
                         </criterion-function-group>
                         <ncats-region-predicate-table
                             v-if="$parent.localRegion"
+                            :title="`Pathway Associations on ${$parent.localRegion}`"
                             :region="$parent.localRegion"
-                            :title="'Pathways'"
                             :field="'pathway'">
                         </ncats-region-predicate-table>
                     </div>

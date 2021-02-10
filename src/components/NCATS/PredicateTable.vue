@@ -11,6 +11,7 @@
                 :aria-controls="id"
             ></b-pagination>
             <b-table
+                v-if="context"
                 :id="id"
                 :items="geneInfo"
                 :per-page="perPage"
@@ -18,8 +19,27 @@
                 small>
 
                 <!-- Custom rendering for known special cases -->
+                <template #cell(id)="data">
+                    <div v-if="!!context[remap(data.item.source)]">
+                        <resolved-curie-link
+                            :id="data.item.id"
+                            :prefix="remap(data.item.source)"
+                        ></resolved-curie-link>
+                    </div>
+                    <div v-else>
+                        <resolved-curie-link
+                            :curie="data.item.id">
+                        </resolved-curie-link>
+                    </div>
+                </template>
+
                 <template #cell(pubmed)="data">
-                    {{data.item.pubmed}}
+                    <resolved-curie-link
+                        v-for="pmid in [].concat(data.item.pubmed)"
+                        :key="pmid"
+                        :prefix="'pmid'"
+                        :id="pmid">
+                    </resolved-curie-link>
                 </template>
 
             </b-table>
@@ -30,11 +50,15 @@
 import Vue from "vue";
 import jsonQuery from "json-query";
 import queryString from "query-string";
+import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
 
 const myGeneAPI = 'https://mygene.info/v3';
 
 export default Vue.component("ncats-predicate-table", {
     props: ["title", "geneSymbol", "field", "filter"],
+    component: {
+        ResolvedCurie
+    },
     data() {
         return {
             id: this.geneSymbol+this.fields+this.title,
@@ -42,9 +66,14 @@ export default Vue.component("ncats-predicate-table", {
             perPage: 10,
             rawGeneInfo: [],
             myFilter: id => true,
+            context: null,
         }
     },
     async created() {
+        this.context = await fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
+            .then(response => response.json())
+            .then(json => json['@context'])
+
         let qs = queryString.stringify({
             q: this.geneSymbol,
             fields: this.field,
@@ -67,6 +96,16 @@ export default Vue.component("ncats-predicate-table", {
         }
     },
     methods: {
+        remap(prefix) {
+            const remapping = {
+                'reactome': 'REACT',
+                'wikipathways': 'WIKIPATHWAYS'
+            }
+            if (!!remapping[prefix]) {
+                return remapping[prefix];
+            }
+            return prefix;
+        },
         geneInfoForField(geneInfo, field) {
             const helpers = {
                 aggregateNestedLists: function(elements) {

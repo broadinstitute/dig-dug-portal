@@ -39,21 +39,21 @@ new Vue({
         let message = {
             "message": {
                 "query_graph": {
-                    "edges": {
-                        "e00": {
-                            "subject": "n00",
-                            "object": "n01",
-                            "predicate": "biolink:gene_associated_with_condition"
-                        }
-                    },
+                    // "edges": {
+                    //     "e00": {
+                    //         "subject": "n00",
+                    //         "object": "n01",
+                    //         "predicate": "biolink:gene_associated_with_condition"
+                    //     }
+                    // },
                     "nodes": {
                         "n00": {
                             "id": "NCBIGene:1803",
                             "category": "biolink:Gene"
                         },
-                        "n01": {
-                            "category": "biolink:Disease"
-                        }
+                        // "n01": {
+                        //     "category": "biolink:Disease"
+                        // }
                     }
                 }
             }
@@ -65,15 +65,22 @@ new Vue({
         }
 
         // TODO: Refactor to some differentiating function? (i.e. will throw callback on any status change, not just success)
-        async function streamARAs(arsQuery, successCallback=console.log, completed=[], delay=1000) {
-            let _completed = completed;
-            let successfulARAs = arsQuery.children.filter(ara => ara.status === "Done" && !completed.includes(ara.actor.agent))
-            if (successfulARAs.length > 0) {
-                _completed.push(...successfulARAs.map(successfulARAs => successfulARAs.actor.agent))
-                successfulARAs.forEach(successCallback)
-            }
+        async function streamARAs(arsQuery, successCallback=console.log, completed=[], delay=600) {
             await new Promise(resolve => setTimeout(resolve, delay));
-            await messageARS(arsQuery.message, 'y').then(aq => streamARAs(aq, successCallback, _completed, delay));
+
+            let _completed = completed;
+            let newSuccessfulARAs = arsQuery.children.filter(ara => ara.status === "Done" && !completed.includes(ara.actor.agent))
+            if (newSuccessfulARAs.length > 0) {
+                _completed.push(...newSuccessfulARAs.map(successfulARA => successfulARA.actor.agent))
+                newSuccessfulARAs.forEach(successCallback)
+            } else {
+                // terminate after no new successes after delay
+                // as long as delay > expected time for any individual ARA to contribute its result after a another ARA has provided its result, then the query should complete
+                // ...tenuous
+                return arsQuery;
+            }
+
+            messageARS(arsQuery.message, 'y').then(aq => streamARAs(aq, successCallback, _completed, delay));
         }
 
         async function beginARSQuery(message) {
@@ -99,12 +106,46 @@ new Vue({
 
         // 2021-02-09: The reason why we construct an entry function before the result function is that if the result function is used without the trace,
         // it loses track of the actor metadata (like the agent name) in exchange for the query results.
-        const getARAResultEntry = async ara => messageARS(ara.message).then(response => [ara.actor.agent, response.fields.data.message]);
-        const getARAResult = async ara => getARAResultEntry(ara).then(entry => entry[1]);
-        const promiseSideEffect = callback => promise => async event => await promise(event).then(callback);   // promiseSideEffect(getARAResultEntry, console.log) OR promiseSideEffect(console.log)(getARAResultEntry)
+        const getARAMessageEntry = async ara => messageARS(ara.message).then(response => [ara.actor.agent, response.fields.data.message]);
+        const getARAMessage = async ara => getARAMessageEntry(ara).then(entry => entry[1]);
+        const promiseSideEffect = callback => promise => async event => promise(event).then(callback);   // TODO promiseSideEffect(getARAResultEntry, console.log) OR promiseSideEffect(console.log)(getARAResultEntry)
 
-        await beginARSQuery(message)
-            .then(arsQuery => streamARAs(arsQuery, promiseSideEffect(message => { this.results.push(...message.results) })(getARAResult)));
+        async function streamARSQuery(initialMessage, callback) {
+            return await beginARSQuery(initialMessage)
+                .then(arsQuery => streamARAs(
+                    arsQuery,
+                    promiseSideEffect(callback)(getARAMessageEntry))
+                );
+        }
+
+
+        const printResultsFromSources = (sources=[]) => (entry) => {
+            const [agent, message] = entry;
+            if (sources.length === 0 || sources.includes(agent)) {
+                if(hasResults(message)) {
+                    console.log(agent, message)
+                }
+            }
+        }
+        async function printResultsForSources(message, sources=[]) {
+            return await streamARSQuery(message, printResultsFromSources(sources));
+        }
+        printResultsForSources(message, ['kp-genetics']);
+
+        this.results = [];
+        const updateResultsFromSources = (sources=[]) => (entry) => {
+            const [agent, message] = entry;
+            if (sources.length === 0 || sources.includes(agent)) {
+                if(hasResults(message)) {
+                    this.results.push(...message.results);
+                }
+            }
+        }
+        async function updateResultsForSources(message, sources=[]) {
+            return await streamARSQuery(message, updateResultsFromSources(sources));
+        }
+        updateResultsForSources(message);
+
 
     },
     mounted() {

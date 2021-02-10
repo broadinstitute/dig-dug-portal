@@ -200,6 +200,20 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+                <ncats-predicate-table
+                    :title="'GO Terms'"
+                    :geneSymbol="$store.state.geneName"
+                    :field="'go'">
+                </ncats-predicate-table>
+                <ncats-predicate-table
+                    :title="'Pathways'"
+                    :geneSymbol="$store.state.geneName"
+                    :field="'pathway'">
+                </ncats-predicate-table>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="card-body">
                     <div v-if="$parent.dbReference">
                         <h4 class="card-title">
                             Rare variant gene-level associations for
