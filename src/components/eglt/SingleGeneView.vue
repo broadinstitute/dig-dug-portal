@@ -5,8 +5,9 @@
             class="single-gene-view-info-box"
             :class="key"
             :key="key"
+            v-if="!!renderConfig && !!renderConfig.topLevelRender[key]"
         >
-            <div v-html="key" class="key"></div>
+            <div v-html="renderConfig.topLevelRender[key]" class="key"></div>
             <div
                 v-html="$parent.formatContent(key, value, 'top')"
                 class="value"
