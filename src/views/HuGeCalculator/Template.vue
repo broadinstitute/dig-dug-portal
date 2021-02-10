@@ -82,7 +82,7 @@
                                                     </span>
                                                 </li>
                                                 <li>
-                                                    Combined HuGe Score: BF of Common Variation * BF of Rare Variation
+                                                    Combined HuGe Score = Bayes Factor of Common Variation * Bayes Factor of Rare Variation
                                                     <ul>
                                                         <li>
                                                             <span>
@@ -146,18 +146,24 @@
                                                         Genome-wide significant
                                                         - pvalue less than 5e-8
                                                     </span>
+                                                    <ul>
+                                                        <li>Bayes Factor = 3</li>
+                                                    </ul>
                                                 </li>
                                                 <li v-if="$parent.eglData.genetic == '1C'">
                                                     Coding evidence:
                                                     <span
                                                         class="codingEvidence1C"
                                                     >{{$parent.eglData.genetic}}</span>
+                                                    <ul>
+                                                        <li>Bayes Factor = 116</li>
+                                                    </ul>
                                                 </li>
                                                 <li v-else-if="$parent.eglData.genetic == '2C' ">
                                                     Coding evidence:
                                                     <span
                                                         class="codingEvidence2C"
-                                                    >{{$parent.eglData.genetic}}</span>
+                                                    >{{$parent.eglData.genetic}}: Bayes Factor = 5</span>
                                                 </li>
                                                 <li v-if="$parent.eglData.genomic == '2R' ">
                                                     Regulatory evidence:
@@ -169,7 +175,7 @@
                                                     Regulatory evidence:
                                                     <span
                                                         class="regulatoryEvidence3R"
-                                                    >{{ $parent.eglData.genomic}}</span>
+                                                    >{{ $parent.eglData.genomic}}: Bayes Factor = 2.2</span>
                                                 </li>
                                                 <li v-if=" $parent.eglData.category == 'in GWAS' ">
                                                     <span>Genome-wide significant but no coding or regulatory evidence</span>
@@ -182,7 +188,7 @@
                                                     </span>
                                                 </li>-->
                                                 <li>
-                                                    Bayes Factor:
+                                                    Total Bayes Factor(Multiply all):
                                                     <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                 </li>
                                             </ul>
@@ -205,6 +211,7 @@
                                                     class="btn btn-primary text-nowrap text-right explore-region-btn"
                                                     style="margin-left: 20px"
                                                     @click="$parent.exploreExpanded()"
+                                                    @click.prevent
                                                 >Expand &plusmn; 50 kb</button>
                                             </div>
                                             <locuszoom
@@ -235,10 +242,13 @@
                                                 ></tooltip-documentation>
                                             </h4>
                                             <ul>
-                                                <li>
-                                                    Bayes Factor:
-                                                    <span>{{$parent.bayesFactorCommonVariation}}</span>
-                                                </li>
+                                                <li>{{$parent.selectedGene[0]}} is not GWAS Significant</li>
+                                                <ul>
+                                                    <li>
+                                                        Bayes Factor =
+                                                        <span>{{$parent.bayesFactorCommonVariation}}</span>
+                                                    </li>
+                                                </ul>
                                             </ul>
 
                                             <div>
