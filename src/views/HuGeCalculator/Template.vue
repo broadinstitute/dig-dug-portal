@@ -82,15 +82,19 @@
                                                     </span>
                                                 </li>
                                                 <li>
-                                                    Bayes Factor:
-                                                    <span>
-                                                        {{
-                                                        $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation
-                                                        )
-                                                        }}
-                                                    </span>
+                                                    Combined HuGe Score: BF of Common Variation * BF of Rare Variation
+                                                    <ul>
+                                                        <li>
+                                                            <span>
+                                                                {{$parent.bayesFactorCommonVariation}} * {{$parent.bayesFactorRareVariation}} = {{
+                                                                $parent.bayesFactorCombinedEvidence(
+                                                                $parent.bayesFactorCommonVariation,
+                                                                $parent.bayesFactorRareVariation
+                                                                )
+                                                                }}
+                                                            </span>
+                                                        </li>
+                                                    </ul>
                                                 </li>
                                             </ul>
                                             <div>
@@ -222,7 +226,7 @@
                                         <!-- If NOT GWAS significant -->
                                         <div v-else class="col-md-6">
                                             <h4>
-                                                Common Variation - not significant
+                                                Common Variation
                                                 <tooltip-documentation
                                                     name="gene.function.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
