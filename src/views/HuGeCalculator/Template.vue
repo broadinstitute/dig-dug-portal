@@ -314,13 +314,23 @@
                                                 </li>
                                                 <li>
                                                     <span>Exome-Wide significant - p-value less than 2.5e-6</span>
+                                                    <ul>
+                                                        <li>
+                                                            Bayes Factor =
+                                                            <span>{{$parent.bayesFactorRareVariation}}</span>
+                                                        </li>
+                                                    </ul>
                                                 </li>
-                                                <li>
-                                                    Bayes Factor:
-                                                    <span>{{$parent.bayesFactorRareVariation}}</span>
-                                                </li>
+
                                                 <li>
                                                     <!-- input box for prior -->
+                                                    Prior Variance
+                                                    <tooltip-documentation
+                                                        name="gene.function.tooltip.hover"
+                                                        :content-fill="$parent.documentationMap"
+                                                        :isHover="true"
+                                                        :noIcon="false"
+                                                    ></tooltip-documentation>
                                                     <input
                                                         v-model.number="$store.state.prior"
                                                         type="number"
