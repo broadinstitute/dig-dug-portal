@@ -1,14 +1,15 @@
 <template>
-    <a v-if="this.context && this.resolvedCurie" :href="resolvedCurie"  target="_blank" rel="noopener noreferrer">
-        {{deserializedCurie[0]+':'+deserializedCurie[1]}}
+    <a v-if="!!resolvedCurie" :href="resolvedCurie"  target="_blank" rel="noopener noreferrer">
+        {{fullCurie}}
     </a>
     <span v-else>
-        {{!!this.curie ? this.curie :
-            !!this.id ? this.id : null}}
+        {{!!curie ? curie :
+            !!id ? id : null}}
     </span>
 </template>
 <script>
 import Vue from "vue";
+import trapi from "./trapi"
 
 export default Vue.component('resolved-curie-link', {
     props: ["curie", "prefix", "id"],
@@ -17,32 +18,26 @@ export default Vue.component('resolved-curie-link', {
             context: null,
         }
     },
-    async mounted() {
-        this.context = await fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
-            .then(response => response.json())
-            .then(json => json['@context'])
-            .then(context => {
-                // we want to
-                let _context = { ...context };
-                Object.keys(context).forEach(key => {
-                    _context[key.toLowerCase()] = context[key];
-                });
-                return _context;
-            });
+    async created() {
+        this.context = await trapi.getContext();
     },
     computed: {
-        deserializedCurie() {
-            if (!!this.prefix && !!this.id) {
-                return [this.prefix, this.id];
-            } else if (!!this.curie && this.curie.split(":").length > 1) {
-                return [...this.curie.split(":")];
+        supportedPrefix() {
+            return trapi.supportedPrefix(this.prefix, this.context, { 'reactome': 'REACT' });
+        },
+        fullCurie() {
+            if (!!this.supportedPrefix && !!this.id) {
+                return trapi.serializeCurie(this.supportedPrefix, this.id);
+            } else if (!!this.curie) {
+                return this.curie;
             }
         },
+        deserializedCurie() {
+            if (this.context) return trapi.deserializeCurie(this.fullCurie);
+        },
         resolvedCurie() {
-            if (!!this.deserializedCurie) {
-                const [prefix, id] = this.deserializedCurie;
-                if(this.context) return `${this.context[prefix]}${id}`;
-            }
+            console.log(trapi.resolveCurie(this.fullCurie, this.context))
+            if (this.context) return trapi.resolveCurie(this.fullCurie, this.context)
         }
     }
 })

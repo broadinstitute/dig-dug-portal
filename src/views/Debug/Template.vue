@@ -21,6 +21,9 @@
             :field="'pathway'">
         </ncats-region-predicate-table>
 
+        <ncats-knowledge-graph
+    
+        ></ncats-knowledge-graph>
 
     </div>
 </template>

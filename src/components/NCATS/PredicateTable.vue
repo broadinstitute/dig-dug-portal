@@ -20,10 +20,10 @@
 
                 <!-- Custom rendering for known special cases -->
                 <template #cell(id)="data">
-                    <div v-if="!!context[remap(data.item.source)]">
+                    <div v-if="typeof context[supportedPrefix(data.item.source, context)] !== 'undefined'">
                         <resolved-curie-link
                             :id="data.item.id"
-                            :prefix="remap(data.item.source)"
+                            :prefix="supportedPrefix(data.item.source, context)"
                         ></resolved-curie-link>
                     </div>
                     <div v-else>
@@ -51,6 +51,7 @@ import Vue from "vue";
 import jsonQuery from "json-query";
 import queryString from "query-string";
 import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
+import trapi from "./trapi"
 
 const myGeneAPI = 'https://mygene.info/v3';
 
@@ -96,6 +97,7 @@ export default Vue.component("ncats-predicate-table", {
         }
     },
     methods: {
+        supportedPrefix: trapi.supportedPrefix,
         remap(prefix) {
             const remapping = {
                 'reactome': 'REACT',

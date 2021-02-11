@@ -2,7 +2,7 @@
     <b-card
         class="mb-2">
         <b-row no-gutters>
-            <b-card-body 
+            <b-card-body
                 title="Pathways">
             </b-card-body>
             <b-pagination
@@ -46,7 +46,7 @@ export default Vue.component("ncats-predicate-table", {
                 } else {
                     throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
                 }
-            }) 
+            })
             .then(json => { this.geneInfoData = json; })
             .catch(error => console.error(error));
     }

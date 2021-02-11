@@ -1,5 +1,9 @@
+<template>
+</template>
 <script>
 import Vue from "vue";
+import VueVega from 'vue-vega'
+
 let results = [
   {
     "node_bindings": {
@@ -1619,7 +1623,70 @@ let results = [
     }
   }
 ]
-export default Vue.component("knowledge-graph", {
 
+export default Vue.component("ncats-knowledge-graph", {
+    props: ['knowledge_graph', 'results'],
+    data() {
+        return {
+
+        }
+    },
+    computed: {
+        vegaGraph() {
+            const graph = {
+                nodes: [{"name":"Myriel","group":1,"index":0},{"name":"Napoleon","group":1,"index":1},{"name":"Mlle.Baptistine","group":1,"index":2},{"name":"Mme.Magloire","group":1,"index":3},{"name":"CountessdeLo","group":1,"index":4},{"name":"Geborand","group":1,"index":5}],
+                links: [{"source":1,"target":0,"value":1},{"source":2,"target":0,"value":8},{"source":3,"target":0,"value":10}],
+            }
+            if (!!this.results) {
+                this.results.forEach(knowledgeAssociation => {
+                    const example = {
+                        "node_bindings": {
+                            "n00": [
+                                {
+                                    "id": "NCBIGene:1803",
+                                    "category": [
+                                        "biolink:NamedThing",
+                                        "biolink:BiologicalEntity",
+                                        "biolink:MolecularEntity",
+                                        "biolink:Gene",
+                                        "biolink:GeneOrGeneProduct",
+                                        "biolink:MacromolecularMachine",
+                                        "biolink:GenomicEntity"
+                                    ]
+                                }
+                            ],
+                            "n01": [
+                                {
+                                "id": "MONDO:0005044",
+                                "category": [
+                                    "biolink:NamedThing",
+                                    "biolink:BiologicalEntity",
+                                    "biolink:Disease",
+                                    "biolink:DiseaseOrPhenotypicFeature"
+                                ]
+                                }
+                            ]
+                        },
+                        "edge_bindings": {
+                            "e00": [
+                                {
+                                "id": "8c6ca68ef652b11d8808fa279badfed9"
+                                }
+                            ]
+                        }
+                    };
+
+                    const inputNodes = example.node_bindings.n00;
+                    const outputNodes = example.node_bindings.n01;
+                    const nodeLinks = example.edge_bindings.e00;
+
+                    node_b
+
+                });
+            } else if (!!this.knowledge_graph) {
+                return {}
+            }
+        }
+    }
 })
 </script>

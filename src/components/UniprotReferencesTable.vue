@@ -9,6 +9,20 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
+            <template #cell(id)="data">
+                <div v-if="!!context[remap(data.item.source)]">
+                    <resolved-curie-link
+                        :id="data.item.id"
+                        :prefix="remap(data.item.source)"
+                    ></resolved-curie-link>
+                </div>
+                <div v-else>
+                    <resolved-curie-link
+                        :curie="data.item.id">
+                    </resolved-curie-link>
+                </div>
+            </template>
+
             <template v-slot:cell(gene)="v">
                 <a :href="'/gene.html?gene=' + v.item.gene_id">{{v.item.gene_id}}</a>
             </template>
@@ -64,11 +78,26 @@ export default Vue.component("uniprot-references-table", {
             perPage: 5,
             currentPage: 1,
             source: "",
-            moleculeType: ""
+            moleculeType: "",
+            context: null,
         };
     },
-
+    async created() {
+        this.context = await fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
+            .then(response => response.json())
+            .then(json => json['@context']);
+    },
     computed: {
+        remap(prefix) {
+            const remapping = {
+                'reactome': 'REACT',
+                'wikipathways': 'WIKIPATHWAYS'
+            }
+            if (!!remapping[prefix]) {
+                return remapping[prefix];
+            }
+            return prefix;
+        },
         rows() {
             return this.tableData.length;
         },
