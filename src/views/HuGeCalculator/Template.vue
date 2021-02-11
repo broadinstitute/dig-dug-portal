@@ -392,7 +392,7 @@
                                                 </li>
 
                                                 <li>
-                                                    Bayes Factor:
+                                                    Total Bayes Factor =
                                                     <span>
                                                         {{
                                                         $parent.bayesFactorRareVariation
@@ -400,6 +400,13 @@
                                                     </span>
                                                 </li>
                                                 <li>
+                                                    Prior Variance
+                                                    <tooltip-documentation
+                                                        name="gene.function.tooltip.hover"
+                                                        :content-fill="$parent.documentationMap"
+                                                        :isHover="true"
+                                                        :noIcon="false"
+                                                    ></tooltip-documentation>
                                                     <input
                                                         v-model.number="$store.state.prior"
                                                         type="number"
