@@ -397,7 +397,7 @@
                                                 <li>
                                                     Prior Variance
                                                     <tooltip-documentation
-                                                        name="gene.function.tooltip.hover"
+                                                        name="hugecal.rarevariation.changePrior"
                                                         :content-fill="$parent.documentationMap"
                                                         :isHover="true"
                                                         :noIcon="false"
