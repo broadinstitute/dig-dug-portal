@@ -54,15 +54,12 @@ new Vue({
         return {
             matchingGenes: [],
             phenotypelist: [],
-
-            phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
-            phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
             hugecalSearchCriterion: keyParams.gene
                 ? [
                     {
                         field: "gene",
                         threshold: keyParams.gene
-                    }
+                    },
                 ]
                 : [],
             // priorVariance: 0.3696
@@ -202,11 +199,11 @@ new Vue({
                             let d = masks.sort((a, b) => a.pValue - b.pValue);
                             let mostSignificantMask = d[0];
                             stdErr = mostSignificantMask.stdErr;
-                            if (this.phenotype.isDichotomous) {
-                                beta = mostSignificantMask.beta;
-                            } else {
-                                beta = Math.log(mostSignificantMask.oddsRatio);
-                            }
+
+                            beta = mostSignificantMask.beta;
+                            // } else {
+                            //     beta = Math.log(mostSignificantMask.oddsRatio);
+                            // }
                             rarebayesfactor = this.bayes_factor(beta, stdErr);
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;
@@ -277,7 +274,7 @@ new Vue({
                 if (!!this.$store.state.geneAssociations52k.data.length) {
                     let data = this.$store.state.geneAssociations52k.data;
                     for (let i = 0; i < data.length; i++) {
-                        if (data[i].phenotype == this.phenotype.name) {
+                        if (data[i].phenotype == this.selectedPhenotype[0]) {
                             return data[i];
                         }
                     }
