@@ -15,6 +15,8 @@ import CriterionListGroup from "@/components/criterion/group/CriterionListGroup"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration"
 
 import queryString from "query-string"
+import _ from "lodash"
+import trapi from "@/components/NCATS/trapi"
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -39,7 +41,8 @@ new Vue({
             currentPage: 1,
             translatorResults: null,
             queryGraphCriterion: [],
-            nodes: [],
+            subjects: ['biolink:Gene'],
+            objects: ['biolink:Disease'],
             links: [],
         };
     },
@@ -67,6 +70,9 @@ new Vue({
                     }
                 }
             }
+        }
+        let alternateMessage = {
+            "message": { "query_graph": { "nodes": { "s0": { "category": "biolink:Gene" }, "o0": { "category": "biolink:Disease" } }, "edges": { "e00": { "subject": "s0", "object": "o0", "predicate": "biolink:gene_associated_with_condition" } } } }
         }
 
         async function messageARS(message, trace=null) {
@@ -164,7 +170,6 @@ new Vue({
         }
         // printResultsForSources(message, ['kp-genetics']);
 
-        this.results = [];
         const updateResultsFromSources = (sources=[], assignable=[]) => (entry) => {
             const [agent, message] = entry;
             if (sources.length === 0 || sources.includes(agent)) {
@@ -177,7 +182,7 @@ new Vue({
             return await streamARSQuery(message, updateResultsFromSources(sources, assignable));
         }
 
-        await updateResultsForSources(message, [], assignable=this.results);
+        // await updateResultsForSources(alternateMessage, [], this.results);
 
 
     },
@@ -190,6 +195,9 @@ new Vue({
         },
         pathway: function() {
             return this.geneInfoForField(this.$store.state.myGeneInfo.geneInfo, 'pathway');
+        },
+        queryGraph() {
+            return this.makeQueryGraph(this.queryGraphCriterion)
         }
     },
     methods: {
@@ -205,35 +213,63 @@ new Vue({
         removeEdge(edge) {
             this.links = this.links.filter(n => n !== edge)
         },
-        makeQueryGraph(preGraph) {
+        makeQueryGraph(preGraph, mode='complete') {
             const EDGE_PREFIX='e';
-            const NODE_PREFIX='n';
-            const isEdge = e => e.indexOf(EDGE_PREFIX) === 0;
-            const isNode = e => e.indexOf(NODE_PREFIX) === 0;
-            const edges = preGraph.filter(el => isEdge(el.field));
-            const nodes = preGraph.filter(el => isNode(el.field));
-            return {
-                "query_graph": {
-                    "nodes": nodes.reduce((acc, item) => {
-                        const acc_ = acc;
-                        acc_[item.field] = {
-                            "id": item.threshold,
-                            "category": '',
-                        }
-                        return acc_;
-                    }, {}),
-                    "edges": edges.reduce((acc, item) => {
-                        const acc_ = acc;
-                        acc_[item.field] = {
-                            "subject": '',
-                            "object": '',
-                            "predicate": item.threshold
-                        }
-                        return acc_;
-                    }, {})
-                },
-            }
+            // const NODE_PREFIX='n';
+            const SUBJECT_PREFIX='s';
+            const OBJECT_PREFIX='o';
 
+            const isEdge = e => e.indexOf(EDGE_PREFIX) === 0;
+            // const isNode = e => e.indexOf(NODE_PREFIX) === 0;
+            const isSubject = e => e.indexOf(SUBJECT_PREFIX) === 0;
+            const isObject = e => e.indexOf(OBJECT_PREFIX) === 0;
+
+            const edges = preGraph.filter(el => isEdge(el.field));
+            // const nodes = preGraph.filter(el => isNode(el.field));
+            const subjects = preGraph.filter(el => isSubject(el.field));
+            const objects = preGraph.filter(el => isObject(el.field));
+
+            const isComplete = edges.length > 0 && subjects.length > 0 && objects.length > 0;
+            const isPartial = edges.length > 0 || subjects.length > 0 || objects.length > 0;
+
+            if (mode === 'complete' && isComplete || mode === 'partial' && isPartial) {
+                return {
+                    "query_graph": {
+                        "nodes": {
+                            ...subjects.reduce((acc, item) => {
+                                const acc_ = acc;
+                                acc_[item.field] = {
+                                    "id": item.threshold !== 'All' ? item.threshold : undefined,
+                                    "category": 'biolink:Gene',
+                                }
+                                return acc_;
+                            }, {}),
+                            ...objects.reduce((acc, item) => {
+                                const acc_ = acc;
+                                acc_[item.field] = {
+                                    "id": item.threshold !== 'All' ? item.threshold : undefined,
+                                    "category": 'biolink:Disease',
+                                }
+                                return acc_;
+                            }, {}),
+                        },
+                        "edges": edges.reduce((acc, item) => {
+                            const acc_ = acc;
+                            _.zip(subjects, objects).forEach(so => {
+                                const [s, o] = so;
+                                console.log('so?', so)
+                                acc_[item.field] = {
+                                    "subject": !!s ? s.field : undefined,
+                                    "object": !!o ? o.field : undefined,
+                                    "predicate": item.threshold
+                                }
+                            });
+                            return acc_;
+                        }, {})
+                    },
+                }
+            }
+            return null;
         },
         geneInfoForField(geneInfo, field) {
             const helpers = {
@@ -252,5 +288,9 @@ new Vue({
         },
     },
     watch: {
+        queryGraph(queryGraph) {
+            if (queryGraph !== null) trapi.queries.updateResultsForSources({ "message": queryGraph }, [], this.results);
+
+        }
     }
 }).$mount("#app");

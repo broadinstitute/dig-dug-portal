@@ -35,6 +35,10 @@ export default Vue.component("filter-basic-control", {
             type: Boolean,
             default: true,
         },
+        metadata: {
+            type: Object,
+            default: false,
+        }
     },
     components: {
         FilterControlTemplate,

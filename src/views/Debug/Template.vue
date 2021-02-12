@@ -1,31 +1,6 @@
 <template>
     <div>
-        <pre>
-        {
-            "message": {
-                "query_graph": {
-                    "edges": {
-                        "e00": {
-                            "subject": "n00",
-                            "object": "n01",
-                            "predicate": "biolink:gene_associated_with_condition"
-                        }
-                    },
-                    "nodes": {
-                        "n00": {
-                            "id": "NCBIGene:1803",
-                            "category": "biolink:Gene"
-                        },
-                        "n01": {
-                            "category": "biolink:Disease"
-                        }
-                    }
-                }
-            }
-        }
-        </pre>
-
-        <criterion-list-group>
+        <criterion-list-group v-model="$parent.queryGraphCriterion">
             <!-- <filter-enumeration-control
                 v-for="node in $parent.nodes"
                 :key="node"
@@ -47,9 +22,11 @@
                     Genes <button @click="$parent.addNode">+</button>
                 </div>
                 <filter-enumeration-control
-                    :field="'s00'"
-                    placeholder="biolink:Gene"
-                    :options="['NCBIGene:1803']">
+                    v-for="(subject, index) in $parent.subjects"
+                    :key="subject+index"
+                    :field="`s${index}`"
+                    :placeholder="`${subject}`"
+                    :options="['All', 'NCBIGene:1803']">
                 </filter-enumeration-control>
             </span>
 
@@ -58,9 +35,11 @@
                     Diseases <button @click="$parent.addNode">+</button>
                 </div>
                 <filter-enumeration-control
-                    :field="'o01'"
-                    placeholder="biolink:Disease"
-                    :options="[]">
+                    v-for="(object, index) in $parent.objects"
+                    :key="object+index"
+                    :field="`o${index}`"
+                    :placeholder="`${object}`"
+                    :options="['All']">
                 </filter-enumeration-control>
             </span>
 
@@ -73,8 +52,9 @@
                     :options="['biolink:gene_associated_with_condition']">
                 </filter-enumeration-control>
             </span>
-            <template slot=filtered slot-scope="{ filter }">
-                {{$parent.makeQueryGraph(filter)}}
+
+            <template slot=filtered>
+                {{$parent.results}}
             </template>
         </criterion-list-group>
 
@@ -95,5 +75,6 @@
             :end="118188952"
             :field="'pathway'">
         </ncats-region-predicate-table>
+        {{$parent.results}}
     </div>
 </template>

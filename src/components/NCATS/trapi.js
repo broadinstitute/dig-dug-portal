@@ -1,3 +1,5 @@
+import queryString from "query-string"
+
 let getBiolinkContext = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
     .then(response => response.json())
     .then(json => json['@context'])
@@ -32,10 +34,8 @@ const extractCurie = function(uri, context) {
 }
 
 const resolveCurie = function(curie, context) {
-    if (!!context && typeof deserializeCurie(curie) !== 'undefined') {
-
-        const [prefix, id] = deserializeCurie(curie);
-
+    const [prefix, id] = deserializeCurie(curie);
+    if (!!context && !!prefix && !!id) {
         // NOTE: There's the question of whether or not we want to defend the validity of the prefix inside this function
         // I've decided against it (it loses symmetry with 'extractCurie' if we add too much logic to this function),
         // But I leave the code for future reference
@@ -179,6 +179,15 @@ async function _streamARAs(arsQuery, { onDone=id=>id, onError=id=>id, onUnknown=
         }
     });
 
+    // terminate after no new changes after delay and all children are listed as not running
+    if (arsQuery.children.map(actor => actor.status).every(status => status !== "Running")) {
+        // as long as delay > expected time for any individual ARA to contribute its result after a another ARA has started providing its result,
+        // then the query should complete with all ARAs being called
+        return arsQuery;
+    }
+
+    return messageARS(arsQuery.message, 'y').then(aq => _streamARAs(aq, { onDone, onError, onUnknown, onRunning }, _actorStatuses, delay));
+}
 
 /* ARS Response Parsing */
 
@@ -242,6 +251,7 @@ async function streamARSQuery(queryMessage, successCallback=console.log, errorCa
         .finally(arsQuery => arsQuery);
 
 }
+
 // Helper Function
 // Check if the message from an ARA has results or not
 function _hasResults(message) {
@@ -284,19 +294,19 @@ const updateResultsFromSources = (sources=[], assignableList=[]) => (entry) => {
     } return assignableList;
 }
 
-/* TODO: finish testing
 // Query
 async function updateResultsForSources(message, sources=[], assignableList=[]) {
     return await streamARSQuery(message, updateResultsFromSources(sources, assignableList));
 }
 
-await updateResultsForSources(message, [], assignableList=this.results);
-*/
-
 export default {
     query: streamARSQuery,
     callback: {
         updateResultsFromSources,
+        printResultsFromSources,
+    },
+    queries: {
+        updateResultsForSources,
         printResultsFromSources,
     },
     identifiers: {
