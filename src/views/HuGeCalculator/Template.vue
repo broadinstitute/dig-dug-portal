@@ -250,6 +250,7 @@
                                                     </li>
                                                 </ul>
                                                 <li>{{$parent.selectedGene[0]}} does not have any Genetic or Genomic evidence</li>
+                                                <li>Total Bayes Factor = {{$parent.bayesFactorCommonVariation}}</li>
                                             </ul>
 
                                             <div>
