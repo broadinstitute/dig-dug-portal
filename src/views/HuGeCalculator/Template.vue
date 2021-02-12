@@ -258,7 +258,7 @@
                                                         <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                     </li>
                                                 </ul>
-                                                <li>{{$parent.selectedGene[0]}} does not have any Genetic or Genomic evidence</li>
+                                                <li>{{$parent.selectedGene[0]}} does not have any Genetic or Regulatory evidence for {{$parent.selectedPhenotype[0]}}</li>
                                                 <li>Total Bayes Factor = {{$parent.bayesFactorCommonVariation}}</li>
                                             </ul>
 
