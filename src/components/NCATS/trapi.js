@@ -42,6 +42,7 @@ const resolveCurie = function(curie, context) {
 
         // if prefix given is supported (in a loosematch), use the synonym or itself
         // if the prefix synonym is empty, the prefix is unsupported and the curie can't be resolved
+        
         // const maybeSupportedPrefix = supportedPrefix(prefix, context, synonyms);
         // const haveSupportedPrefix = maybeSupportedPrefix !== '';
         // if (haveSupportedPrefix) {
