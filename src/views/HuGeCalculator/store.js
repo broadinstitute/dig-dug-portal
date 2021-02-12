@@ -36,7 +36,7 @@ export default new Vuex.Store({
         newEnd: keyParams.end,
         phenotypeParam: keyParams.phenotype,
         phenotype: null,
-        searchGene: keyParams.searchGene
+        searchGene: keyParams.gene
     },
     mutations: {
         setAssociationsData(state, associationsData) {
@@ -72,7 +72,7 @@ export default new Vuex.Store({
         },
         setSearchGene(state, searchGene) {
             state.searchGene = searchGene
-            keyParams.set({ searchGene: searchGene });
+            keyParams.set({ gene: searchGene });
         }
     },
     getters: {

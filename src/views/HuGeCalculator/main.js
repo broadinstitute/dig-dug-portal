@@ -56,11 +56,11 @@ new Vue({
         return {
             matchingGenes: [],
             phenotypelist: [],
-            hugecalSearchCriterion: keyParams.searchGene
+            hugecalSearchCriterion: keyParams.gene
                 ? [
                     {
                         field: "gene",
-                        threshold: keyParams.searchGene
+                        threshold: keyParams.gene
                     },
                     {
                         field: "phenotype",
@@ -68,7 +68,8 @@ new Vue({
                     },
                 ]
                 : [],
-
+            commonVariationStart: null,
+            commonVariationEnd: null,
         };
     },
     created() {
@@ -76,13 +77,11 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
-        if (keyParams.searchGene) {
-
-            this.$store.dispatch("get52KAssociationData", keyParams.searchGene);
-
+        if (keyParams.gene) {
+            this.$store.dispatch("get52KAssociationData", keyParams.gene);
         }
-        if (keyParams.searchGene && keyParams.phenotype) {
-            let gene = keyParams.searchGene
+        if (keyParams.gene && keyParams.phenotype) {
+            let gene = keyParams.gene
             let phenotype = keyParams.phenotype
             this.$store.dispatch("gene/query", { q: gene });
             let phenoRegionQuery = { "gene": gene, "phenotype": phenotype }
@@ -111,8 +110,17 @@ new Vue({
         },
         regionString() {
             let chr = this.$store.state.chr;
-            let start = Formatters.intFormatter(this.$store.state.start);
-            let end = Formatters.intFormatter(this.$store.state.end);
+            let start;
+            let end;
+            if (this.commonVariationEnd != null && this.commonVariationStart != null) {
+                start = Formatters.intFormatter(this.commonVariationStart)
+                end = Formatters.intFormatter(this.commonVariationEnd)
+            }
+            else {
+                start = Formatters.intFormatter(this.$store.state.start);
+                end = Formatters.intFormatter(this.$store.state.end);
+            }
+
             return Formatters.locusFormatter(chr, start, end);
         },
         selectedGene() {
@@ -331,8 +339,13 @@ new Vue({
             this.$store.commit(`associations/setResponse`, { data });
         },
         exploreExpanded() {
+            if (!!this.$children[0].$refs.locuszoom) {
+                let regionlist = this.$children[0].$refs.locuszoom.zoomOut()
+                this.commonVariationStart = regionlist[0]
+                this.commonVariationEnd = regionlist[1]
+            }
 
-            if (!!this.$children[0].$refs.locuszoom2) this.$children[0].$refs.locuszoom2.zoomOut()
+
         },
         bayesFactorCombinedEvidence(commonBF, rareBF) {
             let combinedbf = commonBF * rareBF;

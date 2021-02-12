@@ -225,7 +225,7 @@
                                             </div>
                                             <locuszoom
                                                 v-if="$parent.region"
-                                                ref="locuszoom1"
+                                                ref="locuszoom"
                                                 :chr="$parent.region.chromosome"
                                                 :start="$parent.region.start -50000"
                                                 :end="$parent.region.end +50000"
@@ -289,7 +289,7 @@
                                                 </div>
                                                 <locuszoom
                                                     v-if="$parent.region"
-                                                    ref="locuszoom2"
+                                                    ref="locuszoom"
                                                     :chr="$parent.region.chromosome"
                                                     :start="$parent.region.start - 50000"
                                                     :end="$parent.region.end + 50000"
