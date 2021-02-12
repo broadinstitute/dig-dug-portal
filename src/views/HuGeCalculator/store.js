@@ -120,6 +120,7 @@ export default new Vuex.Store({
                 context.commit("setLocus", locus);
                 context.commit("setPhenotype", phenotype);
                 context.commit("setSearchGene", gene);
+                context.commit("setPrior", 0.3696)
 
             }
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;

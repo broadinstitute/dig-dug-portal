@@ -77,12 +77,9 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
         if (keyParams.searchGene) {
-            // this.$store.dispatch("gene/query", { q: gene });
-            // let r = this.$store.getters.region;
-            // phenoRegionQuery = { "gene": gene[0], "phenotype": phenotype[0] }
-            // this.$store.dispatch('getAssociationsData', phenoRegionQuery);
+
             this.$store.dispatch("get52KAssociationData", keyParams.searchGene);
-            // this.$store.dispatch("getEGLData", phenotype[0]);
+
         }
         if (keyParams.searchGene && keyParams.phenotype) {
             let gene = keyParams.searchGene
@@ -317,8 +314,7 @@ new Vue({
         documentationMap() {
             let gene = this.selectedGene[0];
             let phenotype = this.selectedPhenotype[0];
-            let rareVariationEvidence;
-            let priorVariance = this.priorVariance;
+            let priorVariance = this.$store.state.prior;
             return {
                 gene: gene,
                 phenotype: phenotype,
@@ -335,13 +331,7 @@ new Vue({
             this.$store.commit(`associations/setResponse`, { data });
         },
         exploreExpanded() {
-            // this.$store.commit("setLocus", {
-            //     chr: this.$store.state.chr,
-            //     start: this.$store.state.start - 50000,
-            //     end: this.$store.state.end + 50000
-            // });
 
-            // this.$store.dispatch("queryRegion", { "phenotype": this.selectedPhenotype[0] });
             if (!!this.$children[0].$refs.locuszoom2) this.$children[0].$refs.locuszoom2.zoomOut()
         },
         bayesFactorCombinedEvidence(commonBF, rareBF) {
