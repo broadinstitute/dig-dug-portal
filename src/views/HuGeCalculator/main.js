@@ -56,15 +56,19 @@ new Vue({
         return {
             matchingGenes: [],
             phenotypelist: [],
-            hugecalSearchCriterion: keyParams.gene
+            hugecalSearchCriterion: keyParams.searchGene
                 ? [
                     {
                         field: "gene",
-                        threshold: keyParams.gene
+                        threshold: keyParams.searchGene
+                    },
+                    {
+                        field: "phenotype",
+                        threshold: keyParams.phenotype
                     },
                 ]
                 : [],
-            // priorVariance: 0.3696
+
         };
     },
     created() {
@@ -72,6 +76,25 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
+        if (keyParams.searchGene) {
+            // this.$store.dispatch("gene/query", { q: gene });
+            // let r = this.$store.getters.region;
+            // phenoRegionQuery = { "gene": gene[0], "phenotype": phenotype[0] }
+            // this.$store.dispatch('getAssociationsData', phenoRegionQuery);
+            this.$store.dispatch("get52KAssociationData", keyParams.searchGene);
+            // this.$store.dispatch("getEGLData", phenotype[0]);
+        }
+        if (keyParams.searchGene && keyParams.phenotype) {
+            let gene = keyParams.searchGene
+            let phenotype = keyParams.phenotype
+            this.$store.dispatch("gene/query", { q: gene });
+            let phenoRegionQuery = { "gene": gene, "phenotype": phenotype }
+            this.$store.dispatch('getAssociationsData', phenoRegionQuery);
+            this.$store.dispatch("get52KAssociationData", gene);
+            this.$store.dispatch("getEGLData", phenotype);
+        }
+
+        // this.$store.dispatch("getAssociationsData", { "phenotype": keyParams.phenotype, "gene": keyParams.searchGene });
     },
 
     computed: {

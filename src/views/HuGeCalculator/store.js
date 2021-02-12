@@ -36,6 +36,7 @@ export default new Vuex.Store({
         newEnd: keyParams.end,
         phenotypeParam: keyParams.phenotype,
         phenotype: null,
+        searchGene: keyParams.searchGene
     },
     mutations: {
         setAssociationsData(state, associationsData) {
@@ -68,7 +69,10 @@ export default new Vuex.Store({
             state.phenotypeParam = phenotype;
             state.phenotype = state.bioPortal.phenotypeMap[phenotype];
             keyParams.set({ phenotype: phenotype });
-
+        },
+        setSearchGene(state, searchGene) {
+            state.searchGene = searchGene
+            keyParams.set({ searchGene: searchGene });
         }
     },
     getters: {
@@ -115,6 +119,7 @@ export default new Vuex.Store({
                 //update the locus
                 context.commit("setLocus", locus);
                 context.commit("setPhenotype", phenotype);
+                context.commit("setSearchGene", gene);
 
             }
             const phenoRegionQuery = `${phenotype},${locus.chr}:${locus.start}-${locus.end}`;
