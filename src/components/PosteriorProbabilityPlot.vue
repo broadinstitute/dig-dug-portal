@@ -301,17 +301,7 @@ export default Vue.component("posterior-probability-plot", {
 
     computed: {
         columns: function() {
-            let d = this.geneAssociationsData.masks.sort(
-                (a, b) => a.pValue - b.pValue
-            );
-            let mostSignificantMask = d[0];
-            let stdErr = mostSignificantMask.stdErr;
-            let beta;
-            if (this.isDichotomous) {
-                beta = mostSignificantMask.beta;
-            } else {
-                beta = Math.log(mostSignificantMask.oddsRatio);
-            }
+         
             let n = prior.length;
             let x = new Array(n + 1);
             let y = new Array(n + 1);

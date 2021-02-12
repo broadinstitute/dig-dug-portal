@@ -26,7 +26,7 @@
                         Phenotype
                     </div>
                     <div class="col-md-8 gene-page-header-body">
-                        <h2>{{ $store.state.pageTitle }}</h2>
+                        <h2 v-html="$store.state.pageTitle"></h2>
                     </div>
                     <div
                         v-if="$parent.trait != 'null'"

@@ -377,6 +377,7 @@ import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 import keyParams from "@/utils/keyParams";
+import formatters from "@/utils/formatters";
 
 Vue.use(BootstrapVueIcons);
 
@@ -402,6 +403,7 @@ export default Vue.component("effector-genes-table", {
     modules: {
         uiUtils,
         keyParams,
+        formatters,
     },
     components: {
         EffectorGenesFeatures,
@@ -868,6 +870,48 @@ export default Vue.component("effector-genes-table", {
                 let type = formatting["type"];
 
                 switch (type) {
+                    case "formatPvalue":
+                        if (VALUE != "" && VALUE != 0) {
+                            if (VALUE < 1e-2) {
+                                return VALUE.toExponential(2);
+                            } else {
+                                return VALUE;
+                            }
+                        } else if (VALUE == 0) {
+                            return VALUE;
+                        } else {
+                            return "";
+                        }
+                        break;
+                    case "shorten":
+                        if (VALUE != "") {
+                            let shortenBy =
+                                LEVEL == "top"
+                                    ? this.config[this.dataset].formatting[
+                                          COLUMN
+                                      ]["shortenBy"]
+                                    : this.config[this.dataset].formatting
+                                          .features[COLUMN[0]][COLUMN[1]][
+                                          "shortenBy"
+                                      ];
+
+                            let shortString = VALUE.slice(0, shortenBy);
+                            let remaningString = VALUE.slice(
+                                -(VALUE.length - shortenBy)
+                            );
+                            let content =
+                                '<span class="shrtened-string">' +
+                                shortString +
+                                '<span class="remaining-string">' +
+                                remaningString +
+                                '</span><br /><a href="javascript:;">Show more</a></span>';
+
+                            return content;
+                        } else {
+                            return "";
+                        }
+
+                        break;
                     case "image":
                         if (VALUE != "") {
                             let imageLinkRoot =

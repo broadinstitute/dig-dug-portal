@@ -69,19 +69,6 @@
                                             </h4>
                                             <ul>
                                                 <li>
-                                                    <span>
-                                                        {{
-                                                        $parent.determineCategory(
-                                                        $parent.bayesFactorCombinedEvidence(
-                                                        $parent.bayesFactorCommonVariation,
-                                                        $parent.bayesFactorRareVariation
-                                                        )
-                                                        )
-                                                        }}
-                                                        Evidence
-                                                    </span>
-                                                </li>
-                                                <li>
                                                     Combined HuGe Score = Bayes Factor of Common Variation * Bayes Factor of Rare Variation
                                                     <ul>
                                                         <li>
@@ -95,6 +82,19 @@
                                                             </span>
                                                         </li>
                                                     </ul>
+                                                </li>
+                                                <li>
+                                                    <span>
+                                                        {{
+                                                        $parent.determineCategory(
+                                                        $parent.bayesFactorCombinedEvidence(
+                                                        $parent.bayesFactorCommonVariation,
+                                                        $parent.bayesFactorRareVariation
+                                                        )
+                                                        )
+                                                        }}
+                                                        Evidence, since Bayes factor is >= 348
+                                                    </span>
                                                 </li>
                                             </ul>
                                             <div>
@@ -116,7 +116,7 @@
                                                 :bayes_factor="$parent.bayesFactorCombinedEvidence(
                                                         $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation)"
-                                                :isDichotomous="true"
+                                                :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
                                             ></posterior-probability-plot>
                                         </div>
                                     </div>
@@ -163,19 +163,28 @@
                                                     Coding evidence:
                                                     <span
                                                         class="codingEvidence2C"
-                                                    >{{$parent.eglData.genetic}}: Bayes Factor = 5</span>
+                                                    >{{$parent.eglData.genetic}}</span>
+                                                    <ul>
+                                                        <li>Bayes Factor = 5</li>
+                                                    </ul>
                                                 </li>
                                                 <li v-if="$parent.eglData.genomic == '2R' ">
                                                     Regulatory evidence:
                                                     <span
                                                         class="regulatoryEvidence2R"
                                                     >{{ $parent.eglData.genomic }}</span>
+                                                    <ul>
+                                                        <li>Bayes Factor = 5</li>
+                                                    </ul>
                                                 </li>
                                                 <li v-if=" $parent.eglData.genomic == '3R'">
                                                     Regulatory evidence:
                                                     <span
                                                         class="regulatoryEvidence3R"
-                                                    >{{ $parent.eglData.genomic}}: Bayes Factor = 2.2</span>
+                                                    >{{ $parent.eglData.genomic}}</span>
+                                                    <ul>
+                                                        <li>Bayes Factor = 2.2</li>
+                                                    </ul>
                                                 </li>
                                                 <li v-if=" $parent.eglData.category == 'in GWAS' ">
                                                     <span>Genome-wide significant but no coding or regulatory evidence</span>
@@ -242,13 +251,15 @@
                                                 ></tooltip-documentation>
                                             </h4>
                                             <ul>
-                                                <li>{{$parent.selectedGene[0]}} is not GWAS Significant</li>
+                                                <li>{{$parent.selectedGene[0]}} is not GWAS Significant - p-value greater than 5e-8</li>
                                                 <ul>
                                                     <li>
                                                         Bayes Factor =
                                                         <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                     </li>
                                                 </ul>
+                                                <li>{{$parent.selectedGene[0]}} does not have any Genetic or Regulatory evidence for {{$parent.selectedPhenotype[0]}}</li>
+                                                <li>Total Bayes Factor = {{$parent.bayesFactorCommonVariation}}</li>
                                             </ul>
 
                                             <div>
@@ -310,24 +321,18 @@
                                             </h4>
                                             <ul style="margin-block-end: 40px ">
                                                 <li>
-                                                    <span>Causal</span>
-                                                </li>
-                                                <li>
                                                     <span>Exome-Wide significant - p-value less than 2.5e-6</span>
+                                                    <ul>
+                                                        <li>
+                                                            Bayes Factor =
+                                                            <span>{{$parent.bayesFactorRareVariation}}</span>
+                                                        </li>
+                                                    </ul>
                                                 </li>
-                                                <li>
-                                                    Bayes Factor:
-                                                    <span>{{$parent.bayesFactorRareVariation}}</span>
-                                                </li>
-                                                <li>
-                                                    <!-- input box for prior -->
-                                                    <input
-                                                        v-model.number="$store.state.prior"
-                                                        type="number"
-                                                        placeholder="Prior Variance"
-                                                        id="prior_variance_input"
-                                                    />
-                                                </li>
+                                                <li>Total Bayes Factor(Multiply all) = {{$parent.bayesFactorRareVariation}}</li>
+                                                <!-- <li>
+                                                    <span>Causal Evidence</span>
+                                                </li>-->
                                             </ul>
 
                                             <div style="margin-block-end: 60px">
@@ -382,7 +387,7 @@
                                                 </li>
 
                                                 <li>
-                                                    Bayes Factor:
+                                                    Total Bayes Factor =
                                                     <span>
                                                         {{
                                                         $parent.bayesFactorRareVariation
@@ -390,6 +395,13 @@
                                                     </span>
                                                 </li>
                                                 <li>
+                                                    Prior Variance
+                                                    <tooltip-documentation
+                                                        name="hugecal.rarevariation.changePrior"
+                                                        :content-fill="$parent.documentationMap"
+                                                        :isHover="true"
+                                                        :noIcon="false"
+                                                    ></tooltip-documentation>
                                                     <input
                                                         v-model.number="$store.state.prior"
                                                         type="number"
