@@ -199,11 +199,7 @@ new Vue({
                             let d = masks.sort((a, b) => a.pValue - b.pValue);
                             let mostSignificantMask = d[0];
                             stdErr = mostSignificantMask.stdErr;
-
                             beta = mostSignificantMask.beta;
-                            // } else {
-                            //     beta = Math.log(mostSignificantMask.oddsRatio);
-                            // }
                             rarebayesfactor = this.bayes_factor(beta, stdErr);
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;

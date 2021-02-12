@@ -242,13 +242,14 @@
                                                 ></tooltip-documentation>
                                             </h4>
                                             <ul>
-                                                <li>{{$parent.selectedGene[0]}} is not GWAS Significant</li>
+                                                <li>{{$parent.selectedGene[0]}} is not GWAS Significant - p-value greater than 5e-8</li>
                                                 <ul>
                                                     <li>
                                                         Bayes Factor =
                                                         <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                     </li>
                                                 </ul>
+                                                <li>{{$parent.selectedGene[0]}} does not have any Genetic or Genomic evidence</li>
                                             </ul>
 
                                             <div>
