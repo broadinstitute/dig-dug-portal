@@ -93,7 +93,7 @@
                                                         )
                                                         )
                                                         }}
-                                                        Evidence, since Bayes factor is >= 348
+                                                        Evidence
                                                     </span>
                                                 </li>
                                             </ul>
