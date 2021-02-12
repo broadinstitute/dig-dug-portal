@@ -176,9 +176,9 @@ new Vue({
                             break;
                         }
                         //if the gene is in GWAS but not in mccarthy data
-                        // else {
-                        //     effectorGeneData["category"] = "in GWAS";
-                        // }
+                        else {
+                            effectorGeneData["category"] = "in GWAS";
+                        }
                     }
                     return effectorGeneData;
                 }

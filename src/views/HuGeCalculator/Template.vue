@@ -151,7 +151,7 @@
                                                     </ul>
                                                 </li>
                                                 <li v-if="$parent.eglData.genetic == '1C'">
-                                                    Coding evidence:
+                                                    Coding evidence: Confirmed causal coding variant
                                                     <span
                                                         class="codingEvidence1C"
                                                     >{{$parent.eglData.genetic}}</span>
@@ -160,7 +160,7 @@
                                                     </ul>
                                                 </li>
                                                 <li v-else-if="$parent.eglData.genetic == '2C' ">
-                                                    Coding evidence:
+                                                    Coding evidence: Likely causal coding variant
                                                     <span
                                                         class="codingEvidence2C"
                                                     >{{$parent.eglData.genetic}}</span>
@@ -169,7 +169,7 @@
                                                     </ul>
                                                 </li>
                                                 <li v-if="$parent.eglData.genomic == '2R' ">
-                                                    Regulatory evidence:
+                                                    Regulatory evidence: >1 line of regulatory evidence
                                                     <span
                                                         class="regulatoryEvidence2R"
                                                     >{{ $parent.eglData.genomic }}</span>
@@ -178,7 +178,7 @@
                                                     </ul>
                                                 </li>
                                                 <li v-if=" $parent.eglData.genomic == '3R'">
-                                                    Regulatory evidence:
+                                                    Regulatory evidence: 1 line of regulatory evidence
                                                     <span
                                                         class="regulatoryEvidence3R"
                                                     >{{ $parent.eglData.genomic}}</span>
