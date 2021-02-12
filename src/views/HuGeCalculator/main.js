@@ -25,6 +25,8 @@ import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue"
 import LocusZoom from "@/components/lz/LocusZoom";
 import MaskTable from "@/components/MaskTable";
 
+import jsonQuery from "json-query";
+
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
@@ -74,6 +76,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
     },
+
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -309,17 +312,21 @@ new Vue({
 
     },
     methods: {
+        findRefs() {
+            console.log(this.$children[0].$refs)
+        },
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, { data });
         },
         exploreExpanded() {
-            this.$store.commit("setLocus", {
-                chr: this.$store.state.chr,
-                start: this.$store.state.start - 50000,
-                end: this.$store.state.end + 50000
-            });
+            // this.$store.commit("setLocus", {
+            //     chr: this.$store.state.chr,
+            //     start: this.$store.state.start - 50000,
+            //     end: this.$store.state.end + 50000
+            // });
 
-            this.$store.dispatch("queryRegion", { "phenotype": this.selectedPhenotype[0] });
+            // this.$store.dispatch("queryRegion", { "phenotype": this.selectedPhenotype[0] });
+            if (!!this.$children[0].$refs.locuszoom2) this.$children[0].$refs.locuszoom2.zoomOut()
         },
         bayesFactorCombinedEvidence(commonBF, rareBF) {
             let combinedbf = commonBF * rareBF;

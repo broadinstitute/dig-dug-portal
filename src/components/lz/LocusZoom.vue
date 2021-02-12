@@ -111,8 +111,16 @@ export default Vue.component("locuszoom", {
                 })
             );
         }
+        console.log()
+
     },
     methods: {
+        zoomOut(expandLeft=50000, expandRight=50000) {
+            this.plot.applyState({
+                start: this.plot.state.start - expandLeft,
+                end: this.plot.state.end + expandRight
+            })
+        },
         addPanelAndDataSource: function (panelClass) {
             // DataSources and Panels/Layouts are linked together via namespaces.
             // A DataSource name is given to the panel, for a particular data type
