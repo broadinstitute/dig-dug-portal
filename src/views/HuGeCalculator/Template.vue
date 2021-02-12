@@ -189,6 +189,9 @@
                                                 <li v-if=" $parent.eglData.category == 'in GWAS' ">
                                                     <span>Genome-wide significant but no coding or regulatory evidence</span>
                                                 </li>
+                                                <li v-else>
+                                                    <span>Genome-wide significant but no coding or regulatory evidence</span>
+                                                </li>
                                                 <!-- //please check this clause -->
                                                 <!-- <li v-if="$parent.eglData.category =='No Evidence'">
                                                     <span>
