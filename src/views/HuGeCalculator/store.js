@@ -27,7 +27,7 @@ export default new Vuex.Store({
         associationsData: {},
         variants: [],
         regionData: {},
-        prior: 0.3696,
+        prior: 0.3696 || keyParams.prior,
         chr: keyParams.chr,
         start: keyParams.start,
         end: keyParams.end,
@@ -46,6 +46,7 @@ export default new Vuex.Store({
         },
         setPrior(state, prior) {
             state.prior = prior
+            keyParams.set({ prior: prior })
         },
         setLocus(state, region = {}) {
 
@@ -57,11 +58,11 @@ export default new Vuex.Store({
             state.newEnd = state.end;
             state.searchGene = null;
 
-            keyParams.set({
-                chr: state.chr,
-                start: state.start,
-                end: state.end
-            });
+            // keyParams.set({
+            //     chr: state.chr,
+            //     start: state.start,
+            //     end: state.end
+            // });
         },
         setPhenotype(state, phenotype) {
             state.phenotypeParam = phenotype;
