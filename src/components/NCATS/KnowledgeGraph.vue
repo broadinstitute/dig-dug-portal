@@ -1638,7 +1638,8 @@ export default Vue.component("ncats-knowledge-graph", {
                 links: [{"source":1,"target":0,"value":1},{"source":2,"target":0,"value":8},{"source":3,"target":0,"value":10}],
             }
             if (!!this.results) {
-                this.results.forEach(knowledgeAssociation => {
+                this.results.forEach(
+                    knowledgeAssociation => {
                     const example = {
                         "node_bindings": {
                             "n00": [

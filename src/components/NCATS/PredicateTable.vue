@@ -97,7 +97,7 @@ export default Vue.component("ncats-predicate-table", {
         }
     },
     methods: {
-        supportedPrefix: trapi.supportedPrefix,
+        supportedPrefix: trapi.identifiers.supportedPrefix,
         remap(prefix) {
             const remapping = {
                 'reactome': 'REACT',

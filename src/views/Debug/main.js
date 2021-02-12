@@ -11,6 +11,9 @@ import KnowledgeGraph from "@/components/NCATS/KnowledgeGraph"
 import RegionPredicateTable from "@/components/NCATS/predicateTables/RegionPredicateTable"
 import jsonQuery from "json-query"
 
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup"
+import FilterEnumeration from "@/components/criterion/FilterEnumeration"
+
 import queryString from "query-string"
 
 Vue.config.productionTip = false;
@@ -21,7 +24,9 @@ new Vue({
     components: {
         NCATSPredicateTable,
         RegionPredicateTable,
-        KnowledgeGraph
+        KnowledgeGraph,
+        CriterionListGroup,
+        FilterEnumeration
     },
     render(createElement, context) {
         return createElement(Template);
@@ -33,6 +38,9 @@ new Vue({
             fields: ['pathway', 'go'],
             currentPage: 1,
             translatorResults: null,
+            queryGraphCriterion: [],
+            nodes: [],
+            links: [],
         };
     },
     async created() {
@@ -157,28 +165,24 @@ new Vue({
         // printResultsForSources(message, ['kp-genetics']);
 
         this.results = [];
-        const updateResultsFromSources = (sources=[]) => (entry) => {
-            console.log(entry)
+        const updateResultsFromSources = (sources=[], assignable=[]) => (entry) => {
             const [agent, message] = entry;
             if (sources.length === 0 || sources.includes(agent)) {
                 if(hasResults(message)) {
-                    this.results.push(...message.results);
+                    assignable.push(...message.results);
                 }
-            }
+            } return assignable;
         }
-        async function updateResultsForSources(message, sources=[]) {
-            return await streamARSQuery(message, updateResultsFromSources(sources));
+        async function updateResultsForSources(message, sources=[], assignable=[]) {
+            return await streamARSQuery(message, updateResultsFromSources(sources, assignable));
         }
 
-        await updateResultsForSources(message);
+        await updateResultsForSources(message, [], assignable=this.results);
 
 
     },
     mounted() {
         this.$store.dispatch('myGeneInfo/infoForGeneSymbol', { geneSymbol: 'PCSK9', fields: ['pathway', 'go'] });
-
-
-
     },
     computed: {
         goTerms: function() {
@@ -189,6 +193,48 @@ new Vue({
         }
     },
     methods: {
+        addNode() {
+            this.nodes.push(`n0${this.nodes.length}`)
+        },
+        removeNode(node) {
+            this.nodes = this.nodes.filter(n => n !== node)
+        },
+        addEdge() {
+            this.links.push(`e0${this.links.length}`)
+        },
+        removeEdge(edge) {
+            this.links = this.links.filter(n => n !== edge)
+        },
+        makeQueryGraph(preGraph) {
+            const EDGE_PREFIX='e';
+            const NODE_PREFIX='n';
+            const isEdge = e => e.indexOf(EDGE_PREFIX) === 0;
+            const isNode = e => e.indexOf(NODE_PREFIX) === 0;
+            const edges = preGraph.filter(el => isEdge(el.field));
+            const nodes = preGraph.filter(el => isNode(el.field));
+            return {
+                "query_graph": {
+                    "nodes": nodes.reduce((acc, item) => {
+                        const acc_ = acc;
+                        acc_[item.field] = {
+                            "id": item.threshold,
+                            "category": '',
+                        }
+                        return acc_;
+                    }, {}),
+                    "edges": edges.reduce((acc, item) => {
+                        const acc_ = acc;
+                        acc_[item.field] = {
+                            "subject": '',
+                            "object": '',
+                            "predicate": item.threshold
+                        }
+                        return acc_;
+                    }, {})
+                },
+            }
+
+        },
         geneInfoForField(geneInfo, field) {
             const helpers = {
                 aggregateNestedLists: function(elements) {

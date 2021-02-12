@@ -19,25 +19,24 @@ export default Vue.component('resolved-curie-link', {
         }
     },
     async created() {
-        this.context = await trapi.getContext();
+        this.context = await trapi.identifiers.getContext();
     },
     computed: {
         supportedPrefix() {
-            return trapi.supportedPrefix(this.prefix, this.context, { 'reactome': 'REACT' });
+            return trapi.identifiers.supportedPrefix(this.prefix, this.context, { 'reactome': 'REACT' });
         },
         fullCurie() {
             if (!!this.supportedPrefix && !!this.id) {
-                return trapi.serializeCurie(this.supportedPrefix, this.id);
+                return trapi.identifiers.serializeCurie(this.supportedPrefix, this.id);
             } else if (!!this.curie) {
                 return this.curie;
             }
         },
         deserializedCurie() {
-            if (this.context) return trapi.deserializeCurie(this.fullCurie);
+            if (this.context) return trapi.identifiers.deserializeCurie(this.fullCurie);
         },
         resolvedCurie() {
-            console.log(trapi.resolveCurie(this.fullCurie, this.context))
-            if (this.context) return trapi.resolveCurie(this.fullCurie, this.context)
+            if (this.context) return trapi.identifiers.resolveCurie(this.fullCurie, this.context)
         }
     }
 })
