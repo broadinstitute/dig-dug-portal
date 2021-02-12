@@ -200,6 +200,8 @@
                                                     Total Bayes Factor(Multiply all):
                                                     <span>{{$parent.bayesFactorCommonVariation}}</span>
                                                 </li>
+
+                                                <li>{{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence</li>
                                             </ul>
                                             <!-- Common variation color bar plot -->
                                             <div style v-if="$parent.eglData">
@@ -251,7 +253,7 @@
                                                 ></tooltip-documentation>
                                             </h4>
                                             <ul>
-                                                <li>{{$parent.selectedGene[0]}} is not GWAS Significant - p-value greater than 5e-8</li>
+                                                <li>{{$parent.selectedGene[0]}} is not GWAS Significant for {{$parent.selectedPhenotype[0]}}- p-value greater than 5e-8</li>
                                                 <ul>
                                                     <li>
                                                         Bayes Factor =
@@ -260,6 +262,8 @@
                                                 </ul>
                                                 <li>{{$parent.selectedGene[0]}} does not have any Genetic or Regulatory evidence for {{$parent.selectedPhenotype[0]}}</li>
                                                 <li>Total Bayes Factor = {{$parent.bayesFactorCommonVariation}}</li>
+
+                                                <li>{{$parent.determineCategory($parent.bayesFactorCommonVariation)}} evidence</li>
                                             </ul>
 
                                             <div>
@@ -330,9 +334,9 @@
                                                     </ul>
                                                 </li>
                                                 <li>Total Bayes Factor(Multiply all) = {{$parent.bayesFactorRareVariation}}</li>
-                                                <!-- <li>
-                                                    <span>Causal Evidence</span>
-                                                </li>-->
+                                                <li>
+                                                    <span>Causal evidence</span>
+                                                </li>
                                             </ul>
 
                                             <div style="margin-block-end: 60px">
@@ -376,24 +380,7 @@
                                                         greater than 2.5e-6
                                                     </span>
                                                 </li>
-                                                <li>
-                                                    <span>
-                                                        {{$parent.determineCategory(
-                                                        $parent.bayesFactorRareVariation
-                                                        )
-                                                        }}
-                                                        Evidence
-                                                    </span>
-                                                </li>
 
-                                                <li>
-                                                    Total Bayes Factor =
-                                                    <span>
-                                                        {{
-                                                        $parent.bayesFactorRareVariation
-                                                        }}
-                                                    </span>
-                                                </li>
                                                 <li>
                                                     Prior Variance
                                                     <tooltip-documentation
@@ -408,6 +395,19 @@
                                                         placeholder="Prior Variance"
                                                         id="prior_variance_input"
                                                     />
+                                                    <ul>
+                                                        <li>
+                                                            Total Bayes Factor =
+                                                            <span>
+                                                                {{
+                                                                $parent.bayesFactorRareVariation
+                                                                }}
+                                                            </span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <span>{{$parent.determineCategory($parent.bayesFactorRareVariation)}} evidence</span>
                                                 </li>
                                             </ul>
                                             <div style="margin-block-end: 40px">
