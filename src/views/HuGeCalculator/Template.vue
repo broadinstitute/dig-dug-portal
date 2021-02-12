@@ -116,7 +116,7 @@
                                                 :bayes_factor="$parent.bayesFactorCombinedEvidence(
                                                         $parent.bayesFactorCommonVariation,
                                                         $parent.bayesFactorRareVariation)"
-                                                :isDichotomous="true"
+                                                :isDichotomous="this.$store.state.bioPortal.phenotypeMap[$parent.selectedPhenotype[0]].dichotomous"
                                             ></posterior-probability-plot>
                                         </div>
                                     </div>
