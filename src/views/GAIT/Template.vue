@@ -320,7 +320,6 @@
                                         >
                                         <b-card
                                             class="text-center filter-tests"
-                                            border-variant="primary"
                                             v-if="$parent.tableData.length > 0"
                                         >
                                             <criterion-list-group
