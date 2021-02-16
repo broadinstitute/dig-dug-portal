@@ -98,16 +98,6 @@ export default Vue.component("ncats-predicate-table", {
     },
     methods: {
         supportedPrefix: trapi.identifiers.supportedPrefix,
-        remap(prefix) {
-            const remapping = {
-                'reactome': 'REACT',
-                'wikipathways': 'WIKIPATHWAYS'
-            }
-            if (!!remapping[prefix]) {
-                return remapping[prefix];
-            }
-            return prefix;
-        },
         geneInfoForField(geneInfo, field) {
             const helpers = {
                 aggregateNestedLists: function(elements) {
@@ -117,7 +107,6 @@ export default Vue.component("ncats-predicate-table", {
                             .filter(element => element[1].length > 0)
                             .flatMap(thisEntry =>
                                 thisEntry[1].map(entry => { entry['source'] = thisEntry[0]; return entry })))
-                    console.log(element)
                     return element;
                 },
             }

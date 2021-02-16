@@ -9,6 +9,9 @@ import BootstrapVue, { componentsPlugin } from "bootstrap-vue"
 import NCATSPredicateTable from "@/components/NCATS/PredicateTable"
 import KnowledgeGraph from "@/components/NCATS/KnowledgeGraph"
 import RegionPredicateTable from "@/components/NCATS/predicateTables/RegionPredicateTable"
+
+import FieldNav from "@/components/NCATS/FieldNav"
+
 import jsonQuery from "json-query"
 
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup"
@@ -28,7 +31,8 @@ new Vue({
         RegionPredicateTable,
         KnowledgeGraph,
         CriterionListGroup,
-        FilterEnumeration
+        FilterEnumeration,
+        FieldNav
     },
     render(createElement, context) {
         return createElement(Template);
@@ -37,7 +41,8 @@ new Vue({
         return {
             geneInfo: [],
             results: [],
-            fields: ['pathway', 'go'],
+            fields: [],
+            gene: 'PCSK9',
             currentPage: 1,
             translatorResults: null,
             queryGraphCriterion: [],
@@ -46,8 +51,35 @@ new Vue({
             links: [],
         };
     },
-    mounted() {
-        this.$store.dispatch('myGeneInfo/infoForGeneSymbol', { geneSymbol: 'PCSK9', fields: ['pathway', 'go'] });
+    async mounted() {
+        const myGeneAPI = 'https://mygene.info/v3';
+        const qs = queryString.stringify({
+            q: this.gene,
+            fields: 'all'
+        }, { arrayFormat: 'comma' });
+       let ids = await fetch(`${myGeneAPI}/query?${qs}`, { contentType: "application/json" })
+            .then(async resp => {
+                if (resp.status === 200) {
+                    const geneSymbolMatches = await resp.json();
+                    return geneSymbolMatches.hits;
+                } else {
+                    throw new Error(`MyGene Info returning non-successful code ${resp.status}`);
+                }
+            })
+            .then(json => {
+                this.geneInfo = json[0];
+            })
+
+        Promise.all(ids.map(id =>
+            fetch(`${myGeneAPI}/gene/${id}?fields=all`, { contentType: "application/json" })
+                .then(response => response.json())
+                .then(geneInfo => {
+                    // this.fields.push(...Object.keys(geneInfo))
+                    // this.fields = Array.from(new Set(this.fields))
+                    this.geneInfo = geneInfo;
+                })
+            )
+        )
     },
     computed: {
         goTerms: function() {

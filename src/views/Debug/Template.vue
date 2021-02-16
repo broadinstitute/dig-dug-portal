@@ -58,16 +58,27 @@
             </template>
         </criterion-list-group>
 
-        <ncats-predicate-table
-            :title="'Pathway'"
-            :geneSymbol="'PCSK9'"
-            :field="'pathway'">
-        </ncats-predicate-table>
-        <ncats-predicate-table
-            :title="'GO Terms'"
-            :geneSymbol="'PCSK9'"
-            :field="'go'">
-        </ncats-predicate-table>
+
+        <div>
+            <field-nav
+                :knowledgeItem="$parent.geneInfo"
+                :withFields="['pathway', 'go', 'homologene', 'summary']"
+            ></field-nav>
+            <b-tabs>
+                <b-tab v-for="field in $parent.fields"
+                       :title="field"
+                       :key="field">
+                    <ncats-predicate-table
+                        :title="field"
+                        :geneSymbol="'PCSK9'"
+                        :field="field">
+                    </ncats-predicate-table>
+                </b-tab>
+            </b-tabs>
+        </div>
+
+
+
         <ncats-region-predicate-table
             :title="`Pathway Associations on ${8}:${117962512}-${118188952}`"
             :chr="8"
@@ -75,6 +86,8 @@
             :end="118188952"
             :field="'pathway'">
         </ncats-region-predicate-table>
-        {{$parent.results}}
+        <pre>
+            {{$parent.results}}
+        </pre>
     </div>
 </template>

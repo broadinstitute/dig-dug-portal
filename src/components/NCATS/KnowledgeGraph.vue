@@ -1639,7 +1639,7 @@ export default Vue.component("ncats-knowledge-graph", {
             }
             if (!!this.results) {
                 this.results.forEach(
-                    knowledgeAssociation => {
+                    knowledgeAssociationRecord => {
                     const example = {
                         "node_bindings": {
                             "n00": [
@@ -1677,11 +1677,15 @@ export default Vue.component("ncats-knowledge-graph", {
                         }
                     };
 
+                    /*
+                    Parsing a Knowledge Association Record
+                    - Each record contains a collection of node_bindings, and a collection of edge_bindings
+                    - The key for each node
+                    */
+
                     const inputNodes = example.node_bindings.n00;
                     const outputNodes = example.node_bindings.n01;
                     const nodeLinks = example.edge_bindings.e00;
-
-                    node_b
 
                 });
             } else if (!!this.knowledge_graph) {
