@@ -109,14 +109,15 @@ new Vue({
             ],
             fields: [],
             optionalFields: [],
-            searchCriteria: keyParams.gene
-                ? [
-                      {
-                          field: "gene",
-                          threshold: keyParams.gene
-                      }
-                  ]
-                : []
+            searchCriteria: []
+            // searchCriteria: keyParams.gene
+            //     ? [
+            //           {
+            //               field: "gene",
+            //               threshold: keyParams.gene
+            //           }
+            //       ]
+            //     : []
         };
     },
     created() {
@@ -124,6 +125,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
+        this.initCriteria();
     },
     computed: {
         phenotypeMap() {
@@ -257,17 +259,47 @@ new Vue({
                 let matches = await match("gene", input, { limit: 10 });
                 this.matchingGenes = matches;
             }
+        },
+        initCriteria() {
+            if (keyParams.gene)
+                this.searchCriteria.push({
+                    field: "gene",
+                    threshold: keyParams.gene
+                });
+            if (keyParams.masks) {
+                let masks = keyParams.masks.split(",");
+                masks.forEach(m =>
+                    this.searchCriteria.push({
+                        field: "mask",
+                        threshold: m
+                    })
+                );
+            }
+            if (keyParams.dataset) {
+                this.selectedMethods.push({
+                    field: "dataset",
+                    threshold: keyParams.dataset
+                });
+            }
+            if (keyParams.phenotypes) {
+                let phenotypes = keyParams.phenotypes.split(",");
+                phenotypes.forEach(p =>
+                    this.selectedMethods.push({
+                        field: "phenotype",
+                        threshold: p
+                    })
+                );
+            }
+            if (keyParams.tests) {
+                let tests = keyParams.tests.split(",");
+                tests.forEach(t =>
+                    this.selectedMethods.push({
+                        field: "test",
+                        threshold: t
+                    })
+                );
+            }
         }
-        // paramsCriteria() {
-        //     keyParams.gene
-        //         ? [
-        //               {
-        //                   field: "gene",
-        //                   threshold: keyParams.gene
-        //               }
-        //           ]
-        //         : [];
-        // }
     },
     watch: {
         searchCriteria: {
