@@ -320,14 +320,12 @@ new Vue({
         },
         selectedGene(newGene, oldGene) {
             if (!isEqual(newGene, oldGene)) {
-                console.log("new gene", newGene);
                 keyParams.set({ gene: newGene });
             }
         },
         selectedMasks(newMasks, oldMasks) {
             //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newMasks, oldMasks)) {
-                console.log("new mask", newMasks);
                 keyParams.set({
                     masks: newMasks.length ? newMasks.join(",") : []
                 });
@@ -335,22 +333,16 @@ new Vue({
         },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
-                console.log("old dataset", [keyParams.dataset]);
                 if (!isEqual([keyParams.dataset], newDataset)) {
-                    console.log("different");
                     this.selectedMethods = this.selectedMethods.filter(v => {
                         return v.field !== "phenotype";
                     });
                 }
-
-                console.log("new dataset", newDataset);
                 keyParams.set({ dataset: newDataset });
             }
         },
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
-            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newPhenotypes, oldPhenotypes)) {
-                console.log("new phenotype", newPhenotypes);
                 keyParams.set({
                     phenotypes: newPhenotypes.length
                         ? newPhenotypes.join(",")
@@ -360,9 +352,7 @@ new Vue({
             }
         },
         selectedTests(newTests, oldTests) {
-            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newTests, oldTests)) {
-                console.log("new test", newTests);
                 keyParams.set({
                     tests: newTests.length ? newTests.join(",") : []
                 });
