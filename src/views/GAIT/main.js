@@ -151,13 +151,6 @@ new Vue({
             //get only the varIDs for selected rows
             return this.tableData.filter(v => v.selected).map(v => v.varId);
         },
-        selectedPhenotypes() {
-            return this.selectedMethods
-                .filter(v => {
-                    return v.field === "phenotype";
-                })
-                .map(v => v.threshold);
-        },
         selectedGene() {
             return this.searchCriteria
                 .filter(v => {
@@ -176,6 +169,13 @@ new Vue({
             return this.selectedMethods
                 .filter(v => {
                     return v.field === "dataset";
+                })
+                .map(v => v.threshold);
+        },
+        selectedPhenotypes() {
+            return this.selectedMethods
+                .filter(v => {
+                    return v.field === "phenotype";
                 })
                 .map(v => v.threshold);
         },
@@ -327,7 +327,7 @@ new Vue({
         selectedMasks(newMasks, oldMasks) {
             //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newMasks, oldMasks)) {
-                console.log("new", newMasks);
+                console.log("new mask", newMasks);
                 keyParams.set({
                     masks: newMasks.length ? newMasks.join(",") : []
                 });
@@ -335,17 +335,22 @@ new Vue({
         },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
+                console.log("old dataset", [keyParams.dataset]);
+                if (!isEqual([keyParams.dataset], newDataset)) {
+                    console.log("different");
+                    this.selectedMethods = this.selectedMethods.filter(v => {
+                        return v.field !== "phenotype";
+                    });
+                }
+
                 console.log("new dataset", newDataset);
                 keyParams.set({ dataset: newDataset });
-                this.selectedMethods = this.selectedMethods.filter(v => {
-                    return v.field !== "phenotype";
-                });
             }
         },
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
             //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newPhenotypes, oldPhenotypes)) {
-                console.log("new", newPhenotypes);
+                console.log("new phenotype", newPhenotypes);
                 keyParams.set({
                     phenotypes: newPhenotypes.length
                         ? newPhenotypes.join(",")
