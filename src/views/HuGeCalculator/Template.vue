@@ -358,6 +358,11 @@
                                                     :dichotomous="true"
                                                 ></mask-table>
                                             </div>
+                                            <div v-if="$parent.masks.length == 0">
+                                                <ul>
+                                                    <li>No mask data available</li>
+                                                </ul>
+                                            </div>
                                         </div>
 
                                         <!-- Rare Variation - If not Exome wide significant -->
