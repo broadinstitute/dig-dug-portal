@@ -228,11 +228,13 @@ new Vue({
                             this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]) {
                             //filter with selected phenotype
                             masks = this.$store.state.geneAssociations52k.data[i].masks;
-                            let d = masks.sort((a, b) => a.pValue - b.pValue);
-                            let mostSignificantMask = d[0];
-                            stdErr = mostSignificantMask.stdErr;
-                            beta = mostSignificantMask.beta;
-                            rarebayesfactor = this.bayes_factor(beta, stdErr);
+                            if (!!masks && masks.length > 0) {
+                                let d = masks.sort((a, b) => a.pValue - b.pValue);
+                                let mostSignificantMask = d[0];
+                                stdErr = mostSignificantMask.stdErr;
+                                beta = mostSignificantMask.beta;
+                                rarebayesfactor = this.bayes_factor(beta, stdErr);
+                            }
                             if (rarebayesfactor < 1) {
                                 rarebayesfactor = 1;
                             }
