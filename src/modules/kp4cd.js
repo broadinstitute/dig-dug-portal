@@ -199,7 +199,7 @@ export default {
         },
         async getPaperMenu(context, paperPage) {
             let json = await fetch(
-                "http://kp4cd.org/rest/views/paperheadermenu?paper=" + paperPage
+                "https://kp4cd.org/rest/views/paperheadermenu?paper=" + paperPage
             ).then(resp => resp.json());
             // set the data
             context.commit("setPaperMenu", json);
