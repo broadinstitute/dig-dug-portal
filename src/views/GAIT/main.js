@@ -110,14 +110,6 @@ new Vue({
             fields: [],
             optionalFields: [],
             searchCriteria: []
-            // searchCriteria: keyParams.gene
-            //     ? [
-            //           {
-            //               field: "gene",
-            //               threshold: keyParams.gene
-            //           }
-            //       ]
-            //     : []
         };
     },
     created() {
