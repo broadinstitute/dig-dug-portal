@@ -258,6 +258,16 @@ new Vue({
                 this.matchingGenes = matches;
             }
         }
+        // paramsCriteria() {
+        //     keyParams.gene
+        //         ? [
+        //               {
+        //                   field: "gene",
+        //                   threshold: keyParams.gene
+        //               }
+        //           ]
+        //         : [];
+        // }
     },
     watch: {
         searchCriteria: {
@@ -276,8 +286,25 @@ new Vue({
             },
             deep: true
         },
+        selectedGene(newGene, oldGene) {
+            if (!isEqual(newGene, oldGene)) {
+                console.log("new gene", newGene);
+                keyParams.set({ gene: newGene });
+            }
+        },
+        selectedMasks(newMasks, oldMasks) {
+            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
+            if (!isEqual(newMasks, oldMasks)) {
+                console.log("new", newMasks);
+                keyParams.set({
+                    masks: newMasks.length ? newMasks.join(",") : []
+                });
+            }
+        },
         selectedDataset(newDataset, oldDataset) {
             if (!isEqual(newDataset, oldDataset)) {
+                console.log("new dataset", newDataset);
+                keyParams.set({ dataset: newDataset });
                 this.selectedMethods = this.selectedMethods.filter(v => {
                     return v.field !== "phenotype";
                 });
@@ -286,7 +313,22 @@ new Vue({
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
             //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newPhenotypes, oldPhenotypes)) {
+                console.log("new", newPhenotypes);
+                keyParams.set({
+                    phenotypes: newPhenotypes.length
+                        ? newPhenotypes.join(",")
+                        : []
+                });
                 this.$store.dispatch("onPhenotypeChange", newPhenotypes);
+            }
+        },
+        selectedTests(newTests, oldTests) {
+            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
+            if (!isEqual(newTests, oldTests)) {
+                console.log("new test", newTests);
+                keyParams.set({
+                    tests: newTests.length ? newTests.join(",") : []
+                });
             }
         },
         "$store.state.variants": function() {
