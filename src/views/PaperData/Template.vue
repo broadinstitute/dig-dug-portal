@@ -1,11 +1,12 @@
 <template>
     <div>
         <!-- Header -->
-        <!-- <page-header
+        <paper-page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
-        ></page-header>
-        -->
+            :paperMenu="$parent.paperMenu[0].body"
+            v-if="!!$parent.paperMenu"
+        ></paper-page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -55,9 +56,7 @@
                                         v-on:scroll.native="handleScroll"
                                     ></effector-genes-table>
                                 </b-tab>
-                                <b-tab
-                                    title="Research method / supplementary data"
-                                >
+                                <b-tab title="Method and supporting data">
                                     <research-method-section
                                         v-if="$parent.researchMethod != null"
                                         :researchMethod="$parent.researchMethod"
@@ -73,9 +72,9 @@
         </div>
 
         <!-- Footer-->
-        <!--
-            <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
-            -->
+        <paper-page-footer
+            :disease-group="$parent.diseaseGroup"
+        ></paper-page-footer>
     </div>
 </template>
 

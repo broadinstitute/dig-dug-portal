@@ -10,8 +10,8 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
+import PaperPageHeader from "@/components/PaperPageHeader.vue";
+import PaperPageFooter from "@/components/PaperPageFooter.vue";
 import ResearchMethod from "@/components/eglt/ResearchMethod.vue";
 import EffectorGenesPlotsLine from "@/components/eglt/EffectorGenesPlotsLine.vue";
 import EffectorGenesTable from "@/components/eglt/EffectorGenesTable.vue";
@@ -27,8 +27,8 @@ import Alert, {
 new Vue({
     store,
     components: {
-        PageHeader,
-        PageFooter,
+        PaperPageHeader,
+        PaperPageFooter,
         Alert,
         ResearchMethod,
         EffectorGenesPlotsLine,
@@ -39,6 +39,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.dataset);
+        this.$store.dispatch("kp4cd/getPaperMenu", keyParams.dataset);
         //this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait); //for now, data from kp4cd
     },
 
@@ -86,6 +87,8 @@ new Vue({
     },
 
     computed: {
+
+
         tableTop() {
             let eglTable = document.getElementsByClassName("EGLT-table")[0];
             let rect = eglTable.getBoundingClientRect();
@@ -144,7 +147,14 @@ new Vue({
             }
             return contents;
         },
+        paperMenu() {
+            let contents = this.$store.state.kp4cd.paperMenu;
 
+            if (contents.length === 0) {
+                return null;
+            }
+            return contents;
+        },
         datasets() {
             let contents = this.$store.state.effectorGenes.datasets;
             if (contents.length === 0) {

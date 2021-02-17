@@ -1,10 +1,12 @@
 <template>
     <div>
         <!-- Header -->
-        <!--<page-header
+        <paper-page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
-        ></page-header>-->
+            :paperMenu="$parent.paperMenu[0].body"
+            v-if="!!$parent.paperMenu"
+        ></paper-page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -29,6 +31,8 @@
         </div>
 
         <!-- Footer-->
-        <!--<page-footer :disease-group="$parent.diseaseGroup"></page-footer>-->
+        <paper-page-footer
+            :disease-group="$parent.diseaseGroup"
+        ></paper-page-footer>
     </div>
 </template>

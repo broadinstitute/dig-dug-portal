@@ -706,7 +706,9 @@ export default Vue.component("effector-genes-table", {
                             });
                         } else if (searchIndex.type == "search_cd") {
                             let searchDirection = document.getElementById(
-                                "filter_" + searchIndex.field + "_direction"
+                                "filter_" +
+                                    searchIndex.field.replace(/ /g, "") +
+                                    "_direction"
                             ).value;
 
                             targetData.filter((row) => {
