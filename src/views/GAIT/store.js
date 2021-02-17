@@ -47,8 +47,6 @@ export default new Vuex.Store({
     actions: {
         onPhenotypeChange(context, phenotypes) {
             context.commit("setPhenotype", phenotypes);
-            //TODO: set url params for bookmark
-            //keyParams.set({ phenotypes: phenotypes.join(",") });
         },
 
         async queryGenes(context, phenotypes) {
@@ -64,15 +62,10 @@ export default new Vuex.Store({
         },
 
         async queryBurden(context, { gene, binID }) {
-            // TODO: set url params for bookmark
-            // context.dispatch("burden/query", { q });
             let queries = binID.map(bin => query("burden", `${gene},${bin}`));
             let data = await Promise.all(queries)
                 .then(results => results.flatMap(data => data))
                 .then(data => uniqBy(data, "varId"));
-            //let unique = uniqBy(data, "varId");
-            //console.log("data", unique);
-
             context.commit("setVariants", data);
         }
     }
