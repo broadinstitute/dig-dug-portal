@@ -1,22 +1,6 @@
 <template>
     <div>
         <criterion-list-group v-model="$parent.queryGraphCriterion">
-            <!-- <filter-enumeration-control
-                v-for="node in $parent.nodes"
-                :key="node"
-                :field="node"
-                :options="['NCBIGene:1803']">
-                {{node}} <button @click="$parent.removeNode(node)">Remove Node</button>
-            </filter-enumeration-control>
-
-            <filter-enumeration-control
-                v-for="node in $parent.nodes"
-                :key="node"
-                :field="node"
-                :options="['NCBIGene:1803']">
-                {{node}} <button @click="$parent.removeNode(node)">Remove Node</button>
-            </filter-enumeration-control> -->
-
             <span style="display: inline-block">
                 <div class="label">
                     Genes <button @click="$parent.addNode">+</button>
@@ -57,9 +41,9 @@
                 {{$parent.results}}
             </template>
         </criterion-list-group>
+        
 
-
-        <div>
+        <!-- <div>
             <field-nav
                 :knowledgeItem="$parent.geneInfo"
                 :withFields="['pathway', 'go', 'homologene', 'summary']"
@@ -77,8 +61,6 @@
             </b-tabs>
         </div>
 
-
-
         <ncats-region-predicate-table
             :title="`Pathway Associations on ${8}:${117962512}-${118188952}`"
             :chr="8"
@@ -88,6 +70,6 @@
         </ncats-region-predicate-table>
         <pre>
             {{$parent.results}}
-        </pre>
+        </pre> -->
     </div>
 </template>

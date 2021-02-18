@@ -11,7 +11,6 @@ const _prefix_synonyms = {
     'reactome': 'REACT',
 }
 
-
 const deserializeCurie = function(curie) {
     if (!!curie && curie.split(":").length > 1) {
         return [...curie.split(":")];
@@ -21,6 +20,10 @@ const deserializeCurie = function(curie) {
 const serializeCurie = function(prefix, id) {
     return `${prefix}:${id}`
 }
+
+const stripPrefix = function(curie) {
+    return deserializeCurie(curie)[1];
+ }
 
 const extractCurie = function(uri, context) {
     if (!!context) {
@@ -42,7 +45,7 @@ const resolveCurie = function(curie, context) {
 
         // if prefix given is supported (in a loosematch), use the synonym or itself
         // if the prefix synonym is empty, the prefix is unsupported and the curie can't be resolved
-        
+
         // const maybeSupportedPrefix = supportedPrefix(prefix, context, synonyms);
         // const haveSupportedPrefix = maybeSupportedPrefix !== '';
         // if (haveSupportedPrefix) {
@@ -136,18 +139,22 @@ const isSupportedPrefix = function(maybeIsPrefix, context, synonyms=_prefix_syno
     return supportedPrefix(maybeIsPrefix, context, synonyms) !== '';
 }
 
+
+
 /* ARS Messaging */
+
+const ARS_API = "https://ars.transltr.io/ars/api/"
 
 // Basic ARS query
 async function messageARS(message, trace=null) {
     let qs = queryString.stringify({ trace }, { skipNull: true });
-    return await fetch(`https://ars.transltr.io/ars/api/messages/${message}?${qs}`).then(body => body.json())
+    return await fetch(`${ARS_API}messages/${message}?${qs}`).then(body => body.json())
 }
 
 // ARS Query initializer
 // Needs to be executed before the ARS can be messaged for its results
 async function beginARSQuery(message) {
-    return await fetch('https://ars.transltr.io/ars/api/submit', {
+    return await fetch(`${ARS_API}submit`, {
         method: 'POST',
         body: JSON.stringify(message)
     })
@@ -300,6 +307,70 @@ async function updateResultsForSources(message, sources=[], assignableList=[]) {
     return await streamARSQuery(message, updateResultsFromSources(sources, assignableList));
 }
 
+
+
+
+
+
+/* BIOLINK MODEL QUERIES */
+// https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml
+
+
+
+import YAML from "yaml"
+
+
+let getBiolinkModel = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml')
+    .then(response => response.text())
+    .then(text => YAML.parse(text))
+);
+
+let bioLinkModel = (async () => await getBiolinkModel())();
+
+const categoricalMatch = (instance, concept, biolinkML, maxDepth=0) => {
+    if (!!biolinkML.classes[instance] && biolinkML.classes[instance].is_a === concept) return true;
+    return false;
+    // TODO
+    // else if (maxDepth > 0) categoricalMatch(instance, biolinkML.classes[concept].is_a)
+}
+
+// TODO: Debug!
+const findSlotsForDomainRange = ({ domain='', range='' }, biolinkModel, matchCategory=false) => {
+
+    let _domain = domain.toLowerCase();
+    let _range = range.toLowerCase();
+
+    return Object.keys(biolinkModel.slots).filter(slotName => {
+
+        const slot = biolinkModel.slots[slotName];
+
+        if (!!slot.domain && !!slot.range) {
+            if (_domain != '' && _range != '') {
+                return slot.domain === _domain && slot.domain === _range;
+            } else if (_domain != '') {
+                return slot.domain === _domain //|| matchCategory && categoricalMatch(_domain);
+            } else if (_range != '') {
+                return slot.range === _range //|| matchCategory && categoricalMatch(_range);
+            }
+        }
+
+    })
+};
+
+const findConceptByPrefix = (prefix, biolinkModel) => {
+    return Object.keys(biolinkModel.classes).filter(className => {
+        const category = biolinkModel.classes[className];
+        return !!category.id_prefixes && category.id_prefixes.includes(prefix)
+    })
+};
+
+const slotsForSlot = (slot, biolinkML) => {
+    return {
+        domain: null,
+        range: null,
+    }
+}
+
 export default {
     query: streamARSQuery,
     callback: {
@@ -320,5 +391,14 @@ export default {
         resolveCurie,
         supportedPrefix,
         isSupportedPrefix,
+        _stripPrefix: stripPrefix,
+    },
+    model: {
+        getBiolinkModel,
+        bioLinkModel,
+        findSlotsForDomainRange,
+        findConceptByPrefix,
+        slotsForSlot,
+        categoricalMatch,
     }
 }

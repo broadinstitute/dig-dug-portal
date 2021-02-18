@@ -1624,72 +1624,67 @@ let results = [
   }
 ]
 
-export default Vue.component("ncats-knowledge-graph", {
-    props: ['knowledge_graph', 'results'],
-    data() {
-        return {
 
-        }
-    },
+const makeLink = (source, target, value) => ({
+    source, target, value
+});
+const makeNode = (name, group, value, index) => ({
+    name, group, value, index
+});
+
+const makeGraph = (query_graph, knowledge_graph_results) => {
+
+    // const edge_labels = Object.keys(query_graph.edges);
+    // const node_labels = Object.keys(query_graph.nodes);
+
+    knowledge_graph_results.forEach(el => {
+        // Target Schema:
+            // Node: {"name":"Myriel","group":1,"index":0}, {"name":"Napoleon","group":1,"index":1}
+            // Link: {"source":1,"target":0,"value":1}
+
+        // const nodeResultKeys = Object.keys(el.node_bindings);
+
+        let graph = { nodes: [], links: [] };
+
+        const edgeResultKeys = Object.keys(el.edge_bindings);
+        edgeResultKeys.forEach(edgeId => {
+
+            // since map keys are unordered we have to find out what node is the subject or the object from the query
+            const { subject, object } = query_graph.edges[edgeId];
+
+            // create nodes then create link
+            const subjectNode = makeNode(el.node_bindings[subject][0].id,
+                query_graph.nodes[subject].category, {
+                    id: el.node_bindings[subject][0].id,
+                    category: query_graph.nodes[subject].category,
+                }, el.node_bindings[subject][0].id);
+
+            const objectNode = makeNode(el.node_bindings[object][0].id,
+                query_graph.nodes[object].category, {
+                    id: el.node_bindings[subject][0].id,
+                    category: query_graph.nodes[object].category,
+                }, el.node_bindings[object][0].id);
+
+            const subjectObjectLink = makeLink(subjectNode.index, objectNode.index, {
+                id: el.edge_bindings[edgeId][0].id,
+                predicate: query_graph.edges[edgeId].predicate,
+            });
+
+            graph.nodes.push(subjectNode, objectNode);
+            graph.links.push(subjectObjectLink);
+
+        })
+    });
+
+};
+
+
+export default Vue.component("ncats-knowledge-graph", {
+    props: ['query_graph', 'results'],
     computed: {
         vegaGraph() {
-            const graph = {
-                nodes: [{"name":"Myriel","group":1,"index":0},{"name":"Napoleon","group":1,"index":1},{"name":"Mlle.Baptistine","group":1,"index":2},{"name":"Mme.Magloire","group":1,"index":3},{"name":"CountessdeLo","group":1,"index":4},{"name":"Geborand","group":1,"index":5}],
-                links: [{"source":1,"target":0,"value":1},{"source":2,"target":0,"value":8},{"source":3,"target":0,"value":10}],
-            }
             if (!!this.results) {
-                this.results.forEach(
-                    knowledgeAssociationRecord => {
-                    const example = {
-                        "node_bindings": {
-                            "n00": [
-                                {
-                                    "id": "NCBIGene:1803",
-                                    "category": [
-                                        "biolink:NamedThing",
-                                        "biolink:BiologicalEntity",
-                                        "biolink:MolecularEntity",
-                                        "biolink:Gene",
-                                        "biolink:GeneOrGeneProduct",
-                                        "biolink:MacromolecularMachine",
-                                        "biolink:GenomicEntity"
-                                    ]
-                                }
-                            ],
-                            "n01": [
-                                {
-                                "id": "MONDO:0005044",
-                                "category": [
-                                    "biolink:NamedThing",
-                                    "biolink:BiologicalEntity",
-                                    "biolink:Disease",
-                                    "biolink:DiseaseOrPhenotypicFeature"
-                                ]
-                                }
-                            ]
-                        },
-                        "edge_bindings": {
-                            "e00": [
-                                {
-                                "id": "8c6ca68ef652b11d8808fa279badfed9"
-                                }
-                            ]
-                        }
-                    };
-
-                    /*
-                    Parsing a Knowledge Association Record
-                    - Each record contains a collection of node_bindings, and a collection of edge_bindings
-                    - The key for each node
-                    */
-
-                    const inputNodes = example.node_bindings.n00;
-                    const outputNodes = example.node_bindings.n01;
-                    const nodeLinks = example.edge_bindings.e00;
-
-                });
-            } else if (!!this.knowledge_graph) {
-                return {}
+                return makeGraph(this.query_graph, this.results);
             }
         }
     }
