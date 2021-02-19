@@ -86,7 +86,7 @@
                 </small>
             </div>-->
 
-            <div
+            <!-- <div
                 class="phenotypes-with-signal-wrapper no-signal-wrapper hidden"
                 style="height: auto !important;"
             >
@@ -106,7 +106,7 @@
                         >Go to phenotype page</div>
                     </div>
                 </div>
-            </div>
+            </div>-->
         </div>
 
         <div class="pws-bar-view new-phenotypes-with-signal-wrapper hidden">
