@@ -63,11 +63,11 @@ new Vue({
                     },
                     "nodes": {
                         "n00": {
-                        "category": "biolink:Gene",
-                        "id": "NCBIGene:1017"
+                            "category": "biolink:Gene",
+                            "id": "NCBIGene:1017"
                         },
                         "n01": {
-                        "category": "biolink:CellularComponent"
+                            "category": "biolink:Pathway"
                         }
                     }
                 }

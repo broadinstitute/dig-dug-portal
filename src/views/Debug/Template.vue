@@ -38,13 +38,14 @@
             </span>
 
             <template slot=filtered>
-                {{$parent.tableItems}}
             </template>
         </criterion-list-group>
         
-
-        <ncats-knowledge-graph></ncats-knowledge-graph>
-
+        <ncats-knowledge-graph
+            v-if="$parent.results.length > 0"
+            :query_graph="$parent.query_graph.query_graph"
+            :results="$parent.results"
+        ></ncats-knowledge-graph>
         <b-table
             v-if="$parent.results.length > 0"
             :items="$parent.tableItems">
