@@ -1,9 +1,15 @@
 <template>
+    <network 
+      v-if="nodes.length > 0 && edges.length > 0"
+      ref="network"
+      :nodes="nodes"
+      :edges="edges">
+    </network>
 </template>
 <script>
 import Vue from "vue";
-import VueVega from 'vue-vega'
-
+import { Network } from "vue-vis-network";
+import _ from "lodash"
 let results = [
   {
     "node_bindings": {
@@ -1624,18 +1630,37 @@ let results = [
   }
 ]
 
+let query_graph = {
+    "edges": {
+        "e00": {
+            "subject": "n00",
+            "object": "n01",
+            "predicate": "biolink:gene_associated_with_condition"
+        }
+    },
+    "nodes": {
+        "n00": {
+            "id": "NCBIGene:1803",
+            "category": "biolink:Gene"
+        },
+        "n01": {
+            "category": "biolink:Disease"
+        }
+    }
+}
 
-const makeLink = (source, target, value) => ({
-    source, target, value
+const makeLink = (from, to, value) => ({
+    from, to, label: value
 });
-const makeNode = (name, group, value, index) => ({
-    name, group, value, index
+const makeNode = (id, group, label, index) => ({
+    id, group, label, index
 });
 
 const makeGraph = (query_graph, knowledge_graph_results) => {
 
     // const edge_labels = Object.keys(query_graph.edges);
     // const node_labels = Object.keys(query_graph.nodes);
+    let graph = { nodes: [], links: [] };
 
     knowledge_graph_results.forEach(el => {
         // Target Schema:
@@ -1644,47 +1669,52 @@ const makeGraph = (query_graph, knowledge_graph_results) => {
 
         // const nodeResultKeys = Object.keys(el.node_bindings);
 
-        let graph = { nodes: [], links: [] };
 
         const edgeResultKeys = Object.keys(el.edge_bindings);
         edgeResultKeys.forEach(edgeId => {
+             if (Object.keys(query_graph.edges).includes(edgeId)) {
+                // since map keys are unordered we have to find out what node is the subject or the object from the query
+                const { subject, object } = query_graph.edges[edgeId];
 
-            // since map keys are unordered we have to find out what node is the subject or the object from the query
-            const { subject, object } = query_graph.edges[edgeId];
+                // create nodes then create link
+                const subjectNode = makeNode(el.node_bindings[subject][0].id,
+                    query_graph.nodes[subject].category, el.node_bindings[subject][0].id, el.node_bindings[subject][0].id);
 
-            // create nodes then create link
-            const subjectNode = makeNode(el.node_bindings[subject][0].id,
-                query_graph.nodes[subject].category, {
-                    id: el.node_bindings[subject][0].id,
-                    category: query_graph.nodes[subject].category,
-                }, el.node_bindings[subject][0].id);
+                const objectNode = makeNode(el.node_bindings[object][0].id,
+                    query_graph.nodes[object].category, el.node_bindings[object][0].id, el.node_bindings[object][0].id);
 
-            const objectNode = makeNode(el.node_bindings[object][0].id,
-                query_graph.nodes[object].category, {
-                    id: el.node_bindings[subject][0].id,
-                    category: query_graph.nodes[object].category,
-                }, el.node_bindings[object][0].id);
+                const subjectObjectLink = makeLink(subjectNode.index, objectNode.index, {
+                    id: el.edge_bindings[edgeId][0].id,
+                    predicate: query_graph.edges[edgeId].predicate,
+                });
 
-            const subjectObjectLink = makeLink(subjectNode.index, objectNode.index, {
-                id: el.edge_bindings[edgeId][0].id,
-                predicate: query_graph.edges[edgeId].predicate,
-            });
+                graph.nodes.push(subjectNode, objectNode);
+                graph.links.push(subjectObjectLink);
 
-            graph.nodes.push(subjectNode, objectNode);
-            graph.links.push(subjectObjectLink);
-
+             }
         })
     });
+    graph.nodes = _.uniqBy(graph.nodes, 'id')
+    return graph;
 
 };
-
+console.log(makeGraph(query_graph, results))
 
 export default Vue.component("ncats-knowledge-graph", {
     props: ['query_graph', 'results'],
+    components: {
+      Network
+    },
+    data() {
+      return {
+        nodes: makeGraph(query_graph, results).nodes,
+        edges: makeGraph(query_graph, results).links,
+      }
+    },
     computed: {
         vegaGraph() {
             if (!!this.results) {
-                return makeGraph(this.query_graph, this.results);
+                return ;
             }
         }
     }

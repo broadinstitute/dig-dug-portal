@@ -31,45 +31,29 @@
                 <div class="label">
                     Predicates
                 </div>
-                <filter-enumeration-control
+                <filter-enumeration-control 
                     :field="'e00'"
                     :options="['biolink:gene_associated_with_condition']">
                 </filter-enumeration-control>
             </span>
 
             <template slot=filtered>
-                {{$parent.results}}
+                {{$parent.tableItems}}
             </template>
         </criterion-list-group>
         
 
-        <!-- <div>
-            <field-nav
-                :knowledgeItem="$parent.geneInfo"
-                :withFields="['pathway', 'go', 'homologene', 'summary']"
-            ></field-nav>
-            <b-tabs>
-                <b-tab v-for="field in $parent.fields"
-                       :title="field"
-                       :key="field">
-                    <ncats-predicate-table
-                        :title="field"
-                        :geneSymbol="'PCSK9'"
-                        :field="field">
-                    </ncats-predicate-table>
-                </b-tab>
-            </b-tabs>
-        </div>
+        <ncats-knowledge-graph></ncats-knowledge-graph>
 
-        <ncats-region-predicate-table
-            :title="`Pathway Associations on ${8}:${117962512}-${118188952}`"
-            :chr="8"
-            :start="117962512"
-            :end="118188952"
-            :field="'pathway'">
-        </ncats-region-predicate-table>
-        <pre>
-            {{$parent.results}}
-        </pre> -->
+        <b-table
+            v-if="$parent.results.length > 0"
+            :items="$parent.tableItems">
+            <template #cell()="data">
+                <resolved-curie-link
+                    :curie="data.value">
+                </resolved-curie-link>
+            </template>
+        </b-table>
+
     </div>
 </template>

@@ -16,6 +16,7 @@ import jsonQuery from "json-query"
 
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration"
+import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
 
 import queryString from "query-string"
 import _ from "lodash"
@@ -32,7 +33,8 @@ new Vue({
         KnowledgeGraph,
         CriterionListGroup,
         FilterEnumeration,
-        FieldNav
+        FieldNav,
+        ResolvedCurie
     },
     render(createElement, context) {
         return createElement(Template);
@@ -50,18 +52,43 @@ new Vue({
             objects: ['biolink:Disease'],
             predicates: ['biolink:gene_associated_with_condition'],
             links: [],
+            query_graph: {
+                "query_graph": {
+                    "edges": {
+                        "e00": {
+                        "object": "n01",
+                        "subject": "n00",
+                        "predicate": "biolink:functional_association"
+                        }
+                    },
+                    "nodes": {
+                        "n00": {
+                        "category": "biolink:Gene",
+                        "id": "NCBIGene:1017"
+                        },
+                        "n01": {
+                        "category": "biolink:CellularComponent"
+                        }
+                    }
+                }
+            }
         };
     },
     async mounted() {
+
         const biolinkModel = await trapi.model.getBiolinkModel();
-        const conceptsForReact = trapi.model.findConceptByPrefix('REACT', biolinkModel);
-        const possibleSlots = conceptsForReact.flatMap(conceptForPrefix =>
+        const conceptsForReact = ['REACT', 'GO'].flatMap(prefix => trapi.model.findConceptByPrefix(prefix, biolinkModel));
+        const possibleSlots = Array.from(new Set(conceptsForReact.flatMap(conceptForPrefix =>
             [].concat(
                 trapi.model.findSlotsForDomainRange({ domain: conceptForPrefix }, biolinkModel),
                 trapi.model.findSlotsForDomainRange({ range: conceptForPrefix }, biolinkModel)
             )
-        )
+        )))
         console.log(possibleSlots, possibleSlots.map(slotName => biolinkModel.slots[slotName]));
+
+        await trapi.queries.updateResultsForSources({
+            "message": this.query_graph
+        }, [], this.results);
     },
     computed: {
         goTerms: function() {
@@ -72,9 +99,64 @@ new Vue({
         },
         queryGraph() {
             return this.makeQueryGraph(this.queryGraphCriterion)
-        }
+        },
+        tableItems() {
+            if (this.results.length > 0) {
+
+                const formatResults = binding => 
+                    result => this.mapOnEntryValues(
+                              this.mapOnEntryKeys(
+                                result[binding], 
+                                ek => `${this.conceptType(ek, this.query_graph.query_graph)}`
+                              ), 
+                              ev => ev[0].id)
+
+                const resultNodes = formatResults('node_bindings');
+                const resultEdges = formatResults('edge_bindings');
+
+                return this.results.map(el => ({
+                    ...resultNodes(el),
+                    ...resultEdges(el)
+                }));
+
+            } else {
+                return [];
+            }
+        },
     },
     methods: {
+        predicatePlacement(identifier, query_graph, edge=null) {
+
+            const subjectOrObjectOfEdge = (identifier, edge) => {
+                const { subject, object } = query_graph.edges[edge];
+                if (identifier === subject) return "subject";
+                else if (identifier === object) return "object";
+                return null;
+            }
+
+            if (edge !== null) {
+                return subjectOrObjectOfEdge(identifier, edge);
+            } else {
+                return Object.entries(query_graph.edges)
+                        .reduce((acc, edgeEntry) => {
+                            const _acc = acc;
+                            const [edgeId, edge] = edgeEntry;
+                            _acc[edgeId] = subjectOrObjectOfEdge(edge);
+                            return acc;
+                        }, {});
+            };
+
+        },
+        conceptType(identifier, query_graph) {
+            const concepts = { ...query_graph.nodes, ...query_graph.edges };
+            return concepts[identifier].category || concepts[identifier].predicate;
+        },
+        mapOnEntryValues(keyValueMap, f) {
+           return Object.fromEntries(Object.entries(keyValueMap).map(el => [el[0], f(el[1])]));
+        },
+        mapOnEntryKeys(keyValueMap, f) {
+            return Object.fromEntries(Object.entries(keyValueMap).map(el => [f(el[0]), el[1]]));
+        },
         addNode() {
             this.nodes.push(`n0${this.nodes.length}`)
         },

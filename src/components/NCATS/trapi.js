@@ -12,7 +12,7 @@ const _prefix_synonyms = {
 }
 
 const deserializeCurie = function(curie) {
-    if (!!curie && curie.split(":").length > 1) {
+    if (!!curie && curie.split(":").length === 2) {  // prevent misidentifying IDs with multiple colons as curies
         return [...curie.split(":")];
     } else return []; // TODO: error/undefined behavior
 }
@@ -38,6 +38,7 @@ const extractCurie = function(uri, context) {
 
 const resolveCurie = function(curie, context) {
     const [prefix, id] = deserializeCurie(curie);
+
     if (!!context && !!prefix && !!id) {
         // NOTE: There's the question of whether or not we want to defend the validity of the prefix inside this function
         // I've decided against it (it loses symmetry with 'extractCurie' if we add too much logic to this function),
@@ -52,7 +53,12 @@ const resolveCurie = function(curie, context) {
         //     return `${context[maybeSupportedPrefix]}${id}`;
         // }
 
-        return `${context[prefix]}${id}`;
+        // TODO: problem: don't know which case:
+        let url=``;
+        if (!!context[prefix.toLowerCase()]) url = `${context[prefix.toLowerCase()]}${id}`;
+        if (!!context[prefix.toUpperCase()]) url = `${context[prefix.toUpperCase()]}${id}`;
+
+        return url;
 
     } else return ``; // TODO: error/undefined behavior
 }
@@ -182,7 +188,7 @@ async function _streamARAs(arsQuery, { onDone=id=>id, onError=id=>id, onUnknown=
                 case 'Error': onError(child); break;
                 case 'Unknown': onUnknown(child); break;
                 case 'Running': onRunning(child); break;
-                default: console.log('Unknown Status Code!', status, agent, actor)
+                default: console.error('Unknown Status Code!', status, agent, actor)
             }
         }
     });
@@ -325,7 +331,7 @@ let getBiolinkModel = (async () => fetch('https://raw.githubusercontent.com/biol
     .then(text => YAML.parse(text))
 );
 
-let bioLinkModel = (async () => await getBiolinkModel())();
+let biolinkModel = (async () => await getBiolinkModel())();
 
 const categoricalMatch = (instance, concept, biolinkML, maxDepth=0) => {
     if (!!biolinkML.classes[instance] && biolinkML.classes[instance].is_a === concept) return true;
@@ -334,7 +340,7 @@ const categoricalMatch = (instance, concept, biolinkML, maxDepth=0) => {
     // else if (maxDepth > 0) categoricalMatch(instance, biolinkML.classes[concept].is_a)
 }
 
-// TODO: Debug!
+
 const findSlotsForDomainRange = ({ domain='', range='' }, biolinkModel, matchCategory=false) => {
 
     let _domain = domain.toLowerCase();
@@ -348,9 +354,9 @@ const findSlotsForDomainRange = ({ domain='', range='' }, biolinkModel, matchCat
             if (_domain != '' && _range != '') {
                 return slot.domain === _domain && slot.domain === _range;
             } else if (_domain != '') {
-                return slot.domain === _domain //|| matchCategory && categoricalMatch(_domain);
+                return slot.domain === _domain // TODO: || matchCategory && categoricalMatch(_domain);
             } else if (_range != '') {
-                return slot.range === _range //|| matchCategory && categoricalMatch(_range);
+                return slot.range === _range // TODO: || matchCategory && categoricalMatch(_range);
             }
         }
 
@@ -364,11 +370,8 @@ const findConceptByPrefix = (prefix, biolinkModel) => {
     })
 };
 
-const slotsForSlot = (slot, biolinkML) => {
-    return {
-        domain: null,
-        range: null,
-    }
+const predicateHierarchy = () => {
+    throw new Error("Unimplemented")
 }
 
 export default {
@@ -395,10 +398,10 @@ export default {
     },
     model: {
         getBiolinkModel,
-        bioLinkModel,
+        biolinkModel,
         findSlotsForDomainRange,
         findConceptByPrefix,
-        slotsForSlot,
+        predicateHierarchy,
         categoricalMatch,
     }
 }
