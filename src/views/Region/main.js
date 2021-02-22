@@ -29,7 +29,7 @@ import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
-import RegionPredicateTable from "@/components/NCATS/predicateTables/RegionPredicateTable"
+import RegionPredicateTable from "@/components/NCATS/old/predicateTables/RegionPredicateTable"
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 

@@ -6,17 +6,14 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css"
 import BootstrapVue, { componentsPlugin } from "bootstrap-vue"
 
-import NCATSPredicateTable from "@/components/NCATS/PredicateTable"
 import KnowledgeGraph from "@/components/NCATS/KnowledgeGraph"
-import RegionPredicateTable from "@/components/NCATS/predicateTables/RegionPredicateTable"
-
-import FieldNav from "@/components/NCATS/FieldNav"
+import ResultsDashboard from "@/components/NCATS/ResultsDashboard"
+import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
 
 import jsonQuery from "json-query"
 
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration"
-import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
 
 import queryString from "query-string"
 import _ from "lodash"
@@ -28,13 +25,11 @@ Vue.use(BootstrapVue);
 new Vue({
     store,
     components: {
-        NCATSPredicateTable,
-        RegionPredicateTable,
         KnowledgeGraph,
         CriterionListGroup,
         FilterEnumeration,
-        FieldNav,
-        ResolvedCurie
+        ResolvedCurie,
+        ResultsDashboard
     },
     render(createElement, context) {
         return createElement(Template);
@@ -52,32 +47,42 @@ new Vue({
             objects: ['biolink:Disease'],
             predicates: ['biolink:gene_associated_with_condition'],
             links: [],
+            biolinkModel: null,
             query_graph: {
                 "query_graph": {
-                    "edges": {
-                        "e00": {
-                            "subject": "n00",
-                            "object": "n01",
-                            "predicate": "biolink:gene_associated_with_condition"
-                        }
+                  "edges": {
+                    "e00": {
+                      "object": "n01",
+                      "subject": "n00",
+                      "predicate": "biolink:functional_association"
                     },
-                    "nodes": {
-                        "n00": {
-                            "id": "NCBIGene:1803",
-                            "category": "biolink:Gene"
-                        },
-                        "n01": {
-                            "category": "biolink:Disease"
-                        }
+                    "e01": {
+                        "object": "n02",
+                        "subject": "n00",
+                        "predicate": "biolink:functional_association"
+                      }
+                  },
+                  "nodes": {
+                    "n00": {
+                      "category": "biolink:Gene",
+                      "id": "NCBIGene:1017"
+                    },
+                    "n01": {
+                      "category": "biolink:BiologicalProcess"
+                    },
+                    "n02": {
+                        "category": "biolink:CellularComponent"
                     }
+                  }
                 }
-            }
-                
-        };
+              }
+            };
     },
     async mounted() {
 
-        const biolinkModel = await trapi.model.getBiolinkModel();
+        this.biolinkModel = await trapi.model.biolinkModel;
+        let biolinkModel = this.biolinkModel;
+
         const conceptsForReact = ['REACT', 'GO'].flatMap(prefix => trapi.model.findConceptByPrefix(prefix, biolinkModel));
         const possibleSlots = Array.from(new Set(conceptsForReact.flatMap(conceptForPrefix =>
             [].concat(
@@ -100,6 +105,12 @@ new Vue({
         },
         queryGraph() {
             return this.makeQueryGraph(this.queryGraphCriterion)
+        },
+        mapOnEntryValues(keyValueMap, f) {
+            return Object.fromEntries(Object.entries(keyValueMap).map(el => [el[0], f(el[1])]));
+        },
+        mapOnEntryKeys(keyValueMap, f) {
+            return Object.fromEntries(Object.entries(keyValueMap).map(el => [f(el[0]), el[1]]));
         },
         tableItems() {
             if (this.results.length > 0) {
@@ -124,6 +135,16 @@ new Vue({
                 return [];
             }
         },
+        associationOptions() {
+            return !!this.biolinkModel ? 
+                Object.keys(this.biolinkModel.classes).filter(cls => this.biolinkModel.classes[cls].is_a === 'association')
+            : [];
+        },
+        associationOptions() {
+            return !!this.biolinkModel ? 
+                Object.keys(this.biolinkModel.classes).filter(cls => this.biolinkModel.classes[cls].is_a === 'association')
+            : [];
+        }
     },
     methods: {
         predicatePlacement(identifier, query_graph, edge=null) {
@@ -152,14 +173,6 @@ new Vue({
             const concepts = { ...query_graph.nodes, ...query_graph.edges };
             return concepts[identifier].category || concepts[identifier].predicate;
         },
-        mapOnEntryValues(keyValueMap, f) {
-           return Object.fromEntries(Object.entries(keyValueMap).map(el => [el[0], f(el[1])]));
-        },
-        mapOnEntryKeys(keyValueMap, f) {
-            return Object.fromEntries(Object.entries(keyValueMap).map(el => [f(el[0]), el[1]]));
-        },
-
-
 
 
         

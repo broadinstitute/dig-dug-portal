@@ -1,6 +1,18 @@
 <template>
     <div>
         <criterion-list-group v-model="$parent.queryGraphCriterion">
+
+            <span style="display: inline-block">
+                <div class="label">
+                    Associations
+                </div>
+                <filter-enumeration-control 
+                    :field="'e00'"
+                    :class="'filter-col-lg'"
+                    :options="$parent.associationOptions">
+                </filter-enumeration-control>
+            </span>
+
             <span style="display: inline-block">
                 <div class="label">
                     Genes <button @click="$parent.addNode">+</button>
@@ -27,27 +39,16 @@
                 </filter-enumeration-control>
             </span>
 
-            <span style="display: inline-block">
-                <div class="label">
-                    Predicates
-                </div>
-                <filter-enumeration-control 
-                    :field="'e00'"
-                    :options="['biolink:gene_associated_with_condition']">
-                </filter-enumeration-control>
-            </span>
-
             <template slot=filtered>
             </template>
         </criterion-list-group>
         
-        <ncats-knowledge-graph
-            v-if="$parent.results.length > 0"
+        <ncats-results-dashboard
             :query_graph="$parent.query_graph.query_graph"
             :results="$parent.results"
-        ></ncats-knowledge-graph>
+        ></ncats-results-dashboard>
 
-        <b-table
+        <!-- <b-table
             v-if="$parent.results.length > 0"
             :items="$parent.tableItems">
 
@@ -57,12 +58,7 @@
                 </resolved-curie-link>
             </template>
 
-        </b-table>
-
-        <iframe src="http://identifiers.org/ncbigene/1017" title="Inline Frame Example"
-    width="500"
-    height="200">
-        </iframe>
+        </b-table> -->
 
     </div>
 </template>

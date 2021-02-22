@@ -51,7 +51,7 @@ import Vue from "vue";
 import jsonQuery from "json-query";
 import queryString from "query-string";
 import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
-import trapi from "./trapi"
+import trapi from "@/components/NCATS/trapi"
 
 const myGeneAPI = 'https://mygene.info/v3';
 

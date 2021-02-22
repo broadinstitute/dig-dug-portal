@@ -1,12 +1,18 @@
 import { json } from "d3";
 import queryString from "query-string"
 
+
 let getBiolinkContext = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
     .then(response => response.json())
     .then(json => json['@context'])
 );
 
-let bioLinkContext = (async () => await getBiolinkContext())();
+// TODO: Refactor to Object
+let biolinkContextCache = {};
+let bioLinkContext = (async () => {
+    if (Object.keys(biolinkContextCache).length === 0) biolinkContextCache = await getBiolinkContext();
+    return biolinkContextCache;
+})();
 
 const _prefix_synonyms = {
     'reactome': 'REACT',
@@ -332,7 +338,12 @@ let getBiolinkModel = (async () => fetch('https://raw.githubusercontent.com/biol
     .then(text => YAML.parse(text))
 );
 
-let biolinkModel = (async () => await getBiolinkModel())();
+// TODO: Refactor to Object
+let biolinkModelCache = {};
+let biolinkModel = (async () => {
+    if (Object.keys(biolinkModelCache).length === 0) biolinkModelCache = await getBiolinkModel();
+    return biolinkModelCache;
+})();
 
 const categoricalMatch = (instance, concept, biolinkML, maxDepth=0) => {
     if (!!biolinkML.classes[instance] && biolinkML.classes[instance].is_a === concept) return true;
@@ -382,6 +393,10 @@ const curieLabel = async (curie) => {
                     .then(json => json[curie] !== null ? json[curie].id.label : curie);
 }
 
+const associations = function(biolinkModel) {
+    return biolinkModel.classes.filter(cls => cls.is_a === 'association')
+}
+
 export default {
     query: streamARSQuery,
     callback: {
@@ -395,7 +410,6 @@ export default {
     identifiers: {
         context: bioLinkContext,
         bioLinkSynonyms: _prefix_synonyms,
-        getContext: getBiolinkContext,
         deserializeCurie,
         serializeCurie,
         extractCurie,
@@ -405,12 +419,14 @@ export default {
         _stripPrefix: stripPrefix,
     },
     model: {
-        getBiolinkModel,
         biolinkModel,
         findSlotsForDomainRange,
         findConceptByPrefix,
         predicateHierarchy,
         categoricalMatch,
+        type: {
+            associations
+        },
     },
     normalize: {
         curieLabel

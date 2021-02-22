@@ -7,7 +7,7 @@
 </template>
 <script>
 import Vue from "vue"
-import PredicateTable from "@/components/NCATS/PredicateTable"
+import PredicateTable from "@/components/NCATS/old/PredicateTable"
 export default Vue.component('ncats-region-predicate-table', {
     props: ["title", "chr", "start", "end", "region", "field", "filter"],
     components: {

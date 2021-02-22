@@ -27,7 +27,7 @@ export default Vue.component('resolved-curie-link', {
         }
     },
     async created() {
-        this.context = await trapi.identifiers.getContext();
+        this.context = await trapi.identifiers.context;
     },
     computed: {
         supportedPrefix() {
