@@ -43,7 +43,7 @@ module.exports = {
 
         // output which bioindex is being used
         console.log(
-            `BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`
+            `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`
         );
 
         // add the transform rule for bioindex
