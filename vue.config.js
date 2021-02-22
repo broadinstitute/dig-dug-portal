@@ -200,7 +200,7 @@ let pages = {
         filename: "paperdata.html",
         title: "Paper Data",
         chunks: ["chunk-vendors", "chunk-common", "paperdata"]
-    },
+    }
 };
 
 // remove the debug page in production
