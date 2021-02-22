@@ -232,7 +232,6 @@ export default Vue.component("criterion-group-template", {
                         this.makePredicate(predicateSpec, {
                             strictCase: this.strictCase,
                             notStrictMatch: this.looseMatch,
-                            postProcess: predicateSpec.postProcess
                         })
                     );
                     this.filterFunction = this.makeFilter(

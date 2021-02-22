@@ -19,9 +19,6 @@ export default Vue.component('filter-pvalue-control', {
     components: {
         FilterControlTemplate,
     },
-    mounted() {
-        console.log('postProcess', this.postProcess)
-    },
     methods: {
         pValueFormatter: Formatter.pValueFormatter
     }

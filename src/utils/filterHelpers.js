@@ -87,8 +87,8 @@ export function filterFromPredicates(allPredicates, inclusive) {
 }
 
 export function predicateFromSpec(
-    { field, predicate, threshold, inclusive = false },
-    { notStrictMatch = false, strictCase = false, postProcess = id=>id }
+    { field, predicate, threshold, inclusive = false, postProcess = id=>id },
+    { notStrictMatch = false, strictCase = false }
 ) {
     // Specs for predicateFromSpec are objects satisfying properties { field, predicate, threshold } to return a function Object => Boolean, parameterized on a field
     // NOTE: the default policy of this filter is to disallow all objects that could never satisfy it in theory (i.e. lacking properties required to duck-type)
@@ -96,7 +96,6 @@ export function predicateFromSpec(
     //   * "notStrict": if it's important that all objects that the filter is applied to must have the property in question, then `notStrict` should be false.
     //      else if e.g. different components have slightly different properties such that a part of the filter applies to one component and not the other,
     //   * "strictCase": if the field has similar names but different casings, and we don't want it to fail a match (for instance `pvalue` and `pValue`), then this should be "false". else it is "true" and we take the field as-is.
-    console.log('postProcess', postProcess)
     return {
         inclusive,
         func: (obj) => {
