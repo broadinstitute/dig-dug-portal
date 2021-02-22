@@ -10,15 +10,22 @@ let pages = {
         title: "Home",
         chunks: ["chunk-vendors", "chunk-common", "index"]
     },
+    page404: {
+        entry: "src/views/404/main.js",
+        template: "public/index.html",
+        filename: "404.html",
+        title: "Page Not Found",
+        chunks: ["chunk-vendors", "chunk-common", "page404"]
+    },
     paper: {
-        entry: "src/views/Paper/main.js",
+        entry: "src/views/Papers/Paper/main.js",
         template: "public/index.html",
         filename: "paper.html",
         title: "Paper",
         chunks: ["chunk-vendors", "chunk-common", "paper"]
     },
     paperdata: {
-        entry: "src/views/PaperData/main.js",
+        entry: "src/views/Papers/PaperData/main.js",
         template: "public/index.html",
         filename: "paperdata.html",
         title: "Paper Data",
@@ -41,7 +48,7 @@ module.exports = {
                     : "https://bioindex-dev.hugeamp.org";
         }
 
-        // output which bioindex is being used
+        // output which vue config file and bioindex is being used
         console.log(
             `VUE_CONFIG_PATH=${process.env.VUE_CLI_SERVICE_CONFIG_PATH}; BIOINDEX_DEV=${process.env.BIOINDEX_DEV}; using ${bioindex_host}`
         );
