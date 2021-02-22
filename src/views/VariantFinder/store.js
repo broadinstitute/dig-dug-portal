@@ -24,6 +24,7 @@ export default new Vuex.Store({
     state: {
         associations: [],
         phenotypes: [],
+        leadPositions: {},
     },
     mutations: {
         setPhenotypes(state, phenotypes) {
@@ -37,12 +38,25 @@ export default new Vuex.Store({
         updateAssociations(state, { phenotype, data }) {
             state.phenotypes.push(phenotype);
 
+            if (state.phenotypes.length == 1) {
+                state.leadPositions = {};
+
+                // first phenotype == lead SNPs, get the position for each clump
+                data.forEach(r => state.leadPositions[r.clump] = r.position);
+            }
+
             // append the data for this phenotype
             state.associations = state.associations.concat(data.map(r => {
                 let alignment = r.alignment || 1;
                 let alignedBeta = r.beta * alignment;
 
-                return { ...r, alignment, alignedBeta };
+                // align the position so variants in the same clump line up
+                return {
+                    ...r,
+                    alignment,
+                    alignedBeta,
+                    position: state.leadPositions[r.clump],
+                };
             }));
         },
     },
@@ -51,7 +65,7 @@ export default new Vuex.Store({
             return state.phenotypes.length > 0 ? state.phenotypes[0] : undefined;
         },
         leadAssociations(state) {
-            return state.associations.filter(r => r.phenotype == state.phenotypes[0]);
+            return state.globalAssociations.data;
         },
     },
     actions: {

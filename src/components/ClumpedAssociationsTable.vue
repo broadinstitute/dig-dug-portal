@@ -76,10 +76,10 @@
                 >
                     <span
                         :class="`effect ${
-                            r.item[`${p}:beta`] < 0 ? 'negative' : 'positive'
+                            alignedBeta(p, r.item) < 0 ? 'negative' : 'positive'
                         }`"
                         >{{
-                            r.item[`${p}:beta`] < 0 ? "&#9660;" : "&#9650;"
+                            alignedBeta(p, r.item) < 0 ? "&#9660;" : "&#9650;"
                         }}</span
                     >
                     <span>{{
