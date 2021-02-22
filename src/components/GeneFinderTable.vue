@@ -219,7 +219,7 @@ export default Vue.component("gene-finder-table", {
                 let r = associations[i];
                 let dataIndex = groups[r.gene];
 
-                if (!dataIndex) {
+                if (!(r.gene in groups)) {
                     dataIndex = data.length;
                     groups[r.gene] = dataIndex;
 

@@ -14,10 +14,11 @@
 <script>
 import Vue from "vue";
 import c3 from "c3";
-import Formatters from "@/utils/formatters.js";
+import Colors from "@/utils/colors";
+import Formatters from "@/utils/formatters";
 
 export default Vue.component("manhattan-plot", {
-    props: ["associations", "colors"],
+    props: ["associations", "colors", "colorKey", "phenotypes", "phenotypeMap"],
 
     data() {
         return {
@@ -30,10 +31,85 @@ export default Vue.component("manhattan-plot", {
     },
 
     methods: {
-        createChart(columns = []) {
-            if (!!this.chart) {
-                return;
+        columns() {
+            let n = (this.associations || []).length;
+
+            // if no phenotypes, then just 2 columns for generic pValue
+            if (!this.phenotypes) {
+                let x = new Array(n + 1);
+                let y = new Array(n + 1);
+
+                x[0] = "pValue_x";
+                y[0] = "pValue";
+
+                this.associations.forEach((r, i) => {
+                    x[i + 1] = chromosomeStart[r.chromosome] + r.position;
+                    y[i + 1] = -Math.log10(r.pValue);
+                });
+
+                return [x, y];
             }
+
+            let phenotypeIndex = {};
+            let columns = [];
+
+            // each phenotype gets two columns of data (x and y)
+            this.phenotypes.forEach((p, i) => {
+                phenotypeIndex[p] = i;
+
+                let x = [`${p}_x`];
+                let y = [p];
+
+                this.associations.forEach((r) => {
+                    if (r.phenotype == p) {
+                        x.push(chromosomeStart[r.chromosome] + r.position);
+                        y.push(-Math.log10(r.pValue));
+                    }
+                });
+
+                columns.push(x);
+                columns.push(y);
+            });
+
+            return columns;
+        },
+
+        columnKeys() {
+            let xs = {};
+
+            // if there's a list of phenotypes, each phenotype gets a color
+            if (!this.phenotypes) {
+                return { pValue: "pValue_x" };
+            }
+
+            this.phenotypes.forEach((p) => (xs[p] = `${p}_x`));
+
+            return xs;
+        },
+
+        columnColors() {
+            let colors = {};
+
+            // no phenotypes? color by position
+            if (!this.phenotypes) {
+                return {
+                    color: function (color, d) {
+                        return positionColors.find((c) => d.x < c[0])[1];
+                    },
+                };
+            }
+
+            // color by phenotype
+            this.phenotypes.forEach((p, i) => {
+                colors[p] = Colors[i];
+            });
+
+            return colors;
+        },
+
+        createChart(columnData = []) {
+            let xs = this.columnKeys();
+            let colors = this.columnColors();
 
             // attach to the dom
             this.chart = c3.generate({
@@ -42,16 +118,14 @@ export default Vue.component("manhattan-plot", {
                     height: 300,
                 },
                 interaction: {
-                    enabled: false,
+                    enabled: true,
                 },
                 data: {
-                    x: "x",
-                    columns: columns,
+                    xs,
+                    columns: columnData,
                     type: "scatter",
                     order: null,
-                    color: function (color, d) {
-                        return positionColors.find((c) => d.x < c[0])[1];
-                    },
+                    ...colors,
                 },
                 legend: {
                     show: false,
@@ -71,10 +145,34 @@ export default Vue.component("manhattan-plot", {
                 },
                 tooltip: {
                     show: true,
-                    focus: {
-                        expand: {
-                            enabled: false,
-                        },
+                    grouped: true,
+                    contents: function (d, titleFormat, valueFormat, color) {
+                        let contents = '<div class="manhattan-tooltip">';
+                        let phenotypeMap = this.phenotypeMap;
+
+                        // make a table
+                        contents += `<table cellspacing="4">
+                            <thead><tr>
+                                <th colspan="2" class="p-value">P Value</th>
+                            </tr></thead>`;
+
+                        d.forEach((d) => {
+                            contents += `<tr>
+                                <td class="tooltip-id">
+                                    <span style="color:${color(
+                                        d
+                                    )}">&#x25fc;</span>
+                                    <span>${d.id}</span>
+                                </td>
+                                <td class="p-value">
+                                    <span>${Formatters.pValueFormatter(
+                                        Math.pow(10.0, -d.value)
+                                    )}</span>
+                                </td>
+                            </tr>`;
+                        });
+
+                        return contents + "</table></div>";
                     },
                 },
                 axis: {
@@ -89,6 +187,7 @@ export default Vue.component("manhattan-plot", {
                                     Math.floor(chromosomeLength[c] / 2)
                             ),
                             format: (pos) => chromosomePos[pos],
+                            fit: false,
                         },
                     },
                     y: {
@@ -100,35 +199,30 @@ export default Vue.component("manhattan-plot", {
     },
 
     watch: {
+        phenotypes(newPhenotypes) {
+            if (!!this.chart) {
+                this.chart.data.colors(this.columnColors());
+            }
+        },
+
         associations(associations) {
-            let n = (associations || []).length;
+            let xs = this.columnKeys();
+            let columnData = this.columns();
+            let columnsToUnload = [];
 
-            // remove if no associations
-            if (n == 0) {
-                if (!!this.chart) {
-                    this.chart.unload(["x", "pValue"]);
-                }
-
-                return;
+            // keys currently loaded
+            if (!!this.chart) {
+                columnsToUnload = Object.keys(this.chart.xs());
             }
 
-            let x = new Array(n + 1);
-            let y = new Array(n + 1);
-
-            x[0] = "x";
-            y[0] = "pValue";
-
-            this.associations.forEach((r, i) => {
-                x[i + 1] = chromosomeStart[r.chromosome] + r.position;
-                y[i + 1] = -Math.log10(r.pValue);
-            });
-
-            let columns = [x, y];
-
             if (!this.chart) {
-                this.createChart(columns);
+                this.createChart(columnData);
             } else {
-                this.chart.load({ columns, unload: ["x", "pValue"] });
+                this.chart.load({
+                    xs,
+                    columns: columnData,
+                    unload: columnsToUnload,
+                });
             }
         },
     },
@@ -220,3 +314,31 @@ for (let i in chromosomes) {
     positionColors.push([start, chromosomeColors[i % chromosomeColors.length]]);
 }
 </script>
+
+<style>
+div.manhattan-tooltip table {
+    background-color: white;
+    font-size: small;
+    border: 1px solid darkgray;
+    font-family: sans-serif;
+    opacity: 1;
+}
+
+div.manhattan-tooltip thead {
+    background-color: lightgray;
+    text-align: center;
+}
+
+div.manhattan-tooltip tr {
+    border-bottom: 1px solid darkgray;
+}
+
+div.manhattan-tooltip .tooltip-id {
+    border-right: 1px solid darkgray;
+    padding-right: 5px;
+}
+
+div.manhattan-tooltip .p-value {
+    padding-left: 5px;
+}
+</style>
