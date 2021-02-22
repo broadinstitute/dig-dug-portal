@@ -65,6 +65,7 @@ module.exports = {
             config.devtool = "cheap-module-source-map";
         }
     },
+    outputDir: "distPapers",
     productionSourceMap: false,
     pages
 };
