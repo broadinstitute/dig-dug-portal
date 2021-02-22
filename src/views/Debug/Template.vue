@@ -46,15 +46,23 @@
             :query_graph="$parent.query_graph.query_graph"
             :results="$parent.results"
         ></ncats-knowledge-graph>
+
         <b-table
             v-if="$parent.results.length > 0"
             :items="$parent.tableItems">
+
             <template #cell()="data">
                 <resolved-curie-link
                     :curie="data.value">
                 </resolved-curie-link>
             </template>
+
         </b-table>
+
+        <iframe src="http://identifiers.org/ncbigene/1017" title="Inline Frame Example"
+    width="500"
+    height="200">
+        </iframe>
 
     </div>
 </template>

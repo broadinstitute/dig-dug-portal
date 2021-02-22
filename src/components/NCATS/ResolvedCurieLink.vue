@@ -1,6 +1,11 @@
 <template>
     <a v-if="!!resolvedCurie" :href="resolvedCurie"  target="_blank" rel="noopener noreferrer">
-        {{fullCurie}}
+        <slot>
+            <curie-label 
+                v-if="!!fullCurie"
+                :curie="fullCurie">
+            </curie-label>
+        </slot>
     </a>
     <span v-else>
         {{!!curie ? curie :
@@ -10,9 +15,12 @@
 <script>
 import Vue from "vue";
 import trapi from "./trapi"
-
+import NormalizedCurieLabel from "./NormalizedCurieLabel"
 export default Vue.component('resolved-curie-link', {
     props: ["curie", "prefix", "id"],
+    components: {
+        NormalizedCurieLabel
+    },
     data() {
         return {
             context: null,

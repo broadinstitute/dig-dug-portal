@@ -1,3 +1,4 @@
+import { json } from "d3";
 import queryString from "query-string"
 
 let getBiolinkContext = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
@@ -374,6 +375,13 @@ const predicateHierarchy = () => {
     throw new Error("Unimplemented")
 }
 
+const curieLabel = async (curie) => {
+    let qs = queryString.stringify({ curie });
+    return await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
+                    .then(response => response.json())
+                    .then(json => json[curie] !== null ? json[curie].id.label : curie);
+}
+
 export default {
     query: streamARSQuery,
     callback: {
@@ -403,5 +411,8 @@ export default {
         findConceptByPrefix,
         predicateHierarchy,
         categoricalMatch,
+    },
+    normalize: {
+        curieLabel
     }
 }

@@ -56,22 +56,23 @@ new Vue({
                 "query_graph": {
                     "edges": {
                         "e00": {
-                        "object": "n01",
-                        "subject": "n00",
-                        "predicate": "biolink:functional_association"
+                            "subject": "n00",
+                            "object": "n01",
+                            "predicate": "biolink:gene_associated_with_condition"
                         }
                     },
                     "nodes": {
                         "n00": {
-                            "category": "biolink:Gene",
-                            "id": "NCBIGene:1017"
+                            "id": "NCBIGene:1803",
+                            "category": "biolink:Gene"
                         },
                         "n01": {
-                            "category": "biolink:Pathway"
+                            "category": "biolink:Disease"
                         }
                     }
                 }
             }
+                
         };
     },
     async mounted() {
@@ -157,6 +158,11 @@ new Vue({
         mapOnEntryKeys(keyValueMap, f) {
             return Object.fromEntries(Object.entries(keyValueMap).map(el => [f(el[0]), el[1]]));
         },
+
+
+
+
+        
         addNode() {
             this.nodes.push(`n0${this.nodes.length}`)
         },
