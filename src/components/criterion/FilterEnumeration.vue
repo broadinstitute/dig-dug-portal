@@ -18,6 +18,7 @@
         :multiple="!!multiple"
         :inclusive="!!inclusive || !!multiple"
         :disabled="disabled"
+        :postProcess="postProcess"
     >
         <slot> </slot>
     </filter-control-template>
@@ -53,6 +54,7 @@ export default Vue.component("filter-enumeration-control", {
             type: Boolean,
             default: false,
         },
+        postProcess: Function,
     },
     components: {
         FilterControlTemplate,

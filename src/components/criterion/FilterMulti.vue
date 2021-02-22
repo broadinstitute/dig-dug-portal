@@ -12,6 +12,7 @@
         :color="color"
         :multiple="true"
         :inclusive="inclusive"
+        :postProcess="postProcess"
         :splitBy="splitBy"
     >
         <slot> </slot>
@@ -33,6 +34,7 @@ export default Vue.component("filter-multi-control", {
             type: Boolean,
             default: true,
         },
+        postProcess: Function,
     },
     components: {
         FilterControlTemplate,

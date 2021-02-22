@@ -72,6 +72,8 @@ export default Vue.component("filter-control-template", {
             default: true,
         },
         disabled: Boolean,
+        // called "postProcess" instead of "computed" to prevent terminology collisions
+        postProcess: Function,
     },
     components: {
         Autocomplete,
@@ -84,6 +86,7 @@ export default Vue.component("filter-control-template", {
                 predicate: this.predicate,
                 multiple: !!this.multiple || !!this.splitBy ? true : false, // if undefined, default to false
                 inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
+                postProcess: this.postProcess,
             },
             filterThreshold: this.default, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };

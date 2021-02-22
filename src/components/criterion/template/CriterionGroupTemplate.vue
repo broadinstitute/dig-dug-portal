@@ -163,6 +163,7 @@ export default Vue.component("criterion-group-template", {
                     .map((filter) => filter.field)
                     .includes(filterDefinition.field)
             ) {
+                // pass in the whole filter definition along with is propert threshold
                 this.filterList = copiedArray.concat({
                     threshold,
                     ...filterDefinition,
@@ -231,6 +232,7 @@ export default Vue.component("criterion-group-template", {
                         this.makePredicate(predicateSpec, {
                             strictCase: this.strictCase,
                             notStrictMatch: this.looseMatch,
+                            postProcess: predicateSpec.postProcess
                         })
                     );
                     this.filterFunction = this.makeFilter(
