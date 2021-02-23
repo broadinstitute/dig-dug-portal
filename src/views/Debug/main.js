@@ -60,6 +60,11 @@ new Vue({
                         "object": "n02",
                         "subject": "n00",
                         "predicate": "biolink:functional_association"
+                    },
+                    "e02": {
+                        "object": "n03",
+                        "subject": "n00",
+                        "predicate": "biolink:functional_association"
                       }
                   },
                   "nodes": {
@@ -72,6 +77,9 @@ new Vue({
                     },
                     "n02": {
                         "category": "biolink:CellularComponent"
+                    },
+                    "n03": {
+                        "category": "biolink:Pathway"
                     }
                   }
                 }

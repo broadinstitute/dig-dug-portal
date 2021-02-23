@@ -39,6 +39,8 @@
                 </filter-enumeration-control>
             </span>
 
+            <button>GO</button>
+
             <template slot=filtered>
             </template>
         </criterion-list-group>

@@ -320,11 +320,6 @@ async function updateResultsForSources(message, sources=[], assignableList=[]) {
     return await streamARSQuery(message, updateResultsFromSources(sources, assignableList));
 }
 
-
-
-
-
-
 /* BIOLINK MODEL QUERIES */
 // https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml
 
@@ -399,6 +394,10 @@ const associations = function(biolinkModel) {
 
 export default {
     query: streamARSQuery,
+    queryUtils: {
+        getARAMessageEntry,
+        getARAMessage
+    },
     callback: {
         updateResultsFromSources,
         printResultsFromSources,

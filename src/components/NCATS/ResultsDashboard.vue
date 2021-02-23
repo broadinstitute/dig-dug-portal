@@ -4,20 +4,26 @@
             <b-tab v-for="(edgeId, index) in Object.keys(query_graph.edges)" 
                 :key="edgeId"
                 :title="`${query_graph.edges[edgeId].predicate} ${query_graph.nodes[query_graph.edges[edgeId].object].category}`">
-                <b-table v-if="!!resultLib && resultLib.length > 0" :items="tableItems(resultLib[index])">
+                <b-table v-if="!!resultLib[index] && resultLib.length > 0" :items="tableItems(resultLib[index])">
                     <template #cell()="data">
                         <resolved-curie-link
                             :curie="data.value">
                         </resolved-curie-link>
                     </template>
                 </b-table>
+                <center v-else>
+                    <b-spinner></b-spinner>
+                </center>
             </b-tab>
         </b-tabs>
+
     </div>
 </template>
 <script>
 import Vue from "vue";
 import trapi from "@/components/NCATS/trapi"
+import { cloneDeep } from "lodash";
+
 export default Vue.component("ncats-results-dashboard", {
     props: ['query_graph'],
     data() {
@@ -43,16 +49,10 @@ export default Vue.component("ncats-results-dashboard", {
             return queries;
         }
 
-        splitQuery(this.query_graph).forEach(
-            async (query_subgraph) => {
-                let list = [];
-                await trapi.queries.updateResultsForSources({
-                    "message": query_subgraph
-                }, [], list)
-                console.log('list', list)
-                this.resultLib = this.resultLib.concat([list]);
-            }
-        )
+        const queries = splitQuery(this.query_graph);
+        const results = queries.forEach(async query => await trapi.query({ message: query }).then(async query => {
+            return await Promise.all(query.children.filter(el => el.status === "Done").map(trapi.queryUtils.getARAMessage)).then(el => !!el.results ? el.results : null)
+        }))
 
     },
     watch: {
