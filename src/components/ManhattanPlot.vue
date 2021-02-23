@@ -130,9 +130,6 @@ export default Vue.component("manhattan-plot", {
     },
 
     computed: {
-        records() {
-            return this.associations;
-        },
         columns() {
             let n = (this.associations || []).length;
 
