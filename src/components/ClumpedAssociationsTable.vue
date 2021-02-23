@@ -82,13 +82,10 @@
                             alignedBeta(p, r.item) < 0 ? "&#9660;" : "&#9650;"
                         }}</span
                     >
-                    <span>{{
-                        effectFormatter(
-                            phenotypeMap[p].dichotomous
-                                ? Math.exp(alignedBeta(p, r.item))
-                                : alignedBeta(p, r.item)
-                        )
-                    }}</span>
+                    <span>{{ effectFormatter(p, r.item) }}</span>
+                    <span v-if="r.item[`${p}:alignment`] < 0">
+                        <a href="#aligned-beta">&nbsp;&#x21f5;</a>
+                    </span>
                 </template>
                 <template
                     v-slot:[phenotypePValueColumn(p)]="r"
@@ -102,6 +99,11 @@
                 :total-rows="clumpedAssociations.length"
                 :per-page="perPage"
             ></b-pagination>
+            <documentation
+                id="aligned-beta"
+                class="pt-5 text-center"
+                name="table.clumped-associations.alignment"
+            ></documentation>
         </div>
         <div v-else>
             <h4 v-if="associations.length > 0">
@@ -260,12 +262,6 @@ export default Vue.component("clumped-associations-table", {
         },
     },
     methods: {
-        alignedBeta(phenotype, r) {
-            let beta = r[`${phenotype}:beta`];
-            let alignment = r[`${phenotype}:alignment`];
-
-            return beta * (alignment || 1.0);
-        },
         phenotypeBetaColumn(phenotype) {
             return `cell(${phenotype}:beta)`;
         },
@@ -290,7 +286,19 @@ export default Vue.component("clumped-associations-table", {
         dbSNPFormatter(dbSNP) {
             return Formatters.dbSNPFormatter(dbSNP);
         },
-        effectFormatter(effect) {
+        alignedBeta(phenotype, r) {
+            let beta = r[`${phenotype}:beta`];
+            let alignment = r[`${phenotype}:alignment`] || 1.0;
+
+            return beta * alignment;
+        },
+        effectFormatter(phenotype, r) {
+            let effect = this.alignedBeta(phenotype, r);
+
+            if (this.phenotypeMap[phenotype].dichotomous) {
+                effect = Math.exp(effect);
+            }
+
             return Formatters.effectFormatter(effect);
         },
         pValueFormatter(pValue) {
