@@ -103,9 +103,6 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
-        phenotypes() {
-            return this.variantFinderSearchCriterion.slice(1);
-        },
 
         // don't allow selection of the lead phenotype in dropdowns
         leadPhenotypeOptions() {
@@ -116,28 +113,31 @@ new Vue({
         },
 
         filteredAssociations() {
-            let data = this.$store.state.associations;
-            let phenotypes = this.$store.state.phenotypes;
+            return this.$store.getters.associations.filter(this.variantFinderFilter);
+        },
+
+        clumpedAssociations() {
+            let n = this.$store.state.phenotypes.length;
             let clumps = {};
 
-            if (!!this.variantFinderFilter) {
-                data = data.filter(this.variantFinderFilter);
-            }
-
-            data.forEach(r => {
-                if (!clumps[r.clump]) {
-                    clumps[r.clump] = [];
+            // add the lead phenotype to each clump
+            this.filteredAssociations.forEach(r => {
+                if (r.clump in clumps) {
+                    clumps[r.clump].push(r);
+                } else {
+                    clumps[r.clump] = [r];
                 }
-                clumps[r.clump].push(r.phenotype);
-            })
+            });
 
-            // remove rows that don't have all phenotypes across the clump
-            return data.filter(r => clumps[r.clump].length == phenotypes.length);
+            // drop all clumps that do not contain all phenotypes
+            let clumped = Object.values(clumps).filter(rs => rs.length == n);
+            let flattened = [].concat.apply([], clumped);
+
+            return flattened;
         },
 
         criterion() {
             let phenotypes = this.variantFinderSearchCriterion
-                .filter(criterion => criterion.field === 'phenotype')
                 .map(criterion => criterion.threshold);
 
             return { phenotypes };

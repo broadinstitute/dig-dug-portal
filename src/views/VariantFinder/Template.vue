@@ -24,6 +24,29 @@
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
                             class="filter-col-lg"
+                            :field="'lead'"
+                            :options="
+                                $parent.leadPhenotypeOptions.map(
+                                    (phenotype) => phenotype.name
+                                )
+                            "
+                            :multiple="false"
+                            :labelFormatter="
+                                (phenotype) =>
+                                    $store.state.bioPortal.phenotypeMap[
+                                        phenotype
+                                    ].description
+                            "
+                        >
+                            <div>
+                                <strong>Lead Phenotype</strong>
+                            </div>
+                        </filter-enumeration-control>
+
+                        <!-- Phenotype Selector -->
+                        <filter-enumeration-control
+                            v-show="!!$store.getters.leadPhenotype"
+                            class="filter-col-lg"
                             :field="'phenotype'"
                             :options="
                                 $parent.secondaryPhenotypeOptions.map(
@@ -33,21 +56,13 @@
                             :multiple="true"
                             :labelFormatter="
                                 (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
+                                    $store.state.bioPortal.phenotypeMap[
                                         phenotype
-                                    ]
-                                        ? $store.state.bioPortal.phenotypeMap[
-                                              phenotype
-                                          ].description
-                                        : phenotype
+                                    ].description
                             "
                         >
                             <div>
-                                <strong>{{
-                                    !$store.getters.leadPhenotype
-                                        ? "Choose lead phenotype"
-                                        : "Select additional phenotypes"
-                                }}</strong>
+                                <strong>Phenotypes</strong>
                             </div>
                         </filter-enumeration-control>
                     </criterion-list-group>
@@ -76,9 +91,9 @@
                         <manhattan-plot
                             v-show="
                                 $store.state.phenotypes.length > 0 ||
-                                $parent.filteredAssociations.length > 0
+                                $parent.clumpedAssociations.length > 0
                             "
-                            :associations="$parent.filteredAssociations"
+                            :associations="$parent.clumpedAssociations"
                             :phenotypes="$store.state.phenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :colorByPhenotype="true"
@@ -91,11 +106,11 @@
                         <clumped-associations-table
                             v-show="
                                 $store.state.phenotypes.length > 0 ||
-                                $parent.filteredAssociations.length > 0
+                                $parent.clumpedAssociations.length > 0
                             "
                             :phenotypes="$store.state.phenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            :associations="$parent.filteredAssociations"
+                            :associations="$parent.clumpedAssociations"
                             :rowsPerPage="30"
                             :exclusive="true"
                         ></clumped-associations-table>

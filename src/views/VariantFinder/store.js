@@ -22,11 +22,26 @@ export default new Vuex.Store({
         globalAssociations: bioIndex("global-associations"),
     },
     state: {
-        associations: [],
         phenotypes: [],
+        associations: [],
         leadPositions: {},
     },
     mutations: {
+        setLeadPhenotype(state, phenotype) {
+            if (state.phenotypes.length == 0) {
+                state.phenotypes = [phenotype];
+            } else {
+                state.phenotypes[0] = phenotype;
+            }
+        },
+        setLeadPositions(state) {
+            state.leadPositions = {};
+
+            // get the lead SNP position for each clump
+            state.globalAssociations.data.forEach(r => {
+                state.leadPositions[r.clump] = r.position;
+            });
+        },
         setPhenotypes(state, phenotypes) {
             state.phenotypes = phenotypes;
 
@@ -38,14 +53,7 @@ export default new Vuex.Store({
         updateAssociations(state, { phenotype, data }) {
             state.phenotypes.push(phenotype);
 
-            if (state.phenotypes.length == 1) {
-                state.leadPositions = {};
-
-                // first phenotype == lead SNPs, get the position for each clump
-                data.forEach(r => state.leadPositions[r.clump] = r.position);
-            }
-
-            // append the data for this phenotype
+            // remove existing associations for this phenotype, then add
             state.associations = state.associations.concat(data.map(r => {
                 let alignment = r.alignment || 1;
                 let alignedBeta = r.beta * alignment;
@@ -53,8 +61,12 @@ export default new Vuex.Store({
                 // align the position so variants in the same clump line up
                 return {
                     ...r,
+
+                    // calculate aligned effect direction
                     alignment,
                     alignedBeta,
+
+                    // overwrite position w/ that of lead SNP
                     position: state.leadPositions[r.clump],
                 };
             }));
@@ -65,21 +77,22 @@ export default new Vuex.Store({
             return state.phenotypes.length > 0 ? state.phenotypes[0] : undefined;
         },
         leadAssociations(state) {
-            return state.globalAssociations.data;
+            return state.globalAssociations.data
+                .map(r => {
+                    return { ...r, alignment: 1, alignedBeta: r.beta };
+                });
         },
+        associations(state, getters) {
+            return getters.leadAssociations.concat(state.associations);
+        }
     },
     actions: {
         async fetchLeadPhenotypeAssociations(context, phenotypeName) {
-            context.commit('setPhenotypes', []);
-
-            // perform the fetch for the initial associations
             await context.dispatch('globalAssociations/query', { q: phenotypeName });
 
-            // set the global list of associations
-            context.commit('updateAssociations', {
-                phenotype: phenotypeName,
-                data: context.state.globalAssociations.data
-            });
+            // calculate lead positions
+            context.commit('setLeadPositions');
+            context.commit('setLeadPhenotype', phenotypeName);
         },
 
         async fetchAssociationsMatrix(context, phenotypeName) {

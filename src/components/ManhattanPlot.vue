@@ -16,6 +16,7 @@ import Vue from "vue";
 import c3 from "c3";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
+import { difference } from "lodash";
 
 export default Vue.component("manhattan-plot", {
     props: ["associations", "colorByPhenotype", "phenotypes", "phenotypeMap"],
@@ -27,69 +28,78 @@ export default Vue.component("manhattan-plot", {
     },
 
     mounted() {
-        let xs = {};
-        let component = this;
+        this.build_chart({}, []);
+    },
 
-        // attach to the dom
-        this.chart = c3.generate({
-            bindto: "#manhattan",
-            size: {
-                height: 300,
-            },
-            interaction: {
-                enabled: true,
-            },
-            data: {
-                xs,
-                columns: [],
-                type: "scatter",
-                order: null,
-                color: function (color, d) {
-                    if (!component.phenotypes || !component.colorByPhenotype) {
-                        return positionColors.find((c) => d.x < c[0])[1];
-                    }
+    methods: {
+        build_chart(xs, columns) {
+            let component = this;
 
-                    let i = component.phenotypes.findIndex((p) => {
-                        return component.phenotypeMap[p].description == d.id;
-                    });
-
-                    return i >= 0 ? Colors[i] : "#000";
+            // attach to the dom
+            this.chart = c3.generate({
+                bindto: "#manhattan",
+                size: {
+                    height: 300,
                 },
-            },
-            legend: {
-                show: false,
-            },
-            zoom: {
-                enabled: false,
-                rescale: false,
-            },
-            point: {
-                r: 4,
-                focus: {
-                    expand: {
-                        enabled: true,
-                        r: 7,
+                interaction: {
+                    enabled: true,
+                },
+                data: {
+                    xs,
+                    columns,
+                    type: "scatter",
+                    order: null,
+                    color: function (color, d) {
+                        if (
+                            !component.phenotypes ||
+                            !component.colorByPhenotype
+                        ) {
+                            return positionColors.find((c) => d.x < c[0])[1];
+                        }
+
+                        let i = component.phenotypes.findIndex((p) => {
+                            return (
+                                component.phenotypeMap[p].description == d.id
+                            );
+                        });
+
+                        return i >= 0 ? Colors[i] : "#000";
                     },
                 },
-            },
-            tooltip: {
-                show: true,
-                grouped: true,
-                contents: function (d, titleFormat, valueFormat, color) {
-                    let contents = '<div class="manhattan-tooltip">';
+                legend: {
+                    show: false,
+                },
+                zoom: {
+                    enabled: false,
+                    rescale: false,
+                },
+                point: {
+                    r: 4,
+                    focus: {
+                        expand: {
+                            enabled: true,
+                            r: 7,
+                        },
+                    },
+                },
+                tooltip: {
+                    show: true,
+                    grouped: true,
+                    contents: function (d, titleFormat, valueFormat, color) {
+                        let contents = '<div class="manhattan-tooltip">';
 
-                    // do any of the entries have a gene name?
-                    let dGene = d.find((d) => !!d.gene);
-                    let title = !!dGene ? dGene.gene : "P-value";
+                        // do any of the entries have a gene name?
+                        let dGene = d.find((d) => !!d.gene);
+                        let title = !!dGene ? dGene.gene : "P-value";
 
-                    // make a table
-                    contents += `<table cellspacing="4">
+                        // make a table
+                        contents += `<table cellspacing="4">
                         <thead><tr>
                             <th colspan="2" class="p-value">${title}</th>
                         </tr></thead>`;
 
-                    d.forEach((d) => {
-                        contents += `<tr>
+                        d.forEach((d) => {
+                            contents += `<tr>
                                 <td class="tooltip-id">
                                     <span style="color:${color(
                                         d
@@ -102,31 +112,32 @@ export default Vue.component("manhattan-plot", {
                                     )}</span>
                                 </td>
                             </tr>`;
-                    });
+                        });
 
-                    return contents + "</table></div>";
-                },
-            },
-            axis: {
-                x: {
-                    label: "Chromosome",
-                    min: 0,
-                    max: chromosomeStart.Y + chromosomeLength.Y,
-                    tick: {
-                        values: chromosomes.map(
-                            (c) =>
-                                chromosomeStart[c] +
-                                Math.floor(chromosomeLength[c] / 2)
-                        ),
-                        format: (pos) => chromosomePos[pos],
-                        fit: false,
+                        return contents + "</table></div>";
                     },
                 },
-                y: {
-                    label: "-log10(p)",
+                axis: {
+                    x: {
+                        label: "Chromosome",
+                        min: 0,
+                        max: chromosomeStart.Y + chromosomeLength.Y,
+                        tick: {
+                            values: chromosomes.map(
+                                (c) =>
+                                    chromosomeStart[c] +
+                                    Math.floor(chromosomeLength[c] / 2)
+                            ),
+                            format: (pos) => chromosomePos[pos],
+                            fit: false,
+                        },
+                    },
+                    y: {
+                        label: "-log10(p)",
+                    },
                 },
-            },
-        });
+            });
+        },
     },
 
     computed: {
@@ -190,48 +201,14 @@ export default Vue.component("manhattan-plot", {
 
             return xs;
         },
-        columnColors() {
-            let colors = {};
-
-            // no phenotypes? color by position
-            if (!this.phenotypes || !this.colorByPhenotype) {
-                return {
-                    color: function (color, d) {
-                        return positionColors.find((c) => d.x < c[0])[1];
-                    },
-                };
-            }
-
-            // color by phenotype
-            this.phenotypes.forEach((p, i) => {
-                colors[p] = Colors[i];
-            });
-
-            return colors;
-        },
     },
 
     watch: {
-        phenotypes(newPhenotypes) {
-            if (!!this.chart) {
-                this.chart.data.colors(this.columnColors());
-            }
-        },
-        columns(columnData) {
-            let columnsToUnload = Object.keys(this.chart.xs());
-            let keys = this.columnKeys;
+        columns(data) {
+            let columns = data;
+            let xs = this.columnKeys;
 
-            if (columnData.some((data) => data.length > 1)) {
-                this.chart.load({
-                    xs: keys,
-                    columns: columnData,
-                    unload: columnsToUnload,
-                });
-            } else {
-                this.chart.unload({
-                    ids: columnsToUnload,
-                });
-            }
+            this.build_chart(xs, columns);
         },
     },
 });
