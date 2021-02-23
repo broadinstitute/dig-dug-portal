@@ -24,6 +24,9 @@
                         <span style="color: white">{{
                             phenotypeMap[phenotype].description
                         }}</span>
+                        <span v-if="i == 0" style="color: white">
+                            (lead SNP)
+                        </span>
                     </b-th>
                 </template>
                 <template v-slot:cell(clumpRegion)="r">

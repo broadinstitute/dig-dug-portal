@@ -105,14 +105,3 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
-
-<style>
-.labele:before {
-    content: "*";
-    color: red;
-}
-.labelee:before {
-    content: "**";
-    color: red;
-}
-</style>
