@@ -102,11 +102,12 @@
                 :total-rows="clumpedAssociations.length"
                 :per-page="perPage"
             ></b-pagination>
-            <documentation
-                id="aligned-beta"
-                class="pt-5 text-center"
-                name="table.clumped-associations.alignment"
-            ></documentation>
+            <div class="p-2 text-center">
+                <documentation
+                    id="aligned-beta"
+                    name="table.clumped-associations.alignment"
+                ></documentation>
+            </div>
         </div>
         <div v-else>
             <h4 v-if="associations.length > 0">

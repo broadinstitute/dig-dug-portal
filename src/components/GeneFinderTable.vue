@@ -1,8 +1,11 @@
 <template>
     <div>
-        <div v-if="showPlot">
+        <div v-show="showPlot">
             <manhattan-plot
                 :associations="combinedAssociations"
+                :phenotypes="phenotypes"
+                :phenotypeMap="phenotypeMap"
+                :colorByPhenotype="true"
                 style="margin-bottom: 10px"
             ></manhattan-plot>
             <center style="margin-bottom: 30px">
@@ -18,27 +21,6 @@
             </center>
         </div>
 
-        <!--<div v-if="showPlot && mPlotData.length" class="egl-m-plot-wrapper">
-            <effector-genes-m-plot
-                :plotData="mPlotData"
-                :locusKey="'region'"
-                :scoreKey="'pValue'"
-                :renderBy="'gene'"
-                :yAxisLabel="'-log10(p)'"
-                :popUpContent="['p-Value', 'region']"
-            ></effector-genes-m-plot>
-            <center style="margin-bottom: 30px">
-                <b v-show="!!this.showChiSquared"
-                    >Combined P-Value(Χ²) across
-                    <a
-                        v-for="p in phenotypes"
-                        class="item"
-                        :href="`/phenotype.html?phenotype=${p}`"
-                        >{{ phenotypeMap[p].description }}</a
-                    >
-                </b>
-            </center>
-        </div>-->
         <div v-if="tableData.length > 0">
             <b-table
                 hover
@@ -224,7 +206,7 @@ export default Vue.component("gene-finder-table", {
                     groups[r.gene] = dataIndex;
 
                     data.push({
-                        phenotype: r.phenotype,
+                        phenotypes: [],
                         gene: r.gene,
                         chromosome: r.chromosome,
                         start: r.start,
@@ -232,6 +214,9 @@ export default Vue.component("gene-finder-table", {
                         minP: 1.0,
                     });
                 }
+
+                // push the phenotype
+                data[dataIndex].phenotypes.push(r.phenotype);
 
                 // add the phenotype columns
                 data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
@@ -279,25 +264,20 @@ export default Vue.component("gene-finder-table", {
         },
 
         combinedAssociations() {
-            console.log(this.groupedAssociations);
-            return this.groupedAssociations.map((a) => {
-                return {
-                    pValue: a.chiSquared,
-                    chromosome: a.chromosome,
-                    position: (a.start + a.end) / 2,
-                };
-            });
-        },
+            let groups = [];
 
-        mPlotData() {
-            return this.groupedAssociations.map((a) => {
-                return {
-                    pValue: -Math.log10(a.chiSquared),
-                    "p-Value": this.pValueFormatter(a.chiSquared),
-                    region: a.chromosome + ":" + a.start + "-" + a.end,
-                    gene: a.gene,
-                };
+            this.groupedAssociations.forEach((a) => {
+                a.phenotypes.forEach((phenotype) => {
+                    groups.push({
+                        phenotype,
+                        pValue: a[`${phenotype}:pValue`],
+                        chromosome: a.chromosome,
+                        position: Math.floor((a.start + a.end) / 2),
+                    });
+                });
             });
+
+            return groups;
         },
     },
 

@@ -81,6 +81,7 @@
                             :associations="$parent.filteredAssociations"
                             :phenotypes="$store.state.phenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                            :colorByPhenotype="true"
                             class="mt-2 mb-2"
                         ></manhattan-plot>
                     </div>
