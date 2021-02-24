@@ -171,8 +171,10 @@
                             v-if="$parent.topAssociations.length > 0"
                             :phenotypes="$parent.topAssociations"
                         ></phenotype-signal-multiple>-->
-
-                        <criterion-function-group v-model="$parent.associationsFilter">
+                        <criterion-list-group
+                            v-model="$parent.regionPhenotypeSearchCriterion"
+                            :header="'Search Criterion'"
+                        >
                             <filter-enumeration-control
                                 ref="phenotype"
                                 :field="'phenotype'"
@@ -186,7 +188,8 @@
                             >
                                 <div class="label">Phenotypes</div>
                             </filter-enumeration-control>
-                            <div class="col divider">&nbsp;</div>
+                        </criterion-list-group>
+                        <criterion-function-group v-model="$parent.associationsFilter">
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="$parent.associationConsequences"
@@ -213,7 +216,7 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <associations-table
                                     v-if="$parent.pageAssociations.length > 0"
-                                    :phenotypes="$parent.phenotypes"
+                                    :phenotypes="$parent.selectedPhenotypeList"
                                     :associations="$parent.pageAssociations"
                                     :filter="filter"
                                 ></associations-table>
@@ -235,15 +238,9 @@
                             <div class="col filter-col-lg">
                                 <div class="label" style="margin-bottom: 5px">Add annotation</div>
                                 <annotation-method-selectpicker
-                                    :annotations="
-                                        $parent.globalEnrichmentAnnotations
-                                    "
+                                    :annotations="$parent.globalEnrichmentAnnotations"
                                     :clearOnSelected="true"
-                                    @annotation="
-                                        $parent.addAnnotationIntervalsPanel(
-                                            $event
-                                        )
-                                    "
+                                    @annotation="$parent.addAnnotationIntervalsPanel($event)"
                                 />
                             </div>
 

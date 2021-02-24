@@ -41,7 +41,8 @@ export default new Vuex.Store({
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
-        matchingGenes: null
+        matchingGenes: null,
+        selectedPhenotypeList: null,
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
@@ -71,6 +72,9 @@ export default new Vuex.Store({
         },
         setMatchingGenes(state, genes) {
             state.matchingGenes = genes;
+        },
+        setSelectedPhenotypeList(state, phenoList) {
+            state.selectedPhenotypeList = phenoList;
         }
     },
     getters: {
