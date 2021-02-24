@@ -9,6 +9,8 @@ Vue.config.productionTip = false;
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import uiUtils from "@/utils/uiUtils";
 import Alert, {
     postAlert,
@@ -25,6 +27,16 @@ new Vue({
         PageFooter,
         PortalDatasetsListTable,
         Alert,
+        CriterionListGroup,
+        FilterEnumeration,
+    },
+    data() {
+        return {
+            counter: 0,
+            phenotypelist: [],
+            datasetsSearchCriterion: [],
+            geneFinderAssociationsMap: {},
+        };
     },
 
     created() {
@@ -69,6 +81,16 @@ new Vue({
                 return {};
             }
             return contents;
+        },
+
+        datasetsNameOptions() {
+            let options = []
+            this.$store.state.kp4cd.datasetsInfo.map(x => {
+                if (x.field_portals.includes(this.diseaseGroup.name)) {
+                    options.push(x);
+                }
+            });
+            return options;
         }
     },
 
