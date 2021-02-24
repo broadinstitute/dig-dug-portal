@@ -50,6 +50,7 @@
                                 <criterion-function-group
                                     v-model="p.filter"
                                     :hide="!p.filterVisible"
+                                    :inlinePills="true"
                                 >
                                     <filter-pvalue-control :field="'pValue'">
                                         <div class="label">P-Value (&le;)</div>
