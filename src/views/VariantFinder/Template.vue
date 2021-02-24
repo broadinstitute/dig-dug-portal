@@ -23,13 +23,15 @@
                                 v-for="(p, index) in $store.state.phenotypes"
                                 :key="index"
                             >
-                                <span
-                                    :class="`mr-4 badge`"
-                                    :style="`color: #fff; background-color: ${$parent.phenotypeColor(
-                                        index
-                                    )} !important`"
-                                    >{{ p.phenotype.description }}</span
-                                >
+                                <span class="lead">
+                                    <span
+                                        :class="`mr-4 badge`"
+                                        :style="`color: #fff; background-color: ${$parent.phenotypeColor(
+                                            index
+                                        )} !important`"
+                                        >{{ p.phenotype.description }}</span
+                                    >
+                                </span>
                                 <button
                                     type="button"
                                     class="close"
