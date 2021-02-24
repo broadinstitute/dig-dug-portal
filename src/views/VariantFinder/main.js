@@ -12,7 +12,7 @@ import PageFooter from "@/components/PageFooter.vue";
 import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
-import PhenotypePicker from "@/components/PhenotypePicker.vue";
+import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import ClumpedAssociationsTable from "@/components/ClumpedAssociationsTable.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
@@ -22,14 +22,14 @@ import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 
+import Colors from "@/utils/colors";
+
 import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
     closeAlert
 } from "@/components/Alert";
-
-import { difference } from "lodash"
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -42,7 +42,7 @@ new Vue({
         PageHeader,
         PageFooter,
         Alert,
-        PhenotypePicker,
+        PhenotypeSelectPicker,
         Documentation,
         ManhattanPlot,
         ClumpedAssociationsTable,
@@ -57,8 +57,6 @@ new Vue({
 
     data() {
         return {
-            variantFinderSearchCriterion: [],
-            variantFinderFilter: function (id) { return true; },
         };
     },
 
@@ -79,16 +77,12 @@ new Vue({
         postAlertError,
         closeAlert,
 
-        updateAssociations(phenotypes, phenotypesToAdd) {
-            let existing = difference(phenotypes, phenotypesToAdd);
+        removePhenotype(index) {
+            this.$store.commit('removePhenotype', index);
+        },
 
-            // this will delete old associations no longer being referenced
-            this.$store.commit('setPhenotypes', existing);
-
-            // fetch all the data as needed
-            for (let i in phenotypesToAdd) {
-                this.$store.dispatch('fetchAssociationsMatrix', phenotypesToAdd[i]);
-            }
+        phenotypeColor(index) {
+            return Colors[index];
         }
     },
 
@@ -105,28 +99,24 @@ new Vue({
         },
 
         // don't allow selection of the lead phenotype in dropdowns
-        leadPhenotypeOptions() {
-            return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.leadPhenotype);
-        },
-        secondaryPhenotypeOptions() {
-            return this.$store.state.bioPortal.phenotypes.filter(x => x.name != this.$store.state.leadPhenotype);
-        },
-
-        filteredAssociations() {
-            return this.$store.getters.associations.filter(this.variantFinderFilter);
+        phenotypes() {
+            return this.$store.state.phenotypes.map(p => p.phenotype.name);
         },
 
         clumpedAssociations() {
             let n = this.$store.state.phenotypes.length;
             let clumps = {};
 
-            // add the lead phenotype to each clump
-            this.filteredAssociations.forEach(r => {
-                if (r.clump in clumps) {
-                    clumps[r.clump].push(r);
-                } else {
-                    clumps[r.clump] = [r];
-                }
+            this.$store.state.phenotypes.forEach(p => {
+                p.associations.forEach(r => {
+                    if (p.filter(r)) {
+                        if (r.clump in clumps) {
+                            clumps[r.clump].push(r);
+                        } else {
+                            clumps[r.clump] = [r];
+                        }
+                    }
+                });
             });
 
             // drop all clumps that do not contain all phenotypes
@@ -135,30 +125,11 @@ new Vue({
 
             return flattened;
         },
-
-        criterion() {
-            let phenotypes = this.variantFinderSearchCriterion
-                .map(criterion => criterion.threshold);
-
-            return { phenotypes };
-        }
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        criterion(newCriterion, oldCriterion) {
-            let phenotypes = newCriterion.phenotypes;
-            let lead = phenotypes[0];
-
-            // if the lead phenotype changed, start over
-            if (lead !== this.$store.getters.leadPhenotype) {
-                this.$store.dispatch('fetchLeadPhenotypeAssociations', lead);
-            } else {
-                const phenotypesToAdd = difference(phenotypes, oldCriterion.phenotypes);
-                this.updateAssociations(phenotypes, phenotypesToAdd);
-            }
-        }
     }
 }).$mount("#app");

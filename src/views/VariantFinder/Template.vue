@@ -16,73 +16,89 @@
 
                     <h4 class="card-title">Build search criteria</h4>
 
-                    <!-- phenotype loading -->
-                    <criterion-list-group
-                        v-model="$parent.variantFinderSearchCriterion"
-                        :header="'Search Criterion'"
-                    >
-                        <!-- Phenotype Selector -->
-                        <filter-enumeration-control
-                            class="filter-col-lg"
-                            :field="'lead'"
-                            :options="
-                                $parent.leadPhenotypeOptions.map(
-                                    (phenotype) => phenotype.name
-                                )
-                            "
-                            :multiple="false"
-                            :labelFormatter="
-                                (phenotype) =>
-                                    $store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ].description
-                            "
-                        >
-                            <div>
-                                <strong>Lead Phenotype</strong>
+                    <!-- phenotype criterion -->
+                    <div class="row">
+                        <div class="col-md-8 mx-auto">
+                            <div
+                                v-for="(p, index) in $store.state.phenotypes"
+                                :key="index"
+                            >
+                                <span
+                                    :class="`mr-4 badge`"
+                                    :style="`color: #fff; background-color: ${$parent.phenotypeColor(
+                                        index
+                                    )} !important`"
+                                    >{{ p.phenotype.description }}</span
+                                >
+                                <button
+                                    type="button"
+                                    class="close"
+                                    aria-label="Close"
+                                >
+                                    <span
+                                        v-on:click="
+                                            $parent.removePhenotype(index)
+                                        "
+                                        >&times;</span
+                                    >
+                                </button>
+                                <button
+                                    type="button"
+                                    class="mr-2 close"
+                                    aria-label="Filter"
+                                >
+                                    <span
+                                        v-on:click="
+                                            p.filterVisible = !p.filterVisible
+                                        "
+                                        >&#x2261;</span
+                                    >
+                                </button>
+                                <div v-show="p.filterVisible">
+                                    <criterion-function-group
+                                        v-model="p.filter"
+                                    >
+                                        <filter-pvalue-control
+                                            :field="'pValue'"
+                                        >
+                                            <div class="label">
+                                                P-Value (&le;)
+                                            </div>
+                                        </filter-pvalue-control>
+
+                                        <filter-effect-direction-control
+                                            :field="
+                                                index == 0
+                                                    ? 'beta'
+                                                    : 'alignedBeta'
+                                            "
+                                        >
+                                            <div class="label">
+                                                Effect (+/-)
+                                            </div>
+                                        </filter-effect-direction-control>
+                                    </criterion-function-group>
+                                </div>
                             </div>
-                        </filter-enumeration-control>
+                        </div>
+                    </div>
 
-                        <!-- Phenotype Selector -->
-                        <filter-enumeration-control
-                            v-show="!!$store.getters.leadPhenotype"
-                            class="filter-col-lg"
-                            :field="'phenotype'"
-                            :options="
-                                $parent.secondaryPhenotypeOptions.map(
-                                    (phenotype) => phenotype.name
-                                )
-                            "
-                            :multiple="true"
-                            :labelFormatter="
-                                (phenotype) =>
-                                    $store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ].description
-                            "
-                        >
-                            <div>
-                                <strong>Phenotypes</strong>
-                            </div>
-                        </filter-enumeration-control>
-                    </criterion-list-group>
-
-                    <!-- filter options per phenotype -->
-                    <criterion-function-group
-                        v-model="$parent.variantFinderFilter"
-                        v-show="
-                            $store.state.phenotypes.length > 0 ||
-                            $parent.filteredAssociations.length > 0
-                        "
-                    >
-                        <filter-pvalue-control :field="'pValue'">
-                            <div class="label">P-Value (&le;)</div>
-                        </filter-pvalue-control>
-
-                        <filter-effect-direction-control :field="'alignedBeta'">
-                            <div class="label">Aligned Effect (+/-)</div>
-                        </filter-effect-direction-control>
-                    </criterion-function-group>
+                    <!-- add another phenotype... -->
+                    <div class="row">
+                        <div class="col-md-4 mx-auto">
+                            <phenotype-selectpicker
+                                class="mt-2"
+                                :phenotypes="$store.state.bioPortal.phenotypes"
+                                :placeholder="
+                                    $store.state.phenotypes.length == 0
+                                        ? 'Select lead phenotype'
+                                        : 'Select additional phenotype'
+                                "
+                                :clearOnSelected="true"
+                            >
+                            </phenotype-selectpicker>
+                        </div>
+                    </div>
 
                     <hr />
 
@@ -94,7 +110,7 @@
                                 $parent.clumpedAssociations.length > 0
                             "
                             :associations="$parent.clumpedAssociations"
-                            :phenotypes="$store.state.phenotypes"
+                            :phenotypes="$parent.phenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :colorByPhenotype="true"
                             class="mt-2 mb-2"
@@ -108,7 +124,7 @@
                                 $store.state.phenotypes.length > 0 ||
                                 $parent.clumpedAssociations.length > 0
                             "
-                            :phenotypes="$store.state.phenotypes"
+                            :phenotypes="$parent.phenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :associations="$parent.clumpedAssociations"
                             :rowsPerPage="30"

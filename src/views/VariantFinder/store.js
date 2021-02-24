@@ -20,19 +20,21 @@ export default new Vuex.Store({
         bioPortal,
         kp4cd,
         globalAssociations: bioIndex("global-associations"),
+        clumpedMatrix: bioIndex("clumped-matrix"),
     },
     state: {
-        phenotypes: [],
         associations: [],
         leadPositions: {},
+        phenotypes: [],
     },
     mutations: {
         setLeadPhenotype(state, phenotype) {
-            if (state.phenotypes.length == 0) {
-                state.phenotypes = [phenotype];
-            } else {
-                state.phenotypes[0] = phenotype;
-            }
+            state.phenotypes = [{
+                phenotype: phenotype,
+                associations: state.globalAssociations.data,
+                filter: (x) => true,
+                filterVisible: false,
+            }];
         },
         setLeadPositions(state) {
             state.leadPositions = {};
@@ -42,78 +44,81 @@ export default new Vuex.Store({
                 state.leadPositions[r.clump] = r.position;
             });
         },
-        setPhenotypes(state, phenotypes) {
-            state.phenotypes = phenotypes;
+        addPhenotype(state, phenotype) {
+            state.phenotypes.push({
+                phenotype: phenotype,
+                associations: state.clumpedMatrix.data.map(r => {
+                    let alignment = r.alignment || 1;
+                    let alignedBeta = r.beta * alignment;
 
-            // drop associations that aren't in the list any more
-            state.associations = state.associations.filter(r => {
-                return phenotypes.indexOf(r.phenotype) >= 0;
+                    // align the position so variants in the same clump line up
+                    return {
+                        ...r,
+
+                        // calculate aligned effect direction
+                        alignment,
+                        alignedBeta,
+
+                        // overwrite position w/ that of lead SNP
+                        position: state.leadPositions[r.clump],
+                    };
+                }),
+                filter: (x) => true,
+                filterVisible: false,
             });
         },
-        updateAssociations(state, { phenotype, data }) {
-            state.phenotypes.push(phenotype);
-
-            // remove existing associations for this phenotype, then add
-            state.associations = state.associations.concat(data.map(r => {
-                let alignment = r.alignment || 1;
-                let alignedBeta = r.beta * alignment;
-
-                // align the position so variants in the same clump line up
-                return {
-                    ...r,
-
-                    // calculate aligned effect direction
-                    alignment,
-                    alignedBeta,
-
-                    // overwrite position w/ that of lead SNP
-                    position: state.leadPositions[r.clump],
-                };
-            }));
-        },
+        removePhenotype(state, index) {
+            if (index == 0) {
+                state.phenotypes = []; // remove all
+            } else {
+                state.phenotypes = state.phenotypes.filter((p, i) => i != index);
+            }
+        }
     },
     getters: {
         leadPhenotype(state) {
-            return state.phenotypes.length > 0 ? state.phenotypes[0] : undefined;
+            if (state.phenotypes.length > 0) {
+                return state.phenotypes[0].phenotype;
+            }
         },
         leadAssociations(state) {
-            return state.globalAssociations.data
-                .map(r => {
-                    return { ...r, alignment: 1, alignedBeta: r.beta };
-                });
+            if (state.phenotypes.length > 0) {
+                return state.phenotypes[0].associations.filter(state.phenotypes[0].filter);
+            }
         },
-        associations(state, getters) {
-            return getters.leadAssociations.concat(state.associations);
-        }
     },
     actions: {
-        async fetchLeadPhenotypeAssociations(context, phenotypeName) {
-            await context.dispatch('globalAssociations/query', { q: phenotypeName });
+        async onPhenotypeChange(context, phenotype) {
+            let i = context.state.phenotypes.indexOf(p => p.name == phenotype.name);
 
-            // calculate lead positions
-            context.commit('setLeadPositions');
-            context.commit('setLeadPhenotype', phenotypeName);
+            // doesn't exist, so add it
+            if (i < 0) {
+                if (context.state.phenotypes.length == 0) {
+                    context.dispatch('fetchLeadPhenotypeAssociations', phenotype);
+                } else {
+                    context.dispatch('fetchAssociationsMatrix', phenotype);
+                }
+            }
         },
 
-        async fetchAssociationsMatrix(context, phenotypeName) {
-            let lead = context.getters.leadPhenotype;
+        // fetch the lead (first) phenotype clumped associations
+        async fetchLeadPhenotypeAssociations(context, phenotype) {
+            await context.dispatch('globalAssociations/query', { q: phenotype.name });
 
-            if (!!lead) {
-                let desc = context.state.bioPortal.phenotypeMap[phenotypeName].description;
-                let alertId = postAlertNotice(`Loading association matrix for ${desc}...`);
+            // calculate lead positions
+            context.commit('setLeadPhenotype', phenotype);
+            context.commit('setLeadPositions');
+        },
 
-                // download the association matrix for this pair
-                let data = await query(`clumped-matrix`, `${lead},${phenotypeName}`);
+        // load secondary phenotype associations
+        async fetchAssociationsMatrix(context, phenotype) {
+            let lead = context.state.phenotypes[0].phenotype.name;
 
-                // update the phenoypes and associations
-                context.commit('updateAssociations', {
-                    phenotype: phenotypeName,
-                    data,
-                });
+            // use the module to download
+            await context.dispatch('clumpedMatrix/query', { q: `${lead},${phenotype.name}` });
 
-                // done loading
-                closeAlert(alertId);
-            }
+            // commit a copy of the data
+            context.commit('addPhenotype', phenotype);
         },
     }
 });
