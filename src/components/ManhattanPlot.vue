@@ -34,6 +34,11 @@ export default Vue.component("manhattan-plot", {
     methods: {
         build_chart(xs, columns) {
             let component = this;
+            let names = {};
+
+            for (let p in xs) {
+                names[p] = this.phenotypeMap[p].description;
+            }
 
             // attach to the dom
             this.chart = c3.generate({
@@ -47,6 +52,7 @@ export default Vue.component("manhattan-plot", {
                 data: {
                     xs,
                     columns,
+                    names,
                     type: "scatter",
                     order: null,
                     color: function (color, d) {
@@ -57,12 +63,10 @@ export default Vue.component("manhattan-plot", {
                             return positionColors.find((c) => d.x < c[0])[1];
                         }
 
-                        let i = component.phenotypes.findIndex((p) => {
-                            return (
-                                component.phenotypeMap[p].description == d.id
-                            );
-                        });
+                        // phenotype index will determine the color
+                        let i = component.phenotypes.indexOf(d.id);
 
+                        // if not found, default to black
                         return i >= 0 ? Colors[i] : "#000";
                     },
                 },
@@ -104,7 +108,7 @@ export default Vue.component("manhattan-plot", {
                                     <span style="color:${color(
                                         d
                                     )}">&#x25fc;</span>
-                                    <span>${d.id}</span>
+                                    <span>${d.name}</span>
                                 </td>
                                 <td class="p-value">
                                     <span>${Formatters.pValueFormatter(
@@ -160,17 +164,12 @@ export default Vue.component("manhattan-plot", {
                 return [x, y];
             }
 
-            let phenotypeIndex = {};
             let columns = [];
-            let phenotypeMap = this.phenotypeMap;
 
             // each phenotype gets two columns of data (x and y)
             this.phenotypes.forEach((p, i) => {
-                let desc = phenotypeMap[p].description;
-                phenotypeIndex[p] = i;
-
-                let x = [`${desc}_x`];
-                let y = [desc];
+                let x = [`${p}_x`];
+                let y = [p];
 
                 this.associations.forEach((r) => {
                     if (r.phenotype == p) {
@@ -195,8 +194,7 @@ export default Vue.component("manhattan-plot", {
             }
 
             this.phenotypes.forEach((p) => {
-                let d = phenotypeMap[p].description;
-                xs[d] = `${d}_x`;
+                xs[p] = `${p}_x`;
             });
 
             return xs;
