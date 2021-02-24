@@ -31,7 +31,11 @@
                 </template>
                 <template v-slot:cell(clumpRegion)="r">
                     <a
-                        :href="`/region.html?phenotype=${phenotypes[0]}&chr=${r.item.chromosome}&start=${r.item.clumpStart}&end=${r.item.clumpEnd}`"
+                        :href="`/region.html?phenotype=${phenotypes.join(
+                            ','
+                        )}&chr=${r.item.chromosome}&start=${
+                            r.item.clumpStart
+                        }&end=${r.item.clumpEnd}`"
                         >{{ clumpFormatter(r.item) }}</a
                     >
                 </template>
