@@ -20,6 +20,7 @@
         :options="['positive', 'negative']"
         @input-change="$emit('input-change', $event)"
         :multiple="false"
+        :computedField="computedField"
     >
         <slot></slot>
     </filter-control-template>
@@ -28,7 +29,7 @@
 import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
 export default Vue.component("filter-effect-direction-control", {
-    props: ["field"],
+    props: ["field" , "computedField"],
     components: {
         FilterControlTemplate,
     },

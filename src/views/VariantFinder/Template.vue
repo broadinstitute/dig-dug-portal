@@ -57,9 +57,9 @@
                                     </filter-pvalue-control>
 
                                     <filter-effect-direction-control
-                                        :field="
-                                            index == 0 ? 'beta' : 'alignedBeta'
-                                        "
+                                        :computedField="obj => {
+                                            return obj.beta * -1 
+                                        }"
                                     >
                                         <div class="label">Effect (+/-)</div>
                                     </filter-effect-direction-control>
