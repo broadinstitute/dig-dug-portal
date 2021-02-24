@@ -1,34 +1,32 @@
 <template>
     <div>
         <b-tabs>
-            <b-tab v-for="(edgeId, index) in Object.keys(query_graph.edges)" 
-                :key="edgeId"
-                :title="`${query_graph.edges[edgeId].predicate} ${query_graph.nodes[query_graph.edges[edgeId].object].category}`">
-                <b-table v-if="!!resultLib[index] && resultLib.length > 0" :items="tableItems(resultLib[index])">
-                    <template #cell()="data">
-                        <resolved-curie-link
-                            :curie="data.value">
-                        </resolved-curie-link>
-                    </template>
-                </b-table>
-                <center v-else>
-                    <b-spinner></b-spinner>
-                </center>
+            <b-tab v-for="query_graph in queries" 
+                :key="Object.keys(query_graph.query_graph.edges)[0]"
+                :title="`${query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].predicate} ${query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].object].category}`">
+                <ncats-results-table
+                    :title="`${query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].subject].id}: ${query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].subject].category}`"
+                    :query_graph="query_graph.query_graph"
+                ></ncats-results-table>
             </b-tab>
         </b-tabs>
-
     </div>
 </template>
 <script>
 import Vue from "vue";
 import trapi from "@/components/NCATS/trapi"
+import ResultsTable from "./ResultsTable"
 import { cloneDeep } from "lodash";
 
 export default Vue.component("ncats-results-dashboard", {
+    components: {
+        ResultsTable,
+    },
     props: ['query_graph'],
     data() {
         return {
-            resultLib: []
+            resultLib: [],
+            queries: []
         }
     },
     async created() {
@@ -48,11 +46,8 @@ export default Vue.component("ncats-results-dashboard", {
             })
             return queries;
         }
-
-        const queries = splitQuery(this.query_graph);
-        const results = queries.forEach(async query => await trapi.query({ message: query }).then(async query => {
-            return await Promise.all(query.children.filter(el => el.status === "Done").map(trapi.queryUtils.getARAMessage)).then(el => !!el.results ? el.results : null)
-        }))
+        this.queries = splitQuery(this.query_graph)
+        console.log(this.queries)
 
     },
     watch: {

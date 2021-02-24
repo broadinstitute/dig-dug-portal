@@ -381,11 +381,16 @@ const predicateHierarchy = () => {
     throw new Error("Unimplemented")
 }
 
+let curieLabelCache = new Map();
 const curieLabel = async (curie) => {
     let qs = queryString.stringify({ curie });
-    return await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
-                    .then(response => response.json())
-                    .then(json => json[curie] !== null ? json[curie].id.label : curie);
+    if (!curieLabelCache.has(curie)) {
+        const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
+            .then(response => response.json())
+            .then(json => json[curie] !== null ? json[curie].id.label : curie);
+        curieLabelCache.set(curie, label)
+    }
+    return curieLabelCache.get(curie);
 }
 
 const associations = function(biolinkModel) {
@@ -404,7 +409,7 @@ export default {
     },
     queries: {
         updateResultsForSources,
-        printResultsFromSources,
+        printResultsForSources,
     },
     identifiers: {
         context: bioLinkContext,
