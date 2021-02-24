@@ -95,11 +95,11 @@
                         <gene-finder-table
                             v-show="
                                 $parent.complicationViewerPhenotypes.length >
-                                    0 && $parent.combined.length > 0
+                                    0 && $store.state.associations.length > 0
                             "
                             :phenotypes="$parent.complicationViewerPhenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            :associations="$parent.combined"
+                            :associations="$store.state.associations"
                             :rowsPerPage="20"
                             :exclusive="true"
                             :showPlot="true"
@@ -109,8 +109,9 @@
                     <div
                         class="card-body"
                         v-if="
+                            $store.state.bioPortal.phenotypeMap &&
                             $parent.complicationViewerPhenotypes.length > 0 &&
-                            $parent.combined.length > 0
+                            $store.state.associations.length > 0
                         "
                         v-for="pheno in $parent.complicationViewerPhenotypes"
                     >
@@ -162,14 +163,3 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
-
-<style>
-.labele:before {
-    content: "*";
-    color: red;
-}
-.labelee:before {
-    content: "**";
-    color: red;
-}
-</style>

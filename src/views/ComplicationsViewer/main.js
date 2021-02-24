@@ -82,29 +82,6 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
-        updateAssociations(updatedPhenotypes, pValue, flush) {
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-            let promises = updatedPhenotypes.map(phenotype => {
-                if (!!!this.geneFinderAssociationsMap[phenotype] || flush) {
-                    if (!!phenotypeMap[phenotype]) {
-                        let alertId = postAlertNotice(`Loading ${phenotypeMap[phenotype].description} gene associations...`);
-                        return query(`gene-finder`, phenotype, { limitWhile: record => record.pValue < pValue })
-                            .then(bioIndexData => {
-                                closeAlert(alertId);
-                                Vue.set(this.geneFinderAssociationsMap, phenotype, bioIndexData);
-                            })
-                    }
-
-                } else {
-                    return Promise.resolve();
-                }
-            });
-
-            // may await on this in the future if needed...
-            Promise.all(promises);
-        }
-
     },
 
     computed: {
@@ -119,9 +96,9 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
         phenotypes() {
-            let selectedPhenotypesList = []
-            selectedPhenotypesList = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'condition').map(criterion => criterion.threshold);
-            return selectedPhenotypesList;
+            return this.complicationsViewerSearchCriterion
+                .filter(criterion => criterion.field === 'condition')
+                .map(criterion => criterion.threshold);
         },
 
         manhattanPlot() {
@@ -132,9 +109,7 @@ new Vue({
             }
         },
 
-
         qqPlot() {
-            // let search = this.complicationsViewerSearchCriterion.filter(criterion => criterion.field === 'secondaryPhenotype').map(criterion => criterion.threshold);
             let search = this.complicationViewerPhenotypes;
             let phenotype = search[0];
 
@@ -145,8 +120,8 @@ new Vue({
 
 
         complicationPhenotypeOptions() {
-            let x = this.$store.state.bioPortal.complications.filter(x => x.name != this.$store.state.phenotype);
-            return x;
+            return this.$store.state.bioPortal.complications
+                .filter(x => x.name != this.$store.state.phenotype);
         },
 
         //find the selected comlication based on selected criterion
@@ -172,34 +147,15 @@ new Vue({
                 return []
             }
         },
-        complicationsViewerPhenotype() {
-            if (this.complicationViewerPhenotypes.length > 1) {
-                return this.complicationViewerPhenotypes[0]
-            }
-        },
 
-        complicationsViewerPhenotype2() {
-            if (this.complicationViewerPhenotypes.length > 1) {
-                return this.complicationViewerPhenotypes[1]
-            }
-        },
-        combined() {
-            return Object.entries(this.geneFinderAssociationsMap).flatMap(geneFinderItem => geneFinderItem[1]);
-        },
         geneFinderPValue() {
-            let pval = 0.05
             for (let i in this.complicationsViewerSearchCriterion) {
                 if (this.complicationsViewerSearchCriterion[i].field == 'pValue') {
-                    pval = Number(this.complicationsViewerSearchCriterion[i].threshold)
+                    return Number(this.complicationsViewerSearchCriterion[i].threshold)
                 }
             }
-            return pval;
-        },
-        criterion() {
-            return {
-                pValue: this.geneFinderPValue,
-                phenotypes: this.complicationViewerPhenotypes,
-            }
+
+            return 0.05;
         },
 
         documentationMap() {
@@ -216,19 +172,13 @@ new Vue({
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
-        criterion(newCriterion, oldCriterion) {
-            if (newCriterion.pValue !== oldCriterion.pValue) {
-                // if the pValue updates, all phenotype associations must be updated to reflect the new bound
-                // this will override all data in the geneFinderAssociationsMap
-                this.updateAssociations(this.complicationViewerPhenotypes, this.geneFinderPValue, true);
-            } else {
-                // if the phenotypes update, we only need to get new data based on latest phenotype
-                // NOTE: this will maintain some data in the the geneFinderAssociationsMap
-                const updatingPhenotypes = difference(newCriterion.phenotypes, oldCriterion.phenotypes);
-                if (updatingPhenotypes.length > 0) {
-                    this.updateAssociations(updatingPhenotypes, this.geneFinderPValue);
-                }
-            }
-        }
+
+        complicationViewerPhenotypes(phenotypes) {
+            this.$store.dispatch('findGenes', {
+                primaryPhenotype: phenotypes[0],
+                secondaryPhenotype: phenotypes[1],
+                pValue: this.geneFinderPValue,
+            });
+        },
     }
 }).$mount("#app");
