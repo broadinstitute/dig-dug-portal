@@ -28,22 +28,13 @@
                                         :class="`mr-4 badge`"
                                         :style="`color: #fff; background-color: ${$parent.phenotypeColor(
                                             index
-                                        )} !important`"
-                                        >{{ p.phenotype.description }}</span
-                                    >
-                                </span>
-                                <button
-                                    type="button"
-                                    class="close"
-                                    aria-label="Close"
-                                >
-                                    <span
+                                        )} !important; cursor: pointer;`"
                                         v-on:click="
                                             $parent.removePhenotype(index)
                                         "
-                                        >&times;</span
+                                        >{{ p.phenotype.description }}</span
                                     >
-                                </button>
+                                </span>
                                 <button
                                     type="button"
                                     class="mr-2 close"
@@ -56,31 +47,22 @@
                                         >&#x2261;</span
                                     >
                                 </button>
-                                <div v-show="p.filterVisible">
-                                    <criterion-function-group
-                                        v-model="p.filter"
-                                    >
-                                        <filter-pvalue-control
-                                            :field="'pValue'"
-                                        >
-                                            <div class="label">
-                                                P-Value (&le;)
-                                            </div>
-                                        </filter-pvalue-control>
+                                <criterion-function-group
+                                    v-model="p.filter"
+                                    :hide="!p.filterVisible"
+                                >
+                                    <filter-pvalue-control :field="'pValue'">
+                                        <div class="label">P-Value (&le;)</div>
+                                    </filter-pvalue-control>
 
-                                        <filter-effect-direction-control
-                                            :field="
-                                                index == 0
-                                                    ? 'beta'
-                                                    : 'alignedBeta'
-                                            "
-                                        >
-                                            <div class="label">
-                                                Effect (+/-)
-                                            </div>
-                                        </filter-effect-direction-control>
-                                    </criterion-function-group>
-                                </div>
+                                    <filter-effect-direction-control
+                                        :field="
+                                            index == 0 ? 'beta' : 'alignedBeta'
+                                        "
+                                    >
+                                        <div class="label">Effect (+/-)</div>
+                                    </filter-effect-direction-control>
+                                </criterion-function-group>
                             </div>
                         </div>
                     </div>
