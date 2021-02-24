@@ -69,7 +69,7 @@
 
                     <!-- add another phenotype... -->
                     <div class="row">
-                        <div class="col-md-4 mx-auto">
+                        <div class="col-md-5 mx-auto">
                             <phenotype-selectpicker
                                 class="mt-2"
                                 :phenotypes="$store.state.bioPortal.phenotypes"
