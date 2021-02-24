@@ -73,13 +73,30 @@ new Vue({
         },
 
         datasetsList() {
-            let contents = this.$store.state.kp4cd.datasetsInfo;
+            let contents = [];
+            if (this.datasetsSearchCriterion.length > 0) {
+
+                this.$store.state.kp4cd.datasetsInfo.map(d => {
+                    this.datasetsSearchCriterion.map(s => {
+                        if (d[s.field] == s.threshold) {
+                            contents.push(d);
+                        }
+                    })
+                })
+
+            } else {
+                contents = this.$store.state.kp4cd.datasetsInfo;
+            }
+
 
             // TODO: use this.$store.state.bioPortal.datasets instead!
 
             if (contents.length === 0) {
                 return {};
             }
+
+            //datasetsSearchCriterion
+
             return contents;
         },
 

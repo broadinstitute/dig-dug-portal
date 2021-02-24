@@ -29,7 +29,7 @@
                             >
                                 <filter-enumeration-control
                                     class="filter-col-lg"
-                                    :field="'name'"
+                                    :field="'title'"
                                     :options="
                                         $parent.datasetsNameOptions.map(
                                             (dataset) => dataset.title
@@ -39,11 +39,10 @@
                                     :labelFormatter="(dataset) => dataset"
                                 >
                                     <div>
-                                        <strong>Dataset name</strong>
+                                        <strong>Search dataset name</strong>
                                     </div>
                                 </filter-enumeration-control>
                             </criterion-list-group>
-                            {{ $parent.datasetsSearchCriterion }};
                             <portal-datasets-list-table
                                 :diseaseGroups="
                                     $store.state.bioPortal.diseaseGroups
