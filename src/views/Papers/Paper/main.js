@@ -8,8 +8,8 @@ Vue.config.productionTip = false;
 
 
 import PortalDatasetsListTable from "@/components/PortalDatasetsListTable.vue";
-import PageHeader from "@/components/PageHeader.vue";
-import PageFooter from "@/components/PageFooter.vue";
+import PaperPageHeader from "@/components/PaperPageHeader.vue";
+import PaperPageFooter from "@/components/PaperPageFooter.vue";
 import ResearchMethod from "@/components/eglt/ResearchMethod.vue";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
@@ -24,8 +24,8 @@ new Vue({
     store,
 
     components: {
-        PageHeader,
-        PageFooter,
+        PaperPageHeader,
+        PaperPageFooter,
         PortalDatasetsListTable,
         Alert,
         ResearchMethod,
@@ -34,6 +34,7 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("kp4cd/getResearchMethod", keyParams.paper);
+        this.$store.dispatch("kp4cd/getPaperMenu", keyParams.paper);
     },
 
     render(createElement, context) {
@@ -65,6 +66,14 @@ new Vue({
 
         researchMethod() {
             let contents = this.$store.state.kp4cd.researchMethod;
+
+            if (contents.length === 0) {
+                return null;
+            }
+            return contents;
+        },
+        paperMenu() {
+            let contents = this.$store.state.kp4cd.paperMenu;
 
             if (contents.length === 0) {
                 return null;

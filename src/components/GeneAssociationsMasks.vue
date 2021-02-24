@@ -76,6 +76,7 @@
                     :key="i"
                     :index="i"
                     :dichotomous="!!phenotypeMap[row.phenotype].dichotomous"
+                    :isHidden="true"
                 ></mask-table>
             </template>
         </b-container>

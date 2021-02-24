@@ -2,7 +2,7 @@
     <span>
         <!-- Controls and their labels -->
         <slot name="header"></slot>
-        <b-container fluid class="filtering-ui-wrapper">
+        <b-container v-show="!hide" fluid class="filtering-ui-wrapper">
             <b-row class="filtering-ui-content">
                 <EventListener @change="filterControlChange">
                     <!-- Filter Widget Control Slot -->
@@ -99,6 +99,7 @@ export default Vue.component("criterion-group-template", {
         inclusive: Boolean,
         strictCase: Boolean,
         looseMatch: Boolean,
+        hide: Boolean,
 
         header: {
             type: String,

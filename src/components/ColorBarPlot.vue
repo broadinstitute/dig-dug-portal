@@ -1,39 +1,40 @@
 <template>
     <div :id="elementid">
-        <div style="width: 700px">
-            <br />
-            <div v-if="this.category == 'Causal' " class="arrow-up causalclass"></div>
-            <div v-if="this.category == 'Strong'" class="arrow-up strongclass"></div>
-            <div v-if="this.category == 'Moderate'" class="arrow-up moderateclass"></div>
-            <div v-if="this.category == 'Possible'" class="arrow-up possibleclass"></div>
-            <div v-if="this.category == 'Potential'" class="arrow-up potentialclass"></div>
-            <div v-if="this.category== 'Weak'" class="arrow-up weakclass"></div>
-            <div v-if="this.category== 'No'" class="arrow-up noEvidenceclass"></div>
-            <div>
-                <div class="container">
-                    <div class="row">
-                        <div class="col-sm variationCausal">
-                            <strong>Causal</strong>
-                        </div>
-                        <div class="col-sm variationStrong">
-                            <strong>Strong</strong>
-                        </div>
-                        <div class="col-sm variationModerate">
-                            <strong>Moderate</strong>
-                        </div>
-                        <div class="col-sm variationPossible">
-                            <strong>Possible</strong>
-                        </div>
-                        <div class="col-sm variationPotential">
-                            <strong>Potential</strong>
-                        </div>
-                        <div class="col-sm variationWeak">
-                            <strong>Weak</strong>
-                        </div>
-                        <div class="col- variationNoEvidence">
-                            <strong>No Evidence</strong>
-                        </div>
-                    </div>
+        <div class="color-bar-plot-wrapper">
+            <div class="row color-bars-wrapper">
+                <div class="each-bar-section variationCausal">Causal</div>
+                <div class="each-bar-section variationStrong">Strong</div>
+                <div class="each-bar-section variationModerate">Moderate</div>
+                <div class="each-bar-section variationPossible">Possible</div>
+                <div class="each-bar-section variationPotential">Potential</div>
+                <div class="each-bar-section variationWeak">Weak</div>
+                <div class="each-bar-section variationEquivocal">Equivocal</div>
+                <div class="each-bar-section variationNoEvidence">No Evidence</div>
+            </div>
+            <div class="row">
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Causal'" class="arrow-up causalclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Strong'" class="arrow-up strongclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Moderate'" class="arrow-up moderateclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Possible'" class="arrow-up possibleclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Potential'" class="arrow-up potentialclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Weak'" class="arrow-up weakclass"></div>
+                </div>
+                 <div class="each-bar-section">
+                    <div v-if="this.category == 'Equivocal'" class="arrow-up equivocalclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'No'" class="arrow-up noEvidenceclass"></div>
                 </div>
             </div>
         </div>
