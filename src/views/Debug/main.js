@@ -97,6 +97,15 @@ new Vue({
             associationsFilter: function (id) { return true; },
             pageAssociations: [],
             tissueScoring: null,
+            // hugecalSearchCriterion: keyParams.phenotype
+            //     ? [
+
+            //         {
+            //             field: "phenotype",
+            //             threshold: keyParams.phenotype
+            //         },
+            // //     ]
+            //     : [],
         };
     },
 
@@ -192,7 +201,22 @@ new Vue({
             });
         },
 
+        selectedPhenotypes() {
+            return this.associationsFilter
+                .filter(v => {
+                    return v.field === "phenotype";
+                })
+                .map(v => v.threshold);
+        },
+        criterion() {
+            return {
+                phenotype: this.selectedPhenotypes
+            };
+        },
         phenotypes() {
+            //      : phenotypes = "[{'description':'Type 2 diabetes','dichotomous':1,'group':'GLYCEMIC','name':'T2D'},{'description':'Coronary artery disease','dichotomous':1,'group':'CARDIOVASCULAR','name':'CAD'}
+
+            // }]"
             return [this.$store.state.phenotype];
         },
 
@@ -244,6 +268,7 @@ new Vue({
                     )
             );
         },
+
         associationConsequences() {
             return this.pageAssociations.map(v => v.consequence);
         },

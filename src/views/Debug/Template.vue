@@ -167,12 +167,26 @@
                             ></tooltip-documentation>
                         </h4>
                         <documentation name="region.variantassociation.subheader"></documentation>
-                        <phenotype-signal-multiple
+                        <!-- <phenotype-signal-multiple
                             v-if="$parent.topAssociations.length > 0"
                             :phenotypes="$parent.topAssociations"
-                        ></phenotype-signal-multiple>
+                        ></phenotype-signal-multiple>-->
 
                         <criterion-function-group v-model="$parent.associationsFilter">
+                            <filter-enumeration-control
+                                ref="phenotype"
+                                :field="'phenotype'"
+                                placeholder="Select a phenotype ..."
+                                :options="$parent.topAssociations.map((association) => association.phenotype)"
+                                :multiple="true"
+                                :labelFormatter="(phenotype) =>
+                                        !!$store.state.bioPortal.phenotypeMap[phenotype]
+                                            ? $store.state.bioPortal.phenotypeMap[phenotype].description
+                                            : phenotype"
+                            >
+                                <div class="label">Phenotypes</div>
+                            </filter-enumeration-control>
+                            <div class="col divider">&nbsp;</div>
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="$parent.associationConsequences"
@@ -263,13 +277,9 @@
                                     :chr="$store.state.chr"
                                     :start="$store.state.start"
                                     :end="$store.state.end"
-                                    :filterAssociations="
-                                        $parent.associationsFilter
-                                    "
+                                    :filterAssociations="$parent.associationsFilter"
                                     :filterAnnotations="filter"
-                                    @regionchanged="
-                                        $parent.requestCredibleSets($event.data)
-                                    "
+                                    @regionchanged="$parent.requestCredibleSets($event.data)"
                                     :ldpop="true"
                                     :refSeq="true"
                                 >

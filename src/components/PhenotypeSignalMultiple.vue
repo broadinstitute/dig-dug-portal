@@ -3,6 +3,10 @@
         <div class="pws-merged-view">
             <h6>Traits with p-value &gt; 5e-8</h6>
             <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">
+                <!-- <template v-for="field in topAssociations2nd">
+                    <b-checkbox>{{ field.description }}</b-checkbox>
+                </template>-->
+
                 <div
                     v-for="(row, i) in topAssociations2nd"
                     v-if="row.pValue > 5e-8 && i <= 30"
