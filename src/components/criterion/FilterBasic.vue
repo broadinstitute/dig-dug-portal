@@ -14,7 +14,7 @@
         :multiple="false"
         :inclusive="inclusive"
         :splitBy="splitBy"
-        :postProcess="postProcess"
+        :computedField="computedField"
     >
         <slot> </slot>
     </filter-control-template>
@@ -36,7 +36,7 @@ export default Vue.component("filter-basic-control", {
             type: Boolean,
             default: true,
         },
-        postProcess: Function,
+        computedField: Function,
     },
     components: {
         FilterControlTemplate,

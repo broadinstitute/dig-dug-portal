@@ -87,7 +87,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
 }
 
 export function predicateFromSpec(
-    { field, predicate, threshold, inclusive = false, postProcess = id=>id },
+    { field, computedField, predicate, threshold, inclusive = false },
     { notStrictMatch = false, strictCase = false }
 ) {
     // Specs for predicateFromSpec are objects satisfying properties { field, predicate, threshold } to return a function Object => Boolean, parameterized on a field
@@ -105,16 +105,20 @@ export function predicateFromSpec(
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
 
-            let data = get(obj, field);  // NOTE: this technically supports nested fields.
-            let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
-            if (match) {
-                if (data.constructor.name === 'Array') {
-                    return data.some(el => predicate(el, postProcess(threshold)));
+            let getter = !!computedField ? computedField : obj => get(obj, field); // NOTE: this technically supports nested fields.
+            let data = getter(obj);
+
+            if (data !== null) {
+                let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
+                if (match) {
+                    if (data.constructor.name === 'Array') {
+                        return data.some(el => predicate(el, threshold));
+                    } else {
+                        return predicate(data, threshold);
+                    }
                 } else {
-                    return predicate(data, postProcess(threshold));
+                    return notStrictMatch;
                 }
-            } else {
-                return notStrictMatch;
             }
         }
     };

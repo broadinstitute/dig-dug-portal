@@ -6,7 +6,7 @@
         :predicate="(number, lowerBound) => number >= lowerBound"
         :pillFormatter="filterDefinition => `${filterDefinition.field} >= ${filterDefinition.threshold}`"
         :color="color"
-        :postProcess="postProcess"
+        :computedField="computedField"
         :multiple="false">
         <slot>
             {{field}}
@@ -17,7 +17,7 @@
 import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate"
 export default Vue.component('filter-greater-control', {
-    props: ['field', 'color', 'postProcess'],
+    props: ['field', 'color', 'computedField'],
     components: {
         FilterControlTemplate,
     }

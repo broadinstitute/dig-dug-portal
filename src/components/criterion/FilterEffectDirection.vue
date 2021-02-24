@@ -15,7 +15,7 @@
         :pillFormatter="filterDefinition => `effect size ${filterDefinition.threshold}`"
         :options="['positive', 'negative']"
         @input-change="$emit('input-change', $event)"
-        :postProcess="postProcess"
+        :computedField="computedField"
         :multiple="false">
         <slot>
             Effect (+/-)
@@ -26,7 +26,7 @@
 import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate"
 export default Vue.component('filter-effect-direction-control', {
-    props: ['field', 'postProcess'],
+    props: ['field', 'computedField'],
     components: {
         FilterControlTemplate,
     },

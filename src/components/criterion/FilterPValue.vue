@@ -5,7 +5,7 @@
         :type="'number'"
         :predicate="(pValue, pBound) => pValue <= pBound"
         :pillFormatter="filterDefinition => `${filterDefinition.field} <= ${pValueFormatter(filterDefinition.threshold)}`"
-        :postProcess="postProcess"
+        :computedField="computedField"
         :multiple="false">
         <slot></slot>
     </filter-control-template>
@@ -15,7 +15,7 @@ import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate"
 import Formatter from "@/utils/formatters"
 export default Vue.component('filter-pvalue-control', {
-    props: ['field', 'postProcess'],
+    props: ['field', 'computedField'],
     components: {
         FilterControlTemplate,
     },
