@@ -32,7 +32,7 @@ import Formatters from "@/utils/formatters.js";
 Vue.use(BootstrapVueIcons);
 
 export default Vue.component("m-bitmap-plot", {
-    props: ["plotData", "renderConfig", "geneOfInterest"],
+    props: ["plotData", "renderConfig"],
     data() {
         return {
             plotRendered: 0,
@@ -103,9 +103,6 @@ export default Vue.component("m-bitmap-plot", {
         yBump() {
             return this.canvasRenderHeight * 0.02;
         },
-        renderingGene() {
-            return this.geneOfInterest;
-        },
         renderData() {
             let rawData = this.plotData;
             let massagedData = { sorted: {}, unsorted: [] };
@@ -120,6 +117,15 @@ export default Vue.component("m-bitmap-plot", {
                     let tempObj = {};
                     tempObj[this.renderConfig.renderBy] =
                         r[this.renderConfig.renderBy];
+
+                    if (!!this.renderConfig.hoverContent) {
+                        let hoverContent = this.renderConfig.hoverContent;
+
+                        hoverContent.map((h) => {
+                            tempObj[h] = r[h];
+                        });
+                    }
+
                     let locationArr = r[this.renderConfig.xAxisField].split(
                         ":"
                     );
@@ -143,7 +149,7 @@ export default Vue.component("m-bitmap-plot", {
                 }
             });
 
-            console.log(massagedData);
+            //console.log(massagedData);
 
             return massagedData;
         },
@@ -215,10 +221,7 @@ export default Vue.component("m-bitmap-plot", {
     },
     watch: {
         renderData() {
-            this.clearPlot();
-            this.renderPlot();
-        },
-        renderingGene() {
+            console.log("update data");
             this.clearPlot();
             this.renderPlot();
         },
@@ -232,18 +235,33 @@ export default Vue.component("m-bitmap-plot", {
             var y = Math.floor(e.clientY - rect.top);
             let clickedDotValue = "";
 
-            console.log("xPos", x);
-            console.log("yPos", y);
+            //console.log("xPos", x);
+            //console.log("yPos", y);
 
             for (let h = -5; h <= 5; h++) {
                 for (let v = -5; v <= 5; v++) {
                     if (this.dotPosData[x + h] != undefined) {
                         if (this.dotPosData[x + h][y + v] != undefined) {
-                            console.log(this.dotPosData[x + h][y + v]);
+                            console.log(this.dotPosData[x + h]);
+                            let dotObject = this.dotPosData[x + h][y + v];
                             clickedDotValue +=
-                                '<span class="gene-on-clicked-dot">' +
-                                this.dotPosData[x + h][y + v] +
-                                "</span>";
+                                '<span class="gene-on-clicked-dot"><b>' +
+                                dotObject[this.renderConfig.renderBy] +
+                                "</b></span>";
+
+                            if (!!this.renderConfig.hoverContent) {
+                                let hoverContent = this.renderConfig
+                                    .hoverContent;
+
+                                hoverContent.map((h) => {
+                                    clickedDotValue +=
+                                        '<span class="content-on-clicked-dot">' +
+                                        h +
+                                        ": " +
+                                        dotObject[h] +
+                                        "</span>";
+                                });
+                            }
                         }
                     }
                 }
@@ -263,24 +281,18 @@ export default Vue.component("m-bitmap-plot", {
         clearPlot() {
             var c = document.getElementById("manhattanPlot");
             var ctx = c.getContext("2d");
+
             ctx.clearRect(
                 0,
                 0,
-                this.canvasWidth + 120,
-                this.renderConfig.height + 120
+                this.canvasRenderWidth,
+                this.canvasRenderHeight
             );
+
+            let wrapper = document.getElementById("clicked_dot_value");
+            wrapper.classList.add("hidden");
         },
         renderPlot() {
-            let yAxisData = [];
-            this.renderData.unsorted.map((d) => {
-                yAxisData.push(d[this.renderConfig.yAxisField]);
-            });
-
-            let yMin = Math.min.apply(Math, yAxisData);
-            let yMax = Math.max.apply(Math, yAxisData);
-
-            let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
-
             let plotWidth =
                 this.canvasRenderWidth -
                 (this.leftMargin + this.rightMargin + this.xBump);
@@ -315,6 +327,21 @@ export default Vue.component("m-bitmap-plot", {
 
             // render y ticker
 
+            let yAxisData = [];
+            this.renderData.unsorted.map((d) => {
+                yAxisData.push(d[this.renderConfig.yAxisField]);
+            });
+
+            let yMin = Math.min.apply(Math, yAxisData);
+            let yMax = Math.max.apply(Math, yAxisData);
+            let yStep = (yMax - yMin) / 4;
+
+            let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
+
+            //console.log(yMin, yMax);
+
+            //console.log(yAxisTicks);
+
             let yTickDistance = plotHeight / 4;
             for (let i = 0; i < 5; i++) {
                 ctx.moveTo(
@@ -330,7 +357,8 @@ export default Vue.component("m-bitmap-plot", {
 
                 ctx.fillText(
                     Formatters.floatFormatter(
-                        yAxisTicks.lo + i * yAxisTicks.step
+                        //yAxisTicks.lo + i * yAxisTicks.step
+                        yMin + i * yStep
                     ),
                     this.leftMargin - 10,
                     this.topMargin + plotHeight + 5 - i * yTickDistance
@@ -401,14 +429,12 @@ export default Vue.component("m-bitmap-plot", {
                     let xPos =
                         (xStart + g.locus) * chrByPixel + this.leftMargin;
 
-                    let yPosByPixel =
-                        plotHeight / (yAxisTicks.hi - yAxisTicks.lo);
+                    let yPosByPixel = plotHeight / (yMax - yMin);
 
                     let yPos =
                         this.topMargin +
                         plotHeight -
-                        (g[this.renderConfig.yAxisField] - yAxisTicks.lo) *
-                            yPosByPixel;
+                        (g[this.renderConfig.yAxisField] - yMin) * yPosByPixel;
 
                     let dotColor = this.chromosomeColors[
                         chrNum % this.chromosomeColors.length
@@ -424,20 +450,29 @@ export default Vue.component("m-bitmap-plot", {
                     let xLoc = xPos.toString().split(".")[0];
                     let yLoc = yPos.toString().split(".")[0];
 
-                    if (!!this.dotPosData[xLoc]) {
-                        this.dotPosData[xLoc][yLoc] =
-                            g[this.renderConfig.renderBy];
-                    } else {
+                    let hoverContent;
+
+                    if (!!this.renderConfig.hoverContent) {
+                        hoverContent = this.renderConfig.hoverContent;
+                    }
+
+                    if (!this.dotPosData[xLoc]) {
                         this.dotPosData[xLoc] = {};
-                        this.dotPosData[xLoc][yLoc] =
-                            g[this.renderConfig.renderBy];
+                    }
+                    this.dotPosData[xLoc][yLoc] = {};
+                    this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] =
+                        g[this.renderConfig.renderBy];
+                    if (!!this.renderConfig.hoverContent) {
+                        hoverContent.map((h) => {
+                            this.dotPosData[xLoc][yLoc][h] = g[h];
+                        });
                     }
                 });
                 exChr = chr;
                 chrNum++;
             }
 
-            console.log(this.dotPosData);
+            //console.log(this.dotPosData);
         },
     },
 });
@@ -446,7 +481,9 @@ $(function () {});
 </script>
 
 <style>
-.mbm-plot-content canvas {
+.gene-on-clicked-dot,
+.content-on-clicked-dot {
+    display: block !important;
 }
 </style>
 
