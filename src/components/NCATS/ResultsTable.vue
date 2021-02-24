@@ -37,7 +37,6 @@ export default Vue.component('ncats-results-table', {
             return concepts[identifier].category || concepts[identifier].predicate;
         },
         tableItems(results) {
-            console.log(results)
             if (!!results && results.length > 0) {
 
                 const formatResults = binding => 
