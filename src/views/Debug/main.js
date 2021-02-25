@@ -6,11 +6,11 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css"
 import BootstrapVue, { componentsPlugin } from "bootstrap-vue"
 
-import KnowledgeGraph from "@/components/NCATS/KnowledgeGraph"
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard"
 import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
 
 import jsonQuery from "json-query"
+import { match } from "@/utils/bioIndexUtils";
 
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration"
@@ -25,7 +25,6 @@ Vue.use(BootstrapVue);
 new Vue({
     store,
     components: {
-        KnowledgeGraph,
         CriterionListGroup,
         FilterEnumeration,
         ResolvedCurie,
@@ -48,6 +47,7 @@ new Vue({
             predicates: ['biolink:gene_associated_with_condition'],
             links: [],
             biolinkModel: null,
+            matchingGenes: [],
             query_graph: {
                 "query_graph": {
                   "edges": {
@@ -87,74 +87,98 @@ new Vue({
             };
     },
     async mounted() {
-
-        this.biolinkModel = await trapi.model.biolinkModel;
-        let biolinkModel = this.biolinkModel;
-
-        const conceptsForReact = ['REACT', 'GO'].flatMap(prefix => trapi.model.findConceptByPrefix(prefix, biolinkModel));
-        const possibleSlots = Array.from(new Set(conceptsForReact.flatMap(conceptForPrefix =>
-            [].concat(
-                trapi.model.findSlotsForDomainRange({ domain: conceptForPrefix }, biolinkModel),
-                trapi.model.findSlotsForDomainRange({ range: conceptForPrefix }, biolinkModel)
-            )
-        )))
-        console.log(possibleSlots, possibleSlots.map(slotName => biolinkModel.slots[slotName]));
-
         await trapi.queries.updateResultsForSources({
             "message": this.query_graph
         }, [], this.results);
+
+        async function getGeneCurieFromName(geneName) {
+            const qs = queryString.stringify({
+                q: geneName
+            })
+            return await fetch(`https://mygene.info/v3/query?${qs}`).then(response => response.json())
+        }
+        await getGeneCurieFromName('PCSK9')
     },
     computed: {
-        goTerms: function() {
-            return this.geneInfoForField(this.$store.state.myGeneInfo.geneInfo, 'go');
-        },
-        pathway: function() {
-            return this.geneInfoForField(this.$store.state.myGeneInfo.geneInfo, 'pathway');
-        },
+
+
         queryGraph() {
             return this.makeQueryGraph(this.queryGraphCriterion)
         },
-        mapOnEntryValues(keyValueMap, f) {
-            return Object.fromEntries(Object.entries(keyValueMap).map(el => [el[0], f(el[1])]));
+        
+        associationOptions() {
+            return !!this.biolinkModel ? 
+                Object.keys(this.biolinkModel.classes).filter(cls => this.biolinkModel.classes[cls].is_a === 'association')
+            : [];
         },
-        mapOnEntryKeys(keyValueMap, f) {
-            return Object.fromEntries(Object.entries(keyValueMap).map(el => [f(el[0]), el[1]]));
-        },
-        tableItems() {
-            if (this.results.length > 0) {
 
-                const formatResults = binding => 
-                    result => this.mapOnEntryValues(
-                              this.mapOnEntryKeys(
-                                result[binding], 
-                                ek => `${this.conceptType(ek, this.query_graph.query_graph)}`
-                              ), 
-                              ev => ev[0].id)
-
-                const resultNodes = formatResults('node_bindings');
-                const resultEdges = formatResults('edge_bindings');
-
-                return this.results.map(el => ({
-                    ...resultNodes(el),
-                    ...resultEdges(el)
-                }));
-
-            } else {
-                return [];
+        slotsForAssociation() {
+            const maybeCurrentAssociation = this.queryGraphCriterion.filter(criterion => criterion.field === 'association');
+            if (!!maybeCurrentAssociation[0]) {
+                if (!!this.biolinkModel) {
+                    const { slot_usage: { subject, object } } = this.biolinkModel.classes[maybeCurrentAssociation[0].threshold];
+                    console.log(this.biolinkModel.classes[maybeCurrentAssociation[0].threshold])
+                    console.log(subject, object)
+                    return { subject, object };
+                }
             }
-        },
-        associationOptions() {
-            return !!this.biolinkModel ? 
-                Object.keys(this.biolinkModel.classes).filter(cls => this.biolinkModel.classes[cls].is_a === 'association')
-            : [];
-        },
-        associationOptions() {
-            return !!this.biolinkModel ? 
-                Object.keys(this.biolinkModel.classes).filter(cls => this.biolinkModel.classes[cls].is_a === 'association')
-            : [];
+            return null;
         }
+
+
+
     },
     methods: {
+        async lookupGenes(input) {
+            if (!!input) {
+                let matches = await match("gene", input, { limit: 10 });
+                this.matchingGenes = matches;
+            }
+        },
+        makeGeneToDiseaseQuery(geneCurie) {
+            return {
+                query_graph: {
+                    nodes: {
+                        geneToDiseaseGene: {
+                            id: geneCurie,
+                            category: 'biolink:Gene'
+                        },
+                        geneToDiseaseDisease: {
+                            category: 'biolink:Disease'
+                        }
+                    },
+                    edges: {
+                        geneToDisease: {
+                            subject: "geneToDiseaseGene",
+                            object: "geneToDiseaseDisease",
+                            predicate: "biolink:gene_associated_with_condition"
+                        }
+                    }
+                }
+            }
+        },
+        diseaseToGeneQuery(disease) {
+            return {
+                query_graph: {
+                    nodes: {
+                        geneToDiseaseGene: {
+                            id: geneCurie,
+                            category: 'biolink:Gene'
+                        },
+                        geneToDiseaseDisease: {
+                            category: 'biolink:Disease'
+                        }
+                    },
+                    edges: {
+                        geneToDisease: {
+                            subject: "geneToDiseaseGene",
+                            object: "geneToDiseaseDisease",
+                            predicate: "biolink:gene_associated_with_condition"
+                        }
+                    }
+                }
+            }
+        },
         predicatePlacement(identifier, query_graph, edge=null) {
 
             const subjectOrObjectOfEdge = (identifier, edge) => {
@@ -180,21 +204,6 @@ new Vue({
         conceptType(identifier, query_graph) {
             const concepts = { ...query_graph.nodes, ...query_graph.edges };
             return concepts[identifier].category || concepts[identifier].predicate;
-        },
-
-
-        
-        addNode() {
-            this.nodes.push(`n0${this.nodes.length}`)
-        },
-        removeNode(node) {
-            this.nodes = this.nodes.filter(n => n !== node)
-        },
-        addEdge() {
-            this.links.push(`e0${this.links.length}`)
-        },
-        removeEdge(edge) {
-            this.links = this.links.filter(n => n !== edge)
         },
         makeQueryGraph(preGraph, mode='complete') {
             const EDGE_PREFIX='e';
@@ -223,7 +232,6 @@ new Vue({
                                 const acc_ = acc;
                                 acc_[item.field] = {
                                     "id": item.threshold !== 'All' ? item.threshold : undefined,
-                                    "category": 'biolink:Gene',
                                 }
                                 return acc_;
                             }, {}),
@@ -231,7 +239,6 @@ new Vue({
                                 const acc_ = acc;
                                 acc_[item.field] = {
                                     "id": item.threshold !== 'All' ? item.threshold : undefined,
-                                    "category": 'biolink:Disease',
                                 }
                                 return acc_;
                             }, {}),
@@ -253,21 +260,6 @@ new Vue({
                 }
             }
             return null;
-        },
-        geneInfoForField(geneInfo, field) {
-            const helpers = {
-                aggregateNestedLists: function(elements) {
-                    const element = elements.flatMap(element => Object.entries(element).filter(element => element[1].length > 0).flatMap(entry => entry[1]))
-                    return element;
-                }
-            }
-            return jsonQuery(`geneInfo[${field}]:aggregateNestedLists`, {
-                data: {
-                    geneInfo
-                },
-                allowRegexp: true,
-                locals: helpers
-            }).value;
         },
     },
     watch: {

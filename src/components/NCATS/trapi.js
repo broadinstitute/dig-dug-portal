@@ -382,7 +382,23 @@ const predicateHierarchy = () => {
 }
 
 let curieLabelCache = new Map();
-const curieLabel = async (curie) => {
+const curieLabel = async (rawCurie) => {
+    const [ prefix, id ] = deserializeCurie(rawCurie);
+    const curie = serializeCurie(prefix.toUpperCase(), id);
+    let qs = queryString.stringify({ curie });
+    if (!curieLabelCache.has(curie)) {
+        const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
+            .then(response => response.json())
+            .then(json => json[curie] !== null ? json[curie].id.label : curie);
+        curieLabelCache.set(curie, label)
+    }
+    return curieLabelCache.get(curie);
+}
+
+let geneForCurieCache = new Map();
+const geneForCurie = async (rawCurie) => {
+    const [ prefix, id ] = deserializeCurie(rawCurie);
+    const curie = serializeCurie(prefix.toUpperCase(), id);
     let qs = queryString.stringify({ curie });
     if (!curieLabelCache.has(curie)) {
         const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
@@ -394,7 +410,12 @@ const curieLabel = async (curie) => {
 }
 
 const associations = function(biolinkModel) {
-    return biolinkModel.classes.filter(cls => cls.is_a === 'association')
+    console.log(biolinkModel)
+    if (!!biolinkModel) {
+        return biolinkModel.classes.filter(cls => cls.is_a === 'association')
+    } else {
+        return [];
+    }
 }
 
 export default {

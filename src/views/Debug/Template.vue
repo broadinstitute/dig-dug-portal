@@ -1,66 +1,145 @@
 <template>
     <div>
-        <criterion-list-group v-model="$parent.queryGraphCriterion">
+        <criterion-list-group 
+            v-model="$parent.queryGraphCriterion">
 
             <span style="display: inline-block">
-                <div class="label">
-                    Associations
-                </div>
                 <filter-enumeration-control 
-                    :field="'e00'"
+                    :field="'association'"
                     :class="'filter-col-lg'"
                     :options="$parent.associationOptions">
                 </filter-enumeration-control>
             </span>
 
-            <span style="display: inline-block">
-                <div class="label">
+            <span style="display: inline-block" v-if="$parent.slotsForAssociation !== null">
+                <!-- <div class="label">
                     Genes <button @click="$parent.addNode">+</button>
-                </div>
+                </div> -->
                 <filter-enumeration-control
                     v-for="(subject, index) in $parent.subjects"
                     :key="subject+index"
-                    :field="`s${index}`"
+                    :field="`subject`"
                     :placeholder="`${subject}`"
                     :options="['All', 'NCBIGene:1803']">
                 </filter-enumeration-control>
             </span>
 
-            <span style="display: inline-block">
-                <div class="label">
+            <span style="display: inline-block" v-if="$parent.slotsForAssociation !== null">
+                <!-- <div class="label">
                     Diseases <button @click="$parent.addNode">+</button>
-                </div>
+                </div> -->
                 <filter-enumeration-control
                     v-for="(object, index) in $parent.objects"
                     :key="object+index"
-                    :field="`o${index}`"
+                    :field="`object`"
                     :placeholder="`${object}`"
                     :options="['All']">
                 </filter-enumeration-control>
             </span>
 
-            <button>GO</button>
+            <button v-if="$parent.slotsForAssociation !== null">GO</button>
 
-            <template slot=filtered>
-            </template>
         </criterion-list-group>
-        
-        <ncats-results-dashboard
-            :query_graph="$parent.query_graph.query_graph"
-            :results="$parent.results"
-        ></ncats-results-dashboard>
 
-        <!-- <b-table
-            v-if="$parent.results.length > 0"
-            :items="$parent.tableItems">
+        <!-- 
+            NCATS Results Dashboard
+            - Case: get a better definition and context for a particular biological entity
+         -->
+        <div class="card mdkp-card">
+            <div class="card-body">
+                <ncats-results-dashboard
+                    :query_graph="$parent.query_graph.query_graph"
+                    :results="$parent.results"
+                ></ncats-results-dashboard>
+            </div>
+        </div>
 
-            <template #cell()="data">
-                <resolved-curie-link
-                    :curie="data.value">
-                </resolved-curie-link>
-            </template>
+        <!--
+            NCATS Explanation Tool
+            - Case: find a path
+        -->
 
-        </b-table> -->
+        <b-card no-body class="mb-1">
+            <b-card-header
+                header-tag="header"
+                class="p-1"
+                role="tab">
+                <b-button
+                    block
+                    v-b-toggle.accordion-1
+                    variant="outline-primary"
+                    >
+                    Gene to Disease
+                    <div class="criteria">
+                        <b-badge class="filter-pill-gene"></b-badge>
+                        <b-badge class="filter-pill-mask"></b-badge>
+                    </div>
+                </b-button>
+            </b-card-header>
 
+            <b-collapse
+                id="accordion-1"
+                visible
+                accordion="my-accordion"
+                role="tabpanel">
+                <b-card-body>
+                    <criterion-list-group
+                        v-model="$parent.searchCriteria"
+                        :header="'Search Criteria'">
+                        <filter-enumeration-control
+                            ref="gene"
+                            :field="'gene'"
+                            placeholder="Select a gene ..."
+                            :options="$parent.matchingGenes"
+                            :pillFormatter="obj=>JSON.stringify(obj)"
+                            @input-change="$parent.lookupGenes($event)">
+                            <div class="label">Gene</div>
+                        </filter-enumeration-control>
+                    </criterion-list-group>
+                </b-card-body>
+            </b-collapse>
+        </b-card>
+
+<!-- Divider -->
+        <b-card no-body class="mb-1">
+            <b-card-header
+                header-tag="header"
+                class="p-1"
+                role="tab"
+            >
+                <b-button
+                    block
+                    v-b-toggle.accordion-2
+                    >Variants
+                    <div class="criteria">
+                        <b-badge
+                            class="filter-pill-dataset"
+                        >
+                        </b-badge>
+                        <b-badge
+                            class="filter-pill-phenotype">
+                        </b-badge>
+                        <b-badge
+                            class="filter-pill-test"
+                            v-for="test in $parent.selectedTests"
+                            :key="test"
+                        >
+                            {{
+                                $parent.testMethods.find(
+                                    (o) => o.value === test
+                                ).text
+                            }}
+                        </b-badge>
+                    </div>
+                </b-button>
+            </b-card-header>
+            <b-collapse
+                id="accordion-2"
+                accordion="my-accordion"
+                role="tabpanel">
+                <b-card-body>
+                </b-card-body>
+            </b-collapse>
+        </b-card>
     </div>
 </template>

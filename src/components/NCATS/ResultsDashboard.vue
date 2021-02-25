@@ -4,10 +4,12 @@
             <b-tab v-for="query_graph in queries" 
                 :key="Object.keys(query_graph.query_graph.edges)[0]"
                 :title="`${query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].predicate} ${query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].object].category}`">
-                <ncats-results-table
-                    :title="`${query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].subject].id}: ${query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].subject].category}`"
-                    :query_graph="query_graph.query_graph"
-                ></ncats-results-table>
+                <b-card>
+                    <ncats-results-table
+                        :title="`${query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].subject].id}: ${query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].subject].category}`"
+                        :query_graph="query_graph.query_graph"
+                    ></ncats-results-table>
+                </b-card>
             </b-tab>
         </b-tabs>
     </div>
@@ -26,7 +28,8 @@ export default Vue.component("ncats-results-dashboard", {
     data() {
         return {
             resultLib: [],
-            queries: []
+            queries: [],
+            queryGraphCriterion: [],
         }
     },
     async created() {
@@ -54,6 +57,9 @@ export default Vue.component("ncats-results-dashboard", {
         resultLib() {
             console.log(arguments)
         }
+    },
+    computed: {
+
     },
     methods: {
         mapOnEntryValues(keyValueMap, f) {
