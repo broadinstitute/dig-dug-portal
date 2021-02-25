@@ -192,6 +192,13 @@ let pages = {
         filename: "gait.html",
         title: "Genetic Association Interactive Tool",
         chunks: ["chunk-vendors", "chunk-common", "gait"]
+    },
+    project: {
+        entry: "src/views/Project/main.js",
+        template: "public/index.html",
+        filename: "project.html",
+        title: "Project",
+        chunks: ["chunk-vendors", "chunk-common", "project"]
     }
 };
 
