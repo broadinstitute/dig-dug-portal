@@ -30,6 +30,9 @@
                                 <filter-enumeration-control
                                     class="filter-col-lg"
                                     :field="'field_phenotypes'"
+                                    :pillFormatter="
+                                        (filter) => filter.threshold
+                                    "
                                     :options="
                                         $parent.datasetsPhenotypeOptions.map(
                                             (dataset) => dataset
