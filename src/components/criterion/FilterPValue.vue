@@ -18,7 +18,7 @@ export default Vue.component('filter-pvalue-control', {
         field: String,
         pillFormatter: {
             type: Function,
-            default: filterDefinition => `${filterDefinition.field} <= ${pValueFormatter(filterDefinition.threshold)}`
+            default: filterDefinition => `${filterDefinition.field} <= ${Formatter.pValueFormatter(filterDefinition.threshold)}`
         },
         predicate: {
             type: Function,
@@ -28,8 +28,5 @@ export default Vue.component('filter-pvalue-control', {
     components: {
         FilterControlTemplate,
     },
-    methods: {
-        pValueFormatter: Formatter.pValueFormatter
-    }
 })
 </script>
