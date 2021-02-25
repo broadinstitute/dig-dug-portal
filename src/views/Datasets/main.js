@@ -78,7 +78,7 @@ new Vue({
 
                 this.$store.state.kp4cd.datasetsInfo.map(d => {
                     this.datasetsSearchCriterion.map(s => {
-                        if (d[s.field] == s.threshold) {
+                        if (d[s.field].includes(s.threshold) == true) {
                             contents.push(d);
                         }
                     })
@@ -108,6 +108,24 @@ new Vue({
                 }
             });
             return options;
+        },
+        datasetsPhenotypeOptions() {
+            let options = []
+            this.$store.state.kp4cd.datasetsInfo.map(x => {
+                if (x.field_portals.includes(this.diseaseGroup.name)) {
+                    let phenotypes = x.field_phenotypes.split("\r\n");
+
+                    phenotypes.map(p => {
+                        if (p != "") {
+                            options.push(p);
+                        }
+                    })
+
+                }
+            });
+
+            let uniqueOptions = [...new Set(options)]
+            return uniqueOptions;
         }
     },
 

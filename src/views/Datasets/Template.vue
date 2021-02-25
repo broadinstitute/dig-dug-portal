@@ -29,20 +29,21 @@
                             >
                                 <filter-enumeration-control
                                     class="filter-col-lg"
-                                    :field="'title'"
+                                    :field="'field_phenotypes'"
                                     :options="
-                                        $parent.datasetsNameOptions.map(
-                                            (dataset) => dataset.title
+                                        $parent.datasetsPhenotypeOptions.map(
+                                            (dataset) => dataset
                                         )
                                     "
                                     :multiple="true"
                                     :labelFormatter="(dataset) => dataset"
                                 >
                                     <div>
-                                        <strong>Search dataset name</strong>
+                                        <strong>Search by phenotypes</strong>
                                     </div>
                                 </filter-enumeration-control>
                             </criterion-list-group>
+
                             <portal-datasets-list-table
                                 :diseaseGroups="
                                     $store.state.bioPortal.diseaseGroups
