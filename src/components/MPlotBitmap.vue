@@ -11,8 +11,8 @@
             id="manhattanPlot"
             @click="checkPosition"
             @resize="onResize"
-            :width="this.canvasRenderWidth"
-            :height="this.canvasRenderHeight"
+            width=""
+            height=""
         >
         </canvas>
         <div
@@ -84,33 +84,12 @@ export default Vue.component("m-bitmap-plot", {
     },
     mounted: function () {
         this.renderPlot();
-        window.addEventListener("mousedown", this.onMouseDown);
-        window.addEventListener("mouseup", this.onMouseUp);
+        window.addEventListener("resize", this.onResize);
     },
     beforeDestroy() {
-        window.removeEventListener("mousedown", this.onMouseDown);
-        window.removeEventListener("mouseup", this.onMouseUp);
+        window.removeEventListener("resize", this.onResize);
     },
     computed: {
-        canvasRenderWidth() {
-            let content = !!this.renderConfig.width
-                ? this.renderConfig.width + this.leftMargin + this.rightMargin
-                : window.innerWidth - 115;
-
-            return content;
-        },
-        canvasRenderHeight() {
-            let content = !!this.renderConfig.height
-                ? this.renderConfig.height + this.topMargin + this.bottomMargin
-                : 400;
-            return content;
-        },
-        xBump() {
-            return this.canvasRenderWidth * 0.02;
-        },
-        yBump() {
-            return this.canvasRenderHeight * 0.02;
-        },
         renderData() {
             let rawData = this.plotData;
             let massagedData = { sorted: {}, unsorted: [] };
@@ -157,30 +136,19 @@ export default Vue.component("m-bitmap-plot", {
                 }
             });
 
-            //console.log(massagedData);
-
             return massagedData;
         },
     },
     watch: {
-        canvasRenderWidth() {
-            //this.clearPlot();
-        },
         renderData() {
-            //this.clearPlot();
             this.renderPlot();
         },
     },
     methods: {
         ...uiUtils,
-        onMouseDown(e) {
-            console.log("down");
-        },
-        onMouseUp(e) {
-            console.log("Up");
-        },
+
         onResize(e) {
-            this.resizedWindowWidth = window.innerWidth;
+            this.renderPlot();
         },
         checkPosition(event) {
             let e = event;
@@ -189,14 +157,11 @@ export default Vue.component("m-bitmap-plot", {
             var y = Math.floor(e.clientY - rect.top);
             let clickedDotValue = "";
 
-            //console.log("xPos", x);
-            //console.log("yPos", y);
-
             for (let h = -5; h <= 5; h++) {
                 for (let v = -5; v <= 5; v++) {
                     if (this.dotPosData[x + h] != undefined) {
                         if (this.dotPosData[x + h][y + v] != undefined) {
-                            console.log(this.dotPosData[x + h]);
+                            //console.log(this.dotPosData[x + h]);
                             let dotObject = this.dotPosData[x + h][y + v];
                             clickedDotValue +=
                                 '<span class="gene-on-clicked-dot"><b>' +
@@ -232,49 +197,36 @@ export default Vue.component("m-bitmap-plot", {
                 wrapper.classList.add("hidden");
             }
         },
-        clearPlot() {
-            /*if (this.readyToRender == true) {
-                this.dotPosData = {};
-                var c = document.getElementById("manhattanPlot");
-                var ctx = c.getContext("2d");
-
-                ctx.clearRect(
-                    0,
-                    0,
-                    this.canvasRenderWidth,
-                    this.canvasRenderHeight
-                );
-
-                let wrapper = document.getElementById("clicked_dot_value");
-                wrapper.classList.add("hidden");
-                console.log("clear complete");
-                this.renderPlot();
-                this.readyToRender == false;
-            }*/
-        },
         renderPlot() {
-            console.log(this.canvasRenderWidth);
             this.dotPosData = {};
 
             let wrapper = document.getElementById("clicked_dot_value");
             wrapper.classList.add("hidden");
 
+            let canvasRenderWidth = !!this.renderConfig.width
+                ? this.renderConfig.width + this.leftMargin + this.rightMargin
+                : window.innerWidth - 115;
+
+            let canvasRenderHeight = !!this.renderConfig.height
+                ? this.renderConfig.height + this.topMargin + this.bottomMargin
+                : 400;
+
+            let xBump = canvasRenderWidth * 0.02;
+            let yBump = canvasRenderHeight * 0.02;
+
             let plotWidth =
-                this.canvasRenderWidth -
-                (this.leftMargin + this.rightMargin + this.xBump);
+                canvasRenderWidth -
+                (this.leftMargin + this.rightMargin + xBump);
             let plotHeight =
-                this.canvasRenderHeight -
-                (this.topMargin + this.yBump + this.bottomMargin);
+                canvasRenderHeight -
+                (this.topMargin + yBump + this.bottomMargin);
 
             let c = document.getElementById("manhattanPlot");
+            c.setAttribute("width", canvasRenderWidth);
+            c.setAttribute("height", canvasRenderHeight);
             let ctx = c.getContext("2d");
 
-            ctx.clearRect(
-                0,
-                0,
-                this.canvasRenderWidth,
-                this.canvasRenderHeight
-            );
+            ctx.clearRect(0, 0, canvasRenderWidth, canvasRenderHeight);
 
             ctx.beginPath();
             ctx.lineWidth = 1;
@@ -283,19 +235,13 @@ export default Vue.component("m-bitmap-plot", {
 
             // render y axis
             ctx.moveTo(this.leftMargin, this.topMargin);
-            ctx.lineTo(
-                this.leftMargin,
-                plotHeight + this.topMargin + this.yBump
-            );
+            ctx.lineTo(this.leftMargin, plotHeight + this.topMargin + yBump);
 
             //render x axis
-            ctx.moveTo(
-                this.leftMargin,
-                plotHeight + this.topMargin + this.yBump
-            );
+            ctx.moveTo(this.leftMargin, plotHeight + this.topMargin + yBump);
             ctx.lineTo(
                 plotWidth + this.leftMargin,
-                plotHeight + this.topMargin + this.yBump
+                plotHeight + this.topMargin + yBump
             );
 
             // render y ticker
@@ -311,17 +257,12 @@ export default Vue.component("m-bitmap-plot", {
 
             let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
 
-            //console.log(yMin, yMax);
-
-            //console.log(yAxisTicks);
-
             let yTickDistance = plotHeight / 4;
             for (let i = 0; i < 5; i++) {
-                ctx.moveTo(
-                    this.leftMargin - 5,
-                    this.topMargin + i * yTickDistance
-                );
-                ctx.lineTo(this.leftMargin, this.topMargin + i * yTickDistance);
+                let tickYPos = this.topMargin + i * yTickDistance;
+                let adjTickYPos = Math.floor(tickYPos) + 0.5; // .5 is needed to render crisp line
+                ctx.moveTo(this.leftMargin - 5, adjTickYPos);
+                ctx.lineTo(this.leftMargin, adjTickYPos);
                 ctx.stroke();
 
                 ctx.font = "12px Arial";
@@ -329,10 +270,7 @@ export default Vue.component("m-bitmap-plot", {
                 ctx.fillStyle = "#000000";
 
                 ctx.fillText(
-                    Formatters.floatFormatter(
-                        //yAxisTicks.lo + i * yAxisTicks.step
-                        yMin + i * yStep
-                    ),
+                    Formatters.floatFormatter(yMin + i * yStep),
                     this.leftMargin - 10,
                     this.topMargin + plotHeight + 5 - i * yTickDistance
                 );
@@ -371,7 +309,7 @@ export default Vue.component("m-bitmap-plot", {
                 ctx.fillText(
                     chr,
                     chrPos,
-                    this.topMargin + plotHeight + this.yBump + 14
+                    this.topMargin + plotHeight + yBump + 14
                 );
             }
 
@@ -379,13 +317,13 @@ export default Vue.component("m-bitmap-plot", {
             ctx.fillText(
                 this.renderConfig.xAxisLabel,
                 this.canvasRenderWidth / 2 + this.leftMargin,
-                this.topMargin + plotHeight + this.yBump + 44
+                this.topMargin + plotHeight + yBump + 44
             );
 
             ctx.fillText(
                 this.renderConfig.xAxisLabel,
-                this.canvasRenderWidth / 2 + this.leftMargin,
-                this.topMargin + plotHeight + this.yBump + 44
+                canvasRenderWidth / 2 + this.leftMargin,
+                this.topMargin + plotHeight + yBump + 44
             );
 
             //Render Dots
@@ -444,9 +382,6 @@ export default Vue.component("m-bitmap-plot", {
                 exChr = chr;
                 chrNum++;
             }
-            console.log("render complete");
-            //this.readyToRender == true;
-            //console.log(this.dotPosData);
         },
     },
 });
