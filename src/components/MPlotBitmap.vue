@@ -10,6 +10,7 @@
             v-if="!!renderConfig"
             id="manhattanPlot"
             @click="checkPosition"
+            @resize="onResize"
             :width="this.canvasRenderWidth"
             :height="this.canvasRenderHeight"
         >
@@ -83,12 +84,19 @@ export default Vue.component("m-bitmap-plot", {
     },
     mounted: function () {
         this.renderPlot();
+        window.addEventListener("mousedown", this.onMouseDown);
+        window.addEventListener("mouseup", this.onMouseUp);
+    },
+    beforeDestroy() {
+        window.removeEventListener("mousedown", this.onMouseDown);
+        window.removeEventListener("mouseup", this.onMouseUp);
     },
     computed: {
         canvasRenderWidth() {
             let content = !!this.renderConfig.width
                 ? this.renderConfig.width + this.leftMargin + this.rightMargin
                 : window.innerWidth - 115;
+
             return content;
         },
         canvasRenderHeight() {
@@ -153,81 +161,27 @@ export default Vue.component("m-bitmap-plot", {
 
             return massagedData;
         },
-        manhattanPlotDotPos() {
-            let xAxisData = [];
-            let yAxisData = [];
-            let wrapper = document.querySelector(".mbm-plot-content");
-            let canvasWidth = this.canvasWidth;
-            let canvasHeight = this.canvasHeight;
-            let leftMargin = 74.5; // -0.5 to draw crisp line. adding space to the right incase dots go over the border
-            let topMargin = 44.5; // -0.5 to draw crisp line
-
-            let xBump = canvasWidth * 0.02;
-            let yBump = canvasHeight * 0.02;
-            this.renderData.map((d) => {
-                xAxisData.push(d[this.renderConfig.xAxisField]);
-                yAxisData.push(d[this.renderConfig.yAxisField]);
-            });
-
-            let xMin = Math.min.apply(Math, xAxisData);
-            let xMax = Math.max.apply(Math, xAxisData);
-
-            let yMin = Math.min.apply(Math, yAxisData);
-            let yMax = Math.max.apply(Math, yAxisData);
-
-            let xAxisTicks = uiUtils.getAxisTicks(xMin, xMax);
-            let yAxisTicks = uiUtils.getAxisTicks(yMin, yMax);
-            let xPosMax = xAxisTicks.lo + xAxisTicks.step * 5;
-            let yPosMax = yAxisTicks.lo + yAxisTicks.step * 5;
-            let dotPos = {};
-
-            this.renderData.map((d) => {
-                //Actual rendering position
-                let xPos =
-                    leftMargin +
-                    xBump +
-                    canvasWidth *
-                        ((d[this.renderConfig.xAxisField] - xAxisTicks.lo) /
-                            (xPosMax - xAxisTicks.lo));
-                let yPos =
-                    topMargin +
-                    canvasHeight -
-                    canvasHeight *
-                        ((d[this.renderConfig.yAxisField] - yAxisTicks.lo) /
-                            (yPosMax - yAxisTicks.lo));
-
-                dotPos[
-                    Formatters.intFormatter(xPos) +
-                        "_" +
-                        Formatters.intFormatter(yPos)
-                ] = d[this.renderConfig.renderBy];
-
-                if (!!dotPos[Formatters.intFormatter(xPos)]) {
-                    dotPos[Formatters.intFormatter(xPos)][
-                        Formatters.intFormatter(yPos)
-                    ] = d[this.renderConfig.renderBy];
-                } else {
-                    dotPos[Formatters.intFormatter(xPos)] = {};
-                    dotPos[Formatters.intFormatter(xPos)][
-                        Formatters.intFormatter(yPos)
-                    ] = d[this.renderConfig.renderBy];
-                }
-            });
-
-            //console.log("dotPos", dotPos);
-
-            return dotPos;
-        },
     },
     watch: {
+        canvasRenderWidth() {
+            //this.clearPlot();
+        },
         renderData() {
-            console.log("update data");
-            this.clearPlot();
+            //this.clearPlot();
             this.renderPlot();
         },
     },
     methods: {
         ...uiUtils,
+        onMouseDown(e) {
+            console.log("down");
+        },
+        onMouseUp(e) {
+            console.log("Up");
+        },
+        onResize(e) {
+            this.resizedWindowWidth = window.innerWidth;
+        },
         checkPosition(event) {
             let e = event;
             var rect = e.target.getBoundingClientRect();
@@ -279,20 +233,32 @@ export default Vue.component("m-bitmap-plot", {
             }
         },
         clearPlot() {
-            var c = document.getElementById("manhattanPlot");
-            var ctx = c.getContext("2d");
+            /*if (this.readyToRender == true) {
+                this.dotPosData = {};
+                var c = document.getElementById("manhattanPlot");
+                var ctx = c.getContext("2d");
 
-            ctx.clearRect(
-                0,
-                0,
-                this.canvasRenderWidth,
-                this.canvasRenderHeight
-            );
+                ctx.clearRect(
+                    0,
+                    0,
+                    this.canvasRenderWidth,
+                    this.canvasRenderHeight
+                );
+
+                let wrapper = document.getElementById("clicked_dot_value");
+                wrapper.classList.add("hidden");
+                console.log("clear complete");
+                this.renderPlot();
+                this.readyToRender == false;
+            }*/
+        },
+        renderPlot() {
+            console.log(this.canvasRenderWidth);
+            this.dotPosData = {};
 
             let wrapper = document.getElementById("clicked_dot_value");
             wrapper.classList.add("hidden");
-        },
-        renderPlot() {
+
             let plotWidth =
                 this.canvasRenderWidth -
                 (this.leftMargin + this.rightMargin + this.xBump);
@@ -302,6 +268,13 @@ export default Vue.component("m-bitmap-plot", {
 
             let c = document.getElementById("manhattanPlot");
             let ctx = c.getContext("2d");
+
+            ctx.clearRect(
+                0,
+                0,
+                this.canvasRenderWidth,
+                this.canvasRenderHeight
+            );
 
             ctx.beginPath();
             ctx.lineWidth = 1;
@@ -471,7 +444,8 @@ export default Vue.component("m-bitmap-plot", {
                 exChr = chr;
                 chrNum++;
             }
-
+            console.log("render complete");
+            //this.readyToRender == true;
             //console.log(this.dotPosData);
         },
     },
