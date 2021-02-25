@@ -390,6 +390,9 @@ $(function () {});
 </script>
 
 <style>
+#manhattanPlot:hover {
+    background-color: #eee;
+}
 .gene-on-clicked-dot,
 .content-on-clicked-dot {
     display: block !important;
