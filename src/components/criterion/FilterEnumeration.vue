@@ -4,13 +4,8 @@
         :field="field"
         :placeholder="placeholder"
         :type="'string'"
-        :predicate="(string, selection) => string === selection"
-        :pillFormatter="
-            (filterDefinition) =>
-                `${filterDefinition.field} = ${labelFormatter(
-                    filterDefinition.threshold
-                )}`
-        "
+        :predicate="predicate"
+        :pillFormatter="pillFormatter"
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
         @input-change="$emit('input-change', $event)"
@@ -41,9 +36,20 @@ export default Vue.component("filter-enumeration-control", {
             type: Boolean,
             default: false,
         },
+        predicate: {
+            type: Function,
+            default: (string, selection) => string === selection
+        },
         labelFormatter: {
             type: Function,
             default: Formatter.capitalizedFormatter,
+        },
+        pillFormatter: {
+            type: Function,
+            default: (filterDefinition) =>
+                `${filterDefinition.field} = ${Formatter.capitalizedFormatter(
+                    filterDefinition.threshold
+                )}`
         },
         disableSort: {
             type: Boolean,
