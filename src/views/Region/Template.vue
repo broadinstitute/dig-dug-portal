@@ -1,10 +1,7 @@
 <template>
     <!-- Header -->
     <div>
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
@@ -58,37 +55,33 @@
                             class="btn btn-light btn-sm go"
                             type="button"
                             @click="$store.dispatch('queryRegion')"
-                        >
-                            GO
-                        </button>
+                        >GO</button>
                     </div>
                     <div class="col divider"></div>
-                    <div class="region-search col filter-col-md">
+                    <!-- <div class="region-search col filter-col-md">
                         <div class="label">Search phenotype</div>
                         <phenotype-selectpicker
                             v-if="$store.state.phenotype"
                             :phenotypes="$store.state.bioPortal.phenotypes"
                             :clearOnSelected="true"
                         ></phenotype-selectpicker>
-                    </div>
+                    </div>-->
                 </div>
             </search-header-wrapper>
 
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title">
-                        Chromosome: Start position - End position
-                    </div>
-                    <div class="col-md-4 gene-page-header-title">Phenotype</div>
-                    <div class="col-md-8 gene-page-header-body regionInfo">
+                    <div
+                        class="col-md-12 gene-page-header-title"
+                    >Chromosome: Start position - End position</div>
+                    <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
+                    <div class="col-md-12 gene-page-header-body regionInfo">
                         {{ $parent.regionString }}
                         <button
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
                             style="margin-left: 20px"
                             @click="$parent.exploreExpanded()"
-                        >
-                            Expand &plusmn; 50 kb
-                        </button>
+                        >Expand &plusmn; 50 kb</button>
                         <lunaris-link
                             :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
@@ -100,11 +93,13 @@
                             "
                         ></lunaris-link>
                     </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <span v-if="$store.state.phenotype">{{
+                    <!-- <div class="col-md-4 gene-page-header-body">
+                        <span v-if="$store.state.phenotype">
+                            {{
                             $store.state.phenotype.description
-                        }}</span>
-                    </div>
+                            }}
+                        </span>
+                    </div>-->
                 </div>
             </div>
             <div class="card mdkp-card">
@@ -120,9 +115,11 @@
                         :class="'gene-with-signal ' + row.type"
                         :key="row.name"
                     >
-                        <a :href="`/gene.html?gene=${row.name}`">{{
+                        <a :href="`/gene.html?gene=${row.name}`">
+                            {{
                             row.name
-                        }}</a>
+                            }}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -132,9 +129,7 @@
                         Variant associations in the region:
                         {{ $parent.regionString }}
                     </h4>
-                    <documentation
-                        name="region.phenos_w_signal.subheader"
-                    ></documentation>
+                    <documentation name="region.phenos_w_signal.subheader"></documentation>
                     <div v-if="$parent.topAssociations.length > 0">
                         <div
                             style="text-align: right; padding-bottom: 5px"
@@ -152,13 +147,9 @@
                                     )
                                 "
                                 class="switch-view btn btn-secondary btn-sm"
-                            >
-                                View associations by phenotype group
-                            </div>
+                            >View associations by phenotype group</div>
                         </div>
-                        <phenotype-signal-mixed
-                            :phenotypes="$parent.topAssociations"
-                        ></phenotype-signal-mixed>
+                        <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
                     </div>
                 </div>
             </div>
@@ -175,13 +166,24 @@
                                 :noIcon="false"
                             ></tooltip-documentation>
                         </h4>
-                        <documentation
-                            name="region.variantassociation.subheader"
-                        ></documentation>
-
-                        <criterion-function-group
-                            v-model="$parent.associationsFilter"
+                        <documentation name="region.variantassociation.subheader"></documentation>
+                        <criterion-list-group
+                            v-model="$parent.regionPageSearchCriterion"
+                            :header="'Select Phenotype'"
                         >
+                            <!-- Phenotype Selector -->
+                            <filter-enumeration-control
+                                class="filter-col-lg"
+                                :field="'phenotype'"
+                                :options="$parent.topAssociationsPhenotypes"
+                                :multiple="false"
+                                :labelFormatter="(phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
+                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
+                            >
+                                <div class="label">Select phenotypes</div>
+                            </filter-enumeration-control>
+                        </criterion-list-group>
+                        <criterion-function-group v-model="$parent.associationsFilter">
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="$parent.associationConsequences"
@@ -228,46 +230,32 @@
 
                         <criterion-function-group>
                             <div class="col filter-col-lg">
-                                <div class="label" style="margin-bottom: 5px">
-                                    Add annotation
-                                </div>
+                                <div class="label" style="margin-bottom: 5px">Add annotation</div>
                                 <annotation-method-selectpicker
-                                    :annotations="
-                                        $parent.globalEnrichmentAnnotations
-                                    "
+                                    :annotations="$parent.globalEnrichmentAnnotations"
                                     :clearOnSelected="true"
-                                    @annotation="
-                                        $parent.addAnnotationIntervalsPanel(
-                                            $event
-                                        )
-                                    "
+                                    @annotation="$parent.addAnnotationIntervalsPanel($event)"
                                 />
                             </div>
 
                             <div class="col filter-col-lg">
-                                <div class="label" style="margin-bottom: 5px">
-                                    Add credible set
-                                </div>
+                                <div class="label" style="margin-bottom: 5px">Add credible set</div>
                                 <credible-sets-selectpicker
                                     :credibleSets="$parent.credibleSets"
                                     :clearOnSelected="true"
-                                    @credibleset="
-                                        $parent.addCredibleVariantsPanel($event)
-                                    "
+                                    @credibleset="$parent.addCredibleVariantsPanel($event) "
                                 />
                             </div>
 
                             <div class="col divider">&nbsp;</div>
 
                             <span style="display: inline-block">
-                                <div class="label">
-                                    Filter annotations by global enrichment
-                                </div>
+                                <div class="label">Filter annotations by global enrichment</div>
                                 <filter-pvalue-control :field="'pValue'">
-                                    <span class="label"> P-Value (&le;) </span>
+                                    <span class="label">P-Value (&le;)</span>
                                 </filter-pvalue-control>
                                 <filter-greater-control :field="'fold'">
-                                    <span class="label"> Fold (&ge;) </span>
+                                    <span class="label">Fold (&ge;)</span>
                                 </filter-greater-control>
                             </span>
 
@@ -278,15 +266,12 @@
                                     :chr="$store.state.chr"
                                     :start="$store.state.start"
                                     :end="$store.state.end"
-                                    :filterAssociations="
-                                        $parent.associationsFilter
-                                    "
+                                    :filterAssociations="$parent.associationsFilter"
                                     :filterAnnotations="filter"
-                                    @regionchanged="
-                                        $parent.requestCredibleSets($event.data)
-                                    "
+                                    @regionchanged="$parent.requestCredibleSets($event.data)"
                                     :ldpop="true"
-                                    :refSeq="true">
+                                    :refSeq="true"
+                                >
                                     <lz-associations-panel
                                         :phenotype="$store.state.phenotype.name"
                                         @input="$parent.updatePageAssociations"
@@ -305,9 +290,7 @@
         <b-collapse id="collapse-1" class="mt-2">
             <b-card>
                 <p class="card-text">Collapse contents Here</p>
-                <b-button v-b-toggle.collapse-1-inner size="sm"
-                    >Toggle Inner Collapse</b-button
-                >
+                <b-button v-b-toggle.collapse-1-inner size="sm">Toggle Inner Collapse</b-button>
                 <b-collapse id="collapse-1-inner" class="mt-2">
                     <b-card>Hello!</b-card>
                 </b-collapse>
