@@ -232,15 +232,9 @@
                                     Add annotation
                                 </div>
                                 <annotation-method-selectpicker
-                                    :annotations="
-                                        $parent.globalEnrichmentAnnotations
-                                    "
+                                    :annotations="$parent.globalEnrichmentAnnotations"
                                     :clearOnSelected="true"
-                                    @annotation="
-                                        $parent.addAnnotationIntervalsPanel(
-                                            $event
-                                        )
-                                    "
+                                    @annotation="$parent.addAnnotationIntervalsPanel($event)"
                                 />
                             </div>
 

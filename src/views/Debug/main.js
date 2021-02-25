@@ -14,6 +14,7 @@ import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
 import PhenotypeSignalMultiple from "@/components/PhenotypeSignalMultiple";
 import Documentation from "@/components/Documentation";
 import LocusZoom from "@/components/lz/LocusZoom";
+import GeneFinderTable from "@/components/GeneFinderTable.vue";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
@@ -29,7 +30,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
-
+import MultiplePhenotypeAssociationsTable from "@/components/MultiplePhenotypeAssociationsTable.vue"
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
@@ -68,7 +69,7 @@ new Vue({
         PhenotypeSelectPicker,
         Autocomplete,
         GeneSelectPicker,
-
+        MultiplePhenotypeAssociationsTable,
         CriterionListGroup,
         CriterionFunctionGroup,
 
@@ -77,7 +78,7 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
-
+        GeneFinderTable,
         SearchHeaderWrapper
     },
 
@@ -94,6 +95,7 @@ new Vue({
 
     data() {
         return {
+            pageAssociationsNew: [],
             associationsFilter: function (id) { return true; },
             pageAssociations: [],
             tissueScoring: null,
@@ -170,10 +172,27 @@ new Vue({
                 method,
                 this.tissueScoring
             );
+        },
+        updateTopAssociations(selectedPhenotypes) {
+            // let selectedPhenotypes = this.criterion;
+
+            for (let j = 0; j < selectedPhenotypes.length; j++) {
+                for (let i = 0; i < this.pageAssociations.length; i++) {
+                    if (this.pageAssociations[i].phenotype == selectedPhenotypes[j]) {
+
+                        this.pageAssociationsNew.push(this.pageAssociations[i])
+                    }
+                }
+            }
+            return this.pageAssociationsNew;
         }
     },
 
     computed: {
+        combinedAssoc() {
+            let x = Object.entries(this.pageAssociationsNew).flatMap(geneFinderItem => geneFinderItem[1]);
+            return x;
+        },
 
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -287,7 +306,8 @@ new Vue({
             }
             return selectedPhenotypeMap;
 
-        }
+        },
+
     },
     watch: {
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
@@ -359,8 +379,8 @@ new Vue({
         criterion(newCriterion, oldCriterion) {
             if (!isEqual(newCriterion, oldCriterion)) {
                 if (newCriterion.phenotype.length > 0) {
-
                     this.$store.commit("setSelectedPhenotypeList", newCriterion.phenotype);
+                    this.updateTopAssociations(newCriterion.phenotype)
                     console.log("new phenotype selected" + newCriterion.phenotype)
                 }
             }

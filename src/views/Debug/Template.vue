@@ -214,12 +214,24 @@
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <associations-table
+                                <!-- <associations-table
                                     v-if="$parent.pageAssociations.length > 0"
                                     :phenotypes="$parent.selectedPhenotypeList"
                                     :associations="$parent.pageAssociations"
                                     :filter="filter"
-                                ></associations-table>
+                                ></associations-table>-->
+                                <multiple-phenotype-associations-table
+                                    :phenotypes="$parent.selectedPhenotypeList.map((phen) => phen.name)"
+                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    :associations="$parent.combinedAssoc"
+                                    :rowsPerPage="20"
+                                ></multiple-phenotype-associations-table>
+                                <!-- <gene-finder-table
+                                    :phenotypes="$parent.selectedPhenotypeList.map((phen) => phen.name)"
+                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                                    :associations="$parent.pageAssociations"
+                                    :rowsPerPage="20"
+                                ></gene-finder-table>-->
                             </template>
                         </criterion-function-group>
 
