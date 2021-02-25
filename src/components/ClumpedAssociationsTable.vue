@@ -5,92 +5,113 @@
                 hover
                 small
                 responsive="sm"
-                :items="groupedAssociations"
+                :items="clumpedAssociations"
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
             >
                 <template v-slot:thead-top="data">
-                    <b-th colspan="5">
-                        <span class="sr-only">Variant</span>
+                    <b-th colspan="1">
+                        <span class="sr-only">Clump</span>
                     </b-th>
                     <b-th
-                        :key="phenotype.name"
+                        :key="phenotype"
                         v-for="(phenotype, i) in phenotypes"
-                        colspan="2"
+                        colspan="3"
                         class="reference"
                         :class="'color-' + (i + 1)"
                     >
                         <span style="color: white">{{
-                            phenotype.description
+                            phenotypeMap[phenotype].description
                         }}</span>
+                        <span v-if="i == 0" style="color: white">
+                            (lead SNP)
+                        </span>
                     </b-th>
                 </template>
-                <template v-slot:cell(position)="r">
+                <template v-slot:cell(clumpRegion)="r">
                     <a
-                        :href="`/region.html?phenotype=${
-                            phenotypes[0].name
-                        }&chr=${r.item.chromosome}&start=${
-                            r.item.position - 50000
-                        }&end=${r.item.position + 50000}`"
-                        >{{ locusFormatter(r.item) }}</a
+                        :href="`/region.html?phenotype=${phenotypes.join(
+                            ','
+                        )}&chr=${r.item.chromosome}&start=${
+                            r.item.clumpStart
+                        }&end=${r.item.clumpEnd}`"
+                        >{{ clumpFormatter(r.item) }}</a
                     >
                 </template>
-                <template v-slot:cell(allele)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{
-                        alleleFormatter(r.item)
-                    }}</a>
-                </template>
-                <template v-slot:cell(dbSNP)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{
-                        dbSNPFormatter(r.item)
-                    }}</a>
-                </template>
-                <template v-slot:cell(consequence)="r">{{
-                    consequenceFormatter(r.item.consequence)
-                }}</template>
-                <template v-slot:cell(genes)="r">
+                <template
+                    v-slot:[phenotypeVariantColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >
                     <a
-                        v-for="gene in r.item.nearest"
+                        :href="`/variant.html?variant=${r.item[`${p}:varId`]}`"
+                        >{{ r.item[`${p}:dbSNP`] || r.item[`${p}:varId`] }}</a
+                    >
+                </template>
+                <!--
+                <template
+                    v-slot:[phenotypeDbSNPColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >
+                    <a
+                        :href="`/variant.html?variant=${r.item[`${p}:dbSNP`]}`"
+                        >{{ dbSNPFormatter(r.item[`${p}:dbSNP`]) }}</a
+                    >
+                </template>
+                <template
+                    v-slot:[phenotypeConsequenceColumn(p)]="r"
+                    v-for="p in phenotypes"
+                    >{{
+                        consequenceFormatter(r.item[`${p.name}:consequence`])
+                    }}</template
+                >
+                <template
+                    v-slot:[phenotypeGenesColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >
+                    <a
+                        v-for="gene in r.item[`${p.name}:nearest`]"
                         class="item"
                         :href="`/gene.html?gene=${gene}`"
                         >{{ gene }}</a
                     >
                 </template>
+                -->
                 <template
                     v-slot:[phenotypeBetaColumn(p)]="r"
                     v-for="p in phenotypes"
                 >
                     <span
                         :class="`effect ${
-                            r.item[`${p.name}:beta`] < 0
-                                ? 'negative'
-                                : 'positive'
+                            alignedBeta(p, r.item) < 0 ? 'negative' : 'positive'
                         }`"
                         >{{
-                            r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
+                            alignedBeta(p, r.item) < 0 ? "&#9660;" : "&#9650;"
                         }}</span
                     >
-                    <span>{{
-                        effectFormatter(
-                            p.dichotomous
-                                ? Math.exp(r.item[`${p.name}:beta`])
-                                : r.item[`${p.name}:beta`]
-                        )
-                    }}</span>
+                    <span>{{ effectFormatter(p, r.item) }}</span>
+                    <span v-if="r.item[`${p}:alignment`] < 0">
+                        <a href="#aligned-beta">&nbsp;&#x21f5;</a>
+                    </span>
                 </template>
                 <template
                     v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
-                    >{{ pValueFormatter(r.item[`${p.name}:pValue`]) }}</template
+                    >{{ pValueFormatter(r.item[`${p}:pValue`]) }}</template
                 >
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
                 v-model="currentPage"
-                :total-rows="groupedAssociations.length"
+                :total-rows="clumpedAssociations.length"
                 :per-page="perPage"
             ></b-pagination>
+            <div class="p-2 text-center">
+                <documentation
+                    id="aligned-beta"
+                    name="table.clumped-associations.alignment"
+                ></documentation>
+            </div>
         </div>
         <div v-else>
             <h4 v-if="associations.length > 0">
@@ -103,7 +124,6 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
@@ -116,11 +136,16 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
-import { decodeNamespace } from "@/utils/filterHelpers";
 import { isEqual } from "lodash";
 
-export default Vue.component("associations-table", {
-    props: ["associations", "phenotypes", "filter", "exclusive"],
+export default Vue.component("clumped-associations-table", {
+    props: [
+        "associations",
+        "phenotypes",
+        "phenotypeMap",
+        "filter",
+        "exclusive",
+    ],
     components: {
         Documentation,
         TooltipDocumentation,
@@ -131,24 +156,8 @@ export default Vue.component("associations-table", {
             currentPage: 1,
             baseFields: [
                 {
-                    key: "position",
-                    label: "Position",
-                },
-                {
-                    key: "allele",
-                    label: "Allele",
-                },
-                {
-                    key: "dbSNP",
-                    label: "dbSNP",
-                },
-                {
-                    key: "consequence",
-                    label: "Consequence",
-                },
-                {
-                    key: "genes",
-                    label: "Closest Genes",
+                    key: "clumpRegion",
+                    label: "Clump",
                 },
             ],
         };
@@ -159,10 +168,15 @@ export default Vue.component("associations-table", {
 
             for (let i in this.phenotypes) {
                 let p = this.phenotypes[i];
+                let dichotomous = this.phenotypeMap[p].dichotomous;
 
                 fields = fields.concat([
                     {
-                        key: `${p.name}:pValue`,
+                        key: `${p}:varId`,
+                        label: "Variant",
+                    },
+                    {
+                        key: `${p}:pValue`,
                         label: `P-Value`,
                         tdClass(x) {
                             return !!x && x < 1e-5
@@ -171,44 +185,44 @@ export default Vue.component("associations-table", {
                         },
                     },
                     {
-                        key: `${p.name}:beta`,
-                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
+                        key: `${p}:beta`,
+                        label: !!dichotomous ? "Odds Ratio" : "Beta",
                     },
                 ]);
             }
 
             return fields;
         },
-        groupedAssociations() {
+        clumpedAssociations() {
             let data = [];
-            let groups = {};
+            let clumps = {};
             let associations = this.tableData;
 
             for (let i in associations) {
                 let r = associations[i];
-                let dataIndex = groups[r.varId];
+                let dataIndex = clumps[r.clump];
 
-                if (!(r.varId in groups)) {
+                if (!(r.clump in clumps)) {
                     dataIndex = data.length;
-                    groups[r.varId] = dataIndex;
+                    clumps[r.clump] = dataIndex;
 
                     data.push({
-                        phenotype: r.phenotype,
-                        varId: r.varId,
                         chromosome: r.chromosome,
-                        position: r.position,
-                        reference: r.reference,
-                        dbSNP: r.dbSNP,
-                        consequence: r.consequence,
-                        nearest: r.nearest,
-                        alt: r.alt,
+                        clump: r.clump,
+                        clumpStart: r.clumpStart,
+                        clumpEnd: r.clumpEnd,
                         minP: 1.0,
                     });
                 }
 
                 // add the phenotype columns
+                data[dataIndex][`${r.phenotype}:varId`] = r.varId;
+                data[dataIndex][`${r.phenotype}:dbSNP`] = r.dbSNP;
+                data[dataIndex][`${r.phenotype}:consequence`] = r.consequence;
+                data[dataIndex][`${r.phenotype}:nearest`] = r.nearest;
                 data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
                 data[dataIndex][`${r.phenotype}:beta`] = r.beta;
+                data[dataIndex][`${r.phenotype}:alignment`] = r.alignment;
                 data[dataIndex][`${r.phenotype}:stdErr`] = r.stdErr;
                 data[dataIndex][`${r.phenotype}:zScore`] = r.zScore;
                 data[dataIndex][`${r.phenotype}:n`] = r.n;
@@ -225,7 +239,7 @@ export default Vue.component("associations-table", {
                     let phenotype = this.phenotypes[i];
 
                     // ensure a p-value exists for each phenotype
-                    if (!row[`${phenotype.name}:pValue`]) {
+                    if (!row[`${phenotype}:pValue`]) {
                         return false;
                     }
                 }
@@ -238,11 +252,10 @@ export default Vue.component("associations-table", {
                 let phenotypes = this.phenotypes;
 
                 data = data.filter((row) => {
-                    return phenotypes.every((p) => !!row[`${p.name}:pValue`]);
+                    return phenotypes.every((p) => !!row[`${p}:pValue`]);
                 });
             }
 
-            
             // sort all the records by phenotype p-value
             data.sort((a, b) => a.minP - b.minP);
 
@@ -251,29 +264,49 @@ export default Vue.component("associations-table", {
         tableData() {
             let dataRows = this.associations;
             if (!!this.filter) {
-               dataRows = this.associations.filter(this.filter);
-                
+                dataRows = this.associations.filter(this.filter);
             }
             return dataRows;
         },
     },
     methods: {
         phenotypeBetaColumn(phenotype) {
-            return `cell(${phenotype.name}:beta)`;
+            return `cell(${phenotype}:beta)`;
         },
         phenotypePValueColumn(phenotype) {
-            return `cell(${phenotype.name}:pValue)`;
+            return `cell(${phenotype}:pValue)`;
         },
-        alleleFormatter({ reference, alt }) {
-            return Formatters.alleleFormatter(reference, alt);
+        phenotypeVariantColumn(phenotype) {
+            return `cell(${phenotype}:varId)`;
         },
-        locusFormatter({ chromosome, position }) {
-            return Formatters.locusFormatter(chromosome, position);
+        phenotypeDbSNPColumn(phenotype) {
+            return `cell(${phenotype}:dbSNP)`;
         },
-        dbSNPFormatter({ dbSNP }) {
+        phenotypeConsequenceColumn(phenotype) {
+            return `cell(${phenotype}:consequence)`;
+        },
+        phenotypeGeneColumn(phenotype) {
+            return `cell(${phenotype}:nearest)`;
+        },
+        clumpFormatter({ chromosome, clumpStart, clumpEnd }) {
+            return Formatters.locusFormatter(chromosome, clumpStart, clumpEnd);
+        },
+        dbSNPFormatter(dbSNP) {
             return Formatters.dbSNPFormatter(dbSNP);
         },
-        effectFormatter(effect) {
+        alignedBeta(phenotype, r) {
+            let beta = r[`${phenotype}:beta`];
+            let alignment = r[`${phenotype}:alignment`] || 1.0;
+
+            return beta * alignment;
+        },
+        effectFormatter(phenotype, r) {
+            let effect = this.alignedBeta(phenotype, r);
+
+            if (this.phenotypeMap[phenotype].dichotomous) {
+                effect = Math.exp(effect);
+            }
+
             return Formatters.effectFormatter(effect);
         },
         pValueFormatter(pValue) {

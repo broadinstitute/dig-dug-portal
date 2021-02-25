@@ -164,7 +164,13 @@ let pages = {
         title: "Gene Finder",
         chunks: ["chunk-vendors", "chunk-common", "genefinder"]
     },
-
+    variantfinder: {
+        entry: "src/views/VariantFinder/main.js",
+        template: "public/index.html",
+        filename: "variantfinder.html",
+        title: "Variant Finder",
+        chunks: ["chunk-vendors", "chunk-common", "variantfinder"]
+    },
     complicationsviewer: {
         entry: "src/views/ComplicationsViewer/main.js",
         template: "public/index.html",
@@ -186,21 +192,7 @@ let pages = {
         filename: "gait.html",
         title: "Genetic Association Interactive Tool",
         chunks: ["chunk-vendors", "chunk-common", "gait"]
-    },
-    paper: {
-        entry: "src/views/Paper/main.js",
-        template: "public/index.html",
-        filename: "paper.html",
-        title: "Paper",
-        chunks: ["chunk-vendors", "chunk-common", "paper"]
-    },
-    paperdata: {
-        entry: "src/views/PaperData/main.js",
-        template: "public/index.html",
-        filename: "paperdata.html",
-        title: "Paper Data",
-        chunks: ["chunk-vendors", "chunk-common", "paperdata"]
-    },
+    }
 };
 
 // remove the debug page in production

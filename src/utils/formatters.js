@@ -129,9 +129,9 @@ function igvLocusFormatter(igvLocus) {
 
 function locusFormatter(chromosome, position, end = undefined) {
     if (!!end) {
-        return `${chromosome}:${position}-${end}`;
+        return `${chromosome}:${intFormatter(position)}-${intFormatter(end)}`;
     }
-    return `${chromosome}:${position}`;
+    return `${chromosome}:${intFormatter(position)}`;
 }
 
 function phenotypeFormatter(phenotype) {
