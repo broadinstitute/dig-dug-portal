@@ -34,7 +34,7 @@ export default new Vuex.Store({
         start: keyParams.start,
         end: keyParams.end,
         focusedVariant: keyParams.variant,
-        phenotype: null,
+        phenotype: keyParams.phenotype,
 
         // user-entered search fields
         newChr: keyParams.chr,
@@ -152,7 +152,7 @@ export default new Vuex.Store({
                 context.dispatch("queryRegion");
             }
         },
-        
+
         async resetToDefaultRegion(context) {
             context.commit("setLocus", {
                 chr: context.state.initial.chr,
