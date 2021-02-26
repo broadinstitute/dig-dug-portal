@@ -1,6 +1,6 @@
 import { json } from "d3";
-import queryString from "query-string"
-
+import queryString, { extract } from "query-string"
+import { cloneDeep, merge } from "lodash"
 
 let getBiolinkContext = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
     .then(response => response.json())
@@ -207,7 +207,7 @@ async function _streamARAs(arsQuery, { onDone=id=>id, onError=id=>id, onUnknown=
         return arsQuery;
     }
 
-    return messageARS(arsQuery.message, 'y').then(aq => _streamARAs(aq, { onDone, onError, onUnknown, onRunning }, _actorStatuses, delay));
+    return await messageARS(arsQuery.message, 'y').then(aq => _streamARAs(aq, { onDone, onError, onUnknown, onRunning }, _actorStatuses, delay));
 }
 
 /* ARS Response Parsing */
@@ -269,8 +269,6 @@ async function streamARSQuery(queryMessage, successCallback=console.log, errorCa
                 onError: psee(gme),
                 onUnknown: pseu(gme)
             }))
-        .finally(arsQuery => arsQuery);
-
 }
 
 // Helper Function
@@ -320,14 +318,27 @@ async function updateResultsForSources(message, sources=[], assignableList=[]) {
     return await streamARSQuery(message, updateResultsFromSources(sources, assignableList));
 }
 
+// Callback
+const knowledgeGraphFromSources = (sources=[], assignableList=[]) => (entry) => {
+    const [agent, message] = entry;
+    if (sources.length === 0 || sources.includes(agent)) {
+        if(_hasResults(message)) {
+            assignableList.push(message.knowledge_graph);
+        }
+    } return assignableList;
+}
+
+// Query
+async function knowledgeGraphsForSources(message, sources=[], assignableList=[]) {
+    return await streamARSQuery(message, knowledgeGraphFromSources(sources, assignableList))
+}
+
 /* BIOLINK MODEL QUERIES */
 // https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml
 
 
 
 import YAML from "yaml"
-
-
 let getBiolinkModel = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/biolink-model.yaml')
     .then(response => response.text())
     .then(text => YAML.parse(text))
@@ -404,9 +415,17 @@ const geneForCurie = async (rawCurie) => {
         const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
             .then(response => response.json())
             .then(json => json[curie] !== null ? json[curie].id.label : curie);
-        curieLabelCache.set(curie, label)
+        curieLabelCache.set(curie, label);
     }
     return curieLabelCache.get(curie);
+}
+
+const curieForGene = async (geneSymbol) => {
+    return await fetch(`https://mygene.info/v3/query?q=${geneSymbol}`)
+        .then(response => response.json())
+        // NOTE: There often are several hits, with non-overlapping data associated with them in the rest of the system
+        // For simplicity we'll just take the top-scoring hit
+        .then(json => `NCBIGENE:${json.hits[0].entrezgene}`) // little known fact: NCBI Genes are Entrez Genes
 }
 
 const associations = function(biolinkModel) {
@@ -427,10 +446,12 @@ export default {
     callback: {
         updateResultsFromSources,
         printResultsFromSources,
+        knowledgeGraphFromSources,
     },
     queries: {
         updateResultsForSources,
         printResultsForSources,
+        knowledgeGraphsForSources,
     },
     identifiers: {
         context: bioLinkContext,
@@ -454,6 +475,8 @@ export default {
         },
     },
     normalize: {
-        curieLabel
+        curieLabel,
+        geneForCurie,
+        curieForGene,
     }
 }

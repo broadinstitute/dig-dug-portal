@@ -1,6 +1,6 @@
 <template>
     <div>
-        <criterion-list-group 
+        <!-- <criterion-list-group 
             v-model="$parent.queryGraphCriterion">
 
             <span style="display: inline-block">
@@ -12,9 +12,9 @@
             </span>
 
             <span style="display: inline-block" v-if="$parent.slotsForAssociation !== null">
-                <!-- <div class="label">
+                <div class="label">
                     Genes <button @click="$parent.addNode">+</button>
-                </div> -->
+                </div>
                 <filter-enumeration-control
                     v-for="(subject, index) in $parent.subjects"
                     :key="subject+index"
@@ -25,9 +25,9 @@
             </span>
 
             <span style="display: inline-block" v-if="$parent.slotsForAssociation !== null">
-                <!-- <div class="label">
+                <div class="label">
                     Diseases <button @click="$parent.addNode">+</button>
-                </div> -->
+                </div>
                 <filter-enumeration-control
                     v-for="(object, index) in $parent.objects"
                     :key="object+index"
@@ -39,7 +39,7 @@
 
             <button v-if="$parent.slotsForAssociation !== null">GO</button>
 
-        </criterion-list-group>
+        </criterion-list-group> -->
 
         <!-- 
             NCATS Results Dashboard
@@ -49,7 +49,6 @@
             <div class="card-body">
                 <ncats-results-dashboard
                     :query_graph="$parent.query_graph.query_graph"
-                    :results="$parent.results"
                 ></ncats-results-dashboard>
             </div>
         </div>
@@ -83,9 +82,11 @@
                 accordion="my-accordion"
                 role="tabpanel">
                 <b-card-body>
+
                     <criterion-list-group
-                        v-model="$parent.searchCriteria"
+                        v-model="$parent.geneToDiseaseQueryCriterion"
                         :header="'Search Criteria'">
+
                         <filter-enumeration-control
                             ref="gene"
                             :field="'gene'"
@@ -96,7 +97,18 @@
                             <div class="label">Gene</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
+
+                    <div v-if="$parent.geneToDiseaseQueryCriterion.length > 0 && $parent.geneToDiseaseQuery !== null">
+                        <ncats-results-table
+                            :query_graph="$parent.geneToDiseaseQuery.query_graph"
+                            :selectable="true"
+                            @change="$parent.selectedResults = $event">
+                        </ncats-results-table>
+                    </div>
+
                 </b-card-body>
+
+                {{$parent.selectedResults}}
             </b-collapse>
         </b-card>
 
@@ -110,7 +122,7 @@
                 <b-button
                     block
                     v-b-toggle.accordion-2
-                    >Variants
+                    >Disease to Phenotype
                     <div class="criteria">
                         <b-badge
                             class="filter-pill-dataset"
@@ -135,6 +147,46 @@
             </b-card-header>
             <b-collapse
                 id="accordion-2"
+                accordion="my-accordion"
+                role="tabpanel">
+                <b-card-body>
+                </b-card-body>
+            </b-collapse>
+        </b-card>
+        <b-card no-body class="mb-1">
+            <b-card-header
+                header-tag="header"
+                class="p-1"
+                role="tab"
+            >
+                <b-button
+                    block
+                    v-b-toggle.accordion-3
+                    >Phenotype to Variants
+                    <div class="criteria">
+                        <b-badge
+                            class="filter-pill-dataset"
+                        >
+                        </b-badge>
+                        <b-badge
+                            class="filter-pill-phenotype">
+                        </b-badge>
+                        <b-badge
+                            class="filter-pill-test"
+                            v-for="test in $parent.selectedTests"
+                            :key="test"
+                        >
+                            {{
+                                $parent.testMethods.find(
+                                    (o) => o.value === test
+                                ).text
+                            }}
+                        </b-badge>
+                    </div>
+                </b-button>
+            </b-card-header>
+            <b-collapse
+                id="accordion-3"
                 accordion="my-accordion"
                 role="tabpanel">
                 <b-card-body>

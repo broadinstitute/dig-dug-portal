@@ -56,16 +56,16 @@ new Vue({
                       "subject": "n00",
                       "predicate": "biolink:functional_association"
                     },
-                    "e01": {
-                        "object": "n02",
-                        "subject": "n00",
-                        "predicate": "biolink:functional_association"
-                    },
-                    "e02": {
-                        "object": "n03",
-                        "subject": "n00",
-                        "predicate": "biolink:functional_association"
-                      }
+                    // "e01": {
+                    //     "object": "n02",
+                    //     "subject": "n00",
+                    //     "predicate": "biolink:functional_association"
+                    // },
+                    // "e02": {
+                    //     "object": "n03",
+                    //     "subject": "n00",
+                    //     "predicate": "biolink:functional_association"
+                    //   }
                   },
                   "nodes": {
                     "n00": {
@@ -75,16 +75,19 @@ new Vue({
                     "n01": {
                       "category": "biolink:BiologicalProcess"
                     },
-                    "n02": {
-                        "category": "biolink:CellularComponent"
-                    },
-                    "n03": {
-                        "category": "biolink:Pathway"
-                    }
+                    // "n02": {
+                    //     "category": "biolink:CellularComponent"
+                    // },
+                    // "n03": {
+                    //     "category": "biolink:Pathway"
+                    // }
                   }
                 }
-              }
-            };
+            },
+            geneToDiseaseQueryCriterion: [],
+            geneToDiseaseQuery: null,
+            selectedResults: [],
+        }
     },
     async mounted() {
         await trapi.queries.updateResultsForSources({
@@ -123,20 +126,20 @@ new Vue({
                 }
             }
             return null;
-        }
-
-
+        },
 
     },
     methods: {
+        curieForGene: trapi.normalize.curieForGene,
         async lookupGenes(input) {
             if (!!input) {
                 let matches = await match("gene", input, { limit: 10 });
                 this.matchingGenes = matches;
             }
         },
-        makeGeneToDiseaseQuery(geneCurie) {
-            return {
+        async makeGeneToDiseaseQuery(geneSymbol) {
+            const geneCurie = await this.curieForGene(geneSymbol)
+            this.geneToDiseaseQuery = {
                 query_graph: {
                     nodes: {
                         geneToDiseaseGene: {
@@ -157,23 +160,23 @@ new Vue({
                 }
             }
         },
-        diseaseToGeneQuery(disease) {
+        diseaseTo____Query(diseaseCurie) {
             return {
                 query_graph: {
                     nodes: {
-                        geneToDiseaseGene: {
-                            id: geneCurie,
-                            category: 'biolink:Gene'
+                        ____: {
+                            id: diseaseCurie,
+                            category: 'biolink:Disease'
                         },
-                        geneToDiseaseDisease: {
+                        ____: {
                             category: 'biolink:Disease'
                         }
                     },
                     edges: {
-                        geneToDisease: {
-                            subject: "geneToDiseaseGene",
-                            object: "geneToDiseaseDisease",
-                            predicate: "biolink:gene_associated_with_condition"
+                        ____: {
+                            subject: "____",
+                            object: "____",
+                            predicate: "biolink:____"
                         }
                     }
                 }
@@ -263,9 +266,17 @@ new Vue({
         },
     },
     watch: {
+        geneToDiseaseQueryCriterion: {
+            handler: function(newCriterion, oldCriterion) {
+                if (!!newCriterion[0]) {
+                    const geneSymbol = newCriterion[0].threshold;
+                    this.makeGeneToDiseaseQuery(geneSymbol);
+                }
+            },
+            deep: true,
+        },
         queryGraph(queryGraph) {
             if (queryGraph !== null) trapi.queries.updateResultsForSources({ "message": queryGraph }, [], this.results);
-
         }
     }
 }).$mount("#app");

@@ -1,5 +1,5 @@
 <template>
-    <a v-if="!!resolvedCurie" :href="resolvedCurie"  target="_blank" rel="noopener noreferrer">
+    <a v-if="!!resolvedCurie" :href="resolvedCurie"  target="_blank" rel="noopener noreferrer" :title="curie">
         <slot>
             <curie-label 
                 v-if="!!fullCurie"

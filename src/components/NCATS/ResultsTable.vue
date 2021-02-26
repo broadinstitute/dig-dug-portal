@@ -1,64 +1,84 @@
 <template>
-    <b-table :items="tableItems(results)">
-        <template #cell()="data">
-            <resolved-curie-link
-                :curie="data.value">
-            </resolved-curie-link>
-        </template>
-    </b-table>
+    <span>
+        <b-table  :items="withSelected([{'test': 'value'},{'test': 'value2'}])">
+            <template #cell()="data">
+                <template v-if="Array.isArray(data.value)">
+                    <span v-for="(curie, index) in data.value" :key="curie">
+                        <resolved-curie-link
+                            :curie="curie">
+                        </resolved-curie-link>{{index == (data.value.length - 1) ? '' : ', '}}
+                    </span>
+                </template>
+                <template v-else>
+                    <resolved-curie-link
+                        :curie="data.value">
+                    </resolved-curie-link>
+                </template>
+            </template>
+             <template #cell(selected)="data">
+                <b-form-group>
+                    <input
+                        type="checkbox"
+                        v-model="
+                            data.item
+                                .selected
+                        "
+                    />
+                </b-form-group>
+            </template>
+        </b-table>
+    </span>
 </template>
 <script>
 import Vue from "vue"
 import trapi from "./trapi"
+import merge from "lodash.merge"
 
 export default Vue.component('ncats-results-table', {
-    props:['query_graph'],
+    props:['query_graph', 'selectable'],
     data() {
         return {
-            results: []
+            results: [],
+            knowledge_graph_list: [],
         }
     },
     async mounted() {
-        await trapi.queries.updateResultsForSources({
+        await trapi.queries.knowledgeGraphsForSources({
             message: { 
                 query_graph: this.query_graph
             }
-        }, [], this.results)
+        }, [], this.knowledge_graph_list)
     },
     methods: {
-        mapOnEntryValues(keyValueMap, f) {
-           return Object.fromEntries(Object.entries(keyValueMap).map(el => [el[0], f(el[1])]));
+        tableItemsFromKnowledgeGraph(knowledge_graph_list) {
+            const restrictedTypes = ['bts:GO', 'bts:term', 'bts:WIKIPATHWAYS']
+            if (!!knowledge_graph_list && knowledge_graph_list.length > 0) {
+                let knowledge_graph = knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
+                let results = Object.entries(knowledge_graph.edges).map(edgeEntry => {
+                    const [name, edge]  = edgeEntry;
+                    const { subject, predicate, object, attributes } = edge;
+                    const row = attributes.filter(attr => !restrictedTypes.includes(attr.type)).reduce((acc, item) => {
+                        const { name, value } = item;
+                        acc[name] = value;
+                        return acc;
+                    }, {
+                        [knowledge_graph.nodes[subject].category]: subject, 
+                        predicate, 
+                        [knowledge_graph.nodes[object].category]: object
+                    })
+                    return row;
+                });
+                return results;
+            } return [];
         },
-        mapOnEntryKeys(keyValueMap, f) {
-            return Object.fromEntries(Object.entries(keyValueMap).map(el => [f(el[0]), el[1]]));
+        withSelected(tableItems) {
+            return tableItems.map(tableItem => merge({ selected: true }, tableItem));
         },
-        conceptType(identifier, query_graph) {
-            const concepts = { ...query_graph.nodes, ...query_graph.edges };
-            return concepts[identifier].category || concepts[identifier].predicate;
-        },
-        tableItems(results) {
-            if (!!results && results.length > 0) {
-
-                const formatResults = binding => 
-                    result => this.mapOnEntryValues(
-                              this.mapOnEntryKeys(
-                                result[binding], 
-                                ek => `${this.conceptType(ek, this.query_graph)}`
-                              ), 
-                              ev => ev[0].id)
-
-                const resultNodes = formatResults('node_bindings');
-                const resultEdges = formatResults('edge_bindings');
-
-                return results.map(el => ({
-                    ...resultNodes(el),
-                    ...resultEdges(el)
-                }));
-
-            } else {
-                return [];
-            }
-        },
+        maybe(items, callback, condition) {
+            if (condition) {
+                return callback(items)
+            } return items;
+        }
     }
 })
 </script>
