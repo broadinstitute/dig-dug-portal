@@ -21,7 +21,8 @@ import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
-
+import keyParams from "@/utils/keyParams";
+import { isEqual, startCase } from "lodash";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
@@ -91,7 +92,15 @@ new Vue({
             associationsFilter: function (id) { return true; },
             pageAssociations: [],
             tissueScoring: null,
-            regionPageSearchCriterion: [],
+            regionPageSearchCriterion: keyParams.phenotype
+                ? [
+
+                    {
+                        field: "phenotype",
+                        threshold: keyParams.phenotype
+                    },
+                ]
+                : [],
         };
     },
 
@@ -281,7 +290,7 @@ new Vue({
         },
         selectedPhenotype() {
             let selectedPhenotypesList = []
-            let selectedPhenotype = keyParams.phenotype || this.regionPageSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let selectedPhenotype = this.regionPageSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
             let phenomap = {}
             phenomap = this.$store.state.bioPortal.phenotypeMap[selectedPhenotype[0]]
             return phenomap;
@@ -296,8 +305,9 @@ new Vue({
     },
     watch: {
         criterion(newCriterion, oldCriterion) {
-            oldCriterion = this.$store.state.phenotype
-            if (newCriterion.phenotypes.name !== oldCriterion.name) {
+            //oldCriterion = this.$store.state.phenotype || oldCriterion
+
+            if (!isEqual(newCriterion.phenotypes.name, this.$store.state.phenotype)) {
                 this.$store.commit("setSelectedPhenotype", newCriterion.phenotypes);
                 this.$store.dispatch("globalEnrichment/query", {
                     q: newCriterion.phenotypes.name
