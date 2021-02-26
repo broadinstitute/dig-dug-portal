@@ -20,9 +20,9 @@ import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPic
 import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
-
+// import { difference } from "lodash"
 import keyParams from "@/utils/keyParams";
-import { isEqual, startCase } from "lodash";
+import { isEqual, startCase, difference } from "lodash";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
 import FilterPValue from "@/components/criterion/FilterPValue.vue"
@@ -197,7 +197,8 @@ new Vue({
         },
 
         phenotypes() {
-            return [this.$store.state.phenotype];
+            let x = this.regionPageSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            return x;
         },
 
         credibleSets() {
@@ -288,26 +289,45 @@ new Vue({
                 assoc => assoc.nearest
             );
         },
+        selectedPhenotypeList() {
+            return this.regionPageSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+        },
         selectedPhenotype() {
             let selectedPhenotypesList = []
             let selectedPhenotype = this.regionPageSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
             let phenomap = {}
-            phenomap = this.$store.state.bioPortal.phenotypeMap[selectedPhenotype[0]]
-            return phenomap;
+            if (!!selectedPhenotype) {
+                for (let i = 0; i < selectedPhenotype.length; i++) {
+                    phenomap = this.$store.state.bioPortal.phenotypeMap[selectedPhenotype[i]]
+                    selectedPhenotypesList.push(phenomap)
+                }
+            }
+            return selectedPhenotypesList;
         },
         criterion() {
             return {
                 phenotypes: this.selectedPhenotype,
-                // consequences: this.associationConsequences,
-                // nearestGenes: this.associationNearestGenes,
             }
         }
     },
     watch: {
         criterion(newCriterion, oldCriterion) {
-            //oldCriterion = this.$store.state.phenotype || oldCriterion
+            if (!!oldCriterion.phenotypes) {
+                let phen = this.$store.state.phenotype || oldCriterion
+                oldCriterion.phenotypes = this.$store.state.bioPortal.phenotypeMap[phen]
+            }
 
-            if (!isEqual(newCriterion.phenotypes.name, this.$store.state.phenotype)) {
+            if (!isEqual(newCriterion.phenotypes, oldCriterion.phenotypes)) {
+                const updatingPhenotypes = difference(newCriterion.phenotypes, oldCriterion.phenotypes);
+                if (updatingPhenotypes.length > 0) {
+                    this.$store.commit("setSelectedPhenotype", updatingPhenotypes[0]);
+                    this.$store.dispatch("globalEnrichment/query", {
+                        q: updatingPhenotypes[0].name
+                    });
+                    this.$store.dispatch("credibleSets/query", {
+                        q: `${updatingPhenotypes[0].name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+                    });
+                }
                 this.$store.commit("setSelectedPhenotype", newCriterion.phenotypes);
                 this.$store.dispatch("globalEnrichment/query", {
                     q: newCriterion.phenotypes.name
@@ -315,6 +335,7 @@ new Vue({
                 this.$store.dispatch("credibleSets/query", {
                     q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
                 });
+
             }
 
         },
