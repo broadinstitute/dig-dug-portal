@@ -281,7 +281,7 @@ new Vue({
         },
         selectedPhenotype() {
             let selectedPhenotypesList = []
-            let selectedPhenotype = this.regionPageSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let selectedPhenotype = keyParams.phenotype || this.regionPageSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
             let phenomap = {}
             phenomap = this.$store.state.bioPortal.phenotypeMap[selectedPhenotype[0]]
             return phenomap;
