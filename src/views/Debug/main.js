@@ -11,10 +11,8 @@ import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
 import AssociationsTable from "@/components/AssociationsTable";
 import PhenotypeSignalMixed from "@/components/PhenotypeSignalMixed";
-import PhenotypeSignalMultiple from "@/components/PhenotypeSignalMultiple";
 import Documentation from "@/components/Documentation";
 import LocusZoom from "@/components/lz/LocusZoom";
-import GeneFinderTable from "@/components/GeneFinderTable.vue";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
@@ -22,6 +20,7 @@ import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPic
 import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
+
 import keyParams from "@/utils/keyParams";
 import { isEqual, startCase } from "lodash";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
@@ -30,7 +29,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue"
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
-import MultiplePhenotypeAssociationsTable from "@/components/MultiplePhenotypeAssociationsTable.vue"
+
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
@@ -56,29 +55,24 @@ new Vue({
         Alert,
         Documentation,
         LunarisLink,
-        PhenotypeSignalMultiple,
         LocusZoom,
         LocusZoomAssociationsPanel,
         LocusZoomCatalogAnnotationsPanel,
         AssociationsTable,
-
         PhenotypeSignalMixed,
-
         CredibleSetSelectPicker,
         AnnotationMethodSelectPicker,
         PhenotypeSelectPicker,
         Autocomplete,
         GeneSelectPicker,
-        MultiplePhenotypeAssociationsTable,
         CriterionListGroup,
         CriterionFunctionGroup,
-
         CriterionFunctionGroup,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
-        GeneFinderTable,
+
         SearchHeaderWrapper
     },
 
@@ -95,11 +89,10 @@ new Vue({
 
     data() {
         return {
-            pageAssociationsNew: [],
             associationsFilter: function (id) { return true; },
             pageAssociations: [],
             tissueScoring: null,
-            regionPhenotypeSearchCriterion: keyParams.phenotype
+            regionPageSearchCriterion: keyParams.phenotype
                 ? [
 
                     {
@@ -172,27 +165,10 @@ new Vue({
                 method,
                 this.tissueScoring
             );
-        },
-        updateTopAssociations(selectedPhenotypes) {
-            // let selectedPhenotypes = this.criterion;
-
-            for (let j = 0; j < selectedPhenotypes.length; j++) {
-                for (let i = 0; i < this.pageAssociations.length; i++) {
-                    if (this.pageAssociations[i].phenotype == selectedPhenotypes[j]) {
-
-                        this.pageAssociationsNew.push(this.pageAssociations[i])
-                    }
-                }
-            }
-            return this.pageAssociationsNew;
         }
     },
 
     computed: {
-        combinedAssoc() {
-            let x = Object.entries(this.pageAssociationsNew).flatMap(geneFinderItem => geneFinderItem[1]);
-            return x;
-        },
 
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -220,22 +196,7 @@ new Vue({
             });
         },
 
-        selectedPhenotypes() {
-            return this.regionPhenotypeSearchCriterion
-                .filter(v => {
-                    return v.field === "phenotype";
-                })
-                .map(v => v.threshold);
-        },
-        criterion() {
-            return {
-                phenotype: this.selectedPhenotypes
-            };
-        },
         phenotypes() {
-            //      : phenotypes = "[{'description':'Type 2 diabetes','dichotomous':1,'group':'GLYCEMIC','name':'T2D'},{'description':'Coronary artery disease','dichotomous':1,'group':'CARDIOVASCULAR','name':'CAD'}
-
-            // }]"
             return [this.$store.state.phenotype];
         },
 
@@ -276,6 +237,38 @@ new Vue({
             // convert to an array, sorted by p-value
             return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
         },
+        topAssociationsPhenotypes() {
+            let data = this.$store.state.topAssociations.data;
+            let assocMap = {};
+
+            for (let i in data) {
+                const assoc = data[i];
+
+                // skip associations not part of the disease group
+                if (
+                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
+                ) {
+                    continue;
+                }
+
+                const curAssoc = assocMap[assoc.phenotype];
+                if (!curAssoc || assoc.pValue < curAssoc.pValue) {
+                    assocMap[assoc.phenotype] = assoc;
+                }
+            }
+            let data2 = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            let phenoList = []
+            data2.forEach(element => {
+                let phenotype = phenotypeMap[element.phenotype];
+
+                element["group"] = phenotype.group.toUpperCase();
+                element["description"] = phenotype.description;
+                phenoList.push(element.phenotype)
+            });
+
+            return phenoList;
+        },
 
         globalEnrichmentAnnotations() {
             // an array of annotations
@@ -287,7 +280,6 @@ new Vue({
                     )
             );
         },
-
         associationConsequences() {
             return this.pageAssociations.map(v => v.consequence);
         },
@@ -296,20 +288,36 @@ new Vue({
                 assoc => assoc.nearest
             );
         },
-
-        selectedPhenotypeList() {
-            let selectedPhenotypeMap = []
-            let selectedPhenotypes = this.$store.state.selectedPhenotypeList || this.selectedPhenotypes;
-            for (let i = 0; i < selectedPhenotypes.length; i++) {
-                console.log(selectedPhenotypes[i] + "phenotype selected")
-                selectedPhenotypeMap.push(this.$store.state.bioPortal.phenotypeMap[selectedPhenotypes[i]]);
-            }
-            return selectedPhenotypeMap;
-
+        selectedPhenotype() {
+            let selectedPhenotypesList = []
+            let selectedPhenotype = this.regionPageSearchCriterion.filter(criterion => criterion.field === 'phenotype').map(criterion => criterion.threshold);
+            let phenomap = {}
+            phenomap = this.$store.state.bioPortal.phenotypeMap[selectedPhenotype[0]]
+            return phenomap;
         },
-
+        criterion() {
+            return {
+                phenotypes: this.selectedPhenotype,
+                // consequences: this.associationConsequences,
+                // nearestGenes: this.associationNearestGenes,
+            }
+        }
     },
     watch: {
+        criterion(newCriterion, oldCriterion) {
+            //oldCriterion = this.$store.state.phenotype || oldCriterion
+
+            if (!isEqual(newCriterion.phenotypes.name, this.$store.state.phenotype)) {
+                this.$store.commit("setSelectedPhenotype", newCriterion.phenotypes);
+                this.$store.dispatch("globalEnrichment/query", {
+                    q: newCriterion.phenotypes.name
+                });
+                this.$store.dispatch("credibleSets/query", {
+                    q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+                });
+            }
+
+        },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
@@ -374,16 +382,6 @@ new Vue({
 
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
-
-        criterion(newCriterion, oldCriterion) {
-            if (!isEqual(newCriterion, oldCriterion)) {
-                if (newCriterion.phenotype.length > 0) {
-                    this.$store.commit("setSelectedPhenotypeList", newCriterion.phenotype);
-                    this.updateTopAssociations(newCriterion.phenotype)
-                    console.log("new phenotype selected" + newCriterion.phenotype)
-                }
-            }
         }
     }
 }).$mount("#app");

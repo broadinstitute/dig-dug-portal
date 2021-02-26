@@ -34,15 +34,14 @@ export default new Vuex.Store({
         start: keyParams.start,
         end: keyParams.end,
         focusedVariant: keyParams.variant,
-        phenotype: null,
+        phenotype: keyParams.phenotype,
 
         // user-entered search fields
         newChr: keyParams.chr,
         newStart: keyParams.start,
         newEnd: keyParams.end,
         searchGene: null,
-        matchingGenes: null,
-        selectedPhenotypeList: null,
+        matchingGenes: null
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
@@ -72,9 +71,6 @@ export default new Vuex.Store({
         },
         setMatchingGenes(state, genes) {
             state.matchingGenes = genes;
-        },
-        setSelectedPhenotypeList(state, phenoList) {
-            state.selectedPhenotypeList = phenoList;
         }
     },
     getters: {

@@ -57,8 +57,8 @@
                             @click="$store.dispatch('queryRegion')"
                         >GO</button>
                     </div>
-                    <!-- <div class="col divider"></div>
-                    <div class="region-search col filter-col-md">
+                    <div class="col divider"></div>
+                    <!-- <div class="region-search col filter-col-md">
                         <div class="label">Search phenotype</div>
                         <phenotype-selectpicker
                             v-if="$store.state.phenotype"
@@ -75,7 +75,7 @@
                         class="col-md-12 gene-page-header-title"
                     >Chromosome: Start position - End position</div>
                     <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
-                    <div class="col-md-8 gene-page-header-body regionInfo">
+                    <div class="col-md-12 gene-page-header-body regionInfo">
                         {{ $parent.regionString }}
                         <button
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
@@ -167,26 +167,20 @@
                             ></tooltip-documentation>
                         </h4>
                         <documentation name="region.variantassociation.subheader"></documentation>
-                        <!-- <phenotype-signal-multiple
-                            v-if="$parent.topAssociations.length > 0"
-                            :phenotypes="$parent.topAssociations"
-                        ></phenotype-signal-multiple>-->
                         <criterion-list-group
-                            v-model="$parent.regionPhenotypeSearchCriterion"
-                            :header="'Search Criterion'"
+                            v-model="$parent.regionPageSearchCriterion"
+                            :header="'Select Phenotype'"
                         >
+                            <!-- Phenotype Selector -->
                             <filter-enumeration-control
-                                ref="phenotype"
+                                class="filter-col-lg"
                                 :field="'phenotype'"
-                                placeholder="Select a phenotype ..."
-                                :options="$parent.topAssociations.map((association) => association.phenotype)"
-                                :multiple="true"
-                                :labelFormatter="(phenotype) =>
-                                        !!$store.state.bioPortal.phenotypeMap[phenotype]
-                                            ? $store.state.bioPortal.phenotypeMap[phenotype].description
-                                            : phenotype"
+                                :options="$parent.topAssociationsPhenotypes"
+                                :multiple="false"
+                                :labelFormatter="(phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
+                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
                             >
-                                <div class="label">Phenotypes</div>
+                                <div class="label">Select phenotypes</div>
                             </filter-enumeration-control>
                         </criterion-list-group>
                         <criterion-function-group v-model="$parent.associationsFilter">
@@ -214,24 +208,12 @@
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
                             <template slot="filtered" slot-scope="{ filter }">
-                                <!-- <associations-table
+                                <associations-table
                                     v-if="$parent.pageAssociations.length > 0"
-                                    :phenotypes="$parent.selectedPhenotypeList"
+                                    :phenotypes="$parent.phenotypes"
                                     :associations="$parent.pageAssociations"
                                     :filter="filter"
-                                ></associations-table>-->
-                                <multiple-phenotype-associations-table
-                                    :phenotypes="$parent.selectedPhenotypeList.map((phen) => phen.name)"
-                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                    :associations="$parent.combinedAssoc"
-                                    :rowsPerPage="20"
-                                ></multiple-phenotype-associations-table>
-                                <!-- <gene-finder-table
-                                    :phenotypes="$parent.selectedPhenotypeList.map((phen) => phen.name)"
-                                    :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                                    :associations="$parent.pageAssociations"
-                                    :rowsPerPage="20"
-                                ></gene-finder-table>-->
+                                ></associations-table>
                             </template>
                         </criterion-function-group>
 
@@ -261,9 +243,7 @@
                                 <credible-sets-selectpicker
                                     :credibleSets="$parent.credibleSets"
                                     :clearOnSelected="true"
-                                    @credibleset="
-                                        $parent.addCredibleVariantsPanel($event)
-                                    "
+                                    @credibleset="$parent.addCredibleVariantsPanel($event) "
                                 />
                             </div>
 
