@@ -3,11 +3,8 @@
         class="filter-col-md"
         :field="field"
         :placeholder="placeholder"
-        :predicate="(string, selection) => string === selection"
-        :pillFormatter="
-            (filterDefinition) =>
-                `${filterDefinition.field} = ${filterDefinition.threshold}`
-        "
+        :predicate="predicate"
+        :pillFormatter="pillFormatter"
         :options="options"
         @input-change="$emit('input-change', $event)"
         :color="color"
@@ -35,6 +32,15 @@ export default Vue.component("filter-basic-control", {
             type: Boolean,
             default: true,
         },
+        predicate: {
+            type: Function,
+            default: (string, selection) => string === selection
+        },
+        pillFormatter: {
+            type: Function,
+            default: (filterDefinition) =>
+                `${filterDefinition.field} = ${filterDefinition.threshold}`
+        }
     },
     components: {
         FilterControlTemplate,
