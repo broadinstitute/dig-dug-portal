@@ -176,7 +176,7 @@
                                 class="filter-col-lg"
                                 :field="'phenotype'"
                                 :options="$parent.topAssociationsPhenotypes"
-                                :multiple="false"
+                                :multiple="true"
                                 :labelFormatter="(phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
                                         ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
                             >
@@ -261,6 +261,7 @@
 
                             <template slot="filtered" slot-scope="{ filter }">
                                 <locuszoom
+                                    v-for="(row, i) in $store.state.phenotype"
                                     v-if="$parent.tissueScoring !== null"
                                     ref="locuszoom"
                                     :chr="$store.state.chr"
@@ -273,12 +274,10 @@
                                     :refSeq="true"
                                 >
                                     <lz-associations-panel
-                                        :phenotype="$store.state.phenotype.name"
+                                        :phenotype="row.name"
                                         @input="$parent.updatePageAssociations"
                                     ></lz-associations-panel>
-                                    <lz-catalog-annotations-panel
-                                        :phenotype="$store.state.phenotype.name"
-                                    ></lz-catalog-annotations-panel>
+                                    <lz-catalog-annotations-panel :phenotype="row.name"></lz-catalog-annotations-panel>
                                 </locuszoom>
                             </template>
                         </criterion-function-group>
