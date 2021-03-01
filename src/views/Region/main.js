@@ -306,8 +306,11 @@ new Vue({
     watch: {
         criterion(newCriterion, oldCriterion) {
             //oldCriterion = this.$store.state.phenotype || oldCriterion
+            if (typeof oldCriterion.phenotypes == 'undefined') {
+                oldCriterion.phenotypes = this.$store.state.bioPortal.phenotypeMap[this.$store.state.phenotype]
+            }
 
-            if (!isEqual(newCriterion.phenotypes.name, this.$store.state.phenotype)) {
+            if (!isEqual(newCriterion.phenotypes.name, oldCriterion.phenotypes.name)) {
                 this.$store.commit("setSelectedPhenotype", newCriterion.phenotypes);
                 this.$store.dispatch("globalEnrichment/query", {
                     q: newCriterion.phenotypes.name
