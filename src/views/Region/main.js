@@ -315,12 +315,7 @@ new Vue({
                 oldCriterion.phenotypes = this.$store.state.bioPortal.phenotypeMap[this.$store.state.phenotype]
             }
 
-            if (
-                !isEqual(
-                    newCriterion.phenotypes.name,
-                    oldCriterion.phenotypes.name
-                )
-            ) {
+            if (!isEqual(newCriterion.phenotypes.name, oldCriterion.phenotypes.name)) {
                 this.$store.commit(
                     "setSelectedPhenotype",
                     newCriterion.phenotypes
@@ -332,6 +327,7 @@ new Vue({
                     q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
                 });
             }
+
         },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
