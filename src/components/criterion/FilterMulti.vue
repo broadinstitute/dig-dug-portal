@@ -2,19 +2,15 @@
     <filter-control-template
         class="filter-col-md"
         :field="field"
-        :predicate="(string, selection) => string === selection"
-        :pillFormatter="
-            (filterDefinition) =>
-                `${filterDefinition.field} = ${filterDefinition.threshold}`
-        "
+        :predicate="predicate"
+        :pillFormatter="pillFormatter"
         :options="options"
         @input-change="$emit('input-change', $event)"
         :color="color"
         :multiple="true"
         :inclusive="inclusive"
-        :splitBy="splitBy"
-    >
-        <slot> </slot>
+        :splitBy="splitBy">
+        <slot></slot>
     </filter-control-template>
 </template>
 <script>
@@ -33,6 +29,14 @@ export default Vue.component("filter-multi-control", {
             type: Boolean,
             default: true,
         },
+        pillFormatter: {
+            type: Function,
+            default: (filterDefinition) => `${filterDefinition.field} = ${filterDefinition.threshold}`
+        },
+        predicate: {
+            type: Function,
+            default: (string, selection) => string === selection
+        }
     },
     components: {
         FilterControlTemplate,

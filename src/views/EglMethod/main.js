@@ -36,7 +36,6 @@ new Vue({
         EffectorGenesTable,
         Documentation,
     },
-
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
@@ -63,6 +62,9 @@ new Vue({
         closeAlert,
         showElement(ELEMENT) {
             uiUtils.showElement(ELEMENT);
+        },
+        onResize(e) {
+            this.windowWidth = window.innerWidth;
         },
         onScroll(e) {
             let windowTop = window.top.scrollY;

@@ -3,8 +3,35 @@
         class="filter-col-sm"
         :field="field"
         :type="'string'"
-        :predicate="
-            (beta, direction) => {
+        :predicate="predicate"
+        :labelFormatter="labelFormatter"
+        :pillFormatter="pillFormatter"
+        :options="options"
+        @input-change="$emit('input-change', $event)"
+        :multiple="false">
+        <slot></slot>
+    </filter-control-template>
+</template>
+<script>
+import Vue from "vue";
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
+export default Vue.component("filter-effect-direction-control", {
+    props: {
+        field: String,
+        options: {
+            type: Array,
+            default: () => ['positive', 'negative']
+        },
+        labelFormatter: {
+            type: Function
+        },
+        pillFormatter: {
+            type: Function,
+            default: (filterDefinition) => `effect size ${filterDefinition.threshold}`
+        },
+        predicate: {
+            type: Function,
+            default: (beta, direction) => {
                 // must be positive
                 if (direction === 'positive') {
                     return Math.sign(beta) === 1;
@@ -13,33 +40,10 @@
                     return Math.sign(beta) === -1;
                 }
             }
-        "
-        :pillFormatter="
-            (filterDefinition) => `effect size ${filterDefinition.threshold}`
-        "
-        :options="['positive', 'negative']"
-        @input-change="$emit('input-change', $event)"
-        :multiple="false"
-    >
-        <slot></slot>
-    </filter-control-template>
-</template>
-<script>
-import Vue from "vue";
-import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
-export default Vue.component("filter-effect-direction-control", {
-    props: ["field"],
+        }
+    },
     components: {
         FilterControlTemplate,
-    },
-    methods: {
-        tap(value) {
-            if (value === true) {
-                return "positive";
-            } else if (value === false) {
-                return "negative";
-            }
-        },
     },
 });
 </script>
