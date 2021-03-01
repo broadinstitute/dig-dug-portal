@@ -33,9 +33,9 @@ function bioTypeFormatter(s) {
 }
 
 function capitalizedFormatter(s) {
-    if (!!s) {
+    if (!!s && typeof s === 'string') {
         return s.replace(/_/g, ' ').replace(/(^| )([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
-    }
+    } return s;
 }
 
 function consequenceFormatter(s) {

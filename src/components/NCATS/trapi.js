@@ -19,7 +19,7 @@ const _prefix_synonyms = {
 }
 
 const deserializeCurie = function(curie) {
-    if (!!curie && curie.split(":").length === 2) {  // prevent misidentifying IDs with multiple colons as curies
+    if (!!curie && typeof curie === 'string' && curie.split(":").length === 2) {  // prevent misidentifying IDs with multiple colons as curies
         return [...curie.split(":")];
     } else return []; // TODO: error/undefined behavior
 }

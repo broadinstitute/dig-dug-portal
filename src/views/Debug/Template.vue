@@ -88,14 +88,13 @@
                         :header="'Search Criteria'">
 
                         <filter-enumeration-control
-                            ref="gene"
                             :field="'gene'"
                             placeholder="Select a gene ..."
                             :options="$parent.matchingGenes"
-                            :pillFormatter="obj=>JSON.stringify(obj)"
                             @input-change="$parent.lookupGenes($event)">
                             <div class="label">Gene</div>
                         </filter-enumeration-control>
+
                     </criterion-list-group>
 
                     <div v-if="$parent.geneToDiseaseQueryCriterion.length > 0 && $parent.geneToDiseaseQuery !== null">
@@ -107,8 +106,6 @@
                     </div>
 
                 </b-card-body>
-
-                {{$parent.selectedResults}}
             </b-collapse>
         </b-card>
 
@@ -131,17 +128,6 @@
                         <b-badge
                             class="filter-pill-phenotype">
                         </b-badge>
-                        <b-badge
-                            class="filter-pill-test"
-                            v-for="test in $parent.selectedTests"
-                            :key="test"
-                        >
-                            {{
-                                $parent.testMethods.find(
-                                    (o) => o.value === test
-                                ).text
-                            }}
-                        </b-badge>
                     </div>
                 </b-button>
             </b-card-header>
@@ -150,6 +136,23 @@
                 accordion="my-accordion"
                 role="tabpanel">
                 <b-card-body>
+                    <criterion-list-group
+                        :header="'Search Criteria'">
+
+                        <filter-enumeration-control
+                            :field="'disease'"
+                            placeholder="Select a disease ..."
+                            :labelFormatter="el => $parent.diseaseMap[el]"
+                            :options="$parent.diseaseOptions">
+                            <div class="label">Disease</div>
+                        </filter-enumeration-control>
+
+                        <template #filtered="{filter}">
+                            {{filter}}
+                        </template>
+
+                    </criterion-list-group>
+
                 </b-card-body>
             </b-collapse>
         </b-card>
@@ -170,17 +173,6 @@
                         </b-badge>
                         <b-badge
                             class="filter-pill-phenotype">
-                        </b-badge>
-                        <b-badge
-                            class="filter-pill-test"
-                            v-for="test in $parent.selectedTests"
-                            :key="test"
-                        >
-                            {{
-                                $parent.testMethods.find(
-                                    (o) => o.value === test
-                                ).text
-                            }}
                         </b-badge>
                     </div>
                 </b-button>

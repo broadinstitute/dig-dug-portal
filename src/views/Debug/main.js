@@ -16,11 +16,13 @@ import CriterionListGroup from "@/components/criterion/group/CriterionListGroup"
 import FilterEnumeration from "@/components/criterion/FilterEnumeration"
 
 import queryString from "query-string"
-import _ from "lodash"
+import _, { merge } from "lodash"
 import trapi from "@/components/NCATS/trapi"
+import AsyncComputed from 'vue-async-computed'
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
+Vue.use(AsyncComputed);
 
 new Vue({
     store,
@@ -85,6 +87,7 @@ new Vue({
                 }
             },
             geneToDiseaseQueryCriterion: [],
+            diseaseToPhenotypeQueryCriterion: [],
             geneToDiseaseQuery: null,
             selectedResults: [],
         }
@@ -101,6 +104,26 @@ new Vue({
             return await fetch(`https://mygene.info/v3/query?${qs}`).then(response => response.json())
         }
         await getGeneCurieFromName('PCSK9')
+    },
+    asyncComputed: {
+        async diseaseMap() {
+            const curieOptions = this.selectedResults.filter(el => el.selected).map(el => el.object);
+            if (curieOptions.length > 0) {
+                return await Promise.all(
+                    curieOptions.map(curie => new Promise((resolve => {
+                        resolve(trapi.normalize.curieLabel(curie).then(label => ({ [curie]: label })))
+                    })))
+                ).then(list => list.reduce((acc, item) => merge(acc, item), {}));
+            }
+            return {};
+
+        },
+        async diseaseLabels() {
+            return Object.values(this.diseaseMap)
+        },
+        async diseaseOptions() {
+            return Object.keys(this.diseaseMap)
+        }
     },
     computed: {
 
@@ -130,6 +153,7 @@ new Vue({
 
     },
     methods: {
+        curieLabel: trapi.normalize.curieLabel,
         curieForGene: trapi.normalize.curieForGene,
         async lookupGenes(input) {
             if (!!input) {
