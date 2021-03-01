@@ -14,11 +14,11 @@
                         <span v-for="(curie, index) in data.value" :key="curie" :id="`${curie}-link-${index}-${data.index}`">
                             <b-tooltip :target="`${curie}-link-${data.index}-${index}`">
                                 <a :href="portalLinkFor(data.value)">
-                                    Go to the Portal resource  
+                                    <span style="color: #fff">Go to Portal resource</span>
                                 </a><br>
                                 <resolved-curie-link
                                     :curie="curie">
-                                    Go to the curated entry
+                                    <span style="color: #fff">Go to curated entry</span>
                                 </resolved-curie-link>
                             </b-tooltip>
                             <span :id="`${curie}-link-${data.index}-${index}`">
@@ -30,12 +30,13 @@
                     </template>
                     <template v-else>
                         <b-tooltip :target="`${data.value}-link-${data.index}`">
-                            <a>
-                              Go to the Portal resource
+                            <a :href="portalLinkFor(data.value)">
+                                <span style="color: #fff">Go to Portal resource</span>
                             </a><br>
                             <resolved-curie-link
+                                class="options-4-actions"
                                 :curie="data.value">
-                                Go to the curated entry
+                                <span style="color: #fff">Go to curated entry</span>
                             </resolved-curie-link>
                         </b-tooltip>
                         <span :id="`${data.value}-link-${data.index}`">
