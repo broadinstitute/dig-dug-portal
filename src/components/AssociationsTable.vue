@@ -1,6 +1,12 @@
 <template>
     <div>
         <div v-if="tableData.length > 0">
+            <b-container fluid class="convert-2-csv">
+                <csv-download
+                    :data="groupedAssociations"
+                    filename="associations"
+                ></csv-download
+            ></b-container>
             <b-table
                 hover
                 small
@@ -116,6 +122,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
+import CsvDownload from "@/components/CsvDownload";
+
 import { decodeNamespace } from "@/utils/filterHelpers";
 import { isEqual } from "lodash";
 
@@ -124,6 +132,7 @@ export default Vue.component("associations-table", {
     components: {
         Documentation,
         TooltipDocumentation,
+        CsvDownload,
     },
     data() {
         return {
@@ -293,3 +302,6 @@ export default Vue.component("associations-table", {
     },
 });
 </script>
+<style>
+@import url("/css/effectorGenes.css");
+</style>
