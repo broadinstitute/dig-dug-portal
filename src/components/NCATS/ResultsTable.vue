@@ -1,6 +1,6 @@
 <template>
     <span>
-        <span v-if="knowledge_graph_list.length > 0">
+        <span v-if="queryDone && knowledge_graph_list.length > 0">
             <b-table
                 :items="filteredTableItems"
                 :per-page="perPage"
@@ -9,36 +9,40 @@
             >
 
                 <template #cell()="data">
-
                     <template v-if="Array.isArray(data.value)">
                         <span v-for="(curie, index) in data.value" :key="curie" :id="`${curie}-link-${index}-${data.index}`">
-                            <b-tooltip :target="`${curie}-link-${data.index}-${index}`">
-                                <a :href="portalLinkFor(data.value)">
-                                    <span style="color: #fff">Go to Portal resource</span>
-                                </a><br>
+
+                            <b-tooltip v-if="['subject', 'object'].includes(data.field.key)" :target="`${curie}-link-${data.index}-${index}`">
+                                <a v-if="portalLinkFor(data.field.key) !== ''" :href="portalLinkFor(data.field.key)(data.value)">
+                                    <span style="color: #fff">Go to Portal resource</span><br>
+                                </a>
                                 <resolved-curie-link
                                     :curie="curie">
                                     <span style="color: #fff">Go to curated entry</span>
                                 </resolved-curie-link>
                             </b-tooltip>
+
                             <span :id="`${curie}-link-${data.index}-${index}`">
                                 <resolved-curie-link
                                     :curie="curie">
                                 </resolved-curie-link>{{index == (data.value.length - 1) ? '' : ', '}}
                             </span>
+
                         </span>
                     </template>
                     <template v-else>
-                        <b-tooltip :target="`${data.value}-link-${data.index}`">
-                            <a :href="portalLinkFor(data.value)">
-                                <span style="color: #fff">Go to Portal resource</span>
-                            </a><br>
+
+                        <b-tooltip v-if="['subject', 'object'].includes(data.field.key)" :target="`${data.value}-link-${data.index}`">
+                            <a v-if="portalLinkFor(data.field.key) !== ''" :href="portalLinkFor(data.field.key)(data.value)">
+                                <span style="color: #fff">Go to Portal resource</span><br>
+                            </a>
                             <resolved-curie-link
                                 class="options-4-actions"
                                 :curie="data.value">
                                 <span style="color: #fff">Go to curated entry</span>
                             </resolved-curie-link>
                         </b-tooltip>
+
                         <span :id="`${data.value}-link-${data.index}`">
                             <resolved-curie-link
                                 :curie="data.value">
@@ -52,10 +56,7 @@
                     <b-form-group>
                         <input
                             type="checkbox"
-                            v-model="
-                                data.item
-                                    .selected
-                            "
+                            v-model="data.item.selected"
                         />
                     </b-form-group>
                 </template>
@@ -79,27 +80,29 @@ import Vue from "vue"
 import trapi from "./trapi"
 import merge from "lodash.merge"
 
-function mapTypeToPortalPage(key) {
-    // if key is a synonym of supported key
-}
-
-export default Vue.component('ncats-results-table', {
+export default Vue.component('translator-results-table', {
     props:['query_graph', 'selectable', 'filter'],
     data() {
         return {
             currentPage: 1,
             perPage: 10,
             knowledge_graph_list: [],
+            queryDone: false,
         }
     },
     async mounted() {
+        let self = this;
         await trapi.queries.knowledgeGraphsForSources({
             message: { 
                 query_graph: this.query_graph
             }
         }, [], this.knowledge_graph_list)
+        .then(_ => { self.queryDone = true });
     },
     computed: {
+        knowledge_graph() {
+            return this.knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
+        },
         tableItems() {
             return this.maybe(this.tableItemsFromKnowledgeGraph(this.knowledge_graph_list), this.withSelected, this.selectable)
         },
@@ -112,9 +115,26 @@ export default Vue.component('ncats-results-table', {
         },
     },
     methods: {
-        portalLinkFor(key) {
-
+        async curieLabel(curie) {
+            return await trapi.normalize.curieLabel(curie);
         },
+        portalLinkFor(subjectOrObject) {
+            const portalLinkMappings = {
+                'biolink:Gene': '/Gene.html?gene=',
+                // TODO: Phenotype
+            }
+
+            // TODO: Assumes on-hop query
+            const edgeSubjectOrObjectName = Object.entries(this.query_graph.edges)[0][1][subjectOrObject]
+            const node = Object.entries(this.query_graph.nodes).filter(el => el[0] === edgeSubjectOrObjectName)[0][1]
+            const category = node.category;
+
+            if (!!portalLinkMappings[category]) {
+                return value => `${portalLinkMappings[category]}${value}`;
+            }
+            return ''
+        },
+
         tableItemsFromKnowledgeGraph(knowledge_graph_list) {
             const restrictedTypes = ['bts:GO', 'bts:term', 'bts:WIKIPATHWAYS']
             if (!!knowledge_graph_list && knowledge_graph_list.length > 0) {
@@ -151,6 +171,12 @@ export default Vue.component('ncats-results-table', {
         tableItems: {
             handler(newTableItems) {
                 this.$emit('change', newTableItems)
+            },
+            deep: true,
+        },
+        knowledge_graph: {
+            handler(newKnowledgeGraph) {
+                this.$emit('change-knowledge-graph', newKnowledgeGraph)
             },
             deep: true,
         }

@@ -1,14 +1,14 @@
 <template>
-    <ncats-predicate-table
+    <translator-predicate-table
         :title="title"
         :geneSymbol="this.regionQuery"
         :field="field">
-    </ncats-predicate-table>
+    </translator-predicate-table>
 </template>
 <script>
 import Vue from "vue"
 import PredicateTable from "@/components/NCATS/old/PredicateTable"
-export default Vue.component('ncats-region-predicate-table', {
+export default Vue.component('translator-region-predicate-table', {
     props: ["title", "chr", "start", "end", "region", "field", "filter"],
     components: {
         PredicateTable

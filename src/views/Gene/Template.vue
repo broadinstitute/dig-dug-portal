@@ -200,16 +200,16 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                <ncats-predicate-table
+                <translator-predicate-table
                     :title="'GO Terms'"
                     :geneSymbol="$store.state.geneName"
                     :field="'go'">
-                </ncats-predicate-table>
-                <ncats-predicate-table
+                </translator-predicate-table>
+                <translator-predicate-table
                     :title="'Pathways'"
                     :geneSymbol="$store.state.geneName"
                     :field="'pathway'">
-                </ncats-predicate-table>
+                </translator-predicate-table>
                 </div>
             </div>
             <div class="card mdkp-card">

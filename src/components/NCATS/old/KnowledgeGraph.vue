@@ -61,7 +61,7 @@ const makeGraph = (query_graph, knowledge_graph_results) => {
     return graph;
 };
 
-export default Vue.component("ncats-knowledge-graph", {
+export default Vue.component("translator-knowledge-graph", {
     props: ['query_graph', 'results'],
     components: {
       Network

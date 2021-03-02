@@ -299,12 +299,12 @@
                                 </locuszoom>
                             </template>
                         </criterion-function-group>
-                        <ncats-region-predicate-table
+                        <translator-region-predicate-table
                             v-if="$parent.localRegion"
                             :title="`Pathway Associations on ${$parent.localRegion}`"
                             :region="$parent.localRegion"
                             :field="'pathway'">
-                        </ncats-region-predicate-table>
+                        </translator-region-predicate-table>
                     </div>
                 </div>
             </div>

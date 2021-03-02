@@ -23,7 +23,7 @@
 </template>
 <script>
 import Vue from "vue";
-export default Vue.component("ncats-predicate-table", {
+export default Vue.component("translator-predicate-table", {
     props: ["title", "geneSymbol", "fields"],
     data() {
         return {

@@ -8,6 +8,7 @@ import BootstrapVue, { componentsPlugin } from "bootstrap-vue"
 
 import ResultsDashboard from "@/components/NCATS/ResultsDashboard"
 import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink"
+import KnowledgeGraph from "@/components/NCATS/KnowledgeGraph"
 
 import jsonQuery from "json-query"
 import { match } from "@/utils/bioIndexUtils";
@@ -19,6 +20,9 @@ import queryString from "query-string"
 import _, { merge } from "lodash"
 import trapi from "@/components/NCATS/trapi"
 import AsyncComputed from 'vue-async-computed'
+import StaticPageInfo from "@/components/StaticPageInfo.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PageFooter from "@/components/PageFooter.vue";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -30,7 +34,11 @@ new Vue({
         CriterionListGroup,
         FilterEnumeration,
         ResolvedCurie,
-        ResultsDashboard
+        StaticPageInfo,
+        PageHeader,
+        PageFooter,
+        ResultsDashboard,
+        KnowledgeGraph,
     },
     render(createElement, context) {
         return createElement(Template);
@@ -58,16 +66,16 @@ new Vue({
                       "subject": "n00",
                       "predicate": "biolink:functional_association"
                     },
-                    // "e01": {
-                    //     "object": "n02",
-                    //     "subject": "n00",
-                    //     "predicate": "biolink:functional_association"
-                    // },
-                    // "e02": {
-                    //     "object": "n03",
-                    //     "subject": "n00",
-                    //     "predicate": "biolink:functional_association"
-                    //   }
+                    "e01": {
+                        "object": "n02",
+                        "subject": "n00",
+                        "predicate": "biolink:functional_association"
+                    },
+                    "e02": {
+                        "object": "n03",
+                        "subject": "n00",
+                        "predicate": "biolink:functional_association"
+                      }
                   },
                   "nodes": {
                     "n00": {
@@ -77,20 +85,28 @@ new Vue({
                     "n01": {
                       "category": "biolink:BiologicalProcess"
                     },
-                    // "n02": {
-                    //     "category": "biolink:CellularComponent"
-                    // },
-                    // "n03": {
-                    //     "category": "biolink:Pathway"
-                    // }
+                    "n02": {
+                        "category": "biolink:CellularComponent"
+                    },
+                    "n03": {
+                        "category": "biolink:Pathway"
+                    }
                   }
                 }
             },
+
             geneToDiseaseQueryCriterion: [],
             diseaseToPhenotypeQueryCriterion: [],
+
             geneToDiseaseQuery: null,
+            diseaseToPhenotypeQuery: null,
+
+            globalKnowledgeGraph: null,
             selectedResults: [],
         }
+    },
+    async created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
     },
     async mounted() {
         await trapi.queries.updateResultsForSources({
@@ -116,17 +132,36 @@ new Vue({
                 ).then(list => list.reduce((acc, item) => merge(acc, item), {}));
             }
             return {};
-
         },
         async diseaseLabels() {
             return Object.values(this.diseaseMap)
         },
         async diseaseOptions() {
             return Object.keys(this.diseaseMap)
-        }
+        },
     },
     computed: {
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
 
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+
+        pageInfo() {
+            let contents = this.$store.state.kp4cd.pageInfo;
+
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents;
+        },
 
         queryGraph() {
             return this.makeQueryGraph(this.queryGraphCriterion)
@@ -159,6 +194,28 @@ new Vue({
             if (!!input) {
                 let matches = await match("gene", input, { limit: 10 });
                 this.matchingGenes = matches;
+            }
+        },
+        async makeDiseaseToPhenotypeQuery(diseaseCurie) {
+            this.diseaseToPhenotypeQuery = {
+                query_graph: {
+                    nodes: {
+                        diseaseToPhenotypeDisease: {
+                            id: diseaseCurie,
+                            category: 'biolink:Disease'
+                        },
+                        diseaseToPhenotypePhenotype: {
+                            category: 'biolink:Phenotype'
+                        }
+                    },
+                    edges: {
+                        geneToDisease: {
+                            subject: "diseaseToPhenotypeDisease",
+                            object: "diseaseToPhenotypePhenotype",
+                            predicate: "biolink:disease_to_exposure_event_association"
+                        }
+                    }
+                }
             }
         },
         async makeGeneToDiseaseQuery(geneSymbol) {
@@ -295,6 +352,15 @@ new Vue({
                 if (!!newCriterion[0]) {
                     const geneSymbol = newCriterion[0].threshold;
                     this.makeGeneToDiseaseQuery(geneSymbol);
+                }
+            },
+            deep: true,
+        },
+        diseaseToPhenotypeQueryCriterion: {
+            handler: function(newCriterion, oldCriterion) {
+                if (!!newCriterion[0]) {
+                    const disease = newCriterion[0].threshold;
+                    this.makeDiseaseToPhenotypeQuery(disease);
                 }
             },
             deep: true,

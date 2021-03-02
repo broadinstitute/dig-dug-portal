@@ -55,7 +55,7 @@ import trapi from "@/components/NCATS/trapi"
 
 const myGeneAPI = 'https://mygene.info/v3';
 
-export default Vue.component("ncats-predicate-table", {
+export default Vue.component("translator-predicate-table", {
     props: ["title", "geneSymbol", "field", "filter"],
     component: {
         ResolvedCurie
