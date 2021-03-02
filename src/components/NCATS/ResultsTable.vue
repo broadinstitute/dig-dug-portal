@@ -78,10 +78,11 @@
 <script>
 import Vue from "vue"
 import trapi from "./trapi"
+import { mock_knowledge_graph } from "./mock"
 import merge from "lodash.merge"
 
 export default Vue.component('translator-results-table', {
-    props:['query_graph', 'selectable', 'filter'],
+    props:['query_graph', 'selectable', 'filter', 'mock'],
     data() {
         return {
             currentPage: 1,
@@ -101,10 +102,10 @@ export default Vue.component('translator-results-table', {
     },
     computed: {
         knowledge_graph() {
-            return this.knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
+            return this.mock ? mock_knowledge_graph : this.knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
         },
         tableItems() {
-            return this.maybe(this.tableItemsFromKnowledgeGraph(this.knowledge_graph_list), this.withSelected, this.selectable)
+            return this.maybe(this.tableItemsFromKnowledgeGraph(this.knowledge_graph), this.withSelected, this.selectable)
         },
         filteredTableItems() {
             let dataRows = this.tableItems;
@@ -135,10 +136,9 @@ export default Vue.component('translator-results-table', {
             return ''
         },
 
-        tableItemsFromKnowledgeGraph(knowledge_graph_list) {
+        tableItemsFromKnowledgeGraph(knowledge_graph) {
             const restrictedTypes = ['bts:GO', 'bts:term', 'bts:WIKIPATHWAYS']
-            if (!!knowledge_graph_list && knowledge_graph_list.length > 0) {
-                let knowledge_graph = knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
+            if (Object.keys(knowledge_graph) > 0) {
                 let results = Object.entries(knowledge_graph.edges).map(edgeEntry => {
                     const [name, edge]  = edgeEntry;
                     const { subject, predicate, object, attributes } = edge;

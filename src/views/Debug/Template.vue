@@ -97,6 +97,7 @@
                                         <translator-results-table
                                             :query_graph="$parent.geneToDiseaseQuery.query_graph"
                                             :selectable="true"
+                                            :mock="true"
                                             @change="$parent.selectedResults = $event"
                                             @change-knowledge-graph="$parent.globalKnowledgeGraph = $event">
                                         </translator-results-table>
@@ -149,6 +150,7 @@
                                         <translator-results-table
                                             :query_graph="$parent.diseaseToPhenotypeQuery.query_graph"
                                             :selectable="true"
+                                            :mock="true"
                                             @change="$parent.selectedResults = $event">
                                         </translator-results-table>
                                     </div>

@@ -44,23 +44,23 @@ export default Vue.component("translator-results-dashboard", {
         }
     },
     async created() {
-        if (!!this.query_graph) {
-            const splitQuery = function(query_graph) {
-                const { nodes, edges } = query_graph;
-                const myQueries = [];
-                Object.keys(edges).forEach(edgeKey => {
-                    const { subject, object } = edges[edgeKey];
-                    let newQuery = { query_graph: { nodes: {}, edges: {} } };
-                    newQuery.query_graph.edges[edgeKey] = edges[edgeKey];
-                    newQuery.query_graph.nodes[subject] = nodes[subject];
-                    newQuery.query_graph.nodes[object] = nodes[object];
-                    myQueries.push(newQuery);
+        const splitQuery = function(query_graph) {
+            const { nodes, edges } = query_graph;
+            const myQueries = [];
+            Object.keys(edges).forEach(edgeKey => {
+                const { subject, object } = edges[edgeKey];
+                let newQuery = { query_graph: { nodes: {}, edges: {} } };
+                newQuery.query_graph.edges[edgeKey] = edges[edgeKey];
+                newQuery.query_graph.nodes[subject] = nodes[subject];
+                newQuery.query_graph.nodes[object] = nodes[object];
+                myQueries.push(newQuery);
 
-                })
-                return myQueries;
-            }
-            this.myQueries = splitQuery(this.query_graph);
+            })
+            return myQueries;
         }
+        this.myQueries = splitQuery(this.query_graph);
+        console.log(this.myQueries)
+
     },
     methods: {
         biolinkTypeFormatter(biolinkTypeCurie) {
