@@ -13,7 +13,7 @@
 import Vue from "vue";
 import { Network } from "vue-vis-network";
 import _ from "lodash"
-
+import trapi from "./trapi"
 const makeLink = (from, to, label, index) => ({
   from, to, label, index
 });

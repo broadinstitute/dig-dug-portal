@@ -77,135 +77,146 @@
                     NCATS Explanation Tool
                     - Case: find a path
                 -->
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4>Knowledge Graph</h4>
+                        <b-row>
+                            <b-col>
+                                <translator-knowledge-graph
+                                    v-if="$parent.globalKnowledgeGraph != null"
+                                    :knowledge_graph="$parent.globalKnowledgeGraph"
+                                ></translator-knowledge-graph>
+                                <b-card style="height: 100%;" v-else>
+                                    Use the controls on the left to construct a Knowledge Graph query.<br>
+                                    Constrain the graph by selecting or de-selecting rows in the tables.
+                                </b-card>
+                            </b-col>
+                            <b-col>
+                                <b-card no-body class="mb-1">
+                                    <b-card-header
+                                        header-tag="header"
+                                        class="p-1"
+                                        role="tab">
+                                        <b-button
+                                            block
+                                            v-b-toggle.accordion-1
+                                            variant="outline-primary"
+                                            >
+                                            Gene 🠖 Disease
+                                            <div class="criteria">
 
-                <b-row>
-                    <b-col>
-                        <translator-knowledge-graph
-                            v-if="$parent.globalKnowledgeGraph != null"
-                            :knowledge_graph="$parent.globalKnowledgeGraph"
-                        ></translator-knowledge-graph>
-                        <b-card style="height: 100%;" v-else>
-                            <h5>Knowledge Graph</h5><br>
-                            Use the controls on the left to construct a Knowledge Graph query.<br>
-                            Constrain the graph by selecting or de-selecting rows in the tables.
-                        </b-card>
-                    </b-col>
-                    <b-col>
-                        <b-card no-body class="mb-1">
-                            <b-card-header
-                                header-tag="header"
-                                class="p-1"
-                                role="tab">
-                                <b-button
-                                    block
-                                    v-b-toggle.accordion-1
-                                    variant="outline-primary"
+                                            </div>
+                                        </b-button>
+                                    </b-card-header>
+
+                                    <b-collapse
+                                        id="accordion-1"
+                                        visible
+                                        accordion="my-accordion"
+                                        role="tabpanel">
+                                        <b-card-body>
+
+                                            <criterion-list-group
+                                                v-model="$parent.geneToDiseaseQueryCriterion"
+                                                :header="'Query Graph'">
+
+                                                <filter-enumeration-control
+                                                    :field="'gene'"
+                                                    placeholder="Select a gene ..."
+                                                    :options="$parent.matchingGenes"
+                                                    @input-change="$parent.lookupGenes($event)">
+                                                    <div class="label">Gene</div>
+                                                </filter-enumeration-control>
+
+                                                <b-col class="divider"></b-col>
+
+                                                <filter-enumeration-control
+                                                    :field="'predicate'"
+                                                    placeholder="Select predicates ..."
+                                                    :options="$parent.geneToDiseasePredicates"
+                                                    :multiple="true">
+                                                    <div class="label">Filter by predicates</div>
+                                                </filter-enumeration-control>
+
+                                            </criterion-list-group>
+
+                                            <div v-if="$parent.geneToDiseaseQueryCriterion.length > 0 && $parent.geneToDiseaseQuery !== null">
+                                                <translator-results-table
+                                                    :query_graph="$parent.geneToDiseaseQuery.query_graph"
+                                                    :selectable="true"
+                                                    :mock="$parent.mock"
+                                                    @change="$parent.selectedResults = $event"
+                                                    @change-knowledge-graph="$parent.globalKnowledgeGraph = $event">
+                                                </translator-results-table>
+                                            </div>
+
+                                        </b-card-body>
+                                    </b-collapse>
+                                </b-card>
+
+                                <b-card no-body class="mb-1">
+                                    <b-card-header
+                                        header-tag="header"
+                                        class="p-1"
+                                        role="tab"
                                     >
-                                    Gene 🠖 Disease
-                                    <div class="criteria">
+                                        <b-button
+                                            block
+                                            v-b-toggle.accordion-2
+                                            >Disease 🠖 Pathway
+                                            <div class="criteria">
+                                                <b-badge
+                                                    class="filter-pill-dataset"
+                                                >
+                                                </b-badge>
+                                                <b-badge
+                                                    class="filter-pill-phenotype">
+                                                </b-badge>
+                                            </div>
+                                        </b-button>
+                                    </b-card-header>
+                                    <b-collapse
+                                        id="accordion-2"
+                                        accordion="my-accordion"
+                                        role="tabpanel">
+                                        <b-card-body>
 
-                                    </div>
-                                </b-button>
-                            </b-card-header>
+                                            <criterion-list-group
+                                                v-model="$parent.diseaseToPhenotypeQueryCriterion"
+                                                :header="'Search Criteria'">
+                                                <filter-enumeration-control
+                                                    :field="'disease'"
+                                                    placeholder="Select a disease ..."
+                                                    :labelFormatter="el => $parent.diseaseMap[el]"
+                                                    :options="$parent.diseaseOptions">
+                                                    <div class="label">Disease</div>
+                                                </filter-enumeration-control>
+                                                    <filter-enumeration-control
+                                                    :field="'predicate'"
+                                                    placeholder="Select predicates ..."
+                                                    :options="$parent.diseaseToPathwayPredicates"
+                                                    :multiple="true">
+                                                    <div class="label">Filter by associations</div>
+                                                </filter-enumeration-control>
 
-                            <b-collapse
-                                id="accordion-1"
-                                visible
-                                accordion="my-accordion"
-                                role="tabpanel">
-                                <b-card-body>
+                                            </criterion-list-group>
 
-                                    <criterion-list-group
-                                        v-model="$parent.geneToDiseaseQueryCriterion"
-                                        :header="'Query Graph'">
+                                            <div v-if="$parent.diseaseToPhenotypeQueryCriterion.length > 0 && $parent.diseaseToPhenotypeQuery !== null">
+                                                <translator-results-table
+                                                    :query_graph="$parent.diseaseToPhenotypeQuery.query_graph"
+                                                    :selectable="true"
+                                                    :mock="true"
+                                                    @change="$parent.selectedResults = $event">
+                                                </translator-results-table>
+                                            </div>
 
-                                        <filter-enumeration-control
-                                            :field="'gene'"
-                                            placeholder="Select a gene ..."
-                                            :options="$parent.matchingGenes"
-                                            @input-change="$parent.lookupGenes($event)">
-                                            <div class="label">Gene</div>
-                                        </filter-enumeration-control>
-
-                                        <b-col class="divider"></b-col>
-
-                                        <filter-enumeration-control
-                                            :field="'predicate'"
-                                            placeholder="Select predicates ..."
-                                            :options="$parent.geneToDiseasePredicates"
-                                            :multiple="true">
-                                            <div class="label">Filter by predicates</div>
-                                        </filter-enumeration-control>
-
-                                    </criterion-list-group>
-
-                                    <div v-if="$parent.geneToDiseaseQueryCriterion.length > 0 && $parent.geneToDiseaseQuery !== null">
-                                        <translator-results-table
-                                            :query_graph="$parent.geneToDiseaseQuery.query_graph"
-                                            :selectable="true"
-                                            :mock="$parent.mock"
-                                            @change="$parent.selectedResults = $event"
-                                            @change-knowledge-graph="$parent.globalKnowledgeGraph = $event">
-                                        </translator-results-table>
-                                    </div>
-
-                                </b-card-body>
-                            </b-collapse>
-                        </b-card>
-
-                        <b-card no-body class="mb-1">
-                            <b-card-header
-                                header-tag="header"
-                                class="p-1"
-                                role="tab"
-                            >
-                                <b-button
-                                    block
-                                    v-b-toggle.accordion-2
-                                    >Disease 🠖 Pathway
-                                    <div class="criteria">
-                                        <b-badge
-                                            class="filter-pill-dataset"
-                                        >
-                                        </b-badge>
-                                        <b-badge
-                                            class="filter-pill-phenotype">
-                                        </b-badge>
-                                    </div>
-                                </b-button>
-                            </b-card-header>
-                            <b-collapse
-                                id="accordion-2"
-                                accordion="my-accordion"
-                                role="tabpanel">
-                                <b-card-body>
-
-                                    <criterion-list-group
-                                        v-model="$parent.diseaseToPhenotypeQueryCriterion"
-                                        :header="'Search Criteria'">
-                                        <filter-enumeration-control
-                                            :field="'disease'"
-                                            placeholder="Select a disease ..."
-                                            :labelFormatter="el => $parent.diseaseMap[el]"
-                                            :options="$parent.diseaseOptions">
-                                            <div class="label">Disease</div>
-                                        </filter-enumeration-control>
-                                    </criterion-list-group>
-
-                                    <div v-if="$parent.diseaseToPhenotypeQueryCriterion.length > 0 && $parent.diseaseToPhenotypeQuery !== null">
-                                        <translator-results-table
-                                            :query_graph="$parent.diseaseToPhenotypeQuery.query_graph"
-                                            :selectable="true"
-                                            :mock="true"
-                                            @change="$parent.selectedResults = $event">
-                                        </translator-results-table>
-                                    </div>
-
-                                </b-card-body>
-                            </b-collapse>
-                        </b-card>
-                    </b-col>
-                </b-row>
+                                        </b-card-body>
+                                    </b-collapse>
+                                </b-card>
+                            </b-col>
+                        </b-row>
+                    </div>
+                </div>
             </div>
 
 

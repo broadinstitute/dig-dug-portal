@@ -107,6 +107,7 @@ new Vue({
             selectedGeneCriterion: [],
 
             geneToDiseasePredicates: [],
+            diseaseToPathwayPredicates: [],
 
             mock: true,
         }
@@ -119,6 +120,10 @@ new Vue({
         this.geneToDiseasePredicates = trapi.model.findSlotsForDomainRange({
             domain: 'gene',
             range: 'disease or phenotypic feature'
+        }, biolinkModel)
+        this.diseaseToPathwayPredicates = trapi.model.findSlotsForDomainRange({
+            domain: 'disease or phenotypic feature',
+            range: 'pathway'
         }, biolinkModel)
     },
     asyncComputed: {
