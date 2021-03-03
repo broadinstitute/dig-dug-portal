@@ -22,10 +22,10 @@
         </div>
 
         <div v-if="tableData.length > 0">
-            <div class="text-right">
+            <div class="text-right mb-2">
                 <csv-download
                     :data="groupedAssociations"
-                    filename="gene_finder"
+                    filename="gene_table"
                 ></csv-download>
             </div>
             <b-table
