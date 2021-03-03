@@ -1,12 +1,12 @@
 <template>
     <div>
         <div v-if="tableData.length > 0">
-            <b-container fluid class="convert-2-csv">
+            <div class="text-right">
                 <csv-download
                     :data="groupedAssociations"
                     filename="associations"
-                ></csv-download
-            ></b-container>
+                ></csv-download>
+            </div>
             <b-table
                 hover
                 small
@@ -302,6 +302,3 @@ export default Vue.component("associations-table", {
     },
 });
 </script>
-<style>
-@import url("/css/effectorGenes.css");
-</style>

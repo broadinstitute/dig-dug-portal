@@ -1,5 +1,5 @@
 <template>
-    <b-btn @click="downloadCsv()">Download CSV</b-btn>
+    <b-btn size="sm" @click="downloadCsv()">Download CSV</b-btn>
 </template>
 <script>
 import Vue from "vue";
