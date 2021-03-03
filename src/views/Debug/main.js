@@ -101,7 +101,8 @@ new Vue({
                     },
                 ]
                 : [],
-            associationsMap: {}
+            associationsMap: {},
+            diseases: ['T2D'],
         };
     },
 
@@ -111,7 +112,9 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
+        tap() {
+            console.log(arguments)
+        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {

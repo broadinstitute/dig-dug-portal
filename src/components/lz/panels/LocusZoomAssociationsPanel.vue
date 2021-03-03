@@ -40,11 +40,15 @@ export default Vue.component("lz-associations-panel", {
             // }
         });
     },
+    beforeDestroy() {
+        this.$parent.plot.removePanel(this.id);
+    },
     methods: {
         updatePanel() {
             const onLoad = !!!this.onLoad
                 ? result => this.$emit("input", result)
                 : this.onLoad;
+
             this.id = this.$parent.addAssociationsPanel(
                 this.phenotype,
                 this.value,
@@ -52,6 +56,7 @@ export default Vue.component("lz-associations-panel", {
                 this.onResolve,
                 this.onError
             );
+
         }
     },
     watch: {
@@ -82,7 +87,7 @@ export class LZAssociationsPanel {
 
         this.datasource_type = "assoc";
         // this is arbitrary, but we want to base it on the ID
-        this.panel_id = idCounter.getUniqueId();
+        this.panel_id = `${phenotype}_assoc`
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
         this.index = "associations";
@@ -111,7 +116,7 @@ export class LZAssociationsPanel {
 
         this.layouts = [
             LocusZoom.Layouts.get("panel", "association_catalog", {
-                id: this.panel_id,
+                id: `${this.panel_id}_association`,
                 y_index: 0,
                 data_layers: [
                     LocusZoom.Layouts.get("panel", "association_catalog")
@@ -122,10 +127,10 @@ export class LZAssociationsPanel {
                         "data_layer",
                         "association_pvalues_catalog",
                         {
-                            // namespace: {
-                            //     ...LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog").namespace,
-                            //     [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
-                            // },
+                            namespace: {
+                                ...LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog").namespace,
+                                [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
+                            },
                             y_axis: {
                                 axis: 1,
                                 field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"

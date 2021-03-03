@@ -130,28 +130,33 @@ export default Vue.component("locuszoom", {
             const source = makeSource(panelClass);
             let panel;
             if (!!panelClass.layouts) {
-                if (!!this.dataSources._items.has(panelClass.datasource_type)) {
-                    this.dataSources._items.delete(panelClass.datasource_type);
+
+                if (!!this.dataSources._items.has(panelClass.datasource_namespace_symbol_for_panel)) {
+                    this.dataSources._items.delete(panelClass.datasource_namespace_symbol_for_panel);
                 }
+
                 this.dataSources.add(
-                    panelClass.datasource_type,
+                    panelClass.datasource_namespace_symbol_for_panel,
                     panelClass.bioIndexToLZReader
                 );
+
                 let layouts = panelClass.layouts[0];
                 panel = this.plot.addPanel(layouts).addBasicLoader();
+
             } else {
+
                 this.dataSources.add(
                     source.givingDataSourceName,
                     panelClass.bioIndexToLZReader
                 );
-                let panelOptions = {
-                    id: idCounter.getUniqueId(),
-                    namespace: {
-                        [layout.forDataSourceType]: layout.takingDataSourceName
-                    },
-                    // id: layout.id,
-                    ...layout.locusZoomPanelOptions // other locuszoom configuration required for the panel, including overrides(?)
-                };
+                // let panelOptions = {
+                //     id: idCounter.getUniqueId(),
+                //     namespace: {
+                //         [layout.forDataSourceType]: layout.takingDataSourceName
+                //     },
+                //     // id: layout.id,
+                //     ...layout.locusZoomPanelOptions // other locuszoom configuration required for the panel, including overrides(?)
+                // };
                 panel = this.plot
                     .addPanel(
                         LocusZoom.Layouts.get(
@@ -161,6 +166,7 @@ export default Vue.component("locuszoom", {
                         )
                     )
                     .addBasicLoader();
+
             }
 
             // TODO: make this more abstract

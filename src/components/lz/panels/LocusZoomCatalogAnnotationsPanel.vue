@@ -36,6 +36,9 @@ export default Vue.component("lz-catalog-annotations-panel", {
             // }
         });
     },
+    beforeDestroy() {
+        this.$parent.plot.removePanel(this.id);
+    },
     methods: {
         updatePanel() {
             const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
@@ -79,7 +82,7 @@ export class LZCatalogAnnotationsPanel {
 
         this.datasource_type = 'assoc';
         // this is arbitrary, but we want to base it on the ID
-        this.panel_id = idCounter.getUniqueId();
+        this.panel_id = `${phenotype}_assoc`;
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
         this.index = 'associations'
@@ -100,16 +103,23 @@ export class LZCatalogAnnotationsPanel {
 
         };
         this.initialData = initialData;
+
+        console.log(LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0])
         this.layouts = [
             LocusZoom.Layouts.get("panel", "annotation_catalog", {
                 y_index: 0,
-                id: this.panel_id,
+                id: `${this.panel_id}_catalog`,
                 data_layers: [
                     Object.assign(LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0], {
                         namespace: {
                             catalog: "catalog",
-                            [this.datasource_type]: this.datasource_type,
+                            [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
                         },
+                        id_field: LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0].id_field.replace(this.datasource_type, this.datasource_namespace_symbol_for_panel),
+                        fields: [
+                            ...LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0]
+                                .fields.map(field => field.replace(this.datasource_type, this.datasource_namespace_symbol_for_panel))
+                        ],
                         filter: [
                             // Hack to exclude incomplete datapoints
                             { field: 'catalog:pos', operator: '>', value: 0 }
@@ -125,7 +135,10 @@ export class LZCatalogAnnotationsPanel {
                                     },
                             },
                             '#0000CC'
-                        ]
+                        ],
+                        x_axis: {
+                            field: `${this.datasource_namespace_symbol_for_panel}:position`
+                        }
                     })
                 ]
             }),
