@@ -101,6 +101,7 @@ new Vue({
                     },
                 ]
                 : [],
+            associationsMap: {}
         };
     },
 
@@ -128,10 +129,33 @@ new Vue({
             });
             this.$store.dispatch("queryRegion");
         },
-
+        updatingAssociations(updatingPhenotypes) {
+            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+            let promises = updatingPhenotypes.map(phenotype => {
+                if (!!!this.associationsMap[phenotype] || flush) {
+                    let alertId = postAlertNotice(`Loading ${phenotype.description} gene associations...`);
+                    return query(`associations`, phenotype)
+                        .then(bioIndexData => {
+                            closeAlert(alertId);
+                            Vue.set(this.associationsMap, phenotype.name, bioIndexData);
+                        })
+                } else {
+                    return Promise.resolve();
+                }
+            });
+            // may await on this in the future if needed...
+            Promise.all(promises);
+        },
         // TODO: refactor this away in favor of v-model
         updatePageAssociations(data) {
+
             this.pageAssociations = data;
+        },
+
+        combinedAssociations(data) {
+            let combinedData = []
+            combinedData.push(this.pageAssociations);
+            return combinedData
         },
 
         // LocusZoom has "Panels"
@@ -312,9 +336,8 @@ new Vue({
     },
     watch: {
         criterion(newCriterion, oldCriterion) {
-            if (!!oldCriterion.phenotypes) {
-                let phen = this.$store.state.phenotype || oldCriterion
-                oldCriterion.phenotypes = this.$store.state.bioPortal.phenotypeMap[phen]
+            if (oldCriterion.phenotypes.length == 0) {
+                oldCriterion.phenotypes = this.$store.state.phenotype
             }
 
             if (!isEqual(newCriterion.phenotypes, oldCriterion.phenotypes)) {
@@ -327,6 +350,8 @@ new Vue({
                     this.$store.dispatch("credibleSets/query", {
                         q: `${updatingPhenotypes[0].name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
                     });
+                    // this.updatingAssociations(updatingPhenotypes);
+                    // context.dispatch("associations/query", { q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}` });
                 }
                 this.$store.commit("setSelectedPhenotype", newCriterion.phenotypes);
                 this.$store.dispatch("globalEnrichment/query", {
@@ -336,8 +361,8 @@ new Vue({
                     q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
                 });
 
-            }
 
+            }
         },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
@@ -352,19 +377,20 @@ new Vue({
             }
         },
 
-        "$store.state.phenotype": function (phenotype) {
-            // I don't like mixing UI effects with databinding - Ken
-            uiUtils.hideElement("phenotypeSearchHolder");
+        // "$store.state.phenotype": function (phenotype) {
+        //     // I don't like mixing UI effects with databinding - Ken
+        //     uiUtils.hideElement("phenotypeSearchHolder");
 
-            if (phenotype) {
-                this.$store.dispatch("globalEnrichment/query", {
-                    q: phenotype.name
-                });
-                this.$store.dispatch("credibleSets/query", {
-                    q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-                });
-            }
-        },
+        //     if (phenotype) {
+        //         this.$store.dispatch("globalEnrichment/query", {
+        //             q: phenotype.name
+        //         });
+        //         this.$store.dispatch("credibleSets/query", {
+        //             q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+        //         });
+
+        //     }
+        // },
         "$store.state.globalEnrichment.data": {
             handler(enrichment) {
                 let groups = {};

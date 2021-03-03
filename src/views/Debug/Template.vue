@@ -210,9 +210,10 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <associations-table
                                     v-if="$parent.pageAssociations.length > 0"
-                                    :phenotypes="$parent.phenotypes"
+                                    :phenotypes="$parent.selectedPhenotype"
                                     :associations="$parent.pageAssociations"
                                     :filter="filter"
+                                    :exclusive="true"
                                 ></associations-table>
                             </template>
                         </criterion-function-group>
@@ -273,7 +274,7 @@
                                     :ldpop="true"
                                     :refSeq="true"
                                 >
-                                    <lz-associations-panel
+                                    <lz-associations-panel 
                                         :phenotype="row.name"
                                         @input="$parent.updatePageAssociations"
                                     ></lz-associations-panel>
