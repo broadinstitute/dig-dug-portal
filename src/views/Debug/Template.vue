@@ -44,7 +44,8 @@
                         <h4>{{`Compare Genes`}}</h4>
 
                         <criterion-list-group
-                            v-model="$parent.selectedGeneCriterion">
+                            v-model="$parent.selectedGeneCriterion"
+                            :header="'Genes for comparison'">
                                 <filter-enumeration-control
                                     :field="'gene'"
                                     placeholder="Select genes..."
@@ -116,7 +117,7 @@
 
                                     <criterion-list-group
                                         v-model="$parent.geneToDiseaseQueryCriterion"
-                                        :header="'Search Criteria'">
+                                        :header="'Query Graph'">
 
                                         <filter-enumeration-control
                                             :field="'gene'"
