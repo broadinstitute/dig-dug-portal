@@ -129,7 +129,7 @@
                                         <b-col class="divider"></b-col>
 
                                         <filter-enumeration-control
-                                            :field="'gene'"
+                                            :field="'predicate'"
                                             placeholder="Select predicates ..."
                                             :options="$parent.geneToDiseasePredicates"
                                             :multiple="true">
