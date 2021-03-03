@@ -95,31 +95,31 @@ new Vue({
                 }
             },
 
+            globalKnowledgeGraph: null,
+
             geneToDiseaseQueryCriterion: [],
             diseaseToPhenotypeQueryCriterion: [],
 
             geneToDiseaseQuery: null,
             diseaseToPhenotypeQuery: null,
 
-            globalKnowledgeGraph: null,
             selectedResults: [],
+            selectedGeneCriterion: [],
+
+            geneToDiseasePredicates: [],
+
+            mock: true,
         }
     },
     async created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
     },
     async mounted() {
-        await trapi.queries.updateResultsForSources({
-            "message": this.query_graph
-        }, [], this.results);
-
-        async function getGeneCurieFromName(geneName) {
-            const qs = queryString.stringify({
-                q: geneName
-            })
-            return await fetch(`https://mygene.info/v3/query?${qs}`).then(response => response.json())
-        }
-        await getGeneCurieFromName('PCSK9')
+        const biolinkModel = await trapi.model.biolinkModel;
+        this.geneToDiseasePredicates = trapi.model.findSlotsForDomainRange({
+            domain: 'gene',
+            range: 'disease or phenotypic feature'
+        }, biolinkModel)
     },
     asyncComputed: {
         async diseaseMap() {
@@ -139,6 +139,16 @@ new Vue({
         async diseaseOptions() {
             return Object.keys(this.diseaseMap)
         },
+        async geneQueries() {
+            if (this.selectedGeneCriterion.length > 0) {
+                return await Promise.all(this.selectedGeneCriterion
+                                    .map(el => el.threshold)
+                                    .map(gene => this.makeGeneToPathwayQuery(gene)));
+            } else {
+                return [];
+            }
+
+        }
     },
     computed: {
         diseaseGroup() {
@@ -241,27 +251,29 @@ new Vue({
                 }
             }
         },
-        diseaseTo____Query(diseaseCurie) {
-            return {
+        async makeGeneToPathwayQuery(geneSymbol) {
+            const geneCurie = await this.curieForGene(geneSymbol)
+            let geneToPathwayQuery = {
                 query_graph: {
                     nodes: {
-                        ____: {
-                            id: diseaseCurie,
-                            category: 'biolink:Disease'
+                        gene: {
+                            id: geneCurie,
+                            category: 'biolink:Gene'
                         },
-                        ____: {
-                            category: 'biolink:Disease'
+                        pathway: {
+                            category: 'biolink:Pathway'
                         }
                     },
                     edges: {
-                        ____: {
-                            subject: "____",
-                            object: "____",
-                            predicate: "biolink:____"
+                        geneToPathway: {
+                            subject: "gene",
+                            object: "pathway",
+                            predicate: "biolink:functional_association"
                         }
                     }
                 }
             }
+            return geneToPathwayQuery
         },
         predicatePlacement(identifier, query_graph, edge=null) {
 

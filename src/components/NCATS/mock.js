@@ -1627,23 +1627,26 @@ export const mock_knowledge_graph = results.reduce((acc, item) => {
     const _subject = item.node_bindings[nodeKeys[0]][0];
     const subject = {
         id: _subject.id,
+        name: _subject.id,
         category: 'biolink:Gene'
     }
-    _acc.nodes[nodeKeys[0]] = subject;
+    _acc.nodes[subject.id] = subject;
 
     const _object = item.node_bindings[nodeKeys[1]][0];
     const object = {
         id: _object.id,
+        name: _object.id,
         category: 'biolink:Disease'
     }
-    _acc.nodes[nodeKeys[1]] = object;
+    _acc.nodes[object.id] = object;
 
     const edge = {
-        subject: nodeKeys[0],
-        object: nodeKeys[1],
-        predicate: 'biolink:gene_associated_with_condition'
+        subject: _subject.id,
+        object: _object.id,
+        predicate: 'biolink:gene_associated_with_condition',
+        id: item.edge_bindings['e00'][0].id
     }
-    _acc.edges[edgeKey] = edge;
+    _acc.edges[item.edge_bindings['e00'][0].id] = edge;
 
     return _acc;
 }, { nodes: {}, edges: {} });

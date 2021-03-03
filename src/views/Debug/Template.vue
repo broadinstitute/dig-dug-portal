@@ -6,7 +6,6 @@
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
-
         <!-- Body -->
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card dataset-page-header">
@@ -27,12 +26,48 @@
                 -->
                 <div class="card mdkp-card">
                     <div class="card-body">
+                        <h4>{{`Functional Associations for ${'Gene'}`}}</h4>
                         <translator-results-dashboard
                             :query_graph="$parent.query_graph.query_graph"
-                            :title="`Functional Associations for ${'CDK2'}`"
+                            :mock="$parent.mock"
                         ></translator-results-dashboard>
                     </div>
                 </div>
+
+
+                <!-- Divider -->
+                <hr/>
+
+
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4>{{`Compare Genes`}}</h4>
+
+                        <criterion-list-group
+                            v-model="$parent.selectedGeneCriterion">
+                                <filter-enumeration-control
+                                    :field="'gene'"
+                                    placeholder="Select genes..."
+                                    :options="$parent.matchingGenes"
+                                    :multiple="true"
+                                    @input-change="$parent.lookupGenes($event)">
+                                    <div class="label">Genes</div>
+                                </filter-enumeration-control>
+                        </criterion-list-group>
+
+                        <b-row v-if="!!$parent.geneQueries && $parent.geneQueries.length > 0">
+                            <b-col v-for="geneQuery in $parent.geneQueries" :key="JSON.stringify(geneQuery)">
+                                <translator-results-dashboard
+                                    :query_graph="geneQuery.query_graph"
+                                    :mock="$parent.mock"
+                                ></translator-results-dashboard>
+                            </b-col>
+                        </b-row>
+
+                    </div>
+                </div>
+
+
 
                 <!-- Divider -->
                 <hr/>
@@ -65,7 +100,7 @@
                                     v-b-toggle.accordion-1
                                     variant="outline-primary"
                                     >
-                                    Gene 🠖 Protein
+                                    Gene 🠖 Disease
                                     <div class="criteria">
 
                                     </div>
@@ -91,13 +126,23 @@
                                             <div class="label">Gene</div>
                                         </filter-enumeration-control>
 
+                                        <b-col class="divider"></b-col>
+
+                                        <filter-enumeration-control
+                                            :field="'gene'"
+                                            placeholder="Select predicates ..."
+                                            :options="$parent.geneToDiseasePredicates"
+                                            :multiple="true">
+                                            <div class="label">Filter by predicates</div>
+                                        </filter-enumeration-control>
+
                                     </criterion-list-group>
 
                                     <div v-if="$parent.geneToDiseaseQueryCriterion.length > 0 && $parent.geneToDiseaseQuery !== null">
                                         <translator-results-table
                                             :query_graph="$parent.geneToDiseaseQuery.query_graph"
                                             :selectable="true"
-                                            :mock="true"
+                                            :mock="$parent.mock"
                                             @change="$parent.selectedResults = $event"
                                             @change-knowledge-graph="$parent.globalKnowledgeGraph = $event">
                                         </translator-results-table>
@@ -116,7 +161,7 @@
                                 <b-button
                                     block
                                     v-b-toggle.accordion-2
-                                    >Protein 🠖 Pathway
+                                    >Disease 🠖 Pathway
                                     <div class="criteria">
                                         <b-badge
                                             class="filter-pill-dataset"

@@ -12,15 +12,12 @@
                     <template v-if="Array.isArray(data.value)">
                         <span v-for="(curie, index) in data.value" :key="curie" :id="`${curie}-link-${index}-${data.index}`">
 
-                            <b-tooltip v-if="['subject', 'object'].includes(data.field.key)" :target="`${curie}-link-${data.index}-${index}`">
-                                <a v-if="portalLinkFor(data.field.key) !== ''" :href="portalLinkFor(data.field.key)(data.value)">
-                                    <span style="color: #fff">Go to Portal resource</span><br>
-                                </a>
-                                <resolved-curie-link
-                                    :curie="curie">
-                                    <span style="color: #fff">Go to curated entry</span>
-                                </resolved-curie-link>
-                            </b-tooltip>
+                            <results-tooltip
+                                :target="`${curie}-link-${data.index}-${index}`"
+                                :query_graph="query_graph"
+                                :rowData="data"
+                                :curie="curie"
+                            ></results-tooltip>
 
                             <span :id="`${curie}-link-${data.index}-${index}`">
                                 <resolved-curie-link
@@ -32,7 +29,7 @@
                     </template>
                     <template v-else>
 
-                        <b-tooltip v-if="['subject', 'object'].includes(data.field.key)" :target="`${data.value}-link-${data.index}`">
+                        <!-- <b-tooltip v-if="['subject', 'object'].includes(data.field.key)" :target="`${data.value}-link-${data.index}`">
                             <a v-if="portalLinkFor(data.field.key) !== ''" :href="portalLinkFor(data.field.key)(data.value)">
                                 <span style="color: #fff">Go to Portal resource</span><br>
                             </a>
@@ -41,13 +38,20 @@
                                 :curie="data.value">
                                 <span style="color: #fff">Go to curated entry</span>
                             </resolved-curie-link>
-                        </b-tooltip>
+                        </b-tooltip> -->
+
+                        <results-tooltip
+                            :target="`${data.value}-link-${data.index}`"
+                            :query_graph="query_graph"
+                            :rowData="data"
+                        ></results-tooltip>
 
                         <span :id="`${data.value}-link-${data.index}`">
                             <resolved-curie-link
                                 :curie="data.value">
                             </resolved-curie-link>
                         </span>
+
                     </template>
             
                 </template>
@@ -78,11 +82,15 @@
 <script>
 import Vue from "vue"
 import trapi from "./trapi"
-import { mock_knowledge_graph } from "./mock"
+import { mock_knowledge_graph} from "./mock"
 import merge from "lodash.merge"
+import ResultsTooltip from "@/components/NCATS/ResultsTooltip";
 
 export default Vue.component('translator-results-table', {
     props:['query_graph', 'selectable', 'filter', 'mock'],
+    components: {
+        ResultsTooltip
+    },
     data() {
         return {
             currentPage: 1,
@@ -92,20 +100,25 @@ export default Vue.component('translator-results-table', {
         }
     },
     async mounted() {
-        let self = this;
-        await trapi.queries.knowledgeGraphsForSources({
-            message: { 
-                query_graph: this.query_graph
-            }
-        }, [], this.knowledge_graph_list)
-        .then(_ => { self.queryDone = true });
+        if (this.mock) {
+            this.knowledge_graph_list = [mock_knowledge_graph];
+            this.queryDone = true;
+        } else {
+            let self = this;
+            await trapi.queries.knowledgeGraphsForSources({
+                message: { 
+                    query_graph: this.query_graph
+                }
+            }, [], this.knowledge_graph_list)
+            .then(_ => { self.queryDone = true });
+        }
     },
     computed: {
         knowledge_graph() {
-            return this.mock ? mock_knowledge_graph : this.knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
+            return this.knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
         },
         tableItems() {
-            return this.maybe(this.tableItemsFromKnowledgeGraph(this.knowledge_graph), this.withSelected, this.selectable)
+            return this.maybe(this.tableItemsFromKnowledgeGraph(this.knowledge_graph_list), this.withSelected, this.selectable)
         },
         filteredTableItems() {
             let dataRows = this.tableItems;
@@ -117,42 +130,31 @@ export default Vue.component('translator-results-table', {
     },
     methods: {
         async curieLabel(curie) {
-            return await trapi.normalize.curieLabel(curie);
+            let curieLabel = await trapi.normalize.curieLabel(curie);
+            // local cache for synchronous functions
+            return curieLabel;
         },
-        portalLinkFor(subjectOrObject) {
-            const portalLinkMappings = {
-                'biolink:Gene': '/Gene.html?gene=',
-                // TODO: Phenotype
-            }
-
-            // TODO: Assumes on-hop query
-            const edgeSubjectOrObjectName = Object.entries(this.query_graph.edges)[0][1][subjectOrObject]
-            const node = Object.entries(this.query_graph.nodes).filter(el => el[0] === edgeSubjectOrObjectName)[0][1]
-            const category = node.category;
-
-            if (!!portalLinkMappings[category]) {
-                return value => `${portalLinkMappings[category]}${value}`;
-            }
-            return ''
-        },
-
-        tableItemsFromKnowledgeGraph(knowledge_graph) {
+        tableItemsFromKnowledgeGraph(knowledge_graph_list) {
             const restrictedTypes = ['bts:GO', 'bts:term', 'bts:WIKIPATHWAYS']
-            if (Object.keys(knowledge_graph) > 0) {
+            if (!!knowledge_graph_list && knowledge_graph_list.length > 0) {
+                let knowledge_graph = knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
                 let results = Object.entries(knowledge_graph.edges).map(edgeEntry => {
                     const [name, edge]  = edgeEntry;
-                    const { subject, predicate, object, attributes } = edge;
-                    const row = attributes.filter(attr => !restrictedTypes.includes(attr.type)).reduce((acc, item) => {
-                        const { name, value } = item;
-                        acc[name] = value;
-                        return acc;
-                    }, {
+                    let { subject, predicate, object, attributes } = edge;
+                    let row = {
                         // [knowledge_graph.nodes[subject].category]: subject, 
                         subject,
                         predicate, 
                         object,
                         // [knowledge_graph.nodes[object].category]: object
-                    })
+                    }
+                    if (!!attributes) {
+                        row = attributes.filter(attr => !restrictedTypes.includes(attr.type)).reduce((acc, item) => {
+                            const { name, value } = item;
+                            acc[name] = value;
+                            return acc;
+                        }, row)
+                    };
                     return row;
                 });
                 return results;

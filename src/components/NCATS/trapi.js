@@ -1,6 +1,7 @@
 import { json } from "d3";
 import queryString, { extract } from "query-string"
 import { cloneDeep, merge } from "lodash"
+import jsonQuery from "json-query";
 
 let getBiolinkContext = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
     .then(response => response.json())
@@ -323,6 +324,7 @@ const knowledgeGraphFromSources = (sources=[], assignableList=[]) => (entry) => 
     const [agent, message] = entry;
     if (sources.length === 0 || sources.includes(agent)) {
         if(_hasResults(message)) {
+            console.log(message)
             assignableList.push(message.knowledge_graph);
         }
     } return assignableList;
@@ -360,25 +362,15 @@ const categoricalMatch = (instance, concept, biolinkML, maxDepth=0) => {
 
 
 const findSlotsForDomainRange = ({ domain='', range='' }, biolinkModel, matchCategory=false) => {
-
-    let _domain = domain.toLowerCase();
-    let _range = range.toLowerCase();
-
-    return Object.keys(biolinkModel.slots).filter(slotName => {
-
-        const slot = biolinkModel.slots[slotName];
-
-        if (!!slot.domain && !!slot.range) {
-            if (_domain != '' && _range != '') {
-                return slot.domain === _domain && slot.domain === _range;
-            } else if (_domain != '') {
-                return slot.domain === _domain // TODO: || matchCategory && categoricalMatch(_domain);
-            } else if (_range != '') {
-                return slot.range === _range // TODO: || matchCategory && categoricalMatch(_range);
-            }
-        }
-
-    })
+    // const jsonQueryResults = jsonQuery(`slots[*][*range=${range}|*domain=${domain}]`, {
+    //     data: biolinkModel,
+    // }).value
+    const biolinkModelSlotEntries = Object.entries(biolinkModel.slots)
+    return biolinkModelSlotEntries.filter(entry => {
+        if (!!domain && !!entry[1].domain || !!range && !!entry[1].range) {
+            return (entry[1].domain === domain && entry[1].range === range) || entry[1].domain === domain || entry[1].range === range;
+        } else false;
+    }).map(entry => entry[0]);
 };
 
 const findConceptByPrefix = (prefix, biolinkModel) => {

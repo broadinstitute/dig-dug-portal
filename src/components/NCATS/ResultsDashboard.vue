@@ -1,6 +1,5 @@
 <template>
     <div>
-        <h3 v-if="!!title">{{title}}</h3>
         <b-tabs v-if="myQueries.length > 0">
             <b-tab v-for="query_graph in myQueries" 
                 :key="Object.keys(query_graph.query_graph.edges)[0]"
@@ -8,6 +7,7 @@
                 <b-card>
                     <translator-results-table
                         :query_graph="query_graph.query_graph"
+                        :mock="mock"
                     ></translator-results-table>
                 </b-card>
             </b-tab>
@@ -34,6 +34,10 @@ export default Vue.component("translator-results-dashboard", {
         queries: {
             type: Array,
             default: () => [],
+        },
+        mock: {
+            type: Boolean,
+            default: false,
         }
     },
     data() {
@@ -59,8 +63,6 @@ export default Vue.component("translator-results-dashboard", {
             return myQueries;
         }
         this.myQueries = splitQuery(this.query_graph);
-        console.log(this.myQueries)
-
     },
     methods: {
         biolinkTypeFormatter(biolinkTypeCurie) {
