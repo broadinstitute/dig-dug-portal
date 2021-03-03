@@ -22,6 +22,12 @@
         </div>
 
         <div v-if="tableData.length > 0">
+            <div class="text-right">
+                <csv-download
+                    :data="groupedAssociations"
+                    filename="gene_finder"
+                ></csv-download>
+            </div>
             <b-table
                 hover
                 small
@@ -108,6 +114,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
+import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("gene-finder-table", {
     props: [
@@ -123,8 +130,8 @@ export default Vue.component("gene-finder-table", {
     components: {
         Documentation,
         TooltipDocumentation,
-
         EffectorGenesMPlot,
+        CsvDownload,
     },
     data() {
         return {
