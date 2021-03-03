@@ -163,6 +163,20 @@
                 v-model="selectedGene"
             ></m-bitmap-plot>
         </b-container>
+        <b-container
+            fluid
+            v-if="
+                !!config &&
+                !!filteredData &&
+                !!config[dataset]['heatmap_config']
+            "
+            class="heatmap-wrapper"
+        >
+            <heatmap
+                :heatmapData="filteredData"
+                :renderConfig="config[dataset]['heatmap_config']"
+            ></heatmap>
+        </b-container>
         <div
             v-if="!!tableData && !!config && !!config[dataset].single_gene_view"
         >
@@ -391,6 +405,7 @@ import SingleGeneView from "@/components/eglt/SingleGeneView.vue";
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 import VolcanoPlot from "@/components/eglt/VolcanoPlot";
 import MPlotBitmap from "@/components/MPlotBitmap";
+import Heatmap from "@/components/Heatmap";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 import keyParams from "@/utils/keyParams";
@@ -428,6 +443,7 @@ export default Vue.component("effector-genes-table", {
         VolcanoPlot,
         SingleGeneView,
         MPlotBitmap,
+        Heatmap,
     },
     created() {
         this.$store.dispatch("fetchConfig", {
