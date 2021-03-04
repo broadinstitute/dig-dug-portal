@@ -117,6 +117,7 @@ export class LZAssociationsPanel {
         this.layouts = [
             LocusZoom.Layouts.get("panel", "association_catalog", {
                 id: `${this.panel_id}_association`,
+                title: { text: `${phenotype} GWAS Associations`, style: { 'font-size': '18px' }, x: -0.5 },
                 y_index: 0,
                 data_layers: [
                     LocusZoom.Layouts.get("panel", "association_catalog")
