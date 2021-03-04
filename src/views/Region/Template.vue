@@ -176,7 +176,7 @@
                                 class="filter-col-lg"
                                 :field="'phenotype'"
                                 :options="$parent.topAssociationsPhenotypes"
-                                :multiple="false"
+                                :multiple="true"
                                 :labelFormatter="(phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
                                         ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
                             >
@@ -268,17 +268,21 @@
                                     :end="$store.state.end"
                                     :filterAssociations="$parent.associationsFilter"
                                     :filterAnnotations="filter"
-                                    @regionchanged="$parent.requestCredibleSets($event.data)"
+                                    @regionchanged="$event => {
+                                        $parent.requestCredibleSets($event.data);
+                                    }"
                                     :ldpop="true"
                                     :refSeq="true"
                                 >
-                                    <lz-associations-panel
-                                        :phenotype="$store.state.phenotype.name"
-                                        @input="$parent.updatePageAssociations"
-                                    ></lz-associations-panel>
-                                    <lz-catalog-annotations-panel
-                                        :phenotype="$store.state.phenotype.name"
-                                    ></lz-catalog-annotations-panel>
+                                    <span v-for="phenotype in $parent.selectedPhenotypes" :key="phenotype">
+                                        <lz-associations-panel
+                                            :phenotype="phenotype.name"
+                                            @input="$parent.updatePageAssociations"
+                                        ></lz-associations-panel>
+                                        <lz-catalog-annotations-panel
+                                            :phenotype="phenotype.name"
+                                        ></lz-catalog-annotations-panel>
+                                    </span>
                                 </locuszoom>
                             </template>
                         </criterion-function-group>

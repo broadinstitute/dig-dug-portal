@@ -300,6 +300,12 @@ new Vue({
             ];
             return phenomap;
         },
+        selectedPhenotypes() {
+            let selectedPhenotype = this.regionPageSearchCriterion
+                .filter(criterion => criterion.field === "phenotype")
+                .map(criterion => criterion.threshold);
+            return selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
+        },
         criterion() {
             return {
                 phenotypes: this.selectedPhenotype
