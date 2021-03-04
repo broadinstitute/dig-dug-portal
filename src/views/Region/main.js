@@ -42,6 +42,7 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import JsonQuery from "json-query";
 
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
@@ -92,6 +93,7 @@ new Vue({
             associationsFilter: function (id) {
                 return true;
             },
+            pageAssociationsMap: {},
             pageAssociations: [],
             tissueScoring: null,
             regionPageSearchCriterion: keyParams.phenotype
@@ -133,9 +135,14 @@ new Vue({
 
         // TODO: refactor this away in favor of v-model
         updatePageAssociations(data) {
-            this.pageAssociations = data;
+            this.pageAssociations = data
         },
-
+        _updatePageAssociations({ phenotype, data }) {
+            console.log('updating page associations')
+            this.pageAssociationsMap[phenotype] = data;
+            console.log(this.pageAssociationsMap)
+            this.pageAssociations = Object.entries(this.pageAssociationsMap).flatMap(pam => pam[1])
+        },
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
@@ -167,7 +174,7 @@ new Vue({
                 method,
                 this.tissueScoring
             );
-        }
+        },
     },
 
     computed: {
@@ -290,7 +297,6 @@ new Vue({
             return this.pageAssociations.flatMap(assoc => assoc.nearest);
         },
         selectedPhenotype() {
-            let selectedPhenotypesList = [];
             let selectedPhenotype = this.regionPageSearchCriterion
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => criterion.threshold);
@@ -301,40 +307,48 @@ new Vue({
             return phenomap;
         },
         selectedPhenotypes() {
-            let selectedPhenotype = this.regionPageSearchCriterion
-                .filter(criterion => criterion.field === "phenotype")
-                .map(criterion => criterion.threshold);
-            return selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
+            if (this.regionPageSearchCriterion.length > 0) {
+                let selectedPhenotype = this.regionPageSearchCriterion
+                    .filter(criterion => criterion.field === "phenotype")
+                    .map(criterion => criterion.threshold);
+                return selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
+            } else return [];
         },
-        criterion() {
-            return {
-                phenotypes: this.selectedPhenotype
-                // consequences: this.associationConsequences,
-                // nearestGenes: this.associationNearestGenes,
-            };
-        }
+        // criterion() {
+        //     return {
+        //         phenotypes: this.selectedPhenotype
+        //         // consequences: this.associationConsequences,
+        //         // nearestGenes: this.associationNearestGenes,
+        //     };
+        // }
     },
     watch: {
-        criterion(newCriterion, oldCriterion) {
-            //oldCriterion = this.$store.state.phenotype || oldCriterion
-            if (typeof oldCriterion.phenotypes == 'undefined') {
-                oldCriterion.phenotypes = this.$store.state.bioPortal.phenotypeMap[this.$store.state.phenotype]
-            }
-
-            if (!isEqual(newCriterion.phenotypes.name, oldCriterion.phenotypes.name)) {
-                this.$store.commit(
-                    "setSelectedPhenotype",
-                    newCriterion.phenotypes
-                );
-                this.$store.dispatch("globalEnrichment/query", {
-                    q: newCriterion.phenotypes.name
-                });
-                this.$store.dispatch("credibleSets/query", {
-                    q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-                });
-            }
-
+        pageAssociationsMap: {
+            handler(newPageAssociationsMap) {
+                this.pageAssociations;
+            },
+            deep: true
         },
+        // criterion(newCriterion, oldCriterion) {
+        //     //oldCriterion = this.$store.state.phenotype || oldCriterion
+        //     if (typeof oldCriterion.phenotypes == 'undefined') {
+        //         oldCriterion.phenotypes = this.$store.state.bioPortal.phenotypeMap[this.$store.state.phenotype]
+        //     }
+
+        //     if (!isEqual(newCriterion.phenotypes.name, oldCriterion.phenotypes.name)) {
+        //         this.$store.commit(
+        //             "setSelectedPhenotype",
+        //             newCriterion.phenotypes
+        //         );
+        //         this.$store.dispatch("globalEnrichment/query", {
+        //             q: newCriterion.phenotypes.name
+        //         });
+        //         this.$store.dispatch("credibleSets/query", {
+        //             q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+        //         });
+        //     }
+
+        // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

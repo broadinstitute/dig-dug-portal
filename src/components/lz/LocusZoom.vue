@@ -149,14 +149,14 @@ export default Vue.component("locuszoom", {
                     source.givingDataSourceName,
                     panelClass.bioIndexToLZReader
                 );
-                // let panelOptions = {
-                //     id: idCounter.getUniqueId(),
-                //     namespace: {
-                //         [layout.forDataSourceType]: layout.takingDataSourceName
-                //     },
-                //     // id: layout.id,
-                //     ...layout.locusZoomPanelOptions // other locuszoom configuration required for the panel, including overrides(?)
-                // };
+                let panelOptions = {
+                    id: idCounter.getUniqueId(),
+                    namespace: {
+                        [layout.forDataSourceType]: layout.takingDataSourceName
+                    },
+                    // id: layout.id,
+                    ...layout.locusZoomPanelOptions // other locuszoom configuration required for the panel, including overrides(?)
+                };
                 panel = this.plot
                     .addPanel(
                         LocusZoom.Layouts.get(
