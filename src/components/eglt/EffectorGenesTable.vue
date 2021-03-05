@@ -87,6 +87,34 @@
                             </option>
                         </select>
                     </template>
+                    <template v-else-if="filter.type == 'dropdown_search'">
+                        <!--<select
+                            :id="'filter_' + filter.field"
+                            @change="
+                                filterData(
+                                    $event,
+                                    filter.field,
+                                    filter.type,
+                                    filter.dataType
+                                )
+                            "
+                            class="custom-select"
+                        >-->
+                        <input
+                            type="text"
+                            class="form-control"
+                            :id="'filter_' + filter.field.replace(/ /g, '')"
+                        />
+                        <ul>
+                            <li
+                                v-for="value in buildOptions(filter.field)"
+                                :key="value"
+                                :value="value"
+                            >
+                                {{ value }}
+                            </li>
+                        </ul>
+                    </template>
                 </b-col>
             </b-row>
         </b-container>
@@ -462,29 +490,7 @@ export default Vue.component("effector-genes-table", {
 
         this.selectedGene = keyParams.gene;
     },
-    updated() {
-        /*test*/
-        /*console.log(this.config[this.dataset]["keyFilters"]);
-        if (
-            !!this.config &&
-            this.config[this.dataset]["keyFilters"] != undefined
-        ) {
-            for (const x in keyParams) {
-                if (this.config[this.dataset]["keyFilters"][x] != undefined) {
-                    console.log(x, keyParams[x]);
-                    console.log(this.config[this.dataset]["keyFilters"][x]);
-                    let id =
-                        "filter_" + this.config[this.dataset]["keyFilters"][x];
-                    console.log(id);
-                    let element = document.getElementById(id);
-                    if (!!element) {
-                        element.value = keyParams[x];
-                    }
-                }
-            }
-        }*/
-        ///
-    },
+    updated() {},
     computed: {
         tableData() {
             return this.$store.state.tableData;
@@ -567,6 +573,29 @@ export default Vue.component("effector-genes-table", {
                 .filter((v, i, arr) => v != ""); //remove blank
             return options.sort();
         },
+        buildWordOptions(field) {
+            let wordsArr = [];
+            this.tableData.map((v) => {
+                let words = v[field].split(" ");
+                words.map((w) => wordsArr.push(w.toLowerCase()));
+            });
+            let options = wordsArr
+                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
+                .filter((v, i, arr) => v != "" && v.length > 3); //remove blank and word is longer than 3 charactors
+            options.sort();
+            let singularOptions = [];
+
+            for (let i = 0; i < options.length; i++) {
+                if (i == 0) {
+                    singularOptions.push(options[i]);
+                } else {
+                    if (options[i].includes(options[i - 1]) == false) {
+                        singularOptions.push(options[i]);
+                    }
+                }
+            }
+            return singularOptions;
+        },
         applySorting(key) {
             if (key != this.config[this.dataset]["locus_key"]) {
                 let filtered = this.filteredData;
@@ -639,10 +668,6 @@ export default Vue.component("effector-genes-table", {
                 if (!!this.config[this.dataset].single_gene_view) {
                     this.selectedGene = searchValue;
 
-                    /*console.log("protocol", window.location.protocol);
-                    console.log("host", window.location.host);
-                    console.log("pathname", window.location.pathname);*/
-
                     let newUrl =
                         window.location.protocol +
                         "//" +
@@ -704,7 +729,10 @@ export default Vue.component("effector-genes-table", {
                                     tempFiltered.push(row);
                                 }
                             });
-                        } else if (searchIndex.type == "search") {
+                        } else if (
+                            searchIndex.type == "search" ||
+                            searchIndex.type == "dropdown_word"
+                        ) {
                             targetData.filter((row) => {
                                 if (
                                     row[searchIndex.field]
