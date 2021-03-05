@@ -282,8 +282,6 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import sortUtils from "@/utils/sortUtils";
 

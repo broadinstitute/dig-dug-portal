@@ -109,8 +109,6 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 
@@ -123,8 +121,6 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 import CsvDownload from "@/components/CsvDownload";
-
-import { decodeNamespace } from "@/utils/filterHelpers";
 import { isEqual } from "lodash";
 
 export default Vue.component("associations-table", {

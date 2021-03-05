@@ -43,7 +43,6 @@
 
 <script>
 import Vue from "vue";
-import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import uiUtils from "@/utils/uiUtils";
 
 export default Vue.component("lunaris-link", {

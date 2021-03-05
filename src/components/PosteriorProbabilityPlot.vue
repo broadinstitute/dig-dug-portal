@@ -7,9 +7,7 @@
 
 <script>
 import Vue from "vue";
-
 import * as d3 from "d3";
-import Formatters from "@/utils/formatters";
 
 export default Vue.component("posterior-probability-plot", {
     props: [

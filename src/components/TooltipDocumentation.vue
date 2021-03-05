@@ -37,7 +37,6 @@
 <script>
 import Vue from "vue";
 import queryString from "query-string";
-import * as showdown from "showdown";
 import documentationParser from "@/utils/documentationUtils";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";

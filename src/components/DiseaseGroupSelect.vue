@@ -12,7 +12,6 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
 import host from "@/utils/hostUtils";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
