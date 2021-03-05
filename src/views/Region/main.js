@@ -138,9 +138,7 @@ new Vue({
             this.pageAssociations = data
         },
         _updatePageAssociations({ phenotype, data }) {
-            console.log('updating page associations')
             this.pageAssociationsMap[phenotype] = data;
-            console.log(this.pageAssociationsMap)
             this.pageAssociations = Object.entries(this.pageAssociationsMap).flatMap(pam => pam[1])
         },
         // LocusZoom has "Panels"
@@ -323,12 +321,6 @@ new Vue({
         // }
     },
     watch: {
-        pageAssociationsMap: {
-            handler(newPageAssociationsMap) {
-                this.pageAssociations;
-            },
-            deep: true
-        },
         // criterion(newCriterion, oldCriterion) {
         //     //oldCriterion = this.$store.state.phenotype || oldCriterion
         //     if (typeof oldCriterion.phenotypes == 'undefined') {
@@ -361,18 +353,28 @@ new Vue({
                 }
             }
         },
-
-        "$store.state.phenotype": function (phenotype) {
+        "$store.state.phenotype": function(phenotype, oldPhenotype) {
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement("phenotypeSearchHolder");
 
             if (phenotype) {
+                // refresh the bioIndex queries that are determined by the phenotype
                 this.$store.dispatch("globalEnrichment/query", {
                     q: phenotype.name
                 });
                 this.$store.dispatch("credibleSets/query", {
                     q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
                 });
+
+                // adjust the controls to reflect the new phenotype
+                // this will also update the locuszoom plot, and thus the associations table
+                if (phenotype.name !== oldPhenotype) {
+                    this.regionPageSearchCriterion.push({ field: 'phenotype', threshold: phenotype.name });
+                    if (typeof oldPhenotype !== 'undefined') {
+                        this.regionPageSearchCriterion = this.regionPageSearchCriterion.filter(el => el.threshold !== oldPhenotype)
+                    }
+                }
+
             }
         },
         "$store.state.globalEnrichment.data": {
