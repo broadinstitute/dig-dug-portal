@@ -190,6 +190,13 @@
                     :key="i"
                 ></b-row>
             </b-container>
+            <div class="text-right mb-2">
+                <csv-download
+                    :data="tableData"
+                    filename="effector_genes"
+                    flatten="features"
+                ></csv-download>
+            </div>
             <b-container
                 fluid
                 v-if="
@@ -395,6 +402,7 @@ import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 import keyParams from "@/utils/keyParams";
 import formatters from "@/utils/formatters";
+import CsvDownload from "@/components/CsvDownload";
 
 Vue.use(BootstrapVueIcons);
 
@@ -428,6 +436,7 @@ export default Vue.component("effector-genes-table", {
         VolcanoPlot,
         SingleGeneView,
         MPlotBitmap,
+        CsvDownload,
     },
     created() {
         this.$store.dispatch("fetchConfig", {
