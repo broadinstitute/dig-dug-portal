@@ -281,11 +281,11 @@
                                     >
                                         <lz-associations-panel
                                             :phenotype="phenotype.name"
-                                            @input="$parent._updatePageAssociations({ phenotype: phenotype.name, data: $event })"
+                                            @input="$parent.updatePageAssociations({ phenotype: phenotype.name, data: $event })"
                                         ></lz-associations-panel>
                                         <lz-catalog-annotations-panel
                                             :phenotype="phenotype.name"
-                                            @input="$parent._updatePageAssociations({ phenotype: phenotype.name, data: $event })"
+                                            @input="$parent.updatePageAssociations({ phenotype: phenotype.name, data: $event })"
                                         ></lz-catalog-annotations-panel>
                                     </span>
                                 </locuszoom>

@@ -103,8 +103,6 @@ export class LZCatalogAnnotationsPanel {
 
         };
         this.initialData = initialData;
-
-        console.log(LocusZoom.Layouts.get("panel", "annotation_catalog").data_layers[0])
         this.layouts = [
             LocusZoom.Layouts.get("panel", "annotation_catalog", {
                 title: { text: `${phenotype} Variant Catalog`, style: { 'font-size': '18px' }, x: -0.5 },

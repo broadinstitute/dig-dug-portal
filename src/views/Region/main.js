@@ -90,12 +90,15 @@ new Vue({
 
     data() {
         return {
+            tissueScoring: null,
+
             associationsFilter: function (id) {
                 return true;
             },
+
             pageAssociationsMap: {},
             pageAssociations: [],
-            tissueScoring: null,
+            
             regionPageSearchCriterion: keyParams.phenotype
                 ? [
                     {
@@ -133,16 +136,11 @@ new Vue({
             this.$store.dispatch("queryRegion");
         },
 
-        // TODO: refactor this away in favor of v-model
-        updatePageAssociations(data) {
-            this.pageAssociations = data
-        },
-        _updatePageAssociations({ phenotype, data }) {
-            console.log('updating page associations')
+        updatePageAssociations({ phenotype, data }) {
             this.pageAssociationsMap[phenotype] = data;
-            console.log(this.pageAssociationsMap)
             this.pageAssociations = Object.entries(this.pageAssociationsMap).flatMap(pam => pam[1])
         },
+
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
@@ -175,6 +173,7 @@ new Vue({
                 this.tissueScoring
             );
         },
+
     },
 
     computed: {
@@ -317,13 +316,6 @@ new Vue({
 
     },
     watch: {
-        pageAssociationsMap: {
-            handler(newPageAssociationsMap) {
-                this.pageAssociations;
-            },
-            deep: true
-        },
-
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
@@ -336,18 +328,28 @@ new Vue({
                 }
             }
         },
-
-        "$store.state.phenotype": function (phenotype) {
+        "$store.state.phenotype": function(phenotype, oldPhenotype) {
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement("phenotypeSearchHolder");
 
             if (phenotype) {
+                // refresh the bioIndex queries that are determined by the phenotype
                 this.$store.dispatch("globalEnrichment/query", {
                     q: phenotype.name
                 });
                 this.$store.dispatch("credibleSets/query", {
                     q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
                 });
+
+                // adjust the controls to reflect the new phenotype
+                // this will also update the locuszoom plot, and thus the associations table
+                if (phenotype.name !== oldPhenotype) {
+                    this.regionPageSearchCriterion.push({ field: 'phenotype', threshold: phenotype.name });
+                    if (typeof oldPhenotype !== 'undefined') {
+                        this.regionPageSearchCriterion = this.regionPageSearchCriterion.filter(el => el.threshold !== oldPhenotype)
+                    }
+                }
+
             }
         },
         "$store.state.globalEnrichment.data": {
