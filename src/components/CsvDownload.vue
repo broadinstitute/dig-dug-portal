@@ -12,21 +12,19 @@ export default Vue.component("csv-download", {
         return {};
     },
     methods: {
-        async downloadCsv() {
-            console.log("here", this.csvData);
+        downloadCsv() {
             if (this.flatten) {
-                let csvData = Object.assign([], this.data);
-                let flatted = await this.flattenCsv(csvData, this.flatten);
-                //uiUtils.convertJson2Csv(flatted, this.filename);
-                flatted.then(console.log("where", flatted));
+                let flatted = this.flattenCsv(this.data, this.flatten);
+                uiUtils.convertJson2Csv(flatted, this.filename);
             } else {
                 uiUtils.convertJson2Csv(this.data, this.filename);
             }
-            //uiUtils.convertJson2Csv(this.csvData, this.filename);
         },
+        //! Don't flatten unless necessary;
+        // This function will flatten the input column
         flattenCsv(data, field) {
-            return data.map(async (line) => {
-                line[field] = await flatten(line[field]);
+            return data.map((line) => {
+                line[field] = flatten(line[field]);
                 return line;
             });
         },
