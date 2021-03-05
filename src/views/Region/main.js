@@ -314,13 +314,7 @@ new Vue({
                 return selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
             } else return [];
         },
-        // criterion() {
-        //     return {
-        //         phenotypes: this.selectedPhenotype
-        //         // consequences: this.associationConsequences,
-        //         // nearestGenes: this.associationNearestGenes,
-        //     };
-        // }
+     
     },
     watch: {
         pageAssociationsMap: {
@@ -329,26 +323,7 @@ new Vue({
             },
             deep: true
         },
-        // criterion(newCriterion, oldCriterion) {
-        //     //oldCriterion = this.$store.state.phenotype || oldCriterion
-        //     if (typeof oldCriterion.phenotypes == 'undefined') {
-        //         oldCriterion.phenotypes = this.$store.state.bioPortal.phenotypeMap[this.$store.state.phenotype]
-        //     }
 
-        //     if (!isEqual(newCriterion.phenotypes.name, oldCriterion.phenotypes.name)) {
-        //         this.$store.commit(
-        //             "setSelectedPhenotype",
-        //             newCriterion.phenotypes
-        //         );
-        //         this.$store.dispatch("globalEnrichment/query", {
-        //             q: newCriterion.phenotypes.name
-        //         });
-        //         this.$store.dispatch("credibleSets/query", {
-        //             q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-        //         });
-        //     }
-
-        // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
