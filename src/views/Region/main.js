@@ -90,12 +90,15 @@ new Vue({
 
     data() {
         return {
+            tissueScoring: null,
+
             associationsFilter: function (id) {
                 return true;
             },
+
             pageAssociationsMap: {},
             pageAssociations: [],
-            tissueScoring: null,
+            
             regionPageSearchCriterion: keyParams.phenotype
                 ? [
                     {
@@ -133,14 +136,11 @@ new Vue({
             this.$store.dispatch("queryRegion");
         },
 
-        // TODO: refactor this away in favor of v-model
-        updatePageAssociations(data) {
-            this.pageAssociations = data
-        },
-        _updatePageAssociations({ phenotype, data }) {
+        updatePageAssociations({ phenotype, data }) {
             this.pageAssociationsMap[phenotype] = data;
             this.pageAssociations = Object.entries(this.pageAssociationsMap).flatMap(pam => pam[1])
         },
+
         // LocusZoom has "Panels"
         addAssociationsPanel(event) {
             const { phenotype } = event;
@@ -173,6 +173,7 @@ new Vue({
                 this.tissueScoring
             );
         },
+
     },
 
     computed: {
@@ -312,35 +313,9 @@ new Vue({
                 return selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
             } else return [];
         },
-        // criterion() {
-        //     return {
-        //         phenotypes: this.selectedPhenotype
-        //         // consequences: this.associationConsequences,
-        //         // nearestGenes: this.associationNearestGenes,
-        //     };
-        // }
+     
     },
     watch: {
-        // criterion(newCriterion, oldCriterion) {
-        //     //oldCriterion = this.$store.state.phenotype || oldCriterion
-        //     if (typeof oldCriterion.phenotypes == 'undefined') {
-        //         oldCriterion.phenotypes = this.$store.state.bioPortal.phenotypeMap[this.$store.state.phenotype]
-        //     }
-
-        //     if (!isEqual(newCriterion.phenotypes.name, oldCriterion.phenotypes.name)) {
-        //         this.$store.commit(
-        //             "setSelectedPhenotype",
-        //             newCriterion.phenotypes
-        //         );
-        //         this.$store.dispatch("globalEnrichment/query", {
-        //             q: newCriterion.phenotypes.name
-        //         });
-        //         this.$store.dispatch("credibleSets/query", {
-        //             q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-        //         });
-        //     }
-
-        // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

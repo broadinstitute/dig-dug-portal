@@ -89,21 +89,13 @@
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'consequence'"
-                                :options="
-                                    $store.state.associations.data.map(
-                                        (association) => association.consequence
-                                    )
-                                "
+                                :options="$store.state.associations.data.map((association) => association.consequence)"
                             >
                                 <div class="label">Consequence</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'nearest'"
-                                :options="
-                                    $store.state.associations.data.map(
-                                        (association) => association.nearest[0]
-                                    )
-                                "
+                                :options="$store.state.associations.data.map((association) => association.nearest[0])"
                             >
                                 <div class="label">Closest Genes</div>
                             </filter-enumeration-control>
