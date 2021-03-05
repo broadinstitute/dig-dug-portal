@@ -251,7 +251,6 @@ new Vue({
                 ) {
                     continue;
                 }
-
                 const curAssoc = assocMap[assoc.phenotype];
                 if (!curAssoc || assoc.pValue < curAssoc.pValue) {
                     assocMap[assoc.phenotype] = assoc;

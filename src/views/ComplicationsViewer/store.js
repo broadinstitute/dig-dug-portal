@@ -18,6 +18,8 @@ export default new Vuex.Store({
     },
     state: {
         associations: [],
+        condition: keyParams.condition,
+
     },
     mutations: {
         clearAssociations(state) {
@@ -25,6 +27,12 @@ export default new Vuex.Store({
         },
         updateAssociations(state, data) {
             state.associations = state.associations.concat(data);
+        },
+        setCondition(state, condition) {
+            state.condition = condition || keyParams.condition
+        },
+        setSecondaryPhenotype(state, secondaryPhenotype) {
+            state.secon
         }
     },
     actions: {
