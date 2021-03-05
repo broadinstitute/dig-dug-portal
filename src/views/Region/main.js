@@ -312,9 +312,9 @@ new Vue({
                     .filter(criterion => criterion.field === "phenotype")
                     .map(criterion => criterion.threshold);
                 return selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
-            } else return [];
+            } else return [this.$store.state.phenotype];
         },
-     
+
     },
     watch: {
         pageAssociationsMap: {

@@ -207,7 +207,7 @@
                             <filter-effect-direction-control :field="'beta'">
                                 <div class="label">Effect (+/-)</div>
                             </filter-effect-direction-control>
-                            
+
                             <template slot="filtered" slot-scope="{ filter }">
                                 <associations-table
                                     v-if="$parent.selectedPhenotypes.length > 0 && $parent.pageAssociations.length > 0"
@@ -261,25 +261,24 @@
                             </span>
 
                             <template slot="filtered" slot-scope="{ filter }">
-
                                 <locuszoom
                                     v-if="$parent.tissueScoring !== null"
                                     ref="locuszoom"
-
                                     :chr="$store.state.chr"
                                     :start="$store.state.start"
                                     :end="$store.state.end"
-
                                     :filterAssociations="$parent.associationsFilter"
                                     :filterAnnotations="filter"
                                     @regionchanged="$event => {
                                         $parent.requestCredibleSets($event.data);
                                     }"
-
                                     :ldpop="true"
-                                    :refSeq="true">
-                                    <span v-for="phenotype in $parent.selectedPhenotypes" 
-                                          :key="phenotype.name">
+                                    :refSeq="true"
+                                >
+                                    <span
+                                        v-for="phenotype in $parent.selectedPhenotypes"
+                                        :key="phenotype.name"
+                                    >
                                         <lz-associations-panel
                                             :phenotype="phenotype.name"
                                             @input="$parent._updatePageAssociations({ phenotype: phenotype.name, data: $event })"
@@ -290,7 +289,6 @@
                                         ></lz-catalog-annotations-panel>
                                     </span>
                                 </locuszoom>
-
                             </template>
                         </criterion-function-group>
                     </div>
