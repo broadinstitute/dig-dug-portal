@@ -13,7 +13,7 @@ export default Vue.component("csv-download", {
     },
     methods: {
         downloadCsv() {
-            if (this.flatten) {
+            if (this.flatten && this.data) {
                 let flatted = this.flattenCsv(this.data, this.flatten);
                 uiUtils.convertJson2Csv(flatted, this.filename);
             } else {

@@ -143,6 +143,7 @@ let onScroll = function(e) {
 
 let convertJson2Csv = function(DATA, FILENAME) {
     const items = DATA;
+    const downloadFilename = FILENAME || "download";
     const replacer = (key, value) => (value === null ? "" : value); // specify how you want to handle null values here
     const header = Object.keys(items[0]);
     const csv = [
@@ -158,7 +159,7 @@ let convertJson2Csv = function(DATA, FILENAME) {
     let blob = new Blob(["\ufeff", csv]);
     let url = URL.createObjectURL(blob);
     downloadLink.href = url;
-    downloadLink.download = FILENAME + ".csv"; //Name the file here
+    downloadLink.download = downloadFilename + ".csv"; //Name the file here
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
