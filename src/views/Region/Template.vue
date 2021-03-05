@@ -172,16 +172,14 @@
                             :header="'Select Phenotype'"
                         >
                             <!-- Phenotype Selector -->
-                            <filter-enumeration-control
-                                class="filter-col-lg"
+                            <filter-phenotypes-control
                                 :field="'phenotype'"
-                                :options="$parent.topAssociationsPhenotypes"
-                                :multiple="false"
-                                :labelFormatter="(phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
-                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
-                            >
+                                :multiple="true">
                                 <div class="label">Select phenotypes</div>
-                            </filter-enumeration-control>
+                            </filter-phenotypes-control>
+                            <template #filtered>
+                                {{$parent.regionPageSearchCriterion}}
+                            </template>
                         </criterion-list-group>
                         <criterion-function-group v-model="$parent.associationsFilter">
                             <filter-enumeration-control
@@ -210,7 +208,7 @@
                             <template slot="filtered" slot-scope="{ filter }">
                                 <associations-table
                                     v-if="$parent.pageAssociations.length > 0"
-                                    :phenotypes="$parent.phenotypes"
+                                    :phenotypes="$parent.selectedPhenotypes"
                                     :associations="$parent.pageAssociations"
                                     :filter="filter"
                                 ></associations-table>

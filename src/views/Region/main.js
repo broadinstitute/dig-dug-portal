@@ -29,6 +29,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import FilterPhenotypes from "@/components/criterion/FilterPhenotypes.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
@@ -72,6 +73,7 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
+        FilterPhenotypes,
 
         SearchHeaderWrapper
     },
@@ -300,36 +302,14 @@ new Vue({
             ];
             return phenomap;
         },
-        criterion() {
-            return {
-                phenotypes: this.selectedPhenotype
-                // consequences: this.associationConsequences,
-                // nearestGenes: this.associationNearestGenes,
-            };
-        }
+        selectedPhenotypes() {
+            let selectedPhenotypes = this.regionPageSearchCriterion
+                .filter(criterion => criterion.field === "phenotype")
+                .map(criterion => criterion.threshold);
+            return selectedPhenotypes;
+        },
     },
     watch: {
-        criterion(newCriterion, oldCriterion) {
-            //oldCriterion = this.$store.state.phenotype || oldCriterion
-
-            if (
-                !isEqual(
-                    newCriterion.phenotypes.name,
-                    this.$store.state.phenotype
-                )
-            ) {
-                this.$store.commit(
-                    "setSelectedPhenotype",
-                    newCriterion.phenotypes
-                );
-                this.$store.dispatch("globalEnrichment/query", {
-                    q: newCriterion.phenotypes.name
-                });
-                this.$store.dispatch("credibleSets/query", {
-                    q: `${newCriterion.phenotypes.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-                });
-            }
-        },
         "$store.state.bioPortal.phenotypeMap": function(phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

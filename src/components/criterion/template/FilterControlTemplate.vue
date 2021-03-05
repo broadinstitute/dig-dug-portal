@@ -110,7 +110,8 @@ export default Vue.component("filter-control-template", {
             }
             return true;
         },
-        updateFilter(newThreshold) {
+        updateFilter(threshold) {
+            let newThreshold = !!this.computedField ? this.computedField(threshold) : threshold;
             // NOTE: Presumes existence of EventListener component in parent, which will be true in the current (09/04/20) implementation of CriterionGroupTemplate
             // TODO: apply checker function here to prevent submission on conditional including blank (to allow positive filters to stay positive, for instance; or membership of options in autocomplete)
             if (newThreshold !== null) {
