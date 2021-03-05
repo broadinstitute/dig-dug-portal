@@ -16,7 +16,7 @@ heatmap configuration
         },
 -->
 <template>
-    <div class="heatmap-content">
+    <div>
         <div id="clicked_cell_value" class="clicked-cell-value hidden">
             <b-icon-x-circle-fill
                 class="clicked-cell-value-close"
@@ -24,38 +24,39 @@ heatmap configuration
             ></b-icon-x-circle-fill>
             <div id="clicked_cell_value_content"></div>
         </div>
-        <div
-            v-if="!!renderConfig.label"
-            class="heatmap-label"
-            v-html="renderConfig.label"
-        ></div>
-        <div
-            v-if="!!renderConfig.legend"
-            class="heatmap-legend"
-            v-html="renderConfig.legend"
-        ></div>
-        <div
-            v-if="!!renderConfig.legend"
-            class="heatmap-scale-legend"
-            id="heatmap_scale_legend"
-        ></div>
-        <div class="heatmap-wrapper" id="heatmapWrapper">
+        <div class="heatmap-content" id="heatmapContent">
             <div
-                class="heatmap-columns-wrapper"
-                id="heatmapColumnsWrapper"
+                v-if="!!renderConfig.label"
+                class="heatmap-label"
+                v-html="renderConfig.label"
             ></div>
-
-            <div class="heatmap-canvas-wrapper" id="heatmapCanvasWrapper">
-                <canvas
-                    v-if="!!renderConfig"
-                    id="heatmap"
-                    @click="checkPosition"
-                    width=""
-                    height=""
-                >
-                </canvas>
+            <div
+                v-if="!!renderConfig.legend"
+                class="heatmap-legend"
+                v-html="renderConfig.legend"
+            ></div>
+            <div
+                v-if="!!renderConfig.legend"
+                class="heatmap-scale-legend"
+                id="heatmap_scale_legend"
+            ></div>
+            <div class="heatmap-canvas-wrapper" id="heatmapWrapper">
+                <div
+                    class="heatmap-columns-wrapper"
+                    id="heatmapColumnsWrapper"
+                ></div>
+                <div class="heatmap-rows-wrapper" id="heatmapRowsWrapper"></div>
+                <div class="heatmap-canvas-wrapper" id="heatmapCanvasWrapper">
+                    <canvas
+                        v-if="!!renderConfig"
+                        id="heatmap"
+                        @click="checkPosition"
+                        width=""
+                        height=""
+                    >
+                    </canvas>
+                </div>
             </div>
-            <div class="heatmap-rows-wrapper" id="heatmapRowsWrapper"></div>
         </div>
     </div>
 </template>
@@ -208,21 +209,15 @@ export default Vue.component("heatmap", {
                 scaleLegendContent +=
                     "<div class='scale-legend-sub-field'><div class='field-label'>" +
                     this.renderConfig.subRenderRange.label +
-                    "</div>: </div>";
+                    "</div>:";
+                let steps = this.renderConfig.subRenderRange.steps;
+
+                scaleLegendContent += "</div>";
             }
 
             scaleLegendWrapper.innerHTML = scaleLegendContent;
         },
         checkPosition(event) {
-            let aboveColumnPadding =
-                document.getElementById("heatmapColumnsWrapper").offsetWidth +
-                20;
-            let wrapperRect = document
-                .getElementById("heatmapWrapper")
-                .getBoundingClientRect();
-            let wrapperXPos = wrapperRect.left;
-            let wrapperYPos = wrapperRect.top - aboveColumnPadding;
-
             let e = event;
             let rect = e.target.getBoundingClientRect();
 
@@ -264,11 +259,29 @@ export default Vue.component("heatmap", {
             let contentWrapper = document.getElementById(
                 "clicked_cell_value_content"
             );
+
+            let aboveColumnPadding = document.getElementById("heatmapContent")
+                .offsetHeight;
+            -document.getElementById("heatmap").offsetHeight;
+
+            console.log(
+                "height1",
+                document.getElementById("heatmapContent").offsetHeight,
+                "height2",
+                document.getElementById("heatmap").offsetHeight
+            );
+            let wrapperRect = document
+                .getElementById("heatmapCanvasWrapper")
+                .getBoundingClientRect();
+            let wrapperXPos = wrapperRect.left;
+            let wrapperYPos = aboveColumnPadding;
+
             let canvas = document.getElementById("heatmap");
             if (clickedCellValue != "") {
                 contentWrapper.innerHTML = clickedCellValue;
                 wrapper.classList.remove("hidden");
-                wrapper.style.top = yPos + canvas.offsetTop + "px";
+                wrapper.style.top =
+                    wrapperYPos + yPos + canvas.offsetTop + "px";
                 wrapper.style.left = wrapperXPos - 15 + xPos + "px"; //minus 15 for the padding of the plot wrapper
             } else {
                 wrapper.classList.add("hidden");
@@ -289,13 +302,14 @@ export default Vue.component("heatmap", {
 
             document.getElementById("heatmapColumnsWrapper").style.fontSize =
                 this.renderConfig.fontSize + "px";
-            document.getElementById("heatmapColumnsWrapper").style.marginLeft =
+            /*document.getElementById("heatmapColumnsWrapper").style.marginLeft =
                 this.renderConfig.fontSize *
                     1.5 *
                     this.renderData.columns.length +
-                "px";
+                "px";*/
             document.getElementById("heatmapRowsWrapper").style.fontSize =
                 this.renderConfig.fontSize + "px";
+
             this.renderData.columns.map((c) => {
                 var div = document.createElement("div");
                 var t = document.createTextNode(c);
@@ -308,6 +322,11 @@ export default Vue.component("heatmap", {
                     .getElementById("heatmapColumnsWrapper")
                     .appendChild(div);
             });
+
+            /*document.getElementById("heatmapColumnsWrapper").style.right =
+                document.getElementById("heatmapColumnsWrapper").offsetWidth *
+                    -1 +
+                "px";*/
 
             this.renderData.rows.map((r) => {
                 var div = document.createElement("div");
@@ -328,8 +347,15 @@ export default Vue.component("heatmap", {
                 document.getElementById("heatmapColumnsWrapper").offsetWidth +
                 20;
 
-            document.getElementById("heatmapColumnsWrapper").style.top =
-                -columnTopSpace + "px";
+            let rIndex = 0;
+            let rectSize = this.renderConfig.fontSize * 1.5;
+
+            /*document.getElementById("heatmapColumnsWrapper").style.top =
+                -columnTopSpace + "px";*/
+            document.getElementById("heatmapColumnsWrapper").style.left =
+                document.getElementById("heatmapRowsWrapper").offsetWidth +
+                (rectSize - this.renderConfig.fontSize) / 2 +
+                "px";
             document.getElementById("heatmapWrapper").style.paddingTop =
                 aboveColumnPadding + "px";
 
@@ -337,9 +363,6 @@ export default Vue.component("heatmap", {
             c.setAttribute("width", canvasWidth);
             c.setAttribute("height", canvasHeight);
             let ctx = c.getContext("2d");
-
-            let rIndex = 0;
-            let rectSize = this.renderConfig.fontSize * 1.5;
 
             this.renderData.rows.map((r) => {
                 this.squareData[rIndex] = {};
@@ -478,9 +501,13 @@ $(function () {});
 <style>
 .heatmap-content {
     text-align: center;
+    overflow-x: auto;
 }
 
 .heatmap-wrapper {
+}
+
+.heatmap-canvas-wrapper {
     text-align: left;
     display: inline-block;
     position: relative;
@@ -489,21 +516,23 @@ $(function () {});
 }
 
 #heatmapColumnsWrapper {
-    transform-origin: left bottom;
+    transform-origin: left top;
     transform: rotate(-90deg);
     position: absolute;
-    left: 0;
+    /*left: 0;*/
 }
 #heatmapColumnsWrapper div {
-    transform-origin: left center;
-    transform: rotate(45deg);
+    /*transform-origin: left center;
+    transform: rotate(45deg);*/
     white-space: nowrap;
+    padding-left: 10px;
 }
 #heatmapRowsWrapper {
-    padding-left: 10px;
+    padding-right: 10px;
     display: inline-block;
     vertical-align: top;
     white-space: nowrap;
+    text-align: right;
 }
 #heatmapCanvasWrapper {
     display: inline-block;
