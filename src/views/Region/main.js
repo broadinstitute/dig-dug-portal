@@ -32,6 +32,8 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
+import AnnotationPickerControl from "@/components/criterion/pickers/AnnotationPickerControl.vue"
+
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
@@ -73,6 +75,8 @@ new Vue({
         FilterEnumeration,
         FilterGreaterThan,
 
+        AnnotationMethodSelectPicker,
+        AnnotationPickerControl,
         SearchHeaderWrapper
     },
 
@@ -90,6 +94,9 @@ new Vue({
     data() {
         return {
             associationsFilter: function(id) {
+                return true;
+            },
+            enrichmentFilter: function(id) {
                 return true;
             },
             pageAssociations: [],

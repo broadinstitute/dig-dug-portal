@@ -23,7 +23,8 @@ import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
-
+import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker"
+import AnnotationPickerControl from "@/components/criterion/pickers/AnnotationPickerControl.vue"
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -33,6 +34,7 @@ new Vue({
     store,
     mixins: [pageMixin],
     components: {
+        AnnotationPickerControl,
         Documentation,
         CriterionFunctionGroup,
         CriterionListGroup,
@@ -45,6 +47,7 @@ new Vue({
         RareColorBarPlot,
         PosteriorProbabilityPlot,
         LocusZoom,
+        AnnotationMethodSelectPicker,
     },
     render(createElement, context) {
         return createElement(Template);
@@ -59,7 +62,8 @@ new Vue({
                     field: "gene",
                     threshold: keyParams.gene
                 }] : [],
-            priorVariance: 0.3696
+            priorVariance: 0.3696,
+            enrichmentFilter: id => true,
         };
     },
     created() {
@@ -67,8 +71,33 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
+
+        this.$store.dispatch("getGlobalEnrichmentData", 'T2D');
+
     },
     computed: {
+        globalEnrichments() {
+            return this.$store.state.globalEnrichment.data
+        },
+        globalEnrichmentTissues() {
+            return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.tissue)))
+        },
+        globalEnrichmentTissueIds() {
+            return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.tissueId)))
+        },
+        globalEnrichmentAnnotations() {
+            return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.annotation)))
+        },
+        globalEnrichmentMethods() {
+            return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.method)))
+        },
+        globalEnrichmentAncestry() {
+            return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.ancestry)))
+        },
+        filteredGlobalEnrichments() {
+            return this.globalEnrichments.filter(this.enrichmentFilter)
+        },
+
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {

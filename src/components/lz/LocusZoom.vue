@@ -322,7 +322,6 @@ export default Vue.component("locuszoom", {
                     .filter(data_layer => {
                         return data_layer.id.includes(panelType);
                     });
-                console.log(this.getDataLayers(), data_layers);
             }
 
             data_layers.forEach(data_layer => {

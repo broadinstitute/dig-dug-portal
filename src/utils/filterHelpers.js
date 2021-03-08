@@ -107,7 +107,6 @@ export function predicateFromSpec(
             console.assert(!!field || !!computedField, 'neither field or computedField are defined');
 
             let getter = !!computedField ? computedField : obj => get(obj, field); // NOTE: this technically supports nested fields.
-            console.log(obj, getter, getter(obj))
             let data = getter(obj);
             let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {

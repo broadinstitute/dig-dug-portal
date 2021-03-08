@@ -20,11 +20,13 @@ export default new Vuex.Store({
         genes: bioIndex("genes"),
         associations: bioIndex("associations"),
         geneAssociations52k: bioIndex("gene-associations-52k"),
+        globalEnrichment: bioIndex("global-enrichment"),
     },
     state: {
         associationsData: {},
         variants: [],
         regionData: {},
+        phenotype: 'T2D'
 
     },
     mutations: {
@@ -63,6 +65,10 @@ export default new Vuex.Store({
 
         async get52KAssociationData(context, gene) {
             context.dispatch('geneAssociations52k/query', { q: gene });
+        },
+
+        async getGlobalEnrichmentData(context, phenotype) {
+            context.dispatch('globalEnrichment/query', { q: phenotype });
         }
     }
 });

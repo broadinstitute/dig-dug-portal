@@ -2,7 +2,7 @@
     <div class="col" style="padding: 5px 7px 5px 7px">
         <slot>
             <!-- e.g. P-Value (&le;) if using documentation component or override in page; but pValue as default -->
-            {{ field }}
+            <div class="label">{{ capitalizedFormatter(field) }}</div>
         </slot>
         <!--
             Go between a select component or a simple text input based on whether or not we have options
@@ -31,7 +31,7 @@
 import Vue from "vue";
 import Autocomplete from "@/components/Autocomplete.vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-
+import Formatters from "@/utils/formatters"
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
@@ -98,6 +98,7 @@ export default Vue.component("filter-control-template", {
         }
     },
     methods: {
+        capitalizedFormatter: Formatters.capitalizedFormatter,
         validateInput(newInput) {
             // TODO: elaborate validation cases here
             // TODO: validation utils?
