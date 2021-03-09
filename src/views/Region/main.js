@@ -98,7 +98,7 @@ new Vue({
 
             pageAssociationsMap: {},
             pageAssociations: [],
-            
+
             regionPageSearchCriterion: keyParams.phenotype
                 ? [
                     {
@@ -311,7 +311,7 @@ new Vue({
                     .filter(criterion => criterion.field === "phenotype")
                     .map(criterion => criterion.threshold);
                 return selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
-            } else return [this.$store.state.phenotype];
+            } else return [];
         },
 
     },
@@ -328,7 +328,7 @@ new Vue({
                 }
             }
         },
-        "$store.state.phenotype": function(phenotype, oldPhenotype) {
+        "$store.state.phenotype": function (phenotype, oldPhenotype) {
             // I don't like mixing UI effects with databinding - Ken
             uiUtils.hideElement("phenotypeSearchHolder");
 
