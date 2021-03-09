@@ -10,12 +10,7 @@
             pill
             v-for="(filter, idx) in filterList"
             :key="filter.field + filter.predicate + filter.threshold + idx"
-            :class="`btn filter-pill-${filter.field}`"
-            :style="{
-                'background-color': `${
-                    !!filter.color ? `${filter.color} !important` : ''
-                }`,
-            }"
+            :class="`btn filter-pill-${filter.field} ${cycleColors ? `color-${idx + 1}` : ''}`"
             @click="!!unset ? unset : $parent.$emit('unset', { filter, idx })"
         >
             {{
@@ -39,6 +34,10 @@ export default Vue.component('criterion-pills', {
         filterList: Array,
         unset: {
             type: Function
+        },
+        cycleColors: {
+            type: Boolean,
+            default: true,
         }
     },
     created() {

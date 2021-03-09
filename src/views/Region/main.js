@@ -24,6 +24,7 @@ import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import keyParams from "@/utils/keyParams";
 import { isEqual, startCase } from "lodash";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import CriterionPills from "@/components/criterion/template/CriterionPills.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
@@ -67,7 +68,7 @@ new Vue({
         GeneSelectPicker,
         CriterionListGroup,
         CriterionFunctionGroup,
-        CriterionFunctionGroup,
+        CriterionPills,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,

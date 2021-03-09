@@ -1543,8 +1543,23 @@ a.to-previous-page:hover {
     background-color: #28a745 !important;
 }
 
+
+.filter-pill-phenotype.color-1 { background-color: #048845 !important; }
+.filter-pill-phenotype.color-2 { background-color: #8490C8 !important; }
+.filter-pill-phenotype.color-3 { background-color: #BF61A5 !important; }
+.filter-pill-phenotype.color-4 { background-color: #EE3124 !important; }
+.filter-pill-phenotype.color-5 { background-color: #FCD700 !important; }
+.filter-pill-phenotype.color-6 { background-color: #5555FF !important; }
+.filter-pill-phenotype.color-7 { background-color: #7aaa1c !important; }
+.filter-pill-phenotype.color-8 { background-color: #9F78AC !important; }
+.filter-pill-phenotype.color-9 { background-color: #F88084 !important; }
+.filter-pill-phenotype.color-10 { background-color: #F5A4C7 !important; }
+.filter-pill-phenotype.color-11 { background-color: #CEE6C1 !important; }
+.filter-pill-phenotype.color-13 { background-color: #6FC7B6 !important; }
+.filter-pill-phenotype.color-14 { background-color: #D5A768 !important; }
+.filter-pill-phenotype.color-15 { background-color: #D4D4D4 !important; }
 .filter-pill-phenotype {
-    background-color: #28a745 !important;
+    background-color: #28a745  !important;
 }
 .filter-pill-condition {
     background-color: #28a745 !important;

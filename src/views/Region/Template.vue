@@ -169,20 +169,28 @@
                         <documentation name="region.variantassociation.subheader"></documentation>
                         <criterion-list-group
                             v-model="$parent.regionPageSearchCriterion"
-                            :header="'Select Phenotype'"
                         >
                             <!-- Phenotype Selector -->
                             <filter-enumeration-control
                                 class="filter-col-lg"
                                 :field="'phenotype'"
                                 :options="$parent.topAssociationsPhenotypes"
-                                :multiple="false"
+                                :multiple="true"
                                 :labelFormatter="(phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
                                         ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
                             >
                                 <div class="label">Select phenotypes</div>
                             </filter-enumeration-control>
+                            <template #pills>
+                                <criterion-pills
+                                    :header="'Select Phenotype'"
+                                    :filterList="$parent.regionPageSearchCriterion"
+                                    :cycleColors="true"
+                                ></criterion-pills>
+                            </template>
                         </criterion-list-group>
+
+
                         <criterion-function-group v-model="$parent.associationsFilter">
                             <filter-enumeration-control
                                 :field="'consequence'"
