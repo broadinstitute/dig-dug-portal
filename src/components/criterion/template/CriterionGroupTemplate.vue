@@ -8,20 +8,15 @@
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
-                    <slot v-if="!noPills && inlinePills" name="pills">
-                        <criterion-pills
-                            :header="header"
-                            :filterList="filterList"
-                        ></criterion-pills>
-                    </slot>
                 </b-row>
             </b-container>
-            <slot v-if="!noPills && !inlinePills" name="pills">
+            <slot name="pills">
                 <criterion-pills
                     :header="header"
                     :filterList="filterList"
+                    :cycleColors="cycleColors"
                 ></criterion-pills>
-            </slot>
+            </slot> 
         </EventListener>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <slot name="filtered" :filter="criterion"></slot>
@@ -102,6 +97,10 @@ export default Vue.component("criterion-group-template", {
             default: false,
         },
         inlinePills: {
+            type: Boolean,
+            default: false,
+        },
+        cycleColors: {
             type: Boolean,
             default: false,
         }

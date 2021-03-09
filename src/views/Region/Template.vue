@@ -169,6 +169,7 @@
                         <documentation name="region.variantassociation.subheader"></documentation>
                         <criterion-list-group
                             v-model="$parent.regionPageSearchCriterion"
+                            :cycleColors="true"
                         >
                             <!-- Phenotype Selector -->
                             <filter-enumeration-control
@@ -181,13 +182,6 @@
                             >
                                 <div class="label">Select phenotypes</div>
                             </filter-enumeration-control>
-                            <template #pills>
-                                <criterion-pills
-                                    :header="'Select Phenotype'"
-                                    :filterList="$parent.regionPageSearchCriterion"
-                                    :cycleColors="true"
-                                ></criterion-pills>
-                            </template>
                         </criterion-list-group>
 
 

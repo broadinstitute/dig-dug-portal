@@ -11,8 +11,7 @@
             v-for="(filter, idx) in filterList"
             :key="filter.field + filter.predicate + filter.threshold + idx"
             :class="`btn filter-pill-${filter.field} ${cycleColors ? `color-${idx + 1}` : ''}`"
-            @click="!!unset ? unset : $parent.$emit('unset', { filter, idx })"
-        >
+            @click="!!unset ? unset : $parent.$emit('unset', { filter, idx })">
             {{
                 !!filter.label
                     ? typeof filter.label === "function"
