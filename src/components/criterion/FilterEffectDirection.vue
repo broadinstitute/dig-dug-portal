@@ -10,6 +10,7 @@
     @input-change="$emit('input-change', $event)"
     :multiple="false"
     :computedField="computedField"
+    :color="color"
   >
     <slot></slot>
   </filter-control-template>

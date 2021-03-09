@@ -7,6 +7,7 @@
     :pillFormatter="pillFormatter"
     :computedField="computedField"
     :multiple="false"
+    :color="color"
   >
     <slot></slot>
   </filter-control-template>
