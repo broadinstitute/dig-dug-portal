@@ -110,7 +110,7 @@ new Vue({
             let phenotype = this.$store.state.selectedPhenotype;
 
             if (!!dataset && !!phenotype) {
-                return `/api/raw/plot/dataset/${dataset.name}/${phenotype.name}/manhattan.png`;
+                return `/api/raw/plot/dataset/${dataset.tech}/${dataset.name}/${phenotype.name}/manhattan.png`;
             }
         },
         qqPlot() {
@@ -118,7 +118,7 @@ new Vue({
             let phenotype = this.$store.state.selectedPhenotype;
 
             if (!!dataset && !!phenotype) {
-                return `/api/raw/plot/dataset/${dataset.name}/${phenotype.name}/qq.png`;
+                return `/api/raw/plot/dataset/${dataset.tech}/${dataset.name}/${phenotype.name}/qq.png`;
             }
         },
         associations() {

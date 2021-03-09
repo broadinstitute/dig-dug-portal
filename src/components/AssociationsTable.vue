@@ -1,6 +1,12 @@
 <template>
     <div>
         <div v-if="tableData.length > 0">
+            <div class="text-right mb-2">
+                <csv-download
+                    :data="groupedAssociations"
+                    filename="associations"
+                ></csv-download>
+            </div>
             <b-table
                 hover
                 small
@@ -119,6 +125,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
+import CsvDownload from "@/components/CsvDownload";
+
 import { decodeNamespace } from "@/utils/filterHelpers";
 import { isEqual } from "lodash";
 
@@ -126,7 +134,8 @@ export default Vue.component("associations-table", {
     props: ["associations", "phenotypes", "filter", "exclusive"],
     components: {
         Documentation,
-        TooltipDocumentation
+        TooltipDocumentation,
+        CsvDownload,
     },
     data() {
         return {

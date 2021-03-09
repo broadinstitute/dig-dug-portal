@@ -1,15 +1,12 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            <search-header-wrapper
-                ><!-- Wrap page level searchs with "pageSearchParameters" div -->
+            <search-header-wrapper>
+                <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-lg hidden">
                     <div class="label">Search phenotype</div>
@@ -23,14 +20,14 @@
 
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-12 gene-page-header-title">
-                        Phenotype
-                    </div>
+                    <div class="col-md-12 gene-page-header-title">Phenotype</div>
 
                     <div class="col-md-12 gene-page-header-body">
-                        <span v-if="$store.state.phenotype">{{
+                        <span v-if="$store.state.phenotype">
+                            {{
                             $store.state.phenotype.description
-                        }}</span>
+                            }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -90,12 +87,14 @@
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="$store.state.associations.data.map((association) => association.consequence)"
+                                :inclusive="false"
                             >
                                 <div class="label">Consequence</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'nearest'"
                                 :options="$store.state.associations.data.map((association) => association.nearest[0])"
+                                :inclusive="false"
                             >
                                 <div class="label">Closest Genes</div>
                             </filter-enumeration-control>

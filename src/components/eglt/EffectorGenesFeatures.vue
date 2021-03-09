@@ -114,7 +114,7 @@ export default Vue.component("effector-genes-features", {
             return colClass;
         },
         cleanString(S) {
-            return S.replace(/[^a-zA-Z ]/g, "");
+            return S.toString().replace(/[^a-zA-Z ]/g, "");
         },
     },
 });

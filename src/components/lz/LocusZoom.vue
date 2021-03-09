@@ -22,7 +22,7 @@ import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibl
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import { makeSource, makeLayout, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
+import { makeSource, makeLayout } from "@/utils/lzUtils";
 import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets";
 
 import jsonQuery from "json-query";

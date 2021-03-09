@@ -4,6 +4,12 @@
         class="EGLT-table variant-datasets"
         v-if="rows > 0"
     >
+        <div class="text-right mt-2">
+            <csv-download
+                :data="tableData"
+                filename="PheWAS_associations"
+            ></csv-download>
+        </div>
         <b-container fluid v-if="!!phenotypeMap && !!datasetMap" class="list">
             <b-row class="top-level-header">
                 <b-col cols="4" class="top-level-header-item">Phenotype</b-col>
@@ -179,9 +185,10 @@ import Vue from "vue";
 import { orderBy, groupBy, cloneDeep } from "lodash";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
-
+import CsvDownload from "@/components/CsvDownload";
 export default Vue.component("phewas-datasets", {
     props: ["associations", "datasets", "phenotypeMap", "datasetMap", "filter"],
+    components: { CsvDownload },
     data() {
         return {
             perPage: 10,

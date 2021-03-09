@@ -57,6 +57,7 @@ new Vue({
 
     data() {
         return {
+            filterList: []
         };
     },
 

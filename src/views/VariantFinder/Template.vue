@@ -50,15 +50,16 @@
                                 <criterion-function-group
                                     v-model="p.filter"
                                     :hide="!p.filterVisible"
+                                    :inlinePills="true"
                                 >
                                     <filter-pvalue-control :field="'pValue'">
                                         <div class="label">P-Value (&le;)</div>
                                     </filter-pvalue-control>
 
                                     <filter-effect-direction-control
-                                        :field="
-                                            index == 0 ? 'beta' : 'alignedBeta'
-                                        "
+                                        :computedField="obj => {
+                                            return obj.beta * -1 
+                                        }"
                                     >
                                         <div class="label">Effect (+/-)</div>
                                     </filter-effect-direction-control>
