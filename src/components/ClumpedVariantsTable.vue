@@ -8,7 +8,6 @@
         </div>
         <div v-if="rows > 0">
             <b-table
-                hover
                 small
                 bordered
                 responsive="sm"
@@ -22,17 +21,30 @@
                         size="sm"
                         variant="outline-primary"
                         class="mr-2 btn-mini"
-                        @click="data.toggleDetails"
+                        @click="
+                            showClumpData(data.item.phenotype, data.item.clump);
+                            data.toggleDetails();
+                        "
                     >
                         {{ data.detailsShowing ? "Hide" : "Show" }} Clump Data
                     </b-button>
                 </template>
-                <template #row-details="row">
-                    extra info
-                    <b-button size="sm" @click="row.toggleDetails"
-                        >Hide Details</b-button
-                    ></template
-                >
+                <template #row-details="row"
+                    >hello -
+                    <b-table
+                        v-if="clumpData[row.item.phenotype]"
+                        :items="clumpData[row.item.phenotype]"
+                        :per-page="perPage"
+                        :fields="subFields"
+                        :current-page="subCurrentPage[row.item.phenotype]"
+                    ></b-table>
+                    <b-pagination
+                        class="pagination-sm justify-content-center"
+                        v-model="subCurrentPage[row.item.phenotype]"
+                        :total-rows="clumpData[row.item.phenotype].length"
+                        :per-page="perPage"
+                    ></b-pagination>
+                </template>
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
@@ -55,6 +67,7 @@ export default Vue.component("clumped-variants-table", {
         return {
             perPage: 10,
             currentPage: 1,
+            subCurrentPage: {},
             fields: [
                 {
                     key: "varId",
@@ -82,6 +95,24 @@ export default Vue.component("clumped-variants-table", {
                 },
                 { key: "view", label: "View" },
             ],
+            subFields: [
+                {
+                    key: "varId",
+                    label: "Variant",
+                },
+                {
+                    key: "dbSNP",
+                    label: "dbSNP",
+                },
+                {
+                    key: "pValue",
+                    label: "P-Value",
+                },
+                {
+                    key: "beta",
+                    label: "Beta/OR",
+                },
+            ],
 
             clumpData: {},
         };
@@ -94,13 +125,21 @@ export default Vue.component("clumped-variants-table", {
     },
 
     methods: {
-        showClumpData(phenotype, clump) {
-            if (this.clumpData[phenotype] !== undefined)
-                return this.clumpData[phenotype];
-            else {
-                let clumpQuery = getClumpData(phenotype, clump);
-                this.clumpData[phenotype] = clumpQuery;
-                return clump;
+        async showClumpData(phenotype, clump) {
+            // if (this.clumpData[phenotype] !== undefined)
+            //     return this.clumpData[phenotype];
+            // else {
+            //     let clumpQuery = this.getClumpData(phenotype, clump);
+            //     this.clumpData[phenotype] = clumpQuery.data;
+            //     return clump;
+            // }
+            if (this.clumpData[phenotype] === undefined) {
+                console.log("none");
+                let clumpQuery = await this.getClumpData(phenotype, clump);
+                console.log("get", clumpQuery);
+
+                Vue.set(this.clumpData, phenotype, clumpQuery);
+                Vue.set(this.subCurrentPage, phenotype, 1);
             }
         },
         async getClumpData(phenotype, clump) {
