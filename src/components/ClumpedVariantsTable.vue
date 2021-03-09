@@ -3,7 +3,7 @@
         <div class="text-right mb-2">
             <csv-download
                 :data="variants"
-                filename="annotated_regions"
+                filename="clumped-variants"
             ></csv-download>
         </div>
         <div v-if="rows > 0">
@@ -13,9 +13,26 @@
                 bordered
                 responsive="sm"
                 :items="variants"
+                :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-            >
+                ><template #cell(view)="data">
+                    {{ data.item.phenotype }} - {{ data.item.clump }}
+                    <b-button
+                        size="sm"
+                        variant="outline-primary"
+                        class="mr-2 btn-mini"
+                        @click="data.toggleDetails"
+                    >
+                        {{ data.detailsShowing ? "Hide" : "Show" }} Clump Data
+                    </b-button>
+                </template>
+                <template #row-details="row">
+                    extra info
+                    <b-button size="sm" @click="row.toggleDetails"
+                        >Hide Details</b-button
+                    ></template
+                >
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
@@ -24,14 +41,12 @@
                 :per-page="perPage"
             ></b-pagination>
         </div>
-        <div v-else>
-            <h4 v-if="regions.length > 0">No annotated regions</h4>
-        </div>
     </div>
 </template>
 
 <script>
 import Vue from "vue";
+import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 
 export default Vue.component("clumped-variants-table", {
@@ -42,29 +57,33 @@ export default Vue.component("clumped-variants-table", {
             currentPage: 1,
             fields: [
                 {
-                    key: "region",
-                    label: "Region",
+                    key: "varId",
+                    label: "Lead Variant",
                 },
                 {
-                    key: "annotation",
-                    label: "Annotation",
-                    formatter: Formatters.annotationFormatter,
+                    key: "dbSNP",
+                    label: "dbSNP",
                 },
                 {
-                    key: "method",
-                    label: "Method",
-                    formatter: Formatters.capitalizedFormatter,
+                    key: "description",
+                    label: "Phenotype",
                 },
                 {
-                    key: "tissue",
-                    label: "Tissue",
-                    formatter: Formatters.tissueFormatter,
+                    key: "clump",
+                    label: "Clump",
                 },
+                {
+                    key: "pValue",
+                    label: "P-Value",
+                },
+                {
+                    key: "beta",
+                    label: "Beta/OR",
+                },
+                { key: "view", label: "View" },
             ],
 
-            annotations: [],
-            methods: [],
-            tissues: [],
+            clumpData: {},
         };
     },
 
@@ -74,6 +93,19 @@ export default Vue.component("clumped-variants-table", {
         },
     },
 
-    methods: {},
+    methods: {
+        showClumpData(phenotype, clump) {
+            if (this.clumpData[phenotype] !== undefined)
+                return this.clumpData[phenotype];
+            else {
+                let clumpQuery = getClumpData(phenotype, clump);
+                this.clumpData[phenotype] = clumpQuery;
+                return clump;
+            }
+        },
+        async getClumpData(phenotype, clump) {
+            return await query("clumped-variants", `${phenotype},${clump}`);
+        },
+    },
 });
 </script>
