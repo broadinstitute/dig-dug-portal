@@ -229,6 +229,11 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
+                        <enrichment-signal
+                            :enrichments="$parent.globalEnrichmentAnnotations">
+                        </enrichment-signal>
+
+
                         <criterion-annotation-picker
                             :globalEnrichments="$parent.globalEnrichmentAnnotations"
                             v-model="$parent.enrichmentFilter"

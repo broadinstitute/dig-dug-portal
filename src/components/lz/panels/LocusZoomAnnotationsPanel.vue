@@ -99,10 +99,12 @@ export class LZAnnotationIntervalsPanel {
             const tissueIntervals = !!intervals ? intervals
                 .map((interval) => {
                     const { r, g, b } = rgb(color(LZColorScheme.getColor(interval.tissue)));
-
                     let t = interval.tissueId || "NA";
                     let m = interval.method || "NA";
                     let key = `${t}_${m}_${interval.annotation}`;
+
+                    console.log()
+
                     return (t || m !== "NA") && !!scoring[key] ? {
                         name: interval.tissue || interval.tissueId,
                         // some data (not displayed by default)
@@ -112,6 +114,8 @@ export class LZAnnotationIntervalsPanel {
                         end: interval.end,
                         pValue: scoring[key].minP,
                         fold: scoring[key].maxFold,
+                        ancestry: scoring[key].ancestry,
+                        // method: scoring[key].method,
                         state_id: `${interval.tissueId}`,
                         // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
                         state_name: `${interval.tissue}`,
@@ -141,6 +145,8 @@ export class LZAnnotationIntervalsPanel {
                         fields: [
                             `{{namespace[${this.datasource_type}]}}pValue`,
                             `{{namespace[${this.datasource_type}]}}fold`,
+                            // `{{namespace[${this.datasource_type}]}}method`,
+                            `{{namespace[${this.datasource_type}]}}ancestry`,
                             ...LocusZoom.Layouts.get('data_layer', 'intervals', { unnamespaced: true }).fields
                         ],
                     },

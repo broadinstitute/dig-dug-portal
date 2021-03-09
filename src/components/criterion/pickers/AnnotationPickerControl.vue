@@ -4,7 +4,7 @@
         <div class="col filter-col-lg">
             <div class="label" style="margin-bottom: 5px">Add annotation</div>
             <annotation-method-selectpicker
-                :annotations="globalEnrichmentAnnotations"
+                :annotations="filteredGlobalEnrichments"
                 :clearOnSelected="true"
                 @annotation="$emit('annotation', $event)"/>
         </div>
@@ -54,7 +54,14 @@ import AnnotationSelectPicker from "@/components/AnnotationMethodSelectPicker.vu
 import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component('criterion-annotation-picker', {
-    props: ['globalEnrichments', 'value', 'onPick'],
+    props: {
+        globalEnrichments: Array,
+        value: Function,
+        constrainedOptions: {
+            type: Boolean,
+            default: false,
+        }
+    },
     data() {
         return {
             tmpValue: this.value,
@@ -71,12 +78,6 @@ export default Vue.component('criterion-annotation-picker', {
         globalEnrichmentTissues() {
             return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.tissue)))
         },
-        globalEnrichmentTissueIds() {
-            return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.tissueId)))
-        },
-        // globalEnrichmentAnnotations() {
-        //     return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.annotation)))
-        // },
         globalEnrichmentMethods() {
             return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.method)))
         },
@@ -84,18 +85,22 @@ export default Vue.component('criterion-annotation-picker', {
             return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.ancestry)))
         },
         filteredGlobalEnrichments() {
-            return this.globalEnrichments.filter(this.value)
+            if (this.constrainedOptions) {
+                return this.globalEnrichments.filter(this.value)
+            } else {
+                return this.globalEnrichments;
+            }
         },
-        globalEnrichmentAnnotations() {
-            // an array of annotations
-            return sortUtils.uniqBy(
-                this.filteredGlobalEnrichments,
-                el =>
-                    JSON.stringify(
-                        [el.annotation, !!el.method ? el.method : ""].join()
-                    )
-            );
-        },
+        // globalEnrichmentAnnotations() {
+        //     // an array of annotations
+        //     return sortUtils.uniqBy(
+        //         this.filteredGlobalEnrichments,
+        //         el =>
+        //             JSON.stringify(
+        //                 [el.annotation, !!el.method ? el.method : ""].join()
+        //             )
+        //     );
+        // },
     },
     watch: {
         value(newValue) {

@@ -34,6 +34,9 @@ import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 
 import AnnotationPickerControl from "@/components/criterion/pickers/AnnotationPickerControl.vue"
 
+import EnrichmentSignal from "@/components/EnrichmentSignal.vue"
+
+
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
@@ -74,6 +77,8 @@ new Vue({
         FilterEffectDirection,
         FilterEnumeration,
         FilterGreaterThan,
+
+        EnrichmentSignal,
 
         AnnotationMethodSelectPicker,
         AnnotationPickerControl,
@@ -378,11 +383,16 @@ new Vue({
                     if (!group) {
                         groups[key] = {
                             minP: r.pValue,
-                            maxFold: fold
+                            maxFold: fold,
+                            ...enrichment[i]
                         };
                     } else {
                         group.minP = Math.min(group.minP, r.pValue);
                         group.maxFold = Math.max(group.maxFold, fold);
+                        group = {
+                            ...group,
+                            ...enrichment[i],
+                        }
                     }
                 }
                 this.tissueScoring = groups;
