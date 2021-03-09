@@ -37,7 +37,7 @@ export default Vue.component('criterion-pills', {
         },
         cycleColors: {
             type: Boolean,
-            default: true,
+            default: false,
         }
     },
     created() {
