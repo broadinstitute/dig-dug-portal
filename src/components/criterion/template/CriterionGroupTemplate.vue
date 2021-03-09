@@ -1,48 +1,29 @@
 <template>
-    <span>
-        <!-- Controls and their labels -->
-        <slot name="header"></slot>
-        <b-container v-show="!hide" fluid class="filtering-ui-wrapper">
-            <b-row class="filtering-ui-content">
-                <EventListener @change="filterControlChange">
+    <span>                
+        <EventListener @change="filterControlChange" @unset="unsetFilter">
+            <!-- Controls and their labels -->
+            <slot name="header"></slot>
+            <b-container v-show="!hide" fluid class="filtering-ui-wrapper">
+                <b-row class="filtering-ui-content">
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
-                </EventListener>
-            </b-row>
-        </b-container>
-
-        <!-- Pills for everything -->
-        <div v-if="filterList.length > 0" class="filter-pill-collection center">
-            {{ this.header }}:&nbsp;&nbsp;
-            <!-- Derive pills from current filter state?
-                        Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
-                        It would be deterministic upto the compile-time declaration of the CriterionGroupTemplate controls which would lead to predicatable results at runtime
-            -->
-            <b-badge
-                pill
-                v-for="(filter, idx) in filterList"
-                :key="filter.field + filter.predicate + filter.threshold + idx"
-                :class="`btn filter-pill-${filter.field}`"
-                :style="{
-                    'background-color': `${
-                        !!filter.color ? `${filter.color} !important` : ''
-                    }`,
-                }"
-                @click="unsetFilter(filter, idx)"
-            >
-                {{
-                    !!filter.label
-                        ? typeof filter.label === "function"
-                            ? filter.label(filter)
-                            : new String(filter.label)
-                        : `${filter.field} = ${filter.threshold}`
-                }}
-                <span class="remove">X</span>
-            </b-badge>
-        </div>
+                    <slot v-if="!noPills && inlinePills" name="pills">
+                        <criterion-pills
+                            :header="header"
+                            :filterList="filterList"
+                        ></criterion-pills>
+                    </slot>
+                </b-row>
+            </b-container>
+            <slot v-if="!noPills && !inlinePills" name="pills">
+                <criterion-pills
+                    :header="header"
+                    :filterList="filterList"
+                ></criterion-pills>
+            </slot>
+        </EventListener>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
-        <br v-else />
         <slot name="filtered" :filter="criterion"></slot>
     </span>
 </template>
@@ -59,6 +40,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import { isEqual, cloneDeep } from "lodash";
 import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers";
+import CriterionPills from "@/components/criterion/template/CriterionPills";
 
 const EventListener = {
     /*
@@ -87,6 +69,9 @@ const EventListener = {
 };
 
 export default Vue.component("criterion-group-template", {
+    components: {
+        CriterionPills
+    },
     props: {
         value: [Function, Array],
         filterType: {
@@ -101,7 +86,7 @@ export default Vue.component("criterion-group-template", {
 
         header: {
             type: String,
-            default: "Selected Filters",
+            default: "Selected Filters:\t",
         },
 
         filterMaker: {
@@ -112,6 +97,14 @@ export default Vue.component("criterion-group-template", {
             type: Function,
             default: predicateFromSpec,
         },
+        noPills: {
+            type: Boolean,
+            default: false,
+        },
+        inlinePills: {
+            type: Boolean,
+            default: false,
+        }
     },
     components: {
         EventListener,
@@ -164,6 +157,7 @@ export default Vue.component("criterion-group-template", {
                     .map((filter) => filter.field)
                     .includes(filterDefinition.field)
             ) {
+                // pass in the whole filter definition along with is propert threshold
                 this.filterList = copiedArray.concat({
                     threshold,
                     ...filterDefinition,
@@ -201,7 +195,7 @@ export default Vue.component("criterion-group-template", {
             // NOTE: As a result of this.filterList being modified, the computed property for the filterFunction should reactively producing a new version of itself.
         },
 
-        unsetFilter(obj, idx) {
+        unsetFilter({ filter, idx }) {
             // equiv to setFilter with no data => reduction by alias
             // this.filterData[obj] = "";
             // this.filterList = this.filterList.filter(filterSpec => filterSpec.field !== obj.field && filterSpec.threshold !== obj.threshold && filterSpec.threshold !== obj.threshold)

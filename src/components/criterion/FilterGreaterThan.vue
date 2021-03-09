@@ -1,35 +1,39 @@
 <template>
-    <filter-control-template
-        class="filter-col-sm"
-        :field="field"
-        :type="'number'"
-        :predicate="predicate"
-        :pillFormatter="pillFormatter"
-        :color="color"
-        :multiple="false">
-        <slot>
-            {{field}}
-        </slot>
-    </filter-control-template>
+  <filter-control-template
+    class="filter-col-sm"
+    :field="field"
+    :type="'number'"
+    :predicate="predicate"
+    :pillFormatter="pillFormatter"
+    :color="color"
+    :computedField="computedField"
+    :multiple="false"
+  >
+    <slot>
+      {{ field }}
+    </slot>
+  </filter-control-template>
 </template>
 <script>
 import Vue from "vue";
-import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate"
-export default Vue.component('filter-greater-control', {
-    props: {
-        field: String,
-        color: String,
-        predicate: {
-            type: Function,
-            default: (number, lowerBound) => number >= lowerBound
-        },
-        pillFormatter: {
-            type: Function,
-            default: filterDefinition => `${filterDefinition.field} >= ${filterDefinition.threshold}`
-        }
+import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
+export default Vue.component("filter-greater-control", {
+  props: {
+    field: String,
+    computedField: Function,
+    color: String,
+    predicate: {
+      type: Function,
+      default: (number, lowerBound) => number >= lowerBound,
     },
-    components: {
-        FilterControlTemplate,
-    }
-})
+    pillFormatter: {
+      type: Function,
+      default: (filterDefinition) =>
+        `${filterDefinition.field} >= ${filterDefinition.threshold}`,
+    },
+  },
+  components: {
+    FilterControlTemplate,
+  },
+});
 </script>

@@ -1,5 +1,11 @@
 <template>
     <div>
+        <div class="text-right mt-2 mb-2">
+            <csv-download
+                :data="tableData"
+                filename="gene_associations"
+            ></csv-download>
+        </div>
         <b-table
             v-if="gene"
             hover
@@ -18,13 +24,15 @@
                             <a
                                 :href="`/phenotype.html?phenotype=${r.item.phenotype}`"
                                 v-if="phenotypeMap"
-                            >Open phenotype page</a>
+                                >Open phenotype page</a
+                            >
                         </div>
                         <div>
                             <a
                                 :href="`/region.html?phenotype=${r.item.phenotype}&chr=${gene.chromosome}&start=${gene.start}&end=${gene.end}`"
                                 v-if="phenotypeMap"
-                            >Open region page with selected phenotype</a>
+                                >Open region page with selected phenotype</a
+                            >
                         </div>
                     </div>
                 </a>
@@ -56,12 +64,14 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
+import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("gene-associations-table", {
     props: ["gene", "associations", "phenotypeMap", "filter"],
     components: {
         Documentation,
         TooltipDocumentation,
+        CsvDownload,
     },
     data() {
         return {

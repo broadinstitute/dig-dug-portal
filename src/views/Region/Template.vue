@@ -187,7 +187,7 @@
                             <filter-enumeration-control
                                 :field="'consequence'"
                                 :options="$parent.associationConsequences"
-                                :inclusive="true"
+                                :inclusive="false"
                             >
                                 <div class="label">Consequence</div>
                             </filter-enumeration-control>
@@ -195,7 +195,7 @@
                             <filter-enumeration-control
                                 :field="'nearest'"
                                 :options="$parent.associationNearestGenes"
-                                :inclusive="true"
+                                :inclusive="false"
                             >
                                 <div class="label">Closest Genes</div>
                             </filter-enumeration-control>
