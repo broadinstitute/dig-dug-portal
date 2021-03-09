@@ -11,6 +11,11 @@
             v-for="(filter, idx) in filterList"
             :key="filter.field + filter.predicate + filter.threshold + idx"
             :class="`btn filter-pill-${filter.field} ${cycleColors ? `color-${idx + 1}` : ''}`"
+            :style="{
+                'background-color': `${
+                    !!filter.color && cycleColors === false ? `${filter.color} !important` : ''
+                }`,
+            }"
             @click="!!unset ? unset : $parent.$emit('unset', { filter, idx })">
             {{
                 !!filter.label
