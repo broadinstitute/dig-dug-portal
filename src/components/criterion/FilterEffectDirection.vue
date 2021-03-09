@@ -21,6 +21,10 @@ export default Vue.component("filter-effect-direction-control", {
   props: {
     field: String,
     computedField: Function,
+    color: {
+      type: String,
+      default: '#007bff'
+    },
     options: {
       type: Array,
       default: () => ["positive", "negative"],

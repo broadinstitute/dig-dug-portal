@@ -19,6 +19,10 @@ export default Vue.component("filter-pvalue-control", {
   props: {
     field: String,
     computedField: Function,
+    color: {
+      type: String,
+      default: '#dc3545'
+    },
     pillFormatter: {
       type: Function,
       default: (filterDefinition) =>
