@@ -93,8 +93,12 @@ export default Vue.component("clumped-variants-table", {
                     label: "P-Value",
                 },
                 {
-                    key: "beta",
-                    label: "Beta/OR",
+                    key: "effect_beta",
+                    label: "Beta",
+                },
+                {
+                    key: "effect_or",
+                    label: "Odds Ratio",
                 },
                 { key: "view", label: "View" },
             ],
