@@ -345,15 +345,16 @@ new Vue({
 
     },
     watch: {
-        // selectedPhenotypes(oldCriterion, newCriterion) {
 
-        // },
         selectedPhenotypes: {
             handler(newData, oldData) {
                 if (!isEqual(newData, oldData)) {
                     //this.criteriaChanged = true;
-                    console.log(newData)
-                    //this.updateData(newData)
+                    newData.forEach(function (arrayItem) {
+                        var x = arrayItem
+                        // console.log(x);
+                        //  this.updateData(x)
+                    });
                 }
             },
             deep: true
@@ -375,7 +376,7 @@ new Vue({
             uiUtils.hideElement("phenotypeSearchHolder");
 
             if (phenotype) {
-                this.$store.commit("setSelectedPhenotype", phenotype);
+                // this.$store.commit("setSelectedPhenotype", phenotype);
 
                 // refresh the bioIndex queries that are determined by the phenotype
                 this.$store.dispatch("globalEnrichment/query", {
@@ -389,7 +390,7 @@ new Vue({
                 // this will also update the locuszoom plot, and thus the associations table
                 if (phenotype.name !== oldPhenotype) {
                     this.regionPageSearchCriterion.push({ field: 'phenotype', threshold: phenotype.name });
-                    keyParams.set({ phenotypes: phenotype.name })
+                    //keyParams.set({ phenotypes: phenotype.name })
 
                     if (typeof oldPhenotype !== 'undefined') {
                         this.regionPageSearchCriterion = this.regionPageSearchCriterion.filter(el => el.threshold !== oldPhenotype)
