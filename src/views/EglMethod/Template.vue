@@ -13,13 +13,26 @@
             >
             <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title"></div>
-                    <div class="col-md-4 gene-page-header-title">Phenotype</div>
+                    <div
+                        class="col-md-8 gene-page-header-title"
+                        v-if="$parent.trait != 'null'"
+                    ></div>
+                    <div
+                        class="col-md-4 gene-page-header-title"
+                        v-if="$parent.trait != 'null'"
+                    >
+                        Phenotype
+                    </div>
                     <div class="col-md-8 gene-page-header-body">
                         <h2>{{ $store.state.pageTitle }}</h2>
                     </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <h4>{{ $parent.trait }}</h4>
+                    <div
+                        class="col-md-4 gene-page-header-body"
+                        v-if="$parent.trait != 'null'"
+                    >
+                        <h4>
+                            {{ $parent.trait }}
+                        </h4>
                     </div>
                 </div>
             </div>
