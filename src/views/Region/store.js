@@ -49,6 +49,14 @@ export default new Vuex.Store({
             state.phenotype = phenotype;
             keyParams.set({ phenotype: phenotype.name });
         },
+        setUrl(state, phenotype) {
+            //state.phenotypeParam = phenotype.name;
+            //state.phenotype = phenotype;
+            for (let i = 0; i < phenotype.length; i++) {
+                keyParams.set({ phenotype: phenotype[i] });
+            }
+
+        },
         setPhenotypeByName(state, name) {
             state.phenotypeParam = name;
             state.phenotype = state.bioPortal.phenotypeMap[name];

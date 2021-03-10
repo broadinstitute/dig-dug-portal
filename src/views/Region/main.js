@@ -137,6 +137,9 @@ new Vue({
         },
 
         updatePageAssociations({ phenotype, data }) {
+            if (!!phenotype) {
+                keyParams.set({ phenotype: phenotype });
+            }
             this.pageAssociationsMap[phenotype] = data;
             this.pageAssociations = Object.entries(this.pageAssociationsMap).flatMap(pam => pam[1])
         },
@@ -279,7 +282,6 @@ new Vue({
             let phenoList = [];
             data2.forEach(element => {
                 let phenotype = phenotypeMap[element.phenotype];
-
                 element["group"] = phenotype.group.toUpperCase();
                 element["description"] = phenotype.description;
                 phenoList.push(element.phenotype);
@@ -304,22 +306,15 @@ new Vue({
         associationNearestGenes() {
             return this.pageAssociations.flatMap(assoc => assoc.nearest);
         },
-        // selectedPhenotype() {
-        //     let selectedPhenotype = this.regionPageSearchCriterion
-        //         .filter(criterion => criterion.field === "phenotype")
-        //         .map(criterion => criterion.threshold);
-        //     let phenomap = {};
-        //     phenomap = this.$store.state.bioPortal.phenotypeMap[
-        //         selectedPhenotype[0]
-        //     ];
-        //     return phenomap;
-        // },
+
         selectedPhenotypes() {
             if (this.regionPageSearchCriterion.length > 0) {
                 let selectedPhenotype = this.regionPageSearchCriterion
                     .filter(criterion => criterion.field === "phenotype")
                     .map(criterion => criterion.threshold);
-                return selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
+                let x = selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
+                this.$store.commit("setUrl", selectedPhenotype);
+                return x;
             } else return [];
         },
 
@@ -342,6 +337,8 @@ new Vue({
             uiUtils.hideElement("phenotypeSearchHolder");
 
             if (phenotype) {
+                this.$store.commit("setSelectedPhenotype", phenotype);
+
                 // refresh the bioIndex queries that are determined by the phenotype
                 this.$store.dispatch("globalEnrichment/query", {
                     q: phenotype.name
