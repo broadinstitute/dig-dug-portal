@@ -9,7 +9,7 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h1 class="card-title">HuGe Calculator</h1>
+                    <h1 class="card-title">HuGE Calculator</h1>
 
                     <documentation style="margin-bottom: 30px" name="tools.hugecal.subheader"></documentation>
 
