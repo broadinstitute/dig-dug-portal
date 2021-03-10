@@ -82,6 +82,9 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("queryRegion");
+        this.readURLParams();
+
+
     },
 
     render(createElement) {
@@ -117,6 +120,11 @@ new Vue({
         postAlertError,
         closeAlert,
 
+        readURLParams() {
+            if (keyParams.phenotypes) {
+                this.regionPageSearchCriterion.push({ field: "phenotype", threshold: keyParams.phenotypes })
+            }
+        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -137,9 +145,7 @@ new Vue({
         },
 
         updatePageAssociations({ phenotype, data }) {
-            if (!!phenotype) {
-                keyParams.set({ phenotype: phenotype });
-            }
+
             this.pageAssociationsMap[phenotype] = data;
             this.pageAssociations = Object.entries(this.pageAssociationsMap).flatMap(pam => pam[1])
         },
@@ -309,17 +315,26 @@ new Vue({
 
         selectedPhenotypes() {
             if (this.regionPageSearchCriterion.length > 0) {
-                let selectedPhenotype = this.regionPageSearchCriterion
+                let selectedPhenotypes = this.regionPageSearchCriterion
                     .filter(criterion => criterion.field === "phenotype")
                     .map(criterion => criterion.threshold);
-                let x = selectedPhenotype.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
-                this.$store.commit("setUrl", selectedPhenotype);
+                let x = selectedPhenotypes.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
+                //this.$store.commit("setUrl", selectedPhenotype);
+
+                keyParams.set({ phenotypes: selectedPhenotypes.length ? selectedPhenotypes.join(",") : [] })
+                //keyParams.set({ phenotype: selectedPhenotypes });
+
                 return x;
             } else return [];
         },
 
     },
     watch: {
+        // selectedPhenotypes(oldCriterion, newCriterion) {
+        // //     if (!isEqual(newCriterion, oldCriterion)) {
+        // //         this.$store.commit("setSelectedPhenotype", newCriterion[0].name);
+        // //     }
+        // // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 

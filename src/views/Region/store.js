@@ -34,7 +34,7 @@ export default new Vuex.Store({
         start: keyParams.start,
         end: keyParams.end,
         focusedVariant: keyParams.variant,
-        phenotype: keyParams.phenotype,
+        phenotype: keyParams.phenotypes,
 
         // user-entered search fields
         newChr: keyParams.chr,
@@ -47,16 +47,9 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, phenotype) {
             state.phenotypeParam = phenotype.name;
             state.phenotype = phenotype;
-            keyParams.set({ phenotype: phenotype.name });
+            //keyParams.set({ phenotype: phenotype.name });
         },
-        setUrl(state, phenotype) {
-            //state.phenotypeParam = phenotype.name;
-            //state.phenotype = phenotype;
-            for (let i = 0; i < phenotype.length; i++) {
-                keyParams.set({ phenotype: phenotype[i] });
-            }
 
-        },
         setPhenotypeByName(state, name) {
             state.phenotypeParam = name;
             state.phenotype = state.bioPortal.phenotypeMap[name];
