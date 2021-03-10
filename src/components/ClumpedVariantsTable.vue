@@ -15,11 +15,10 @@
                 :per-page="perPage"
                 :current-page="currentPage"
                 ><template #cell(view)="data">
-                    {{ data.item.phenotype }} - {{ data.item.clump }}
                     <b-button
                         size="sm"
                         variant="outline-primary"
-                        class="mr-2 btn-mini"
+                        class="btn-mini"
                         @click="
                             showClumpData(data.item.phenotype, data.item.clump);
                             data.toggleDetails();
@@ -69,9 +68,57 @@
                         v-if="clumpData[row.item.phenotype]"
                         :items="clumpData[row.item.phenotype]"
                         :per-page="perPage"
-                        :fields="subFields"
+                        :fields="effectFields(row.item.phenotype)"
                         :current-page="subCurrentPage[row.item.phenotype]"
-                    ></b-table>
+                    >
+                        <template #cell(effect)="data">
+                            <template
+                                v-if="
+                                    !phenotypeMap[data.item.phenotype]
+                                        .dichotomous
+                                "
+                            >
+                                <span
+                                    :class="`effect ${
+                                        data.item.beta < 0
+                                            ? 'negative'
+                                            : 'positive'
+                                    }`"
+                                    >{{
+                                        effectFormatter(data.item.beta) < 0
+                                            ? "&#9660;"
+                                            : "&#9650;"
+                                    }}</span
+                                ><span>{{
+                                    effectFormatter(data.item.beta)
+                                }}</span>
+                            </template>
+
+                            <template
+                                v-if="
+                                    !!phenotypeMap[data.item.phenotype]
+                                        .dichotomous
+                                "
+                            >
+                                <span
+                                    :class="`effect ${
+                                        Math.exp(data.item.beta) < 1
+                                            ? 'negative'
+                                            : 'positive'
+                                    }`"
+                                    >{{
+                                        effectFormatter(
+                                            Math.exp(data.item.beta)
+                                        ) < 1
+                                            ? "&#9660;"
+                                            : "&#9650;"
+                                    }}</span
+                                ><span>{{
+                                    effectFormatter(Math.exp(data.item.beta))
+                                }}</span>
+                            </template>
+                        </template>
+                    </b-table>
                     <b-pagination
                         v-if="clumpData[row.item.phenotype]"
                         class="pagination-sm justify-content-center"
@@ -151,10 +198,6 @@ export default Vue.component("clumped-variants-table", {
                     key: "pValue",
                     label: "P-Value",
                 },
-                {
-                    key: "beta",
-                    label: "Beta/OR",
-                },
             ],
 
             clumpData: {},
@@ -188,6 +231,18 @@ export default Vue.component("clumped-variants-table", {
         async getClumpData(phenotype, clump) {
             return await query("clumped-variants", `${phenotype},${clump}`);
         },
+        effectFields(phenotype) {
+            if (this.phenotypeMap[phenotype].dichotomous)
+                return this.subFields.concat([
+                    { key: "effect", label: "Odds Ratio" },
+                ]);
+            else {
+                return this.subFields.concat([
+                    { key: "effect", label: "Beta" },
+                ]);
+            }
+        },
+
         effectFormatter(effect) {
             return Formatters.effectFormatter(effect);
         },
