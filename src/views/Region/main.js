@@ -122,9 +122,17 @@ new Vue({
 
         readURLParams() {
             if (keyParams.phenotypes) {
-                this.regionPageSearchCriterion.push({ field: "phenotype", threshold: keyParams.phenotypes })
+                let selectedPhenotypes = keyParams.phenotypes.split(",");
+                selectedPhenotypes.forEach(p =>
+                    this.regionPageSearchCriterion.push({
+                        field: "phenotype",
+                        threshold: p
+                    })
+                );
             }
+
         },
+
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -145,7 +153,6 @@ new Vue({
         },
 
         updatePageAssociations({ phenotype, data }) {
-
             this.pageAssociationsMap[phenotype] = data;
             this.pageAssociations = Object.entries(this.pageAssociationsMap).flatMap(pam => pam[1])
         },
@@ -182,6 +189,17 @@ new Vue({
                 this.tissueScoring
             );
         },
+        updateData(phenotype) {
+            this.$store.commit("setSelectedPhenotype", phenotype);
+
+            // refresh the bioIndex queries that are determined by the phenotype
+            this.$store.dispatch("globalEnrichment/query", {
+                q: phenotype.name
+            });
+            this.$store.dispatch("credibleSets/query", {
+                q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+            });
+        }
 
     },
 
@@ -320,10 +338,7 @@ new Vue({
                     .map(criterion => criterion.threshold);
                 let x = selectedPhenotypes.map(sp => this.$store.state.bioPortal.phenotypeMap[sp])
                 //this.$store.commit("setUrl", selectedPhenotype);
-
                 keyParams.set({ phenotypes: selectedPhenotypes.length ? selectedPhenotypes.join(",") : [] })
-                //keyParams.set({ phenotype: selectedPhenotypes });
-
                 return x;
             } else return [];
         },
@@ -331,10 +346,18 @@ new Vue({
     },
     watch: {
         // selectedPhenotypes(oldCriterion, newCriterion) {
-        // //     if (!isEqual(newCriterion, oldCriterion)) {
-        // //         this.$store.commit("setSelectedPhenotype", newCriterion[0].name);
-        // //     }
-        // // },
+
+        // },
+        selectedPhenotypes: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    //this.criteriaChanged = true;
+                    console.log(newData)
+                    //this.updateData(newData)
+                }
+            },
+            deep: true
+        },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
@@ -366,6 +389,8 @@ new Vue({
                 // this will also update the locuszoom plot, and thus the associations table
                 if (phenotype.name !== oldPhenotype) {
                     this.regionPageSearchCriterion.push({ field: 'phenotype', threshold: phenotype.name });
+                    keyParams.set({ phenotypes: phenotype.name })
+
                     if (typeof oldPhenotype !== 'undefined') {
                         this.regionPageSearchCriterion = this.regionPageSearchCriterion.filter(el => el.threshold !== oldPhenotype)
                     }
