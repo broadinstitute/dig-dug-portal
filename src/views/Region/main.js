@@ -102,11 +102,11 @@ new Vue({
             pageAssociationsMap: {},
             pageAssociations: [],
 
-            regionPageSearchCriterion: keyParams.phenotype
+            regionPageSearchCriterion: keyParams.phenotypes
                 ? [
                     {
                         field: "phenotype",
-                        threshold: keyParams.phenotype
+                        threshold: keyParams.phenotypes
                     }
                 ]
                 : []
