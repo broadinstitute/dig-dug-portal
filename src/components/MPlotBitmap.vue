@@ -1,6 +1,12 @@
 <template>
     <div class="mbm-plot-content">
-        <div id="clicked_dot_value" class="hidden"></div>
+        <div id="clicked_dot_value" class="clicked-dot-value hidden">
+            <b-icon-x-circle-fill
+                class="clicked-dot-value-close"
+                @click="hidePanel"
+            ></b-icon-x-circle-fill>
+            <div id="clicked_dot_value_content"></div>
+        </div>
         <div
             v-if="!!renderConfig.legend"
             class="mbm-plot-legend"
@@ -146,7 +152,9 @@ export default Vue.component("m-bitmap-plot", {
     },
     methods: {
         ...uiUtils,
-
+        hidePanel() {
+            uiUtils.hideElement("clicked-dot-value");
+        },
         onResize(e) {
             this.renderPlot();
         },
@@ -187,9 +195,12 @@ export default Vue.component("m-bitmap-plot", {
             }
 
             let wrapper = document.getElementById("clicked_dot_value");
+            let contentWrapper = document.getElementById(
+                "clicked_dot_value_content"
+            );
             let canvas = document.getElementById("manhattanPlot");
             if (clickedDotValue != "") {
-                wrapper.innerHTML = clickedDotValue;
+                contentWrapper.innerHTML = clickedDotValue;
                 wrapper.classList.remove("hidden");
                 wrapper.style.top = y + canvas.offsetTop + "px";
                 wrapper.style.left = x + canvas.offsetLeft + "px";
@@ -391,11 +402,26 @@ $(function () {});
 
 <style>
 #manhattanPlot:hover {
-    background-color: #eee;
 }
 .gene-on-clicked-dot,
 .content-on-clicked-dot {
     display: block !important;
+}
+
+#clicked_dot_value {
+    padding: 8px 20px 8px 10px !important;
+}
+
+.clicked-dot-value-close {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 14px;
+    color: #69f;
+}
+
+.clicked-dot-value-close:hover {
+    color: #36c;
 }
 </style>
 

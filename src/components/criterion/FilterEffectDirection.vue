@@ -10,6 +10,7 @@
     @input-change="$emit('input-change', $event)"
     :multiple="false"
     :computedField="computedField"
+    :color="color"
   >
     <slot></slot>
   </filter-control-template>
@@ -21,6 +22,10 @@ export default Vue.component("filter-effect-direction-control", {
   props: {
     field: String,
     computedField: Function,
+    color: {
+      type: String,
+      default: '#007bff'
+    },
     options: {
       type: Array,
       default: () => ["positive", "negative"],
