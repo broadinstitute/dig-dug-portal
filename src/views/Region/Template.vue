@@ -165,6 +165,7 @@
                     <div v-if="$parent.topAssociations.length > 0">
                         <clumped-variants-table
                             :variants="$parent.topAssociations"
+                            :phenotypeMap="$parent.phenotypeMap"
                         ></clumped-variants-table>
                     </div>
                 </div>

@@ -28,6 +28,42 @@
                         {{ data.detailsShowing ? "Hide" : "Show" }} Clump Data
                     </b-button>
                 </template>
+                <template #cell(effect_beta)="data">
+                    <template
+                        v-if="!phenotypeMap[data.item.phenotype].dichotomous"
+                    >
+                        <span
+                            :class="`effect ${
+                                data.item.beta < 0 ? 'negative' : 'positive'
+                            }`"
+                            >{{
+                                effectFormatter(data.item.beta) < 0
+                                    ? "&#9660;"
+                                    : "&#9650;"
+                            }}</span
+                        ><span>{{ effectFormatter(data.item.beta) }}</span>
+                    </template>
+                </template>
+                <template #cell(effect_or)="data">
+                    <template
+                        v-if="!!phenotypeMap[data.item.phenotype].dichotomous"
+                    >
+                        <span
+                            :class="`effect ${
+                                Math.exp(data.item.beta) < 1
+                                    ? 'negative'
+                                    : 'positive'
+                            }`"
+                            >{{
+                                effectFormatter(Math.exp(data.item.beta)) < 1
+                                    ? "&#9660;"
+                                    : "&#9650;"
+                            }}</span
+                        ><span>{{
+                            effectFormatter(Math.exp(data.item.beta))
+                        }}</span>
+                    </template>
+                </template>
                 <template #row-details="row">
                     <b-table
                         v-if="clumpData[row.item.phenotype]"
@@ -61,7 +97,7 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 
 export default Vue.component("clumped-variants-table", {
-    props: ["variants"],
+    props: ["variants", "phenotypeMap"],
     data() {
         return {
             perPage: 10,
@@ -151,6 +187,9 @@ export default Vue.component("clumped-variants-table", {
         },
         async getClumpData(phenotype, clump) {
             return await query("clumped-variants", `${phenotype},${clump}`);
+        },
+        effectFormatter(effect) {
+            return Formatters.effectFormatter(effect);
         },
     },
 });
