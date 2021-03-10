@@ -129,11 +129,7 @@
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'phenotype'"
-                                :options="
-                                    $store.state.associations.data.map(
-                                        (association) => association.phenotype
-                                    )
-                                "
+                                :options="$store.state.associations.data.map((association) => association.phenotype)"
                                 :labelFormatter="
                                     (phenotype) =>
                                         !!$store.state.bioPortal.phenotypeMap[

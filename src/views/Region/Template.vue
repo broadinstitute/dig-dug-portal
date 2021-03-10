@@ -175,7 +175,7 @@
                             <filter-enumeration-control
                                 class="filter-col-lg"
                                 :field="'phenotype'"
-                                :options="$parent.topAssociationsPhenotypes"
+                                :options="$parent.allphenotypes"
                                 :multiple="true"
                                 :labelFormatter="(phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
                                         ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
@@ -269,9 +269,7 @@
                                     :end="$store.state.end"
                                     :filterAssociations="$parent.associationsFilter"
                                     :filterAnnotations="filter"
-                                    @regionchanged="$event => {
-                                        $parent.requestCredibleSets($event.data);
-                                    }"
+                                    @regionchanged="$event => {$parent.requestCredibleSets($event.data);}"
                                     :ldpop="true"
                                     :refSeq="true"
                                 >

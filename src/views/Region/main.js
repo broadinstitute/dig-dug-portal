@@ -189,6 +189,15 @@ new Vue({
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
 
+        allphenotypes() {
+            let phenotypes = this.$store.state.bioPortal.phenotypes
+            let permittedValues = []
+            phenotypes.map(value => {
+                permittedValues.push(value.name);
+            })
+            return permittedValues;
+        },
+
         documentationMap() {
             return {
                 phenotype:
@@ -295,16 +304,16 @@ new Vue({
         associationNearestGenes() {
             return this.pageAssociations.flatMap(assoc => assoc.nearest);
         },
-        selectedPhenotype() {
-            let selectedPhenotype = this.regionPageSearchCriterion
-                .filter(criterion => criterion.field === "phenotype")
-                .map(criterion => criterion.threshold);
-            let phenomap = {};
-            phenomap = this.$store.state.bioPortal.phenotypeMap[
-                selectedPhenotype[0]
-            ];
-            return phenomap;
-        },
+        // selectedPhenotype() {
+        //     let selectedPhenotype = this.regionPageSearchCriterion
+        //         .filter(criterion => criterion.field === "phenotype")
+        //         .map(criterion => criterion.threshold);
+        //     let phenomap = {};
+        //     phenomap = this.$store.state.bioPortal.phenotypeMap[
+        //         selectedPhenotype[0]
+        //     ];
+        //     return phenomap;
+        // },
         selectedPhenotypes() {
             if (this.regionPageSearchCriterion.length > 0) {
                 let selectedPhenotype = this.regionPageSearchCriterion
