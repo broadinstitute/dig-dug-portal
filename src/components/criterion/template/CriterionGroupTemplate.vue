@@ -105,8 +105,8 @@ export default Vue.component("criterion-group-template", {
     },
     data() {
         return {
-            filterList: [],
-            filterFunction: id => true,
+            filterList: null,
+            filterFunction: null,
             // the filter on the end prevents malformed initial values from being used in the component
 
             // criterion: !!this.value ? this.value : this.filterType === 'function' ? id => true : [],
@@ -124,17 +124,17 @@ export default Vue.component("criterion-group-template", {
         };
     },
     created() {
-        (this.filterList =
+        this.filterList =
             typeof this.value === "object" &&
             !!this.value.length &&
             this.value.length > 0
                 ? this.value
-                : []),
-            (this.filterFunction =
-                !!this.value && typeof this.value === "function"
-                    ? this.value
-                    : id => true),
-            console.log(this.value, "value");
+                : []
+        this.filterFunction =
+            !!this.value && typeof this.value === "function"
+                ? this.value
+                : id => true
+        console.log(this.value, "value");
         console.log(this.filterList, "filterList");
     },
     computed: {
