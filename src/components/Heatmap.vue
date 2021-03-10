@@ -4,9 +4,9 @@ heatmap configuration
             "label": "", // label that goes above the heatmap
             "legend": "", // legend that goes above the heatmap.Also color scale legend will be added automatically
             "renderBy": {"main":"obs_cppa","sub":"p"}, //main => box color, sub => circle size
-            "mainRenderRange":{"type":"scale","direction": "positive","low":0, "middle": 0,"high":0.30},
+            "main":{"type":"scale","direction": "positive","low":0, "middle": 0,"high":0.30},
             // type: scale or steps, direction: positive or negative,
-            "subRenderRange":{"type":"scale","direction": "negative","steps":[0,0.001,0.05],"low":0, "high":0.05},
+            "sub":{"type":"scale","direction": "negative","steps":[0,0.001,0.05],"low":0, "high":0.05},
             "rowField": "full_annotation",
             "rowLabel": "full_annotation",
             "columnField": "cluster_name",
@@ -20,7 +20,7 @@ heatmap configuration
         <div id="clicked_cell_value" class="clicked-cell-value hidden">
             <b-icon-x-circle-fill
                 class="clicked-cell-value-close"
-                @click="hidePanel"
+                @click="hidePanel('clicked_cell_value')"
             ></b-icon-x-circle-fill>
             <div id="clicked_cell_value_content"></div>
         </div>
@@ -120,27 +120,18 @@ export default Vue.component("heatmap", {
                 let column = this.renderConfig.columnField;
 
                 massagedData[d[row]][d[column]]["main"] =
-                    d[this.renderConfig.renderBy.main];
+                    d[this.renderConfig.main.field];
 
-                if (!!this.renderConfig.renderBy.sub) {
+                if (!!this.renderConfig.sub) {
                     massagedData[d[row]][d[column]]["sub"] =
-                        d[this.renderConfig.renderBy.sub];
+                        d[this.renderConfig.sub.field];
                 }
             });
 
             return massagedData;
         },
-        canvasWidth() {
-            return (
-                this.renderConfig.fontSize *
-                1.5 *
-                this.renderData.columns.length
-            );
-        },
-        canvasHeight() {
-            return (
-                this.renderConfig.fontSize * 1.5 * this.renderData.rows.length
-            );
+        boxSize() {
+            return this.renderConfig.fontSize * 1.5;
         },
     },
     watch: {
@@ -150,39 +141,30 @@ export default Vue.component("heatmap", {
     },
     methods: {
         ...uiUtils,
-        hidePanel() {
-            uiUtils.hideElement("clicked-cell-value");
-        },
+        hidePanel: uiUtils.hideElement,
         renderScaleLegend() {
             let scaleLegendWrapper = document.getElementById(
                 "heatmap_scale_legend"
             );
             let scaleLegendContent =
                 "<div class='scale-legend-main-field'><div class='field-label'>" +
-                this.renderConfig.mainRenderRange.label +
+                this.renderConfig.main.label +
                 ":</div> ";
 
-            if (
-                this.renderConfig.mainRenderRange.low !=
-                this.renderConfig.mainRenderRange.middle
-            ) {
+            let lowValue = this.renderConfig.main.low;
+            let middleValue = this.renderConfig.main.middle;
+            let highValue = this.renderConfig.main.high;
+
+            if (lowValue != middleValue) {
             }
 
-            if (
-                this.renderConfig.mainRenderRange.high !=
-                this.renderConfig.mainRenderRange.middle
-            ) {
-                let colorStep =
-                    (this.renderConfig.mainRenderRange.high -
-                        this.renderConfig.mainRenderRange.middle) /
-                    5;
+            if (highValue != middleValue) {
+                let colorStep = (highValue - middleValue) / 5;
 
                 let scaleMiddle =
-                    this.renderConfig.mainRenderRange.middle == 0
+                    middleValue == 0
                         ? "0.00"
-                        : Formatters.floatFormatter(
-                              this.renderConfig.mainRenderRange.middle
-                          );
+                        : Formatters.floatFormatter(middleValue);
                 scaleLegendContent +=
                     "<div class='scale-legend-main-colors'><div class='scale-color' style='background-color: rgb(255,255,255)'>" +
                     scaleMiddle +
@@ -192,7 +174,7 @@ export default Vue.component("heatmap", {
                     rAndG *= 255;
                     rAndG = rAndG == 0 ? 0 : Formatters.intFormatter(rAndG);
 
-                    console.log("rAndG", rAndG);
+                    //console.log("rAndG", rAndG);
                     scaleLegendContent +=
                         "<div class='scale-color' style='background-color: rgb(255," +
                         rAndG +
@@ -205,14 +187,14 @@ export default Vue.component("heatmap", {
                 scaleLegendContent += "</div></div>";
             }
 
-            if (!!this.renderConfig.renderBy.sub) {
+            if (!!this.renderConfig.sub) {
                 scaleLegendContent +=
                     "<div class='scale-legend-sub-field'><div class='field-label'>" +
-                    this.renderConfig.subRenderRange.label +
+                    this.renderConfig.sub.label +
                     "</div>:";
-                let steps = this.renderConfig.subRenderRange.steps;
-                let stepDirection = this.renderConfig.subRenderRange.direction;
-                let dotMaxR = this.renderConfig.fontSize * 1.5 * 0.75;
+                let steps = this.renderConfig.sub.valueRange;
+                let stepDirection = this.renderConfig.sub.direction;
+                let dotMaxR = this.boxSize * 0.75;
                 let spanScale;
 
                 steps.map((s, sindex) => {
@@ -249,12 +231,8 @@ export default Vue.component("heatmap", {
 
             let xPos = Math.floor(e.clientX - rect.left);
             let yPos = Math.floor(e.clientY - rect.top);
-            let x = Math.floor(
-                (e.clientX - rect.left) / (this.renderConfig.fontSize * 1.5)
-            );
-            let y = Math.floor(
-                (e.clientY - rect.top) / (this.renderConfig.fontSize * 1.5)
-            );
+            let x = Math.floor((e.clientX - rect.left) / this.boxSize);
+            let y = Math.floor((e.clientY - rect.top) / this.boxSize);
 
             //console.log(this.squareData[y][x]);
             let clickedCellValue = "";
@@ -268,14 +246,14 @@ export default Vue.component("heatmap", {
                 "</sub>";
             clickedCellValue +=
                 '<span class="content-on-clicked-cell"><b>' +
-                this.squareData[y][x].main.field +
+                this.renderConfig.main.label +
                 ": </b>" +
                 this.squareData[y][x].main.value +
                 "</span>";
             if (!!this.squareData[y][x].sub) {
                 clickedCellValue +=
                     '<span class="content-on-clicked-cell"><b>' +
-                    this.squareData[y][x].sub.field +
+                    this.renderConfig.sub.label +
                     ": </b>" +
                     this.squareData[y][x].sub.value +
                     "</span>";
@@ -314,8 +292,7 @@ export default Vue.component("heatmap", {
                 1.5 *
                 this.renderData.columns.length;
 
-            let canvasHeight =
-                this.renderConfig.fontSize * 1.5 * this.renderData.rows.length;
+            let canvasHeight = this.boxSize * this.renderData.rows.length;
 
             document.getElementById("heatmapColumnsWrapper").style.fontSize =
                 this.renderConfig.fontSize + "px";
@@ -326,10 +303,7 @@ export default Vue.component("heatmap", {
                 var div = document.createElement("div");
                 var t = document.createTextNode(c);
                 div.appendChild(t);
-                div.setAttribute(
-                    "style",
-                    "height: " + this.renderConfig.fontSize * 1.5 + "px;"
-                );
+                div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document
                     .getElementById("heatmapColumnsWrapper")
                     .appendChild(div);
@@ -339,10 +313,7 @@ export default Vue.component("heatmap", {
                 var div = document.createElement("div");
                 var t = document.createTextNode(r);
                 div.appendChild(t);
-                div.setAttribute(
-                    "style",
-                    "height: " + this.renderConfig.fontSize * 1.5 + "px;"
-                );
+                div.setAttribute("style", "height: " + this.boxSize + "px;");
                 document.getElementById("heatmapRowsWrapper").appendChild(div);
             });
 
@@ -355,13 +326,12 @@ export default Vue.component("heatmap", {
                 20;
 
             let rIndex = 0;
-            let rectSize = this.renderConfig.fontSize * 1.5;
 
             /*document.getElementById("heatmapColumnsWrapper").style.top =
                 -columnTopSpace + "px";*/
             document.getElementById("heatmapColumnsWrapper").style.left =
                 document.getElementById("heatmapRowsWrapper").offsetWidth +
-                (rectSize - this.renderConfig.fontSize) / 2 +
+                (this.boxSize - this.renderConfig.fontSize) / 2 +
                 "px";
             document.getElementById("heatmapWrapper").style.paddingTop =
                 aboveColumnPadding + "px";
@@ -376,26 +346,26 @@ export default Vue.component("heatmap", {
                 let cIndex = 0;
                 this.renderData.columns.map((c) => {
                     let mainValue = this.renderData[r][c].main;
-                    let left = this.renderConfig.fontSize * 1.5 * cIndex;
-                    let top = this.renderConfig.fontSize * 1.5 * rIndex;
+                    let left = this.boxSize * cIndex;
+                    let top = this.boxSize * rIndex;
 
                     this.squareData[rIndex][cIndex] = {};
                     this.squareData[rIndex][cIndex]["main"] = {
-                        field: this.renderConfig.renderBy.main,
+                        field: this.renderConfig.main.field,
                         value: this.renderData[r][c].main,
                     };
-                    if (!!this.renderConfig.renderBy.sub) {
+                    if (!!this.renderConfig.sub) {
                         this.squareData[rIndex][cIndex]["sub"] = {
-                            field: this.renderConfig.renderBy.sub,
+                            field: this.renderConfig.sub.field,
                             value: this.renderData[r][c].sub,
                         };
                     }
                     //mainValue *= -1;
                     let rColor, gColor, bColor;
-                    let direction = this.renderConfig.mainRenderRange.direction;
-                    let valHi = this.renderConfig.mainRenderRange.high;
-                    let valMid = this.renderConfig.mainRenderRange.middle;
-                    let valLo = this.renderConfig.mainRenderRange.low;
+                    let direction = this.renderConfig.main.direction;
+                    let valHi = this.renderConfig.main.high;
+                    let valMid = this.renderConfig.main.middle;
+                    let valLo = this.renderConfig.main.low;
 
                     rColor =
                         mainValue >= valMid
@@ -403,13 +373,13 @@ export default Vue.component("heatmap", {
                             : 255 -
                               255 * ((valMid - mainValue) / valMid - valLo);
                     gColor =
-                        mainValue >= this.renderConfig.mainRenderRange.middle
+                        mainValue >= this.renderConfig.main.middle
                             ? 255 -
                               255 * ((mainValue - valMid) / (valHi - valMid))
                             : 255 -
                               255 * ((valMid - mainValue) / valMid - valLo);
                     bColor =
-                        mainValue < this.renderConfig.mainRenderRange.middle
+                        mainValue < this.renderConfig.main.middle
                             ? 255
                             : 255 -
                               255 * ((mainValue - valMid) / (valHi - valMid));
@@ -428,26 +398,23 @@ export default Vue.component("heatmap", {
                         ",1)";
 
                     ctx.beginPath();
-                    ctx.rect(left, top, rectSize, rectSize);
+                    ctx.rect(left, top, this.boxSize, this.boxSize);
                     ctx.fillStyle = colorString;
                     ctx.fill();
 
-                    if (!!this.renderConfig.renderBy.sub) {
-                        let steps = this.renderConfig.subRenderRange.steps;
-                        let dotMaxR =
-                            (this.renderConfig.fontSize * 1.5 * 0.75) / 2;
-                        let centerPos = (this.renderConfig.fontSize * 1.5) / 2;
+                    if (!!this.renderConfig.sub) {
+                        let steps = this.renderConfig.sub.valueRange;
+                        let subDirection = this.renderConfig.sub.direction;
+                        let dotMaxR = (this.boxSize * 0.75) / 2;
+                        let centerPos = this.boxSize / 2;
 
                         let stepVal = 0;
                         let subValue = this.renderData[r][c].sub;
                         let dotR;
 
-                        if (this.renderConfig.subRenderRange.type == "steps") {
+                        if (this.renderConfig.sub.type == "steps") {
                             let dotRUnit = dotMaxR / steps.length;
-                            if (
-                                this.renderConfig.subRenderRange.direction ==
-                                "positive"
-                            ) {
+                            if (subDirection == "positive") {
                                 for (let i = 0; i <= steps.length - 1; i++) {
                                     stepVal += subValue >= steps[i] ? 1 : 0;
                                 }
@@ -457,14 +424,9 @@ export default Vue.component("heatmap", {
                                 }
                             }
                             dotR = dotRUnit * stepVal;
-                        } else if (
-                            this.renderConfig.subRenderRange.type == "scale"
-                        ) {
+                        } else if (this.renderConfig.sub.type == "scale") {
                             let scaleRange = steps[1] - steps[0];
-                            if (
-                                this.renderConfig.subRenderRange.direction ==
-                                "positive"
-                            ) {
+                            if (subDirection == "positive") {
                                 subValue -= steps[0];
                                 stepVal =
                                     subValue <= steps[0]
