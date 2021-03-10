@@ -72,51 +72,27 @@
                         :current-page="subCurrentPage[row.item.phenotype]"
                     >
                         <template #cell(effect)="data">
-                            <template
-                                v-if="
-                                    !phenotypeMap[data.item.phenotype]
-                                        .dichotomous
-                                "
-                            >
-                                <span
-                                    :class="`effect ${
-                                        data.item.beta < 0
-                                            ? 'negative'
-                                            : 'positive'
-                                    }`"
-                                    >{{
-                                        effectFormatter(data.item.beta) < 0
-                                            ? "&#9660;"
-                                            : "&#9650;"
-                                    }}</span
-                                ><span>{{
-                                    effectFormatter(data.item.beta)
-                                }}</span>
-                            </template>
-
-                            <template
-                                v-if="
-                                    !!phenotypeMap[data.item.phenotype]
-                                        .dichotomous
-                                "
-                            >
-                                <span
-                                    :class="`effect ${
-                                        Math.exp(data.item.beta) < 1
-                                            ? 'negative'
-                                            : 'positive'
-                                    }`"
-                                    >{{
-                                        effectFormatter(
-                                            Math.exp(data.item.beta)
-                                        ) < 1
-                                            ? "&#9660;"
-                                            : "&#9650;"
-                                    }}</span
-                                ><span>{{
-                                    effectFormatter(Math.exp(data.item.beta))
-                                }}</span>
-                            </template>
+                            <span
+                                :class="`effect ${
+                                    data.item.beta < 0
+                                        ? 'negative'
+                                        : 'positive'
+                                }`"
+                                >{{
+                                    data.item.beta < 0
+                                        ? "&#9660;"
+                                        : "&#9650;"
+                                }}</span  v-if="
+                                !phenotypeMap[data.item.phenotype]
+                                    .dichotomous
+                            "
+                            ><span v-if="!phenotypeMap[data.item.phenotype]
+                                    .dichotomous">{{
+                                effectFormatter(data.item.beta)
+                            }}</span>
+                            <span v-else>{{
+                                effectFormatter(Math.exp(data.item.beta))
+                            }}</span>
                         </template>
                     </b-table>
                     <b-pagination
