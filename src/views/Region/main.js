@@ -201,6 +201,10 @@ new Vue({
             return [this.$store.state.phenotype];
         },
 
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
+
         credibleSets() {
             return this.$store.state.credibleSets.data;
         },
@@ -222,9 +226,7 @@ new Vue({
                 const assoc = data[i];
 
                 // skip associations not part of the disease group
-                if (
-                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
-                ) {
+                if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
 
@@ -246,9 +248,7 @@ new Vue({
                 const assoc = data[i];
 
                 // skip associations not part of the disease group
-                if (
-                    !this.$store.state.bioPortal.phenotypeMap[assoc.phenotype]
-                ) {
+                if (!this.phenotypeMap[assoc.phenotype]) {
                     continue;
                 }
 
@@ -260,10 +260,10 @@ new Vue({
             let data2 = Object.values(assocMap).sort(
                 (a, b) => a.pValue - b.pValue
             );
-            let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
+
             let phenoList = [];
             data2.forEach(element => {
-                let phenotype = phenotypeMap[element.phenotype];
+                let phenotype = this.phenotypeMap[element.phenotype];
 
                 element["group"] = phenotype.group.toUpperCase();
                 element["description"] = phenotype.description;
@@ -295,9 +295,7 @@ new Vue({
                 .filter(criterion => criterion.field === "phenotype")
                 .map(criterion => criterion.threshold);
             let phenomap = {};
-            phenomap = this.$store.state.bioPortal.phenotypeMap[
-                selectedPhenotype[0]
-            ];
+            phenomap = this.phenotypeMap[selectedPhenotype[0]];
             return phenomap;
         },
         criterion() {
@@ -385,9 +383,7 @@ new Vue({
             // If no phenotype is selected, pick the top phenotype from assocations
             if (!this.$store.state.phenotype && top.length > 0) {
                 let topAssoc = top[0];
-                let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
-                    topAssoc.phenotype
-                ];
+                let topPhenotype = this.phenotypeMap[topAssoc.phenotype];
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
