@@ -9,7 +9,6 @@
         <div v-if="rows > 0">
             <b-table
                 small
-                bordered
                 responsive="sm"
                 :items="variants"
                 :fields="fields"
@@ -39,6 +38,7 @@
                         :current-page="subCurrentPage[row.item.phenotype]"
                     ></b-table>
                     <b-pagination
+                        v-if="clumpData[row.item.phenotype]"
                         class="pagination-sm justify-content-center"
                         v-model="subCurrentPage[row.item.phenotype]"
                         :total-rows="clumpData[row.item.phenotype].length"
