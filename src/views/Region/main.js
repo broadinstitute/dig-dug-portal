@@ -106,7 +106,7 @@ new Vue({
                 ? [
                     {
                         field: "phenotype",
-                        threshold: keyParams.phenotypes
+                        threshold: keyParams.phenotypes,
                     }
                 ]
                 : []
