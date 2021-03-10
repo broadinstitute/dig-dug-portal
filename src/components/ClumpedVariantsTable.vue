@@ -28,8 +28,7 @@
                         {{ data.detailsShowing ? "Hide" : "Show" }} Clump Data
                     </b-button>
                 </template>
-                <template #row-details="row"
-                    >hello -
+                <template #row-details="row">
                     <b-table
                         v-if="clumpData[row.item.phenotype]"
                         :items="clumpData[row.item.phenotype]"
@@ -80,6 +79,10 @@ export default Vue.component("clumped-variants-table", {
                 {
                     key: "description",
                     label: "Phenotype",
+                },
+                {
+                    key: "group",
+                    label: "Group",
                 },
                 {
                     key: "clump",

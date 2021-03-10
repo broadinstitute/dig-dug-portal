@@ -163,12 +163,10 @@
                         ></phenotype-signal-mixed>
                     </div>
                     <div v-if="$parent.topAssociations.length > 0">
-                        <b-table :items="$parent.topAssociations"></b-table>
+                        <clumped-variants-table
+                            :variants="$parent.topAssociations"
+                        ></clumped-variants-table>
                     </div>
-                    DIVIDER HERE
-                    <clumped-variants-table
-                        :variants="$parent.topAssociations"
-                    ></clumped-variants-table>
                 </div>
             </div>
 
