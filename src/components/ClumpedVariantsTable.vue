@@ -74,22 +74,18 @@
                         <template #cell(effect)="data">
                             <span
                                 :class="`effect ${
-                                    data.item.beta < 0
-                                        ? 'negative'
-                                        : 'positive'
+                                    data.item.beta < 0 ? 'negative' : 'positive'
                                 }`"
                                 >{{
-                                    data.item.beta < 0
-                                        ? "&#9660;"
-                                        : "&#9650;"
-                                }}</span  v-if="
-                                !phenotypeMap[data.item.phenotype]
-                                    .dichotomous
-                            "
-                            ><span v-if="!phenotypeMap[data.item.phenotype]
-                                    .dichotomous">{{
-                                effectFormatter(data.item.beta)
-                            }}</span>
+                                    data.item.beta < 0 ? "&#9660;" : "&#9650;"
+                                }}</span
+                            ><span
+                                v-if="
+                                    !phenotypeMap[data.item.phenotype]
+                                        .dichotomous
+                                "
+                                >{{ effectFormatter(data.item.beta) }}</span
+                            >
                             <span v-else>{{
                                 effectFormatter(Math.exp(data.item.beta))
                             }}</span>
