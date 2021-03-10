@@ -21,7 +21,6 @@ export default Vue.component("filter-less-control", {
   props: {
     field: String,
     computedField: Function,
-    color: String,
     predicate: {
       type: Function,
       default: (number, upperBound) => number <= upperBound,

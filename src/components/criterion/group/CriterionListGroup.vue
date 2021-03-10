@@ -44,6 +44,7 @@ export default Vue.component("criterion-list-group", {
         },
         header: String,
     },
+    components: { CriterionGroupTemplate },
     methods: {
         emitInput(value) {
             this.$emit("input", value);
