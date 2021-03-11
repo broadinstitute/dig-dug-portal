@@ -68,6 +68,10 @@
 
 .pws-phenotype-group.HEMATOLOGICAL div.pws-progress-bar { background-color: #aa0000; }
 
+
+.pws-box {
+    border-top: solid 5px #6c757d !important;
+}
 .pws-box.ANTHROPOMETRIC {
     border-top: solid 5px #048845 !important;
 }

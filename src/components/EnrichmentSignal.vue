@@ -126,7 +126,7 @@
                 </div>
                 <div
                     v-for="key in annotationGroups"
-                    class="pws-phenotype-group-container pws-phenotype-group"
+                    class="pws-phenotype-group-container pws-enrichment-group"
                     :class="key"
                     :key="key"
                 >
@@ -378,9 +378,7 @@ export default Vue.component("enrichment-signal", {
 .annotation-group.RepressedPolycomb {
     background-color: #ff55ff;
 }
-.annotation-group {
-    background-color: #888888;
-}
+
 
 
 
