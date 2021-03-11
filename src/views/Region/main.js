@@ -102,14 +102,7 @@ new Vue({
             pageAssociationsMap: {},
             pageAssociations: [],
 
-            regionPageSearchCriterion: keyParams.phenotypes
-                ? [
-                    {
-                        field: "phenotype",
-                        threshold: keyParams.phenotypes,
-                    }
-                ]
-                : []
+            regionPageSearchCriterion: []
         };
     },
 
@@ -346,19 +339,19 @@ new Vue({
     },
     watch: {
 
-        selectedPhenotypes: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    //this.criteriaChanged = true;
-                    newData.forEach(function (arrayItem) {
-                        var x = arrayItem
-                        // console.log(x);
-                        //  this.updateData(x)
-                    });
-                }
-            },
-            deep: true
-        },
+        // selectedPhenotypes: {
+        //     handler(newData, oldData) {
+        //         if (!isEqual(newData, oldData)) {
+        //             //this.criteriaChanged = true;
+        //             newData.forEach(function (arrayItem) {
+        //                 var x = arrayItem
+        //                 // console.log(x);
+        //                 //  this.updateData(x)
+        //             });
+        //         }
+        //     },
+        //     deep: true
+        // },
         "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
             let param = this.$store.state.phenotypeParam;
 
@@ -431,6 +424,7 @@ new Vue({
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                     topAssoc.phenotype
                 ];
+                
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },

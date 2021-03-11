@@ -47,6 +47,7 @@ export default new Vuex.Store({
         setSelectedPhenotype(state, phenotype) {
             state.phenotypeParam = phenotype.name;
             state.phenotype = phenotype;
+            
             //keyParams.set({ phenotype: phenotype.name });
         },
 
