@@ -90,11 +90,11 @@ function dbSNPFormatter(dbSNP) {
     return dbSNP;
 }
 
-function floatFormatter(value) {
+function floatFormatter(value, fixed=2) {
     if (!value) {
         return '-';
     }
-    return Number.parseFloat(value).toFixed(2);
+    return Number.parseFloat(value).toFixed(fixed);
 }
 
 function pValueFormatter(value) {

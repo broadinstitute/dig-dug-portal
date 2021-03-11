@@ -14,8 +14,8 @@
             <span v-html="htmlText"></span>&nbsp;
             <small class="text-secondary">
                 {{ !!data.method ? data.method : '' }}<br>
-                {{ !!data.pValue ? pValueFormatter(data.pValue) : '' }}<br>
-                {{ !!data.expectedSNPs && !!data.SNPs ?  floatFormatter(data.SNPs / data.expectedSNPs) : '' }}<br>
+                P-Value: {{ !!data.pValue ? pValueFormatter(data.pValue) : '' }}<br>
+                Fold: {{ !!data.expectedSNPs && !!data.SNPs ?  floatFormatter(data.SNPs / data.expectedSNPs, 1) : '' }}<br>
             </small>
         </template>
     </vue-typeahead-bootstrap>

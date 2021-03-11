@@ -105,7 +105,7 @@
                 >&nbsp;</a>
 
                 <div class="p-bellow-section-header">
-                    <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for phenotypes in a group. Hover over bar or expand the group to see associations for individual phenotypes.
+                    <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for tissues within an enrichment category. Hover over bar or expand the group to see associations for individual tissues.
                 </div>
 
                 <div class="pws-phenotype-group-container">
