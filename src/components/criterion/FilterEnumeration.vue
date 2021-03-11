@@ -48,9 +48,11 @@ export default Vue.component("filter-enumeration-control", {
         pillFormatter: {
             type: Function,
             default: (filterDefinition) =>
-                `${filterDefinition.field} = ${Formatter.capitalizedFormatter(
-                    filterDefinition.threshold
-                )}`
+                `${filterDefinition.field} = ${!!filterDefinition.labelFormatter ?
+                    filterDefinition.labelFormatter(
+                        filterDefinition.threshold
+                    )
+                : filterDefinition.threshold}`
         },
         disableSort: {
             type: Boolean,
