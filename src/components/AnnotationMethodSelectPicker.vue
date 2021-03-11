@@ -15,7 +15,7 @@
             <small class="text-secondary">
                 {{ !!data.method ? data.method : '' }}<br>
                 P-Value: {{ !!data.pValue ? pValueFormatter(data.pValue) : '' }}<br>
-                Fold: {{ !!data.expectedSNPs && !!data.SNPs ?  floatFormatter(data.SNPs / data.expectedSNPs, 1) : '' }}<br>
+                Enrichment Score: {{ !!data.expectedSNPs && !!data.SNPs ?  floatFormatter(data.SNPs / data.expectedSNPs, 1) : '' }}<br>
             </small>
         </template>
     </vue-typeahead-bootstrap>
