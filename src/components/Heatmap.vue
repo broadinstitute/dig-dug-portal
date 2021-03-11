@@ -515,6 +515,10 @@ $(function () {});
     border: solid 1px #aaa;
 }
 
+#heatmap:hover {
+    cursor: pointer;
+}
+
 #clicked_cell_value {
     text-align: left;
     padding: 8px 20px 8px 10px !important;
