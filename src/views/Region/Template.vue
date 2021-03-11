@@ -229,13 +229,12 @@
                             :content-fill="$parent.documentationMap"
                         ></documentation>
 
-                        <enrichment-signal
-                            :enrichments="$parent.globalEnrichmentAnnotations">
-                        </enrichment-signal>
+
 
 
                         <criterion-annotation-picker
                             :globalEnrichments="$parent.globalEnrichmentAnnotations"
+                            :constrain="true"
                             v-model="$parent.enrichmentFilter"
                             @annotation="$parent.addAnnotationIntervalsPanel($event)">
 
@@ -249,7 +248,18 @@
                                 </div>
                             </template>
 
-                            <template #filtered>
+                            <template #filtered="{ filteredEnrichments }">
+
+                                <enrichment-signal
+                                    v-if="filteredEnrichments.length > 0"
+                                    :enrichments="filteredEnrichments">
+                                    <template #tooltip="{ row }">
+                                        <div
+                                            @click="$parent.addAnnotationIntervalsPanel(row)"
+                                        >Add Annotation to LocusZoom</div>
+                                    </template>
+                                </enrichment-signal>
+
                                 <locuszoom
                                     v-if="$parent.tissueScoring !== null"
                                     ref="locuszoom"
@@ -269,6 +279,7 @@
                                         :phenotype="$store.state.phenotype.name"
                                     ></lz-catalog-annotations-panel>
                                 </locuszoom>
+
                             </template>
 
                         </criterion-annotation-picker>

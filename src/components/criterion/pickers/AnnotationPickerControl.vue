@@ -19,10 +19,10 @@
                 :field="'method'"
                 :options="globalEnrichmentMethods"
             ></filter-enumeration-control>
-            <filter-enumeration-control
+            <!-- <filter-enumeration-control
                 :field="'tissue'"
                 :options="globalEnrichmentTissues"
-            ></filter-enumeration-control>
+            ></filter-enumeration-control> -->
             <filter-enumeration-control
                 :field="'ancestry'"
                 :options="globalEnrichmentAncestry"
@@ -39,7 +39,7 @@
         </span>
 
         <template #filtered="filter">
-            <slot name="filtered" :filter="filter"></slot>
+            <slot name="filtered" :filter="filter" :filteredEnrichments="filteredGlobalEnrichments"></slot>
         </template>
 
     </criterion-function-group>
@@ -56,8 +56,11 @@ import sortUtils from "@/utils/sortUtils";
 export default Vue.component('criterion-annotation-picker', {
     props: {
         globalEnrichments: Array,
-        value: Function,
-        constrainedOptions: {
+        value: {
+            type: Function,
+            default: id => true,
+        },
+        constrain: {
             type: Boolean,
             default: false,
         }
@@ -85,7 +88,7 @@ export default Vue.component('criterion-annotation-picker', {
             return Array.from(new Set(this.filteredGlobalEnrichments.map(enrichment => enrichment.ancestry)))
         },
         filteredGlobalEnrichments() {
-            if (this.constrainedOptions) {
+            if (this.constrain) {
                 return this.globalEnrichments.filter(this.value)
             } else {
                 return this.globalEnrichments;

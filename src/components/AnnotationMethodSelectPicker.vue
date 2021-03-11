@@ -4,7 +4,7 @@
         ref="annotationOptionsSelect"
         placeholder="Add an annotation ..."
         :data="annotationOptions"
-        :serializer="s => s.annotation"
+        :serializer="s => `${!!s.tissue ? s.tissue : ''} ${s.annotation}`"
         :showOnFocus="true"
         :minMatchingChars="0"
         :maxMatches="1000"
@@ -12,20 +12,23 @@
     >
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
-            <small class="text-secondary">{{ !!data.method ? data.method : '' }}</small>
+            <small class="text-secondary">
+                {{ !!data.method ? data.method : '' }}<br>
+                {{ !!data.pValue ? pValueFormatter(data.pValue) : '' }}<br>
+                {{ !!data.expectedSNPs && !!data.SNPs ?  floatFormatter(data.SNPs / data.expectedSNPs) : '' }}<br>
+            </small>
         </template>
     </vue-typeahead-bootstrap>
 </template>
 
 <script>
 import Vue from "vue";
-
-import EventBus from "@/utils/eventBus";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import Formatters from "@/utils/formatters"
+
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
@@ -78,6 +81,8 @@ export default Vue.component("annotation-method-selectpicker", {
         }
     },
     methods: {
+        pValueFormatter: Formatters.pValueFormatter,
+        floatFormatter: Formatters.floatFormatter,
         onAnnotationSelect(event) {
             this.$emit("annotation", event);
 

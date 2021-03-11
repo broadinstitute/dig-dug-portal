@@ -173,6 +173,7 @@ new Vue({
             }
         },
         addAnnotationIntervalsPanel(event) {
+            console.log(event)
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
                 annotation,
