@@ -1,3 +1,5 @@
+// Poor man's Lodash
+
 let sort = function (data, key, isNumeric, isAscending) {
     return data.sort(function (a, b) {
         var x = a[key].toLowerCase();

@@ -240,8 +240,6 @@ export default Vue.component("enrichment-signal", {
     computed: {
         sortedEnrichments() {
             return sortBy(this.enrichments
-                .filter(el => el.pValue <= 0.05)
-                .filter(el => !!el.tissue)
                 .filter(el => Object.values(regularAnnotations).flatMap(id=>id).includes(el.annotation)), 
             'pValue')
         },

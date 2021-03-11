@@ -276,7 +276,7 @@
                                     <template #tooltip="{ row }">
                                         <div
                                             @click="$parent.addAnnotationIntervalsPanel(row)"
-                                        >Add Annotation to LocusZoom</div>
+                                        >Add {{`${row.annotation}${!!row.method ? ' with method '+row.method: ''}`}} to LocusZoom</div>
                                     </template>
                                 </enrichment-signal>
 

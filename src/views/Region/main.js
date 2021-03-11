@@ -294,7 +294,8 @@ new Vue({
                     JSON.stringify(
                         [el.annotation, !!el.method ? el.method : ""].join()
                     )
-            );
+            ).filter(el => el.pValue <= 0.05)
+             .filter(el => !!el.tissue);
         },
         associationConsequences() {
             return this.pageAssociations.map(v => v.consequence);
