@@ -64,40 +64,46 @@
                     </template>
                 </template>
                 <template #row-details="row">
-                    <b-table
-                        v-if="clumpData[row.item.phenotype]"
-                        :items="clumpData[row.item.phenotype]"
-                        :per-page="perPage"
-                        :fields="effectFields(row.item.phenotype)"
-                        :current-page="subCurrentPage[row.item.phenotype]"
-                    >
-                        <template #cell(effect)="data">
-                            <span
-                                :class="`effect ${
-                                    data.item.beta < 0 ? 'negative' : 'positive'
-                                }`"
-                                >{{
-                                    data.item.beta < 0 ? "&#9660;" : "&#9650;"
-                                }}</span
-                            ><span
-                                v-if="
-                                    !phenotypeMap[data.item.phenotype]
-                                        .dichotomous
-                                "
-                                >{{ effectFormatter(data.item.beta) }}</span
-                            >
-                            <span v-else>{{
-                                effectFormatter(Math.exp(data.item.beta))
-                            }}</span>
-                        </template>
-                    </b-table>
-                    <b-pagination
-                        v-if="clumpData[row.item.phenotype]"
-                        class="pagination-sm justify-content-center"
-                        v-model="subCurrentPage[row.item.phenotype]"
-                        :total-rows="clumpData[row.item.phenotype].length"
-                        :per-page="perPage"
-                    ></b-pagination>
+                    <div class="details">
+                        <b-table
+                            v-if="clumpData[row.item.phenotype]"
+                            :items="clumpData[row.item.phenotype]"
+                            :per-page="perPage"
+                            :fields="effectFields(row.item.phenotype)"
+                            :current-page="subCurrentPage[row.item.phenotype]"
+                        >
+                            <template #cell(effect)="data">
+                                <span
+                                    :class="`effect ${
+                                        data.item.beta < 0
+                                            ? 'negative'
+                                            : 'positive'
+                                    }`"
+                                    >{{
+                                        data.item.beta < 0
+                                            ? "&#9660;"
+                                            : "&#9650;"
+                                    }}</span
+                                ><span
+                                    v-if="
+                                        !phenotypeMap[data.item.phenotype]
+                                            .dichotomous
+                                    "
+                                    >{{ effectFormatter(data.item.beta) }}</span
+                                >
+                                <span v-else>{{
+                                    effectFormatter(Math.exp(data.item.beta))
+                                }}</span>
+                            </template>
+                        </b-table>
+                        <b-pagination
+                            v-if="clumpData[row.item.phenotype]"
+                            class="pagination-sm justify-content-center"
+                            v-model="subCurrentPage[row.item.phenotype]"
+                            :total-rows="clumpData[row.item.phenotype].length"
+                            :per-page="perPage"
+                        ></b-pagination>
+                    </div>
                 </template>
             </b-table>
             <b-pagination
@@ -221,3 +227,11 @@ export default Vue.component("clumped-variants-table", {
     },
 });
 </script>
+<style scoped>
+.b-table-details div.details {
+    margin-left: 20px;
+    margin-bottom: 20px;
+    padding-left: 10px;
+    border-left: 5px solid lightgray;
+}
+</style>
