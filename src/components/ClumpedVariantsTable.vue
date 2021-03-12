@@ -14,7 +14,16 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-                ><template #cell(view)="data">
+                ><template #cell(pValue)="data">
+                    <span
+                        class="pValue"
+                        :style="`background-size: ${pValueCss(
+                            data.item.pValue
+                        )}% 100% !important;`"
+                        >{{ data.item.pValue }}</span
+                    >
+                </template>
+                <template #cell(view)="data">
                     <b-button
                         size="sm"
                         variant="outline-primary"
@@ -152,6 +161,7 @@ export default Vue.component("clumped-variants-table", {
                 {
                     key: "pValue",
                     label: "P-Value",
+                    class: "pValue",
                 },
                 {
                     key: "effect_beta",
@@ -175,6 +185,7 @@ export default Vue.component("clumped-variants-table", {
                 {
                     key: "pValue",
                     label: "P-Value",
+                    class: "pValue",
                 },
             ],
 
@@ -185,6 +196,9 @@ export default Vue.component("clumped-variants-table", {
     computed: {
         rows() {
             return this.variants.length;
+        },
+        maxPValue() {
+            return this.variants[0].pValue;
         },
     },
 
@@ -224,14 +238,26 @@ export default Vue.component("clumped-variants-table", {
         effectFormatter(effect) {
             return Formatters.effectFormatter(effect);
         },
+        pValueCss(value) {
+            return Formatters.pValueCss(value, this.maxPValue);
+        },
     },
 });
 </script>
-<style scoped>
+<style>
 .b-table-details div.details {
     margin-left: 20px;
     margin-bottom: 20px;
     padding-left: 10px;
     border-left: 5px solid lightgray;
+}
+.b-table span.pValue {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-image: url("/images/green_block.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-position: left;
 }
 </style>
