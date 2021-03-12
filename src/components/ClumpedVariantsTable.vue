@@ -19,7 +19,7 @@
                         class="pValue"
                         :style="`background-size: ${pValueCss(
                             data.item.pValue
-                        )}% 100% !important;`"
+                        )}% 100%`"
                         >{{ data.item.pValue }}</span
                     >
                 </template>
@@ -33,7 +33,7 @@
                             data.toggleDetails();
                         "
                     >
-                        {{ data.detailsShowing ? "Hide" : "Show" }} Clump Data
+                        {{ data.detailsShowing ? "Hide" : "Show" }} Variants
                     </b-button>
                 </template>
                 <template #cell(effect_beta)="data">
@@ -80,7 +80,15 @@
                             :per-page="perPage"
                             :fields="effectFields(row.item.phenotype)"
                             :current-page="subCurrentPage[row.item.phenotype]"
-                        >
+                            ><template #cell(pValue)="data">
+                                <span
+                                    class="pValue"
+                                    :style="`background-size: ${pValueCss(
+                                        data.item.pValue
+                                    )}% 100%`"
+                                    >{{ data.item.pValue }}</span
+                                >
+                            </template>
                             <template #cell(effect)="data">
                                 <span
                                     :class="`effect ${
@@ -171,7 +179,7 @@ export default Vue.component("clumped-variants-table", {
                     key: "effect_or",
                     label: "Odds Ratio",
                 },
-                { key: "view", label: "View" },
+                { key: "view", label: "View Clump Data" },
             ],
             subFields: [
                 {
@@ -249,7 +257,7 @@ export default Vue.component("clumped-variants-table", {
     margin-left: 20px;
     margin-bottom: 20px;
     padding-left: 10px;
-    border-left: 5px solid lightgray;
+    border-left: 5px solid #eeeeee;
 }
 .b-table span.pValue {
     display: block;

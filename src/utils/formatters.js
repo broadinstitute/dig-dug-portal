@@ -188,6 +188,7 @@ function tissueFormatter(tissue) {
 }
 
 function pValueCss(value, max) {
+    if (value === max) return 100;
     const maxWidth = Math.log(-Math.log10(max));
     const barWidth = Math.log(-Math.log10(value));
     let calculated = (barWidth / maxWidth) * 100;
