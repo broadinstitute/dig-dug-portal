@@ -14,7 +14,23 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-                ><template #cell(pValue)="data">
+                ><template #cell(varId)="data">
+                    <a :href="`/variant.html?variant=${data.item.varId}`">{{
+                        data.item.varId
+                    }}</a>
+                </template>
+                <template #cell(dbSNP)="data">
+                    <a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
+                        data.item.dbSNP
+                    }}</a>
+                </template>
+                <template #cell(description)="data">
+                    <a
+                        :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
+                        >{{ data.item.description }}</a
+                    >
+                </template>
+                <template #cell(pValue)="data">
                     <span
                         class="pValue"
                         :style="`background-size: ${pValueCss(
@@ -80,6 +96,17 @@
                             :per-page="perPage"
                             :fields="effectFields(row.item.phenotype)"
                             :current-page="subCurrentPage[row.item.phenotype]"
+                            ><template #cell(varId)="data">
+                                <a
+                                    :href="`/variant.html?variant=${data.item.varId}`"
+                                    >{{ data.item.varId }}</a
+                                >
+                            </template>
+                            <template #cell(dbSNP)="data">
+                                <a
+                                    :href="`/variant.html?variant=${data.item.dbSNP}`"
+                                    >{{ data.item.dbSNP }}</a
+                                > </template
                             ><template #cell(pValue)="data">
                                 <span
                                     class="pValue"
