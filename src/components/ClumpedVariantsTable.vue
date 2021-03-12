@@ -282,9 +282,11 @@ export default Vue.component("clumped-variants-table", {
 <style>
 .b-table-details div.details {
     margin-left: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     padding-left: 10px;
+    padding-bottom: 10px;
     border-left: 5px solid #eeeeee;
+    border-bottom: 1px solid #eeeeee;
 }
 .b-table span.pValue {
     display: block;
