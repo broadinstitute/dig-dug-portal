@@ -75,7 +75,7 @@
                         class="col-md-12 gene-page-header-title"
                     >Chromosome: Start position - End position</div>
                     <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
-                    <div class="col-md-12 gene-page-header-body regionInfo">
+                    <div class="col-md-6 gene-page-header-body regionInfo">
                         {{ $parent.regionString }}
                         <button
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
