@@ -30,6 +30,11 @@
                         >{{ data.item.description }}</a
                     >
                 </template>
+                <template #cell(group)="data">
+                    <div class="border-color" :class="data.item.group">
+                        {{ data.item.group }}
+                    </div>
+                </template>
                 <template #cell(pValue)="data">
                     <span
                         class="pValue"
@@ -188,6 +193,7 @@ export default Vue.component("clumped-variants-table", {
                 {
                     key: "group",
                     label: "Group",
+                    tdClass: "border-color",
                 },
                 {
                     key: "clump",
@@ -296,5 +302,26 @@ export default Vue.component("clumped-variants-table", {
     background-repeat: no-repeat;
     background-size: 100% 100%;
     background-position: left;
+}
+.table-sm td.border-color {
+    padding: 0;
+    height: auto;
+    min-height: 1px;
+    vertical-align: middle;
+}
+td.border-color > div {
+    border-left-width: 5px;
+    border-left-style: solid;
+    border-color: #eeeeee;
+    height: 100%;
+    padding: 0.3rem;
+}
+.table-sm td.border-color > span {
+    margin-right: 5px;
+    padding: 0.3rem;
+    height: 100%;
+    overflow: auto;
+    display: inline-block;
+    width: 5px;
 }
 </style>
