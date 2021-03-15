@@ -55,13 +55,14 @@
                     </div>
                 </template>
                 <template #cell(pValue)="data">
-                    <span
+                    <div
                         class="pValue"
                         :style="`background-size: ${pValueCss(
                             data.item.pValue
                         )}% 100%`"
-                        >{{ data.item.pValue }}</span
                     >
+                        {{ data.item.pValue }}
+                    </div>
                 </template>
                 <template #cell(view)="data">
                     <b-button
@@ -313,8 +314,7 @@ export default Vue.component("clumped-variants-table", {
     border-left: 5px solid #eeeeee;
     border-bottom: 1px solid #eeeeee;
 }
-.b-table span.pValue {
-    display: block;
+.b-table div.pValue {
     width: 100%;
     height: 100%;
     background-image: url("/images/green_block.png");
@@ -322,7 +322,8 @@ export default Vue.component("clumped-variants-table", {
     background-size: 100% 100%;
     background-position: left;
 }
-.table-sm td.border-color {
+.table-sm td.border-color,
+.table-sm td.pValue {
     padding: 0;
     height: auto;
     min-height: 1px;
@@ -335,12 +336,12 @@ td.border-color > div {
     height: 100%;
     padding: 0.3rem;
 }
-.table-sm td.border-color > span {
+/* .table-sm td.border-color > span {
     margin-right: 5px;
     padding: 0.3rem;
     height: 100%;
     overflow: auto;
     display: inline-block;
     width: 5px;
-}
+} */
 </style>
