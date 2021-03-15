@@ -29,7 +29,7 @@
                             <div v-if="i == 0" class="pws-top-phenotypes-yaxis-wrapper" style>
                                 <div
                                     style="position: absolute;top: -5px;font-size: 10px;right: 10px;"
-                                >{{getEvalue(row.pValue)}}</div>
+                                >{{getEvalue(foldOf(row))}}</div>
                                 <div
                                     style="position: absolute;top: 40%;font-size: 10px;right: 10px;white-space: nowrap;"
                                 >-log10(p)</div>
@@ -40,7 +40,7 @@
                             <div class="pws-top-each-phenotype">
                                 <div
                                     class="btn btn-sm btn-link pws-top-each-phenotype-name"
-                                    :style="{'top': (80 - log2css(row.pValue))+'%' }"
+                                    :style="{'top': (80 - log2css(foldOf(row)))+'%' }"
                                 >
                                     <div class="name-wrapper">{{!!row.tissue ? row.tissue : row.tissueId }}</div>
                                     <div class="options-4-actions">
@@ -51,9 +51,12 @@
                                 <div
                                     class="bubble annotation-group pws-top-each-phenotype-bar"
                                     :class="annotationGroup(row.annotation)"
-                                    :style="{'height': +log2css(row.pValue)+'%' }"
+                                    :style="{'height': +log2css(foldOf(row))+'%' }"
                                 >&nbsp;</div>
-                                <div class="pws-top-each-phenotype-pvalue">{{pValueFormatter(row.pValue)}}</div>
+                                <div class="pws-top-each-phenotype-pvalue">
+                                    <!-- {{pValueFormatter(row.pValue)}} -->
+                                    {{foldOf(row)}}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -82,7 +85,7 @@
                                     <span
                                         class="legend-right"
                                         v-if="sortedEnrichments[0]"
-                                    >{{getEvalue(sortedEnrichments[0]["pValue"])}}</span>
+                                    >{{getEvalue(this.foldOf(sortedEnrichments[0]))}}</span>
                                 </div>
                                 <div class="legend"></div>
                             </div>
@@ -108,12 +111,12 @@
                                         <div
                                             v-if="item.pValue <= 5e-3"
                                             class="pws-phenotype-summary-row"
-                                            :style="{'width': +log2css(item.pValue)+'%'}"
+                                            :style="{'width': +log2css(foldOf(item))+'%'}"
                                             @click="showHideByClass('pws-phenotype-row '+key2id(key))"
                                         >
                                             <div class="pws-progress-bar" style="width: 100%"></div>
 
-                                            <span class="tool-tip">{{item.tissue+' ('+item.pValue+')'}}</span>
+                                            <span class="tool-tip">{{item.tissue+' ('+foldOf(item)+')'}}</span>
                                         </div>
                                     </template>
                                     <div
@@ -124,15 +127,15 @@
                                             class="pws-progress-bar annotation-group"
                                             :class="annotationGroup(item.annotation)"
                                             :key="item.tissue"
-                                            :value="log2css(item.pValue)"
-                                            :style="{'width': +log2css(item.pValue)+'%'}"
+                                            :value="log2css(foldOf(item))"
+                                            :style="{'width': +log2css(foldOf(item))+'%'}"
                                             @click="(i === 0) ? showHideByClass('pws-phenotype-row '+key2id(key)) : i"
                                         >
                                             <span
                                                 class="bar-desc"
-                                                :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
+                                                :style="{'margin-left': 'calc('+log2css(foldOf(item))+'% + 10px)'}"
                                             >
-                                                {{item.tissue}} ({{pValueFormatter(item.pValue)}})
+                                                {{item.tissue}} ({{floatFormatter(foldOf(item))}})
                                                 <div class="options-4-actions">
                                                     <slot name="tooltip" :row="item"></slot>
                                                 </div>
@@ -205,10 +208,10 @@ export default Vue.component("enrichment-signal", {
         sortedEnrichments() {
             return sortBy(this.enrichments
                 .filter(el => Object.values(regularAnnotations).flatMap(id=>id).includes(el.annotation)), 
-            'pValue')
+            o => this.foldOf(o))
         },
         lowestPvalue: function() {
-            return this.sortedEnrichments[0]["pValue"]
+            return this.foldOf(this.sortedEnrichments[0])
         },
         annotations() {
             return Array.from(new Set(this.sortedEnrichments.map(el => el.annotation)))
@@ -222,70 +225,13 @@ export default Vue.component("enrichment-signal", {
                 annotationGroup: this.annotationGroup(enrichment.annotation)
             })), 'annotationGroup')
         }
-        // topAssociationsGrouped: function() {
-        //     let data = this.phenotypes;
-        //     let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-
-        //     data.forEach(element => {
-        //         let phenotype = phenotypeMap[element.phenotype];
-
-        //         element["group"] = phenotype.group;
-        //         element["description"] = phenotype.description;
-        //     });
-
-        //     return groupBy(data, "group");
-        // },
-        // topAssociations: function() {
-        //     let data = this.phenotypes;
-        //     let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-
-        //     data.forEach(element => {
-        //         let phenotype = phenotypeMap[element.phenotype];
-
-        //         element["group"] = phenotype.group.toUpperCase();
-        //         element["description"] = phenotype.description;
-        //     });
-
-        //     return data;
-        // },
-        // topAssociations2nd: function() {
-        //     let data = this.phenotypes;
-        //     let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-        //     let filteredData = [];
-
-        //     data.forEach(element => {
-        //         let phenotype = phenotypeMap[element.phenotype];
-
-        //         element["group"] = phenotype.group.toUpperCase();
-        //         element["description"] = phenotype.description;
-
-        //         if (element.pValue > 5e-8) filteredData.push(element);
-        //     });
-
-        //     return filteredData;
-        // },
-        // topAssociatedGroups: function() {
-        //     let data = this.phenotypes;
-        //     let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
-        //     let topGroups = [];
-
-        //     data.forEach(element => {
-        //         let phenotype = phenotypeMap[element.phenotype];
-
-        //         if (element["pValue"] <= 2.5e-6) {
-        //             topGroups.push(phenotype.group.toUpperCase());
-        //         }
-        //     });
-
-        //     topGroups = topGroups.filter(function(value, index, self) {
-        //         return self.indexOf(value) === index;
-        //     });
-
-        //     return topGroups;
-        // }
     },
     methods: {
+        foldOf(enrichment) {
+            return enrichment.expectedSNPs / enrichment.SNPs
+        },
         pValueFormatter: Formatters.pValueFormatter,
+        floatFormatter: Formatters.floatFormatter,
         annotationGroup(annotation) {
             return findKey(regularAnnotations, o => o.includes(annotation))
         },
