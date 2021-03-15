@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div id="clump-data">
         <b-row>
             <b-col v-if="legends">
                 <div
@@ -27,6 +27,7 @@
         <div v-if="rows > 0">
             <b-table
                 small
+                hover
                 responsive="sm"
                 :items="variants"
                 :fields="fields"
@@ -300,6 +301,10 @@ export default Vue.component("clumped-variants-table", {
 });
 </script>
 <style>
+#clump-data thead tr:hover,
+#clump-data tr.b-table-details:hover {
+    background-color: inherit;
+}
 .b-table-details div.details {
     margin-left: 20px;
     margin-bottom: 10px;
