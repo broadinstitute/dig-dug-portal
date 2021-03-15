@@ -103,8 +103,6 @@ export class LZAnnotationIntervalsPanel {
                     let m = interval.method || "NA";
                     let key = `${t}_${m}_${interval.annotation}`;
 
-                    console.log()
-
                     return (t || m !== "NA") && !!scoring[key] ? {
                         name: interval.tissue || interval.tissueId,
                         // some data (not displayed by default)

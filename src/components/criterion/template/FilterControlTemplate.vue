@@ -20,9 +20,12 @@
         <b-form-input
             v-else
             v-model="filterThreshold"
+            :type="type"
+            :min="0"
             @keydown.enter="updateFilter(filterThreshold)"
             :disabled="disabled"
             :placeholder="placeholder"
+            @input="updateFilter(filterThreshold)"
         ></b-form-input>
     </div>
 </template>
