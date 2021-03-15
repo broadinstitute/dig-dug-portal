@@ -108,6 +108,10 @@ export default Vue.component("filter-control-template", {
         this.$parent.$parent.$emit('filter-created', this.filterDefinition);
     },
     methods: {
+        sizeOfStepFor(filterThreshold, initialStep) {
+            // order of magnitude
+            return initialStep * 10^Math.ceil(Math.log(filterThreshold))
+        },
         capitalizedFormatter: Formatters.capitalizedFormatter,
         validateInput(newInput) {
             // TODO: elaborate validation cases here
