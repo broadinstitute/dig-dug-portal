@@ -1,11 +1,29 @@
 <template>
     <div>
-        <div class="text-right mb-2">
-            <csv-download
-                :data="variants"
-                filename="clumped-variants"
-            ></csv-download>
-        </div>
+        <b-row>
+            <b-col v-if="legends">
+                <div
+                    v-for="group in groups"
+                    :key="group"
+                    class="pws-group-legend"
+                >
+                    <div
+                        class="pws-group-legend-box phenotype-group"
+                        :class="group"
+                    >
+                        &nbsp;
+                    </div>
+                    {{ group }}
+                </div>
+            </b-col>
+            <b-col class="text-right">
+                <csv-download
+                    :data="variants"
+                    filename="clumped-variants"
+                ></csv-download
+            ></b-col>
+        </b-row>
+        <div class="text-right mb-2"></div>
         <div v-if="rows > 0">
             <b-table
                 small
@@ -171,7 +189,7 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 
 export default Vue.component("clumped-variants-table", {
-    props: ["variants", "phenotypeMap"],
+    props: { variants: Array, phenotypeMap: Object, legends: Boolean },
     data() {
         return {
             perPage: 10,
