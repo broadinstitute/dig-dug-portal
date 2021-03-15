@@ -1,8 +1,19 @@
 <template>
     <div>
+        <div
+            style="text-align: right; padding-bottom: 5px"
+        >
+            <div
+                @click="isActive = !isActive"
+                style="align:right;"
+                class="btn btn-secondary btn-sm">
+                {{ isActive ? "View tissue asssociations by annotation group" : "View annotations by individual tissues" }}
+            </div>
+        </div>
+
         <div class="pws-merged-view">
             <h6>Tissue Annotations with p-value &le; 0.05</h6>
-            <template>
+            <template  v-if="isActive" >
                 <div class="pws-group-legend-wrapper">
                     <div v-for="annotationGroup in annotationGroups" class="pws-group-legend">
                         <div class="pws-group-legend-box annotation-group" :class="annotationGroup">&nbsp;</div>
@@ -48,139 +59,92 @@
                     </div>
                 </div>
             </template>
-
-            <!-- <h6>Traits with p-value &gt; 5e-8</h6>
-            <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">
-                <div
-                    v-for="(row, i) in topAssociations2nd"
-                    v-if="row.pValue > 5e-8 && i <= 30"
-                    class="bubble phenotype-with-signal"
-                    :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                >
-                    {{row.description}}
-                    <div class="options-4-actions">
-                        <div
-                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                        >Click to set phenotype</div>
-                        <div
-                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                        >Go to phenotype page</div>
-                    </div>
-                </div>
-                <small>
+            
+            <template  v-else>
+                <div class="pws-bar-view new-phenotypes-with-signal-wrapper">
                     <a
                         href="javascript:;"
-                        v-on:click="showHideElement('no-signal-wrapper',)"
-                    >>> View more traits</a>
-                </small>
-            </div>-->
+                        v-on:click="popOutElement('pws-bar-view')"
+                        class="pop-out-icon"
+                    >&nbsp;</a>
 
-            <!-- <div
-                class="phenotypes-with-signal-wrapper no-signal-wrapper hidden"
-                style="height: auto !important;"
-            >
-                <div
-                    v-for="(row, i) in topAssociations"
-                    v-if="row.pValue > 5e-8 && i > 30"
-                    class="bubble phenotype-with-signal"
-                    :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                >
-                    {{row.description}}
-                    <div class="options-4-actions">
-                        <div
-                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                        >Click to set phenotype</div>
-                        <div
-                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                        >Go to phenotype page</div>
+                    <div class="p-bellow-section-header">
+                        <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for tissues within an enrichment category. Hover over bar or expand the group to see associations for individual tissues.
                     </div>
-                </div>
-            </div> -->
 
-            <div class="pws-bar-view new-phenotypes-with-signal-wrapper">
-                <a
-                    href="javascript:;"
-                    v-on:click="popOutElement('pws-bar-view')"
-                    class="pop-out-icon"
-                >&nbsp;</a>
-
-                <div class="p-bellow-section-header">
-                    <sup>*</sup> Colored bars summarize bottom-line meta-analyzed associations for tissues within an enrichment category. Hover over bar or expand the group to see associations for individual tissues.
-                </div>
-
-                <div class="pws-phenotype-group-container">
-                    <div class="pws-phenotype-group-row">
-                        <div class="pws-phenotype-group-header">Annotation group</div>
-                        <div class="pws-phenotype-group-wrapper">
-                            <div class="legend-scale">
-                                <span class="legend-left">0</span>
-                                <span class="legend-center">-log10(p)</span>
-                                <span
-                                    class="legend-right"
-                                    v-if="sortedEnrichments[0]"
-                                >{{getEvalue(sortedEnrichments[0]["pValue"])}}</span>
+                    <div class="pws-phenotype-group-container">
+                        <div class="pws-phenotype-group-row">
+                            <div class="pws-phenotype-group-header">Annotation group</div>
+                            <div class="pws-phenotype-group-wrapper">
+                                <div class="legend-scale">
+                                    <span class="legend-left">0</span>
+                                    <span class="legend-center">-log10(p)</span>
+                                    <span
+                                        class="legend-right"
+                                        v-if="sortedEnrichments[0]"
+                                    >{{getEvalue(sortedEnrichments[0]["pValue"])}}</span>
+                                </div>
+                                <div class="legend"></div>
                             </div>
-                            <div class="legend"></div>
                         </div>
                     </div>
-                </div>
-                <div
-                    v-for="key in annotationGroups"
-                    class="pws-phenotype-group-container pws-enrichment-group"
-                    :class="key"
-                    :key="key"
-                >
-                    <div class="pws-phenotype-group-row">
-                        <div
-                            class="pws-phenotype-group-header"
-                            v-on:click="showHideByClass('pws-phenotype-row '+key2id(key))"
-                        >
-                            {{key}}
-                            <b-icon-arrows-expand></b-icon-arrows-expand>
-                        </div>
-                        <div class="pws-phenotype-group-wrapper">
-                            <template v-for="(item, i) in groupedEnrichments[key]">
-                                <template v-if="i != 0">
-                                    <div
-                                        v-if="item.pValue <= 5e-3"
-                                        class="pws-phenotype-summary-row"
-                                        :style="{'width': +log2css(item.pValue)+'%'}"
-                                        @click="showHideByClass('pws-phenotype-row '+key2id(key))"
-                                    >
-                                        <div class="pws-progress-bar" style="width: 100%"></div>
+                    <div
+                        v-for="key in annotationGroups"
+                        class="pws-phenotype-group-container pws-enrichment-group"
+                        :class="key"
+                        :key="key"
+                    >
+                        <div class="pws-phenotype-group-row">
+                            <div
+                                class="pws-phenotype-group-header"
+                                v-on:click="showHideByClass('pws-phenotype-row '+key2id(key))"
+                            >
+                                <b>{{key}}</b> ({{groupedEnrichments[key].length}})
+                                <b-icon-arrows-expand></b-icon-arrows-expand>
+                            </div>
+                            <div class="pws-phenotype-group-wrapper">
+                                <template v-for="(item, i) in groupedEnrichments[key]">
+                                    <template v-if="i != 0">
+                                        <div
+                                            v-if="item.pValue <= 5e-3"
+                                            class="pws-phenotype-summary-row"
+                                            :style="{'width': +log2css(item.pValue)+'%'}"
+                                            @click="showHideByClass('pws-phenotype-row '+key2id(key))"
+                                        >
+                                            <div class="pws-progress-bar" style="width: 100%"></div>
 
-                                        <span class="tool-tip">{{item.tissue+' ('+item.pValue+')'}}</span>
+                                            <span class="tool-tip">{{item.tissue+' ('+item.pValue+')'}}</span>
+                                        </div>
+                                    </template>
+                                    <div
+                                        class="pws-phenotype-row"
+                                        :class="i != 0 ? key2id(key)+' hidden':''"
+                                    >
+                                        <div
+                                            class="pws-progress-bar annotation-group"
+                                            :class="annotationGroup(item.annotation)"
+                                            :key="item.tissue"
+                                            :value="log2css(item.pValue)"
+                                            :style="{'width': +log2css(item.pValue)+'%'}"
+                                            @click="(i === 0) ? showHideByClass('pws-phenotype-row '+key2id(key)) : i"
+                                        >
+                                            <span
+                                                class="bar-desc"
+                                                :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
+                                            >
+                                                {{item.tissue}} ({{pValueFormatter(item.pValue)}})
+                                                <div class="options-4-actions">
+                                                    <slot name="tooltip" :row="item"></slot>
+                                                </div>
+                                            </span>
+                                        </div>
                                     </div>
                                 </template>
-                                <div
-                                    class="pws-phenotype-row"
-                                    :class="i != 0 ? key2id(key)+' hidden':''"
-                                >
-                                    <div
-                                        class="pws-progress-bar annotation-group"
-                                        :class="annotationGroup(item.annotation)"
-                                        :key="item.tissue"
-                                        :value="log2css(item.pValue)"
-                                        :style="{'width': +log2css(item.pValue)+'%'}"
-                                        @click="(i === 0) ? showHideByClass('pws-phenotype-row '+key2id(key)) : i"
-                                    >
-                                        <span
-                                            class="bar-desc"
-                                            :style="{'margin-left': 'calc('+log2css(item.pValue)+'% + 10px)'}"
-                                        >
-                                            {{item.tissue}} ({{pValueFormatter(item.pValue)}})
-                                            <div class="options-4-actions">
-                                                <slot name="tooltip" :row="item"></slot>
-                                            </div>
-                                        </span>
-                                    </div>
-                                </div>
-                            </template>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
+            </template>
 
 
 
@@ -233,7 +197,7 @@ export default Vue.component("enrichment-signal", {
 
     data() {
         return {
-            isActive: false
+            isActive: true,
         };
     },
 

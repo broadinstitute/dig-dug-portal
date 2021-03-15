@@ -147,7 +147,7 @@
                         class="pws-phenotype-group-header"
                         v-on:click="showHideByClass('pws-phenotype-row '+key2id(key))"
                     >
-                        {{key}}
+                        <b>{{key}}</b> ({{topAssociationsGrouped[key].length}})
                         <b-icon-arrows-expand></b-icon-arrows-expand>
                     </div>
                     <div class="pws-phenotype-group-wrapper">

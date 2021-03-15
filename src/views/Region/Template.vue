@@ -249,6 +249,16 @@
                             </template>
 
                             <template #filtered="{ filteredEnrichments }">
+                                
+                                <enrichment-signal
+                                    v-if="filteredEnrichments.length > 0"
+                                    :enrichments="filteredEnrichments">
+                                    <template #tooltip="{ row }">
+                                        <div
+                                            @click="$parent.addAnnotationIntervalsPanel(row)"
+                                        >Add {{`${row.annotation}${!!row.method ? ' with method '+row.method: ''}`}} to LocusZoom</div>
+                                    </template>
+                                </enrichment-signal>
 
                                 <locuszoom
                                     v-if="$parent.tissueScoring !== null"
@@ -269,16 +279,6 @@
                                         :phenotype="$store.state.phenotype.name"
                                     ></lz-catalog-annotations-panel>
                                 </locuszoom>
-
-                                <enrichment-signal
-                                    v-if="filteredEnrichments.length > 0"
-                                    :enrichments="filteredEnrichments">
-                                    <template #tooltip="{ row }">
-                                        <div
-                                            @click="$parent.addAnnotationIntervalsPanel(row)"
-                                        >Add {{`${row.annotation}${!!row.method ? ' with method '+row.method: ''}`}} to LocusZoom</div>
-                                    </template>
-                                </enrichment-signal>
 
                             </template>
 
