@@ -176,7 +176,7 @@
                             <div v-if="!!$store.state.phenotype">
                                 <h4 class="card-title">
                                     Top associations for
-                                    {{ $store.state.phenotype }}
+                                    {{ $parent.commaseparatedPhenotypes }}
                                     <tooltip-documentation
                                         name="region.topassoc.tooltip"
                                         :isHover="true"
