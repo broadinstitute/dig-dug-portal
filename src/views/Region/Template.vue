@@ -267,7 +267,6 @@
 
                                     <template slot="filtered" slot-scope="{ filter }">
                                         <locuszoom
-                                            v-if="$parent.tissueScoring !== null"
                                             ref="locuszoom"
                                             :chr="$store.state.chr"
                                             :start="$store.state.start"
