@@ -226,7 +226,7 @@ export default Vue.component("clumped-variants-table", {
                 {
                     key: "pValue",
                     label: "P-Value",
-                    class: "pValue",
+                    tdClass: "pValue",
                 },
             ],
 
@@ -241,17 +241,13 @@ export default Vue.component("clumped-variants-table", {
         maxPValue() {
             return this.variants[0].pValue;
         },
+        groups() {
+            return [...new Set(this.variants.map((v) => v.group))];
+        },
     },
 
     methods: {
         async showClumpData(phenotype, clump) {
-            // if (this.clumpData[phenotype] !== undefined)
-            //     return this.clumpData[phenotype];
-            // else {
-            //     let clumpQuery = this.getClumpData(phenotype, clump);
-            //     this.clumpData[phenotype] = clumpQuery.data;
-            //     return clump;
-            // }
             if (this.clumpData[phenotype] === undefined) {
                 console.log("none");
                 let clumpQuery = await this.getClumpData(phenotype, clump);
