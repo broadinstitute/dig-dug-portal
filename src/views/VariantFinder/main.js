@@ -15,12 +15,12 @@ import uiUtils from "@/utils/uiUtils";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import ClumpedAssociationsTable from "@/components/ClumpedAssociationsTable.vue";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
-import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue"
-import FilterPValue from "@/components/criterion/FilterPValue.vue"
-import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue"
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue"
-import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import FilterPValue from "@/components/criterion/FilterPValue.vue";
+import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
 
 import Colors from "@/utils/colors";
 
@@ -52,7 +52,7 @@ new Vue({
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
-        FilterGreaterThan,
+        FilterGreaterThan
     },
 
     data() {
@@ -79,11 +79,19 @@ new Vue({
         closeAlert,
 
         removePhenotype(index) {
-            this.$store.commit('removePhenotype', index);
+            this.$store.commit("removePhenotype", index);
         },
 
         phenotypeColor(index) {
             return Colors[index];
+        },
+        showFilters() {
+            let element = document.getElementById("sliding_filters_wrapper");
+            if (element.classList.contains("hidden")) {
+                element.classList.remove("hidden");
+            } else {
+                element.classList.add("hidden");
+            }
         }
     },
 
@@ -125,12 +133,12 @@ new Vue({
             let flattened = [].concat.apply([], clumped);
 
             return flattened;
-        },
+        }
     },
 
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
+        }
     }
 }).$mount("#app");

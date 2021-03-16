@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div id="variant-finder">
         <page-header
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
@@ -57,6 +57,23 @@
                                         >{{ p.phenotype.description }}</span
                                     >
                                 </span>
+                                <div class="filters-wrapper">
+                                    Slide example
+                                    <div
+                                        id="sliding_filters_wrapper"
+                                        class="hidden"
+                                    >
+                                        Filters go here!!
+                                    </div>
+                                    <div>
+                                        <a
+                                            href="javascript:;"
+                                            @click="$parent.showFilters()"
+                                            >>></a
+                                        >
+                                    </div>
+                                </div>
+
                                 <button
                                     type="button"
                                     class="mr-2 close"
@@ -74,18 +91,20 @@
                                     :hide="!p.filterVisible"
                                     :inlinePills="true"
                                 >
-                                    <filter-pvalue-control :field="'pValue'">
-                                        <div class="label">P-Value (&le;)</div>
+                                    <filter-pvalue-control
+                                        :field="'pValue'"
+                                        :placeholder="`P-Value (\u2264)`"
+                                        ><span></span>
                                     </filter-pvalue-control>
 
                                     <filter-effect-direction-control
+                                        placeholder="Effect (+/-)"
                                         :computedField="
                                             (obj) => {
                                                 return obj.beta * -1;
                                             }
                                         "
                                     >
-                                        <div class="label">Effect (+/-)</div>
                                     </filter-effect-direction-control>
                                 </criterion-function-group>
                             </div>
@@ -134,5 +153,36 @@
     margin-bottom: 0.5rem;
     border: 1px solid transparent;
     border-radius: 1.5rem;
+}
+#variant-finder div.col .label {
+    display: inline-block;
+}
+#variant-finder div.filtering-ui-wrapper {
+    border: none;
+    background-color: transparent;
+    margin: auto;
+    padding: 0;
+}
+.filters-wrapper {
+    border: solid 1px #ddd;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.filters-wrapper div,
+.filters-wrapper span {
+    display: inline-block;
+}
+#sliding_filters_wrapper {
+    width: 50%;
+    overflow: hidden;
+    white-space: nowrap;
+    border: solid 1px #ddd;
+    transition: all 2s;
+}
+#sliding_filters_wrapper.hidden {
+    width: 0 !important;
+    border: solid 0px #fff;
 }
 </style>
