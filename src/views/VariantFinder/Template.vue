@@ -57,7 +57,36 @@
                                         >{{ p.phenotype.description }}</span
                                     >
                                 </span>
-                                <div class="filters-wrapper">
+                                <transition name="slide-fade" mode="out-in"
+                                    ><div
+                                        :key="index"
+                                        style="width: 240px"
+                                        v-show="p.filterVisible"
+                                    >
+                                        <criterion-function-group
+                                            v-model="p.filter"
+                                            header=""
+                                            :inlinePills="true"
+                                        >
+                                            <filter-pvalue-control
+                                                :field="'pValue'"
+                                                :placeholder="`P-Value (\u2264)`"
+                                                ><span></span>
+                                            </filter-pvalue-control>
+
+                                            <filter-effect-direction-control
+                                                placeholder="Effect (+/-)"
+                                                :computedField="
+                                                    (obj) => {
+                                                        return obj.beta * -1;
+                                                    }
+                                                "
+                                            >
+                                            </filter-effect-direction-control>
+                                        </criterion-function-group>
+                                    </div>
+                                </transition>
+                                <!-- <div class="filters-wrapper">
                                     Slide example
                                     <div
                                         id="sliding_filters_wrapper"
@@ -72,7 +101,7 @@
                                             >>></a
                                         >
                                     </div>
-                                </div>
+                                </div> -->
 
                                 <button
                                     type="button"
@@ -86,27 +115,6 @@
                                         >&#x2261;</span
                                     >
                                 </button>
-                                <criterion-function-group
-                                    v-model="p.filter"
-                                    :hide="!p.filterVisible"
-                                    :inlinePills="true"
-                                >
-                                    <filter-pvalue-control
-                                        :field="'pValue'"
-                                        :placeholder="`P-Value (\u2264)`"
-                                        ><span></span>
-                                    </filter-pvalue-control>
-
-                                    <filter-effect-direction-control
-                                        placeholder="Effect (+/-)"
-                                        :computedField="
-                                            (obj) => {
-                                                return obj.beta * -1;
-                                            }
-                                        "
-                                    >
-                                    </filter-effect-direction-control>
-                                </criterion-function-group>
                             </div>
                         </div>
                     </div>
@@ -153,15 +161,24 @@
     margin-bottom: 0.5rem;
     border: 1px solid transparent;
     border-radius: 1.5rem;
+    min-height: 50px;
 }
 #variant-finder div.col .label {
     display: inline-block;
 }
-#variant-finder div.filtering-ui-wrapper {
+.selected-phenotype div {
+    vertical-align: middle;
+}
+#variant-finder .selected-phenotype div.filtering-ui-wrapper {
     border: none;
     background-color: transparent;
     margin: auto;
     padding: 0;
+    width: 240px;
+    transition: all 2s;
+    /* overflow: hidden; */
+    /* white-space: nowrap; */
+    display: inline-block;
 }
 .filters-wrapper {
     border: solid 1px #ddd;
@@ -184,5 +201,21 @@
 #sliding_filters_wrapper.hidden {
     width: 0 !important;
     border: solid 0px #fff;
+}
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+    transition: all 2s;
+}
+
+.slide-fade-enter {
+    transform: translateY(-10%);
+    /* width: auto; */
+}
+.slide-fade-leave-to {
+    transform: translateX(-50px);
+    /* transform: translateY(-100%); */
+}
+button:focus {
+    outline: none !important;
 }
 </style>

@@ -1,6 +1,10 @@
 <template>
-    <span>                
-        <EventListener @change="filterControlChange" @unset="unsetFilter" @filter-created="preHook">
+    <span>
+        <EventListener
+            @change="filterControlChange"
+            @unset="unsetFilter"
+            @filter-created="preHook"
+        >
             <!-- Controls and their labels -->
             <slot name="header"></slot>
             <b-container v-show="!hide" fluid class="filtering-ui-wrapper">
@@ -70,7 +74,7 @@ const EventListener = {
 
 export default Vue.component("criterion-group-template", {
     components: {
-        CriterionPills
+        CriterionPills,
     },
     props: {
         value: [Function, Array],
@@ -104,7 +108,7 @@ export default Vue.component("criterion-group-template", {
         inlinePills: {
             type: Boolean,
             default: false,
-        }
+        },
     },
     components: {
         EventListener,
@@ -150,15 +154,15 @@ export default Vue.component("criterion-group-template", {
             // Since we can add a list of criterion to a filter before the controls have been initialized,
             // information that we need to use the pills properly (like pillFormatter) haven't been applied to the criterion yet
             // This hook ensures that they are, and runs at the start of every filter's creation based on a matching field.
-            this.filterList = this.filterList.map(el => {
-                let _el = cloneDeep(el)
+            this.filterList = this.filterList.map((el) => {
+                let _el = cloneDeep(el);
                 if (_el.field === filterDefinition.field) {
                     _el = merge(_el, {
-                        ...filterDefinition
+                        ...filterDefinition,
                     });
                 }
                 return _el;
-            })
+            });
         },
         filterControlChange(threshold, filterDefinition) {
             // this is a workaround for a limitation Vue has when mutating arrays and objects that prevents watchers from detecting value changes
