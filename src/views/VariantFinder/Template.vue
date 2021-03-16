@@ -15,7 +15,27 @@
                     ></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
-
+                    <b-container fluid class="filtering-ui-wrapper">
+                        <b-row class="filtering-ui-content"
+                            ><b-col class="col-md-5 mx-auto">
+                                <div class="label">Select Phenotypes</div>
+                                <phenotype-selectpicker
+                                    class="mt-2"
+                                    style="width: 400px"
+                                    :phenotypes="
+                                        $store.state.bioPortal.phenotypes
+                                    "
+                                    :placeholder="
+                                        $store.state.phenotypes.length == 0
+                                            ? 'Select lead phenotype'
+                                            : 'Select additional phenotype'
+                                    "
+                                    :clearOnSelected="true"
+                                >
+                                </phenotype-selectpicker>
+                            </b-col>
+                        </b-row>
+                    </b-container>
                     <!-- phenotype criterion -->
                     <div class="row">
                         <div class="col-md-8 mx-auto">
@@ -57,9 +77,11 @@
                                     </filter-pvalue-control>
 
                                     <filter-effect-direction-control
-                                        :computedField="obj => {
-                                            return obj.beta * -1 
-                                        }"
+                                        :computedField="
+                                            (obj) => {
+                                                return obj.beta * -1;
+                                            }
+                                        "
                                     >
                                         <div class="label">Effect (+/-)</div>
                                     </filter-effect-direction-control>
@@ -67,25 +89,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- add another phenotype... -->
-                    <div class="row">
-                        <div class="col-md-5 mx-auto">
-                            <phenotype-selectpicker
-                                class="mt-2"
-                                :phenotypes="$store.state.bioPortal.phenotypes"
-                                :placeholder="
-                                    $store.state.phenotypes.length == 0
-                                        ? 'Select lead phenotype'
-                                        : 'Select additional phenotype'
-                                "
-                                :clearOnSelected="true"
-                            >
-                            </phenotype-selectpicker>
-                        </div>
-                    </div>
-
-                    <hr />
 
                     <!-- plot of all overlapping clumps -->
                     <div>
