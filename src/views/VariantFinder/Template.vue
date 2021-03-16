@@ -46,12 +46,18 @@
                                 :key="index"
                             >
                                 <div class="lead">
+                                    <b-icon-check2-circle
+                                        v-if="index === 0"
+                                        variant="light"
+                                        class="lead-icon"
+                                        title="Lead Phenotype"
+                                    ></b-icon-check2-circle>
                                     <span
                                         class="mr-4"
                                         :title="
                                             index === 0
-                                                ? 'Click to clear the phenotype list.'
-                                                : 'Click to remove this phenotype.'
+                                                ? 'Click to clear the whole phenotype list'
+                                                : 'Click to remove this phenotype from list'
                                         "
                                         :style="`color: ${$parent.phenotypeColor(
                                             index
@@ -117,7 +123,7 @@
                                         v-on:click="
                                             p.filterVisible = !p.filterVisible
                                         "
-                                        ><b-icon-filter-circle></b-icon-filter-circle
+                                        ><b-icon-filter></b-icon-filter
                                     ></span>
                                 </button>
                             </div>
@@ -210,8 +216,17 @@
 div.lead {
     display: inline-block;
     vertical-align: top;
+    margin-top: 0.4rem;
 }
-
+.selected-phenotype:first-child div.lead {
+    margin-left: 2rem;
+}
+div.lead .lead-icon {
+    position: absolute;
+    left: 0.6rem;
+    top: 0.6rem;
+    font-size: 1.8rem;
+}
 .filters-wrapper {
     border: solid 1px #ddd;
     border-radius: 5px;
