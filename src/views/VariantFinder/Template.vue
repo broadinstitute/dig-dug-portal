@@ -48,6 +48,11 @@
                                 <div class="lead">
                                     <span
                                         class="mr-4"
+                                        :title="
+                                            index === 0
+                                                ? 'Click to clear the phenotype list.'
+                                                : 'Click to remove this phenotype.'
+                                        "
                                         :style="`color: ${$parent.phenotypeColor(
                                             index
                                         )} !important; cursor: pointer;`"
@@ -168,6 +173,9 @@
 }
 .selected-phenotype div.filtering-ui-content {
     display: inline-block;
+}
+.selected-phenotype:not(:first-child) {
+    margin-left: 2rem;
 }
 #variant-finder .selected-phenotype div.filtering-ui-wrapper {
     border: none;
