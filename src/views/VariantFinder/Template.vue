@@ -40,6 +40,8 @@
                     <div class="row">
                         <div class="col-md-8 mx-auto">
                             <div
+                                class="selected-phenotype text"
+                                :class="`color-${index + 1}-bg`"
                                 v-for="(p, index) in $store.state.phenotypes"
                                 :key="index"
                             >
@@ -125,3 +127,12 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+<style>
+.selected-phenotype {
+    position: relative;
+    padding: 0.25rem 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid transparent;
+    border-radius: 1.5rem;
+}
+</style>
