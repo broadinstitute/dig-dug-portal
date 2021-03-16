@@ -45,10 +45,10 @@
                                 v-for="(p, index) in $store.state.phenotypes"
                                 :key="index"
                             >
-                                <span class="lead">
+                                <div class="lead">
                                     <span
-                                        :class="`mr-4 badge`"
-                                        :style="`color: #fff; background-color: ${$parent.phenotypeColor(
+                                        class="mr-4"
+                                        :style="`color: ${$parent.phenotypeColor(
                                             index
                                         )} !important; cursor: pointer;`"
                                         v-on:click="
@@ -56,11 +56,11 @@
                                         "
                                         >{{ p.phenotype.description }}</span
                                     >
-                                </span>
+                                </div>
                                 <transition name="slide-fade" mode="out-in"
                                     ><div
+                                        class="filter-options"
                                         :key="index"
-                                        style="width: 240px"
                                         v-show="p.filterVisible"
                                     >
                                         <criterion-function-group
@@ -112,8 +112,8 @@
                                         v-on:click="
                                             p.filterVisible = !p.filterVisible
                                         "
-                                        >&#x2261;</span
-                                    >
+                                        ><b-icon-filter-circle></b-icon-filter-circle
+                                    ></span>
                                 </button>
                             </div>
                         </div>
@@ -166,8 +166,8 @@
 #variant-finder div.col .label {
     display: inline-block;
 }
-.selected-phenotype div {
-    vertical-align: middle;
+.selected-phenotype div.filtering-ui-content {
+    display: inline-block;
 }
 #variant-finder .selected-phenotype div.filtering-ui-wrapper {
     border: none;
@@ -180,6 +180,30 @@
     /* white-space: nowrap; */
     display: inline-block;
 }
+.filter-pill-collection {
+    margin: 0;
+    width: 300px;
+    white-space: nowrap;
+}
+
+.filter-options {
+    width: 240px;
+    display: inline-block;
+}
+.filter-options > span > div {
+    display: inline-block;
+}
+.selected-phenotype .close {
+    position: absolute;
+    right: 0;
+    top: 12px;
+    float: unset;
+}
+div.lead {
+    display: inline-block;
+    vertical-align: top;
+}
+
 .filters-wrapper {
     border: solid 1px #ddd;
     border-radius: 5px;
@@ -202,17 +226,18 @@
     width: 0 !important;
     border: solid 0px #fff;
 }
+
 .slide-fade-enter-active,
 .slide-fade-leave-active {
-    transition: all 2s;
+    transition: all 0.5s;
 }
 
 .slide-fade-enter {
-    transform: translateY(-10%);
+    transform: translateX(-20%);
     /* width: auto; */
 }
 .slide-fade-leave-to {
-    transform: translateX(-50px);
+    transform: translateX(-10%);
     /* transform: translateY(-100%); */
 }
 button:focus {
