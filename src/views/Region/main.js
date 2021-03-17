@@ -98,11 +98,18 @@ new Vue({
             associationsFilter: function (id) {
                 return true;
             },
-
             pageAssociationsMap: {},
             pageAssociations: [],
+            regionPageSearchCriterion: keyParams.phenotypes
+                ? [
 
-            regionPageSearchCriterion: []
+                    {
+                        field: "phenotypes",
+                        threshold: keyParams.phenotype
+                    }
+                ]
+                : [],
+
         };
     },
 
@@ -182,16 +189,19 @@ new Vue({
                 this.tissueScoring
             );
         },
-        updateData(phenotype) {
-            this.$store.commit("setSelectedPhenotype", phenotype);
+        // updateData(phenotype) {
+        //     this.$store.commit("setSelectedPhenotype", phenotype);
 
-            // refresh the bioIndex queries that are determined by the phenotype
-            this.$store.dispatch("globalEnrichment/query", {
-                q: phenotype.name
-            });
-            this.$store.dispatch("credibleSets/query", {
-                q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-            });
+        //     // refresh the bioIndex queries that are determined by the phenotype
+        //     this.$store.dispatch("globalEnrichment/query", {
+        //         q: phenotype.name
+        //     });
+        //     this.$store.dispatch("credibleSets/query", {
+        //         q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+        //     });
+        // }
+        topPhenotype(topAssocData) {
+            return topAssocData[0]
         }
 
     },
@@ -271,7 +281,17 @@ new Vue({
             // region loaded, hide search
             uiUtils.hideElement("regionSearchHolder");
             // convert to an array, sorted by p-value
-            return Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+            let x = Object.values(assocMap).sort((a, b) => a.pValue - b.pValue);
+
+
+            if (x.length > 0) {
+                console.log("top association Phenotype", x[0].phenotype)
+                keyParams.set({ phenotypes: x[0].phenotype })
+
+                //this.$store.commit("setSelectedPhenotype", this.$store.state.bioPortal.phenotypeMap[x[0].phenotype]);
+                // this.regionPageSearchCriterion.push({ field: 'phenotype', threshold: x[0].phenotype });
+            }
+            return x;
         },
         topAssociationsPhenotypes() {
             let data = this.$store.state.topAssociations.data;
@@ -343,7 +363,9 @@ new Vue({
                 let selectedPhenotypes = this.regionPageSearchCriterion
                     .filter(criterion => criterion.field === "phenotype")
                     .map(criterion => criterion.threshold);
-                x = selectedPhenotypes.map(sp => this.$store.state.bioPortal.phenotypeMap[sp].description).join(',')
+                if (!!this.$store.state.bioPortal.phenotypeMap) {
+                    x = selectedPhenotypes.map(sp => this.$store.state.bioPortal.phenotypeMap[sp].description).join(',')
+                }
             }
             return x;
         }
@@ -351,59 +373,46 @@ new Vue({
     },
     watch: {
 
-        // selectedPhenotypes: {
-        //     handler(newData, oldData) {
-        //         if (!isEqual(newData, oldData)) {
-        //             //this.criteriaChanged = true;
-        //             newData.forEach(function (arrayItem) {
-        //                 var x = arrayItem
-        //                 // console.log(x);
-        //                 //  this.updateData(x)
-        //             });
+
+        regionString(oldData, newData) {
+            console.log(newData, "newDataREgion");
+            console.log(oldData, "oldDataRegion");
+            if (!isEqual(oldData, newData)) {
+                keyParams.set({ phenotypes: "" });
+                let x = this.$store.state.topAssociations.data;
+                console.log("region is not same, change the top phenotype")
+
+            }
+        },
+        // selectedPhenotypes(phenotype, oldPhenotype) {
+        //     // I don't like mixing UI effects with databinding - Ken
+        //     uiUtils.hideElement("phenotypeSearchHolder");
+
+        //     if (phenotype.length > 0) {
+        //         //console.log("phenotype", phenotype)
+        //         // this.$store.commit("setSelectedPhenotype", phenotype);
+
+        //         // refresh the bioIndex queries that are determined by the phenotype
+        //         this.$store.dispatch("globalEnrichment/query", {
+        //             q: phenotype[0].name
+        //         });
+        //         this.$store.dispatch("credibleSets/query", {
+        //             q: `${phenotype[0].name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
+        //         });
+
+        //         // adjust the controls to reflect the new phenotype
+        //         // this will also update the locuszoom plot, and thus the associations table
+        //         if (phenotype.name !== oldPhenotype) {
+        //             this.regionPageSearchCriterion.push({ field: 'phenotype', threshold: phenotype[0].name });
+        //             //keyParams.set({ phenotypes: phenotype.name })
+
+        //             if (typeof oldPhenotype !== 'undefined') {
+        //                 this.regionPageSearchCriterion = this.regionPageSearchCriterion.filter(el => el.threshold !== oldPhenotype)
+        //             }
         //         }
-        //     },
-        //     deep: true
+
+        //     }
         // },
-        "$store.state.bioPortal.phenotypeMap": function (phenotypeMap) {
-            let param = this.$store.state.phenotypeParam;
-
-            // if there's a phenotypeParam, then pick that phenotype
-            if (param) {
-                let phenotype = phenotypeMap[param];
-
-                if (phenotype) {
-                    this.$store.commit("setSelectedPhenotype", phenotype);
-                }
-            }
-        },
-        "$store.state.phenotype": function (phenotype, oldPhenotype) {
-            // I don't like mixing UI effects with databinding - Ken
-            uiUtils.hideElement("phenotypeSearchHolder");
-
-            if (phenotype) {
-                // this.$store.commit("setSelectedPhenotype", phenotype);
-
-                // refresh the bioIndex queries that are determined by the phenotype
-                this.$store.dispatch("globalEnrichment/query", {
-                    q: phenotype.name
-                });
-                this.$store.dispatch("credibleSets/query", {
-                    q: `${phenotype.name},${this.$store.state.chr}:${this.$store.state.start}-${this.$store.state.end}`
-                });
-
-                // adjust the controls to reflect the new phenotype
-                // this will also update the locuszoom plot, and thus the associations table
-                if (phenotype.name !== oldPhenotype) {
-                    this.regionPageSearchCriterion.push({ field: 'phenotype', threshold: phenotype.name });
-                    //keyParams.set({ phenotypes: phenotype.name })
-
-                    if (typeof oldPhenotype !== 'undefined') {
-                        this.regionPageSearchCriterion = this.regionPageSearchCriterion.filter(el => el.threshold !== oldPhenotype)
-                    }
-                }
-
-            }
-        },
         "$store.state.globalEnrichment.data": {
             handler(enrichment) {
                 let groups = {};
@@ -436,7 +445,8 @@ new Vue({
                 let topPhenotype = this.$store.state.bioPortal.phenotypeMap[
                     topAssoc.phenotype
                 ];
-
+                console.log("top", topPhenotype)
+                this.regionPageSearchCriterion.push({ field: 'phenotype', threshold: topPhenotype.name });
                 this.$store.commit("setSelectedPhenotype", topPhenotype);
             }
         },
