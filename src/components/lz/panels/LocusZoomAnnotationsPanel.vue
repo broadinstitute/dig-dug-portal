@@ -138,6 +138,10 @@ export class LZAnnotationIntervalsPanel {
             data_layers: [
                 LocusZoom.Layouts.merge(
                     {
+                        namespace: {
+                            ...LocusZoom.Layouts.get("data_layer", "intervals").namespace,
+                            [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
+                        },
                         fields: [
                             `{{namespace[${this.datasource_type}]}}pValue`,
                             `{{namespace[${this.datasource_type}]}}fold`,

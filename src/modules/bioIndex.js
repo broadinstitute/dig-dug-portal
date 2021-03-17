@@ -79,8 +79,11 @@ export default function (index, extend) {
             async clear(context) {
                 context.commit("clearData");
             },
-            async query(context, { q, limit, limitWhile }) {
-                context.commit("clearData");
+            async query(context, { q, limit, limitWhile, append }) {
+                if (!append) {
+                    context.commit("clearData");
+                }
+
                 let profile = {
                     fetch: 0,
                     query: 0

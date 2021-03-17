@@ -1,19 +1,13 @@
 <template>
     <div>
         <div v-if="tableData.length > 0">
-            <div class="text-right mb-2">
-                <csv-download
-                    :data="groupedAssociations"
-                    filename="associations"
-                ></csv-download>
-            </div>
             <b-table
                 hover
                 small
                 responsive="sm"
                 :items="groupedAssociations"
                 :fields="fields"
-                :per-page="perPage"
+                :per-page="rowsPerPage"
                 :current-page="currentPage"
             >
                 <template v-slot:thead-top="data">
@@ -62,13 +56,7 @@
                     consequenceFormatter(r.item.consequence)
                     }}
                 </template>
-                <template v-slot:cell(genes)="r">
-                    <a
-                        v-for="gene in r.item.nearest"
-                        class="item"
-                        :href="`/gene.html?gene=${gene}`"
-                    >{{ gene }}</a>
-                </template>
+
                 <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
                     <span
                         :class="`effect ${
@@ -100,11 +88,11 @@
                 class="pagination-sm justify-content-center"
                 v-model="currentPage"
                 :total-rows="groupedAssociations.length"
-                :per-page="perPage"
+                :per-page="rowsPerPage"
             ></b-pagination>
         </div>
         <div v-else>
-            <h4 v-if="associations.length > 0">No overlapping associations across phenotypes</h4>
+            <h4 v-if="associations.length > 0">No overlapping associations</h4>
             <h4 v-else>No associations</h4>
         </div>
     </div>
@@ -114,67 +102,75 @@
 import Vue from "vue";
 import $ from "jquery";
 
+import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
+import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
+import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
+import Filters from "@/utils/filters";
+
+import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
-
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
-import CsvDownload from "@/components/CsvDownload";
 
-import { decodeNamespace } from "@/utils/filterHelpers";
-import { isEqual } from "lodash";
+export default Vue.component("multiple-phenotype-associations-table", {
+    props: [
+        "associations",
+        "phenotypes",
+        "phenotypeMap",
+        "filter",
+        "exclusive",
 
-export default Vue.component("associations-table", {
-    props: ["associations", "phenotypes", "filter", "exclusive"],
+        "rowsPerPage"
+    ],
     components: {
         Documentation,
         TooltipDocumentation,
-        CsvDownload,
+
+        EffectorGenesMPlot
     },
     data() {
         return {
-            perPage: 10,
             currentPage: 1,
             baseFields: [
                 {
-                    key: "position",
-                    label: "Position"
-                },
-                {
-                    key: "allele",
-                    label: "Allele"
-                },
-                {
-                    key: "dbSNP",
-                    label: "dbSNP"
-                },
-                {
-                    key: "consequence",
-                    label: "Consequence"
-                },
-                {
-                    key: "genes",
-                    label: "Closest Genes"
+                    key: "geneName",
+                    label: "Gene"
                 }
             ]
         };
     },
+
     computed: {
+        rows() {
+            return this.tableData.length;
+        },
+
+        tableData() {
+            if (!!this.filter) {
+                return this.associations.filter(this.filter);
+            }
+            return this.associations;
+        },
+
         fields() {
             let fields = this.baseFields;
 
+            // add the chi squared column
+
+            // add phenotype-specific columns
             for (let i in this.phenotypes) {
                 let p = this.phenotypes[i];
 
                 fields = fields.concat([
                     {
-                        key: `${p.name}:pValue`,
+                        key: `${p}:pValue`,
                         label: `P-Value`,
                         tdClass(x) {
                             return !!x && x < 1e-5
@@ -183,7 +179,7 @@ export default Vue.component("associations-table", {
                         }
                     },
                     {
-                        key: `${p.name}:beta`,
+                        key: `${p}:beta`,
                         label: !!p.dichotomous ? "Odds Ratio" : "Beta"
                     }
                 ]);
@@ -191,16 +187,19 @@ export default Vue.component("associations-table", {
 
             return fields;
         },
+
         groupedAssociations() {
             let data = [];
             let groups = {};
             let associations = this.tableData;
 
+            //console.log("this.tableData.length", this.tableData);
+
             for (let i in associations) {
                 let r = associations[i];
                 let dataIndex = groups[r.varId];
 
-                if (!(r.varId in groups)) {
+                if (!dataIndex) {
                     dataIndex = data.length;
                     groups[r.varId] = dataIndex;
 
@@ -231,42 +230,32 @@ export default Vue.component("associations-table", {
                 }
             }
 
-            // remove non-overlapping associations
-            data = data.filter(row => {
-                for (let i in this.phenotypes) {
-                    let phenotype = this.phenotypes[i];
-
-                    // ensure a p-value exists for each phenotype
-                    if (!row[`${phenotype.name}:pValue`]) {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
+            // // remove non-overlapping associations
+            // data = data.filter(row => {
+            //     for (let i in this.phenotypes) {
+            //         let phenotype = this.phenotypes[i];
+            //         // ensure a p-value exists for each phenotype
+            //         if (!row[`${phenotype}:pValue`]) {
+            //             return false;
+            //         }
+            //     }
+            //     return true;
+            // });
 
             // remove entries with missing p-values
-            if (this.exclusive) {
-                let phenotypes = this.phenotypes;
-
-                data = data.filter(row => {
-                    return phenotypes.every(p => !!row[`${p.name}:pValue`]);
-                });
-            }
-
+            // if (this.exclusive) {
+            //     let phenotypes = this.phenotypes;
+            //     data = data.filter(row => {
+            //         return phenotypes.every(p => !!row[`${p}:pValue`]);
+            //     });
+            // }
             // sort all the records by phenotype p-value
             data.sort((a, b) => a.minP - b.minP);
 
             return data;
-        },
-        tableData() {
-            let dataRows = this.associations;
-            if (!!this.filter) {
-                dataRows = this.associations.filter(this.filter);
-            }
-            return dataRows;
         }
     },
+
     methods: {
         phenotypeBetaColumn(phenotype) {
             return `cell(${phenotype.name}:beta)`;
@@ -292,16 +281,10 @@ export default Vue.component("associations-table", {
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);
         }
-    },
-    watch: {
-        phenotypes: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.currentPage = 1;
-                }
-            },
-            deep: true
-        }
     }
 });
 </script>
+
+<style>
+@import url("/css/effectorGenes.css");
+</style>
