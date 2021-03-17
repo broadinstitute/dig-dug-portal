@@ -378,15 +378,6 @@
                                                 ></lz-associations-panel>
                                                 <lz-catalog-annotations-panel
                                                     :phenotype="phenotype.name"
-                                                    @input="
-                                                        $parent.updatePageAssociations(
-                                                            {
-                                                                phenotype:
-                                                                    phenotype.name,
-                                                                data: $event,
-                                                            }
-                                                        )
-                                                    "
                                                 ></lz-catalog-annotations-panel>
                                             </span>
                                         </locuszoom>
