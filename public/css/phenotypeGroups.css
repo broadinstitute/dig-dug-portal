@@ -1,3 +1,4 @@
+
 .pws-phenotype-group.ANTHROPOMETRIC div.pws-progress-bar {
     background-color: #048845;
 }
@@ -66,6 +67,9 @@
 
 .pws-phenotype-group.HEMATOLOGICAL div.pws-progress-bar { background-color: #aa0000; }
 
+.pws-box { border-top: solid 5px #6c757d; }
+.pws-phenotype-group div.pws-progress-bar { background-color: #6c757d; }
+
 .pws-box.ANTHROPOMETRIC {
     border-top: solid 5px #048845 !important;
 }
@@ -133,6 +137,7 @@
 .pws-box.TYPE.DIABETES { border-top: solid 5px #639bc0 !important; }
 
 .pws-box.HEMATOLOGICAL { border-top: solid 5px #aa0000 !important; }
+
 
 /* merged plot */
 .pws-group-legend-wrapper {
