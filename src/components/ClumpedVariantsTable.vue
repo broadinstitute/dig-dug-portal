@@ -171,6 +171,9 @@
                             v-model="subCurrentPage[row.item.phenotype]"
                             :total-rows="clumpData[row.item.phenotype].length"
                             :per-page="perPage"
+                            size="sm"
+                            pills
+                            align="right"
                         ></b-pagination>
                     </div>
                 </template>
