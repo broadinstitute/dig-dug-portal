@@ -16,12 +16,8 @@ heatmap configuration
         },
 -->
 <template>
-    <div>
+    <div class="heatmap-wrapper">
         <div id="clicked_cell_value" class="clicked-cell-value hidden">
-            <b-icon-x-circle-fill
-                class="clicked-cell-value-close"
-                @click="hidePanel('clicked_cell_value')"
-            ></b-icon-x-circle-fill>
             <div id="clicked_cell_value_content"></div>
         </div>
         <div class="heatmap-content" id="heatmapContent">
@@ -40,7 +36,7 @@ heatmap configuration
                 class="heatmap-scale-legend"
                 id="heatmap_scale_legend"
             ></div>
-            <div class="heatmap-canvas-wrapper" id="heatmapWrapper">
+            <div class="heatmap-canvas-wrapper" id="heatmapPlotWrapper">
                 <div
                     class="heatmap-columns-wrapper"
                     id="heatmapColumnsWrapper"
@@ -50,7 +46,8 @@ heatmap configuration
                     <canvas
                         v-if="!!renderConfig"
                         id="heatmap"
-                        @click="checkPosition"
+                        @mouseleave="hidePanel"
+                        @mousemove="checkPosition"
                         width=""
                         height=""
                     >
@@ -75,6 +72,7 @@ export default Vue.component("heatmap", {
     data() {
         return {
             squareData: {},
+            canvasHover: false,
         };
     },
     modules: {
@@ -141,7 +139,10 @@ export default Vue.component("heatmap", {
     },
     methods: {
         ...uiUtils,
-        hidePanel: uiUtils.hideElement,
+        hidePanel() {
+            uiUtils.hideElement("clicked_cell_value");
+            this.renderHeatmap();
+        },
         renderScaleLegend() {
             let scaleLegendWrapper = document.getElementById(
                 "heatmap_scale_legend"
@@ -234,29 +235,35 @@ export default Vue.component("heatmap", {
             let x = Math.floor((e.clientX - rect.left) / this.boxSize);
             let y = Math.floor((e.clientY - rect.top) / this.boxSize);
 
-            //console.log(this.squareData[y][x]);
             let clickedCellValue = "";
-            clickedCellValue +=
-                '<span class="field-on-clicked-cell">' +
-                this.renderData.rows[y] +
-                "</sub>";
-            clickedCellValue +=
-                '<span class="field-on-clicked-cell">' +
-                this.renderData.columns[x] +
-                "</sub>";
-            clickedCellValue +=
-                '<span class="content-on-clicked-cell"><b>' +
-                this.renderConfig.main.label +
-                ": </b>" +
-                this.squareData[y][x].main.value +
-                "</span>";
-            if (!!this.squareData[y][x].sub) {
+            if (
+                x >= 0 &&
+                y >= 0 &&
+                !!this.squareData[y] &&
+                !!this.squareData[y][x]
+            ) {
+                clickedCellValue +=
+                    '<span class="field-on-clicked-cell">' +
+                    this.renderData.rows[y] +
+                    "</sub>";
+                clickedCellValue +=
+                    '<span class="field-on-clicked-cell">' +
+                    this.renderData.columns[x] +
+                    "</sub>";
                 clickedCellValue +=
                     '<span class="content-on-clicked-cell"><b>' +
-                    this.renderConfig.sub.label +
+                    this.renderConfig.main.label +
                     ": </b>" +
-                    this.squareData[y][x].sub.value +
+                    this.squareData[y][x].main.value +
                     "</span>";
+                if (!!this.squareData[y][x].sub) {
+                    clickedCellValue +=
+                        '<span class="content-on-clicked-cell"><b>' +
+                        this.renderConfig.sub.label +
+                        ": </b>" +
+                        this.squareData[y][x].sub.value +
+                        "</span>";
+                }
             }
 
             let wrapper = document.getElementById("clicked_cell_value");
@@ -270,19 +277,20 @@ export default Vue.component("heatmap", {
             let wrapperXPos = wrapperRect.left;
             let wrapperYPos =
                 document.getElementById("heatmapContent").offsetHeight -
-                document.getElementById("heatmap").offsetHeight +
+                document.getElementById("heatmapPlotWrapper").offsetHeight +
                 document.getElementById("heatmapColumnsWrapper").offsetWidth;
 
             if (clickedCellValue != "") {
                 contentWrapper.innerHTML = clickedCellValue;
                 wrapper.classList.remove("hidden");
                 wrapper.style.top = wrapperYPos + yPos + "px";
-                wrapper.style.left = wrapperXPos - 15 + xPos + "px"; //minus 15 for the padding of the plot wrapper
+                wrapper.style.left = wrapperXPos - 30 + xPos + "px"; //minus 15 for the padding of the plot wrapper
             } else {
                 wrapper.classList.add("hidden");
             }
+            this.renderHeatmap(x, y);
         },
-        renderHeatmap() {
+        renderHeatmap(X, Y) {
             this.squareData = {};
             document.getElementById("heatmapColumnsWrapper").innerHTML = "";
             document.getElementById("heatmapRowsWrapper").innerHTML = "";
@@ -333,7 +341,7 @@ export default Vue.component("heatmap", {
                 document.getElementById("heatmapRowsWrapper").offsetWidth +
                 (this.boxSize - this.renderConfig.fontSize) / 2 +
                 "px";
-            document.getElementById("heatmapWrapper").style.paddingTop =
+            document.getElementById("heatmapPlotWrapper").style.paddingTop =
                 aboveColumnPadding + "px";
 
             let c = document.getElementById("heatmap");
@@ -397,10 +405,27 @@ export default Vue.component("heatmap", {
                         Math.floor(bColor) +
                         ",1)";
 
-                    ctx.beginPath();
-                    ctx.rect(left, top, this.boxSize, this.boxSize);
-                    ctx.fillStyle = colorString;
-                    ctx.fill();
+                    if (X == cIndex && Y == rIndex) {
+                        ctx.beginPath();
+                        ctx.rect(left, top, this.boxSize, this.boxSize);
+                        ctx.fillStyle = "black";
+                        ctx.fill();
+
+                        ctx.beginPath();
+                        ctx.rect(
+                            left + 2,
+                            top + 2,
+                            this.boxSize - 4,
+                            this.boxSize - 4
+                        );
+                        ctx.fillStyle = colorString;
+                        ctx.fill();
+                    } else {
+                        ctx.beginPath();
+                        ctx.rect(left, top, this.boxSize, this.boxSize);
+                        ctx.fillStyle = colorString;
+                        ctx.fill();
+                    }
 
                     if (!!this.renderConfig.sub) {
                         let steps = this.renderConfig.sub.valueRange;
@@ -463,6 +488,8 @@ export default Vue.component("heatmap", {
                 });
                 rIndex++;
             });
+
+            //console.log(this.squareData);
         },
     },
 });
@@ -477,6 +504,7 @@ $(function () {});
 }
 
 .heatmap-wrapper {
+    position: relative;
 }
 
 .heatmap-canvas-wrapper {
@@ -513,6 +541,10 @@ $(function () {});
 
 #heatmapCanvasWrapper canvas {
     border: solid 1px #aaa;
+}
+
+#heatmap:hover {
+    cursor: pointer;
 }
 
 #clicked_cell_value {

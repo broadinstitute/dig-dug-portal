@@ -198,7 +198,6 @@
                 !!filteredData &&
                 !!config[dataset]['heatmap_config']
             "
-            class="heatmap-wrapper"
         >
             <heatmap
                 :heatmapData="filteredData"

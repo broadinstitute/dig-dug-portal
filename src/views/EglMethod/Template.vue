@@ -7,10 +7,12 @@
         ></page-header>
 
         <!-- Body -->
+
         <div class="container-fluid mdkp-body">
             <a href="/effectorgenes.html" class="btn to-previous-page"
                 >&#60;&#60; Predicted effector genes methods</a
             >
+
             <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
                     <div
@@ -34,6 +36,19 @@
                             {{ $parent.trait }}
                         </h4>
                     </div>
+                </div>
+            </div>
+            <div
+                class="card mdkp-card"
+                v-if="
+                    !!$store.state.config &&
+                    !!$store.state.config[$parent.dataset].documentationHeader
+                "
+            >
+                <div class="card-body temporary-card">
+                    <documentation
+                        :name="[$parent.dataset] + '.header.info'"
+                    ></documentation>
                 </div>
             </div>
             <div class="card mdkp-card">

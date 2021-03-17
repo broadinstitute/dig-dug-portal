@@ -102,7 +102,7 @@ export default Vue.component("filter-control-template", {
         }
     },
     mounted() {
-        this.$parent.$parent.$emit('filter-created', this.filterDefinition);
+        this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
     },
     methods: {
         validateInput(newInput) {
