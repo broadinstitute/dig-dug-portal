@@ -2,11 +2,15 @@
     <div>
         <b-tabs v-if="myQueries.length > 0">
             <b-tab v-for="query_graph in myQueries" 
-                :key="Object.keys(query_graph.query_graph.edges)[0]"
-                :title="`${biolinkTypeFormatter(query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].subject].category)} 🠖 ${biolinkTypeFormatter(query_graph.query_graph.nodes[query_graph.query_graph.edges[Object.keys(query_graph.query_graph.edges)[0]].object].category)}`">
+                :key="Object.keys(query_graph.edges)[0]"
+                :title="`${
+                    biolinkTypeFormatter(query_graph.nodes[query_graph.edges[Object.keys(query_graph.edges)[0]].subject].category)} 
+                    🠖 
+                    ${biolinkTypeFormatter(query_graph.nodes[query_graph.edges[Object.keys(query_graph.edges)[0]].object].category)}`
+                ">
                 <b-card>
                     <translator-results-table
-                        :query_graph="query_graph.query_graph"
+                        :query_graph="query_graph"
                         :mock="mock"
                     ></translator-results-table>
                 </b-card>
@@ -43,26 +47,12 @@ export default Vue.component("translator-results-dashboard", {
     data() {
         return {
             resultLib: [],
-            myQueries: this.queries,
+            myQueries: [],
             queryGraphCriterion: [],
         }
     },
     async created() {
-        const splitQuery = function(query_graph) {
-            const { nodes, edges } = query_graph;
-            const myQueries = [];
-            Object.keys(edges).forEach(edgeKey => {
-                const { subject, object } = edges[edgeKey];
-                let newQuery = { query_graph: { nodes: {}, edges: {} } };
-                newQuery.query_graph.edges[edgeKey] = edges[edgeKey];
-                newQuery.query_graph.nodes[subject] = nodes[subject];
-                newQuery.query_graph.nodes[object] = nodes[object];
-                myQueries.push(newQuery);
-
-            })
-            return myQueries;
-        }
-        this.myQueries = splitQuery(this.query_graph);
+        this.myQueries = this.queries;
     },
     methods: {
         biolinkTypeFormatter(biolinkTypeCurie) {

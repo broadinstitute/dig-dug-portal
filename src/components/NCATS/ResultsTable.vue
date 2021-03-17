@@ -70,7 +70,6 @@
                 v-model="currentPage"
                 :total-rows="tableItems.length"
                 :per-page="perPage"
-                :aria-controls="id"
             ></b-pagination>
         </span>
         <span v-else>
@@ -84,6 +83,7 @@ import Vue from "vue"
 import trapi from "./trapi"
 import { mock_knowledge_graph } from "./mock"
 import merge from "lodash.merge"
+import { cloneDeep } from "lodash"
 import ResultsTooltip from "@/components/NCATS/ResultsTooltip";
 
 export default Vue.component('translator-results-table', {
@@ -116,7 +116,7 @@ export default Vue.component('translator-results-table', {
     },
     computed: {
         knowledge_graph() {
-            return this.knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
+            return cloneDeep(this.knowledge_graph_list.reduce((acc, item) => merge(acc, item), {}));
         },
         tableItems() {
             return this.maybe(this.tableItemsFromKnowledgeGraph(this.knowledge_graph_list), this.withSelected, this.selectable)

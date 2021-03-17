@@ -46,7 +46,6 @@ const extractCurie = function(uri, context) {
 
 const resolveCurie = function(curie, context) {
     const [prefix, id] = deserializeCurie(curie);
-
     if (!!context && !!prefix && !!id) {
         // NOTE: There's the question of whether or not we want to defend the validity of the prefix inside this function
         // I've decided against it (it loses symmetry with 'extractCurie' if we add too much logic to this function),
@@ -63,6 +62,7 @@ const resolveCurie = function(curie, context) {
 
         // TODO: problem: don't know which case:
         let url=``;
+        if (!!context[prefix]) url = `${context[prefix]}${id}`;
         if (!!context[prefix.toLowerCase()]) url = `${context[prefix.toLowerCase()]}${id}`;
         if (!!context[prefix.toUpperCase()]) url = `${context[prefix.toUpperCase()]}${id}`;
 
@@ -163,7 +163,7 @@ const tap = id => { console.log(id); return id; };
 const interrogate = accessor => id => { console.log(get(id, accessor), id); return id; };
 
 // Basic ARS query
-async function messageARS(message, trace=null, callback=interrogate('fields.data.message.query_graph')) {
+async function messageARS(message, trace=null, callback=interrogate('fields.data')) {
     let qs = queryString.stringify({ trace }, { skipNull: true });
     return await fetch(`${ARS_API}messages/${message}?${qs}`).then(body => body.json()).then(callback)
 }
@@ -397,17 +397,24 @@ const predicateHierarchy = () => {
 
 let curieLabelCache = new Map();
 const curieLabel = async (rawCurie) => {
-    console.log(rawCurie)
     const [ prefix, id ] = deserializeCurie(rawCurie);
-    const curie = serializeCurie(prefix.toUpperCase(), id);
-    let qs = queryString.stringify({ curie });
-    if (!curieLabelCache.has(curie)) {
-        const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
-            .then(response => response.json())
-            .then(json => json[curie] !== null ? json[curie].id.label : curie);
-        curieLabelCache.set(curie, label)
+    if (!!prefix && !!id) {
+
+        const curie = serializeCurie(prefix.toUpperCase(), id);
+        let qs = queryString.stringify({ curie });
+
+        if (!curieLabelCache.has(curie)) {
+            const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
+                .then(response => response.json())
+                .then(json => json[curie] !== null ? json[curie].id.label : curie);
+            curieLabelCache.set(curie, label)
+        }
+
+        return curieLabelCache.get(curie);
+    } else {
+        curieLabelCache.set(rawCurie, rawCurie);
+        return rawCurie;
     }
-    return curieLabelCache.get(curie);
 }
 
 let geneForCurieCache = new Map();

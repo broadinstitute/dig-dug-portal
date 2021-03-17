@@ -8,8 +8,7 @@
         </slot>
     </a>
     <span v-else>
-        {{!!curie ? curie :
-            !!id ? id : null}}
+        {{curie}}
     </span>
 </template>
 <script>
@@ -17,7 +16,7 @@ import Vue from "vue";
 import trapi from "./trapi"
 import NormalizedCurieLabel from "./NormalizedCurieLabel"
 export default Vue.component('resolved-curie-link', {
-    props: ["curie", "prefix", "id"],
+    props: ["curie"],
     components: {
         NormalizedCurieLabel
     },
@@ -31,11 +30,13 @@ export default Vue.component('resolved-curie-link', {
     },
     computed: {
         supportedPrefix() {
-            return trapi.identifiers.supportedPrefix(this.prefix, this.context, { 'reactome': 'REACT' });
+            if (this.context) return trapi.identifiers.supportedPrefix(this.prefix, this.context, { 'reactome': 'REACT' });
         },
         fullCurie() {
-            if (!!this.supportedPrefix && !!this.id) {
-                return trapi.identifiers.serializeCurie(this.supportedPrefix, this.id);
+            const prefix = this.supportedPrefix;
+            const id = trapi.identifiers.deserializeCurie(this.curie)[1];
+            if (!!prefix && !!id) {
+                return trapi.identifiers.serializeCurie(prefix, id);
             } else if (!!this.curie) {
                 return this.curie;
             }
