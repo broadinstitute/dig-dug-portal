@@ -223,6 +223,13 @@
 .selected-phenotype div.filtering-ui-content {
     display: inline-block;
 }
+.selected-phenotype div.filtering-ui-content input {
+    background: transparent;
+    border: 1px solid #ffffff;
+}
+.selected-phenotype div.filtering-ui-content input::placeholder {
+    color: #ffffff;
+}
 .selected-phenotype:not(:first-child) {
     margin-left: 2rem;
 }
