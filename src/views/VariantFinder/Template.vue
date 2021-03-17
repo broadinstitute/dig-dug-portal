@@ -164,6 +164,39 @@
                             :exclusive="true"
                         ></clumped-associations-table>
                     </div>
+                    <b-overlay :show="!$store.state.phenotypes.length">
+                        <template #overlay>
+                            <b-alert show
+                                ><b-icon icon="info-circle"></b-icon> Please
+                                select a phenotype to start.</b-alert
+                            >
+                        </template>
+                        <b-skeleton-wrapper
+                            :loading="!$store.state.phenotypes.length"
+                        >
+                            <template #loading>
+                                <div class="col-md-8 mx-auto">
+                                    <b-skeleton
+                                        width="100%"
+                                        height="2rem"
+                                    ></b-skeleton>
+                                    <b-skeleton
+                                        style="margin-left: 10%"
+                                        width="90%"
+                                        height="2rem"
+                                    ></b-skeleton>
+                                    <b-skeleton
+                                        style="margin-left: 10%"
+                                        width="90%"
+                                        height="2rem"
+                                    ></b-skeleton>
+                                </div>
+                                <b-skeleton-table
+                                    :rows="5"
+                                    :columns="4"
+                                ></b-skeleton-table>
+                            </template> </b-skeleton-wrapper
+                    ></b-overlay>
                 </div>
             </div>
         </div>
