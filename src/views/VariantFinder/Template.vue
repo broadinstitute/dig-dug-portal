@@ -46,17 +46,22 @@
                                 :key="index"
                             >
                                 <div class="lead">
-                                    <b-icon-check2-circle
+                                    <span
                                         v-if="index === 0"
-                                        variant="light"
                                         class="lead-icon"
                                         title="Lead Phenotype"
-                                    ></b-icon-check2-circle>
+                                        v-b-tooltip.hover="{ variant: 'light' }"
+                                        ><b-icon-check2-circle
+                                            variant="light"
+                                        ></b-icon-check2-circle
+                                    ></span>
+
                                     <span
+                                        v-b-tooltip.hover="{ variant: 'light' }"
                                         class="mr-4"
                                         :title="
                                             index === 0
-                                                ? 'Click to clear the whole phenotype list'
+                                                ? 'Click to clear phenotype list'
                                                 : 'Click to remove this phenotype from list'
                                         "
                                         :style="`color: ${$parent.phenotypeColor(
@@ -224,7 +229,7 @@ div.lead {
 div.lead .lead-icon {
     position: absolute;
     left: 0.6rem;
-    top: 0.6rem;
+    top: 0.3rem;
     font-size: 1.8rem;
 }
 .filters-wrapper {
