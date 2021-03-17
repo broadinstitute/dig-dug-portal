@@ -28,7 +28,7 @@
                     <div class="card-body">
                         <h4>{{`Functional Associations for ${'Gene'}`}}</h4>
                         <translator-results-dashboard
-                            :query_graph="$parent.query_graph.query_graph"
+                            :queries="[$parent.message.query_graph]"
                             :mock="$parent.mock"
                         ></translator-results-dashboard>
                     </div>

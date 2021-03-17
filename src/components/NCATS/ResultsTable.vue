@@ -82,7 +82,7 @@
 <script>
 import Vue from "vue"
 import trapi from "./trapi"
-import { mock_knowledge_graph} from "./mock"
+import { mock_knowledge_graph } from "./mock"
 import merge from "lodash.merge"
 import ResultsTooltip from "@/components/NCATS/ResultsTooltip";
 
@@ -105,6 +105,7 @@ export default Vue.component('translator-results-table', {
             this.queryDone = true;
         } else {
             let self = this;
+            console.log(this.query_graph)
             await trapi.queries.knowledgeGraphsForSources({
                 message: { 
                     query_graph: this.query_graph

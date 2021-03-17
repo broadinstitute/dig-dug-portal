@@ -58,43 +58,26 @@ new Vue({
             links: [],
             biolinkModel: null,
             matchingGenes: [],
-            query_graph: {
+            message: {
                 "query_graph": {
                   "edges": {
                     "e00": {
                       "object": "n01",
                       "subject": "n00",
-                      "predicate": "biolink:functional_association"
-                    },
-                    "e01": {
-                        "object": "n02",
-                        "subject": "n00",
-                        "predicate": "biolink:functional_association"
-                    },
-                    "e02": {
-                        "object": "n03",
-                        "subject": "n00",
-                        "predicate": "biolink:functional_association"
-                      }
+                      "predicate": "biolink:participates_in"
+                    }
                   },
                   "nodes": {
                     "n00": {
                       "category": "biolink:Gene",
-                      "id": "NCBIGene:1017"
+                      "id": "NCBIGENE:1017"
                     },
                     "n01": {
-                      "category": "biolink:BiologicalProcess"
-                    },
-                    "n02": {
-                        "category": "biolink:CellularComponent"
-                    },
-                    "n03": {
-                        "category": "biolink:Pathway"
+                      "category": "biolink:Pathway"
                     }
                   }
                 }
             },
-
             globalKnowledgeGraph: null,
 
             geneToDiseaseQueryCriterion: [],
@@ -109,7 +92,7 @@ new Vue({
             geneToDiseasePredicates: [],
             diseaseToPathwayPredicates: [],
 
-            mock: true,
+            mock: false,
         }
     },
     async created() {

@@ -1,6 +1,6 @@
 import { json } from "d3";
 import queryString, { extract } from "query-string"
-import { cloneDeep, merge } from "lodash"
+import { cloneDeep, merge, get } from "lodash"
 import jsonQuery from "json-query";
 
 let getBiolinkContext = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
@@ -159,21 +159,29 @@ const isSupportedPrefix = function(maybeIsPrefix, context, synonyms=_prefix_syno
 
 const ARS_API = "https://ars.transltr.io/ars/api/"
 
+const tap = id => { console.log(id); return id; };
+const interrogate = accessor => id => { console.log(get(id, accessor), id); return id; };
+
 // Basic ARS query
-async function messageARS(message, trace=null) {
+async function messageARS(message, trace=null, callback=interrogate('fields.data.message.query_graph')) {
     let qs = queryString.stringify({ trace }, { skipNull: true });
-    return await fetch(`${ARS_API}messages/${message}?${qs}`).then(body => body.json())
+    return await fetch(`${ARS_API}messages/${message}?${qs}`).then(body => body.json()).then(callback)
 }
 
 // ARS Query initializer
 // Needs to be executed before the ARS can be messaged for its results
 async function beginARSQuery(message) {
-    return await fetch(`${ARS_API}submit`, {
-        method: 'POST',
-        body: JSON.stringify(message)
-    })
-    .then(response => response.json())
-    .then(async json => await messageARS(json.pk, 'y'))
+    try {
+        return await fetch(`${ARS_API}submit`, {
+            method: 'POST',
+            body: JSON.stringify(message)
+        })
+        .then(response => response.json())
+        .then(async json => await messageARS(json.pk, 'y'))
+    } catch (error) {
+        throw error
+    }
+
 }
 
 // Stream Control Function
@@ -277,8 +285,10 @@ async function streamARSQuery(queryMessage, successCallback=console.log, errorCa
 function _hasResults(message) {
     if (Object.keys(message).length > 0) {
         if (!!message.results && message.results.length > 0) {
+            console.log('results', message.results)
             return true
         } else {
+            console.log('no results', message.results)
             return false;
         }
     } else {
@@ -307,6 +317,7 @@ async function printResultsForSources(message, sources=[]) {
 // Callback
 const updateResultsFromSources = (sources=[], assignableList=[]) => (entry) => {
     const [agent, message] = entry;
+    console.log(agent, message)
     if (sources.length === 0 || sources.includes(agent)) {
         if(_hasResults(message)) {
             assignableList.push(...message.results);
@@ -386,6 +397,7 @@ const predicateHierarchy = () => {
 
 let curieLabelCache = new Map();
 const curieLabel = async (rawCurie) => {
+    console.log(rawCurie)
     const [ prefix, id ] = deserializeCurie(rawCurie);
     const curie = serializeCurie(prefix.toUpperCase(), id);
     let qs = queryString.stringify({ curie });
