@@ -216,10 +216,6 @@ export default Vue.component("clumped-variants-table", {
                     tdClass: "border-color",
                 },
                 {
-                    key: "clump",
-                    label: "Clump",
-                },
-                {
                     key: "pValue",
                     label: "P-Value",
                     class: "pValue",
