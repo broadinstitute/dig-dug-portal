@@ -45,7 +45,7 @@ export default new Vuex.Store({
     },
     mutations: {
         setSelectedPhenotype(state, phenotype) {
-            state.phenotypeParam = phenotype.name;
+            //state.phenotypeParam = phenotype.name;
             state.phenotype = phenotype;
             
             //keyParams.set({ phenotype: phenotype.name });
