@@ -123,6 +123,10 @@
                                     type="button"
                                     class="mr-2 close"
                                     aria-label="Filter"
+                                    :title="`Filters for <strong>${p.phenotype.description}</strong>`"
+                                    v-b-tooltip.hover.html="{
+                                        variant: 'light',
+                                    }"
                                 >
                                     <span
                                         v-on:click="
@@ -136,34 +140,33 @@
                     </div>
 
                     <!-- plot of all overlapping clumps -->
-                    <div>
-                        <manhattan-plot
-                            v-show="
-                                $store.state.phenotypes.length > 0 ||
-                                $parent.clumpedAssociations.length > 0
-                            "
-                            :associations="$parent.clumpedAssociations"
-                            :phenotypes="$parent.phenotypes"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            :colorByPhenotype="true"
-                            class="mt-2 mb-2"
-                        ></manhattan-plot>
-                    </div>
+
+                    <manhattan-plot
+                        v-show="
+                            $store.state.phenotypes.length > 0 ||
+                            $parent.clumpedAssociations.length > 0
+                        "
+                        :associations="$parent.clumpedAssociations"
+                        :phenotypes="$parent.phenotypes"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :colorByPhenotype="true"
+                        class="mt-2 mb-2"
+                    ></manhattan-plot>
 
                     <!-- table of overlapping associations -->
-                    <div>
-                        <clumped-associations-table
-                            v-show="
-                                $store.state.phenotypes.length > 0 ||
-                                $parent.clumpedAssociations.length > 0
-                            "
-                            :phenotypes="$parent.phenotypes"
-                            :phenotypeMap="$store.state.bioPortal.phenotypeMap"
-                            :associations="$parent.clumpedAssociations"
-                            :rowsPerPage="30"
-                            :exclusive="true"
-                        ></clumped-associations-table>
-                    </div>
+
+                    <clumped-associations-table
+                        v-show="
+                            $store.state.phenotypes.length > 0 ||
+                            $parent.clumpedAssociations.length > 0
+                        "
+                        :phenotypes="$parent.phenotypes"
+                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :associations="$parent.clumpedAssociations"
+                        :rowsPerPage="30"
+                        :exclusive="true"
+                    ></clumped-associations-table>
+
                     <b-overlay :show="!$store.state.phenotypes.length">
                         <template #overlay>
                             <b-alert show
@@ -175,26 +178,28 @@
                             :loading="!$store.state.phenotypes.length"
                         >
                             <template #loading>
-                                <div class="col-md-8 mx-auto">
-                                    <b-skeleton
-                                        width="100%"
-                                        height="2rem"
-                                    ></b-skeleton>
-                                    <b-skeleton
-                                        style="margin-left: 10%"
-                                        width="90%"
-                                        height="2rem"
-                                    ></b-skeleton>
-                                    <b-skeleton
-                                        style="margin-left: 10%"
-                                        width="90%"
-                                        height="2rem"
-                                    ></b-skeleton>
-                                </div>
-                                <b-skeleton-table
-                                    :rows="5"
-                                    :columns="4"
-                                ></b-skeleton-table>
+                                <b-card>
+                                    <div class="col-md-8 mx-auto">
+                                        <b-skeleton
+                                            width="100%"
+                                            height="2rem"
+                                        ></b-skeleton>
+                                        <b-skeleton
+                                            style="margin-left: 10%"
+                                            width="90%"
+                                            height="2rem"
+                                        ></b-skeleton>
+                                        <b-skeleton
+                                            style="margin-left: 10%"
+                                            width="90%"
+                                            height="2rem"
+                                        ></b-skeleton>
+                                    </div>
+                                    <b-skeleton-table
+                                        :rows="5"
+                                        :columns="4"
+                                    ></b-skeleton-table
+                                ></b-card>
                             </template> </b-skeleton-wrapper
                     ></b-overlay>
                 </div>
