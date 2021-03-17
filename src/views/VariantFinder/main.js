@@ -84,15 +84,15 @@ new Vue({
 
         phenotypeColor(index) {
             return Colors[index];
-        },
-        showFilters() {
-            let element = document.getElementById("sliding_filters_wrapper");
-            if (element.classList.contains("hidden")) {
-                element.classList.remove("hidden");
-            } else {
-                element.classList.add("hidden");
-            }
         }
+        // showFilters() {
+        //     let element = document.getElementById("sliding_filters_wrapper");
+        //     if (element.classList.contains("hidden")) {
+        //         element.classList.remove("hidden");
+        //     } else {
+        //         element.classList.add("hidden");
+        //     }
+        // }
     },
 
     computed: {
