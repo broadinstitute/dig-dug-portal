@@ -366,6 +366,9 @@
                                             >
                                                 <lz-associations-panel
                                                     :phenotype="phenotype.name"
+                                                    :title="
+                                                        phenotype.description
+                                                    "
                                                     @input="
                                                         $parent.updatePageAssociations(
                                                             {
@@ -378,6 +381,9 @@
                                                 ></lz-associations-panel>
                                                 <lz-catalog-annotations-panel
                                                     :phenotype="phenotype.name"
+                                                    :title="
+                                                        phenotype.description
+                                                    "
                                                 ></lz-catalog-annotations-panel>
                                             </span>
                                         </locuszoom>

@@ -47,18 +47,18 @@ export default Vue.component("locuszoom", {
         "ldpop",
         "filter",
         "filterAssociations",
-        "filterAnnotations"
+        "filterAnnotations",
     ],
     data() {
         return {
             locuszoommounted: false,
             salt: Math.floor(Math.random() * 10000).toString(),
-            plot: null
+            plot: null,
         };
     },
     mounted() {
         this.dataSources = new LocusZoom.DataSources();
-        Object.keys(LZDataSources).forEach(lzType => {
+        Object.keys(LZDataSources).forEach((lzType) => {
             if (!!this[lzType]) {
                 this.createSource(lzType, this[lzType]);
             } else {
@@ -77,24 +77,24 @@ export default Vue.component("locuszoom", {
             state: {
                 chr: this.chr,
                 start: this.start,
-                end: this.end
+                end: this.end,
             },
             toolbar: {
                 // top-to-bottom in the array => right-to-left on the layout
-                widgets
-            }
+                widgets,
+            },
         });
         this.locuszoommounted = true;
 
         // event listeners
         let self = this;
 
-        this.plot.on("panel_removed", function(event) {
+        this.plot.on("panel_removed", function (event) {
             self.$emit("panelremoved", event);
         });
 
         // region change handler
-        this.plot.on("state_changed", function(event) {
+        this.plot.on("state_changed", function (event) {
             // NOTE: doesn't pass out chromosome!
             self.$emit("regionchanged", event);
         });
@@ -106,7 +106,7 @@ export default Vue.component("locuszoom", {
                     height: 200,
                     min_height: 200,
                     // bottom section
-                    y_index: 3
+                    y_index: 3,
                 })
             );
         }
@@ -115,17 +115,21 @@ export default Vue.component("locuszoom", {
         zoomOut(expandLeft = 50000, expandRight = 50000) {
             this.plot.applyState({
                 start: this.plot.state.start - expandLeft,
-                end: this.plot.state.end + expandRight
+                end: this.plot.state.end + expandRight,
             });
             return [this.plot.state.start, this.plot.state.end];
         },
-        addPanelAndDataSource: function(panelClass) {
+        addPanelAndDataSource: function (panelClass) {
             // DataSources and Panels/Layouts are linked together via namespaces.
             // A DataSource name is given to the panel, for a particular data type
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
             // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
 
-            if (!!!this.dataSources._items.has(panelClass.datasource_namespace_symbol_for_panel)) {
+            if (
+                !!!this.dataSources._items.has(
+                    panelClass.datasource_namespace_symbol_for_panel
+                )
+            ) {
                 this.dataSources.add(
                     panelClass.datasource_namespace_symbol_for_panel,
                     panelClass.bioIndexToLZReader
@@ -137,14 +141,14 @@ export default Vue.component("locuszoom", {
                 let layouts = panelClass.layouts[0];
                 panel = this.plot.addPanel(layouts).addBasicLoader();
             } else {
-
                 let panelOptions = {
                     id: idCounter.getUniqueId(),
                     namespace: {
-                        [panelClass.datasource_type]: panelClass.datasource_namespace_symbol_for_panel
+                        [panelClass.datasource_type]:
+                            panelClass.datasource_namespace_symbol_for_panel,
                     },
                     // id: layout.id,
-                    ...panelClass.locusZoomPanelOptions // other locuszoom configuration required for the panel, including overrides(?)
+                    ...panelClass.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
                 };
                 panel = this.plot
                     .addPanel(
@@ -155,7 +159,6 @@ export default Vue.component("locuszoom", {
                         )
                     )
                     .addBasicLoader();
-
             }
 
             // TODO: make this more abstract
@@ -180,8 +183,9 @@ export default Vue.component("locuszoom", {
         },
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
-        addAssociationsPanel: function(
+        addAssociationsPanel: function (
             phenotype,
+            title,
             initialData,
             onLoad,
             onResolve,
@@ -190,6 +194,7 @@ export default Vue.component("locuszoom", {
             const panelId = this.addPanelAndDataSource(
                 new LZAssociationsPanel(
                     phenotype,
+                    title,
                     onLoad,
                     onResolve,
                     onError,
@@ -198,8 +203,9 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        addCatalogAnnotationsPanel: function(
+        addCatalogAnnotationsPanel: function (
             phenotype,
+            title,
             initialData,
             onLoad,
             onResolve,
@@ -208,6 +214,7 @@ export default Vue.component("locuszoom", {
             const panelId = this.addPanelAndDataSource(
                 new LZCatalogAnnotationsPanel(
                     phenotype,
+                    title,
                     onLoad,
                     onResolve,
                     onError,
@@ -216,7 +223,7 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        addAnnotationIntervalsPanel: function(
+        addAnnotationIntervalsPanel: function (
             annotation,
             method,
             scoring,
@@ -238,7 +245,7 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        addCredibleVariantsPanel: function(
+        addCredibleVariantsPanel: function (
             phenotype,
             credibleSetId,
             initialData,
@@ -258,13 +265,13 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        addComputedCredibleVariantsPanel: function(phenotype) {
+        addComputedCredibleVariantsPanel: function (phenotype) {
             const panelId = this.addPanelAndDataSource(
                 new LZComputedCredibleVariantsPanel(phenotype)
             );
             return panelId;
         },
-        addPhewasPanel: function(
+        addPhewasPanel: function (
             varOrGeneId,
             index,
             phenotypeMap,
@@ -290,10 +297,10 @@ export default Vue.component("locuszoom", {
             // Auxiliary method within our json query for data layers in the LocusZoom plot
             // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
             // using flatmap because we need to work across many Object.keys
-            const forceKeys = el =>
-                el.flatMap(data_layer_set =>
+            const forceKeys = (el) =>
+                el.flatMap((data_layer_set) =>
                     Object.entries(data_layer_set).map(
-                        data_layer_pair => data_layer_pair[1]
+                        (data_layer_pair) => data_layer_pair[1]
                     )
                 );
 
@@ -301,7 +308,7 @@ export default Vue.component("locuszoom", {
             // YES: number of data_layers is dynamic, can't really memoize.
             let data_layers = jsonQuery("panels[*].data_layers[*]:forceKeys", {
                 data: this.plot,
-                locals: { forceKeys }
+                locals: { forceKeys },
             }).value;
             return data_layers;
         },
@@ -311,42 +318,42 @@ export default Vue.component("locuszoom", {
             // TODO needs a rework
             if (panelType !== "") {
                 data_layers = data_layers
-                    .map(data_layer => {
+                    .map((data_layer) => {
                         return data_layer;
                     })
-                    .filter(data_layer => {
+                    .filter((data_layer) => {
                         return data_layer.id.includes(panelType);
                     });
             }
 
-            data_layers.forEach(data_layer => {
+            data_layers.forEach((data_layer) => {
                 // HACK until matching in LocusZoom 0.13.4 figured out.
                 if (!(data_layer.id === "annotation_catalog")) {
-                    data_layer.setFilter(obj => {
+                    data_layer.setFilter((obj) => {
                         let regularObject = decodeNamespace(obj, {
-                            prefix: new RegExp(".+:")
+                            prefix: new RegExp(".+:"),
                         });
                         return filter(regularObject);
                     });
                 }
             });
-        }
+        },
     },
     computed: {
         region() {
             return {
                 chr: this.chr,
                 start: this.start,
-                end: this.end
+                end: this.end,
             };
-        }
+        },
     },
     watch: {
         region(newRegion) {
             this.plot.applyState({
                 chr: newRegion.chr,
                 start: newRegion.start,
-                end: newRegion.end
+                end: newRegion.end,
             });
         },
         filter(filter) {
@@ -366,8 +373,8 @@ export default Vue.component("locuszoom", {
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
-        }
-    }
+        },
+    },
 });
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
@@ -380,18 +387,18 @@ const LZDataSources = {
             url:
                 "https://portaldev.sph.umich.edu/api/v1/annotation/gwascatalog/results/?decompose=1&variant_format=colons",
             params: {
-                build: HUMAN_GENOME_BUILD_VERSION
-            }
-        }
+                build: HUMAN_GENOME_BUILD_VERSION,
+            },
+        },
     ],
     gene: [
         "GeneLZ",
         {
             url: "https://portaldev.sph.umich.edu/api/v1/annotation/genes/",
             params: {
-                build: HUMAN_GENOME_BUILD_VERSION
-            }
-        }
+                build: HUMAN_GENOME_BUILD_VERSION,
+            },
+        },
     ],
     ld: [
         "LDLZ2",
@@ -400,9 +407,9 @@ const LZDataSources = {
             params: {
                 source: "1000G",
                 build: HUMAN_GENOME_BUILD_VERSION,
-                population: "ALL"
-            }
-        }
+                population: "ALL",
+            },
+        },
     ],
     recomb: [
         "RecombLZ",
@@ -410,18 +417,18 @@ const LZDataSources = {
             url:
                 "https://portaldev.sph.umich.edu/api/v1/annotation/recomb/results/",
             params: {
-                build: HUMAN_GENOME_BUILD_VERSION
-            }
-        }
+                build: HUMAN_GENOME_BUILD_VERSION,
+            },
+        },
     ],
     constraint: [
         "GeneConstraintLZ",
         {
             url: "https://gnomad.broadinstitute.org/api",
             params: {
-                build: HUMAN_GENOME_BUILD_VERSION
-            }
-        }
-    ]
+                build: HUMAN_GENOME_BUILD_VERSION,
+            },
+        },
+    ],
 };
 </script>
