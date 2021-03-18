@@ -229,6 +229,7 @@
 }
 .selected-phenotype div.filtering-ui-content input::placeholder {
     color: #ffffff;
+    opacity: 1; /* Firefox */
 }
 .selected-phenotype:not(:first-child) {
     margin-left: 2rem;
