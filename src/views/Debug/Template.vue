@@ -28,9 +28,78 @@
                     <div class="card-body">
                         <h4>{{`Functional Associations for ${'Gene'}`}}</h4>
                         <translator-results-dashboard
-                            :queries="[$parent.message.query_graph]"
-                            :mock="$parent.mock"
+                            :queries="$parent.queries"
                         ></translator-results-dashboard>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <hr/>
+
+            
+                <div class="card mdkp-card">
+                    <div class="card-body">
+                        <h4>{{`Gene Tables`}}</h4>
+
+                        <!-- <b-tab v-for="query_graph in myQueries" 
+                            :key="Object.keys(query_graph.edges)[0]"
+                            :title="`${
+                                biolinkTypeFormatter(query_graph.nodes[query_graph.edges[Object.keys(query_graph.edges)[0]].subject].category)} 
+                                🠖 
+                                ${biolinkTypeFormatter(query_graph.nodes[query_graph.edges[Object.keys(query_graph.edges)[0]].object].category)}`
+                            ">
+                            <b-card>
+
+                            </b-card>
+                        </b-tab> -->
+
+                        <!-- <translator-results-table
+                            :query_graph="$parent.biolinkQueryGraph('NCBIGENE:1017', {
+                                subject: 'biolink:Gene',
+                                predicate: 'biolink:participates_in',
+                                object: 'biolink:Pathway',
+                            }).query_graph"
+                        ></translator-results-table> -->
+
+                        <!-- <translator-results-table
+                            :query_graph="$parent.biolinkQueryGraph('NCBIGENE:1017', {
+                                subject: 'biolink:Gene',
+                                predicate: 'biolink:enables',
+                                object: 'biolink:MolecularActivity',
+                            }).query_graph"
+                        ></translator-results-table> -->
+
+                        <!-- <translator-results-table
+                            :query_graph="$parent.biolinkQueryGraph('NCBIGENE:1017', {
+                                subject: 'biolink:Gene',
+                                predicate: 'biolink:participates_in',
+                                object: 'biolink:BiologicalProcess',
+                            }).query_graph"
+                        ></translator-results-table> -->
+
+                        <!-- <translator-results-table
+                            :query_graph="$parent.biolinkQueryGraph('NCBIGENE:1017', {
+                                subject: 'biolink:Gene',
+                                predicate: 'biolink:expressed_in',
+                                object: 'biolink:CellularComponent',
+                            }).query_graph"
+                        ></translator-results-table> -->
+
+                        <!-- <b-tab v-for="query_graph in myQueries" 
+                            :key="Object.keys(query_graph.edges)[0]"
+                            :title="`${
+                                biolinkTypeFormatter(query_graph.nodes[query_graph.edges[Object.keys(query_graph.edges)[0]].subject].category)} 
+                                🠖 
+                                ${biolinkTypeFormatter(query_graph.nodes[query_graph.edges[Object.keys(query_graph.edges)[0]].object].category)}`
+                            ">
+                            <b-card>
+                                <translator-results-table
+                                    :query_graph="query_graph"
+                                    :mock="mock"
+                                ></translator-results-table>
+                            </b-card>
+                        </b-tab> -->
+
                     </div>
                 </div>
 

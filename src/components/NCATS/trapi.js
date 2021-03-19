@@ -2,7 +2,39 @@ import { json } from "d3";
 import queryString, { extract } from "query-string"
 import { cloneDeep, merge, get } from "lodash"
 import jsonQuery from "json-query";
-
+const cachedFetch = (url, options) => {
+    // Use the URL as the cache key to sessionStorage
+    let cacheKey = url
+  
+    // START new cache HIT code
+    let cached = sessionStorage.getItem(cacheKey)
+    if (cached !== null) {
+      // it was in sessionStorage! Yay!
+      let response = new Response(new Blob([cached]))
+      return Promise.resolve(response)
+    }
+    // END new cache HIT code
+  
+    return fetch(url, options).then(response => {
+      // let's only store in cache if the content-type is
+      // JSON or something non-binary
+      if (response.status === 200) {
+        let ct = response.headers.get('Content-Type')
+        if (ct && (ct.match(/application\/json/i) || ct.match(/text\//i))) {
+          // There is a .json() instead of .text() but
+          // we're going to store it in sessionStorage as
+          // string anyway.
+          // If we don't clone the response, it will be
+          // consumed by the time it's returned. This
+          // way we're being un-intrusive.
+          response.clone().text().then(content => {
+            sessionStorage.setItem(cacheKey, content)
+          })
+        }
+      }
+      return response
+    })
+  }
 let getBiolinkContext = (async () => fetch('https://raw.githubusercontent.com/biolink/biolink-model/master/context.jsonld')
     .then(response => response.json())
     .then(json => json['@context'])
@@ -164,7 +196,7 @@ const interrogate = accessor => id => {
     console.log(get(id, accessor)); 
     return tap(id); 
 };
-const groupLogs = (groupName, func, { collapse=false }) => args => {
+const groupLogs = (groupName, func, collapse=true) => args => {
     if (collapse) {
         console.groupCollapsed(groupName);
     } else {
@@ -197,27 +229,6 @@ async function beginARSQuery(message) {
         throw error
     }
 
-}
-
-
-async function queryTRAPI(url, query_graph, callback) {
-    return fetch(`${url}`, {
-        body: JSON.stringify(query_graph),
-        method: 'POST'
-    }).then(callback);
-}
-
-const messageTRAPI = url => endpoint => async (message, method='GET') => {
-    if (url.charAt( url.length - 1 ) === '/') {
-        url = url.slice(0, url.length - 1);
-    }
-    if (endpoint === 'query') {
-        method = 'POST'
-    }
-    return fetch(`${url}/${endpoint}`, {
-        body: JSON.stringify(message),
-        method: method
-    })
 }
 
 // Stream Control Function
@@ -272,6 +283,8 @@ const getARAMessage = async ara => getARAMessageEntry(ara).then(entry => entry[1
 // Make it possible to specify side-effects for a given promise without knowing what the side-effect is ahead of time
 // i.e. can make template functions for promises without side-effects
 const promiseSideEffect = callback => promise => async event => promise(event).then(callback);   // TODO promiseSideEffect(getARAResultEntry, console.log) OR promiseSideEffect(console.log)(getARAResultEntry)
+
+
 
 // Query
 // Query the ARS and evaluate the stream of successful ARA results using the callback
@@ -354,7 +367,6 @@ async function printResultsForSources(message, sources=[]) {
 // Callback
 const updateResultsFromSources = (sources=[], assignableList=[]) => (entry) => {
     const [agent, message] = entry;
-    console.log(agent, message)
     if (sources.length === 0 || sources.includes(agent)) {
         if(_hasResults(message)) {
             assignableList.push(...message.results);
@@ -431,21 +443,20 @@ const predicateHierarchy = () => {
     throw new Error("Unimplemented")
 }
 
+
+
 let curieLabelCache = new Map();
 const curieLabel = async (rawCurie) => {
     const [ prefix, id ] = deserializeCurie(rawCurie);
     if (!!prefix && !!id) {
-
         const curie = serializeCurie(prefix.toUpperCase(), id);
         let qs = queryString.stringify({ curie });
-
         if (!curieLabelCache.has(curie)) {
-            const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
+            const label = await cachedFetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
                 .then(response => response.json())
-                .then(json => json[curie] !== null ? json[curie].id.label : curie);
-            curieLabelCache.set(curie, label)
+                .then(json => json[curie] !== null && !!json[curie].id.label ? json[curie].id.label : curie)
+                .then(result => curieLabelCache.set(curie, result))
         }
-
         return curieLabelCache.get(curie);
     } else {
         curieLabelCache.set(rawCurie, rawCurie);
@@ -453,19 +464,19 @@ const curieLabel = async (rawCurie) => {
     }
 }
 
-let geneForCurieCache = new Map();
-const geneForCurie = async (rawCurie) => {
-    const [ prefix, id ] = deserializeCurie(rawCurie);
-    const curie = serializeCurie(prefix.toUpperCase(), id);
-    let qs = queryString.stringify({ curie });
-    if (!curieLabelCache.has(curie)) {
-        const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
-            .then(response => response.json())
-            .then(json => json[curie] !== null ? json[curie].id.label : curie);
-        curieLabelCache.set(curie, label);
-    }
-    return curieLabelCache.get(curie);
-}
+// let geneForCurieCache = new Map();
+// const geneForCurie = async (rawCurie) => {
+//     const [ prefix, id ] = deserializeCurie(rawCurie);
+//     const curie = serializeCurie(prefix.toUpperCase(), id);
+//     let qs = queryString.stringify({ curie });
+//     if (!geneForCurieCache.has(curie)) {
+//         const label = await fetch(`https://nodenormalization-sri.renci.org/get_normalized_nodes?${qs}`)
+//             .then(response => response.json())
+//             .then(json => json[curie] !== null ? json[curie].id.label : curie);
+//             geneForCurieCache.set(curie, label);
+//     }
+//     return geneForCurieCache.get(curie);
+// }
 
 const curieForGene = async (geneSymbol) => {
     return await fetch(`https://mygene.info/v3/query?q=${geneSymbol}`)
@@ -476,7 +487,6 @@ const curieForGene = async (geneSymbol) => {
 }
 
 const associations = function(biolinkModel) {
-    console.log(biolinkModel)
     if (!!biolinkModel) {
         return biolinkModel.classes.filter(cls => cls.is_a === 'association')
     } else {
@@ -523,7 +533,72 @@ export default {
     },
     normalize: {
         curieLabel,
-        geneForCurie,
+        // geneForCurie,
         curieForGene,
     }
+}
+
+
+
+const messageTRAPI = url => endpoint => async (body='', method='GET') => {
+
+    if (url.charAt( url.length - 1 ) === '/') {
+        url = url.slice(0, url.length - 1);
+    }
+
+    if (endpoint === 'query') {
+        method = 'POST'
+    }
+
+    let request = {
+        method
+    }
+
+    if (body !== '') {
+        request['body'] = body;
+        // request['headers'] = {
+        //     contentType: 'application/json'
+        // }
+    }
+
+    return fetch("https://api.bte.ncats.io/v1/predicates", {
+        "headers": {
+          "accept": "application/json",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          "sec-gpc": "1",
+        },
+        "referrerPolicy": "strict-origin-when-cross-origin",
+        "body": null,
+        "method": "GET",
+        "mode": "cors",
+        "credentials": "omit"
+      });
+}
+
+messageTRAPI('https://api.bte.ncats.io/v1/')('query')({
+    "message": {
+      "query_graph": {
+        "edges": {
+          "e00": {
+            "object": "n01",
+            "subject": "n00"
+          }
+        },
+        "nodes": {
+          "n00": {
+            "category": "biolink:Disease",
+            "id": "MONDO:0005737"
+          },
+          "n01": {
+            "category": "biolink:ChemicalSubstance"
+          }
+        }
+      }
+    }
+});
+
+async function queryTRAPI(url, message, callback) {
+    return messageTRAPI(url)('query')(message).then(callback)
 }

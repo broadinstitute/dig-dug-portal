@@ -27,6 +27,7 @@ import PageFooter from "@/components/PageFooter.vue";
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
 Vue.use(AsyncComputed);
+import Counter from "@/utils/idCounter";
 
 new Vue({
     store,
@@ -58,26 +59,8 @@ new Vue({
             links: [],
             biolinkModel: null,
             matchingGenes: [],
-            message: {
-                "query_graph": {
-                  "edges": {
-                    "e00": {
-                      "object": "n01",
-                      "subject": "n00",
-                      "predicate": "biolink:participates_in"
-                    }
-                  },
-                  "nodes": {
-                    "n00": {
-                      "category": "biolink:Gene",
-                      "id": "NCBIGENE:1017"
-                    },
-                    "n01": {
-                      "category": "biolink:Pathway"
-                    }
-                  }
-                }
-            },
+            messages1: null,
+            message2: null,
             globalKnowledgeGraph: null,
 
             geneToDiseaseQueryCriterion: [],
@@ -92,11 +75,41 @@ new Vue({
             geneToDiseasePredicates: [],
             diseaseToPathwayPredicates: [],
 
+            queries: [],
+
             mock: false,
         }
     },
     async created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.queries.push(
+            this.biolinkQueryGraph("NCBIGENE:1017", {
+                subject: "biolink:Gene",
+                predicate:"biolink:gene_associated_with_condition",
+                object: "biolink:Disease",
+            }),
+            this.biolinkQueryGraph("NCBIGENE:1017", {
+                subject: "biolink:Gene",
+                predicate: "biolink:participates_in",
+                object: "biolink:Pathway",
+            }),
+            this.biolinkQueryGraph('NCBIGENE:1017', {
+                subject: 'biolink:Gene',
+                predicate: 'biolink:participates_in',
+                object: 'biolink:BiologicalProcess',
+            }),
+            this.biolinkQueryGraph('NCBIGENE:1017', {
+                subject: 'biolink:Gene',
+                predicate: 'biolink:expressed_in',
+                object: 'biolink:CellularComponent',
+            }),
+            this.biolinkQueryGraph('NCBIGENE:1017', {
+                subject: 'biolink:Gene',
+                predicate: 'biolink:enables',
+                object: 'biolink:MolecularActivity',
+            })
+        );
+        
     },
     async mounted() {
         const biolinkModel = await trapi.model.biolinkModel;
@@ -194,73 +207,54 @@ new Vue({
                 this.matchingGenes = matches;
             }
         },
-        async makeDiseaseToPhenotypeQuery(diseaseCurie) {
-            this.diseaseToPhenotypeQuery = {
+        biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
+            const uuid = Counter.getUniqueId;
+            const sid = uuid('s');
+            const oid = uuid('o');
+            const eid = uuid('e')
+            return {
                 query_graph: {
                     nodes: {
-                        diseaseToPhenotypeDisease: {
-                            id: diseaseCurie,
-                            category: 'biolink:Disease'
+                        [sid]: {
+                            id: subjectCurie,
+                            category: subject
                         },
-                        diseaseToPhenotypePhenotype: {
-                            category: 'biolink:Phenotype'
+                        [oid]: {
+                            category: object
                         }
                     },
                     edges: {
-                        geneToDisease: {
-                            subject: "diseaseToPhenotypeDisease",
-                            object: "diseaseToPhenotypePhenotype",
-                            predicate: "biolink:disease_to_exposure_event_association"
+                        [eid]: {
+                            subject: sid,
+                            object: oid,
+                            predicate: predicate,
                         }
                     }
                 }
             }
+        },
+        async makeDiseaseToPhenotypeQuery(diseaseCurie) {
+            this.diseaseToPhenotypeQuery = this.biolinkQueryGraph(diseaseCurie, {
+                subject: 'biolink:Disease',
+                object: 'biolink:Phenotype',
+                predicate: 'biolink:disease_to_exposure_event_association'
+            })
         },
         async makeGeneToDiseaseQuery(geneSymbol) {
             const geneCurie = await this.curieForGene(geneSymbol)
-            this.geneToDiseaseQuery = {
-                query_graph: {
-                    nodes: {
-                        geneToDiseaseGene: {
-                            id: geneCurie,
-                            category: 'biolink:Gene'
-                        },
-                        geneToDiseaseDisease: {
-                            category: 'biolink:Disease'
-                        }
-                    },
-                    edges: {
-                        geneToDisease: {
-                            subject: "geneToDiseaseGene",
-                            object: "geneToDiseaseDisease",
-                            predicate: "biolink:gene_associated_with_condition"
-                        }
-                    }
-                }
-            }
+            this.geneToDiseaseQuery = this.biolinkQueryGraph(geneCurie, {
+                subject: "biolink:Gene",
+                object: "biolink:Disease",
+                predicate:"biolink:gene_associated_with_condition"
+            });
         },
         async makeGeneToPathwayQuery(geneSymbol) {
             const geneCurie = await this.curieForGene(geneSymbol)
-            let geneToPathwayQuery = {
-                query_graph: {
-                    nodes: {
-                        gene: {
-                            id: geneCurie,
-                            category: 'biolink:Gene'
-                        },
-                        pathway: {
-                            category: 'biolink:Pathway'
-                        }
-                    },
-                    edges: {
-                        geneToPathway: {
-                            subject: "gene",
-                            object: "pathway",
-                            predicate: "biolink:functional_association"
-                        }
-                    }
-                }
-            }
+            let geneToPathwayQuery = this.biolinkQueryGraph(geneCurie, {
+                subject: "biolink:Gene",
+                object: "biolink:Pathway",
+                predicate:"biolink:participates_in"
+            });
             return geneToPathwayQuery
         },
         predicatePlacement(identifier, query_graph, edge=null) {

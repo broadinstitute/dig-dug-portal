@@ -15,6 +15,7 @@
 import Vue from "vue";
 import trapi from "./trapi"
 import NormalizedCurieLabel from "./NormalizedCurieLabel"
+
 export default Vue.component('resolved-curie-link', {
     props: ["curie"],
     components: {

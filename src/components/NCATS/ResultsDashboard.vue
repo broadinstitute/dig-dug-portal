@@ -1,13 +1,14 @@
 <template>
     <div>
-        <b-tabs v-if="myQueries.length > 0">
+        <b-tabs v-if="myQueries.length > 0" lazy>
             <b-tab v-for="query_graph in myQueries" 
                 :key="Object.keys(query_graph.edges)[0]"
                 :title="`${
                     biolinkTypeFormatter(query_graph.nodes[query_graph.edges[Object.keys(query_graph.edges)[0]].subject].category)} 
                     🠖 
                     ${biolinkTypeFormatter(query_graph.nodes[query_graph.edges[Object.keys(query_graph.edges)[0]].object].category)}`
-                ">
+                "
+                >
                 <b-card>
                     <translator-results-table
                         :query_graph="query_graph"
@@ -52,7 +53,7 @@ export default Vue.component("translator-results-dashboard", {
         }
     },
     async created() {
-        this.myQueries = this.queries;
+        this.myQueries = this.queries.map(qg => qg.query_graph);
     },
     methods: {
         biolinkTypeFormatter(biolinkTypeCurie) {
