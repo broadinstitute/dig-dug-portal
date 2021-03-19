@@ -44,9 +44,19 @@
                     }}</a>
                 </template>
                 <template #cell(description)="data">
-                    <a
-                        :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
-                        >{{ data.item.description }}</a
+                    <a :id="data.item.phenotype">{{ data.item.description }}</a>
+                    <b-popover
+                        :target="data.item.phenotype"
+                        triggers="hover"
+                        placement="top"
+                        variant="info"
+                        ><div @click="addPhenotype(data.item.phenotype)">
+                            Add this phenotype to GEM
+                        </div>
+                        <a
+                            :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
+                            >Go to phenotype page</a
+                        ></b-popover
                     >
                 </template>
                 <template #cell(group)="data">
@@ -167,13 +177,12 @@
                         </b-table>
                         <b-pagination
                             v-if="clumpData[row.item.phenotype]"
-                            class="pagination-sm justify-content-center"
                             v-model="subCurrentPage[row.item.phenotype]"
                             :total-rows="clumpData[row.item.phenotype].length"
                             :per-page="perPage"
                             size="sm"
-                            pills
                             align="right"
+                            class="sub-details"
                         ></b-pagination>
                     </div>
                 </template>
@@ -192,6 +201,7 @@
 import Vue from "vue";
 import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
+import keyParams from "@/utils/keyParams";
 
 export default Vue.component("clumped-variants-table", {
     props: { variants: Array, phenotypeMap: Object, legends: Boolean },
@@ -290,12 +300,16 @@ export default Vue.component("clumped-variants-table", {
                 ]);
             }
         },
-
         effectFormatter(effect) {
             return Formatters.effectFormatter(effect);
         },
         pValueCss(value) {
             return Formatters.pValueCss(value, this.maxPValue);
+        },
+        addPhenotype(phenotype) {
+            let phenotypes = keyParams.phenotype.split(",");
+            phenotypes.push(phenotype);
+            keyParams.set({ phenotype: phenotypes.join(",") });
         },
     },
 });
@@ -312,6 +326,11 @@ export default Vue.component("clumped-variants-table", {
     padding-bottom: 10px;
     border-left: 5px solid #eeeeee;
     border-bottom: 1px solid #eeeeee;
+}
+div.details .sub-details {
+    border: unset;
+    border-bottom: 5px solid #eeeeee;
+    border-radius: unset;
 }
 .b-table div.pValue {
     width: 100%;
