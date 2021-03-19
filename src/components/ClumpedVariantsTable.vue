@@ -52,19 +52,18 @@
                         triggers="hover"
                         placement="top"
                         variant="info"
-                        ><div
+                        ><a
                             role="button"
                             @click="addPhenotype(data.item.phenotype)"
                         >
                             Add this phenotype to GEM
-                        </div>
-                        <div>
-                            <a
-                                :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
-                                >Go to phenotype page</a
-                            >
-                        </div></b-popover
-                    >
+                        </a>
+                        <a
+                            role="button"
+                            :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
+                            >Go to phenotype page</a
+                        >
+                    </b-popover>
                 </template>
                 <template #cell(group)="data">
                     <div class="border-color" :class="data.item.group">
@@ -321,7 +320,9 @@ export default Vue.component("clumped-variants-table", {
             } else {
                 keyParams.set({ phenotype: phenotype });
             }
-            window.location = "#associations-table";
+            //until we can add without reload
+            //window.location.hash = "associations-table";
+            window.location.reload();
         },
     },
 });
@@ -343,6 +344,9 @@ div.details .sub-details {
     border: unset;
     border-bottom: 5px solid #eeeeee;
     border-radius: unset;
+}
+.b-popover a {
+    display: block;
 }
 .sub-details .page-item.active .page-link,
 .sub-details .page-item .page-link {
