@@ -214,7 +214,7 @@ export default Vue.component("associations-table", {
                         consequence: r.consequence,
                         nearest: r.nearest,
                         alt: r.alt,
-                        minP: 1.0,
+                        minP: r.pValue,
                     });
                 }
 

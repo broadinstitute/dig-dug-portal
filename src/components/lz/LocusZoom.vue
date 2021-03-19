@@ -225,7 +225,7 @@ export default Vue.component("locuszoom", {
         },
         addAnnotationIntervalsPanel: function (
             annotation,
-            method,
+            title,
             scoring,
             initialData,
             onLoad,
@@ -235,7 +235,7 @@ export default Vue.component("locuszoom", {
             const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
                     annotation,
-                    method,
+                    title,
                     onLoad,
                     onResolve,
                     onError,

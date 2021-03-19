@@ -104,6 +104,7 @@ new Vue({
 
     methods: {
         ...uiUtils,
+        ...Formatters,
         postAlert,
         postAlertNotice,
         postAlertError,
@@ -165,7 +166,7 @@ new Vue({
             const { annotation, method } = event;
             this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
                 annotation,
-                method,
+                Formatters.snakeFormatter(annotation),
                 this.tissueScoring
             );
         },
@@ -298,33 +299,34 @@ new Vue({
                 this.setCriterionPhenotypes(phenotypes.split(','));
             }
         },
-        "$store.state.globalEnrichment.data": {
-            handler(enrichment) {
-                let groups = {};
-                for (let i in enrichment) {
-                    let r = enrichment[i];
-                    let t = r.tissueId || "NA";
-                    let m = r.method || "NA";
+        "$store.state.globalEnrichment.data"(enrichment) {
+            let groups = {};
+            for (let i in enrichment) {
+                let r = enrichment[i];
 
-                    let key = `${t}_${m}_${r.annotation}`;
-                    let group = groups[key];
-                    let fold = r.SNPs / r.expectedSNPs;
+                let key = `${r.annotation}___${r.tissue}`;
+                let fold = r.SNPs / r.expectedSNPs;
 
-                    if (!group) {
-                        groups[key] = {
-                            minP: r.pValue,
-                            maxFold: fold
-                        };
-                    } else {
-                        group.minP = Math.min(group.minP, r.pValue);
-                        group.maxFold = Math.max(group.maxFold, fold);
-                    }
+                if (!(key in groups)) {
+                    groups[key] = {
+                        minP: r.pValue,
+                        maxFold: fold
+                    };
+                } else {
+                    groups[key].minP = Math.min(groups[key].minP, r.pValue);
+                    groups[key].maxFold = Math.max(groups[key].maxFold, fold);
                 }
-                this.tissueScoring = groups;
             }
+            this.tissueScoring = groups;
         },
         selectedPhenotypes(phenotypes) {
             keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+
+            // reload the global enrichment for these phenotypes
+            this.$store.dispatch('globalEnrichment/clear');
+            phenotypes.forEach(p => {
+                this.$store.dispatch('globalEnrichment/query', { q: p.name, append: true });
+            })
         },
         "$store.state.clearPhenotypeFlag"(shouldClear) {
             if (shouldClear) {

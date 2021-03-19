@@ -24,8 +24,14 @@ function ancestryFormatter(s) {
     return ancestries[s];
 }
 
+function snakeFormatter(s) {
+    if (!!s) {
+        return s.replace(/(^|_|\s)([a-z])/g, (m, t, s) => `${t.length > 0 ? ' ' : ''}${s.toUpperCase()}`);
+    }
+}
+
 function annotationFormatter(s) {
-    return s.replace(/([a-z])([A-Z0-9])/g, (m, p1, p2) => `${p1} ${p2}`);
+    return snakeFormatter(s);
 }
 
 function bioTypeFormatter(s) {
@@ -33,12 +39,7 @@ function bioTypeFormatter(s) {
 }
 
 function capitalizedFormatter(s) {
-    // TODO: Make this adhere to Title Case https://en.wikipedia.org/wiki/Title_case#Chicago_Manual_of_Style
-    if (!!s) {
-        return s.replace(/_/g, ' ')                             // substitute underscore for space
-                .replace(/(^| )([a-z])/g,                       // match the beginning of each word (either at the beginning of a sentence, or in the middle of a sentence)
-                        (m, p1, p2) => p1 + p2.toUpperCase());  // concatenate the space with the uppercased version of the beginning of the word
-    }
+    return snakeFormatter(s);
 }
 
 function consequenceFormatter(s) {
@@ -150,15 +151,7 @@ function methodFormatter(method) {
 }
 
 function tissueFormatter(tissue) {
-    if (!tissue) {
-        return '-';
-    }
-
-    if (typeof (tissue) === "string") {
-        return capitalizedFormatter(tissue);
-    }
-
-    return capitalizedFormatter(tissue.description);
+    return snakeFormatter(tissue);
 }
 
 export default {
@@ -175,6 +168,7 @@ export default {
     locusFormatter,
     igvLocusFormatter,
     phenotypeFormatter,
+    snakeFormatter,
     tissueFormatter,
     methodFormatter,
     pValueFormatter,
