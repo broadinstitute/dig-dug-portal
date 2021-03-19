@@ -52,17 +52,23 @@
                         triggers="hover"
                         placement="top"
                         variant="info"
-                        ><a
-                            role="button"
-                            @click="addPhenotype(data.item.phenotype)"
-                        >
-                            Add this phenotype to GEM
-                        </a>
-                        <a
-                            role="button"
-                            :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
-                            >Go to phenotype page</a
-                        >
+                    >
+                        <b-list-group flush>
+                            <b-list-group-item
+                                href="#"
+                                @click="addPhenotype(data.item.phenotype)"
+                                >Add this phenotype to GEM</b-list-group-item
+                            >
+                            <b-list-group-item
+                                href="#"
+                                @click="setPhenotype(data.item.phenotype)"
+                                >Set GEM to this phenotype</b-list-group-item
+                            >
+                            <b-list-group-item
+                                :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
+                                >Go to phenotype page</b-list-group-item
+                            >
+                        </b-list-group>
                     </b-popover>
                 </template>
                 <template #cell(group)="data">
@@ -324,6 +330,10 @@ export default Vue.component("clumped-variants-table", {
             //window.location.hash = "associations-table";
             window.location.reload();
         },
+        setPhenotype(phenotype) {
+            keyParams.set({ phenotype: phenotype });
+            window.location.reload();
+        },
     },
 });
 </script>
@@ -345,9 +355,10 @@ div.details .sub-details {
     border-bottom: 5px solid #eeeeee;
     border-radius: unset;
 }
-.b-popover a {
-    display: block;
+.b-popover a.list-group-item {
+    padding: 0.25rem 0.75rem;
 }
+
 .sub-details .page-item.active .page-link,
 .sub-details .page-item .page-link {
     border-radius: unset;
