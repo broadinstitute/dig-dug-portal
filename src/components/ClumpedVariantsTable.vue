@@ -190,7 +190,7 @@
                             :total-rows="clumpData[row.item.phenotype].length"
                             :per-page="perPage"
                             size="sm"
-                            align="right"
+                            align="fill"
                             class="sub-details"
                         ></b-pagination>
                     </div>
@@ -350,11 +350,14 @@ export default Vue.component("clumped-variants-table", {
     padding-left: 10px;
     padding-bottom: 10px;
     border-left: 5px solid #eeeeee;
-    border-bottom: 1px solid #eeeeee;
+    border-bottom: 15px solid #eeeeee;
+    background-color: #fcfcfc;
+}
+.b-table-details div.details ul {
+    margin: 0 3rem 0 auto;
 }
 div.details .sub-details {
     border: unset;
-    border-bottom: 5px solid #eeeeee;
     border-radius: unset;
 }
 .b-popover a.list-group-item {
@@ -366,6 +369,7 @@ div.details .sub-details {
     border-radius: unset;
     font-size: 0.75rem;
     color: #52a549;
+    background-color: transparent;
 }
 .sub-details .page-item.active .page-link {
     background-color: #4b9742;
