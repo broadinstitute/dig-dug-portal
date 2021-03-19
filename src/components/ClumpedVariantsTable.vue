@@ -51,7 +51,6 @@
                         :target="data.item.phenotype"
                         triggers="hover"
                         placement="top"
-                        variant="info"
                     >
                         <b-list-group flush>
                             <b-list-group-item
@@ -360,8 +359,21 @@ div.details .sub-details {
     border: unset;
     border-radius: unset;
 }
-.b-popover a.list-group-item {
+.b-popover {
+    background-color: #000;
+}
+.b-popover .popover-body a.list-group-item {
     padding: 0.125rem 0.5rem;
+    background-color: #000000;
+    color: #ffffff !important;
+}
+.b-popover .popover-body a.list-group-item:hover {
+    background-color: #fcfcfc;
+    color: blue !important;
+}
+.bs-popover-top > .arrow::after,
+.bs-popover-auto[x-placement^="top"] > .arrow::after {
+    border-top-color: #000000;
 }
 
 .sub-details .page-item.active .page-link,
