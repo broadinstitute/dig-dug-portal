@@ -132,6 +132,35 @@ new Vue({
     },
 
     computed: {
+        queries() {
+            return [
+                this.biolinkQueryGraph("NCBIGENE:1017", {
+                    subject: "biolink:Gene",
+                    predicate:"biolink:gene_associated_with_condition",
+                    object: "biolink:Disease",
+                }),
+                this.biolinkQueryGraph("NCBIGENE:1017", {
+                    subject: "biolink:Gene",
+                    predicate: "biolink:participates_in",
+                    object: "biolink:Pathway",
+                }),
+                this.biolinkQueryGraph('NCBIGENE:1017', {
+                    subject: 'biolink:Gene',
+                    predicate: 'biolink:participates_in',
+                    object: 'biolink:BiologicalProcess',
+                }),
+                this.biolinkQueryGraph('NCBIGENE:1017', {
+                    subject: 'biolink:Gene',
+                    predicate: 'biolink:expressed_in',
+                    object: 'biolink:CellularComponent',
+                }),
+                this.biolinkQueryGraph('NCBIGENE:1017', {
+                    subject: 'biolink:Gene',
+                    predicate: 'biolink:enables',
+                    object: 'biolink:MolecularActivity',
+                })
+            ]
+        },
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
             if (contents.length === 0) {

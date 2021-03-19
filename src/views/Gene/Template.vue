@@ -200,16 +200,13 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                <translator-predicate-table
-                    :title="'GO Terms'"
-                    :geneSymbol="$store.state.geneName"
-                    :field="'go'">
-                </translator-predicate-table>
-                <translator-predicate-table
-                    :title="'Pathways'"
-                    :geneSymbol="$store.state.geneName"
-                    :field="'pathway'">
-                </translator-predicate-table>
+                    <h4>{{`Functional Associations for ${'Gene'}`}}</h4>
+                    <documentation name="gene.translator.dashboard">
+                        Featuring GO Terms with pathways from Wikipathway, KEGG and Reactome.
+                    </documentation>
+                    <translator-results-dashboard
+                        :queries="$parent.queries"
+                    ></translator-results-dashboard>
                 </div>
             </div>
             <div class="card mdkp-card">
