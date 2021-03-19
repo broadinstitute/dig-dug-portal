@@ -150,13 +150,14 @@
                                     >{{ data.item.dbSNP }}</a
                                 > </template
                             ><template #cell(pValue)="data">
-                                <span
+                                <div
                                     class="pValue"
                                     :style="`background-size: ${pValueCss(
                                         data.item.pValue
                                     )}% 100%`"
-                                    >{{ data.item.pValue }}</span
                                 >
+                                    {{ data.item.pValue }}
+                                </div>
                             </template>
                             <template #cell(effect)="data">
                                 <span
@@ -285,10 +286,7 @@ export default Vue.component("clumped-variants-table", {
     methods: {
         async showClumpData(phenotype, clump) {
             if (this.clumpData[phenotype] === undefined) {
-                console.log("none");
                 let clumpQuery = await this.getClumpData(phenotype, clump);
-                console.log("get", clumpQuery);
-
                 Vue.set(this.clumpData, phenotype, clumpQuery);
                 Vue.set(this.subCurrentPage, phenotype, 1);
             }
@@ -342,9 +340,14 @@ div.details .sub-details {
 .sub-details .page-item.active .page-link,
 .sub-details .page-item .page-link {
     border-radius: unset;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    color: #52a549;
 }
-
+.sub-details .page-item.active .page-link {
+    background-color: #4b9742;
+    color: #fff;
+    border-color: transparent;
+}
 .b-table div.pValue {
     width: 100%;
     height: 100%;
@@ -367,12 +370,4 @@ td.border-color > div {
     height: 100%;
     padding: 0.3rem;
 }
-/* .table-sm td.border-color > span {
-    margin-right: 5px;
-    padding: 0.3rem;
-    height: 100%;
-    overflow: auto;
-    display: inline-block;
-    width: 5px;
-} */
 </style>
