@@ -315,22 +315,12 @@ export default Vue.component("clumped-variants-table", {
             return Formatters.pValueCss(value, this.maxPValue);
         },
         addPhenotype(phenotype) {
-            if (keyParams.phenotype) {
-                let phenotypes = keyParams.phenotype.split(",");
-                if (!phenotypes.includes(phenotype)) {
-                    phenotypes.push(phenotype);
-                    keyParams.set({ phenotype: phenotypes.join(",") });
-                }
-            } else {
-                keyParams.set({ phenotype: phenotype });
-            }
-            //until we can add without reload
-            //window.location.hash = "associations-table";
-            window.location.reload();
+            this.$parent.$parent.pushCriterionPhenotype(phenotype);
+            window.location.href = "#associations-table";
         },
         setPhenotype(phenotype) {
-            keyParams.set({ phenotype: phenotype });
-            window.location.reload();
+            this.$parent.$parent.setCriterionPhenotypes([phenotype]);
+            window.location.href = "#associations-table";
         },
     },
 });
