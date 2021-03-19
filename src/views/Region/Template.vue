@@ -287,7 +287,7 @@
                                 ></documentation>
 
                                 <criterion-function-group>
-                                    <div class="col filter-col-lg">
+                                    <div class="col filter-col-md">
                                         <div
                                             class="label"
                                             style="margin-bottom: 5px"
@@ -306,7 +306,7 @@
                                             "
                                         />
                                     </div>
-                                    <div class="col filter-col-lg">
+                                    <div class="col filter-col-md">
                                         <div
                                             class="label"
                                             style="margin-bottom: 5px"
@@ -326,7 +326,7 @@
                                         />
                                     </div>
 
-                                    <div class="col filter-col-lg">
+                                    <div class="col filter-col-md">
                                         <div
                                             class="label"
                                             style="margin-bottom: 5px"
