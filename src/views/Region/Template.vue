@@ -257,6 +257,7 @@
                                         slot-scope="{ filter }"
                                     >
                                         <associations-table
+                                            id="associations-table"
                                             v-if="
                                                 $parent.selectedPhenotypes
                                                     .length > 0 &&

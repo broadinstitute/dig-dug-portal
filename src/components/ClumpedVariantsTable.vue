@@ -1,7 +1,7 @@
 <template>
     <div id="clump-data">
         <b-row>
-            <b-col v-if="legends">
+            <b-col v-if="legends" cols="9">
                 <div
                     v-for="group in groups"
                     :key="group"
@@ -312,9 +312,16 @@ export default Vue.component("clumped-variants-table", {
             return Formatters.pValueCss(value, this.maxPValue);
         },
         addPhenotype(phenotype) {
-            let phenotypes = keyParams.phenotype.split(",");
-            phenotypes.push(phenotype);
-            keyParams.set({ phenotype: phenotypes.join(",") });
+            if (keyParams.phenotype) {
+                let phenotypes = keyParams.phenotype.split(",");
+                if (!phenotypes.includes(phenotype)) {
+                    phenotypes.push(phenotype);
+                    keyParams.set({ phenotype: phenotypes.join(",") });
+                }
+            } else {
+                keyParams.set({ phenotype: phenotype });
+            }
+            window.location = "#associations-table";
         },
     },
 });
