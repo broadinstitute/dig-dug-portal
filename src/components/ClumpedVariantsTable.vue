@@ -356,7 +356,7 @@ div.details .sub-details {
     border-radius: unset;
 }
 .b-popover a.list-group-item {
-    padding: 0.25rem 0.75rem;
+    padding: 0.125rem 0.5rem;
 }
 
 .sub-details .page-item.active .page-link,
