@@ -3,8 +3,8 @@
         v-model="userText"
         ref="annotationOptionsSelect"
         placeholder="Add an annotation ..."
-        :data="annotationOptions"
-        :serializer="(s) => s.annotation"
+        :data="annotations"
+        :serializer="(r) => snakeFormatter(r.annotation)"
         :showOnFocus="true"
         :minMatchingChars="0"
         :maxMatches="1000"
@@ -23,13 +23,14 @@ import EventBus from "@/utils/eventBus";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
+import Formatters from "@/utils/formatters";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("annotation-method-selectpicker", {
+export default Vue.component("annotation-selectpicker", {
     props: {
         annotations: {
             type: Array,
@@ -49,27 +50,8 @@ export default Vue.component("annotation-method-selectpicker", {
             userText: this.defaultSet || null,
         };
     },
-    computed: {
-        annotationOptions() {
-            if (!this.annotations) {
-                return [];
-            } else {
-                let annotations = this.annotations;
-                return annotations.sort((a, b) => {
-                    if (a.annotation < b.annotation) return -1;
-                    if (b.annotation < a.annotation) return 1;
-
-                    if (!!a.count && !!b.count) {
-                        if (a.count < b.count) return -1;
-                        if (b.count < a.count) return 1;
-                    }
-
-                    return 0;
-                });
-            }
-        },
-    },
     methods: {
+        ...Formatters,
         onAnnotationSelect(event) {
             this.$emit("annotation", event);
 
@@ -80,7 +62,7 @@ export default Vue.component("annotation-method-selectpicker", {
 
         setFocus() {
             this.$nextTick(() => {
-                this.$refs.annotationOptions.$refs.input.focus();
+                this.$refs.annotations.$refs.input.focus();
             });
         },
     },

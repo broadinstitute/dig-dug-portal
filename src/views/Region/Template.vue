@@ -283,9 +283,28 @@
                                             class="label"
                                             style="margin-bottom: 5px"
                                         >
+                                            Add tissue
+                                        </div>
+                                        <tissue-selectpicker
+                                            :tissues="
+                                                $parent.globalEnrichmentTissues
+                                            "
+                                            :clearOnSelected="true"
+                                            @tissue="
+                                                $parent.addTissueIntervalsPanel(
+                                                    $event
+                                                )
+                                            "
+                                        />
+                                    </div>
+                                    <div class="col filter-col-lg">
+                                        <div
+                                            class="label"
+                                            style="margin-bottom: 5px"
+                                        >
                                             Add annotation
                                         </div>
-                                        <annotation-method-selectpicker
+                                        <annotation-selectpicker
                                             :annotations="
                                                 $parent.globalEnrichmentAnnotations
                                             "

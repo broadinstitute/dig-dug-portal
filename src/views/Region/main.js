@@ -16,7 +16,8 @@ import LocusZoom from "@/components/lz/LocusZoom";
 import LocusZoomCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import CredibleSetSelectPicker from "@/components/CredibleSetSelectPicker";
-import AnnotationMethodSelectPicker from "@/components/AnnotationMethodSelectPicker";
+import AnnotationSelectPicker from "@/components/AnnotationSelectPicker";
+import TissueSelectPicker from "@/components/TissueSelectPicker";
 import LunarisLink from "@/components/LunarisLink";
 import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
@@ -62,7 +63,8 @@ new Vue({
         AssociationsTable,
         PhenotypeSignalMixed,
         CredibleSetSelectPicker,
-        AnnotationMethodSelectPicker,
+        AnnotationSelectPicker,
+        TissueSelectPicker,
         PhenotypeSelectPicker,
         Autocomplete,
         GeneSelectPicker,
@@ -162,12 +164,20 @@ new Vue({
                 );
             }
         },
-        addAnnotationIntervalsPanel(event) {
-            const { annotation, method } = event;
-            this.$children[0].$refs.locuszoom.addAnnotationIntervalsPanel(
-                annotation,
-                Formatters.snakeFormatter(annotation),
-                this.tissueScoring
+        addAnnotationIntervalsPanel(r) {
+            this.$children[0].$refs.locuszoom.addIntervalsPanel(
+                "annotated-regions",
+                r.annotation,
+                "tissue",
+                Formatters.snakeFormatter(r.annotation),
+            );
+        },
+        addTissueIntervalsPanel(r) {
+            this.$children[0].$refs.locuszoom.addIntervalsPanel(
+                "tissue-regions",
+                r.tissue,
+                "annotation",
+                Formatters.snakeFormatter(r.tissue),
             );
         },
         topPhenotype(topAssocData) {
@@ -266,13 +276,18 @@ new Vue({
         },
         globalEnrichmentAnnotations() {
             // an array of annotations
-            return sortUtils.uniqBy(
+            let annotations = sortUtils.uniqBy(
                 this.$store.state.globalEnrichment.data,
-                el =>
-                    JSON.stringify(
-                        [el.annotation, !!el.method ? el.method : ""].join()
-                    )
+                el => el.annotation,
             );
+            return annotations;
+        },
+        globalEnrichmentTissues() {
+            let tissues = sortUtils.uniqBy(
+                this.$store.state.globalEnrichment.data,
+                el => el.tissue,
+            );
+            return tissues;
         },
         associationConsequences() {
             return this.pageAssociations.map(v => v.consequence);
