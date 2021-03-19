@@ -44,19 +44,26 @@
                     }}</a>
                 </template>
                 <template #cell(description)="data">
-                    <a :id="data.item.phenotype">{{ data.item.description }}</a>
+                    <a :id="data.item.phenotype" style="cursor: context-menu">{{
+                        data.item.description
+                    }}</a>
                     <b-popover
                         :target="data.item.phenotype"
                         triggers="hover"
                         placement="top"
                         variant="info"
-                        ><div @click="addPhenotype(data.item.phenotype)">
+                        ><div
+                            role="button"
+                            @click="addPhenotype(data.item.phenotype)"
+                        >
                             Add this phenotype to GEM
                         </div>
-                        <a
-                            :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
-                            >Go to phenotype page</a
-                        ></b-popover
+                        <div>
+                            <a
+                                :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
+                                >Go to phenotype page</a
+                            >
+                        </div></b-popover
                     >
                 </template>
                 <template #cell(group)="data">
@@ -332,6 +339,12 @@ div.details .sub-details {
     border-bottom: 5px solid #eeeeee;
     border-radius: unset;
 }
+.sub-details .page-item.active .page-link,
+.sub-details .page-item .page-link {
+    border-radius: unset;
+    font-size: 0.875rem;
+}
+
 .b-table div.pValue {
     width: 100%;
     height: 100%;
