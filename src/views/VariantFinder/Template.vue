@@ -82,7 +82,7 @@
                                         <criterion-function-group
                                             v-model="p.filter"
                                             header=""
-                                            :inlinePills="true"
+                                            :noPills="true"
                                         >
                                             <filter-pvalue-control
                                                 :field="'pValue'"
@@ -118,7 +118,7 @@
                                         >
                                     </div>
                                 </div> -->
-
+                                <criterion-pills></criterion-pills>
                                 <button
                                     type="button"
                                     class="mr-2 close"

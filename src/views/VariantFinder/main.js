@@ -17,6 +17,7 @@ import ClumpedAssociationsTable from "@/components/ClumpedAssociationsTable.vue"
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import CriterionPills from "@/components/criterion/template/CriterionPills";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
@@ -49,6 +50,7 @@ new Vue({
         UnauthorizedMessage,
         CriterionFunctionGroup,
         CriterionListGroup,
+        CriterionPills,
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
