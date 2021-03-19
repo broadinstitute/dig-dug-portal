@@ -90,13 +90,18 @@
                     <b-button
                         size="sm"
                         variant="outline-primary"
-                        class="btn-mini"
+                        class="btn-mini showData"
                         @click="
                             showClumpData(data.item.phenotype, data.item.clump);
                             data.toggleDetails();
                         "
-                    >
-                        {{ data.detailsShowing ? "Hide" : "Show" }} Variants
+                        ><span v-if="!!loadingData[data.item.phenotype]"
+                            ><b-spinner small></b-spinner>
+                            <span class="sr-only">Loading...</span></span
+                        ><span v-else>
+                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                            Variants</span
+                        >
                     </b-button>
                 </template>
                 <template #cell(effect_beta)="data">
@@ -273,6 +278,7 @@ export default Vue.component("clumped-variants-table", {
             ],
 
             clumpData: {},
+            loadingData: {},
         };
     },
 
@@ -291,9 +297,11 @@ export default Vue.component("clumped-variants-table", {
     methods: {
         async showClumpData(phenotype, clump) {
             if (this.clumpData[phenotype] === undefined) {
+                this.loadingData[phenotype] = true;
                 let clumpQuery = await this.getClumpData(phenotype, clump);
                 Vue.set(this.clumpData, phenotype, clumpQuery);
                 Vue.set(this.subCurrentPage, phenotype, 1);
+                this.loadingData[phenotype] = false;
             }
         },
         async getClumpData(phenotype, clump) {
@@ -341,6 +349,9 @@ export default Vue.component("clumped-variants-table", {
 #clump-data thead tr:hover,
 #clump-data tr.b-table-details:hover {
     background-color: inherit;
+}
+#clump-data button.showData {
+    min-width: 90px;
 }
 .b-table-details div.details {
     margin-left: 20px;
