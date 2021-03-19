@@ -4,7 +4,7 @@
         ref="annotationOptionsSelect"
         placeholder="Add an annotation ..."
         :data="annotationOptions"
-        :serializer="s => s.annotation"
+        :serializer="(s) => s.annotation"
         :showOnFocus="true"
         :minMatchingChars="0"
         :maxMatches="1000"
@@ -12,7 +12,6 @@
     >
         <template slot="suggestion" slot-scope="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
-            <small class="text-secondary">{{ !!data.method ? data.method : '' }}</small>
         </template>
     </vue-typeahead-bootstrap>
 </template>
@@ -47,7 +46,7 @@ export default Vue.component("annotation-method-selectpicker", {
     },
     data() {
         return {
-            userText: this.defaultSet || null
+            userText: this.defaultSet || null,
         };
     },
     computed: {
@@ -60,11 +59,6 @@ export default Vue.component("annotation-method-selectpicker", {
                     if (a.annotation < b.annotation) return -1;
                     if (b.annotation < a.annotation) return 1;
 
-                    if (!!a.method && !!b.method) {
-                        if (a.method < b.method) return -1;
-                        if (b.method < a.method) return 1;
-                    }
-
                     if (!!a.count && !!b.count) {
                         if (a.count < b.count) return -1;
                         if (b.count < a.count) return 1;
@@ -73,16 +67,14 @@ export default Vue.component("annotation-method-selectpicker", {
                     return 0;
                 });
             }
-
-
-        }
+        },
     },
     methods: {
         onAnnotationSelect(event) {
             this.$emit("annotation", event);
 
             if (this.clearOnSelected) {
-                this.userText = '';
+                this.userText = "";
             }
         },
 
@@ -90,7 +82,7 @@ export default Vue.component("annotation-method-selectpicker", {
             this.$nextTick(() => {
                 this.$refs.annotationOptions.$refs.input.focus();
             });
-        }
-    }
+        },
+    },
 });
 </script>

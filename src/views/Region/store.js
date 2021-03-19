@@ -87,10 +87,6 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        async onPhenotypeChange(context, phenotype) {
-            context.commit("setSelectedPhenotype", phenotype);
-        },
-
         async findGene(context) {
             if (context.state.searchGene) {
                 let locus = await regionUtils.parseRegion(
