@@ -44,7 +44,7 @@
                     }}</a>
                 </template>
                 <template #cell(description)="data">
-                    <a :id="data.item.phenotype" style="cursor: context-menu">{{
+                    <a :id="data.item.phenotype" style="cursor: help">{{
                         data.item.description
                     }}</a>
                     <b-popover
