@@ -16,6 +16,7 @@ import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
 import { LZAssociationsPanel } from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import { LZIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
 import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnnotationsPanel";
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
@@ -214,6 +215,30 @@ export default Vue.component("locuszoom", {
             const panelId = this.addPanelAndDataSource(
                 new LZCatalogAnnotationsPanel(
                     phenotype,
+                    title,
+                    onLoad,
+                    onResolve,
+                    onError,
+                    initialData
+                )
+            );
+            return panelId;
+        },
+        addIntervalsPanel: function (
+            index,
+            primaryKey,
+            secondaryKey,
+            title,
+            initialData,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanelAndDataSource(
+                new LZIntervalsPanel(
+                    index,
+                    primaryKey,
+                    secondaryKey,
                     title,
                     onLoad,
                     onResolve,
