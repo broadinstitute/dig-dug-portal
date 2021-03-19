@@ -60,7 +60,7 @@ const resolveCurie = function(curie, context) {
         //     return `${context[maybeSupportedPrefix]}${id}`;
         // }
 
-        // TODO: problem: don't know which case:
+        // TODO: problem: don't know which case: have to try all of them
         let url=``;
         if (!!context[prefix]) url = `${context[prefix]}${id}`;
         if (!!context[prefix.toLowerCase()]) url = `${context[prefix.toLowerCase()]}${id}`;
@@ -160,12 +160,27 @@ const isSupportedPrefix = function(maybeIsPrefix, context, synonyms=_prefix_syno
 const ARS_API = "https://ars.transltr.io/ars/api/"
 
 const tap = id => { console.log(id); return id; };
-const interrogate = accessor => id => { console.log(get(id, accessor), id); return id; };
+const interrogate = accessor => id => { 
+    console.log(get(id, accessor)); 
+    return tap(id); 
+};
+const groupLogs = (groupName, func, { collapse=false }) => args => {
+    if (collapse) {
+        console.groupCollapsed(groupName);
+    } else {
+        console.group(groupName)
+    }
+    const result = func(args);
+    console.groupEnd();
+    return result;
+}
 
 // Basic ARS query
-async function messageARS(message, trace=null, callback=interrogate('fields.data')) {
+async function messageARS(message, trace=null, callback=groupLogs('interrogate', interrogate('fields.data'))) {
     let qs = queryString.stringify({ trace }, { skipNull: true });
-    return await fetch(`${ARS_API}messages/${message}?${qs}`).then(body => body.json()).then(callback)
+    return await fetch(`${ARS_API}messages/${message}?${qs}`)
+                .then(body => body.json())
+                .then(callback)
 }
 
 // ARS Query initializer
@@ -184,6 +199,27 @@ async function beginARSQuery(message) {
 
 }
 
+
+async function queryTRAPI(url, query_graph, callback) {
+    return fetch(`${url}`, {
+        body: JSON.stringify(query_graph),
+        method: 'POST'
+    }).then(callback);
+}
+
+const messageTRAPI = url => endpoint => async (message, method='GET') => {
+    if (url.charAt( url.length - 1 ) === '/') {
+        url = url.slice(0, url.length - 1);
+    }
+    if (endpoint === 'query') {
+        method = 'POST'
+    }
+    return fetch(`${url}/${endpoint}`, {
+        body: JSON.stringify(message),
+        method: method
+    })
+}
+
 // Stream Control Function
 // "Reads out" the ARS Query status over time and gets
 // Akin to reading out the outputs from a foreign process
@@ -194,6 +230,8 @@ async function _streamARAs(arsQuery, { onDone=id=>id, onError=id=>id, onUnknown=
     // update the statuses with the latest information
     let _actorStatuses = new Map(actorStatuses);
     arsQuery.children.forEach(el => _actorStatuses.set(el.actor.agent, el.status));
+
+    arsQuery.children.forEach(el => tap(el.message))
 
     // check the previous status against the current status, and only handle when there has been a change
     arsQuery.children.forEach(child => {
@@ -288,7 +326,6 @@ function _hasResults(message) {
             console.log('results', message.results)
             return true
         } else {
-            console.log('no results', message.results)
             return false;
         }
     } else {
@@ -335,7 +372,6 @@ const knowledgeGraphFromSources = (sources=[], assignableList=[]) => (entry) => 
     const [agent, message] = entry;
     if (sources.length === 0 || sources.includes(agent)) {
         if(_hasResults(message)) {
-            console.log(message)
             assignableList.push(message.knowledge_graph);
         }
     } return assignableList;
