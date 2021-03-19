@@ -158,16 +158,7 @@
                                 <a
                                     :href="`/variant.html?variant=${data.item.dbSNP}`"
                                     >{{ data.item.dbSNP }}</a
-                                > </template
-                            ><template #cell(pValue)="data">
-                                <div
-                                    class="pValue"
-                                    :style="`background-size: ${pValueCss(
-                                        data.item.pValue
-                                    )}% 100%`"
                                 >
-                                    {{ data.item.pValue }}
-                                </div>
                             </template>
                             <template #cell(effect)="data">
                                 <span
