@@ -22,6 +22,30 @@
 .phenotype-group.TYPE.DIABETES { background-color: #639bc0; }
 .phenotype-group.HEMATOLOGICAL { background-color: #aa0000; }
 
+.border-color.ANTHROPOMETRIC { border-color: #048845; }
+.border-color.ATRIAL.FIBRILLATION { border-color: #7aaa1c; }
+.border-color.CARDIOVASCULAR { border-color: #6FC7B6; }
+.border-color.ECG.TRAITS { border-color: #8490C8; }
+.border-color.GLYCEMIC { border-color: #9F78AC; }
+.border-color.HEMORRHAGIC.STROKE { border-color: #BF61A5; }
+.border-color.HEPATIC { border-color: #F88084; }
+.border-color.INFLAMMATORY.BOWEL { border-color: #007bff; }
+.border-color.ISCHEMIC.STROKE { border-color: #EE3124; }
+.border-color.LIPIDS { border-color: #fAA553; }
+.border-color.LUNG { border-color: #0000ff; }
+.border-color.METABOLITE { border-color: #fcc500; }
+.border-color.MRI.TRAITS { border-color: #F5A4C7; }
+.border-color.MUSCULOSKELETAL { border-color: #aec6a1; }
+.border-color.NEUROLOGICAL { border-color: #33ff00; }
+.border-color.OCULAR { border-color: #ccc698; }
+.border-color.OTHER { border-color: #B4B4B4; }
+.border-color.PSYCHIATRIC { border-color: #5555FF; }
+.border-color.RENAL { border-color: #ff55ff; }
+.border-color.SLEEP.AND.CIRCADIAN { border-color: #D5A768; }
+.border-color.STROKE { border-color: #cccc00; }
+.border-color.TYPE.DIABETES { border-color: #639bc0; }
+.border-color.HEMATOLOGICAL { border-color: #aa0000; }
+
 .reference.color-1 { background-color: #048845; }
 .reference.color-2 { background-color: #8490C8; }
 .reference.color-3 { background-color: #BF61A5; }

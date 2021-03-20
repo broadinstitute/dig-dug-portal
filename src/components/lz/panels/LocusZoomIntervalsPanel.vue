@@ -14,19 +14,19 @@ import {
 } from "@/utils/lzUtils";
 import idCounter from "@/utils/idCounter";
 
-export default Vue.component("lz-annotation-intervals-panel", {
+export default Vue.component("lz-intervals-panel", {
     props: {
-        annotation: {
+        index: {
             type: String,
             required: true,
         },
-        scoring: {
-            type: Object,
+        primaryKey: {
+            type: String,
             required: true,
         },
-        // for use with v-model
-        value: {
-            required: false,
+        secondaryKey: {
+            type: String,
+            required: true,
         },
         title: String,
         onLoad: Function,
@@ -47,10 +47,11 @@ export default Vue.component("lz-annotation-intervals-panel", {
             const onLoad = !!!this.onLoad
                 ? (result) => this.$emit("input", result)
                 : this.onLoad;
-            this.panelId = this.$parent.addAnnotationIntervalsPanel(
-                this.annotation,
+            this.panelId = this.$parent.addIntervalsPanel(
+                this.index,
+                this.primaryKey,
+                this.secondaryKey,
                 this.title,
-                this.scoring,
                 this.initialData,
                 onLoad,
                 this.onResolve,
@@ -78,15 +79,16 @@ export default Vue.component("lz-annotation-intervals-panel", {
     },
 });
 
-export class LZAnnotationIntervalsPanel {
+export class LZIntervalsPanel {
     constructor(
-        annotation,
+        index,
+        primaryKey,
+        secondaryKey,
         title,
         onLoad,
         onResolve,
         onError,
-        initialData,
-        scoring
+        initialData
     ) {
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -97,38 +99,34 @@ export class LZAnnotationIntervalsPanel {
         this.panel_id = idCounter.getUniqueId(this.panel_layout_type);
         this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
-        this.index = "annotated-regions";
+        this.index = index;
         this.queryStringMaker = (chr, start, end) =>
-            `${annotation},${chr}:${start}-${end}`;
+            `${primaryKey},${chr}:${start}-${end}`;
         this.translator = function (intervals) {
             const tissueIntervals = !!intervals
                 ? intervals
                       .map((interval) => {
                           const { r, g, b } = rgb(
-                              color(LZColorScheme.getColor(interval.tissue))
+                              color(
+                                  LZColorScheme.getColor(interval[secondaryKey])
+                              )
                           );
 
-                          let t = interval.tissue;
-                          let key = `${interval.annotation}___${interval.tissue}`;
-                          return (t || m !== "NA") && !!scoring[key]
-                              ? {
-                                    name: interval.tissue,
-                                    // some data (not displayed by default)
-                                    // region information
-                                    chr: interval.chromosome,
-                                    start: interval.start,
-                                    end: interval.end,
-                                    pValue: scoring[key].minP,
-                                    fold: scoring[key].maxFold,
-                                    state_id: `${interval.tissue}`,
-                                    // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
-                                    state_name: `${interval.tissue}`,
-                                    // a string-encoded list of RGB coords, e.g. '255,0,128'
-                                    itemRgb: [r, g, b].join(),
-                                }
-                              : null;
+                          if (!interval[secondaryKey]) return null;
 
-                          // filter nulls (which represent elements we can't score)
+                          return {
+                              name: primaryKey,
+                              // some data (not displayed by default)
+                              // region information
+                              chr: interval.chromosome,
+                              start: interval.start,
+                              end: interval.end,
+                              state_id: `${interval[secondaryKey]}`,
+                              // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
+                              state_name: `${interval[secondaryKey]}`,
+                              // a string-encoded list of RGB coords, e.g. '255,0,128'
+                              itemRgb: [r, g, b].join(),
+                          };
                       })
                       .filter((el) => !!el)
                 : [];
@@ -156,8 +154,8 @@ export class LZAnnotationIntervalsPanel {
                                 .datasource_namespace_symbol_for_panel,
                         },
                         fields: [
-                            `{{namespace[${this.datasource_type}]}}pValue`,
-                            `{{namespace[${this.datasource_type}]}}fold`,
+                            //`{{namespace[${this.datasource_type}]}}pValue`,
+                            //`{{namespace[${this.datasource_type}]}}fold`,
                             ...LocusZoom.Layouts.get(
                                 "data_layer",
                                 "intervals",

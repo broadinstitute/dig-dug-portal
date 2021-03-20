@@ -131,7 +131,7 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        Variant associations in the region:
+                        Clumped variant associations in the region:
                         {{ $parent.regionString }}
                     </h4>
                     <documentation
@@ -160,7 +160,15 @@
                         </div>
                         <phenotype-signal-mixed
                             :phenotypes="$parent.topAssociations"
+                            :limit="10"
                         ></phenotype-signal-mixed>
+                    </div>
+                    <div v-if="$parent.topAssociations.length > 0">
+                        <clumped-variants-table
+                            legends
+                            :variants="$parent.topAssociations"
+                            :phenotypeMap="$parent.phenotypeMap"
+                        ></clumped-variants-table>
                     </div>
                 </div>
             </div>
@@ -249,6 +257,7 @@
                                         slot-scope="{ filter }"
                                     >
                                         <associations-table
+                                            id="associations-table"
                                             v-if="
                                                 $parent.selectedPhenotypes
                                                     .length > 0 &&
@@ -278,14 +287,33 @@
                                 ></documentation>
 
                                 <criterion-function-group>
-                                    <div class="col filter-col-lg">
+                                    <div class="col filter-col-md">
+                                        <div
+                                            class="label"
+                                            style="margin-bottom: 5px"
+                                        >
+                                            Add tissue
+                                        </div>
+                                        <tissue-selectpicker
+                                            :tissues="
+                                                $parent.globalEnrichmentTissues
+                                            "
+                                            :clearOnSelected="true"
+                                            @tissue="
+                                                $parent.addTissueIntervalsPanel(
+                                                    $event
+                                                )
+                                            "
+                                        />
+                                    </div>
+                                    <div class="col filter-col-md">
                                         <div
                                             class="label"
                                             style="margin-bottom: 5px"
                                         >
                                             Add annotation
                                         </div>
-                                        <annotation-method-selectpicker
+                                        <annotation-selectpicker
                                             :annotations="
                                                 $parent.globalEnrichmentAnnotations
                                             "
@@ -298,7 +326,7 @@
                                         />
                                     </div>
 
-                                    <div class="col filter-col-lg">
+                                    <div class="col filter-col-md">
                                         <div
                                             class="label"
                                             style="margin-bottom: 5px"
@@ -366,6 +394,9 @@
                                             >
                                                 <lz-associations-panel
                                                     :phenotype="phenotype.name"
+                                                    :title="
+                                                        phenotype.description
+                                                    "
                                                     @input="
                                                         $parent.updatePageAssociations(
                                                             {
@@ -378,14 +409,8 @@
                                                 ></lz-associations-panel>
                                                 <lz-catalog-annotations-panel
                                                     :phenotype="phenotype.name"
-                                                    @input="
-                                                        $parent.updatePageAssociations(
-                                                            {
-                                                                phenotype:
-                                                                    phenotype.name,
-                                                                data: $event,
-                                                            }
-                                                        )
+                                                    :title="
+                                                        phenotype.description
                                                     "
                                                 ></lz-catalog-annotations-panel>
                                             </span>

@@ -1245,7 +1245,8 @@ div.filtering-ui-content div.col input {
     font-size: 14px;
 }
 
-div.filtering-ui-content div.col input.or-half-gt, div.filtering-ui-content div.col input.or-half-lt {
+div.filtering-ui-content div.col input.or-half-gt,
+div.filtering-ui-content div.col input.or-half-lt {
     width: 70px;
 }
 
@@ -1670,10 +1671,10 @@ a.to-previous-page:hover {
 #gait .variants {
     margin-top: 2rem;
 }
-#gait .btn-mini {
+button.btn.btn-mini {
     padding: 0.1rem 0.25rem;
     font-size: 0.75rem;
-    line-height: 1.25;
+    line-height: 1.25rem;
 }
 #gait .forest-plot-simple {
     position: relative;
@@ -1726,7 +1727,9 @@ a.to-previous-page:hover {
     font-size: 14px;
 }
 
-span.volcano-score-0, span.volcano-score-1, span.volcano-score-2 {
+span.volcano-score-0,
+span.volcano-score-1,
+span.volcano-score-2 {
     width: 12px;
     height: 12px;
     display: inline-block;
@@ -1744,7 +1747,8 @@ span.volcano-score-2 {
     background-color: #ff003780;
 }
 
-#clicked_dot_value, #clicked_cell_value {
+#clicked_dot_value,
+#clicked_cell_value {
     position: absolute;
     background-color: #fff;
     border: solid 1px #aaa;
@@ -1768,5 +1772,4 @@ span.volcano-score-2 {
     display: inline-block;
     margin-right: 10px;
     margin-top: 3px;
-
 }
