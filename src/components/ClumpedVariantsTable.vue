@@ -345,9 +345,20 @@ export default Vue.component("clumped-variants-table", {
 .b-table-details div.details ul {
     margin: 0 3rem 0 auto;
 }
+.b-table-details div.details .page-link {
+    border: transparent !important;
+}
+.b-table-details div.details .page-item.disabled,
+.b-table-details div.details .page-link {
+    background-color: transparent;
+}
+.b-table-details div.details .page-item:not(.active) .page-link:hover {
+    background-color: #eee;
+}
 div.details .sub-details {
     border: unset;
     border-radius: unset;
+    border-bottom: 3px solid #eee;
 }
 .b-popover {
     background-color: #000;
@@ -371,7 +382,6 @@ div.details .sub-details {
     border-radius: unset;
     font-size: 0.75rem;
     color: #52a549;
-    background-color: transparent;
 }
 .sub-details .page-item.active .page-link {
     background-color: #4b9742;
