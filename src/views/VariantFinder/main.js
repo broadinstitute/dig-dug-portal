@@ -22,8 +22,9 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
-
+import { isEqual } from "lodash";
 import Colors from "@/utils/colors";
+import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlert,
@@ -86,7 +87,7 @@ new Vue({
 
         phenotypeColor(index) {
             return Colors[index];
-        }
+        },
         // showFilters() {
         //     let element = document.getElementById("sliding_filters_wrapper");
         //     if (element.classList.contains("hidden")) {
@@ -95,6 +96,12 @@ new Vue({
         //         element.classList.add("hidden");
         //     }
         // }
+        setPhenotypeParams(phenotypes) {
+            keyParams.set({
+                phenotypes: phenotypes.length ? phenotypes.join(",") : []
+            });
+            console.log("set");
+        }
     },
 
     computed: {
@@ -141,6 +148,14 @@ new Vue({
     watch: {
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+        phenotypes: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.setPhenotypeParams(newData);
+                }
+            },
+            deep: true
         }
     }
 }).$mount("#app");
