@@ -494,11 +494,44 @@ const associations = function(biolinkModel) {
     }
 }
 
+let COUNTER_ID = 1;
+const biolinkQueryGraph = function(subjectCurie, { subject, predicate, object }) {
+    const uuid = function(prefix) {
+        const id = `${!!prefix ? prefix : ""}_${Date.now()}_${COUNTER_ID}`;
+        COUNTER_ID += 1;
+        return id;
+    };
+    const sid = uuid('s');
+    const oid = uuid('o');
+    const eid = uuid('e')
+    return {
+        query_graph: {
+            nodes: {
+                [sid]: {
+                    id: subjectCurie,
+                    category: subject
+                },
+                [oid]: {
+                    category: object
+                }
+            },
+            edges: {
+                [eid]: {
+                    subject: sid,
+                    object: oid,
+                    predicate: predicate,
+                }
+            }
+        }
+    }
+}
+
 export default {
     query: streamARSQuery,
+    makeQueryGraph: biolinkQueryGraph,
     queryUtils: {
         getARAMessageEntry,
-        getARAMessage
+        getARAMessage,
     },
     callback: {
         updateResultsFromSources,
@@ -579,23 +612,10 @@ const messageTRAPI = url => endpoint => async (body='', method='GET') => {
 
 messageTRAPI('https://api.bte.ncats.io/v1/')('query')({
     "message": {
-      "query_graph": {
-        "edges": {
-          "e00": {
-            "object": "n01",
-            "subject": "n00"
-          }
-        },
-        "nodes": {
-          "n00": {
-            "category": "biolink:Disease",
-            "id": "MONDO:0005737"
-          },
-          "n01": {
-            "category": "biolink:ChemicalSubstance"
-          }
-        }
-      }
+        ...biolinkQueryGraph("MONDO:0005737", {
+            subject: "biolink:Disease",
+            object: "biolink:ChemicalSubstance"
+        })
     }
 });
 

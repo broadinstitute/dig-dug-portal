@@ -46,59 +46,60 @@
 
                     <b-table
                         :items="tableItems.filter(filter)"
-                        :fields="uniqueTableFields"
+                        :fields="uniqueSortableTableFields"
                         :per-page="perPage"
                         :current-page="currentPage"
                         small>
 
                         <template #cell()="data" v-if="outlinks">
+                            <span v-if="data.value != false">
+                                <template v-if="Array.isArray(data.value)">
+                                    <!-- <ul style="columns: 5; -webkit-columns: 5; -moz-columns: 5; list-style-type: none; padding: 0; margin: 0; column-gap:10px"> -->
+                                        <span v-for="(curie, index) in data.value" 
+                                            :key="curie" 
+                                            :id="`${curie}-link-${index}-${data.index}`">
+                                            <results-tooltip
+                                                :target="`${curie}-link-${data.index}-${index}`"
+                                                :query_graph="query_graph"
+                                                :rowData="data"
+                                                :curie="curie"
+                                                :key="`${curie}_tooltip`"
+                                            ></results-tooltip>
 
-                            <template v-if="Array.isArray(data.value)">
-                                <ul style="columns: 5; -webkit-columns: 5; -moz-columns: 5; list-style-type: none; padding: 0; margin: 0; column-gap:10px">
-                                    <li v-for="(curie, index) in data.value" 
-                                        :key="curie" 
-                                        :id="`${curie}-link-${index}-${data.index}`">
-                                        <results-tooltip
-                                            :target="`${curie}-link-${data.index}-${index}`"
-                                            :query_graph="query_graph"
-                                            :rowData="data"
-                                            :curie="curie"
-                                            :key="`${curie}_tooltip`"
-                                        ></results-tooltip>
-
-                                        <span :id="`${curie}-link-${data.index}-${index}`">
-                                            <resolved-curie-link
-                                                :key="`${curie}_item`"
-                                                :curie="curie">
-                                            </resolved-curie-link>
-                                            <!-- {{index == (data.value.length - 1) ? '' : ', '}} -->
+                                            <span :id="`${curie}-link-${data.index}-${index}`">
+                                                <resolved-curie-link
+                                                    :key="`${curie}_item`"
+                                                    :curie="curie">
+                                                </resolved-curie-link>{{index == (data.value.length - 1) ? '' : ', '}}
+                                            </span>
                                         </span>
-                                    </li>
-                                </ul>                                
-                            </template>
+                                    <!-- </ul>                                 -->
+                                </template>
 
-                            <span v-else :key="data.value">
+                                <span v-else :key="data.value">
 
-                                <results-tooltip
-                                    :target="`${data.value}-link-${data.index}`"
-                                    :query_graph="query_graph"
-                                    :key="`${data.value}_tooltip`"
-                                    :rowData="data"
-                                ></results-tooltip>
-                                
-                                <span :id="`${data.value}-link-${data.index}`">
-                                    <resolved-curie-link
-                                        :key="`${data.value}_item`"
-                                        v-if="typeof data.value === 'string' && data.value.includes(':')"
-                                        :curie="data.value">
-                                    </resolved-curie-link>
-                                    <span v-else>
-                                        {{data.value}}
+                                    <results-tooltip
+                                        :target="`${data.value}-link-${data.index}`"
+                                        :query_graph="query_graph"
+                                        :key="`${data.value}_tooltip`"
+                                        :rowData="data"
+                                    ></results-tooltip>
+                                    
+                                    <span :id="`${data.value}-link-${data.index}`">
+                                        <resolved-curie-link
+                                            :key="`${data.value}_item`"
+                                            v-if="typeof data.value === 'string' && data.value.includes(':')"
+                                            :curie="data.value">
+                                        </resolved-curie-link>
+                                        <span v-else>
+                                            {{data.value}}
+                                        </span>
                                     </span>
                                 </span>
-
                             </span>
-                    
+                            <span v-else>
+                                No {{data.field.label}}
+                            </span>
                         </template>
 
 
@@ -192,8 +193,11 @@ export default Vue.component('translator-results-table', {
         knowledge_graph() {
             return cloneDeep(this.knowledge_graph_list.reduce((acc, item) => merge(acc, item), {}));
         },
-        uniqueTableFields() {
-            return Array.from(new Set(this.tableFields));
+        uniqueSortableTableFields() {
+            return Array.from(new Set(this.tableFields)).map(field => ({
+                key: field,
+                sortable: true
+            }));
         },
         tableItems() {
             return this.maybe(this.tableItemsFromKnowledgeGraph(this.knowledge_graph_list), this.withSelected, this.selectable)
@@ -236,8 +240,10 @@ export default Vue.component('translator-results-table', {
             return knowledge_graph_list.reduce((acc, item) => merge(acc, item), {});
         },
         tableItemsFromKnowledgeGraph(knowledge_graph_list) {
-            const restrictedTypes = ['bts:GO', 'bts:term', 'bts:WIKIPATHWAYS']
+            const restrictedTypes = ['bts:GO', 'bts:term', 'bts:WIKIPATHWAYS'];
+
             if (!!knowledge_graph_list && knowledge_graph_list.length > 0) {
+
                 let knowledge_graph = this.aggKnowledgeGraph(knowledge_graph_list)
 
                 let results = Object.entries(knowledge_graph.edges).map(edgeEntry => {
@@ -278,7 +284,9 @@ export default Vue.component('translator-results-table', {
 
                     return row;
                 });
+                
                 return results;
+
             } return [];
         },
         withSelected(tableItems) {

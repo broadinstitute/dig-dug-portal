@@ -22,7 +22,9 @@ import FilterEnumeration from "@/components/criterion/FilterEnumeration"
 
 import queryString from "query-string"
 import _, { merge } from "lodash"
+
 import trapi from "@/components/NCATS/trapi"
+
 import AsyncComputed from 'vue-async-computed'
 import StaticPageInfo from "@/components/StaticPageInfo.vue";
 import PageHeader from "@/components/PageHeader.vue";
@@ -96,27 +98,27 @@ new Vue({
     async created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.queries.push(
-            this.biolinkQueryGraph("NCBIGENE:1017", {
+            trapi.makeQueryGraph("NCBIGENE:1017", {
                 subject: "biolink:Gene",
                 predicate:"biolink:gene_associated_with_condition",
                 object: "biolink:Disease",
             }),
-            this.biolinkQueryGraph("NCBIGENE:1017", {
+            trapi.makeQueryGraph("NCBIGENE:1017", {
                 subject: "biolink:Gene",
                 predicate: "biolink:participates_in",
                 object: "biolink:Pathway",
             }),
-            this.biolinkQueryGraph('NCBIGENE:1017', {
+            trapi.makeQueryGraph('NCBIGENE:1017', {
                 subject: 'biolink:Gene',
                 predicate: 'biolink:participates_in',
                 object: 'biolink:BiologicalProcess',
             }),
-            this.biolinkQueryGraph('NCBIGENE:1017', {
+            trapi.makeQueryGraph('NCBIGENE:1017', {
                 subject: 'biolink:Gene',
                 predicate: 'biolink:expressed_in',
                 object: 'biolink:CellularComponent',
             }),
-            this.biolinkQueryGraph('NCBIGENE:1017', {
+            trapi.makeQueryGraph('NCBIGENE:1017', {
                 subject: 'biolink:Gene',
                 predicate: 'biolink:enables',
                 object: 'biolink:MolecularActivity',
@@ -125,15 +127,19 @@ new Vue({
         
     },
     async mounted() {
+
         const biolinkModel = await trapi.model.biolinkModel;
+
         this.geneToDiseasePredicates = trapi.model.findSlotsForDomainRange({
             domain: 'gene',
             range: 'disease or phenotypic feature'
-        }, biolinkModel)
+        }, biolinkModel);
+
         this.diseaseToPathwayPredicates = trapi.model.findSlotsForDomainRange({
             domain: 'disease or phenotypic feature',
             range: 'pathway'
-        }, biolinkModel)
+        }, biolinkModel);
+
     },
     asyncComputed: {
         async diseaseMap() {
@@ -188,10 +194,6 @@ new Vue({
             return contents;
         },
 
-        queryGraph() {
-            return this.makeQueryGraph(this.queryGraphCriterion)
-        },
-        
         associationOptions() {
             return !!this.biolinkModel ? 
                 Object.keys(this.biolinkModel.classes).filter(cls => this.biolinkModel.classes[cls].is_a === 'association')
@@ -221,34 +223,9 @@ new Vue({
                 this.matchingGenes = matches;
             }
         },
-        biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
-            const uuid = Counter.getUniqueId;
-            const sid = uuid('s');
-            const oid = uuid('o');
-            const eid = uuid('e')
-            return {
-                query_graph: {
-                    nodes: {
-                        [sid]: {
-                            id: subjectCurie,
-                            category: subject
-                        },
-                        [oid]: {
-                            category: object
-                        }
-                    },
-                    edges: {
-                        [eid]: {
-                            subject: sid,
-                            object: oid,
-                            predicate: predicate,
-                        }
-                    }
-                }
-            }
-        },
+        biolinkQueryGraph: trapi.makeQueryGraph,
         async makeDiseaseToPhenotypeQuery(diseaseCurie) {
-            this.diseaseToPhenotypeQuery = this.biolinkQueryGraph(diseaseCurie, {
+            this.diseaseToPhenotypeQuery = trapi.makeQueryGraph(diseaseCurie, {
                 subject: 'biolink:Disease',
                 object: 'biolink:Phenotype',
                 predicate: 'biolink:disease_to_exposure_event_association'
@@ -256,7 +233,7 @@ new Vue({
         },
         async makeGeneToDiseaseQuery(geneSymbol) {
             const geneCurie = await this.curieForGene(geneSymbol)
-            this.geneToDiseaseQuery = this.biolinkQueryGraph(geneCurie, {
+            this.geneToDiseaseQuery = trapi.makeQueryGraph(geneCurie, {
                 subject: "biolink:Gene",
                 object: "biolink:Disease",
                 predicate:"biolink:gene_associated_with_condition"
@@ -264,7 +241,7 @@ new Vue({
         },
         async makeGeneToPathwayQuery(geneSymbol) {
             const geneCurie = await this.curieForGene(geneSymbol)
-            let geneToPathwayQuery = this.biolinkQueryGraph(geneCurie, {
+            let geneToPathwayQuery = trapi.makeQueryGraph(geneCurie, {
                 subject: "biolink:Gene",
                 object: "biolink:Pathway",
                 predicate:"biolink:participates_in"
@@ -296,62 +273,6 @@ new Vue({
         conceptType(identifier, query_graph) {
             const concepts = { ...query_graph.nodes, ...query_graph.edges };
             return concepts[identifier].category || concepts[identifier].predicate;
-        },
-        makeQueryGraph(preGraph, mode='complete') {
-            const EDGE_PREFIX='e';
-            // const NODE_PREFIX='n';
-            const SUBJECT_PREFIX='s';
-            const OBJECT_PREFIX='o';
-
-            const isEdge = e => e.indexOf(EDGE_PREFIX) === 0;
-            // const isNode = e => e.indexOf(NODE_PREFIX) === 0;
-            const isSubject = e => e.indexOf(SUBJECT_PREFIX) === 0;
-            const isObject = e => e.indexOf(OBJECT_PREFIX) === 0;
-
-            const edges = preGraph.filter(el => isEdge(el.field));
-            // const nodes = preGraph.filter(el => isNode(el.field));
-            const subjects = preGraph.filter(el => isSubject(el.field));
-            const objects = preGraph.filter(el => isObject(el.field));
-
-            const isComplete = edges.length > 0 && subjects.length > 0 && objects.length > 0;
-            const isPartial = edges.length > 0 || subjects.length > 0 || objects.length > 0;
-
-            if (mode === 'complete' && isComplete || mode === 'partial' && isPartial) {
-                return {
-                    "query_graph": {
-                        "nodes": {
-                            ...subjects.reduce((acc, item) => {
-                                const acc_ = acc;
-                                acc_[item.field] = {
-                                    "id": item.threshold !== 'All' ? item.threshold : undefined,
-                                }
-                                return acc_;
-                            }, {}),
-                            ...objects.reduce((acc, item) => {
-                                const acc_ = acc;
-                                acc_[item.field] = {
-                                    "id": item.threshold !== 'All' ? item.threshold : undefined,
-                                }
-                                return acc_;
-                            }, {}),
-                        },
-                        "edges": edges.reduce((acc, item) => {
-                            const acc_ = acc;
-                            _.zip(subjects, objects).forEach(so => {
-                                const [s, o] = so;
-                                console.log('so?', so)
-                                acc_[item.field] = {
-                                    "subject": !!s ? s.field : undefined,
-                                    "object": !!o ? o.field : undefined,
-                                    "predicate": item.threshold
-                                }
-                            });
-                            return acc_;
-                        }, {})
-                    },
-                }
-            }
-            return null;
         },
     },
     watch: {
