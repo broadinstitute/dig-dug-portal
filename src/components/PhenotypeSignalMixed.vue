@@ -21,7 +21,7 @@
                     <div class="pws-top-phenotypes-bars-wrapper">
                         <div
                             v-for="(row, i) in topAssociationsLimit"
-                            :key="i"
+                            :key="row.phenotype"
                             class="pws-top-each-phenotype-wrapper"
                         >
                             <div
@@ -206,7 +206,7 @@
                                             'pws-phenotype-row ' + key2id(key)
                                         )
                                     "
-                                    :key="i"
+                                    :key="item.phenotype"
                                 >
                                     <div
                                         class="pws-progress-bar"
