@@ -4,14 +4,14 @@
 
             <criterion-function-group>
 
-                <filter-enumeration-control
+                <!-- <filter-enumeration-control
                     :field="'subject'"
                     :options="mungedOptions(tableItems, 'subject')"
                     :labelFormatter="label=> subjectLabels[label]">
                     <div class="label">
                         {{'Subject'}}
                     </div>
-                </filter-enumeration-control>
+                </filter-enumeration-control> -->
 
                 <filter-enumeration-control
                     :field="'predicate'"
@@ -33,14 +33,23 @@
                     </div>
                 </filter-enumeration-control>
 
-                <filter-enumeration-control
+                <!-- <filter-enumeration-control
                     :field="'publications'"
                     :labelFormatter="biolinkTypeFormatter"
                     :options="mungedOptions(tableItems, 'publications')">
                     <div class="label">
                         {{'Publications'}}
                     </div>
-                </filter-enumeration-control>
+                </filter-enumeration-control> -->
+
+<!-- 
+                <filter-enumeration-control
+                    :field="'provenance'"
+                    :options="mungedOptions(tableItems, 'provenance')">
+                    <div class="label">
+                        {{'Provenance'}}
+                    </div>
+                </filter-enumeration-control> -->
 
                 <template #filtered="{filter}">
 
@@ -54,8 +63,8 @@
                         <template #cell()="data" v-if="outlinks">
                             <span v-if="data.value != false">
                                 <template v-if="Array.isArray(data.value)">
-                                    <!-- <ul style="columns: 5; -webkit-columns: 5; -moz-columns: 5; list-style-type: none; padding: 0; margin: 0; column-gap:10px"> -->
-                                        <span v-for="(curie, index) in data.value" 
+                                    <ul style="columns: 5; -webkit-columns: 5; -moz-columns: 5; list-style-type: none; padding: 0; margin: 0; column-gap:10px">
+                                        <li v-for="(curie, index) in data.value" 
                                             :key="curie" 
                                             :id="`${curie}-link-${index}-${data.index}`">
                                             <results-tooltip
@@ -70,10 +79,11 @@
                                                 <resolved-curie-link
                                                     :key="`${curie}_item`"
                                                     :curie="curie">
-                                                </resolved-curie-link>{{index == (data.value.length - 1) ? '' : ', '}}
+                                                </resolved-curie-link>
+                                                <!-- {{index == (data.value.length - 1) ? '' : ', '}} -->
                                             </span>
-                                        </span>
-                                    <!-- </ul>                                 -->
+                                        </li>
+                                    </ul>                                
                                 </template>
 
                                 <span v-else :key="data.value">
@@ -230,7 +240,7 @@ export default Vue.component('translator-results-table', {
         // TODO: this sucks
         mungedOptions(items, attribute) {
             return items.map(row => row[attribute])
-                        .filter(el => typeof el !== 'undefined')
+                        .filter(el => el !== undefined)
                         .flatMap(id => id) 
         },
         biolinkTypeFormatter(biolinkTypeCurie) {
@@ -276,8 +286,8 @@ export default Vue.component('translator-results-table', {
                     }
 
                     // NOTE: since publications and provenance are generally useful, we add those fields regardless of whether we just want relations
-                    if (!!attributeMap['publications']) row['publications'] = attributeMap['publications'];
-                    if (!!attributeMap['provenance']) row['provenance'] = attributeMap['provenance'];
+                    if (typeof attributeMap['publications'] !== 'undefined') row['publications'] = attributeMap['publications'];
+                    // if (typeof attributeMap['provenance'] !== 'undefined') row['provenance'] = attributeMap['provenance'];
 
                     // side effect for keeping track of row fields
                     this.tableFields.push(...Object.keys(row));

@@ -208,7 +208,7 @@ const groupLogs = (groupName, func, collapse=true) => args => {
 }
 
 // Basic ARS query
-async function messageARS(message, trace=null, callback=groupLogs('interrogate', interrogate('fields.data'))) {
+async function messageARS(message, trace=null, callback=id=>id) {
     let qs = queryString.stringify({ trace }, { skipNull: true });
     return await fetch(`${ARS_API}messages/${message}?${qs}`)
                 .then(body => body.json())

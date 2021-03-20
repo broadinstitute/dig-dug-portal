@@ -15,7 +15,7 @@
             :per-page="perPage"
             :current-page="currentPage"
         >
-            <template #cell(id)="data">
+            <!-- <template #cell(id)="data">
                 <div v-if="!!context[remap(data.item.source)]">
                     <resolved-curie-link
                         :id="data.item.id"
@@ -27,7 +27,7 @@
                         :curie="data.item.id">
                     </resolved-curie-link>
                 </div>
-            </template>
+            </template> -->
 
             <template v-slot:cell(gene)="v">
                 <a :href="'/gene.html?gene=' + v.item.gene_id">{{
@@ -98,16 +98,6 @@ export default Vue.component("uniprot-references-table", {
             .then(json => json['@context']);
     },
     computed: {
-        remap(prefix) {
-            const remapping = {
-                'reactome': 'REACT',
-                'wikipathways': 'WIKIPATHWAYS'
-            }
-            if (!!remapping[prefix]) {
-                return remapping[prefix];
-            }
-            return prefix;
-        },
         rows() {
             return this.tableData.length;
         },
@@ -115,11 +105,22 @@ export default Vue.component("uniprot-references-table", {
             let dataRows = this.references;
             if (!!this.filter) {
                 dataRows = dataRows.filter(this.filter);
+                console.log(dataRows.filter(this.filter))
             }
             return dataRows;
         },
     },
     methods: {
+        // remap(prefix) {
+        //     const remapping = {
+        //         'reactome': 'REACT',
+        //         'wikipathways': 'WIKIPATHWAYS'
+        //     }
+        //     if (!!remapping[prefix]) {
+        //         return remapping[prefix];
+        //     }
+        //     return prefix;
+        // },
         clearFilter(obj) {
             this[obj] = "";
         },

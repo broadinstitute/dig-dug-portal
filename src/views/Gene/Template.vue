@@ -187,10 +187,9 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4>{{`Functional Associations for ${'Gene'}`}}</h4>
-                    <documentation name="gene.translator.dashboard">
-                        Featuring GO Terms with pathways from Wikipathway, KEGG and Reactome.
-                    </documentation>
+                    <h4>{{`Functional associations for ${$store.state.geneName}`}}</h4>
+                    <h6>With terms from GO, Reactome, KEGG and Wikipathways.</h6><br>
+                    <!-- <documentation name="gene.translator.dashboard"></documentation> -->
                     <translator-results-dashboard
                         :queries="$parent.queries"
                     ></translator-results-dashboard>
