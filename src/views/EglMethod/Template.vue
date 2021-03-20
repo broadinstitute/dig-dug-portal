@@ -7,20 +7,48 @@
         ></page-header>
 
         <!-- Body -->
+
         <div class="container-fluid mdkp-body">
             <a href="/effectorgenes.html" class="btn to-previous-page"
                 >&#60;&#60; Predicted effector genes methods</a
             >
+
             <div class="card mdkp-card gene-page-header">
                 <div class="row card-body">
-                    <div class="col-md-8 gene-page-header-title"></div>
-                    <div class="col-md-4 gene-page-header-title">Phenotype</div>
+                    <div
+                        class="col-md-8 gene-page-header-title"
+                        v-if="$parent.trait != 'null'"
+                    ></div>
+                    <div
+                        class="col-md-4 gene-page-header-title"
+                        v-if="$parent.trait != 'null'"
+                    >
+                        Phenotype
+                    </div>
                     <div class="col-md-8 gene-page-header-body">
                         <h2>{{ $store.state.pageTitle }}</h2>
                     </div>
-                    <div class="col-md-4 gene-page-header-body">
-                        <h4>{{ $parent.trait }}</h4>
+                    <div
+                        class="col-md-4 gene-page-header-body"
+                        v-if="$parent.trait != 'null'"
+                    >
+                        <h4>
+                            {{ $parent.trait }}
+                        </h4>
                     </div>
+                </div>
+            </div>
+            <div
+                class="card mdkp-card"
+                v-if="
+                    !!$store.state.config &&
+                    !!$store.state.config[$parent.dataset].documentationHeader
+                "
+            >
+                <div class="card-body temporary-card">
+                    <documentation
+                        :name="[$parent.dataset] + '.header.info'"
+                    ></documentation>
                 </div>
             </div>
             <div class="card mdkp-card">

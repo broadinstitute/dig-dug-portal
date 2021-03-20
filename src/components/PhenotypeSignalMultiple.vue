@@ -1,67 +1,12 @@
 <template>
     <div>
         <div class="pws-merged-view">
-            <h6>Traits with p-value &le; 5e-8</h6>
-            <template v-if="topAssociationsHighest <= 5e-8">
-                <div class="pws-group-legend-wrapper">
-                    <div v-for="row in topAssociatedGroups" class="pws-group-legend">
-                        <div class="pws-group-legend-box phenotype-group" :class=" row">&nbsp;</div>
-                        {{row}}
-                    </div>
-                </div>
-                <div class="pws-top-phenotypes-wrapper">
-                    <div class="pws-top-phenotypes-bars-wrapper">
-                        <div
-                            v-for="(row, i) in topAssociations"
-                            v-if="row.pValue <= 5e-8"
-                            class="pws-top-each-phenotype-wrapper"
-                        >
-                            <div v-if="i == 0" class="pws-top-phenotypes-yaxis-wrapper" style>
-                                <div
-                                    style="position: absolute;top: -5px;font-size: 10px;right: 10px;"
-                                >{{getEvalue(row.pValue)}}</div>
-                                <div
-                                    style="position: absolute;top: 40%;font-size: 10px;right: 10px;white-space: nowrap;"
-                                >-log10(p)</div>
-                                <div
-                                    style="position: absolute;bottom: -5px;font-size: 10px;right: 10px;"
-                                >0</div>
-                            </div>
-                            <div class="pws-top-each-phenotype">
-                                <div
-                                    class="btn btn-sm btn-link pws-top-each-phenotype-name"
-                                    :style="{'top': (80 - log2css(row.pValue))+'%' }"
-                                >
-                                    <div class="name-wrapper">{{row.description}}</div>
-                                    <div class="options-4-actions">
-                                        <div
-                                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                                        >Click to set phenotype</div>
-                                        <div
-                                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                                        >Go to phenotype page</div>
-                                    </div>
-                                </div>
-
-                                <div
-                                    class="bubble phenotype-group pws-top-each-phenotype-bar"
-                                    :class=" row.group"
-                                    :style="{'height': +log2css(row.pValue)+'%'}"
-                                >&nbsp;</div>
-                                <div class="pws-top-each-phenotype-pvalue">{{row.pValue}}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </template>
-            <template v-else>
-                <b-alert show variant="warning">
-                    <b-icon icon="exclamation-triangle"></b-icon>There is no trait in this region with p-Value &le; 5e-8
-                </b-alert>
-            </template>
-
-            <!-- <h6>Traits with p-value &gt; 5e-8</h6>
+            <h6>Traits with p-value &gt; 5e-8</h6>
             <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">
+                <!-- <template v-for="field in topAssociations2nd">
+                    <b-checkbox>{{ field.description }}</b-checkbox>
+                </template>-->
+
                 <div
                     v-for="(row, i) in topAssociations2nd"
                     v-if="row.pValue > 5e-8 && i <= 30"
@@ -84,9 +29,9 @@
                         v-on:click="showHideElement('no-signal-wrapper',)"
                     >>> View more traits</a>
                 </small>
-            </div>-->
+            </div>
 
-            <!-- <div
+            <div
                 class="phenotypes-with-signal-wrapper no-signal-wrapper hidden"
                 style="height: auto !important;"
             >
@@ -106,7 +51,7 @@
                         >Go to phenotype page</div>
                     </div>
                 </div>
-            </div>-->
+            </div>
         </div>
 
         <div class="pws-bar-view new-phenotypes-with-signal-wrapper hidden">
@@ -198,11 +143,7 @@
         </div>
     </div>
 </template>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
+               
 
 <script>
 import Vue from "vue";
@@ -212,7 +153,7 @@ import uiUtils from "@/utils/uiUtils";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("phenotype-signal-mixed", {
+export default Vue.component("phenotype-signal-multiple", {
     modules: {
         uiUtils
     },

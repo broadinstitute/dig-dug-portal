@@ -22,7 +22,7 @@ import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibl
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import { makeSource, makeLayout, BASE_PANEL_OPTIONS } from "@/utils/lzUtils";
+import { makeSource, makeLayout } from "@/utils/lzUtils";
 import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets";
 
 import jsonQuery from "json-query";
@@ -110,7 +110,6 @@ export default Vue.component("locuszoom", {
                 })
             );
         }
-        console.log();
     },
     methods: {
         zoomOut(expandLeft = 50000, expandRight = 50000) {
@@ -126,32 +125,36 @@ export default Vue.component("locuszoom", {
             // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
             // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
 
-            const layout = makeLayout(panelClass);
-            const source = makeSource(panelClass);
             let panel;
             if (!!panelClass.layouts) {
-                if (!!this.dataSources._items.has(panelClass.datasource_type)) {
-                    this.dataSources._items.delete(panelClass.datasource_type);
+
+                if (!!this.dataSources._items.has(panelClass.datasource_namespace_symbol_for_panel)) {
+                    this.dataSources._items.delete(panelClass.datasource_namespace_symbol_for_panel);
                 }
+
                 this.dataSources.add(
-                    panelClass.datasource_type,
+                    panelClass.datasource_namespace_symbol_for_panel,
                     panelClass.bioIndexToLZReader
                 );
+
                 let layouts = panelClass.layouts[0];
                 panel = this.plot.addPanel(layouts).addBasicLoader();
+
             } else {
+
                 this.dataSources.add(
-                    source.givingDataSourceName,
+                    panelClass.datasource_namespace_symbol_for_panel,
                     panelClass.bioIndexToLZReader
                 );
                 let panelOptions = {
                     id: idCounter.getUniqueId(),
                     namespace: {
-                        [layout.forDataSourceType]: layout.takingDataSourceName
+                        [panelClass.datasource_type]: panelClass.datasource_namespace_symbol_for_panel
                     },
                     // id: layout.id,
-                    ...layout.locusZoomPanelOptions // other locuszoom configuration required for the panel, including overrides(?)
+                    ...panelClass.locusZoomPanelOptions // other locuszoom configuration required for the panel, including overrides(?)
                 };
+
                 panel = this.plot
                     .addPanel(
                         LocusZoom.Layouts.get(
@@ -161,6 +164,7 @@ export default Vue.component("locuszoom", {
                         )
                     )
                     .addBasicLoader();
+
             }
 
             // TODO: make this more abstract
@@ -322,7 +326,6 @@ export default Vue.component("locuszoom", {
                     .filter(data_layer => {
                         return data_layer.id.includes(panelType);
                     });
-                console.log(this.getDataLayers(), data_layers);
             }
 
             data_layers.forEach(data_layer => {

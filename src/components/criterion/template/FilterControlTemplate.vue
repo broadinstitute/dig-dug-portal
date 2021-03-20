@@ -72,6 +72,8 @@ export default Vue.component("filter-control-template", {
             default: true,
         },
         disabled: Boolean,
+        // called "computedField" instead of "computed" to prevent terminology collisions
+        computedField: Function,
     },
     components: {
         Autocomplete,
@@ -81,9 +83,14 @@ export default Vue.component("filter-control-template", {
             filterDefinition: {
                 field: this.field,
                 placeholder: this.placeholder,
+                label: this.pillFormatter,
+                pillFormatter: this.pillFormatter,
+                labelFormatter: this.labelFormatter,
+                color: this.color,
                 predicate: this.predicate,
                 multiple: !!this.multiple || !!this.splitBy ? true : false, // if undefined, default to false
                 inclusive: !!this.inclusive || !!this.splitBy ? true : false, // if undefined, default to false. split forces this to work (because a split of multiples is redundant and ambiguous if not inclusive)
+                computedField: this.computedField,
             },
             filterThreshold: this.default, // DONE: is this sensible? to synchronize with the CriterionGroupTemplate we need to push up an event immediately on created... i guess not too bad, just a bit leaky.
         };
@@ -93,6 +100,9 @@ export default Vue.component("filter-control-template", {
         if (!!this.filterThreshold) {
             this.updateFilter(this.filterThreshold);
         }
+    },
+    mounted() {
+        this.$parent.$parent.$emit('filter-mounted', this.filterDefinition);
     },
     methods: {
         validateInput(newInput) {
@@ -120,8 +130,8 @@ export default Vue.component("filter-control-template", {
                                 "change",
                                 thresholdElement.trim(),
                                 {
-                                    label: this.pillFormatter,
-                                    color: this.color,
+                                    // label: this.pillFormatter,
+                                    // color: this.color,
                                     ...this.filterDefinition,
                                 }
                             )
@@ -129,8 +139,8 @@ export default Vue.component("filter-control-template", {
                     } else {
                         // double parent since we're only using this component as a template inside of another component
                         this.$parent.$parent.$emit("change", newThreshold, {
-                            label: this.pillFormatter,
-                            color: this.color,
+                            // label: this.pillFormatter,
+                            // color: this.color,
                             ...this.filterDefinition,
                         });
                     }

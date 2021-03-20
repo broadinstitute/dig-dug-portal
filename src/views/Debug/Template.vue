@@ -1,5 +1,6 @@
 
 <template>
+    <!-- Header -->
     <div>
         <!-- Header -->
         <page-header

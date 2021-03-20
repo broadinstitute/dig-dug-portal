@@ -87,7 +87,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
 }
 
 export function predicateFromSpec(
-    { field, predicate, threshold, inclusive = false },
+    { field, computedField, predicate, threshold, inclusive = false },
     { notStrictMatch = false, strictCase = false }
 ) {
     // Specs for predicateFromSpec are objects satisfying properties { field, predicate, threshold } to return a function Object => Boolean, parameterized on a field
@@ -96,7 +96,6 @@ export function predicateFromSpec(
     //   * "notStrict": if it's important that all objects that the filter is applied to must have the property in question, then `notStrict` should be false.
     //      else if e.g. different components have slightly different properties such that a part of the filter applies to one component and not the other,
     //   * "strictCase": if the field has similar names but different casings, and we don't want it to fail a match (for instance `pvalue` and `pValue`), then this should be "false". else it is "true" and we take the field as-is.
-
     return {
         inclusive,
         func: (obj) => {
@@ -105,8 +104,11 @@ export function predicateFromSpec(
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
+            console.assert(!!field || !!computedField, 'neither field or computedField are defined');
 
-            let data = get(obj, field);  // NOTE: this technically supports nested fields.
+            let getter = !!computedField ? computedField : obj => get(obj, field); // NOTE: this technically supports nested fields.
+            console.log(obj, getter, getter(obj))
+            let data = getter(obj);
             let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {
                 if (data.constructor.name === 'Array') {
@@ -117,6 +119,7 @@ export function predicateFromSpec(
             } else {
                 return notStrictMatch;
             }
+            
         }
     };
 }

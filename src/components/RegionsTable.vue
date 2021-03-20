@@ -1,5 +1,11 @@
 <template>
     <div>
+        <div class="text-right">
+            <csv-download
+                :data="tableData"
+                filename="annotated_regions"
+            ></csv-download>
+        </div>
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
                 v-if="

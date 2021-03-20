@@ -34,7 +34,7 @@ export default new Vuex.Store({
         start: keyParams.start,
         end: keyParams.end,
         focusedVariant: keyParams.variant,
-        phenotype: null,
+        clearPhenotypeFlag: false,
 
         // user-entered search fields
         newChr: keyParams.chr,
@@ -44,17 +44,17 @@ export default new Vuex.Store({
         matchingGenes: null
     },
     mutations: {
-        setSelectedPhenotype(state, phenotype) {
-            state.phenotypeParam = phenotype.name;
-            state.phenotype = phenotype;
-            keyParams.set({ phenotype: phenotype.name });
-        },
         setPhenotypeByName(state, name) {
             state.phenotypeParam = name;
             state.phenotype = state.bioPortal.phenotypeMap[name];
             keyParams.set({ phenotype: name });
         },
         setLocus(state, region = {}) {
+            let oldChr = state.chr;
+            let oldStart = state.start;
+            let oldEnd = state.end;
+
+            // update the state
             state.chr = region.chr || state.newChr || state.chr;
             state.start = region.start || state.newStart || state.start;
             state.end = region.end || state.newEnd || state.end;
@@ -63,31 +63,25 @@ export default new Vuex.Store({
             state.newEnd = state.end;
             state.searchGene = null;
 
+            // did the region change completely?
+            if (oldChr !== state.chr || oldEnd < state.start || oldStart > state.end) {
+                state.clearPhenotypeFlag = true;
+            }
+
             keyParams.set({
                 chr: state.chr,
                 start: state.start,
                 end: state.end
             });
         },
+        phenotypesCleared(state) {
+            state.clearPhenotypeFlag = false;
+        },
         setMatchingGenes(state, genes) {
             state.matchingGenes = genes;
         }
     },
     getters: {
-        // The phenotype is a getter because it depends on the bioPortal
-        // having loaded all the phenotype objects from the database.
-        phenotype(state) {
-            for (let i in state.bioPortal.phenotypes) {
-                let phenotype = state.bioPortal.phenotypes[i];
-
-                if (phenotype.name === keyParams.phenotype) {
-                    return phenotype;
-                }
-            }
-
-            // not set or not found
-            return null;
-        },
         region(state) {
             return `${state.chr}:${state.start}-${state.end}`;
         }
@@ -122,7 +116,6 @@ export default new Vuex.Store({
             if (context.state.searchGene) {
                 context.dispatch("findGene");
             } else {
-                //context.commit("setSelectedPhenotype", null);
                 context.commit("genes/clearData");
                 context.commit("associations/clearData");
                 context.commit("topAssociations/clearData");
@@ -138,9 +131,6 @@ export default new Vuex.Store({
                 // find all the top associations and genes in the region
                 context.dispatch("topAssociations/query", { q: newRegion });
                 context.dispatch("genes/query", { q: newRegion });
-
-                // for variant prioritizer?
-                // context.dispatch('regions/query', { q: newRegion });
             }
         },
 
@@ -152,7 +142,7 @@ export default new Vuex.Store({
                 context.dispatch("queryRegion");
             }
         },
-        
+
         async resetToDefaultRegion(context) {
             context.commit("setLocus", {
                 chr: context.state.initial.chr,

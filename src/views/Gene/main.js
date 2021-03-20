@@ -29,6 +29,9 @@ import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue"
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue"
 
 import NCATSPredicateTable from "@/components/NCATS/old/PredicateTable.vue"
+import ResultsDashboard from "@/components/NCATS/ResultsDashboard.vue"
+
+import Counter from "@/utils/idCounter";
 
 import Alert, {
     postAlert,
@@ -62,7 +65,7 @@ new Vue({
         LocusZoom,
         LocusZoomPhewasPanel,
         SearchHeaderWrapper,
-        NCATSPredicateTable
+        ResultsDashboard,
     },
 
     data() {
@@ -118,7 +121,32 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
+        biolinkQueryGraph(subjectCurie, { subject, predicate, object }) {
+            const uuid = Counter.getUniqueId;
+            const sid = uuid('s');
+            const oid = uuid('o');
+            const eid = uuid('e')
+            return {
+                query_graph: {
+                    nodes: {
+                        [sid]: {
+                            id: subjectCurie,
+                            category: subject
+                        },
+                        [oid]: {
+                            category: object
+                        }
+                    },
+                    edges: {
+                        [eid]: {
+                            subject: sid,
+                            object: oid,
+                            predicate: predicate,
+                        }
+                    }
+                }
+            }
+        },
         // go to region page
         exploreRegion(expanded = 0) {
             let r = this.region;
@@ -134,11 +162,6 @@ new Vue({
     computed: {
         queries() {
             return [
-                this.biolinkQueryGraph("NCBIGENE:1017", {
-                    subject: "biolink:Gene",
-                    predicate:"biolink:gene_associated_with_condition",
-                    object: "biolink:Disease",
-                }),
                 this.biolinkQueryGraph("NCBIGENE:1017", {
                     subject: "biolink:Gene",
                     predicate: "biolink:participates_in",

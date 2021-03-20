@@ -1,5 +1,11 @@
 <template>
     <div>
+        <div class="text-right mb-2">
+            <csv-download
+                :data="tableData"
+                filename="datasets_associations"
+            ></csv-download>
+        </div>
         <b-table
             hover
             small
@@ -15,7 +21,8 @@
             <template v-slot:cell(link)="r">
                 <a
                     :href="`/dinspector.html?dataset=${r.item.name}&phenotype=${phenotype.name}`"
-                >{{r.item.description}}</a>
+                    >{{ r.item.description }}</a
+                >
             </template>
         </b-table>
         <b-pagination
@@ -38,35 +45,37 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 import Filters from "@/utils/filters";
+import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("datasets-table", {
     props: ["datasets", "phenotype", "filter"],
+    components: { CsvDownload },
     data() {
         return {
             fields: [
                 {
                     key: "link",
-                    label: "Name"
+                    label: "Name",
                 },
                 {
                     key: "tech",
-                    label: "Technology"
+                    label: "Technology",
                 },
                 {
                     key: "ancestry",
                     label: "Ancestry",
-                    formatter: Formatters.ancestryFormatter
+                    formatter: Formatters.ancestryFormatter,
                 },
 
                 {
                     key: "subjects",
                     label: "Subjects",
-                    formatter: Formatters.intFormatter
+                    formatter: Formatters.intFormatter,
                 },
                 {
                     key: "image",
-                    label: "Community"
-                }
+                    label: "Community",
+                },
             ],
             perPage: 5,
             currentPage: 1,
@@ -83,7 +92,7 @@ export default Vue.component("datasets-table", {
 
             // filter by phenotype if set
             if (this.phenotype) {
-                rawDatasets = rawDatasets.filter(d =>
+                rawDatasets = rawDatasets.filter((d) =>
                     d.phenotypes.includes(this.phenotype.name)
                 );
             }
@@ -94,7 +103,7 @@ export default Vue.component("datasets-table", {
         tableData() {
             let dataRows = this.sortedDatasets;
             if (!!this.filter) {
-                dataRows = dataRows.filter(dataset => {
+                dataRows = dataRows.filter((dataset) => {
                     return this.filter(dataset);
                 });
             }

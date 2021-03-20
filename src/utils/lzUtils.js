@@ -78,4 +78,3 @@ export class LZBioIndexSource extends BaseAdapter {
 }
 
 export const LZColorScheme = new ColorRuler();
-console.log(LZColorScheme.getColor('kenneth'))
