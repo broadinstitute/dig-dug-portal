@@ -340,7 +340,7 @@ export default Vue.component("clumped-variants-table", {
     padding-bottom: 10px;
     border-left: 5px solid #eeeeee;
     border-bottom: 15px solid #eeeeee;
-    background-color: #fcfcfc;
+    background-color: #fafafa;
 }
 .b-table-details div.details ul {
     margin: 0 3rem 0 auto;

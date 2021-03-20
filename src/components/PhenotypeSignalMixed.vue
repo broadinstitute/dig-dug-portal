@@ -1,7 +1,6 @@
 <template>
     <div>
         <div class="pws-merged-view">
-            <h6>Top traits with p-value &le; 5e-8</h6>
             <template v-if="topAssociationsHighest <= 5e-8">
                 <div v-if="legends" class="pws-group-legend-wrapper">
                     <div
@@ -117,54 +116,6 @@
                     trait in this region with p-Value &le; 5e-8
                 </b-alert>
             </template>
-
-            <!-- <h6>Traits with p-value &gt; 5e-8</h6>
-            <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">
-                <div
-                    v-for="(row, i) in topAssociations2nd"
-                    v-if="row.pValue > 5e-8 && i <= 30"
-                    class="bubble phenotype-with-signal"
-                    :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                >
-                    {{row.description}}
-                    <div class="options-4-actions">
-                        <div
-                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                        >Click to set phenotype</div>
-                        <div
-                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                        >Go to phenotype page</div>
-                    </div>
-                </div>
-                <small>
-                    <a
-                        href="javascript:;"
-                        v-on:click="showHideElement('no-signal-wrapper',)"
-                    >>> View more traits</a>
-                </small>
-            </div>-->
-
-            <!-- <div
-                class="phenotypes-with-signal-wrapper no-signal-wrapper hidden"
-                style="height: auto !important;"
-            >
-                <div
-                    v-for="(row, i) in topAssociations"
-                    v-if="row.pValue > 5e-8 && i > 30"
-                    class="bubble phenotype-with-signal"
-                    :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                >
-                    {{row.description}}
-                    <div class="options-4-actions">
-                        <div
-                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                        >Click to set phenotype</div>
-                        <div
-                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                        >Go to phenotype page</div>
-                    </div>
-                </div>
-            </div>-->
         </div>
 
         <div class="pws-bar-view new-phenotypes-with-signal-wrapper hidden">
@@ -174,7 +125,6 @@
                 class="pop-out-icon"
                 >&nbsp;</a
             >
-
             <div class="p-bellow-section-header">
                 <sup>*</sup> Colored bars summarize bottom-line meta-analyzed
                 associations for phenotypes in a group. Hover over bar or expand
