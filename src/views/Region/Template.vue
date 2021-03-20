@@ -160,7 +160,6 @@
                         </div>
                         <phenotype-signal-mixed
                             :phenotypes="$parent.topAssociations"
-                            :limit="10"
                         ></phenotype-signal-mixed>
                     </div>
                     <div v-if="$parent.topAssociations.length > 0">
