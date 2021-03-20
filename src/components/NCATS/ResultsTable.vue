@@ -4,14 +4,14 @@
 
             <criterion-function-group>
 
-                <!-- <filter-enumeration-control
+                <filter-enumeration-control
                     :field="'subject'"
                     :options="mungedOptions(tableItems, 'subject')"
                     :labelFormatter="label=> subjectLabels[label]">
                     <div class="label">
                         {{'Subject'}}
                     </div>
-                </filter-enumeration-control> -->
+                </filter-enumeration-control>
 
                 <filter-enumeration-control
                     :field="'predicate'"
@@ -63,9 +63,11 @@
                         <template #cell()="data" v-if="outlinks">
                             <span v-if="data.value != false">
                                 <template v-if="Array.isArray(data.value)">
+                                    
                                     <ul style="columns: 5; -webkit-columns: 5; -moz-columns: 5; list-style-type: none; padding: 0; margin: 0; column-gap:10px">
                                         <li v-for="(curie, index) in data.value" 
-                                            :key="curie" 
+                                            :key="curie"
+                                            :class="index > 10 ? 'hidden' : `${curie}-link-wrapper`" 
                                             :id="`${curie}-link-${index}-${data.index}`">
                                             <results-tooltip
                                                 :target="`${curie}-link-${data.index}-${index}`"
@@ -83,7 +85,8 @@
                                                 <!-- {{index == (data.value.length - 1) ? '' : ', '}} -->
                                             </span>
                                         </li>
-                                    </ul>                                
+                                    </ul>  
+                                    <!-- <button v-if="data.value.length > 10" @click="showElement(`${curie}-link-wrapper`)">See more</button> -->
                                 </template>
 
                                 <span v-else :key="data.value">
@@ -147,7 +150,10 @@ import merge from "lodash.merge"
 import { cloneDeep } from "lodash"
 import ResultsTooltip from "@/components/NCATS/ResultsTooltip";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue"
+
 import Formatters from "@/utils/formatters"
+import uiUtils from "@/utils/uiUtils"
+
 import AsyncComputed from "vue-async-computed";
 Vue.use(AsyncComputed);
 
@@ -237,6 +243,9 @@ export default Vue.component('translator-results-table', {
         },
     },
     methods: {
+        hashCodeArray: array => array.reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),
+        showElement: uiUtils.showElement,
+        hideElement: uiUtils.hideElement,
         // TODO: this sucks
         mungedOptions(items, attribute) {
             return items.map(row => row[attribute])
@@ -261,11 +270,14 @@ export default Vue.component('translator-results-table', {
                     const [name, edge]  = edgeEntry;
                     let { subject, predicate, object, attributes } = edge;
                     
-                    const attributeMap = attributes.reduce((acc, item) => {
-                        const { name, value } = item;
-                        acc[name] = value;
-                        return acc;
-                    }, {});
+                    let attributeMap;
+                    if (!!attributes && !!attributes.length > 0) {
+                        attributeMap = attributes.reduce((acc, item) => {
+                            const { name, value } = item;
+                            acc[name] = value;
+                            return acc;
+                        }, {});
+                    };
 
                     let row = {
                         // [knowledge_graph.nodes[subject].category]: subject, 
@@ -277,7 +289,7 @@ export default Vue.component('translator-results-table', {
                     
                     // flag if we want to ignore attributes
                     if (!!!this.relationsOnly) {
-                        if (!!attributes.length > 0) {
+                        if (!!attributeMap) {
                             row = {
                                 ...row,
                                 ...attributeMap,
@@ -286,8 +298,15 @@ export default Vue.component('translator-results-table', {
                     }
 
                     // NOTE: since publications and provenance are generally useful, we add those fields regardless of whether we just want relations
-                    if (typeof attributeMap['publications'] !== 'undefined') row['publications'] = attributeMap['publications'];
-                    // if (typeof attributeMap['provenance'] !== 'undefined') row['provenance'] = attributeMap['provenance'];
+                    if (!!attributeMap) {
+                        if (!!attributeMap['publications']) { 
+                            row['publications'] = attributeMap['publications'] 
+                        };
+                        if (!!attributeMap['provenance']) {
+                            row['provenance'] = attributeMap['provenance'];
+                        }
+                    }
+
 
                     // side effect for keeping track of row fields
                     this.tableFields.push(...Object.keys(row));

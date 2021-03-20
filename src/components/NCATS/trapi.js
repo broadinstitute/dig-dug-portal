@@ -336,7 +336,6 @@ async function streamARSQuery(queryMessage, successCallback=console.log, errorCa
 function _hasResults(message) {
     if (Object.keys(message).length > 0) {
         if (!!message.results && message.results.length > 0) {
-            console.log('results', message.results)
             return true
         } else {
             return false;
