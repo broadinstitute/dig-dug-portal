@@ -73,14 +73,14 @@
                                     </div>
                                     <div class="options-4-actions">
                                         <div
-                                            @click="
-                                                $store.commit(
-                                                    'setPhenotypeByName',
-                                                    row.phenotype
-                                                )
-                                            "
+                                            @click="addPhenotype(row.phenotype)"
                                         >
-                                            Click to set phenotype
+                                            Add this phenotype to GEM
+                                        </div>
+                                        <div
+                                            @click="setPhenotype(row.phenotype)"
+                                        >
+                                            Set GEM to this phenotype
                                         </div>
                                         <div
                                             v-on:click="
@@ -257,13 +257,17 @@
                                         <div class="options-4-actions">
                                             <div
                                                 @click="
-                                                    $store.commit(
-                                                        'setPhenotypeByName',
-                                                        item.phenotype
-                                                    )
+                                                    addPhenotype(item.phenotype)
                                                 "
                                             >
-                                                Click to set phenotype
+                                                Add this phenotype to GEM
+                                            </div>
+                                            <div
+                                                @click="
+                                                    setPhenotype(item.phenotype)
+                                                "
+                                            >
+                                                Set GEM to this phenotype
                                             </div>
                                             <div
                                                 v-on:click="
@@ -417,6 +421,14 @@ export default Vue.component("phenotype-signal-mixed", {
         },
         pValueCss(value) {
             return Formatters.pValueCss(value, this.topAssociationsHighest);
+        },
+        addPhenotype(phenotype) {
+            this.$parent.$parent.pushCriterionPhenotype(phenotype);
+            window.location.href = "#associations-table";
+        },
+        setPhenotype(phenotype) {
+            this.$parent.$parent.setCriterionPhenotypes([phenotype]);
+            window.location.href = "#associations-table";
         },
     },
 });
