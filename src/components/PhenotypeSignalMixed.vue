@@ -4,8 +4,9 @@
             <template v-if="topAssociationsHighest <= 5e-8">
                 <div v-if="legends" class="pws-group-legend-wrapper">
                     <div
-                        v-for="row in topAssociatedGroups"
+                        v-for="(row, i) in topAssociatedGroups"
                         class="pws-group-legend"
+                        :key="i"
                     >
                         <div
                             class="pws-group-legend-box phenotype-group"
@@ -109,6 +110,31 @@
                         </div>
                     </div>
                 </div>
+                <div
+                    v-if="limit && limit < topAssociationsFiltered.length"
+                    class="text-center mb-2"
+                >
+                    <b-button
+                        size="sm"
+                        variant="outline-primary"
+                        class="btn-mini"
+                        @click="limit = null"
+                        >Show More Phenotypes</b-button
+                    >
+                </div>
+                <div
+                    v-if="!limit && topAssociationsFiltered.length > 10"
+                    class="text-center mb-2"
+                >
+                    <b-button
+                        size="sm"
+                        variant="outline-primary"
+                        class="btn-mini"
+                        @click="limit = 10"
+                    >
+                        Show Only Top Phenotypes</b-button
+                    >
+                </div>
             </template>
             <template v-else>
                 <b-alert show variant="warning">
@@ -180,6 +206,7 @@
                                             'pws-phenotype-row ' + key2id(key)
                                         )
                                     "
+                                    :key="i"
                                 >
                                     <div
                                         class="pws-progress-bar"
@@ -197,6 +224,7 @@
                             <div
                                 class="pws-phenotype-row"
                                 :class="i != 0 ? key2id(key) + ' hidden' : ''"
+                                :key="i"
                             >
                                 <div
                                     class="pws-progress-bar"
@@ -280,13 +308,13 @@ export default Vue.component("phenotype-signal-mixed", {
     components: {},
     props: {
         phenotypes: Array,
-        limit: Number,
         legends: Boolean,
     },
 
     data() {
         return {
             isActive: false,
+            limit: 10,
         };
     },
 
@@ -320,7 +348,7 @@ export default Vue.component("phenotype-signal-mixed", {
 
             return data;
         },
-        topAssociationsLimit() {
+        topAssociationsFiltered() {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let filteredData = [];
@@ -333,10 +361,12 @@ export default Vue.component("phenotype-signal-mixed", {
 
                 if (element.pValue <= 5e-8) filteredData.push(element);
             });
-
+            return filteredData;
+        },
+        topAssociationsLimit() {
             return this.limit
-                ? filteredData.splice(0, this.limit)
-                : filteredData;
+                ? this.topAssociationsFiltered.slice(0, this.limit)
+                : this.topAssociationsFiltered;
         },
         topAssociatedGroups: function () {
             let data = this.phenotypes;
