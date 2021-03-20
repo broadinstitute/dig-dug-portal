@@ -60,6 +60,7 @@
                         v-for="gene in r.item.nearest"
                         class="item"
                         :href="`/gene.html?gene=${gene}`"
+                        :key="gene"
                         >{{ gene }}</a
                     >
                 </template>
@@ -73,6 +74,7 @@
                                 ? 'negative'
                                 : 'positive'
                         }`"
+                        :key="p.name"
                     >
                         {{
                             r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
