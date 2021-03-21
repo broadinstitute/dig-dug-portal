@@ -83,6 +83,7 @@
                                             v-model="p.filter"
                                             header=""
                                             :noPills="true"
+                                            :inlinePills="true"
                                         >
                                             <filter-pvalue-control
                                                 :field="'pValue'"
@@ -99,6 +100,9 @@
                                                 "
                                             >
                                             </filter-effect-direction-control>
+                                            <criterion-pills
+                                                :filterList="$parent.filterList"
+                                            ></criterion-pills>
                                         </criterion-function-group>
                                     </div>
                                 </transition>
@@ -118,7 +122,7 @@
                                         >
                                     </div>
                                 </div> -->
-                                <criterion-pills></criterion-pills>
+
                                 <button
                                     type="button"
                                     class="mr-2 close"

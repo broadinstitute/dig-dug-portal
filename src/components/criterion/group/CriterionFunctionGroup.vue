@@ -7,6 +7,7 @@
         :looseMatch="true"
         :header="header"
         :noPills="noPills"
+        :inlinePills="inlinePills"
         :inclusive="inclusive"
         @input="emitInput"
     >
@@ -30,6 +31,7 @@ export default Vue.component("criterion-function-group", {
         header: String,
         hide: Boolean,
         noPills: Boolean,
+        inlinePills: Boolean,
         inclusive: {
             type: Boolean,
         },
