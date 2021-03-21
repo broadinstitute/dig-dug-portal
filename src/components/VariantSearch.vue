@@ -91,7 +91,7 @@ export default Vue.component("variant-search", {
                 return testData.filter((v) => {
                     console.log(v);
 
-                    return v.datasets.every((d) => {
+                    return this.selectedDataset.every((d) => {
                         console.log("d", d.name);
                         console.log("selected", this.selectedDataset);
                         let ans = this.selectedDataset.includes(d.name);
