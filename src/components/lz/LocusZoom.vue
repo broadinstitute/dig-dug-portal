@@ -111,6 +111,15 @@ export default Vue.component("locuszoom", {
                 })
             );
         }
+
+        // this lets us treat "regionchanged" as a "locuszoom is ready" hook
+        this.$emit("regionchanged", {
+            data: {
+                start: this.start,
+                end: this.end,
+            }
+        });
+
     },
     methods: {
         zoomOut(expandLeft = 50000, expandRight = 50000) {

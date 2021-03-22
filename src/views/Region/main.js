@@ -112,6 +112,7 @@ new Vue({
         closeAlert,
 
         requestCredibleSets(eventData) {
+            console.log('credible sets', eventData)
             const { start, end } = eventData;
             if (!!start && !!end) {
                 let that = this;
