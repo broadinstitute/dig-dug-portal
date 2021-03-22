@@ -23,13 +23,14 @@ import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibl
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
 
-import { makeSource, makeLayout } from "@/components/lz/lzUtils";
+import { addPanel } from "@/components/lz/lzUtils"
+
 import { ToggleLogLog, ldlz2_pop_selector_menu, download_png } from "./widgets";
+import { decodeNamespace } from "@/utils/filterHelpers";
 
 import jsonQuery from "json-query";
 
 import idCounter from "@/utils/idCounter";
-import { decodeNamespace } from "@/utils/filterHelpers";
 
 LocusZoom.use(intervalTracks);
 LocusZoom.use(credibleSets);
@@ -130,66 +131,10 @@ export default Vue.component("locuszoom", {
             return [this.plot.state.start, this.plot.state.end];
         },
         addPanelAndDataSource: function (panelClass) {
-            // DataSources and Panels/Layouts are linked together via namespaces.
-            // A DataSource name is given to the panel, for a particular data type
-            // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
-            // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
-
-            if (
-                !!!this.dataSources._items.has(
-                    panelClass.datasource_namespace_symbol_for_panel
-                )
-            ) {
-                this.dataSources.add(
-                    panelClass.datasource_namespace_symbol_for_panel,
-                    panelClass.bioIndexToLZReader
-                );
-            }
-
-            let panel;
-            if (!!panelClass.layouts) {
-                let layouts = panelClass.layouts[0];
-                panel = this.plot.addPanel(layouts).addBasicLoader();
-            } else {
-                let panelOptions = {
-                    id: idCounter.getUniqueId(),
-                    namespace: {
-                        [panelClass.datasource_type]:
-                            panelClass.datasource_namespace_symbol_for_panel,
-                    },
-                    // id: layout.id,
-                    ...panelClass.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
-                };
-                panel = this.plot
-                    .addPanel(
-                        LocusZoom.Layouts.get(
-                            "panel",
-                            panelClass.panel_layout_type,
-                            panelOptions
-                        )
-                    )
-                    .addBasicLoader();
-            }
-
-            // TODO: make this more abstract
-            // CAN USE NAMED V-MODEL/BINDINGS in Vue3?
-            // This is optimized to only run filters that are actually associated with the layout being added
-            // applyState runs on the end so we don't refresh this multiple times on accident.
-            if (!!this.filter) this.applyFilter(this.filter);
-            if (
-                !!this.filterAssociations &&
-                panelClass.panel_layout_type.includes("association")
-            )
-                this.applyFilter(this.filterAssociations, "association");
-            if (
-                !!this.filterAnnotations &&
-                panelClass.panel_layout_type.includes("intervals")
-            )
-                this.applyFilter(this.filterAnnotations, "intervals");
-            this.plot.applyState();
-
-            // so we can figure out how to remove it later
-            return panel.id;
+            const panelId = addPanel(this.plot, this.dataSources, panelClass);
+            refreshFilters(panelClass.panel_layout_type);
+            // return the panelId so we can know what panels to delete later (for whomever wanted the panel in the first place)
+            return panelId;
         },
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
@@ -372,6 +317,25 @@ export default Vue.component("locuszoom", {
                 }
             });
         },
+        refreshFilters(layout='') {
+            // TODO: make this more abstract
+            // CAN USE NAMED V-MODEL/BINDINGS in Vue3?
+            // This is optimized to only run filters that are actually associated with the layout being added
+            // applyState runs on the end so we don't refresh this multiple times on accident.
+            if (!!this.filter) 
+                this.applyFilter(this.filter);
+            if (
+                !!this.filterAssociations &&
+                layout.includes("association")
+            )
+                this.applyFilter(this.filterAssociations, "association");
+            if (
+                !!this.filterAnnotations &&
+                layout.includes("intervals")
+            )
+                this.applyFilter(this.filterAnnotations, "intervals");
+            this.plot.applyState();
+        }
     },
     computed: {
         region() {
