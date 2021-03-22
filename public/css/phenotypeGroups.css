@@ -1,3 +1,7 @@
+/* Defaults */
+.pws-box { border-top: solid 5px #6c757d; }
+.pws-phenotype-group div.pws-progress-bar { background-color: #6c757d; }
+.pws-group-legend-box .phenotype-group { background-color: #6c757d; }
 
 .pws-phenotype-group.ANTHROPOMETRIC div.pws-progress-bar {
     background-color: #048845;
@@ -66,9 +70,6 @@
 .pws-phenotype-group.TYPE.DIABETES div.pws-progress-bar { background-color: #639bc0; }
 
 .pws-phenotype-group.HEMATOLOGICAL div.pws-progress-bar { background-color: #aa0000; }
-
-.pws-box { border-top: solid 5px #6c757d; }
-.pws-phenotype-group div.pws-progress-bar { background-color: #6c757d; }
 
 .pws-box.ANTHROPOMETRIC {
     border-top: solid 5px #048845 !important;
