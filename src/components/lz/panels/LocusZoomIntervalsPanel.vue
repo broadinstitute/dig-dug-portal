@@ -11,7 +11,7 @@ import {
     LZBioIndexSource,
     BASE_PANEL_OPTIONS,
     LZColorScheme,
-} from "@/utils/lzUtils";
+} from "@/components/lz/lzUtils";
 import idCounter from "@/utils/idCounter";
 
 export default Vue.component("lz-intervals-panel", {

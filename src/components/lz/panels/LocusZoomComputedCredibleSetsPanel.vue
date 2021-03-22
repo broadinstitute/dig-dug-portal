@@ -6,7 +6,7 @@ import Vue from "vue";
 import { isEqual, isEmpty } from "lodash";
 
 import LocusZoom from "locuszoom";
-import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
+import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/components/lz/lzUtils"
 import idCounter from "@/utils/idCounter";
 
 import { BaseAdapter } from "locuszoom/esm/data/adapters"
