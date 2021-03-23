@@ -73,14 +73,24 @@ export class LZBioIndexSource extends BaseAdapter {
  * The goal of LocusZoomPanel, LocusZoomLayout, and LocusZoomAdapter are to encapsulate 
  * common operations that are used in the portal /to extend existing LocusZoom layouts/.
  * 
+ * These operations include:
+ *   Quickly implementing and extending default layouts from LocusZoom
+ *   Binding adapters and layouts together using the namespace
+ *   Adding new fields to a data layer to make them filterable
+ *   Making new datasources that call BioIndex and are indexed by a primary key
+ *   Tweaking individual properties deep inside of the layout
+ * 
  */
 class LocusZoomPanel {
     #layout;
     #adapter;
 
-    // TODO: namespace parameterization
     // CASES:
     //  Plain old LocusZoom layout: pass in a LocusZoom layout object into `layout`, omit the other paramters as optional
+    //      Case 1: pass in layout string
+    //          "associationspvaluecatalog"
+    //      Case 2: pass in a LocusZoom layout directly
+    //          LocusZoom.Layouts.get("panels", "associationspvaluecatalog", { unnamespaced: true }) // should be namespaced automatically base on other arguments
     //  A LocusZoom layout with a known adapter: pass in a LocusZoom layout object into `layout` or a string that can retrieve that layout. pass a LocusZoom adapter into `adapter` or a string that can retrieve that adapter.
     //  A LocusZoom layout with a custom adapter: see above, but requires namespaceTarget or namespace to be defined (identifier is either given or generated)
     //  A custom LocusZoom layout with a custom adapter: see above, requires namespaceTarget or namespace to be defined (identifier is either given or generated)
@@ -183,7 +193,6 @@ class LocusZoomLayout {
 
     get full() {
         let layout = _.cloneDeep(this.#base_layout);
-        
         return layout;
     }
 }
@@ -253,7 +262,6 @@ export function addPanel(plot, dataSources, panelClass) {
     // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
 
     const sharedId = Counter.getUniqueId('assoc');
-    const translationFunction = id => id;
     const { layout, adapter: [namespace, source] } = new LocusZoomPanel(
         new LocusZoomLayout(
             "association_catalog", 
@@ -282,7 +290,6 @@ export function addPanel(plot, dataSources, panelClass) {
 
     const panel = plot.addPanel(layout).addBasicLoader();
 
-    console.log(plot)
     // so we can figure out how to remove it later
     return panel.id;
 }
@@ -295,8 +302,9 @@ export function addPanel(plot, dataSources, panelClass) {
 
 // const assocPanel = new LocusZoomPanel(
 //    'assoc',                                              // the term that will join both visualizations together
-//    new LocusZoomLayout('associationspvaluecatalog'),     // layout with base_layout given
+//    'associationspvaluecatalog',                          // assumed default layout will be derived
 //    new LZBioIndexAdapter('associations', 'T2D'),         // setup an adapter to BioIndex
 // )
+
 
 export const LZColorScheme = new ColorRuler();
