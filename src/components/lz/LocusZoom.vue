@@ -133,7 +133,7 @@ export default Vue.component("locuszoom", {
         addPanelAndDataSource: function (panelClass) {
             
             const panelId = addPanel(this.plot, this.dataSources, panelClass);
-            this.refreshFilters(panelClass.panel_layout_type);
+            // this.refreshFilters(panelClass.panel_layout_type);
 
             // return the panelId so we can know what panels to delete later (for whomever wanted the panel in the first place)
             return panelId;
