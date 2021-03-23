@@ -253,14 +253,17 @@ export function addPanel(plot, dataSources, panelClass) {
     // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
 
     const sharedId = Counter.getUniqueId('assoc');
+    const translationFunction = id => id;
     const { layout, adapter: [namespace, source] } = new LocusZoomPanel(
         new LocusZoomLayout(
             "association_catalog", 
+            // consolidate 'sharedId' and 'assoc' into a namespace object?
             sharedId, 
             'assoc',
-        ).addFields(),
+        ).addFields('assoc', ['pValue']),
         new LocusZoomAdapter(
-            panelClass.bioIndexToLZReader, 
+            panelClass.bioIndexToLZReader,
+            // consolidate 'sharedId' and 'assoc' into a namespace object? 
             sharedId, 
             'assoc'
         ),
