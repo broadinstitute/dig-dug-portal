@@ -164,7 +164,6 @@ export default Vue.component("criterion-group-template", {
                     this.filterList != null &&
                     Object.keys(this.initialFilterDefinitionMap).length > 0
                 ) {
-                    console.log(this.filterList, this.initialFilterDefinitionMap)
                     this.filterList = this.filterList.map((el) =>
                         Object.assign(
                             el,
@@ -179,7 +178,6 @@ export default Vue.component("criterion-group-template", {
     },
     methods: {
         onInitialFilterDefinition(filterDefinition) {
-            console.log('new initial filter definition', filterDefinition)
             this.initialFilterDefinitions.push(filterDefinition);
         },
         filterControlChange(threshold, filterDefinition) {
