@@ -1,22 +1,15 @@
 <template>
     <div>
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <documentation
-                        name="complicationsviewer.header.info"
-                    ></documentation>
+                    <documentation name="complicationsviewer.header.info"></documentation>
                 </div>
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h1 class="card-title">
-                        Complications Association Browser
-                    </h1>
+                    <h1 class="card-title">Complications Association Browser</h1>
 
                     <documentation
                         style="margin-bottom: 30px"
@@ -34,11 +27,7 @@
                         <filter-enumeration-control
                             class="filter-col-lg"
                             :field="'condition'"
-                            :options="
-                                $parent.complicationPhenotypeOptions.map(
-                                    (phenotype) => phenotype.name
-                                )
-                            "
+                            :options="$parent.complicationPhenotypeOptions.map((phenotype) => phenotype.name)"
                             :multiple="false"
                             :labelFormatter="
                                 (phenotype) =>
@@ -81,10 +70,7 @@
                         </filter-enumeration-control>
 
                         <!-- pValue filter -->
-                        <filter-pvalue-control
-                            class="filter-col-sm"
-                            :field="'pValue'"
-                        >
+                        <filter-pvalue-control class="filter-col-sm" :field="'pValue'">
                             <div>
                                 <strong>P-Value (&le;)</strong>
                             </div>
@@ -118,8 +104,8 @@
                         <h4 class="card-title">
                             Genome-wide single-variant associations for
                             {{
-                                $store.state.bioPortal.phenotypeMap[pheno]
-                                    .description
+                            $store.state.bioPortal.phenotypeMap[pheno]
+                            .description
                             }}
                         </h4>
                         <div class="row">
