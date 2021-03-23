@@ -84,7 +84,7 @@ class LocusZoomPanel {
     //  A LocusZoom layout with a known adapter: pass in a LocusZoom layout object into `layout` or a string that can retrieve that layout. pass a LocusZoom adapter into `adapter` or a string that can retrieve that adapter.
     //  A LocusZoom layout with a custom adapter: see above, but requires namespaceTarget or namespace to be defined (identifier is either given or generated)
     //  A custom LocusZoom layout with a custom adapter: see above, requires namespaceTarget or namespace to be defined (identifier is either given or generated)
-    constructor(layout, adapter, namespaceTarget='', identifier='', namespace={}) {
+    constructor(layout, adapter, namespaceTarget='', identifier='shared', namespace={}) {
 
         this.#layout = layout;
         this.#adapter = adapter;
@@ -100,27 +100,27 @@ class LocusZoomPanel {
             throw Error(`your provided identifier is of the wrong type: ${typeof identifier} (should be String)`)
         }
         
-        this.#adapter._setIdentifier(shared_identifier); // equivalent to the datasource for a namespace, see `_modifyNamespace` below
-        this.#layout._setIdentifier(shared_identifier);
+        // this.#adapter._setIdentifier(shared_identifier); // equivalent to the datasource for a namespace, see `_modifyNamespace` below
+        // this.#layout._setIdentifier(shared_identifier);
         
-        // information leak
-        console.log(this.#layout.full.id === lzLayoutId(shared_identifier));
-        console.log(this.#adapter.full[0] === lzAdapterId(shared_identifier));
+        // // information leak
+        // console.log(this.#layout.full.id === lzLayoutId(shared_identifier));
+        // console.log(this.#adapter.full[0] === lzAdapterId(shared_identifier));
 
-        // // if the namespace is empty, assume that all data is taken from the datasource labeled with identifier
-        // // TODO: Test
-        if (_.isEmpty(namespace)) {
-            console.log('namespace is empty')
-            if (!_.isEmpty(namespaceTarget)) {
-                console.log('namespace target is still given')
-                this.#layout._modifyNamespace({
-                    [namespaceTarget]: this.#adapter.identifier, // not `shared_identifier` because it will suffixed differently depending on who gets it
-                });
-            }
-            // no extra namespacing information given, so keep the defaults of the layout
-        } else {
-            this.#layout._modifyNamespace(namespace);  
-        }
+        // // // if the namespace is empty, assume that all data is taken from the datasource labeled with identifier
+        // // // TODO: Test
+        // if (_.isEmpty(namespace)) {
+        //     console.log('namespace is empty')
+        //     if (!_.isEmpty(namespaceTarget)) {
+        //         console.log('namespace target is still given')
+        //         this.#layout._modifyNamespace({
+        //             [namespaceTarget]: this.#adapter.identifier, // not `shared_identifier` because it will suffixed differently depending on who gets it
+        //         });
+        //     }
+        //     // no extra namespacing information given, so keep the defaults of the layout
+        // } else {
+        //     this.#layout._modifyNamespace(namespace);  
+        // }
 
     }
 
@@ -144,12 +144,16 @@ class LocusZoomLayout {
 
     // The LocusZoomLayout object makes it simple to extend or modify the `fields` and `namespaces` of a given layout
     // It works with any valid LocusZoom layout
-    constructor(base_layout, layout_options={}, identifier='') {
+    constructor(base_layout, layout_options={}, identifier='shared', namespaceTarget='assoc') {
         this.#identifier = identifier;
 
         // guarantee a base layout
         if (_.isString(base_layout)) {
-            this.#base_layout = LocusZoom.Layouts.get('panel', base_layout);
+            this.#base_layout = LocusZoom.Layouts.get('panel', base_layout, {
+                namespace: {
+                    [namespaceTarget]: identifier
+                }
+            });
         } else if (
             _.isPlainObject(base_layout) 
         // && !_.isEmpty(base_layout)
@@ -315,7 +319,7 @@ class LocusZoomAdapter {
     }
 
     get full() {
-        return [this.#identifier, this.#adapter];
+        return ["shared", this.#adapter];
     }
 }
 
