@@ -137,7 +137,7 @@
                 ></b-badge>
             </div>
             <b-badge
-                v-if="this.numberOfSearches() > 0"
+                v-if="this.numberOfSearches() > 1"
                 class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
                 @click="removeAllFilters()"
             >
