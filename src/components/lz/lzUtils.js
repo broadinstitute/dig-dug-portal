@@ -113,10 +113,10 @@ class LocusZoomPanel {
 
     }
 
+    // unwrap the layout and adapter classes, and get their plain old LocusZoom objects
+    // these can be passed into LocusZoom directly (e.g. plot.addPanel(layout) and dataSources.addSource(adapter))
+    // `layout` should be an object, `adapter` should be an array of [namespaceTarget: String, adapter: child of LocusZoom.BaseAdapter]
     get components() {
-        // unwrap the layout and adapter classes, and get their plain old LocusZoom objects
-        // these can be passed into LocusZoom directly (e.g. plot.addPanel(layout) and dataSources.addSource(adapter))
-        // `layout` should be an object, `adapter` should be an array of [namespaceTarget: String, adapter: child of LocusZoom.BaseAdapter]
         return {
             layout: this.#layout.full,
             adapter: this.#adapter.full,
