@@ -131,8 +131,10 @@ export default Vue.component("locuszoom", {
             return [this.plot.state.start, this.plot.state.end];
         },
         addPanelAndDataSource: function (panelClass) {
+            
             const panelId = addPanel(this.plot, this.dataSources, panelClass);
-            refreshFilters(panelClass.panel_layout_type);
+            this.refreshFilters(panelClass.panel_layout_type);
+
             // return the panelId so we can know what panels to delete later (for whomever wanted the panel in the first place)
             return panelId;
         },
@@ -364,7 +366,6 @@ export default Vue.component("locuszoom", {
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
             let data_layers = this.getDataLayers();
-            console.log(data_layers);
         },
         filterAnnotations(annotationsFilter) {
             this.applyFilter(annotationsFilter, "intervals");
