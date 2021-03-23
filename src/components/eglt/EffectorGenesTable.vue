@@ -118,6 +118,7 @@
                 </b-col>
             </b-row>
         </b-container>
+
         <b-container class="search-fields-wrapper">
             <div
                 v-for="(value, name, index) in this.filtersIndex"
@@ -133,6 +134,13 @@
                     v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
                 ></b-badge>
             </div>
+            <b-badge
+                v-if="this.numberOfSearches() > 0"
+                class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
+                @click="removeAllFilters()"
+            >
+                Clear all search
+            </b-badge>
         </b-container>
 
         <b-container
@@ -544,6 +552,14 @@ export default Vue.component("effector-genes-table", {
         },
     },
     methods: {
+        numberOfSearches() {
+            let numberOfBubbles = 0;
+            for (const FIELD in this.filtersIndex) {
+                numberOfBubbles += this.filtersIndex[FIELD].search.length;
+            }
+
+            return numberOfBubbles;
+        },
         convert2RenderBy(GENE) {
             if (!!this.tableData && this.config) {
                 let filterByArr = this.config[this.dataset].single_gene_view
@@ -656,7 +672,7 @@ export default Vue.component("effector-genes-table", {
             }
         },
         filterData(EVENT, FIELD, TYPE, DATATYPE) {
-            let searchValue = EVENT.target.value;
+            let searchValue = document.getElementById("filter_" + FIELD).value; //EVENT.target.value;
             let id = "#filter_" + FIELD.replace(/ /g, "");
             let inputField = document.querySelector(id);
 
@@ -805,6 +821,12 @@ export default Vue.component("effector-genes-table", {
             }
 
             this.$store.dispatch("filteredData", filtered);
+        },
+        removeAllFilters() {
+            for (const FIELD in this.filtersIndex) {
+                this.filtersIndex[FIELD].search = [];
+            }
+            this.applyFilters();
         },
         removeFilter(FIELD, ITEM) {
             this.filtersIndex[FIELD].search.splice(ITEM, 1);
@@ -1257,3 +1279,9 @@ export default Vue.component("effector-genes-table", {
     },
 });
 </script>
+
+<style>
+.clear-all-filters-bubble {
+    background-color: #ff0000;
+}
+</style>

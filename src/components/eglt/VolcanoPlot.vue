@@ -13,6 +13,7 @@
             class=""
             @mouseleave="hidePanel"
             @mousemove="checkPosition"
+            @click="filterTable"
             :width="renderConfig.width + 120"
             :height="renderConfig.height + 120"
         >
@@ -149,6 +150,21 @@ export default Vue.component("volcano-plot", {
         hidePanel() {
             uiUtils.hideElement("clicked_dot_value");
             this.renderPlot();
+        },
+        filterTable() {
+            let wrapper = document.getElementById("clicked_dot_value");
+
+            if (wrapper.innerText != "") {
+                let items = wrapper.innerText.split("\n");
+                document.getElementById(
+                    "filter_" + this.renderConfig.renderBy
+                ).value = items.join(", ");
+                this.$parent.filterData(
+                    "",
+                    this.renderConfig.renderBy,
+                    "search"
+                );
+            }
         },
         checkPosition(event) {
             let wrapper = document.getElementById("clicked_dot_value");
