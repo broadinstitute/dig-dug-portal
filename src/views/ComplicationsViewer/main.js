@@ -94,6 +94,7 @@ new Vue({
         postAlertError,
         closeAlert,
     },
+   
 
     computed: {
         frontContents() {
