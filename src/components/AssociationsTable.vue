@@ -28,13 +28,7 @@
                         :class="'color-' + (i + 1)"
                     >
                         <span style="color: white">
-<<<<<<< HEAD
-                            {{
-                            phenotype.description
-                            }}
-=======
                             {{ phenotype.description }}
->>>>>>> master
                         </span>
                     </b-th>
                 </template>
@@ -49,36 +43,17 @@
                 </template>
                 <template v-slot:cell(allele)="r">
                     <a :href="`/variant.html?variant=${r.item.varId}`">
-<<<<<<< HEAD
-                        {{
-                        alleleFormatter(r.item)
-                        }}
-=======
                         {{ alleleFormatter(r.item) }}
->>>>>>> master
                     </a>
                 </template>
                 <template v-slot:cell(dbSNP)="r">
                     <a :href="`/variant.html?variant=${r.item.varId}`">
-<<<<<<< HEAD
-                        {{
-                        dbSNPFormatter(r.item)
-                        }}
-                    </a>
-                </template>
-                <template v-slot:cell(consequence)="r">
-                    {{
-                    consequenceFormatter(r.item.consequence)
-                    }}
-                </template>
-=======
                         {{ dbSNPFormatter(r.item) }}
                     </a>
                 </template>
                 <template v-slot:cell(consequence)="r">
                     {{ consequenceFormatter(r.item.consequence) }}
                 </template>
->>>>>>> master
                 <template v-slot:cell(genes)="r">
                     <a
                         v-for="gene in r.item.nearest"
@@ -95,28 +70,16 @@
                         }`"
                     >
                         {{
-<<<<<<< HEAD
-                        r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
-=======
                             r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
->>>>>>> master
                         }}
                     </span>
                     <span>
                         {{
-<<<<<<< HEAD
-                        effectFormatter(
-                        p.dichotomous
-                        ? Math.exp(r.item[`${p.name}:beta`])
-                        : r.item[`${p.name}:beta`]
-                        )
-=======
                             effectFormatter(
                                 p.dichotomous
                                     ? Math.exp(r.item[`${p.name}:beta`])
                                     : r.item[`${p.name}:beta`]
                             )
->>>>>>> master
                         }}
                     </span>
                 </template>
