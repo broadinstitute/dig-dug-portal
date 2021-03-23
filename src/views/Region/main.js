@@ -164,10 +164,14 @@ new Vue({
                     credibleSetId
                 );
             } else if (credibleSetId === "computed") {
-                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
-                this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
-                    this.$store.state.phenotype.name
-                );
+                console.log(this.$)
+                this.selectedPhenotypes.forEach(phenotype => {
+                    // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
+                    this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
+                        phenotype
+                    );
+                })
+                
             }
         },
         addAnnotationIntervalsPanel(r) {
@@ -225,9 +229,13 @@ new Vue({
 
         documentationMap() {
             return {
-                phenotype:
-                    this.$store.state.phenotype &&
-                    this.$store.state.phenotype.description
+                // NOTE: this is left here in case it's ever requested for again
+                // as of 2021-03-23 there are no documentation tags on this 
+                // page that take single phenotypes as a part of their text.
+
+                // phenotype:
+                //     this.$store.state.phenotype &&
+                //     this.$store.state.phenotype.description
             };
         },
 
@@ -235,10 +243,6 @@ new Vue({
             return this.$store.state.genes.data.filter(function(gene) {
                 return gene.source == "symbol";
             });
-        },
-
-        phenotypes() {
-            return [this.$store.state.phenotype];
         },
 
         phenotypeMap() {

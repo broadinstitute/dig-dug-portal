@@ -114,6 +114,8 @@ export class LZComputedCredibleVariantsPanel {
         // the requirement for this field is required for how we're implementing the `bioIndexToLZReader` getter (below)
         this.phenotype = phenotype;
         this.initialData = initialData;
+        
+        console.log('credset symbol', this.datasource_namespace_symbol_for_panel)
 
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
@@ -166,6 +168,18 @@ export class LZComputedCredibleVariantsPanel {
                 },
             ],
         },
+
+        this.layout = LocusZoom.Layouts.get(
+            "panel",
+            this.panel_layout_type,
+            this.locusZoomPanelOptions
+        )
+
+        console.log(LocusZoom.Layouts.get(
+            "panel",
+            this.panel_layout_type
+        ))
+
         this.bioIndexToLZReader = new _LZComputedCredibleSetSource({
             phenotype: this.phenotype,
             translator: this.translator,

@@ -104,77 +104,76 @@ export class LZCatalogAnnotationsPanel {
             }));
         };
         this.initialData = initialData;
-        this.layouts = [
-            LocusZoom.Layouts.get("panel", "annotation_catalog", {
-                title: {
-                    text: !!title
-                        ? `${title} Variant Catalog`
-                        : "Variant Catalog",
-                    style: { "font-size": "18px" },
-                    x: -0.5,
-                },
-                y_index: 0,
-                id: `${this.panel_id}_catalog`,
-                data_layers: [
-                    Object.assign(
-                        LocusZoom.Layouts.get("panel", "annotation_catalog")
-                            .data_layers[0],
-                        {
-                            namespace: {
-                                catalog: "catalog",
-                                [this.datasource_type]: this
-                                    .datasource_namespace_symbol_for_panel,
-                            },
-                            id_field: LocusZoom.Layouts.get(
+        
+        this.layout = LocusZoom.Layouts.get("panel", "annotation_catalog", {
+            title: {
+                text: !!title
+                    ? `${title} Variant Catalog`
+                    : "Variant Catalog",
+                style: { "font-size": "18px" },
+                x: -0.5,
+            },
+            y_index: 0,
+            id: `${this.panel_id}_catalog`,
+            data_layers: [
+                Object.assign(
+                    LocusZoom.Layouts.get("panel", "annotation_catalog")
+                        .data_layers[0],
+                    {
+                        namespace: {
+                            catalog: "catalog",
+                            [this.datasource_type]: this
+                                .datasource_namespace_symbol_for_panel,
+                        },
+                        id_field: LocusZoom.Layouts.get(
+                            "panel",
+                            "annotation_catalog"
+                        ).data_layers[0].id_field.replace(
+                            this.datasource_type,
+                            this.datasource_namespace_symbol_for_panel
+                        ),
+                        fields: [
+                            ...LocusZoom.Layouts.get(
                                 "panel",
                                 "annotation_catalog"
-                            ).data_layers[0].id_field.replace(
-                                this.datasource_type,
-                                this.datasource_namespace_symbol_for_panel
+                            ).data_layers[0].fields.map((field) =>
+                                field.replace(
+                                    this.datasource_type,
+                                    this
+                                        .datasource_namespace_symbol_for_panel
+                                )
                             ),
-                            fields: [
-                                ...LocusZoom.Layouts.get(
-                                    "panel",
-                                    "annotation_catalog"
-                                ).data_layers[0].fields.map((field) =>
-                                    field.replace(
-                                        this.datasource_type,
-                                        this
-                                            .datasource_namespace_symbol_for_panel
-                                    )
-                                ),
-                            ],
-                            filter: [
-                                // Hack to exclude incomplete datapoints
-                                {
-                                    field: "catalog:pos",
-                                    operator: ">",
-                                    value: 0,
-                                },
-                            ],
-                            match: {
-                                send: "catalog:pos",
-                                receive: "catalog:pos",
+                        ],
+                        filter: [
+                            // Hack to exclude incomplete datapoints
+                            {
+                                field: "catalog:pos",
+                                operator: ">",
+                                value: 0,
                             },
-                            color: [
-                                {
-                                    field: "lz_highlight_match", // Special field name whose presence triggers custom rendering
-                                    scale_function: "if",
-                                    parameters: {
-                                        field_value: true,
-                                        then: "red",
-                                    },
+                        ],
+                        match: {
+                            send: "catalog:pos",
+                            receive: "catalog:pos",
+                        },
+                        color: [
+                            {
+                                field: "lz_highlight_match", // Special field name whose presence triggers custom rendering
+                                scale_function: "if",
+                                parameters: {
+                                    field_value: true,
+                                    then: "red",
                                 },
-                                "#0000CC",
-                            ],
-                            x_axis: {
-                                field: `${this.datasource_namespace_symbol_for_panel}:position`,
                             },
-                        }
-                    ),
-                ],
-            }),
-        ];
+                            "#0000CC",
+                        ],
+                        x_axis: {
+                            field: `${this.datasource_namespace_symbol_for_panel}:position`,
+                        },
+                    }
+                ),
+            ],
+        })
 
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,

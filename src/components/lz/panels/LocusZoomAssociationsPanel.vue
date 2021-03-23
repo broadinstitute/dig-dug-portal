@@ -88,7 +88,7 @@ export class LZAssociationsPanel {
         this.datasource_type = "assoc";
         // this is arbitrary, but we want to base it on the ID
         this.panel_id = `${phenotype}_assoc`;
-        this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
+        // this.datasource_namespace_symbol_for_panel = `${this.panel_id}_src`;
 
         this.index = "associations";
         this.queryStringMaker = (chr, start, end) =>
@@ -98,23 +98,19 @@ export class LZAssociationsPanel {
             // return `${a}:${b}_${c}/${d}`
             return varId;
         }
-        this.translator = (associations) => {
-            return associations.map((association) => ({
-                chromosome: association.chromosome,
+        this.translator = (associations) => 
+            associations.map((association) => ({
+                ...association, // keep all of the remaining values
                 id: varId2OtherVarId(association.varId),
-                position: association.position,
                 pValue: association.pValue,
                 log_pvalue: -1 * Math.log10(association.pValue), // .toPrecision(4),
                 variant: varId2OtherVarId(association.varId),
                 ref_allele: varId2OtherVarId(association.varId),
-                consequence: association.consequence,
-                beta: association.beta,
-                nearest: association.nearest,
             }));
-        };
+
         this.initialData = initialData;
 
-        this.layouts = [
+        this.layout = 
             LocusZoom.Layouts.get("panel", "association_catalog", {
                 id: `${this.panel_id}_association`,
                 title: {
@@ -134,14 +130,14 @@ export class LZAssociationsPanel {
                         "data_layer",
                         "association_pvalues_catalog",
                         {
-                            namespace: {
-                                ...LocusZoom.Layouts.get(
-                                    "data_layer",
-                                    "association_pvalues_catalog"
-                                ).namespace,
-                                [this.datasource_type]: this
-                                    .datasource_namespace_symbol_for_panel,
-                            },
+                            // namespace: {
+                            //     ...LocusZoom.Layouts.get(
+                            //         "data_layer",
+                            //         "association_pvalues_catalog"
+                            //     ).namespace,
+                            //     [this.datasource_type]: this
+                            //         .datasource_namespace_symbol_for_panel,
+                            // },
                             y_axis: {
                                 axis: 1,
                                 field: `{{namespace[${this.datasource_type}]}}log_pvalue`, // Bad field name. The api actually sends back -log10, so this really means "log10( -log10 (p))"
@@ -203,8 +199,7 @@ export class LZAssociationsPanel {
                         }
                     ),
                 ],
-            }),
-        ];
+            });
 
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,

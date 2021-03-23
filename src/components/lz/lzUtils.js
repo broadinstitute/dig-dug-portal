@@ -11,6 +11,7 @@ import { ColorRuler } from "color-ruler"
 import _ from "lodash";
 
 import Counter from '@/utils/idCounter';
+import { data } from "jquery";
 
 export const BASE_PANEL_OPTIONS = {
     height: 240,
@@ -64,6 +65,10 @@ export class LZBioIndexSource extends BaseAdapter {
     };
 }
 
+const prefSuff = (prefix, suffix) => `${prefix}_${suffix}`;
+const lzAdapterId = identifier => prefSuff(identifier, 'source');
+const lzLayoutId = identifier => prefSuff(identifier, 'layout');
+
 /*
  * The goal of LocusZoomPanel, LocusZoomLayout, and LocusZoomAdapter are to encapsulate 
  * common operations that are used in the portal /to extend existing LocusZoom layouts/.
@@ -84,32 +89,38 @@ class LocusZoomPanel {
         this.#layout = layout;
         this.#adapter = adapter;
 
-        // let shared_identifier;
-        // if (_.isString(identifier)) {
-        //     if (_.isEmpty(identifier)) {
-        //         shared_identifier = Counter.getUniqueId(namespaceTarget);
-        //     } else {
-        //         shared_identifier = identifier;
-        //     }
-        // } else {
-        //     throw Error(`your provided identifier is of the wrong type: ${typeof identifier} (should be String)`)
-        // }
+        let shared_identifier;
+        if (_.isString(identifier)) {
+            if (_.isEmpty(identifier)) {
+                shared_identifier = Counter.getUniqueId(namespaceTarget);
+            } else {
+                shared_identifier = identifier;
+            }
+        } else {
+            throw Error(`your provided identifier is of the wrong type: ${typeof identifier} (should be String)`)
+        }
         
-        // this.#adapter._setIdentifier(shared_identifier); // equivalent to the datasource for a namespace, see `_modifyNamespace` below
-        // this.#layout._setIdentifier(shared_identifier);
+        this.#adapter._setIdentifier(shared_identifier); // equivalent to the datasource for a namespace, see `_modifyNamespace` below
+        this.#layout._setIdentifier(shared_identifier);
         
+        // information leak
+        console.log(this.#layout.full.id === lzLayoutId(shared_identifier));
+        console.log(this.#adapter.full[0] === lzAdapterId(shared_identifier));
+
         // // if the namespace is empty, assume that all data is taken from the datasource labeled with identifier
         // // TODO: Test
-        // if (_.isEmpty(namespace)) {
-        //     if (!_.isEmpty(namespaceTarget)) {
-        //         this.#layout._modifyNamespace({
-        //             [namespaceTarget]: this.#adapter.identifier, // not `shared_identifier` because it will suffixed differently depending on who gets it
-        //         });
-        //     }
-        //     // no extra namespacing information given, so keep the defaults of the layout
-        // } else {
-        //     this.#layout._modifyNamespace(namespace);  
-        // }
+        if (_.isEmpty(namespace)) {
+            console.log('namespace is empty')
+            if (!_.isEmpty(namespaceTarget)) {
+                console.log('namespace target is still given')
+                this.#layout._modifyNamespace({
+                    [namespaceTarget]: this.#adapter.identifier, // not `shared_identifier` because it will suffixed differently depending on who gets it
+                });
+            }
+            // no extra namespacing information given, so keep the defaults of the layout
+        } else {
+            this.#layout._modifyNamespace(namespace);  
+        }
 
     }
 
@@ -129,17 +140,29 @@ class LocusZoomLayout {
     #base_layout;
     #layout_options;
 
+    #identifier;
+
     // The LocusZoomLayout object makes it simple to extend or modify the `fields` and `namespaces` of a given layout
     // It works with any valid LocusZoom layout
-    constructor(base_layout, layout_options={}) {
+    constructor(base_layout, layout_options={}, identifier='') {
+        this.#identifier = identifier;
 
+        // guarantee a base layout
         if (_.isString(base_layout)) {
             this.#base_layout = LocusZoom.Layouts.get('panel', base_layout);
-        } else {
+        } else if (
+            _.isPlainObject(base_layout) 
+        // && !_.isEmpty(base_layout)
+        ) {
             this.#base_layout = base_layout;
+        } else {
+            throw Error('You must present a valid base layout!\n Giving the name of an existing LocusZoom panel will do.')
         }
 
         this.#layout_options = layout_options;
+
+        // TODO: reduce to one layout property before doing anything else
+
     }
 
     setTitle(text, opts={}) {
@@ -167,8 +190,9 @@ class LocusZoomLayout {
 
     // in practice this identifier will share a prefix with a unique adapter associated with its data
     // useful when there are multiple panels of the same kind, e.g. annotations or GWAS being rendered in a plot
-    _setIdentifier(identifier_prefix) {
-        this.#layout_options['id'] = `${identifier_prefix}_layout`
+    _setIdentifier(identifier) {
+        this.#identifier = identifier;
+        this.#layout_options['id'] = lzLayoutId(identifier);
         return this;
     }
 
@@ -176,26 +200,76 @@ class LocusZoomLayout {
     // prior knowledge of the keys used for the namespace is required
     // you can find documentation for base layouts and their namespaces here: 
     // TODO: should we support just providing the sourceID, assuming the namespace to be mapped upon?
-    _modifyNamespace(namespace) {
-        // merge the two namespaces
-        this.#layout_options['namespace'] = _.merge(
-            LocusZoom.Layouts.get(
-                "panel",
-                this.#base_layout
-            ).namespace,
-            namespace,
+    _modifyNamespace(updatedNamespace) {
+        // find the data layers of the layout whose namespace structure pattern-matches to the given namespace
+        // then, modify the namespaces of those data layers in place
+
+        this.#layout_options.data_layers = this.#base_layout.data_layers.map(
+            data_layer => {
+                return _.merge(data_layer, {
+                    namespace: {
+                        ...data_layer.namespace,
+                        ...updatedNamespace,
+                    }
+                })
+            }
         );
+
+        // // assert: modified in place
+        // console.log(this.#layout_options, 
+        //     this.#layout_options.data_layers.every(data_layer => {
+        //     return Object.entries(updatedNamespace).every(namespace => {
+        //         const [ namespaceTarget, namespaceSource ] = namespace;
+        //         return data_layer.namespace[namespaceTarget] === namespaceSource;
+        //     })
+        // }))
+
+        // select all the data layers (traverse)
+        // filter for data layers whose namespaces contain keys equivalent to the new namespace (constrain)
+        // override the namespaces with the new values for those matched keys (merge the two namespaces)
+        // this.#layout_options['namespace'] = _.merge(
+        //     LocusZoom.Layouts.get(
+        //         "panel",
+        //         this.#base_layout
+        //     ).namespace,
+        //     namespace,
+        // );
+
+        // ensure that the namespaces for those data layers are modified in place (assert/check)
         return this;
     }
 
     get full() {
-        return _.merge(this.#base_layout, this.#layout_options);
+        console.log(this.#base_layout, this.#layout_options, _.merge(this.#base_layout, this.#layout_options))
+        let layout = _.cloneDeep(this.#base_layout);
+        
+        // console.log(layout.data_layers[0].namespace['assoc'], this.#identifier);
+        console.log(layout.data_layers[1].namespace['assoc'], this.#identifier);
+        console.log(layout.data_layers[2].namespace['assoc'], this.#identifier);
+
+        layout.namespace['assoc'] = this.#identifier
+        for (let i = 0; i < 3; i++) {
+            if (!!layout.data_layers[i].namespace && !!layout.data_layers[i].namespace['assoc']) {
+                layout.data_layers[i].namespace['assoc'] = this.#identifier;
+            }
+            if (!_.isEmpty(layout.data_layers[i].tooltip)) {
+                if (!!layout.data_layers[i].tooltip.namespace) {
+                    console.log(layout.data_layers[i].tooltip.namespace)
+                    layout.data_layers[i].tooltip.namespace['assoc'] = this.#identifier;
+                }
+            }
+        }
+
+        console.log(layout, layout.namespace)
+        return layout;
     }
 }
 
 class LocusZoomAdapter {
+    
     #identifier;
     #adapter;
+
     constructor(base_adapter) {
         // TODO: default to StaticJSON?
         this.#adapter = base_adapter;
@@ -203,8 +277,8 @@ class LocusZoomAdapter {
 
     // in practice this identifier will share a prefix with a unique layout associated with the adapter
     // useful when there are multiple panels of the same kind, e.g. annotations or GWAS being rendered in a plot
-    _setIdentifier(identifier_prefix) {
-        this.#identifier = `${identifier_prefix}_src`
+    _setIdentifier(identifier) {
+        this.#identifier = lzAdapterId(identifier);
     }
 
     get identifier() {
@@ -215,6 +289,7 @@ class LocusZoomAdapter {
         return [this.#identifier, this.#adapter];
     }
 }
+
 
 class LZBioIndexAdapter extends LocusZoomAdapter {
     constructor(index, primary_key, secondary_key, translator=id=>id, { onLoad=id=>id, onResolve=id=>id, onError=id=>id }) {
@@ -255,6 +330,34 @@ class LZBioIndexAdapter extends LocusZoomAdapter {
     }
 }
 
+export function getDataLayers(layout) {
+    console.log(layout)
+
+    function gdl() {
+        // Auxiliary method within our json query for data layers in the LocusZoom plot
+        // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
+        // using flatmap because we need to work across many Object.keys
+        const forceKeys = (el) =>
+            el.flatMap((data_layer_set) =>
+                Object.entries(data_layer_set).map(
+                    (data_layer_pair) => data_layer_pair[1]
+                )
+            );
+
+        // Do we need to calculate this forceKeys every time?
+        // YES: number of data_layers is dynamic, can't really memoize.
+        let data_layers = jsonQuery("panels[*].data_layers[*]:forceKeys", {
+            data: this.plot,
+            locals: { forceKeys },
+        }).value;
+        return data_layers;
+    }
+
+
+
+
+}
+
 export function addPanel(plot, dataSources, panelClass) {
 
 
@@ -263,55 +366,38 @@ export function addPanel(plot, dataSources, panelClass) {
     // The data that a Layout takes is defined in its "fields", which we leave equal to the key 'forDataSourceType'
     // However, the *specific data* for these fields, so the string <source.givingDataSourceName> must be equal to <layout.takingDataSourceName>
 
+    const { layout, adapter: [namespace, source] } = new LocusZoomPanel(
+        new LocusZoomLayout(panelClass.layout),
+        new LocusZoomAdapter(panelClass.bioIndexToLZReader),
+        'assoc'
+    ).components;
+
+    console.log('namespace target', namespace)
+
     if (
         !!!dataSources._items.has(
-            panelClass.datasource_namespace_symbol_for_panel
+            namespace
         )
     ) {
         dataSources.add(
-            panelClass.datasource_namespace_symbol_for_panel,
-            panelClass.bioIndexToLZReader
+            namespace,
+            source
         );
-    }
+    }   
 
-    let panel;
-    if (!!panelClass.layouts) {
-        let layouts = panelClass.layouts[0];
-        // panel = plot.addPanel(layouts).addBasicLoader();
+    // if (
+    //     !!!dataSources._items.has(
+    //         panelClass.datasource_namespace_symbol_for_panel
+    //     )
+    // ) {
+    //     console.log(panelClass.datasource_namespace_symbol_for_panel, panelClass.bioIndexToLZReader)
+    //     dataSources.add(
+    //         panelClass.datasource_namespace_symbol_for_panel,
+    //         panelClass.bioIndexToLZReader
+    //     );
+    // }
 
-        const { layout, adapter } = new LocusZoomPanel(
-            new LocusZoomLayout(panelClass.layouts[0]),
-            new LocusZoomAdapter(panelClass.bioIndexToLZReader)
-        ).components;
-
-        console.log(layout, adapter);
-        panel = plot.addPanel(layout).addBasicLoader();
-
-    } else {
-
-        let panelOptions = {
-            id: idCounter.getUniqueId(),
-            namespace: {
-                [panelClass.datasource_type]:
-                    panelClass.datasource_namespace_symbol_for_panel,
-            },
-            ...panelClass.locusZoomPanelOptions, // other locuszoom configuration required for the panel, including overrides(?)
-        };
-
-
-
-
-        panel = plot
-            .addPanel(
-                LocusZoom.Layouts.get(
-                    "panel",
-                    panelClass.panel_layout_type,
-                    panelOptions
-                )
-            ).addBasicLoader();
-
-    }
-
+    const panel = plot.addPanel(layout).addBasicLoader();
     // so we can figure out how to remove it later
     return panel.id;
 }

@@ -407,12 +407,12 @@
                                                         )
                                                     "
                                                 ></lz-associations-panel>
-                                                <lz-catalog-annotations-panel
+                                                <!-- <lz-catalog-annotations-panel
                                                     :phenotype="phenotype.name"
                                                     :title="
                                                         phenotype.description
                                                     "
-                                                ></lz-catalog-annotations-panel>
+                                                ></lz-catalog-annotations-panel> -->
                                             </span>
                                         </locuszoom>
                                     </template>

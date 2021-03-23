@@ -157,6 +157,12 @@ export class LZPhewasPanel {
             },
         };
 
+        this.layout = LocusZoom.Layouts.get(
+            "panel",
+            this.panel_layout_type,
+            this.locusZoomPanelOptions
+        )
+
         this.bioIndexToLZReader = new LZBioIndexSource({
             index: this.index,
             queryStringMaker: this.queryStringMaker,

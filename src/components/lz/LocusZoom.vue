@@ -138,6 +138,8 @@ export default Vue.component("locuszoom", {
             // return the panelId so we can know what panels to delete later (for whomever wanted the panel in the first place)
             return panelId;
         },
+
+
         // remember that the handlers are optional (bioIndexUtils knows what to do without them) so you don't have to pass them into these functions
         // however the initial non-handler arguments are mandatory. anything that comes after the handler arguments will usually be optional
         addAssociationsPanel: function (
@@ -274,7 +276,7 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
-        getDataLayers() {
+        getAllDataLayers() {
             // Auxiliary method within our json query for data layers in the LocusZoom plot
             // takes a list of objects of objects, and returns an array of the deepest objects - i.e. [{{*}}] => {*}
             // using flatmap because we need to work across many Object.keys
@@ -294,7 +296,7 @@ export default Vue.component("locuszoom", {
             return data_layers;
         },
         applyFilter(filter, panelType = "") {
-            let data_layers = this.getDataLayers();
+            let data_layers = this.getAllDataLayers();
 
             // TODO needs a rework
             if (panelType !== "") {
