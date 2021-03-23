@@ -84,32 +84,33 @@ class LocusZoomPanel {
         this.#layout = layout;
         this.#adapter = adapter;
 
-        let shared_identifier;
-        if (_.isString(identifier)) {
-            if (_.isEmpty(identifier)) {
-                shared_identifier = Counter.getUniqueId(namespaceTarget);
-            } else {
-                shared_identifier = identifier;
-            }
-        } else {
-            throw Error(`your provided identifier is of the wrong type: ${typeof identifier} (should be String)`)
-        }
+        // let shared_identifier;
+        // if (_.isString(identifier)) {
+        //     if (_.isEmpty(identifier)) {
+        //         shared_identifier = Counter.getUniqueId(namespaceTarget);
+        //     } else {
+        //         shared_identifier = identifier;
+        //     }
+        // } else {
+        //     throw Error(`your provided identifier is of the wrong type: ${typeof identifier} (should be String)`)
+        // }
         
-        this.#adapter._setIdentifier(shared_identifier); // equivalent to the datasource for a namespace, see `_modifyNamespace` below
-        this.#layout._setIdentifier(shared_identifier);
+        // this.#adapter._setIdentifier(shared_identifier); // equivalent to the datasource for a namespace, see `_modifyNamespace` below
+        // this.#layout._setIdentifier(shared_identifier);
         
-        // if the namespace is empty, assume that all data is taken from the datasource labeled with identifier
-        // TODO: Test
-        if (_.isEmpty(namespace)) {
-            if (!_.isEmpty(namespaceTarget)) {
-                this.#layout._modifyNamespace({
-                    [namespaceTarget]: this.#adapter.identifier, // not `shared_identifier` because it will suffixed differently depending on who gets it
-                });
-            }
-            // no extra namespacing information given, so keep the defaults of the layout
-        } else {
-            this.#layout._modifyNamespace(namespace);  
-        }
+        // // if the namespace is empty, assume that all data is taken from the datasource labeled with identifier
+        // // TODO: Test
+        // if (_.isEmpty(namespace)) {
+        //     if (!_.isEmpty(namespaceTarget)) {
+        //         this.#layout._modifyNamespace({
+        //             [namespaceTarget]: this.#adapter.identifier, // not `shared_identifier` because it will suffixed differently depending on who gets it
+        //         });
+        //     }
+        //     // no extra namespacing information given, so keep the defaults of the layout
+        // } else {
+        //     this.#layout._modifyNamespace(namespace);  
+        // }
+
     }
 
     get components() {
@@ -283,7 +284,7 @@ export function addPanel(plot, dataSources, panelClass) {
             new LocusZoomAdapter(panelClass.bioIndexToLZReader)
         ).components;
 
-        // console.log(layout, adapter);
+        console.log(layout, adapter);
         panel = plot.addPanel(layout).addBasicLoader();
 
     } else {
@@ -315,6 +316,16 @@ export function addPanel(plot, dataSources, panelClass) {
     return panel.id;
 }
 
-// new LocusZoomPanel(new LocusZoomLayout('assoc'), new LZBioIndexAdapter()).components()
+// const associationsPanel = new LocusZoomPanel(
+//    new LocusZoomLayout('associationspvaluecatalog'),     // layout with base_layout given
+//    new LZBioIndexAdapter('associations', 'T2D'),         // setup an adapter to BioIndex
+//    'assoc'                                               // the term that will join both visualizations together
+// )
+
+// const assocPanel = new LocusZoomPanel(
+//    'assoc',                                               // the term that will join both visualizations together
+//    new LocusZoomLayout('associationspvaluecatalog'),     // layout with base_layout given
+//    new LZBioIndexAdapter('associations', 'T2D'),         // setup an adapter to BioIndex
+// )
 
 export const LZColorScheme = new ColorRuler();
