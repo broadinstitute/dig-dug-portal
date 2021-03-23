@@ -75,6 +75,7 @@ export default Vue.component("locuszoom", {
 
         this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "width",
+            max_region_scale: 500000, // without this, zooming out will fail (circa LocusZoom v0.13.1)
             state: {
                 chr: this.chr,
                 start: this.start,

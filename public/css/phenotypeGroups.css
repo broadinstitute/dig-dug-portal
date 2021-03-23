@@ -1,3 +1,8 @@
+/* Defaults */
+.pws-box { border-top: solid 5px #6c757d; }
+.pws-phenotype-group div.pws-progress-bar { background-color: #6c757d; }
+.phenotype-group { background-color: #6c757d; }
+
 .pws-phenotype-group.ANTHROPOMETRIC div.pws-progress-bar {
     background-color: #048845;
 }
@@ -68,13 +73,6 @@
 
 .pws-phenotype-group.HEMATOLOGICAL div.pws-progress-bar {
     background-color: #aa0000;
-}
-
-.pws-box {
-    border-top: solid 5px #6c757d;
-}
-.pws-phenotype-group div.pws-progress-bar {
-    background-color: #6c757d;
 }
 
 .pws-box.ANTHROPOMETRIC {
