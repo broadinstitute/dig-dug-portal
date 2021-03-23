@@ -76,9 +76,9 @@ class LocusZoomPanel {
     // TODO: namespace parameterization
     // CASES:
     //  Plain old LocusZoom layout: pass in a LocusZoom layout object into `layout`, omit the other paramters as optional
-    //  A LocusZoom layout with a known adapter: pass in a LocusZoom layout object into `layout`
-    //  A LocusZoom layout with a custom adapter
-    //  A custom LocusZoom layout with a custom adapter
+    //  A LocusZoom layout with a known adapter: pass in a LocusZoom layout object into `layout` or a string that can retrieve that layout. pass a LocusZoom adapter into `adapter` or a string that can retrieve that adapter.
+    //  A LocusZoom layout with a custom adapter: see above, but requires namespaceTarget or namespace to be defined (identifier is either given or generated)
+    //  A custom LocusZoom layout with a custom adapter: see above, requires namespaceTarget or namespace to be defined (identifier is either given or generated)
     constructor(layout, adapter, namespaceTarget='', identifier='', namespace={}) {
 
         this.#layout = layout;
