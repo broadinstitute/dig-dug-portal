@@ -172,6 +172,11 @@ class LocusZoomLayout {
         return this;
     }
     
+    setProperty(accessor, value) {
+        _.set(this.#base_layout, accessor, value)
+        return this;
+    }
+
     // TODO: replace with utils method?
     // use this function when you want to ensure certain fields exist in the data_layer that aren't necessarily displayed on the plot
     // useful for filters which will operate on non-visualized properties, e.g. nearest genes, consequences, methods
@@ -181,13 +186,15 @@ class LocusZoomLayout {
         // const namespacedFields = fields.map(field => {
         //     return `{{namespace[${namespaceTarget}]}}${field}`
         // })
-        // this.#layout_options['fields'] = namespacedFields.concat(
-        //     ...LocusZoom.Layouts.get(
-        //         "panel",
-        //         this.#base_layout,
-        //         { unnamespaced: true }
-        //     ).fields
+        // // this.#layout_options['fields'] = 
+        // namespacedFields.concat(
+        //     this.#base_layout.fields
         // );
+        // _.set(this.#base_layout, 'fields', 
+        //     namespacedFields.concat(
+        //         this.#base_layout.fields
+        //     )
+        // )
         return this;
     }
 
@@ -268,7 +275,9 @@ export function addPanel(plot, dataSources, panelClass) {
             // consolidate 'sharedId' and 'assoc' into a namespace object?
             sharedId, 
             'assoc',
-        ).addFields('assoc', ['pValue']),
+        )
+        .addFields('assoc', ['pValue'])
+        .setProperty(accessor, value),
         new LocusZoomAdapter(
             panelClass.bioIndexToLZReader,
             // consolidate 'sharedId' and 'assoc' into a namespace object? 
