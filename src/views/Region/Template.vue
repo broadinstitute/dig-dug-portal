@@ -162,7 +162,7 @@
                             :phenotypes="$parent.topAssociations"
                         ></phenotype-signal-mixed>
                     </div>
-                    <div v-if="$parent.topAssociations.length > 0">
+                    <div v-if="$parent.topAssociations.length > 0" class="mt-3">
                         <clumped-variants-table
                             legends
                             :variants="$parent.topAssociations"

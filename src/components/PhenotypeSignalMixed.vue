@@ -112,23 +112,25 @@
                 </div>
                 <div
                     v-if="limit && limit < topAssociationsFiltered.length"
-                    class="text-center mb-2"
+                    class="text-center"
                 >
                     <b-button
                         size="sm"
-                        variant="outline-primary"
+                        variant="outline-secondary"
                         class="btn-mini"
                         @click="limit = null"
-                        >Show More Phenotypes</b-button
+                        >Show All
+                        {{ topAssociationsFiltered.length }}
+                        Phenotypes</b-button
                     >
                 </div>
                 <div
                     v-if="!limit && topAssociationsFiltered.length > 10"
-                    class="text-center mb-2"
+                    class="text-center mt-1"
                 >
                     <b-button
                         size="sm"
-                        variant="outline-primary"
+                        variant="outline-secondary"
                         class="btn-mini"
                         @click="limit = 10"
                     >

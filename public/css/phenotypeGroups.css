@@ -1,7 +1,13 @@
 /* Defaults */
-.pws-box { border-top: solid 5px #6c757d; }
-.pws-phenotype-group div.pws-progress-bar { background-color: #6c757d; }
-.phenotype-group { background-color: #6c757d; }
+.pws-box {
+    border-top: solid 5px #6c757d;
+}
+.pws-phenotype-group div.pws-progress-bar {
+    background-color: #6c757d;
+}
+.phenotype-group {
+    background-color: #6c757d;
+}
 
 .pws-phenotype-group.ANTHROPOMETRIC div.pws-progress-bar {
     background-color: #048845;
@@ -169,7 +175,6 @@
 .pws-top-phenotypes-wrapper {
     overflow-x: auto;
     overflow-y: hidden;
-    margin-bottom: 15px;
     height: 160px;
 }
 
