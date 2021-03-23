@@ -157,7 +157,7 @@ export default Vue.component("volcano-plot", {
             if (wrapper.innerText != "") {
                 let items = wrapper.innerText.split("\n");
                 document.getElementById(
-                    "filter_" + this.renderConfig.renderBy
+                    "filter_" + this.renderConfig.renderBy.replace(/ /g, "")
                 ).value = items.join(", ");
                 this.$parent.filterData(
                     "",
