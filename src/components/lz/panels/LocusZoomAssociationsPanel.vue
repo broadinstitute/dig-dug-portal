@@ -211,7 +211,6 @@ export class LZAssociationsPanel {
             initialData: this.initialData,
         });
 
-        this.sources = { assoc: this.bioIndexToLZReader };
     }
 }
 </script>
