@@ -124,7 +124,7 @@ export default {
         // fetch all the complicaitons for given disease group
         async getComplications({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain },
+                { q: state.host.subDomain || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -138,7 +138,7 @@ export default {
         // fetch all datasets for this portal
         async getDatasets({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain },
+                { q: state.host.subDomain || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
