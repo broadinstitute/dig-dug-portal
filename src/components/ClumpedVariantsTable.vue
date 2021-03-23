@@ -347,6 +347,7 @@ export default Vue.component("clumped-variants-table", {
 }
 .b-table-details div.details .page-link {
     border: transparent !important;
+    height: auto;
 }
 .b-table-details div.details .page-item.disabled,
 .b-table-details div.details .page-link {
