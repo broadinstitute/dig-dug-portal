@@ -18,17 +18,10 @@
                         <filter-enumeration-control
                             class="filter-col-lg"
                             :field="'phenotype'"
-                            :options="
-                                $parent.secondaryPhenotypeOptions.map(
-                                    (phenotype) => phenotype.name
-                                )
-                            "
+                            :options="$parent.secondaryPhenotypeOptions.map((phenotype) => phenotype.name)"
                             :multiple="true"
                             :labelFormatter="
-                                (phenotype) =>
-                                    !!$store.state.bioPortal.phenotypeMap[
-                                        phenotype
-                                    ]
+                                (phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
                                         ? $store.state.bioPortal.phenotypeMap[
                                               phenotype
                                           ].description

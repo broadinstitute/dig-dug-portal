@@ -127,6 +127,10 @@ export class LZPhewasPanel {
             data_layers: [
                 LocusZoom.Layouts.merge(
                     {
+                        namespace: {
+                            ...LocusZoom.Layouts.get('data_layer', 'phewas_pvalues').namespace,
+                            [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
+                        },
                         fields: [
                             // we need to call out the fields directly since merge algorithm doesn't combine arrays
                             `{{namespace[${this.datasource_type}]}}pValue`, // adding this piece of data irrelevant to the graphic will help us filter later

@@ -17,28 +17,28 @@ import $ from "jquery";
 
 // get the query string
 const qs = window.location.search;
-const params = queryString.parse(qs, {
+let params = queryString.parse(qs, {
     parseNumbers: true,
     parseBooleans: true,
 });
 
-// Parse the query string of the URL to get the parameters of this page.
-export default {
-    ...params,
-
-    // update the params in the url (without redirect)
+let paramsWrapper = {
     set(paramMap) {
         let url = Url(window.location.href);
-        let params = queryString.parse(url.query);
+        //let params = queryString.parse(url.query);
 
-        // update the params
+        // update the params, remove undefined
         Object.assign(params, paramMap);
+        Object.keys(params).forEach(key => {
+            if (!params[key]) {
+                delete params[key];
+            }
+        });
 
         // update the query string in the url
         url.set('query', queryString.stringify(params));
 
-        // // update the url
-
+        // update the url
         if (window.history && window.history.pushState) {
             $(window).on('popstate', function () {
                 var hashLocation = location.hash;
@@ -60,4 +60,9 @@ export default {
         window.history.pushState({ path: url.href }, '', url.href);
 
     },
-}
+};
+
+Object.setPrototypeOf(paramsWrapper, params);
+
+// Parse the query string of the URL to get the parameters of this page.
+export default paramsWrapper;

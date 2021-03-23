@@ -1,3 +1,8 @@
+/* Defaults */
+.pws-box { border-top: solid 5px #6c757d; }
+.pws-phenotype-group div.pws-progress-bar { background-color: #6c757d; }
+.phenotype-group { background-color: #6c757d; }
+
 .pws-phenotype-group.ANTHROPOMETRIC div.pws-progress-bar {
     background-color: #048845;
 }
@@ -134,6 +139,7 @@
 
 .pws-box.HEMATOLOGICAL { border-top: solid 5px #aa0000 !important; }
 
+
 /* merged plot */
 .pws-group-legend-wrapper {
     width: 90%;
@@ -157,7 +163,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     margin-bottom: 15px;
-    height: 190px;
+    height: 160px;
 }
 
 .pws-top-phenotypes-bars-wrapper {

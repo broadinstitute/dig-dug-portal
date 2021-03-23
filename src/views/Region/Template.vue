@@ -1,7 +1,10 @@
 <template>
     <!-- Header -->
     <div>
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
@@ -55,7 +58,9 @@
                             class="btn btn-light btn-sm go"
                             type="button"
                             @click="$store.dispatch('queryRegion')"
-                        >GO</button>
+                        >
+                            GO
+                        </button>
                     </div>
                     <div class="col divider"></div>
                     <!-- <div class="region-search col filter-col-md">
@@ -71,17 +76,19 @@
 
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div
-                        class="col-md-12 gene-page-header-title"
-                    >Chromosome: Start position - End position</div>
+                    <div class="col-md-12 gene-page-header-title">
+                        Chromosome: Start position - End position
+                    </div>
                     <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
-                    <div class="col-md-12 gene-page-header-body regionInfo">
+                    <div class="col-md-6 gene-page-header-body regionInfo">
                         {{ $parent.regionString }}
                         <button
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
                             style="margin-left: 20px"
                             @click="$parent.exploreExpanded()"
-                        >Expand &plusmn; 50 kb</button>
+                        >
+                            Expand &plusmn; 50 kb
+                        </button>
                         <lunaris-link
                             :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
@@ -116,9 +123,7 @@
                         :key="row.name"
                     >
                         <a :href="`/gene.html?gene=${row.name}`">
-                            {{
-                            row.name
-                            }}
+                            {{ row.name }}
                         </a>
                     </div>
                 </div>
@@ -126,10 +131,12 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        Variant associations in the region:
+                        Clumped variant associations in the region:
                         {{ $parent.regionString }}
                     </h4>
-                    <documentation name="region.phenos_w_signal.subheader"></documentation>
+                    <documentation
+                        name="region.phenos_w_signal.subheader"
+                    ></documentation>
                     <div v-if="$parent.topAssociations.length > 0">
                         <div
                             style="text-align: right; padding-bottom: 5px"
@@ -147,141 +154,271 @@
                                     )
                                 "
                                 class="switch-view btn btn-secondary btn-sm"
-                            >View associations by phenotype group</div>
+                            >
+                                View associations by phenotype group
+                            </div>
                         </div>
-                        <phenotype-signal-mixed :phenotypes="$parent.topAssociations"></phenotype-signal-mixed>
+                        <phenotype-signal-mixed
+                            :phenotypes="$parent.topAssociations"
+                            :limit="10"
+                        ></phenotype-signal-mixed>
+                    </div>
+                    <div v-if="$parent.topAssociations.length > 0">
+                        <clumped-variants-table
+                            legends
+                            :variants="$parent.topAssociations"
+                            :phenotypeMap="$parent.phenotypeMap"
+                        ></clumped-variants-table>
                     </div>
                 </div>
             </div>
-
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <div v-if="!!$store.state.phenotype">
-                        <h4 class="card-title">
-                            Top associations for
-                            {{ $store.state.phenotype.description }}
-                            <tooltip-documentation
-                                name="region.topassoc.tooltip"
-                                :isHover="true"
-                                :noIcon="false"
-                            ></tooltip-documentation>
-                        </h4>
-                        <documentation name="region.variantassociation.subheader"></documentation>
-                        <criterion-list-group
-                            v-model="$parent.regionPageSearchCriterion"
-                            :header="'Select Phenotype'"
+                    <criterion-list-group
+                        v-model="$parent.regionPageSearchCriterion"
+                        :header="'Select Phenotype'"
+                    >
+                        <!-- Phenotype Selector -->
+                        <filter-enumeration-control
+                            class="filter-col-lg"
+                            :field="'phenotype'"
+                            :options="$parent.allphenotypes"
+                            :multiple="true"
+                            :labelFormatter="
+                                (phenotype) =>
+                                    !!$store.state.bioPortal.phenotypeMap[
+                                        phenotype
+                                    ]
+                                        ? $store.state.bioPortal.phenotypeMap[
+                                              phenotype
+                                          ].description
+                                        : phenotype
+                            "
                         >
-                            <!-- Phenotype Selector -->
-                            <filter-enumeration-control
-                                class="filter-col-lg"
-                                :field="'phenotype'"
-                                :options="$parent.topAssociationsPhenotypes"
-                                :multiple="false"
-                                :labelFormatter="(phenotype) =>!!$store.state.bioPortal.phenotypeMap[phenotype]
-                                        ? $store.state.bioPortal.phenotypeMap[phenotype].description : phenotype"
-                            >
-                                <div class="label">Select phenotypes</div>
-                            </filter-enumeration-control>
-                        </criterion-list-group>
-                        <criterion-function-group v-model="$parent.associationsFilter">
-                            <filter-enumeration-control
-                                :field="'consequence'"
-                                :options="$parent.associationConsequences"
-                                :inclusive="true"
-                            >
-                                <div class="label">Consequence</div>
-                            </filter-enumeration-control>
+                            <div class="label">Select phenotypes</div>
+                        </filter-enumeration-control>
+                    </criterion-list-group>
+                    <div class="card mdkp-card">
+                        <div class="card-body">
+                            <div v-if="$parent.selectedPhenotypes.length > 0">
+                                <h4 class="card-title">
+                                    Top associations for
+                                    <span
+                                        v-for="p in $parent.selectedPhenotypes"
+                                        class="item"
+                                    >
+                                        {{ p.description }}
+                                    </span>
+                                    <tooltip-documentation
+                                        name="region.topassoc.tooltip"
+                                        :isHover="true"
+                                        :noIcon="false"
+                                    ></tooltip-documentation>
+                                </h4>
+                                <documentation
+                                    name="region.variantassociation.subheader"
+                                ></documentation>
 
-                            <filter-enumeration-control
-                                :field="'nearest'"
-                                :options="$parent.associationNearestGenes"
-                                :inclusive="true"
-                            >
-                                <div class="label">Closest Genes</div>
-                            </filter-enumeration-control>
-
-                            <filter-pvalue-control :field="'pValue'">
-                                <div class="label">P-Value (&le;)</div>
-                            </filter-pvalue-control>
-
-                            <filter-effect-direction-control :field="'beta'">
-                                <div class="label">Effect (+/-)</div>
-                            </filter-effect-direction-control>
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <associations-table
-                                    v-if="$parent.pageAssociations.length > 0"
-                                    :phenotypes="$parent.phenotypes"
-                                    :associations="$parent.pageAssociations"
-                                    :filter="filter"
-                                ></associations-table>
-                            </template>
-                        </criterion-function-group>
-
-                        <br />
-                        <documentation
-                            name="region.lz.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-
-                        <documentation
-                            name="region.igv.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-
-                        <criterion-function-group>
-                            <div class="col filter-col-lg">
-                                <div class="label" style="margin-bottom: 5px">Add annotation</div>
-                                <annotation-method-selectpicker
-                                    :annotations="$parent.globalEnrichmentAnnotations"
-                                    :clearOnSelected="true"
-                                    @annotation="$parent.addAnnotationIntervalsPanel($event)"
-                                />
-                            </div>
-
-                            <div class="col filter-col-lg">
-                                <div class="label" style="margin-bottom: 5px">Add credible set</div>
-                                <credible-sets-selectpicker
-                                    :credibleSets="$parent.credibleSets"
-                                    :clearOnSelected="true"
-                                    @credibleset="$parent.addCredibleVariantsPanel($event) "
-                                />
-                            </div>
-
-                            <div class="col divider">&nbsp;</div>
-
-                            <span style="display: inline-block">
-                                <div class="label">Filter annotations by global enrichment</div>
-                                <filter-pvalue-control :field="'pValue'">
-                                    <span class="label">P-Value (&le;)</span>
-                                </filter-pvalue-control>
-                                <filter-greater-control :field="'fold'">
-                                    <span class="label">Fold (&ge;)</span>
-                                </filter-greater-control>
-                            </span>
-
-                            <template slot="filtered" slot-scope="{ filter }">
-                                <locuszoom
-                                    v-if="$parent.tissueScoring !== null"
-                                    ref="locuszoom"
-                                    :chr="$store.state.chr"
-                                    :start="$store.state.start"
-                                    :end="$store.state.end"
-                                    :filterAssociations="$parent.associationsFilter"
-                                    :filterAnnotations="filter"
-                                    @regionchanged="$parent.requestCredibleSets($event.data)"
-                                    :ldpop="true"
-                                    :refSeq="true"
+                                <criterion-function-group
+                                    v-model="$parent.associationsFilter"
                                 >
-                                    <lz-associations-panel
-                                        :phenotype="$store.state.phenotype.name"
-                                        @input="$parent.updatePageAssociations"
-                                    ></lz-associations-panel>
-                                    <lz-catalog-annotations-panel
-                                        :phenotype="$store.state.phenotype.name"
-                                    ></lz-catalog-annotations-panel>
-                                </locuszoom>
-                            </template>
-                        </criterion-function-group>
+                                    <filter-enumeration-control
+                                        :field="'consequence'"
+                                        :options="
+                                            $parent.associationConsequences
+                                        "
+                                        :inclusive="false"
+                                    >
+                                        <div class="label">Consequence</div>
+                                    </filter-enumeration-control>
+
+                                    <filter-enumeration-control
+                                        :field="'nearest'"
+                                        :options="
+                                            $parent.associationNearestGenes
+                                        "
+                                        :inclusive="false"
+                                    >
+                                        <div class="label">Closest Genes</div>
+                                    </filter-enumeration-control>
+
+                                    <filter-pvalue-control :field="'pValue'">
+                                        <div class="label">P-Value (&le;)</div>
+                                    </filter-pvalue-control>
+
+                                    <filter-effect-direction-control
+                                        :field="'beta'"
+                                    >
+                                        <div class="label">Effect (+/-)</div>
+                                    </filter-effect-direction-control>
+
+                                    <template
+                                        slot="filtered"
+                                        slot-scope="{ filter }"
+                                    >
+                                        <associations-table
+                                            id="associations-table"
+                                            v-if="
+                                                $parent.selectedPhenotypes
+                                                    .length > 0 &&
+                                                $parent.pageAssociations
+                                                    .length > 0
+                                            "
+                                            :phenotypes="
+                                                $parent.selectedPhenotypes
+                                            "
+                                            :associations="
+                                                $parent.pageAssociations
+                                            "
+                                            :filter="filter"
+                                        ></associations-table>
+                                    </template>
+                                </criterion-function-group>
+
+                                <br />
+                                <documentation
+                                    name="region.lz.subheader"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+
+                                <documentation
+                                    name="region.igv.subheader"
+                                    :content-fill="$parent.documentationMap"
+                                ></documentation>
+
+                                <criterion-function-group>
+                                    <div class="col filter-col-md">
+                                        <div
+                                            class="label"
+                                            style="margin-bottom: 5px"
+                                        >
+                                            Add tissue
+                                        </div>
+                                        <tissue-selectpicker
+                                            :tissues="
+                                                $parent.globalEnrichmentTissues
+                                            "
+                                            :clearOnSelected="true"
+                                            @tissue="
+                                                $parent.addTissueIntervalsPanel(
+                                                    $event
+                                                )
+                                            "
+                                        />
+                                    </div>
+                                    <div class="col filter-col-md">
+                                        <div
+                                            class="label"
+                                            style="margin-bottom: 5px"
+                                        >
+                                            Add annotation
+                                        </div>
+                                        <annotation-selectpicker
+                                            :annotations="
+                                                $parent.globalEnrichmentAnnotations
+                                            "
+                                            :clearOnSelected="true"
+                                            @annotation="
+                                                $parent.addAnnotationIntervalsPanel(
+                                                    $event
+                                                )
+                                            "
+                                        />
+                                    </div>
+
+                                    <div class="col filter-col-md">
+                                        <div
+                                            class="label"
+                                            style="margin-bottom: 5px"
+                                        >
+                                            Add credible set
+                                        </div>
+                                        <credible-sets-selectpicker
+                                            :credibleSets="$parent.credibleSets"
+                                            :clearOnSelected="true"
+                                            @credibleset="
+                                                $parent.addCredibleVariantsPanel(
+                                                    $event
+                                                )
+                                            "
+                                        />
+                                    </div>
+
+                                    <div class="col divider">&nbsp;</div>
+
+                                    <span style="display: inline-block">
+                                        <div class="label">
+                                            Filter annotations by global
+                                            enrichment
+                                        </div>
+                                        <filter-pvalue-control
+                                            :field="'pValue'"
+                                        >
+                                            <span class="label"
+                                                >P-Value (&le;)</span
+                                            >
+                                        </filter-pvalue-control>
+                                        <filter-greater-control :field="'fold'">
+                                            <span class="label"
+                                                >Fold (&ge;)</span
+                                            >
+                                        </filter-greater-control>
+                                    </span>
+
+                                    <template
+                                        slot="filtered"
+                                        slot-scope="{ filter }"
+                                    >
+                                        <locuszoom
+                                            ref="locuszoom"
+                                            :chr="$store.state.chr"
+                                            :start="$store.state.start"
+                                            :end="$store.state.end"
+                                            :filterAssociations="
+                                                $parent.associationsFilter
+                                            "
+                                            :filterAnnotations="filter"
+                                            @regionchanged="
+                                                ($event) => {
+                                                    $parent.requestCredibleSets(
+                                                        $event.data
+                                                    );
+                                                }
+                                            "
+                                            :ldpop="true"
+                                            :refSeq="true"
+                                        >
+                                            <span
+                                                v-for="phenotype in $parent.selectedPhenotypes"
+                                                :key="phenotype.name"
+                                            >
+                                                <lz-associations-panel
+                                                    :phenotype="phenotype.name"
+                                                    :title="
+                                                        phenotype.description
+                                                    "
+                                                    @input="
+                                                        $parent.updatePageAssociations(
+                                                            {
+                                                                phenotype:
+                                                                    phenotype.name,
+                                                                data: $event,
+                                                            }
+                                                        )
+                                                    "
+                                                ></lz-associations-panel>
+                                                <lz-catalog-annotations-panel
+                                                    :phenotype="phenotype.name"
+                                                    :title="
+                                                        phenotype.description
+                                                    "
+                                                ></lz-catalog-annotations-panel>
+                                            </span>
+                                        </locuszoom>
+                                    </template>
+                                </criterion-function-group>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -290,7 +427,9 @@
         <b-collapse id="collapse-1" class="mt-2">
             <b-card>
                 <p class="card-text">Collapse contents Here</p>
-                <b-button v-b-toggle.collapse-1-inner size="sm">Toggle Inner Collapse</b-button>
+                <b-button v-b-toggle.collapse-1-inner size="sm"
+                    >Toggle Inner Collapse</b-button
+                >
                 <b-collapse id="collapse-1-inner" class="mt-2">
                     <b-card>Hello!</b-card>
                 </b-collapse>

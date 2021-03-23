@@ -49,7 +49,7 @@ new Vue({
             ],
             datasets: [
                 { text: "52K", value: "52k" },
-                { text: "TopMed", value: "TopMed" }
+                { text: "TOPMed", value: "TopMed" }
             ],
             testMethods: [
                 { text: "Collapsing Burden", value: "burden" },
