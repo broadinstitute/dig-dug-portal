@@ -254,6 +254,17 @@ export default Vue.component("criterion-group-template", {
         },
     },
     watch: {
+        initialFilterDefinitions: {
+            handler: function () {
+                if (this.initialFilterDefinitions.length > 0) {
+                    this.initialFilterDefinitionMap = groupBy(
+                        this.initialFilterDefinitions,
+                        "field"
+                    );
+                }
+            },
+            deep: true,
+        },
         value: {
             handler: function (newCriterionValue) {
                 if (this.filterType === "function") {
