@@ -79,10 +79,8 @@
 
                     <div>
                         <gene-finder-table
-                            v-show="
-                                $parent.complicationViewerPhenotypes.length >
-                                    0 && $store.state.associations.length > 0
-                            "
+                            v-show="$parent.complicationViewerPhenotypes.length >
+                                    0 && $store.state.associations.length > 0"
                             :phenotypes="$parent.complicationViewerPhenotypes"
                             :phenotypeMap="$store.state.bioPortal.phenotypeMap"
                             :associations="$store.state.associations"
