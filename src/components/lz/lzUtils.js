@@ -218,8 +218,8 @@ class LocusZoomAdapter {
 }
 
 class LZBioIndexAdapter extends LocusZoomAdapter {
-    constructor(index, primary_key, secondary_key, { translator=id=>id, onLoad=id=>id, onResolve=id=>id, onError=id=>id }) {
-        const opts = { translator, onLoad, onResolve, onError };
+    constructor(index, primary_key, secondary_key, translator=id=>id, { onLoad=id=>id, onResolve=id=>id, onError=id=>id }) {
+        const opts = { onLoad, onResolve, onError };
         
         // build the query-making function from the index, primary key, and secondary key
         // if no secondary key is available, assume that it's the region
@@ -248,7 +248,8 @@ class LZBioIndexAdapter extends LocusZoomAdapter {
 
         super(new LZBioIndexSource({ 
             index,
-            queryStringMaker, 
+            queryStringMaker,
+            translator, 
             ...opts, 
         }));
 
@@ -323,7 +324,7 @@ export function addPanel(plot, dataSources, panelClass) {
 // )
 
 // const assocPanel = new LocusZoomPanel(
-//    'assoc',                                               // the term that will join both visualizations together
+//    'assoc',                                              // the term that will join both visualizations together
 //    new LocusZoomLayout('associationspvaluecatalog'),     // layout with base_layout given
 //    new LZBioIndexAdapter('associations', 'T2D'),         // setup an adapter to BioIndex
 // )
