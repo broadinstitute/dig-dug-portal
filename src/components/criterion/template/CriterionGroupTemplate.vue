@@ -281,6 +281,7 @@ export default Vue.component("criterion-group-template", {
         ```vue
         <template>
             <criterion-function-group
+                v-model="$parent.filterFunction"
                 @update-filter-list="$parent.displayedFilterList = $event">
             ...
             </criterion-function-group
