@@ -14,13 +14,13 @@
                 :current-page="currentPage"
             >
                 <template v-slot:thead-top="data">
-                    <b-th colspan="5">
+                    <b-th colspan="6">
                         <span class="sr-only">Variant</span>
                     </b-th>
                     <b-th
                         :key="phenotype.name"
                         v-for="(phenotype, i) in phenotypes"
-                        colspan="3"
+                        colspan="2"
                         class="reference"
                         :class="'color-' + (i+1)"
                     >
@@ -52,6 +52,7 @@
                         :href="`/gene.html?gene=${gene}`"
                     >{{ gene }}</a>
                 </template>
+                <template v-slot:cell(maf)="r">{{ mafFormatter(r.item.maf) }}</template>
                 <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
                     <span
                         :class="`effect ${
@@ -78,10 +79,10 @@
                     v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
                 >{{ pValueFormatter(r.item[`${p.name}:pValue`]) }}</template>
-                <template
+                <!-- <template
                     v-slot:[phenotypeMafColumn(p)]="r"
                     v-for="p in phenotypes"
-                >{{ mafFormatter(r.item[`${p.name}:maf`]) }}</template>
+                >{{ mafFormatter(r.item[`${p.name}:maf`]) }}</template>-->
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
@@ -148,6 +149,10 @@ export default Vue.component("associations-table", {
                 {
                     key: "genes",
                     label: "Closest Genes"
+                },
+                {
+                    key: "maf",
+                    label: "MAF"
                 }
             ]
         };
@@ -172,10 +177,6 @@ export default Vue.component("associations-table", {
                     {
                         key: `${p.name}:beta`,
                         label: !!p.dichotomous ? "Odds Ratio" : "Beta"
-                    },
-                    {
-                        key: `${p.name}:maf`,
-                        label: `MAF`
                     }
                 ]);
             }
@@ -205,14 +206,15 @@ export default Vue.component("associations-table", {
                         consequence: r.consequence,
                         nearest: r.nearest,
                         alt: r.alt,
-                        minP: r.pValue
+                        minP: r.pValue,
+                        maf: r.maf
                     });
                 }
 
                 // add the phenotype columns
                 data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
                 data[dataIndex][`${r.phenotype}:beta`] = r.beta;
-                data[dataIndex][`${r.phenotype}:maf`] = r.maf;
+
                 data[dataIndex][`${r.phenotype}:stdErr`] = r.stdErr;
                 data[dataIndex][`${r.phenotype}:zScore`] = r.zScore;
                 data[dataIndex][`${r.phenotype}:n`] = r.n;
