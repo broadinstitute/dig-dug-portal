@@ -42,7 +42,7 @@ export default Vue.component('criterion-pills', {
         },
         clearable: {
             type: Boolean,
-            default: true,
+            default: false,
         }
     }
 });
