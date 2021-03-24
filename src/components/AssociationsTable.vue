@@ -20,9 +20,9 @@
                     <b-th
                         :key="phenotype.name"
                         v-for="(phenotype, i) in phenotypes"
-                        colspan="2"
+                        colspan="3"
                         class="reference"
-                        :class="'color-' + (i + 1)"
+                        :class="'color-' + (i+1)"
                     >
                         <span style="color: white">{{ phenotype.description }}</span>
                     </b-th>
@@ -78,6 +78,10 @@
                     v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
                 >{{ pValueFormatter(r.item[`${p.name}:pValue`]) }}</template>
+                <template
+                    v-slot:[phenotypeMafColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >{{ mafFormatter(r.item[`${p.name}:maf`]) }}</template>
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
@@ -168,6 +172,10 @@ export default Vue.component("associations-table", {
                     {
                         key: `${p.name}:beta`,
                         label: !!p.dichotomous ? "Odds Ratio" : "Beta"
+                    },
+                    {
+                        key: `${p.name}:maf`,
+                        label: `MAF`
                     }
                 ]);
             }
@@ -204,6 +212,7 @@ export default Vue.component("associations-table", {
                 // add the phenotype columns
                 data[dataIndex][`${r.phenotype}:pValue`] = r.pValue;
                 data[dataIndex][`${r.phenotype}:beta`] = r.beta;
+                data[dataIndex][`${r.phenotype}:maf`] = r.maf;
                 data[dataIndex][`${r.phenotype}:stdErr`] = r.stdErr;
                 data[dataIndex][`${r.phenotype}:zScore`] = r.zScore;
                 data[dataIndex][`${r.phenotype}:n`] = r.n;
@@ -260,9 +269,13 @@ export default Vue.component("associations-table", {
         phenotypePValueColumn(phenotype) {
             return `cell(${phenotype.name}:pValue)`;
         },
+        phenotypeMafColumn(phenotype) {
+            return `cell(${phenotype.name}:maf)`;
+        },
         alleleFormatter({ reference, alt }) {
             return Formatters.alleleFormatter(reference, alt);
         },
+
         locusFormatter({ chromosome, position }) {
             return Formatters.locusFormatter(chromosome, position);
         },
@@ -274,6 +287,9 @@ export default Vue.component("associations-table", {
         },
         pValueFormatter(pValue) {
             return Formatters.pValueFormatter(pValue);
+        },
+        mafFormatter(pValue) {
+            return Formatters.floatFormatter(pValue);
         },
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);
