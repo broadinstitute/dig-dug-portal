@@ -16,6 +16,7 @@ import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
 import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 
 import { LZAssociationsPanel } from "@/components/lz/panels/LocusZoomAssociationsPanel";
+import { LZIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
 import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
 import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnnotationsPanel";
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
@@ -74,6 +75,7 @@ export default Vue.component("locuszoom", {
 
         this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "width",
+            max_region_scale: 500000, // without this, zooming out will fail (circa LocusZoom v0.13.1)
             state: {
                 chr: this.chr,
                 start: this.start,
@@ -110,6 +112,15 @@ export default Vue.component("locuszoom", {
                 })
             );
         }
+
+        // this lets us treat "regionchanged" as a "locuszoom is ready" hook
+        this.$emit("regionchanged", {
+            data: {
+                start: this.start,
+                end: this.end,
+            }
+        });
+
     },
     methods: {
         zoomOut(expandLeft = 50000, expandRight = 50000) {
@@ -223,9 +234,33 @@ export default Vue.component("locuszoom", {
             );
             return panelId;
         },
+        addIntervalsPanel: function (
+            index,
+            primaryKey,
+            secondaryKey,
+            title,
+            initialData,
+            onLoad,
+            onResolve,
+            onError
+        ) {
+            const panelId = this.addPanelAndDataSource(
+                new LZIntervalsPanel(
+                    index,
+                    primaryKey,
+                    secondaryKey,
+                    title,
+                    onLoad,
+                    onResolve,
+                    onError,
+                    initialData
+                )
+            );
+            return panelId;
+        },
         addAnnotationIntervalsPanel: function (
             annotation,
-            method,
+            title,
             scoring,
             initialData,
             onLoad,
@@ -235,7 +270,7 @@ export default Vue.component("locuszoom", {
             const panelId = this.addPanelAndDataSource(
                 new LZAnnotationIntervalsPanel(
                     annotation,
-                    method,
+                    title,
                     onLoad,
                     onResolve,
                     onError,

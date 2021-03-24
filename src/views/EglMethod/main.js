@@ -71,7 +71,7 @@ new Vue({
 
 
             let element = document.getElementsByClassName("top-level-header")[0];
-            if (windowTop > this.tableTop) {
+            if (windowTop > this.tableTop()) {
                 if (!element.classList.contains('fixed-header')) {
                     element.classList.add('fixed-header');
                 }
@@ -86,10 +86,7 @@ new Vue({
             file.rel = 'stylesheet';
             file.href = 'https://kp4cd.org/sites/default/files/vueportal/egl_data/' + DATASET + '/' + DATASET + '.css'
             document.head.appendChild(file)
-        }
-    },
-
-    computed: {
+        },
         tableTop() {
             let eglTable = document.getElementsByClassName("EGLT-table")[0];
             let rect = eglTable.getBoundingClientRect();
@@ -100,6 +97,9 @@ new Vue({
 
             return tableTop;
         },
+    },
+
+    computed: {
         dataset() {
             this.appendCss(keyParams.dataset);
             return keyParams.dataset;

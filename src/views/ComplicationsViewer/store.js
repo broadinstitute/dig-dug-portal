@@ -18,13 +18,27 @@ export default new Vuex.Store({
     },
     state: {
         associations: [],
+        condition: keyParams.condition,
+
     },
     mutations: {
+
+        setMatchingGenes(state, genes) {
+            state.matchingGenes = genes;
+        },
         clearAssociations(state) {
             state.associations = [];
         },
         updateAssociations(state, data) {
             state.associations = state.associations.concat(data);
+        },
+        setCondition(state, condition) {
+            state.condition = condition || keyParams.condition
+            keyParams.set({ condition: condition });
+        },
+        setSecondaryPhenotype(state, secondaryPhenotype) {
+            state.secondaryPhenotype = secondaryPhenotype
+            keyParams.set({ secondaryPhenotype: secondaryPhenotype });
         }
     },
     actions: {
