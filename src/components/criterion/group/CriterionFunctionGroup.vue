@@ -8,6 +8,8 @@
         :header="header"
         :inclusive="inclusive"
         @input="emitInput"
+        @update-filter-function="emitFilterFunction"
+        @update-filter-list="emitFilterList"
     >
         <slot></slot>
         <template slot="filtered" slot-scope="{ filter }">
@@ -36,6 +38,12 @@ export default Vue.component("criterion-function-group", {
     methods: {
         emitInput(value) {
             this.$emit("input", value);
+        },
+        emitFilterList(value) {
+            this.$emit("update-filter-list", value);
+        },
+        emitFilterFunction(value) {
+            this.$emit("update-filter-function", value);
         },
     },
 });
