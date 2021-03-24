@@ -60,6 +60,7 @@
                                 ? 'negative'
                                 : 'positive'
                         }`"
+                        :key="p.name"
                     >
                         {{
                         r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"

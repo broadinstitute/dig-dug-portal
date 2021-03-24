@@ -1,10 +1,6 @@
 <template>
     <div class="mbm-plot-content">
         <div id="clicked_dot_value" class="clicked-dot-value hidden">
-            <b-icon-x-circle-fill
-                class="clicked-dot-value-close"
-                @click="hidePanel"
-            ></b-icon-x-circle-fill>
             <div id="clicked_dot_value_content"></div>
         </div>
         <div
@@ -15,7 +11,9 @@
         <canvas
             v-if="!!renderConfig"
             id="manhattanPlot"
-            @click="checkPosition"
+            @mouseleave="hidePanel"
+            @mousemove="checkPosition"
+            @click="filterTable"
             @resize="onResize"
             width=""
             height=""
@@ -153,16 +151,43 @@ export default Vue.component("m-bitmap-plot", {
     methods: {
         ...uiUtils,
         hidePanel() {
-            uiUtils.hideElement("clicked-dot-value");
+            //uiUtils.hideElement("clicked-dot-value");
         },
         onResize(e) {
             this.renderPlot();
         },
+        filterTable() {
+            let wrapper = document.getElementById("clicked_dot_value");
+
+            if (wrapper.innerText != "") {
+                let items = [];
+                let genesLength = document.getElementsByClassName(
+                    "gene-on-clicked-dot-mplot"
+                );
+
+                genesLength.forEach((gene) => items.push(gene.innerText));
+
+                document.getElementById(
+                    "filter_" + this.renderConfig.renderBy.replace(/ /g, "")
+                ).value = items.join(", ");
+                this.$parent.filterData(
+                    "",
+                    this.renderConfig.renderBy,
+                    "search"
+                );
+            }
+        },
         checkPosition(event) {
+            let wrapper = document.getElementById("clicked_dot_value");
+            let canvas = document.getElementById("manhattanPlot");
+            wrapper.classList.remove("hidden");
             let e = event;
             var rect = e.target.getBoundingClientRect();
             var x = Math.floor(e.clientX - rect.left);
             var y = Math.floor(e.clientY - rect.top);
+            wrapper.style.top = y + canvas.offsetTop + "px";
+            wrapper.style.left = x + canvas.offsetLeft + 15 + "px";
+
             let clickedDotValue = "";
 
             for (let h = -5; h <= 5; h++) {
@@ -172,7 +197,7 @@ export default Vue.component("m-bitmap-plot", {
                             //console.log(this.dotPosData[x + h]);
                             let dotObject = this.dotPosData[x + h][y + v];
                             clickedDotValue +=
-                                '<span class="gene-on-clicked-dot"><b>' +
+                                '<span class="gene-on-clicked-dot-mplot"><b>' +
                                 dotObject[this.renderConfig.renderBy] +
                                 "</b></span>";
 
@@ -194,18 +219,20 @@ export default Vue.component("m-bitmap-plot", {
                 }
             }
 
-            let wrapper = document.getElementById("clicked_dot_value");
+            //let wrapper = document.getElementById("clicked_dot_value");
             let contentWrapper = document.getElementById(
                 "clicked_dot_value_content"
             );
-            let canvas = document.getElementById("manhattanPlot");
+
             if (clickedDotValue != "") {
                 contentWrapper.innerHTML = clickedDotValue;
-                wrapper.classList.remove("hidden");
-                wrapper.style.top = y + canvas.offsetTop + "px";
-                wrapper.style.left = x + canvas.offsetLeft + "px";
+
+                document.getElementById("manhattanPlot").classList.add("hover");
             } else {
                 wrapper.classList.add("hidden");
+                document
+                    .getElementById("manhattanPlot")
+                    .classList.remove("hover");
             }
         },
         renderPlot() {
@@ -401,9 +428,10 @@ $(function () {});
 </script>
 
 <style>
-#manhattanPlot:hover {
+#manhattanPlot.hover {
+    cursor: pointer;
 }
-.gene-on-clicked-dot,
+.gene-on-clicked-dot-mplot,
 .content-on-clicked-dot {
     display: block !important;
 }
