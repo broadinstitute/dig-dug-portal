@@ -28,7 +28,7 @@ export default {
             datasetMap: {},
             documentation: {},
             user: "",
-            links: [],
+            links: []
         };
     },
 
@@ -72,8 +72,7 @@ export default {
         },
         setLinks(state, data) {
             state.links = data;
-        },
-
+        }
     },
 
     getters: {
@@ -111,7 +110,7 @@ export default {
         // fetch all the phenotypes for this portal
         async getPhenotypes({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain },
+                { q: state.host.subDomain || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -125,7 +124,7 @@ export default {
         // fetch all the complicaitons for given disease group
         async getComplications({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain },
+                { q: state.host.subDomain || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -139,7 +138,7 @@ export default {
         // fetch all datasets for this portal
         async getDatasets({ state, commit }) {
             let qs = queryString.stringify(
-                { q: state.host.subDomain },
+                { q: state.host.subDomain || "md" },
                 { skipNull: true }
             );
             let json = await fetch(
@@ -153,7 +152,7 @@ export default {
         async getUser(context, access_token) {
             let data = await fetch(
                 "https://oauth2.googleapis.com/tokeninfo?access_token=" +
-                access_token
+                    access_token
             ).then(response => response.json());
 
             context.commit("setUser", data.email);
