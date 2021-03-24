@@ -280,7 +280,9 @@ export default Vue.component("criterion-group-template", {
 
         ```vue
         <template>
+            <!-- v-model works as per usual -->
             <criterion-function-group
+                v-model="$parent.filterFunction"
                 @update-filter-list="$parent.displayedFilterList = $event">
             ...
             </criterion-function-group
@@ -289,8 +291,9 @@ export default Vue.component("criterion-group-template", {
             <!--  "clearable" prop removes `X` -->
             <criterion-pills 
                 :clearable="false"
-                :filterList="$parent.displayedFilterList ">
+                :filterList="$parent.displayedFilterList">
             </criterion-pills>
+
         </template>
         ```
         */
