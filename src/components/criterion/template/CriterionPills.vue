@@ -16,7 +16,7 @@
                     !!filter.color ? `${filter.color} !important` : ''
                 }`,
             }"
-            @click="!!unset ? unset : $parent.$emit('unset', { filter, idx })"
+            @click="!!clearable ? !!unset ? unset : $parent.$emit('unset', { filter, idx }) : () => {}"
         >
             {{
                 !!filter.label
@@ -25,7 +25,7 @@
                         : new String(filter.label)
                     : `${filter.field} = ${filter.threshold}`
             }}
-            <span class="remove">X</span>
+            <span v-if="clearable" class="remove">X</span>
         </b-badge>
     </span>
 </template>
@@ -39,10 +39,11 @@ export default Vue.component('criterion-pills', {
         filterList: Array,
         unset: {
             type: Function
+        },
+        clearable: {
+            type: Boolean,
+            default: true,
         }
-    },
-    created() {
-        // if (!!this.unset) this.unset = this.
     }
 });
 </script>

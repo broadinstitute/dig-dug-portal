@@ -99,7 +99,7 @@ new Vue({
             },
             pageAssociationsMap: {},
             pageAssociations: [],
-            regionPageSearchCriterion: []
+            regionPageSearchCriterion: [],
         };
     },
 
