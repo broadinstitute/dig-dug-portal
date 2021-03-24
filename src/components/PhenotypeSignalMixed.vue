@@ -1,12 +1,12 @@
 <template>
     <div>
         <div class="pws-merged-view">
-            <h6>Top traits with p-value &le; 5e-8</h6>
             <template v-if="topAssociationsHighest <= 5e-8">
                 <div v-if="legends" class="pws-group-legend-wrapper">
                     <div
-                        v-for="row in topAssociatedGroups"
+                        v-for="(row, i) in topAssociatedGroups"
                         class="pws-group-legend"
+                        :key="i"
                     >
                         <div
                             class="pws-group-legend-box phenotype-group"
@@ -21,7 +21,7 @@
                     <div class="pws-top-phenotypes-bars-wrapper">
                         <div
                             v-for="(row, i) in topAssociationsLimit"
-                            :key="i"
+                            :key="row.phenotype"
                             class="pws-top-each-phenotype-wrapper"
                         >
                             <div
@@ -73,14 +73,14 @@
                                     </div>
                                     <div class="options-4-actions">
                                         <div
-                                            @click="
-                                                $store.commit(
-                                                    'setPhenotypeByName',
-                                                    row.phenotype
-                                                )
-                                            "
+                                            @click="addPhenotype(row.phenotype)"
                                         >
-                                            Click to set phenotype
+                                            Add this phenotype to GEM
+                                        </div>
+                                        <div
+                                            @click="setPhenotype(row.phenotype)"
+                                        >
+                                            Set GEM to this phenotype
                                         </div>
                                         <div
                                             v-on:click="
@@ -110,6 +110,33 @@
                         </div>
                     </div>
                 </div>
+                <div
+                    v-if="limit && limit < topAssociationsFiltered.length"
+                    class="text-center"
+                >
+                    <b-button
+                        size="sm"
+                        variant="outline-secondary"
+                        class="btn-mini"
+                        @click="limit = null"
+                        >Show All
+                        {{ topAssociationsFiltered.length }}
+                        Phenotypes</b-button
+                    >
+                </div>
+                <div
+                    v-if="!limit && topAssociationsFiltered.length > 10"
+                    class="text-center mt-1"
+                >
+                    <b-button
+                        size="sm"
+                        variant="outline-secondary"
+                        class="btn-mini"
+                        @click="limit = 10"
+                    >
+                        Show Only Top Phenotypes</b-button
+                    >
+                </div>
             </template>
             <template v-else>
                 <b-alert show variant="warning">
@@ -117,54 +144,6 @@
                     trait in this region with p-Value &le; 5e-8
                 </b-alert>
             </template>
-
-            <!-- <h6>Traits with p-value &gt; 5e-8</h6>
-            <div class="phenotypes-with-signal-wrapper" style="height: auto !important;">
-                <div
-                    v-for="(row, i) in topAssociations2nd"
-                    v-if="row.pValue > 5e-8 && i <= 30"
-                    class="bubble phenotype-with-signal"
-                    :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                >
-                    {{row.description}}
-                    <div class="options-4-actions">
-                        <div
-                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                        >Click to set phenotype</div>
-                        <div
-                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                        >Go to phenotype page</div>
-                    </div>
-                </div>
-                <small>
-                    <a
-                        href="javascript:;"
-                        v-on:click="showHideElement('no-signal-wrapper',)"
-                    >>> View more traits</a>
-                </small>
-            </div>-->
-
-            <!-- <div
-                class="phenotypes-with-signal-wrapper no-signal-wrapper hidden"
-                style="height: auto !important;"
-            >
-                <div
-                    v-for="(row, i) in topAssociations"
-                    v-if="row.pValue > 5e-8 && i > 30"
-                    class="bubble phenotype-with-signal"
-                    :class=" row.pValue <= 5e-3 ? 'moderate':'none'"
-                >
-                    {{row.description}}
-                    <div class="options-4-actions">
-                        <div
-                            @click="$store.commit('setPhenotypeByName', row.phenotype)"
-                        >Click to set phenotype</div>
-                        <div
-                            v-on:click="openPage('phenotype.html',{'phenotype':row.phenotype})"
-                        >Go to phenotype page</div>
-                    </div>
-                </div>
-            </div>-->
         </div>
 
         <div class="pws-bar-view new-phenotypes-with-signal-wrapper hidden">
@@ -174,7 +153,6 @@
                 class="pop-out-icon"
                 >&nbsp;</a
             >
-
             <div class="p-bellow-section-header">
                 <sup>*</sup> Colored bars summarize bottom-line meta-analyzed
                 associations for phenotypes in a group. Hover over bar or expand
@@ -230,6 +208,7 @@
                                             'pws-phenotype-row ' + key2id(key)
                                         )
                                     "
+                                    :key="item.phenotype"
                                 >
                                     <div
                                         class="pws-progress-bar"
@@ -247,6 +226,7 @@
                             <div
                                 class="pws-phenotype-row"
                                 :class="i != 0 ? key2id(key) + ' hidden' : ''"
+                                :key="i"
                             >
                                 <div
                                     class="pws-progress-bar"
@@ -279,13 +259,17 @@
                                         <div class="options-4-actions">
                                             <div
                                                 @click="
-                                                    $store.commit(
-                                                        'setPhenotypeByName',
-                                                        item.phenotype
-                                                    )
+                                                    addPhenotype(item.phenotype)
                                                 "
                                             >
-                                                Click to set phenotype
+                                                Add this phenotype to GEM
+                                            </div>
+                                            <div
+                                                @click="
+                                                    setPhenotype(item.phenotype)
+                                                "
+                                            >
+                                                Set GEM to this phenotype
                                             </div>
                                             <div
                                                 v-on:click="
@@ -330,13 +314,13 @@ export default Vue.component("phenotype-signal-mixed", {
     components: {},
     props: {
         phenotypes: Array,
-        limit: Number,
         legends: Boolean,
     },
 
     data() {
         return {
             isActive: false,
+            limit: 10,
         };
     },
 
@@ -370,7 +354,7 @@ export default Vue.component("phenotype-signal-mixed", {
 
             return data;
         },
-        topAssociationsLimit() {
+        topAssociationsFiltered() {
             let data = this.phenotypes;
             let phenotypeMap = this.$store.state.bioPortal.phenotypeMap;
             let filteredData = [];
@@ -383,10 +367,12 @@ export default Vue.component("phenotype-signal-mixed", {
 
                 if (element.pValue <= 5e-8) filteredData.push(element);
             });
-
+            return filteredData;
+        },
+        topAssociationsLimit() {
             return this.limit
-                ? filteredData.splice(0, this.limit)
-                : filteredData;
+                ? this.topAssociationsFiltered.slice(0, this.limit)
+                : this.topAssociationsFiltered;
         },
         topAssociatedGroups: function () {
             let data = this.phenotypes;
@@ -437,6 +423,14 @@ export default Vue.component("phenotype-signal-mixed", {
         },
         pValueCss(value) {
             return Formatters.pValueCss(value, this.topAssociationsHighest);
+        },
+        addPhenotype(phenotype) {
+            this.$parent.$parent.pushCriterionPhenotype(phenotype);
+            window.location.href = "#associations-table";
+        },
+        setPhenotype(phenotype) {
+            this.$parent.$parent.setCriterionPhenotypes([phenotype]);
+            window.location.href = "#associations-table";
         },
     },
 });

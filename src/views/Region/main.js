@@ -174,7 +174,7 @@ new Vue({
                 "annotated-regions",
                 r.annotation,
                 "tissue",
-                Formatters.snakeFormatter(r.annotation),
+                Formatters.snakeFormatter(r.annotation)
             );
         },
         addTissueIntervalsPanel(r) {
@@ -182,20 +182,30 @@ new Vue({
                 "tissue-regions",
                 r.tissue,
                 "annotation",
-                Formatters.snakeFormatter(r.tissue),
+                Formatters.snakeFormatter(r.tissue)
             );
         },
         topPhenotype(topAssocData) {
             return topAssocData[0];
         },
+        // setCriterionPhenotypes(phenotypeNames) {
+        //     this.regionPageSearchCriterion.splice(0);
+
+        //     phenotypeNames.forEach(name => {
+        //         this.regionPageSearchCriterion.push({
+        //             field: "phenotype",
+        //             threshold: name
+        //         });
+        //     });
+        // }
         setCriterionPhenotypes(phenotypeNames) {
             this.regionPageSearchCriterion.splice(0);
-
-            phenotypeNames.forEach(name => {
-                this.regionPageSearchCriterion.push({
-                    field: "phenotype",
-                    threshold: name
-                });
+            phenotypeNames.forEach(this.pushCriterionPhenotype);
+        },
+        pushCriterionPhenotype(phenotypeName) {
+            this.regionPageSearchCriterion.push({
+                field: "phenotype",
+                threshold: phenotypeName
             });
         }
     },
@@ -285,14 +295,14 @@ new Vue({
             // an array of annotations
             let annotations = sortUtils.uniqBy(
                 this.$store.state.globalEnrichment.data,
-                el => el.annotation,
+                el => el.annotation
             );
             return annotations;
         },
         globalEnrichmentTissues() {
             let tissues = sortUtils.uniqBy(
                 this.$store.state.globalEnrichment.data,
-                el => el.tissue,
+                el => el.tissue
             );
             return tissues;
         },
@@ -342,13 +352,16 @@ new Vue({
             this.tissueScoring = groups;
         },
         selectedPhenotypes(phenotypes) {
-            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
 
             // reload the global enrichment for these phenotypes
-            this.$store.dispatch('globalEnrichment/clear');
+            this.$store.dispatch("globalEnrichment/clear");
             phenotypes.forEach(p => {
-                this.$store.dispatch('globalEnrichment/query', { q: p.name, append: true });
-            })
+                this.$store.dispatch("globalEnrichment/query", {
+                    q: p.name,
+                    append: true
+                });
+            });
         },
         "$store.state.clearPhenotypeFlag"(shouldClear) {
             if (shouldClear) {

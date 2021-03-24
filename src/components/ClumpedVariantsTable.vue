@@ -51,7 +51,6 @@
                         :target="data.item.phenotype"
                         triggers="hover"
                         placement="top"
-                        variant="info"
                     >
                         <b-list-group flush>
                             <b-list-group-item
@@ -90,13 +89,18 @@
                     <b-button
                         size="sm"
                         variant="outline-primary"
-                        class="btn-mini"
+                        class="btn-mini showData"
                         @click="
                             showClumpData(data.item.phenotype, data.item.clump);
                             data.toggleDetails();
                         "
-                    >
-                        {{ data.detailsShowing ? "Hide" : "Show" }} Variants
+                        ><span v-if="!!loadingData[data.item.phenotype]"
+                            ><b-spinner small></b-spinner>
+                            <span class="sr-only">Loading...</span></span
+                        ><span v-else>
+                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                            Variants</span
+                        >
                     </b-button>
                 </template>
                 <template #cell(effect_beta)="data">
@@ -153,16 +157,7 @@
                                 <a
                                     :href="`/variant.html?variant=${data.item.dbSNP}`"
                                     >{{ data.item.dbSNP }}</a
-                                > </template
-                            ><template #cell(pValue)="data">
-                                <div
-                                    class="pValue"
-                                    :style="`background-size: ${pValueCss(
-                                        data.item.pValue
-                                    )}% 100%`"
                                 >
-                                    {{ data.item.pValue }}
-                                </div>
                             </template>
                             <template #cell(effect)="data">
                                 <span
@@ -194,7 +189,7 @@
                             :total-rows="clumpData[row.item.phenotype].length"
                             :per-page="perPage"
                             size="sm"
-                            align="right"
+                            align="fill"
                             class="sub-details"
                         ></b-pagination>
                     </div>
@@ -273,6 +268,7 @@ export default Vue.component("clumped-variants-table", {
             ],
 
             clumpData: {},
+            loadingData: {},
         };
     },
 
@@ -291,9 +287,11 @@ export default Vue.component("clumped-variants-table", {
     methods: {
         async showClumpData(phenotype, clump) {
             if (this.clumpData[phenotype] === undefined) {
+                this.loadingData[phenotype] = true;
                 let clumpQuery = await this.getClumpData(phenotype, clump);
                 Vue.set(this.clumpData, phenotype, clumpQuery);
                 Vue.set(this.subCurrentPage, phenotype, 1);
+                this.loadingData[phenotype] = false;
             }
         },
         async getClumpData(phenotype, clump) {
@@ -317,22 +315,12 @@ export default Vue.component("clumped-variants-table", {
             return Formatters.pValueCss(value, this.maxPValue);
         },
         addPhenotype(phenotype) {
-            if (keyParams.phenotype) {
-                let phenotypes = keyParams.phenotype.split(",");
-                if (!phenotypes.includes(phenotype)) {
-                    phenotypes.push(phenotype);
-                    keyParams.set({ phenotype: phenotypes.join(",") });
-                }
-            } else {
-                keyParams.set({ phenotype: phenotype });
-            }
-            //until we can add without reload
-            //window.location.hash = "associations-table";
-            window.location.reload();
+            this.$parent.$parent.pushCriterionPhenotype(phenotype);
+            window.location.href = "#associations-table";
         },
         setPhenotype(phenotype) {
-            keyParams.set({ phenotype: phenotype });
-            window.location.reload();
+            this.$parent.$parent.setCriterionPhenotypes([phenotype]);
+            window.location.href = "#associations-table";
         },
     },
 });
@@ -342,21 +330,52 @@ export default Vue.component("clumped-variants-table", {
 #clump-data tr.b-table-details:hover {
     background-color: inherit;
 }
+#clump-data button.showData {
+    min-width: 90px;
+}
 .b-table-details div.details {
     margin-left: 20px;
     margin-bottom: 10px;
     padding-left: 10px;
     padding-bottom: 10px;
     border-left: 5px solid #eeeeee;
-    border-bottom: 1px solid #eeeeee;
+    border-bottom: 15px solid #eeeeee;
+    background-color: #fafafa;
+}
+.b-table-details div.details ul {
+    margin: 0 3rem 0 auto;
+}
+.b-table-details div.details .page-link {
+    border: transparent !important;
+    height: auto;
+}
+.b-table-details div.details .page-item.disabled,
+.b-table-details div.details .page-link {
+    background-color: transparent;
+}
+.b-table-details div.details .page-item:not(.active) .page-link:hover {
+    background-color: #eee;
 }
 div.details .sub-details {
     border: unset;
-    border-bottom: 5px solid #eeeeee;
     border-radius: unset;
+    border-bottom: 3px solid #eee;
 }
-.b-popover a.list-group-item {
+.b-popover {
+    background-color: #000;
+}
+.b-popover .popover-body a.list-group-item {
     padding: 0.125rem 0.5rem;
+    background-color: #000000;
+    color: #ffffff !important;
+}
+.b-popover .popover-body a.list-group-item:hover {
+    background-color: #fcfcfc;
+    color: blue !important;
+}
+.bs-popover-top > .arrow::after,
+.bs-popover-auto[x-placement^="top"] > .arrow::after {
+    border-top-color: #000000;
 }
 
 .sub-details .page-item.active .page-link,
