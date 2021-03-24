@@ -139,7 +139,6 @@ class LocusZoomLayout {
             this.#base_layout = base_layout;
         }
 
-
         this.#layout_options = layout_options;
     }
 
