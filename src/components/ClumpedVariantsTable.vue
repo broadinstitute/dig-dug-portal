@@ -370,8 +370,12 @@ div.details .sub-details {
     color: #ffffff !important;
 }
 .b-popover .popover-body a.list-group-item:hover {
-    background-color: #fcfcfc;
-    color: blue !important;
+    /*background-color: #fcfcfc;
+    color: blue !important;*/
+    color: #aaccff !important;
+    /*background-color: #fff;*/
+    border-top: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
 }
 .bs-popover-top > .arrow::after,
 .bs-popover-auto[x-placement^="top"] > .arrow::after {

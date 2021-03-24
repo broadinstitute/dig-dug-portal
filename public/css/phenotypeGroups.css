@@ -296,8 +296,10 @@
 
 .pws-top-each-phenotype-name:hover > .options-4-actions > div:hover,
 .phenotype-with-signal:hover > .options-4-actions > div:hover {
-    color: #0000ff;
-    background-color: #fff;
+    color: #aaccff;
+    /*background-color: #fff;*/
+    border-top: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
 }
 
 /* /////// */
