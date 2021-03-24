@@ -729,8 +729,6 @@ export default Vue.component("effector-genes-table", {
                 }
             }
 
-            //console.log("filtersIndex", this.filtersIndex);
-
             this.applyFilters();
         },
         applyFilters() {

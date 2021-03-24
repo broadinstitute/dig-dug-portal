@@ -149,7 +149,7 @@ export default Vue.component("volcano-plot", {
         ...uiUtils,
         hidePanel() {
             uiUtils.hideElement("clicked_dot_value");
-            this.renderPlot();
+            //this.renderPlot();
         },
         filterTable() {
             let wrapper = document.getElementById("clicked_dot_value");
@@ -197,7 +197,7 @@ export default Vue.component("volcano-plot", {
                             redDotsArr.push(tempObj);
 
                             clickedDotValue +=
-                                '<span class="gene-on-clicked-dot">' +
+                                '<span class="gene-on-clicked-dot-volcano">' +
                                 this.volcanoDotPos[x + h][y + v] +
                                 "</span>";
                         }
@@ -666,19 +666,11 @@ export default Vue.component("volcano-plot", {
 $(function () {});
 </script>
 <style>
-#clicked_dot_indicator {
-    width: 15px;
-    height: 15px;
-    border-radius: 5px;
-    background-color: #ff0000;
-    position: absolute;
-}
-
 #volcanoPlot.hover {
     cursor: pointer;
 }
 
-.gene-on-clicked-dot {
+.gene-on-clicked-dot-volcano {
     display: block;
     float: left;
     padding: 0 5px;
