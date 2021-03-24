@@ -269,6 +269,31 @@ export default Vue.component("criterion-group-template", {
             },
             deep: true,
         },
+        /*
+        Support events for catching new filter lists and functions 
+        seprately, regardless of the kind of criterion group.
+
+        The events are `@update-filter-list` and `@update-filter-function`. 
+        
+        They act like `@input` does with `v-model`, except it's with a filter list or 
+        filter function only. You can use both at the same time.
+
+        ```vue
+        <template>
+            <criterion-function-group
+                @update-filter-list="$parent.displayedFilterList = $event">
+            ...
+            </criterion-function-group
+
+            <!-- some sibling component -->
+            <!--  "clearable" prop removes `X` -->
+            <criterion-pills 
+                :clearable="false"
+                :filterList="$parent.displayedFilterList ">
+            </criterion-pills>
+        </template>
+        ```
+        */
         filterList: {
             handler: function (newFilterList, oldFilterList) {
                 this.$emit('update-filter-list', newFilterList)
