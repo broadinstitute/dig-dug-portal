@@ -17,6 +17,7 @@
                             v-if="filterList != null && filterList.length > 0"
                             :header="header"
                             :filterList="filterList"
+                            :clearable="clearable"
                         ></criterion-pills>
                     </slot>
                 </b-row>
@@ -26,11 +27,14 @@
                     v-if="filterList != null && filterList.length > 0"
                     :header="header"
                     :filterList="filterList"
+                    :clearable="clearable"
                 ></criterion-pills>
             </slot>
         </EventListener>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
-        <slot name="filtered" :filter="criterion"></slot>
+        <slot name="filtered" 
+            :filter="criterion">
+        </slot>
     </span>
 </template>
 
@@ -110,6 +114,10 @@ export default Vue.component("criterion-group-template", {
             type: Boolean,
             default: false,
         },
+        clearable: {
+            type: Boolean,
+            default: true
+        }
     },
     components: {
         EventListener,
@@ -175,6 +183,13 @@ export default Vue.component("criterion-group-template", {
                 return this.filterList;
             }
         },
+        combinedCriterion() {
+            return {
+                filter: this.criterion,
+                filterList: this.filterList,
+                filterFunction: this.filterFunction,
+            }
+        }
     },
     methods: {
         onInitialFilterDefinition(filterDefinition) {
@@ -239,6 +254,17 @@ export default Vue.component("criterion-group-template", {
         },
     },
     watch: {
+        initialFilterDefinitions: {
+            handler: function () {
+                if (this.initialFilterDefinitions.length > 0) {
+                    this.initialFilterDefinitionMap = groupBy(
+                        this.initialFilterDefinitions,
+                        "field"
+                    );
+                }
+            },
+            deep: true,
+        },
         value: {
             handler: function (newCriterionValue) {
                 if (this.filterType === "function") {
@@ -254,8 +280,38 @@ export default Vue.component("criterion-group-template", {
             },
             deep: true,
         },
+        /*
+        Support events for catching new filter lists and functions 
+        seprately, regardless of the kind of criterion group.
+
+        The events are `@update-filter-list` and `@update-filter-function`. 
+        
+        They act like `@input` does with `v-model`, except it's with a filter list or 
+        filter function only. You can use both at the same time.
+
+        ```vue
+        <template>
+            <!-- v-model works as per usual -->
+            <criterion-function-group
+                v-model="$parent.filterFunction"
+                @update-filter-list="$parent.displayedFilterList = $event">
+            ...
+            </criterion-function-group
+
+            <!-- some sibling component -->
+            <!--  "clearable" prop removes `X` -->
+            <criterion-pills 
+                :clearable="false"
+                :filterList="$parent.displayedFilterList">
+            </criterion-pills>
+
+        </template>
+        ```
+        */
         filterList: {
             handler: function (newFilterList, oldFilterList) {
+                this.$emit('update-filter-list', newFilterList)
+
                 if (newFilterList.length > 0) {
                     const predicates = newFilterList.map((predicateSpec) =>
                         this.makePredicate(predicateSpec, {
@@ -272,6 +328,13 @@ export default Vue.component("criterion-group-template", {
                         return true;
                     };
                 }
+
+            },
+            deep: true,
+        },
+        filterFunction: {
+            handler: function(filterFunction) {
+                this.$emit('update-filter-function', filterFunction);
             },
             deep: true,
         },
