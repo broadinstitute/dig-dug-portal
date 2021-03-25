@@ -56,12 +56,12 @@
                             <b-list-group-item
                                 href="#"
                                 @click="addPhenotype(data.item.phenotype)"
-                                >Add this phenotype to GEM</b-list-group-item
+                                >Add this phenotype bellow</b-list-group-item
                             >
                             <b-list-group-item
                                 href="#"
                                 @click="setPhenotype(data.item.phenotype)"
-                                >Set GEM to this phenotype</b-list-group-item
+                                >Set bellow to this phenotype</b-list-group-item
                             >
                             <b-list-group-item
                                 :href="`/phenotype.html?phenotype=${data.item.phenotype}`"

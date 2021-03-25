@@ -17,7 +17,14 @@
                         {{ row }}
                     </div>
                 </div>
-                <div class="pws-top-phenotypes-wrapper">
+                <div
+                    class="pws-top-phenotypes-wrapper"
+                    :class="
+                        limit && limit < topAssociationsFiltered.length
+                            ? 'showing-top'
+                            : 'showing-all'
+                    "
+                >
                     <div class="pws-top-phenotypes-bars-wrapper">
                         <div
                             v-for="(row, i) in topAssociationsLimit"
@@ -75,12 +82,12 @@
                                         <div
                                             @click="addPhenotype(row.phenotype)"
                                         >
-                                            Add this phenotype to GEM
+                                            Add this phenotype bellow
                                         </div>
                                         <div
                                             @click="setPhenotype(row.phenotype)"
                                         >
-                                            Set GEM to this phenotype
+                                            Set bellow to this phenotype
                                         </div>
                                         <div
                                             v-on:click="
@@ -110,32 +117,36 @@
                         </div>
                     </div>
                 </div>
-                <div
-                    v-if="limit && limit < topAssociationsFiltered.length"
-                    class="text-center"
-                >
+                <div class="" style="position: relative">
                     <b-button
                         size="sm"
                         variant="outline-secondary"
-                        class="btn-mini"
-                        @click="limit = null"
-                        >Show All
-                        {{ topAssociationsFiltered.length }}
-                        Phenotypes</b-button
+                        class="btn-mini show-hide-clumped-associations"
+                        :class="
+                            limit && limit < topAssociationsFiltered.length
+                                ? 'show-all'
+                                : 'show-top'
+                        "
+                        @click="
+                            limit =
+                                limit && limit < topAssociationsFiltered.length
+                                    ? null
+                                    : 10
+                        "
                     >
-                </div>
-                <div
-                    v-if="!limit && topAssociationsFiltered.length > 10"
-                    class="text-center mt-1"
-                >
-                    <b-button
-                        size="sm"
-                        variant="outline-secondary"
-                        class="btn-mini"
-                        @click="limit = 10"
-                    >
-                        Show Only Top Phenotypes</b-button
-                    >
+                        <span
+                            v-if="
+                                limit && limit < topAssociationsFiltered.length
+                            "
+                            >Show All
+                            {{ topAssociationsFiltered.length }}
+                            Phenotypes</span
+                        >
+                        <span
+                            v-if="!limit && topAssociationsFiltered.length > 10"
+                            >Show Only Top Phenotypes</span
+                        >
+                    </b-button>
                 </div>
             </template>
             <template v-else>
@@ -262,14 +273,14 @@
                                                     addPhenotype(item.phenotype)
                                                 "
                                             >
-                                                Add this phenotype to GEM
+                                                Add this phenotype bellow
                                             </div>
                                             <div
                                                 @click="
                                                     setPhenotype(item.phenotype)
                                                 "
                                             >
-                                                Set GEM to this phenotype
+                                                Set bellow to this phenotype
                                             </div>
                                             <div
                                                 v-on:click="

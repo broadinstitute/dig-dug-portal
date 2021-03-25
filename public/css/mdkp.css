@@ -1780,3 +1780,38 @@ span.volcano-score-2 {
     margin-right: 10px;
     margin-top: 3px;
 }
+
+.top-associations-section-phenotype-filter {
+    margin-bottom: 25px !important;
+    display: block;
+}
+
+.top-associations-section-phenotype-filter > div {
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
+    border-radius: 5px;
+    height: 48px;
+}
+
+.top-associations-section-phenotype-filter div.filtering-ui-wrapper {
+    border: none !important;
+    background: none !important;
+    width: 50% !important;
+    display: inline-block;
+    text-align: left;
+    padding-left: 30px;
+}
+
+.top-associations-section-phenotype-filter span.filter-pill-collection{
+    border: none !important;
+    background: none !important;
+    width: 50% !important;
+    display: inline-block;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.top-associations-section-phenotype-filter div.filter-col-md > div {
+    display: inline-block;
+    margin-right: 10px;
+}
