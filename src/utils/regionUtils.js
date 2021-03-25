@@ -48,7 +48,6 @@ async function parseRegion(s, allowGeneLookup = true, geneRegionExpand = 0) {
         }
 
         // parsed region
-        console.log( { chr, start, end })
         return { chr, start, end };
     }
 

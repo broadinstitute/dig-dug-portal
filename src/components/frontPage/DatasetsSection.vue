@@ -214,9 +214,6 @@ export default Vue.component("datasets-section", {
                 "#80c34211",
             ];
 
-            console.log(datasetsData);
-            console.log(phenotypesData);
-
             renderTable(datasetsData, "datasets");
             renderTable(phenotypesData, "phenotypes");
 

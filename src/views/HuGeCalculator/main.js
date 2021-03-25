@@ -152,9 +152,9 @@ new Vue({
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == this.selectedPhenotype[0]) {
                         if (data[i].pValue <= 5e-8) {
-                            console.log(
-                                "I am GWAS significant" + data[i].pValue
-                            );
+                            // console.log(
+                            //     "I am GWAS significant" + data[i].pValue
+                            // );
                             return true;
                         }
                     }
@@ -358,9 +358,6 @@ new Vue({
         }
     },
     methods: {
-        findRefs() {
-            console.log(this.$children[0].$refs);
-        },
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, { data });
         },
