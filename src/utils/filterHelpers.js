@@ -1,24 +1,5 @@
 import { get } from "lodash";
 
-export function aos2soa(aos) {
-    // const keys = Object.keys(aos[0]);
-    // let soa = keys.reduce((acc, item) => {
-    //     acc[item] = []
-    //     return acc;
-    // },{});
-    // aos.forEach(s => {
-    //     keys.forEach(k => {
-    //         soa[k].push(s[k])
-    //     });
-    // });
-    // return soa;
-    // return zip(aos)
-}
-
-export function soa2aos(soa) {
-
-}
-
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
     const inclusivePredicates = allPredicates.filter(predicate => predicate.inclusive);
@@ -104,10 +85,9 @@ export function predicateFromSpec(
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
-            console.assert(!!field || !!computedField, 'neither field or computedField are defined');
-
+            // console.assert(!!field || !!computedField, 'neither field or computedField are defined');
             let getter = !!computedField ? computedField : obj => get(obj, field); // NOTE: this technically supports nested fields.
-            console.log(obj, getter, getter(obj))
+
             let data = getter(obj);
             let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {

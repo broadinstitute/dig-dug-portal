@@ -76,12 +76,8 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
-
-import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);

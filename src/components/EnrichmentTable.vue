@@ -54,7 +54,6 @@ import c3 from "c3";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 import CsvDownload from "@/components/CsvDownload";
 
 import "bootstrap/dist/css/bootstrap.css";
