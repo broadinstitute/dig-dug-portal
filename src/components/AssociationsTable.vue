@@ -15,9 +15,10 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
+                :sort-null-last="true"
             >
                 <template v-slot:thead-top="data">
-                    <b-th colspan="6">
+                    <b-th :colspan="!!showChiSquared ? 7 : 6">
                         <span class="sr-only">Variant</span>
                     </b-th>
                     <b-th
@@ -43,18 +44,18 @@
                     >
                 </template>
                 <template v-slot:cell(allele)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{
-                        alleleFormatter(r.item)
-                    }}</a>
+                    <a :href="`/variant.html?variant=${r.item.varId}`">
+                        {{ alleleFormatter(r.item) }}
+                    </a>
                 </template>
                 <template v-slot:cell(dbSNP)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{
-                        dbSNPFormatter(r.item)
-                    }}</a>
+                    <a :href="`/variant.html?variant=${r.item.varId}`">
+                        {{ dbSNPFormatter(r.item) }}
+                    </a>
                 </template>
-                <template v-slot:cell(consequence)="r">{{
-                    consequenceFormatter(r.item.consequence)
-                }}</template>
+                <template v-slot:cell(consequence)="r">
+                    {{ consequenceFormatter(r.item.consequence) }}
+                </template>
                 <template v-slot:cell(genes)="r">
                     <a
                         v-for="gene in r.item.nearest"
@@ -63,9 +64,10 @@
                         >{{ gene }}</a
                     >
                 </template>
-                <template v-slot:cell(maf)="r">{{
-                    mafFormatter(r.item.maf)
-                }}</template>
+                <template v-slot:cell(maf)="r">
+                    {{ mafFormatter(r.item.maf) }}
+                </template>
+
                 <template
                     v-slot:[phenotypeBetaColumn(p)]="r"
                     v-for="p in phenotypes"
@@ -97,10 +99,6 @@
                     v-for="p in phenotypes"
                     >{{ pValueFormatter(r.item[`${p.name}:pValue`]) }}</template
                 >
-                <!-- <template
-                    v-slot:[phenotypeMafColumn(p)]="r"
-                    v-for="p in phenotypes"
-                >{{ mafFormatter(r.item[`${p.name}:maf`]) }}</template>-->
             </b-table>
             <b-pagination
                 class="pagination-sm justify-content-center"
@@ -124,7 +122,7 @@ import $ from "jquery";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-
+import { filter } from "lodash";
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
@@ -134,6 +132,7 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 import CsvDownload from "@/components/CsvDownload";
+import Chi from "chi-squared";
 
 import { decodeNamespace } from "@/utils/filterHelpers";
 import { isEqual } from "lodash";
@@ -178,8 +177,31 @@ export default Vue.component("associations-table", {
         };
     },
     computed: {
+        showChiSquared() {
+            return this.phenotypes.length > 1;
+        },
         fields() {
             let fields = this.baseFields;
+
+            // show chi^2 if > 1 phenotype
+            if (this.phenotypes.length > 1) {
+                fields.push({
+                    key: "chiSquared",
+                    label: "P-Value(Χ²)",
+                    sortable: true,
+                    numeric: true,
+                    formatter: this.pValueFormatter,
+                });
+            } else if (this.phenotypes.length <= 1) {
+                for (let i = 0; i < fields.length; i++) {
+                    if (fields[i].key === "chiSquared") {
+                        fields.splice(i, 1);
+                        console.log("splicesd", fields);
+                    }
+                }
+
+                // => objects for ['fred']
+            }
 
             for (let i in this.phenotypes) {
                 let p = this.phenotypes[i];
@@ -188,6 +210,8 @@ export default Vue.component("associations-table", {
                     {
                         key: `${p.name}:pValue`,
                         label: `P-Value`,
+                        sortable: true,
+                        numeric: true,
                         tdClass(x) {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
@@ -226,7 +250,6 @@ export default Vue.component("associations-table", {
                         consequence: r.consequence,
                         nearest: r.nearest,
                         alt: r.alt,
-                        minP: r.pValue,
                         maf: r.maf,
                     });
                 }
@@ -238,26 +261,7 @@ export default Vue.component("associations-table", {
                 data[dataIndex][`${r.phenotype}:stdErr`] = r.stdErr;
                 data[dataIndex][`${r.phenotype}:zScore`] = r.zScore;
                 data[dataIndex][`${r.phenotype}:n`] = r.n;
-
-                // lowest p-value across all phenotypes
-                if (!!r.pValue && r.pValue < data[dataIndex].minP) {
-                    data[dataIndex].minP = r.pValue;
-                }
             }
-
-            // remove non-overlapping associations
-            data = data.filter((row) => {
-                for (let i in this.phenotypes) {
-                    let phenotype = this.phenotypes[i];
-
-                    // ensure a p-value exists for each phenotype
-                    if (!row[`${phenotype.name}:pValue`]) {
-                        return false;
-                    }
-                }
-
-                return true;
-            });
 
             // remove entries with missing p-values
             if (this.exclusive) {
@@ -268,8 +272,8 @@ export default Vue.component("associations-table", {
                 });
             }
 
-            // // sort all the records by phenotype p-value
-            data.sort((a, b) => a.minP - b.minP);
+            // calculate the chiSquared for each row
+            data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
 
             return data;
         },
@@ -297,6 +301,9 @@ export default Vue.component("associations-table", {
         alleleFormatter({ reference, alt }) {
             return Formatters.alleleFormatter(reference, alt);
         },
+        chiFormatter(chi) {
+            return Formatters.floatFormatter(chi);
+        },
 
         locusFormatter({ chromosome, position }) {
             return Formatters.locusFormatter(chromosome, position);
@@ -315,6 +322,22 @@ export default Vue.component("associations-table", {
         },
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);
+        },
+        chiSquared(row) {
+            let X = 0.0;
+
+            for (let i in this.phenotypes) {
+                let p = row[`${this.phenotypes[i].name}:pValue`];
+
+                if (!!p) {
+                    X += -2 * Math.log(p);
+                }
+            }
+
+            // calculate the combined p-value
+            let pdf = Chi.pdf(X, 2 * this.phenotypes.length);
+
+            return 2 * pdf;
         },
     },
     watch: {
