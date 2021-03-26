@@ -385,10 +385,10 @@ new Vue({
         // >= 350: Compelling
         determineCategory(bayesfactor) {
             let category;
-            if (bayesfactor < 1) {
+            if (bayesfactor <= 1) {
                 category = "No";
             }
-            if (bayesfactor >= 1 && bayesfactor < 3) {
+            if (bayesfactor > 1 && bayesfactor < 3) {
                 category = "Anecdotal";
             } else if (bayesfactor >= 3 && bayesfactor < 10) {
                 category = "Moderate";
