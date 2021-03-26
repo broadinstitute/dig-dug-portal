@@ -249,7 +249,7 @@ export default Vue.component("clumped-variants-table", {
                     key: "effect_or",
                     label: "Odds Ratio",
                 },
-                { key: "view", label: "View Clump Data" },
+                { key: "view", label: "View LD Proxies" },
             ],
             subFields: [
                 {

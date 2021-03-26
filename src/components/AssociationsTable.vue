@@ -2,7 +2,10 @@
     <div>
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
-                <csv-download :data="sortedAssociations" filename="associations"></csv-download>
+                <csv-download
+                    :data="sortedAssociations"
+                    filename="associations"
+                ></csv-download>
             </div>
             <b-table
                 hover
@@ -22,9 +25,11 @@
                         v-for="(phenotype, i) in phenotypes"
                         colspan="2"
                         class="reference"
-                        :class="'color-' + (i+1)"
+                        :class="'color-' + (i + 1)"
                     >
-                        <span style="color: white">{{ phenotype.description }}</span>
+                        <span style="color: white">{{
+                            phenotype.description
+                        }}</span>
                     </b-th>
                 </template>
                 <template v-slot:cell(position)="r">
@@ -34,26 +39,37 @@
                         }&chr=${r.item.chromosome}&start=${
                             r.item.position - 50000
                         }&end=${r.item.position + 50000}`"
-                    >{{ locusFormatter(r.item) }}</a>
+                        >{{ locusFormatter(r.item) }}</a
+                    >
                 </template>
                 <template v-slot:cell(allele)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{ alleleFormatter(r.item) }}</a>
+                    <a :href="`/variant.html?variant=${r.item.varId}`">{{
+                        alleleFormatter(r.item)
+                    }}</a>
                 </template>
                 <template v-slot:cell(dbSNP)="r">
-                    <a :href="`/variant.html?variant=${r.item.varId}`">{{ dbSNPFormatter(r.item) }}</a>
+                    <a :href="`/variant.html?variant=${r.item.varId}`">{{
+                        dbSNPFormatter(r.item)
+                    }}</a>
                 </template>
-                <template
-                    v-slot:cell(consequence)="r"
-                >{{ consequenceFormatter(r.item.consequence) }}</template>
+                <template v-slot:cell(consequence)="r">{{
+                    consequenceFormatter(r.item.consequence)
+                }}</template>
                 <template v-slot:cell(genes)="r">
                     <a
                         v-for="gene in r.item.nearest"
                         class="item"
                         :href="`/gene.html?gene=${gene}`"
-                    >{{ gene }}</a>
+                        >{{ gene }}</a
+                    >
                 </template>
-                <template v-slot:cell(maf)="r">{{ mafFormatter(r.item.maf) }}</template>
-                <template v-slot:[phenotypeBetaColumn(p)]="r" v-for="p in phenotypes">
+                <template v-slot:cell(maf)="r">{{
+                    mafFormatter(r.item.maf)
+                }}</template>
+                <template
+                    v-slot:[phenotypeBetaColumn(p)]="r"
+                    v-for="p in phenotypes"
+                >
                     <span
                         :class="`effect ${
                             r.item[`${p.name}:beta`] < 0
@@ -63,23 +79,24 @@
                         :key="p.name"
                     >
                         {{
-                        r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
+                            r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
                         }}
                     </span>
                     <span>
                         {{
-                        effectFormatter(
-                        p.dichotomous
-                        ? Math.exp(r.item[`${p.name}:beta`])
-                        : r.item[`${p.name}:beta`]
-                        )
+                            effectFormatter(
+                                p.dichotomous
+                                    ? Math.exp(r.item[`${p.name}:beta`])
+                                    : r.item[`${p.name}:beta`]
+                            )
                         }}
                     </span>
                 </template>
                 <template
                     v-slot:[phenotypePValueColumn(p)]="r"
                     v-for="p in phenotypes"
-                >{{ pValueFormatter(r.item[`${p.name}:pValue`]) }}</template>
+                    >{{ pValueFormatter(r.item[`${p.name}:pValue`]) }}</template
+                >
                 <!-- <template
                     v-slot:[phenotypeMafColumn(p)]="r"
                     v-for="p in phenotypes"
@@ -93,7 +110,9 @@
             ></b-pagination>
         </div>
         <div v-else>
-            <h4 v-if="associations.length > 0">No overlapping associations across phenotypes</h4>
+            <h4 v-if="associations.length > 0">
+                No overlapping associations across phenotypes
+            </h4>
             <h4 v-else>No associations</h4>
         </div>
     </div>
@@ -124,7 +143,7 @@ export default Vue.component("associations-table", {
     components: {
         Documentation,
         TooltipDocumentation,
-        CsvDownload
+        CsvDownload,
     },
     data() {
         return {
@@ -133,29 +152,29 @@ export default Vue.component("associations-table", {
             baseFields: [
                 {
                     key: "position",
-                    label: "Position"
+                    label: "Position",
                 },
                 {
                     key: "allele",
-                    label: "Allele"
+                    label: "Allele",
                 },
                 {
                     key: "dbSNP",
-                    label: "dbSNP"
+                    label: "dbSNP",
                 },
                 {
                     key: "consequence",
-                    label: "Consequence"
+                    label: "Consequence",
                 },
                 {
                     key: "genes",
-                    label: "Closest Genes"
+                    label: "Closest Genes",
                 },
                 {
                     key: "maf",
-                    label: "MAF"
-                }
-            ]
+                    label: "MAF",
+                },
+            ],
         };
     },
     computed: {
@@ -173,12 +192,12 @@ export default Vue.component("associations-table", {
                             return !!x && x < 1e-5
                                 ? "variant-table-cell high"
                                 : "";
-                        }
+                        },
                     },
                     {
                         key: `${p.name}:beta`,
-                        label: !!p.dichotomous ? "Odds Ratio" : "Beta"
-                    }
+                        label: !!p.dichotomous ? "Odds Ratio" : "Beta",
+                    },
                 ]);
             }
 
@@ -208,7 +227,7 @@ export default Vue.component("associations-table", {
                         nearest: r.nearest,
                         alt: r.alt,
                         minP: r.pValue,
-                        maf: r.maf
+                        maf: r.maf,
                     });
                 }
 
@@ -227,7 +246,7 @@ export default Vue.component("associations-table", {
             }
 
             // remove non-overlapping associations
-            data = data.filter(row => {
+            data = data.filter((row) => {
                 for (let i in this.phenotypes) {
                     let phenotype = this.phenotypes[i];
 
@@ -244,8 +263,8 @@ export default Vue.component("associations-table", {
             if (this.exclusive) {
                 let phenotypes = this.phenotypes;
 
-                data = data.filter(row => {
-                    return phenotypes.every(p => !!row[`${p.name}:pValue`]);
+                data = data.filter((row) => {
+                    return phenotypes.every((p) => !!row[`${p.name}:pValue`]);
                 });
             }
 
@@ -263,7 +282,7 @@ export default Vue.component("associations-table", {
                 dataRows = this.associations.filter(this.filter);
             }
             return dataRows;
-        }
+        },
     },
     methods: {
         phenotypeBetaColumn(phenotype) {
@@ -296,7 +315,7 @@ export default Vue.component("associations-table", {
         },
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);
-        }
+        },
     },
     watch: {
         phenotypes: {
@@ -305,8 +324,8 @@ export default Vue.component("associations-table", {
                     this.currentPage = 1;
                 }
             },
-            deep: true
-        }
-    }
+            deep: true,
+        },
+    },
 });
 </script>

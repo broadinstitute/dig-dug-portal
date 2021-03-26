@@ -131,7 +131,7 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        Clumped variant associations in the region:
+                        Most significant variant associations in the region:
                         {{ $parent.regionString }}
                     </h4>
                     <documentation
@@ -175,12 +175,12 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h4 class="card-title">
-                        Top associations for
-                        <span
+                        Variants in region
+                        <!--<span
                             v-for="p in $parent.selectedPhenotypes"
                             class="item"
                             >{{ p.description }}</span
-                        >
+                        >-->&nbsp;
                         <tooltip-documentation
                             name="region.topassoc.tooltip"
                             :isHover="true"
