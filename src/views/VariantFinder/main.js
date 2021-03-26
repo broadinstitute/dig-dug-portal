@@ -60,7 +60,8 @@ new Vue({
 
     data() {
         return {
-            filterList: []
+            filterList: [],
+            displayedFilterList: {}
         };
     },
 

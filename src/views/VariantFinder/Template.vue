@@ -81,9 +81,13 @@
                                     >
                                         <criterion-function-group
                                             v-model="p.filter"
-                                            header=""
                                             :noPills="true"
                                             :inlinePills="true"
+                                            @update-filter-list="
+                                                $parent.displayedFilterList[
+                                                    p.phenotype.name
+                                                ] = $event
+                                            "
                                         >
                                             <filter-pvalue-control
                                                 :field="'pValue'"
@@ -100,11 +104,25 @@
                                                 "
                                             >
                                             </filter-effect-direction-control>
+
                                             <criterion-pills
-                                                :filterList="$parent.filterList"
+                                                header=""
+                                                :clearable="true"
+                                                :filterList="
+                                                    $parent.displayedFilterList[
+                                                        p.phenotype.name
+                                                    ]
+                                                        ? $parent
+                                                              .displayedFilterList[
+                                                              p.phenotype.name
+                                                          ]
+                                                        : []
+                                                "
                                             ></criterion-pills>
                                         </criterion-function-group>
                                     </div>
+                                </transition>
+                                <transition name="slide-fade" mode="out-in">
                                 </transition>
                                 <!-- <div class="filters-wrapper">
                                     Slide example
