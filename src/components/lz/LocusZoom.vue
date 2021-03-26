@@ -401,7 +401,6 @@ export default Vue.component("locuszoom", {
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
             let data_layers = this.getDataLayers();
-            console.log(data_layers);
         },
         filterAnnotations(annotationsFilter) {
             this.applyFilter(annotationsFilter, "intervals");

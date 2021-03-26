@@ -85,14 +85,9 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
-
-import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 
