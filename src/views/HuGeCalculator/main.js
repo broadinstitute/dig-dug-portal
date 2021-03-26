@@ -288,7 +288,7 @@ new Vue({
                                     !!this.eglData.genetic &&
                                     this.eglData.genetic == "1C"
                                 ) {
-                                    secondBF = 116;
+                                    secondBF = 117;
                                 }
                                 if (
                                     !!this.eglData.genetic &&
