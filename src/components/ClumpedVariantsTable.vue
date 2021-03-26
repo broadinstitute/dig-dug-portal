@@ -56,12 +56,12 @@
                             <b-list-group-item
                                 href="#"
                                 @click="addPhenotype(data.item.phenotype)"
-                                >Add this phenotype to GEM</b-list-group-item
+                                >Add this phenotype bellow</b-list-group-item
                             >
                             <b-list-group-item
                                 href="#"
                                 @click="setPhenotype(data.item.phenotype)"
-                                >Set GEM to this phenotype</b-list-group-item
+                                >Set bellow to this phenotype</b-list-group-item
                             >
                             <b-list-group-item
                                 :href="`/phenotype.html?phenotype=${data.item.phenotype}`"
@@ -249,7 +249,7 @@ export default Vue.component("clumped-variants-table", {
                     key: "effect_or",
                     label: "Odds Ratio",
                 },
-                { key: "view", label: "View Clump Data" },
+                { key: "view", label: "View LD Proxies" },
             ],
             subFields: [
                 {
@@ -370,8 +370,12 @@ div.details .sub-details {
     color: #ffffff !important;
 }
 .b-popover .popover-body a.list-group-item:hover {
-    background-color: #fcfcfc;
-    color: blue !important;
+    /*background-color: #fcfcfc;
+    color: blue !important;*/
+    color: #aaccff !important;
+    /*background-color: #fff;*/
+    border-top: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
 }
 .bs-popover-top > .arrow::after,
 .bs-popover-auto[x-placement^="top"] > .arrow::after {
