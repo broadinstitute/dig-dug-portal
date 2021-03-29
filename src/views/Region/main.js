@@ -100,6 +100,7 @@ new Vue({
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],
+            list: [{ "threshold": "TF_binding_site_variant", "field": "consequence" }]
         };
     },
 
@@ -110,7 +111,10 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
-
+        trap() {
+            console.log('trap', arguments)
+            this.list = arguments[0]
+        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {

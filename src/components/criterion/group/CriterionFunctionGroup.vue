@@ -7,9 +7,11 @@
         :looseMatch="true"
         :header="header"
         :inclusive="inclusive"
-        @input="emitInput"
-        @update-filter-function="emitFilterFunction"
-        @update-filter-list="emitFilterList"
+
+        :filterList="filterList"
+        :filterFunction="filterFunction"
+        @update:filter-function="emitFilterFunction"
+        @update:filter-list="emitFilterList"
     >
         <slot></slot>
         <template slot="filtered" slot-scope="{ filter }">
@@ -28,6 +30,12 @@ export default Vue.component("criterion-function-group", {
                 return true;
             },
         },
+        filterList: {
+            type: Array,
+        },
+        filterFunction: {
+            type: Function,
+        },
         header: String,
         hide: Boolean,
         inclusive: {
@@ -40,10 +48,11 @@ export default Vue.component("criterion-function-group", {
             this.$emit("input", value);
         },
         emitFilterList(value) {
-            this.$emit("update-filter-list", value);
+            console.log('emiting filter list')
+            this.$emit("update:filter-list", value);
         },
         emitFilterFunction(value) {
-            this.$emit("update-filter-function", value);
+            this.$emit("update:filter-function", value);
         },
     },
 });

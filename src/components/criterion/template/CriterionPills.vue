@@ -33,9 +33,7 @@
 import Vue from "vue"
 export default Vue.component('criterion-pills', {
     props: {
-        header: {
-            default: 'Selected Filters:\t'
-        },
+        header: String,
         filterList: Array,
         unset: {
             type: Function

@@ -191,8 +191,8 @@
                                     ></tooltip-documentation>
                                 </h4>
                                 <documentation name="region.variantassociation.subheader"></documentation>
-
-                                <criterion-function-group v-model="$parent.associationsFilter">
+                                <criterion-function-group 
+                                    v-model="$parent.associationsFilter">
                                     <filter-enumeration-control
                                         :field="'consequence'"
                                         :options="
@@ -244,8 +244,11 @@
                                     name="region.igv.subheader"
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
-
-                                <criterion-function-group>
+                                {{$parent.list}}
+                                <criterion-function-group
+                                    :filterList="$parent.list"
+                                    @update:filter-list="$parent.list = $event"
+                                >
                                     <div class="col filter-col-md">
                                         <div class="label" style="margin-bottom: 5px">Add tissue</div>
                                         <tissue-selectpicker
