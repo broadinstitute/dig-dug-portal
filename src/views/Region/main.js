@@ -44,7 +44,6 @@ import Alert, {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
-import JsonQuery from "json-query";
 
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
@@ -101,18 +100,14 @@ new Vue({
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],
-            list: [{ "threshold": "TF_binding_site_variant", "field": "consequence" }]
+            pillList: []
         };
     },
 
     methods: {
         ...uiUtils,
         ...Formatters,
-        unsetFilter(filter) {
-            this.regionPageSearchCriterion = filterHelpers.unsetFilter(
-                this.regionPageSearchCriterion, filter
-            )
-        },
+        ...filterHelpers,
         postAlert,
         postAlertNotice,
         postAlertError,

@@ -182,10 +182,17 @@ export function unsetFilter(filterList, filter) {
     return _filterList;
 }
 
+export function unsetFilterFromList(filterList) {
+    return filter => {
+        filterList = unsetFilter(filterList, filter);
+    };
+}
+
 export default {
     filterFromPredicates,
     predicateFromSpec,
     decodeNamespace,
     encodeNamespace,
-    unsetFilter
+    unsetFilter,
+    unsetFilterFromList
 }

@@ -159,12 +159,6 @@
             <div class="card mdkp-card">
                 <div class="card-body">
 
-                    <criterion-pills
-                        :filterList="$parent.regionPageSearchCriterion"
-                        :unset="$parent.unsetFilter"
-                        :clearable="true"
-                    ></criterion-pills>
-
                     <criterion-list-group
                         v-model="$parent.regionPageSearchCriterion"
                         :header="'Select Phenotype'"
@@ -198,8 +192,15 @@
                                     ></tooltip-documentation>
                                 </h4>
                                 <documentation name="region.variantassociation.subheader"></documentation>
+                                
+                                <criterion-pills
+                                    :filterList="$parent.pillList"
+                                    :clearable="true"
+                                    @unset="$parent.pillList = $parent.pillList.filter(el => el.field !== $event.field && el.threshold !== $event.threshold)"
+                                ></criterion-pills>
                                 <criterion-function-group 
-                                    v-model="$parent.associationsFilter">
+                                    v-model="$parent.associationsFilter"
+                                    :filterList.sync="$parent.pillList">
                                     <filter-enumeration-control
                                         :field="'consequence'"
                                         :options="
@@ -251,6 +252,7 @@
                                     name="region.igv.subheader"
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
+                                
                                 <criterion-function-group>
                                     <div class="col filter-col-md">
                                         <div class="label" style="margin-bottom: 5px">Add tissue</div>

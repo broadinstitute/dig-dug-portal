@@ -2,13 +2,13 @@
     <span>
         <EventListener
             @change="filterControlChange"
-            @unset="unsetFilter"
             @filter-mounted="onInitialFilterDefinition"
         >
             <!-- Controls and their labels -->
             <slot name="header"></slot>
             <b-container v-show="!hide" fluid class="filtering-ui-wrapper">
                 <b-row class="filtering-ui-content">
+                    
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
@@ -18,18 +18,23 @@
                             :header="header"
                             :fitlerList="filterListInternal"
                             :clearable="clearable"
+                            @unset="unsetFilter"
                         ></criterion-pills>
                     </slot>
+
                 </b-row>
             </b-container>
+
             <slot v-if="!noPills && !inlinePills" name="pills">
                 <criterion-pills
                     v-if="filterListInternal != null && filterListInternal.length > 0"
                     :header="header"
                     :filterList="filterListInternal"
                     :clearable="clearable"
+                    @unset="unsetFilter"
                 ></criterion-pills>
             </slot>
+
         </EventListener>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
         <slot name="filtered" 
@@ -285,6 +290,18 @@ export default Vue.component("criterion-group-template", {
                         this.filterListInternal = newCriterionValue;
                     }
                 }
+            },
+            deep: true,
+        },
+        filterList: {
+            handler: function(newFilterList) {
+                this.filterListInternal = newFilterList;
+            },
+            deep: true,
+        },
+        filterFunction: {
+            handler: function(newFilterFunction) {
+                this.newFilterFunction = newFilterFunction;
             },
             deep: true,
         },

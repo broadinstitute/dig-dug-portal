@@ -16,13 +16,7 @@
                     !!filter.color ? `${filter.color} !important` : ''
                 }`,
             }"
-            @click="
-                !!clearable ? 
-                    !!unset ? 
-                        unset(filter) 
-                    :   $parent.$emit('unset', filter) 
-                : () => {}
-            "
+            @click="clearable ? $emit('unset', filter) : () => {}"
         >
             {{
                 !!filter.label
@@ -41,9 +35,6 @@ export default Vue.component('criterion-pills', {
     props: {
         header: String,
         filterList: Array,
-        unset: {
-            type: Function
-        },
         clearable: {
             type: Boolean,
             default: false,
