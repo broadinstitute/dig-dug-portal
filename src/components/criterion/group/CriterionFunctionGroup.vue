@@ -48,7 +48,6 @@ export default Vue.component("criterion-function-group", {
             this.$emit("input", value);
         },
         emitFilterList(value) {
-            console.log('emiting filter list')
             this.$emit("update:filter-list", value);
         },
         emitFilterFunction(value) {

@@ -48,8 +48,8 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import { isEqual, cloneDeep, merge, groupBy } from "lodash";
-import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers";
+import { isEqual, cloneDeep, groupBy } from "lodash";
+import { filterFromPredicates, predicateFromSpec, unsetFilter } from "@/utils/filterHelpers";
 import CriterionPills from "@/components/criterion/template/CriterionPills";
 
 const EventListener = {
@@ -257,13 +257,8 @@ export default Vue.component("criterion-group-template", {
             }
             // NOTE: As a result of this.filterListInternal being modified, the computed property for the filterFunctionInternal should reactively producing a new version of itself.
         },
-        unsetFilter({ filter, idx }) {
-            // equiv to setFilter with no data => reduction by alias
-            // this.filterData[obj] = "";
-            // this.filterListInternal = this.filterListInternal.filter(filterSpec => filterSpec.field !== obj.field && filterSpec.threshold !== obj.threshold && filterSpec.threshold !== obj.threshold)
-            this.filterListInternal = this.filterListInternal
-                .slice(0, idx)
-                .concat(this.filterListInternal.slice(idx + 1, this.filterListInternal.length));
+        unsetFilter(filter) {
+            this.filterListInternal = unsetFilter(this.filterListInternal, filter);
         },
     },
     watch: {

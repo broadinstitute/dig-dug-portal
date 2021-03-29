@@ -23,7 +23,6 @@ import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import keyParams from "@/utils/keyParams";
-import { isEqual, startCase } from "lodash";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -36,7 +35,9 @@ import ClumpedVariantsTable from "@/components/ClumpedVariantsTable";
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
+import filterHelpers from "@/utils/filterHelpers";
 import uiUtils from "@/utils/uiUtils";
+
 import Alert, {
     postAlert,
     postAlertNotice,
@@ -107,14 +108,15 @@ new Vue({
     methods: {
         ...uiUtils,
         ...Formatters,
+        unsetFilter(filter) {
+            this.regionPageSearchCriterion = filterHelpers.unsetFilter(
+                this.regionPageSearchCriterion, filter
+            )
+        },
         postAlert,
         postAlertNotice,
         postAlertError,
         closeAlert,
-        trap() {
-            console.log('trap', arguments)
-            this.list = arguments[0]
-        },
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {

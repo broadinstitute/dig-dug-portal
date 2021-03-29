@@ -16,7 +16,13 @@
                     !!filter.color ? `${filter.color} !important` : ''
                 }`,
             }"
-            @click="!!clearable ? !!unset ? unset : $parent.$emit('unset', { filter, idx }) : () => {}"
+            @click="
+                !!clearable ? 
+                    !!unset ? 
+                        unset(filter) 
+                    :   $parent.$emit('unset', filter) 
+                : () => {}
+            "
         >
             {{
                 !!filter.label

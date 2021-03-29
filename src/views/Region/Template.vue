@@ -158,6 +158,13 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
+
+                    <criterion-pills
+                        :filterList="$parent.regionPageSearchCriterion"
+                        :unset="$parent.unsetFilter"
+                        :clearable="true"
+                    ></criterion-pills>
+
                     <criterion-list-group
                         v-model="$parent.regionPageSearchCriterion"
                         :header="'Select Phenotype'"
@@ -244,11 +251,7 @@
                                     name="region.igv.subheader"
                                     :content-fill="$parent.documentationMap"
                                 ></documentation>
-                                {{$parent.list}}
-                                <criterion-function-group
-                                    :filterList="$parent.list"
-                                    @update:filter-list="$parent.list = $event"
-                                >
+                                <criterion-function-group>
                                     <div class="col filter-col-md">
                                         <div class="label" style="margin-bottom: 5px">Add tissue</div>
                                         <tissue-selectpicker
