@@ -62,7 +62,6 @@ new Vue({
         return {
             filterList: [],
             displayedFilterList: {},
-            testPhenotypes: []
         };
     },
 

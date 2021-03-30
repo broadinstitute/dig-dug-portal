@@ -12,7 +12,7 @@
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
-                    <slot v-if="!noPills && inlinePills" name="pills">
+                    <slot v-if="inlinePills" name="pills">
                         <criterion-pills
                             v-if="filterListInternal != null && filterListInternal.length > 0"
                             :header="header"
@@ -25,7 +25,7 @@
                 </b-row>
             </b-container>
 
-            <slot v-if="!noPills && !inlinePills" name="pills">
+            <slot v-if="!inlinePills" name="pills">
                 <criterion-pills
                     v-if="filterListInternal != null && filterListInternal.length > 0"
                     :header="header"
@@ -155,7 +155,6 @@ export default Vue.component("criterion-group-template", {
     created() {
 
         if (typeof this.filterList !== 'undefined') {
-            console.log('assign filterList')
             this.filterListInternal = this.filterList;
         } else if (!!this.value && Array.isArray(this.value)) {
             this.filterListInternal = this.value;
@@ -164,7 +163,6 @@ export default Vue.component("criterion-group-template", {
         }
 
         if (typeof this.filterFunction !== 'undefined') {
-            console.log('assign filterFunction')
             this.filterFunctionInternal = this.filterFunction;
         } else if (!!this.value && typeof this.value === "function") {
             this.filterFunctionInternal = this.value;

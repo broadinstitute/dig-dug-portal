@@ -1,12 +1,14 @@
 <template>
     <criterion-group-template
         :ref="Math.floor(Math.random() * 10000).toString()"
+        
         :value="value"
+        @input="emitInput"
+
         :hide="hide"
         :filterType="'list'"
         :looseMatch="true"
         :header="header"
-        @input="emitInput"
         
         :filterList="filterList"
         :filterFunction="filterFunction"

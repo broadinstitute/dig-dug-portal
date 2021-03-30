@@ -81,10 +81,9 @@
                                     >
                                         <criterion-function-group
                                             v-model="p.filter"
-                                            :noPills="true"
                                             :inlinePills="true"
                                             :filterList.sync="
-                                                $parent.testPhenotypes
+                                                $parent.displayedFilterList[p.phenotype.name]
                                             "
                                         >
                                             <filter-pvalue-control
@@ -105,36 +104,22 @@
                                         </criterion-function-group>
                                     </div>
                                 </transition>
+
                                 <transition name="slide-fade" mode="out-in"
                                     ><criterion-pills
                                         header=""
                                         :clearable="true"
                                         @unset="
-                                            $parent.testPhenotypes = $parent.unsetFilter(
-                                                $parent.testPhenotypes,
-                                                $event
-                                            )
+                                            $parent.displayedFilterList[p.phenotype.name] = 
+                                                $parent.displayedFilterList[p.phenotype.name]
+                                                    .filter(f => !(f.field === $event.field && f.threshold === $event.threshold))
                                         "
-                                        :filterList="$parent.testPhenotypes"
+                                        :filterList="
+                                            $parent.displayedFilterList[p.phenotype.name]
+                                        "
                                     ></criterion-pills>
                                 </transition>
-                                <!-- <div class="filters-wrapper">
-                                    Slide example
-                                    <div
-                                        id="sliding_filters_wrapper"
-                                        class="hidden"
-                                    >
-                                        Filters go here!!
-                                    </div>
-                                    <div>
-                                        <a
-                                            href="javascript:;"
-                                            @click="$parent.showFilters()"
-                                            >>></a
-                                        >
-                                    </div>
-                                </div> -->
-
+                                
                                 <button
                                     type="button"
                                     class="mr-2 close"
