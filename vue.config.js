@@ -164,12 +164,12 @@ let pages = {
         title: "Gene Finder",
         chunks: ["chunk-vendors", "chunk-common", "genefinder"]
     },
-    variantfinder: {
-        entry: "src/views/VariantFinder/main.js",
+    signalsifter: {
+        entry: "src/views/SignalSifter/main.js",
         template: "public/index.html",
-        filename: "variantfinder.html",
+        filename: "signalsifter.html",
         title: "Variant Finder",
-        chunks: ["chunk-vendors", "chunk-common", "variantfinder"]
+        chunks: ["chunk-vendors", "chunk-common", "signalsifter"]
     },
     complicationsviewer: {
         entry: "src/views/ComplicationsViewer/main.js",

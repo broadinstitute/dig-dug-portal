@@ -7,7 +7,7 @@
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h1 class="card-title">Variant Finder</h1>
+                    <h1 class="card-title">Signal Sifter</h1>
 
                     <documentation
                         style="margin-bottom: 30px"
@@ -103,9 +103,8 @@
                                                     }
                                                 "
                                             >
-                                            </filter-effect-direction-control>
-
-                                            <criterion-pills
+                                            </filter-effect-direction-control
+                                            ><criterion-pills
                                                 header=""
                                                 :clearable="true"
                                                 :filterList="
