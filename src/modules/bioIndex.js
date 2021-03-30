@@ -5,7 +5,7 @@ import {
     closeAlert
 } from "@/components/Alert";
 
-import merge from "lodash.merge";
+import { merge } from "lodash";
 
 // Override the base module with an extended object that may contain
 // additional actions, getters, methods, state, etc.
@@ -79,8 +79,11 @@ export default function (index, extend) {
             async clear(context) {
                 context.commit("clearData");
             },
-            async query(context, { q, limit, limitWhile }) {
-                context.commit("clearData");
+            async query(context, { q, limit, limitWhile, append }) {
+                if (!append) {
+                    context.commit("clearData");
+                }
+
                 let profile = {
                     fetch: 0,
                     query: 0
@@ -96,7 +99,7 @@ export default function (index, extend) {
                         limit: limit || context.state.limit,
                         limitWhile: limitWhile,
                         // updates progress
-                        resolveHandler: json => {
+                        onResolve: json => {
                             profile.fetch += json.profile.fetch || 0;
                             profile.query += json.profile.query || 0;
 
@@ -105,7 +108,7 @@ export default function (index, extend) {
                             context.commit("setProgress", json.progress);
                         },
                         // report errors
-                        errHandler: error => {
+                        onError: error => {
                             closeAlert(alertID);
                             postAlertError(error.detail);
                             context.commit('setError', error.detail);

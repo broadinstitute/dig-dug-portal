@@ -1,49 +1,40 @@
 <template>
     <span>
-        <!-- Controls and their labels -->
-        <slot name="header"></slot>
-        <b-container fluid class="filtering-ui-wrapper">
-            <b-row class="filtering-ui-content">
-                <EventListener @change="filterControlChange">
+        <EventListener
+            @change="filterControlChange"
+            @unset="unsetFilter"
+            @filter-mounted="onInitialFilterDefinition"
+        >
+            <!-- Controls and their labels -->
+            <slot name="header"></slot>
+            <b-container v-show="!hide" fluid class="filtering-ui-wrapper">
+                <b-row class="filtering-ui-content">
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
-                </EventListener>
-            </b-row>
-        </b-container>
-
-        <!-- Pills for everything -->
-        <div v-if="filterList.length > 0" class="filter-pill-collection center">
-            {{ this.header }}:&nbsp;&nbsp;
-            <!-- Derive pills from current filter state?
-                        Might lose coloring - unless we use something like my planned colorUtils with real-time schema generation on a cycle
-                        It would be deterministic upto the compile-time declaration of the CriterionGroupTemplate controls which would lead to predicatable results at runtime
-            -->
-            <b-badge
-                pill
-                v-for="(filter, idx) in filterList"
-                :key="filter.field + filter.predicate + filter.threshold + idx"
-                :class="`btn filter-pill-${filter.field}`"
-                :style="{
-                    'background-color': `${
-                        !!filter.color ? `${filter.color} !important` : ''
-                    }`,
-                }"
-                @click="unsetFilter(filter, idx)"
-            >
-                {{
-                    !!filter.label
-                        ? typeof filter.label === "function"
-                            ? filter.label(filter)
-                            : new String(filter.label)
-                        : `${filter.field} = ${filter.threshold}`
-                }}
-                <span class="remove">X</span>
-            </b-badge>
-        </div>
+                    <slot v-if="!noPills && inlinePills" name="pills">
+                        <criterion-pills
+                            v-if="filterList != null && filterList.length > 0"
+                            :header="header"
+                            :filterList="filterList"
+                            :clearable="clearable"
+                        ></criterion-pills>
+                    </slot>
+                </b-row>
+            </b-container>
+            <slot v-if="!noPills && !inlinePills" name="pills">
+                <criterion-pills
+                    v-if="filterList != null && filterList.length > 0"
+                    :header="header"
+                    :filterList="filterList"
+                    :clearable="clearable"
+                ></criterion-pills>
+            </slot>
+        </EventListener>
         <!-- Spacer to prevent flicker when new pills are added to the UI -->
-        <br v-else />
-        <slot name="filtered" :filter="criterion"></slot>
+        <slot name="filtered" 
+            :filter="criterion">
+        </slot>
     </span>
 </template>
 
@@ -57,8 +48,9 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
-import { isEqual, cloneDeep } from "lodash";
+import { isEqual, cloneDeep, merge, groupBy } from "lodash";
 import { filterFromPredicates, predicateFromSpec } from "@/utils/filterHelpers";
+import CriterionPills from "@/components/criterion/template/CriterionPills";
 
 const EventListener = {
     /*
@@ -87,6 +79,9 @@ const EventListener = {
 };
 
 export default Vue.component("criterion-group-template", {
+    components: {
+        CriterionPills,
+    },
     props: {
         value: [Function, Array],
         filterType: {
@@ -97,10 +92,10 @@ export default Vue.component("criterion-group-template", {
         inclusive: Boolean,
         strictCase: Boolean,
         looseMatch: Boolean,
-
+        hide: Boolean,
         header: {
             type: String,
-            default: "Selected Filters",
+            default: "Selected Filters:\t",
         },
 
         filterMaker: {
@@ -111,6 +106,18 @@ export default Vue.component("criterion-group-template", {
             type: Function,
             default: predicateFromSpec,
         },
+        noPills: {
+            type: Boolean,
+            default: false,
+        },
+        inlinePills: {
+            type: Boolean,
+            default: false,
+        },
+        clearable: {
+            type: Boolean,
+            default: true
+        }
     },
     components: {
         EventListener,
@@ -118,16 +125,9 @@ export default Vue.component("criterion-group-template", {
     data() {
         return {
             // the filter on the end prevents malformed initial values from being used in the component
-            filterList:
-                typeof this.value === "object" &&
-                !!this.value.length &&
-                this.value.length > 0
-                    ? this.value
-                    : [],
-            filterFunction:
-                !!this.value && typeof this.value === "function"
-                    ? this.value
-                    : (id) => true,
+            filterList: null,
+            filterFunction: (id) => true,
+
             // criterion: !!this.value ? this.value : this.filterType === 'function' ? id => true : [],
 
             // Vue doesn't identify anonymous functions of the same form with one another,
@@ -139,18 +139,62 @@ export default Vue.component("criterion-group-template", {
             // which quite frankly seems unlikely.
             makeFilter: this.filterMaker,
             makePredicate: this.predicateMaker,
+            initialFilterDefinitions: [], // THESE CAN CHANGE, THEY ARE NOT REAL-TIME FILTER DEFINITIONS
+            initialFilterDefinitionMap: {},
         };
+    },
+    created() {
+        this.filterList =
+            !!this.value &&
+            typeof this.value === "object" &&
+            this.value.length > 0
+                ? this.value
+                : [];
+        this.filterFunction =
+            !!this.value && typeof this.value === "function"
+                ? this.value
+                : (id) => true;
+    },
+    mounted() {
+        if (this.initialFilterDefinitions.length > 0) {
+            this.initialFilterDefinitionMap = groupBy(
+                this.initialFilterDefinitions,
+                "field"
+            );
+        }
     },
     computed: {
         criterion() {
             if (this.filterType === "function") {
                 return this.filterFunction;
             } else if (this.filterType === "list") {
+                if (
+                    this.filterList != null &&
+                    Object.keys(this.initialFilterDefinitionMap).length > 0
+                ) {
+                    this.filterList = this.filterList.map((el) =>
+                        Object.assign(
+                            el,
+                            this.initialFilterDefinitionMap[el.field][0]
+                        )
+                    );
+                }
+
                 return this.filterList;
             }
         },
+        combinedCriterion() {
+            return {
+                filter: this.criterion,
+                filterList: this.filterList,
+                filterFunction: this.filterFunction,
+            }
+        }
     },
     methods: {
+        onInitialFilterDefinition(filterDefinition) {
+            this.initialFilterDefinitions.push(filterDefinition);
+        },
         filterControlChange(threshold, filterDefinition) {
             // this is a workaround for a limitation Vue has when mutating arrays and objects that prevents watchers from detecting value changes
             // (they can detect that an update has occured, yet do not return old values unless we reinitialize the object/array entirely, against a new reference)
@@ -163,6 +207,7 @@ export default Vue.component("criterion-group-template", {
                     .map((filter) => filter.field)
                     .includes(filterDefinition.field)
             ) {
+                // pass in the whole filter definition along with is propert threshold
                 this.filterList = copiedArray.concat({
                     threshold,
                     ...filterDefinition,
@@ -199,8 +244,7 @@ export default Vue.component("criterion-group-template", {
             }
             // NOTE: As a result of this.filterList being modified, the computed property for the filterFunction should reactively producing a new version of itself.
         },
-
-        unsetFilter(obj, idx) {
+        unsetFilter({ filter, idx }) {
             // equiv to setFilter with no data => reduction by alias
             // this.filterData[obj] = "";
             // this.filterList = this.filterList.filter(filterSpec => filterSpec.field !== obj.field && filterSpec.threshold !== obj.threshold && filterSpec.threshold !== obj.threshold)
@@ -210,22 +254,64 @@ export default Vue.component("criterion-group-template", {
         },
     },
     watch: {
+        initialFilterDefinitions: {
+            handler: function () {
+                if (this.initialFilterDefinitions.length > 0) {
+                    this.initialFilterDefinitionMap = groupBy(
+                        this.initialFilterDefinitions,
+                        "field"
+                    );
+                }
+            },
+            deep: true,
+        },
         value: {
-            handler: function (newCriterionValue, oldCriterionValue) {
-                // Is this resulting in feedback?
-                //console.log('value in criteriongrouptemplate', 'old', oldCriterionValue, 'new', newCriterionValue)
-                if (!_.isEqual(newCriterionValue, oldCriterionValue)) {
-                    if (this.filterType === "function") {
+            handler: function (newCriterionValue) {
+                if (this.filterType === "function") {
+                    this.filterFunction = newCriterionValue;
+                    if (!isEqual(newCriterionValue, this.filterFunction)) {
                         this.filterFunction = newCriterionValue;
-                    } else if (this.filterType === "list") {
+                    }
+                } else if (this.filterType === "list") {
+                    if (!isEqual(newCriterionValue, this.filterList)) {
                         this.filterList = newCriterionValue;
                     }
                 }
             },
             deep: true,
         },
+        /*
+        Support events for catching new filter lists and functions 
+        seprately, regardless of the kind of criterion group.
+
+        The events are `@update-filter-list` and `@update-filter-function`. 
+        
+        They act like `@input` does with `v-model`, except it's with a filter list or 
+        filter function only. You can use both at the same time.
+
+        ```vue
+        <template>
+            <!-- v-model works as per usual -->
+            <criterion-function-group
+                v-model="$parent.filterFunction"
+                @update-filter-list="$parent.displayedFilterList = $event">
+            ...
+            </criterion-function-group
+
+            <!-- some sibling component -->
+            <!--  "clearable" prop removes `X` -->
+            <criterion-pills 
+                :clearable="false"
+                :filterList="$parent.displayedFilterList">
+            </criterion-pills>
+
+        </template>
+        ```
+        */
         filterList: {
             handler: function (newFilterList, oldFilterList) {
+                this.$emit('update-filter-list', newFilterList)
+
                 if (newFilterList.length > 0) {
                     const predicates = newFilterList.map((predicateSpec) =>
                         this.makePredicate(predicateSpec, {
@@ -242,12 +328,19 @@ export default Vue.component("criterion-group-template", {
                         return true;
                     };
                 }
+
+            },
+            deep: true,
+        },
+        filterFunction: {
+            handler: function(filterFunction) {
+                this.$emit('update-filter-function', filterFunction);
             },
             deep: true,
         },
         criterion: {
             handler: function (newCriterionValue, oldCriterionValue) {
-                if (!_.isEqual(newCriterionValue, oldCriterionValue)) {
+                if (!isEqual(newCriterionValue, oldCriterionValue)) {
                     this.$emit("input", newCriterionValue);
                 }
             },

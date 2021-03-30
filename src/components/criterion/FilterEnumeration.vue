@@ -4,13 +4,8 @@
         :field="field"
         :placeholder="placeholder"
         :type="'string'"
-        :predicate="(string, selection) => string === selection"
-        :pillFormatter="
-            (filterDefinition) =>
-                `${filterDefinition.field} = ${labelFormatter(
-                    filterDefinition.threshold
-                )}`
-        "
+        :predicate="predicate"
+        :pillFormatter="pillFormatter"
         :labelFormatter="labelFormatter"
         :options="selectionOptions"
         @input-change="$emit('input-change', $event)"
@@ -18,6 +13,7 @@
         :multiple="!!multiple"
         :inclusive="!!inclusive || !!multiple"
         :disabled="disabled"
+        :computedField="computedField"
     >
         <slot> </slot>
     </filter-control-template>
@@ -41,9 +37,22 @@ export default Vue.component("filter-enumeration-control", {
             type: Boolean,
             default: false,
         },
+        predicate: {
+            type: Function,
+            default: (string, selection) => string === selection
+        },
         labelFormatter: {
             type: Function,
             default: Formatter.capitalizedFormatter,
+        },
+        pillFormatter: {
+            type: Function,
+            default: (filterDefinition) =>
+                `${filterDefinition.field} = ${!!filterDefinition.labelFormatter ?
+                    filterDefinition.labelFormatter(
+                        filterDefinition.threshold
+                    )
+                : filterDefinition.threshold}`
         },
         disableSort: {
             type: Boolean,
@@ -53,6 +62,7 @@ export default Vue.component("filter-enumeration-control", {
             type: Boolean,
             default: false,
         },
+        computedField: Function,
     },
     components: {
         FilterControlTemplate,

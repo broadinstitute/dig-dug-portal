@@ -23,6 +23,9 @@ import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import RareColorBarPlot from "@/components/RareColorBarPlot.vue";
 import PosteriorProbabilityPlot from "@/components/PosteriorProbabilityPlot.vue";
 import LocusZoom from "@/components/lz/LocusZoom";
+import MaskTable from "@/components/MaskTable";
+
+import jsonQuery from "json-query";
 
 Vue.config.productionTip = false;
 Vue.use(BootstrapVue);
@@ -44,6 +47,7 @@ new Vue({
         RareColorBarPlot,
         PosteriorProbabilityPlot,
         LocusZoom,
+        MaskTable
     },
     render(createElement, context) {
         return createElement(Template);
@@ -51,14 +55,22 @@ new Vue({
     data() {
         return {
             matchingGenes: [],
-            phenotype: { "name": "T2D", "description": "Type 2 Diabetes", "isDichotomous": true },
-            phenotypes: [{ "name": "T2D", "description": "Type 2 Diabetes" }],
+            phenotypelist: [],
             hugecalSearchCriterion: keyParams.gene
-                ? [{
-                    field: "gene",
-                    threshold: keyParams.gene
-                }] : [],
-            priorVariance: 0.3696
+                ? [
+                    {
+
+                        field: "gene",
+                        threshold: keyParams.gene
+                    },
+                    {
+                        field: "phenotype",
+                        threshold: keyParams.phenotype
+                    }
+                ]
+                : [],
+            commonVariationStart: null,
+            commonVariationEnd: null
         };
     },
     created() {
@@ -66,7 +78,22 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
+        if (keyParams.gene) {
+            this.$store.dispatch("get52KAssociationData", keyParams.gene);
+        }
+        if (keyParams.gene && keyParams.phenotype) {
+            let gene = keyParams.gene;
+            let phenotype = keyParams.phenotype;
+            this.$store.dispatch("gene/query", { q: gene });
+            let phenoRegionQuery = { gene: gene, phenotype: phenotype };
+            this.$store.dispatch("getAssociationsData", phenoRegionQuery);
+            this.$store.dispatch("get52KAssociationData", gene);
+            this.$store.dispatch("getEGLData", phenotype);
+        }
+
+        // this.$store.dispatch("getAssociationsData", { "phenotype": keyParams.phenotype, "gene": keyParams.searchGene });
     },
+
     computed: {
         frontContents() {
             let contents = this.$store.state.kp4cd.frontContents;
@@ -81,6 +108,23 @@ new Vue({
         },
         region() {
             return this.$store.getters.region;
+        },
+        regionString() {
+            let chr = this.$store.state.chr;
+            let start;
+            let end;
+            if (
+                this.commonVariationEnd != null &&
+                this.commonVariationStart != null
+            ) {
+                start = this.commonVariationStart;
+                end = this.commonVariationEnd;
+            } else {
+                start = this.$store.state.start;
+                end = this.$store.state.end;
+            }
+
+            return Formatters.locusFormatter(chr, start, end);
         },
         selectedGene() {
             return this.hugecalSearchCriterion
@@ -100,168 +144,264 @@ new Vue({
             return {
                 gene: this.selectedGene,
                 phenotype: this.selectedPhenotype
-            }
+            };
         },
+        //not used currently - remove it
         isGWASSignificantAssociation() {
-            if (!!this.$store.state.associationsData.length > 0) {
-                let data = this.$store.state.associationsData;
+            if (!!this.$store.state.associations.length > 0) {
+                let data = this.$store.state.associations;
                 for (let i = 0; i < data.length; i++) {
-                    if (data[i].pValue <= 5e-8) {
-                        return true;
+                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                        if (data[i].pValue <= 5e-8) {
+                            // console.log(
+                            //     "I am GWAS significant" + data[i].pValue
+                            // );
+                            return true;
+                        }
                     }
                 }
+
                 return false;
             }
         },
         eglData() {
             let geneSymbol = this.selectedGene[0];
-            if (!!this.$store.state.kp4cd.eglData.data) {
-                let effectordata = this.$store.state.kp4cd.eglData.data;
-                let effectorGeneData = {}
+            if (this.selectedPhenotype[0] == "T2D") {
+                if (!!this.$store.state.kp4cd.eglData.data) {
+                    let effectordata = this.$store.state.kp4cd.eglData.data;
+                    let effectorGeneData = {};
 
-                for (var i = 0; i < effectordata.length; ++i) {
-                    if (effectordata[i].gene.toLowerCase() === geneSymbol.toLowerCase()) {
-                        effectorGeneData = effectordata[i];
-
-                        if (effectorGeneData.category == "(T2D_related)") {
-                            effectorGeneData.category = "No Evidence"
+                    for (var i = 0; i < effectordata.length; ++i) {
+                        if (
+                            effectordata[i].gene.toLowerCase() ===
+                            geneSymbol.toLowerCase()
+                        ) {
+                            effectorGeneData = effectordata[i];
+                            if (effectorGeneData.category == "(T2D_related)") {
+                                effectorGeneData.category = "No Evidence";
+                            }
+                            break;
                         }
-                        break;
+                        //if the gene is in GWAS but not in mccarthy data
                     }
-                    //if the gene is in GWAS but not in mccarthy data
-                    else {
-                        effectorGeneData["category"] = "in GWAS"
-                    }
+                    return effectorGeneData;
                 }
-                return effectorGeneData;
+            } else {
+                return { category: "in GWAS" };
             }
         },
 
-        bayesFactorCommonVariation() {
-            let firstBF = 1;
-            let secondBF = 1;
-            let thirdBF = 1;
-            let commonBF = 1;
-            if (!!this.$store.state.associationsData.length > 0) {
-                let data = this.$store.state.associationsData;
-                for (let i = 0; i < data.length; i++) {
-                    //if GWAS evidence
-                    if (data[i].pValue <= 5e-8) {
-                        firstBF = 3.3
-                    }
-                }
-                if (!!this.eglData) {
-                    if (!!this.eglData.genetic && this.eglData.genetic == "1C") {
-                        secondBF = 500
-                    }
-                    if (!!this.eglData.genetic && this.eglData.genetic == "2C") {
-                        secondBF = 5
-                    }
-                    if (!!this.eglData.genomic && this.eglData.genomic == "2R") {
-                        thirdBF = 5
-                    }
-                    if (!!this.eglData.genomic && this.eglData.genomic == "3R") {
-                        thirdBF = 2.2
+        masks() {
+            let maskdata = [];
+            if (this.$store.state.geneAssociations52k.data.length > 0) {
+                for (
+                    let i = 0;
+                    i < this.$store.state.geneAssociations52k.data.length;
+                    i++
+                ) {
+                    if (
+                        !!this.$store.state.geneAssociations52k.data[i]
+                            .phenotype &&
+                        this.$store.state.geneAssociations52k.data[i]
+                            .phenotype == this.selectedPhenotype[0]
+                    ) {
+                        //filter with selected phenotype
+                        maskdata = this.$store.state.geneAssociations52k.data[i]
+                            .masks;
                     }
                 }
             }
-
-            commonBF = firstBF * secondBF * thirdBF
-            return commonBF;
+            return maskdata;
         },
-
-
 
         bayesFactorRareVariation() {
             let masks = [];
             let rarebayesfactor = 1;
             let beta;
             let stdErr;
-            if (this.isExomeWideSignificant(this.$store.state.geneAssociations52k.data)) {
-                rarebayesfactor = 1650;
-            }
-            else {
+            if (
+                this.isExomeWideSignificant(
+                    this.$store.state.geneAssociations52k.data,
+                    this.selectedPhenotype[0]
+                )
+            ) {
+                rarebayesfactor = 348;
+            } else {
                 if (this.$store.state.geneAssociations52k.data.length > 0) {
-                    for (let i = 0; i < this.$store.state.geneAssociations52k.data.length; i++) {
-                        if (!!this.$store.state.geneAssociations52k.data[i].phenotype && this.$store.state.geneAssociations52k.data[i].phenotype == this.selectedPhenotype[0]) {
+                    for (
+                        let i = 0;
+                        i < this.$store.state.geneAssociations52k.data.length;
+                        i++
+                    ) {
+                        if (
+                            !!this.$store.state.geneAssociations52k.data[i]
+                                .phenotype &&
+                            this.$store.state.geneAssociations52k.data[i]
+                                .phenotype == this.selectedPhenotype[0]
+                        ) {
                             //filter with selected phenotype
-                            masks = this.$store.state.geneAssociations52k.data[i].masks
-                            let d = masks.sort(
-                                (a, b) => a.pValue - b.pValue
-                            );
-                            let mostSignificantMask = d[0];
-                            stdErr = mostSignificantMask.stdErr;
-                            if (this.phenotype.isDichotomous) {
+                            masks = this.$store.state.geneAssociations52k.data[
+                                i
+                            ].masks;
+                            if (!!masks && masks.length > 0) {
+                                let d = masks.sort(
+                                    (a, b) => a.pValue - b.pValue
+                                );
+                                let mostSignificantMask = d[0];
+                                stdErr = mostSignificantMask.stdErr;
                                 beta = mostSignificantMask.beta;
-                            } else {
-                                beta = Math.log(mostSignificantMask.oddsRatio);
+                                rarebayesfactor = this.bayes_factor(
+                                    beta,
+                                    stdErr
+                                );
                             }
+                            if (rarebayesfactor < 1) {
+                                rarebayesfactor = 1;
+                            }
+                            return Number.parseFloat(rarebayesfactor).toFixed(
+                                2
+                            );
                         }
-                    }
-
-                    rarebayesfactor = this.bayes_factor(beta, stdErr);
-                    if (rarebayesfactor < 1) {
-                        rarebayesfactor = 1
+                        //if phenotype doesn't exist in 52K Associations data
+                        else {
+                            rarebayesfactor = 1;
+                        }
                     }
                 }
             }
-            return rarebayesfactor;
+            return Number.parseFloat(rarebayesfactor).toFixed(2);
         },
+        bayesFactorCommonVariation() {
+            let firstBF = 1;
+            let secondBF = 1;
+            let thirdBF = 1;
+            let commonBF = 1;
+            let data = this.$store.state.associations.data;
+            if (!!data.length > 0) {
+                for (let i = 0; i < data.length; i++) {
+                    //if GWAS evidence
+                    if (data[i].phenotype == this.selectedPhenotype[0]) {
+                        if (data[i].pValue <= 5e-8) {
+                            firstBF = 3;
+                            if (!!this.eglData) {
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "1C"
+                                ) {
+                                    secondBF = 117;
+                                }
+                                if (
+                                    !!this.eglData.genetic &&
+                                    this.eglData.genetic == "2C"
+                                ) {
+                                    secondBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "2R"
+                                ) {
+                                    thirdBF = 5;
+                                }
+                                if (
+                                    !!this.eglData.genomic &&
+                                    this.eglData.genomic == "3R"
+                                ) {
+                                    thirdBF = 2.2;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            commonBF = firstBF * secondBF * thirdBF;
+            return Number.parseFloat(commonBF).toFixed(2);
+        },
+
         geneAssociations52k() {
             if (!!this.$store.state.geneAssociations52k) {
                 if (!!this.$store.state.geneAssociations52k.data.length) {
                     let data = this.$store.state.geneAssociations52k.data;
                     for (let i = 0; i < data.length; i++) {
-                        if (data[i].phenotype == this.phenotype.name) {
+                        if (data[i].phenotype == this.selectedPhenotype[0]) {
                             return data[i];
                         }
                     }
                 }
             }
         },
+
+        phenotyopes52KAssociations() {
+            if (this.$store.state.geneAssociations52k.data.length > 0) {
+                for (
+                    let i = 0;
+                    i < this.$store.state.geneAssociations52k.data.length;
+                    i++
+                ) {
+                    let phenotype = {};
+                    phenotype[
+                        "name"
+                    ] = this.$store.state.geneAssociations52k.data[i].phenotype;
+                    this.phenotypelist.push(phenotype);
+                }
+            }
+            return this.phenotypelist;
+        },
         documentationMap() {
             let gene = this.selectedGene[0];
             let phenotype = this.selectedPhenotype[0];
-            let rareVariationEvidence;
-            let priorVariance = this.priorVariance;
-
-
+            let priorVariance = this.$store.state.prior;
             return {
                 gene: gene,
                 phenotype: phenotype,
                 priorVariance: priorVariance
-            }
-        },
-
+            };
+        }
     },
     methods: {
         updateAssociationsTable(data) {
             this.$store.commit(`associations/setResponse`, { data });
         },
-        bayesFactorCombinedEvidence(commonBF, rareBF) {
-            return commonBF * rareBF;
+        exploreExpanded() {
+            if (!!this.$children[0].$refs.locuszoom) {
+                let regionlist = this.$children[0].$refs.locuszoom.zoomOut();
+                this.commonVariationStart = regionlist[0];
+                this.commonVariationEnd = regionlist[1];
+            }
         },
+        bayesFactorCombinedEvidence(commonBF, rareBF) {
+            let combinedbf = commonBF * rareBF;
+            return Number.parseFloat(combinedbf).toFixed(2);
+        },
+        // < 1: No Evidence
+        // >= 1 and < 3: Anecdotal
+        // >= 3 and < 10: Moderate
+        // >= 10 and < 30: Strong
+        // >= 30 and < 100: Very Strong
+        // >= 100 and < 350: Extreme
+        // >= 350: Compelling
         determineCategory(bayesfactor) {
             let category;
-            if (bayesfactor < 2.1) {
+            if (bayesfactor <= 1) {
                 category = "No";
-            } else if (bayesfactor >= 2.1 && bayesfactor < 7.26) {
-                category = "Weak";
-            } else if (bayesfactor >= 7.26 && bayesfactor < 16.5) {
-                category = "Potential";
-            } else if (bayesfactor >= 16.5 && bayesfactor < 36.3) {
-                category = "Possible";
-            } else if (bayesfactor >= 36.3 && bayesfactor < 82.5) {
+            }
+            if (bayesfactor > 1 && bayesfactor < 3) {
+                category = "Anecdotal";
+            } else if (bayesfactor >= 3 && bayesfactor < 10) {
                 category = "Moderate";
-            } else if (bayesfactor >= 82.5 && bayesfactor < 1650) {
+            } else if (bayesfactor >= 10 && bayesfactor < 30) {
                 category = "Strong";
-            } else if (bayesfactor >= 1650) {
-                category = "Causal";
+            } else if (bayesfactor >= 30 && bayesfactor < 100) {
+                category = "Very Strong";
+            } else if (bayesfactor >= 100 && bayesfactor < 350) {
+                category = "Extreme";
+            } else if (bayesfactor >= 350) {
+                category = "Compelling";
             }
             return category;
         },
         bayes_factor(beta, stdErr) {
-            let w = 0.3696;
+            let w = this.$store.state.prior;
             let v = Math.pow(stdErr, 2);
             let f1 = v / (v + w);
             let sqrt_f1 = Math.sqrt(f1);
@@ -272,8 +412,7 @@ new Vue({
             return bayes_factor;
         },
 
-        isExomeWideSignificant(data) {
-            let trait = "T2D";
+        isExomeWideSignificant(data, trait) {
             if (!!data.length) {
                 for (let i = 0; i < data.length; i++) {
                     if (data[i].phenotype == trait) {
@@ -281,10 +420,24 @@ new Vue({
                             return true;
                         }
                     }
-                    return false;
                 }
+                return false;
             }
         },
+
+        isGenomeWideSignificant(data, trait) {
+            if (!!data.length) {
+                for (let i = 0; i < data.length; i++) {
+                    if (data[i].phenotype == trait) {
+                        if (data[i].pValue <= 5e-8) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        },
+
         async lookupGenes(input) {
             if (!!input) {
                 let matches = await match("gene", input, { limit: 10 });
@@ -292,24 +445,19 @@ new Vue({
             }
         },
 
-
-
         updateAssociations(gene, phenotype) {
             //this call goes to store to get associations data
-            let phenoRegionQuery;
+            let phenoRegionQuery = {};
 
             if (phenotype.length > 0) {
-                this.$store.dispatch("gene/query", { q: gene })
+                this.$store.dispatch("gene/query", { q: gene });
                 let r = this.$store.getters.region;
-
-                phenoRegionQuery = `${phenotype[0]},${gene}`;
-                query(`associations`, phenoRegionQuery).then(bioIndexData => {
-                    this.$store.commit("setAssociationsData", bioIndexData)
-                });
-                this.$store.dispatch("get52KAssociationData", gene)
+                phenoRegionQuery = { gene: gene[0], phenotype: phenotype[0] };
+                this.$store.dispatch("getAssociationsData", phenoRegionQuery);
+                this.$store.dispatch("get52KAssociationData", gene);
                 this.$store.dispatch("getEGLData", phenotype[0]);
             }
-        },
+        }
     },
 
     watch: {
@@ -318,13 +466,27 @@ new Vue({
         },
         criterion(newCriterion, oldCriterion) {
             //check if the old and new criterion are different only then update the Associations
-            console.log("newCriterion", newCriterion)
-            console.log("oldCriterion", oldCriterion)
-
-            if (newCriterion.phenotype.length > 0) {
-                if (newCriterion.gene !== oldCriterion.gene) {
-                    this.$store.dispatch("gene/query", { q: newCriterion.gene })
-                    this.updateAssociations(newCriterion.gene, newCriterion.phenotype, this.region);
+            if (!isEqual(newCriterion, oldCriterion)) {
+                if (newCriterion.gene.length > 0) {
+                    this.$store.dispatch(
+                        "get52KAssociationData",
+                        newCriterion.gene[0]
+                    );
+                }
+                if (newCriterion.phenotype.length > 0) {
+                    if (newCriterion.gene !== oldCriterion.gene) {
+                        this.$store.dispatch("gene/query", {
+                            q: newCriterion.gene
+                        });
+                        this.$store.dispatch("regions/query", {
+                            q: newCriterion.gene
+                        });
+                        this.updateAssociations(
+                            newCriterion.gene,
+                            newCriterion.phenotype,
+                            this.region
+                        );
+                    }
                 }
             }
         }

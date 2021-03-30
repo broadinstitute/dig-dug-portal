@@ -1,7 +1,12 @@
 <template>
     <div class="EGLT-table fiftytwo" v-if="associations.length > 0">
-        <!-- <forest-plot :data="test" :dichotomous="true"></forest-plot> -->
         <b-container fluid>
+            <div class="text-right mt-2 mb-2">
+                <csv-download
+                    :data="associations"
+                    filename="rare_variant_gene_associations"
+                ></csv-download>
+            </div>
             <b-row class="top-level-header">
                 <b-col class="top-level-header-item">Phenotype</b-col>
                 <b-col class="top-level-header-item">pValue</b-col>
@@ -76,6 +81,7 @@
                     :key="i"
                     :index="i"
                     :dichotomous="!!phenotypeMap[row.phenotype].dichotomous"
+                    :isHidden="true"
                 ></mask-table>
             </template>
         </b-container>
@@ -90,10 +96,11 @@ import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import MaskTable from "@/components/MaskTable";
+import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("gene-associations-masks", {
     props: ["associations", "phenotypeMap"],
-    component: MaskTable,
+    component: { MaskTable, CsvDownload },
     data() {
         return {
             visible: false,

@@ -1,5 +1,11 @@
 <template>
     <div>
+        <div class="text-right">
+            <csv-download
+                :data="tableData"
+                filename="annotated_regions"
+            ></csv-download>
+        </div>
         <b-container fluid class="selected-filters-ui-wrapper">
             <b-row
                 v-if="
@@ -90,11 +96,8 @@
 
 <script>
 import Vue from "vue";
-import $ from "jquery";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);

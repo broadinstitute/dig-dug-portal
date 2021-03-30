@@ -1098,19 +1098,96 @@ span.weight-blue {
 html {
     --scrollbarBG: #666666;
     --thumbBG: #bbbbbb;
-  }
-  .egl-m-plot .dot-content::-webkit-scrollbar {
+}
+.egl-m-plot .dot-content::-webkit-scrollbar {
     width: 11px;
-  }
-  .egl-m-plot .dot-content {
+}
+.egl-m-plot .dot-content {
     scrollbar-width: thin;
     scrollbar-color: var(--thumbBG) var(--scrollbarBG);
-  }
-  .egl-m-plot .dot-content::-webkit-scrollbar-track {
+}
+.egl-m-plot .dot-content::-webkit-scrollbar-track {
     background: var(--scrollbarBG);
-  }
-  .egl-m-plot .dot-content::-webkit-scrollbar-thumb {
+}
+.egl-m-plot .dot-content::-webkit-scrollbar-thumb {
     background-color: var(--thumbBG) ;
     border-radius: 6px;
     border: 3px solid var(--scrollbarBG);
-  }
+}
+
+.egl-table-page-ui-wrapper {
+    margin-top: 30px;
+}
+
+.convert-2-csv {
+    margin-bottom: 5px;
+    text-align: right;
+}
+
+.image-popup-link {
+    position: relative;
+}
+
+.image-popup-link .image-popup-wrapper{
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    padding: 15px;
+    border: solid 1px #ddd;
+    border-radius: 5px;
+    margin: 5% auto; /* Will not center vertically and won't work in IE6/7. */
+    left: 100%;
+    top: -200px;
+    box-shadow: 5px 5px 5px #00000050;
+    z-index: 10;
+}
+
+.image-popup-link:hover .image-popup-wrapper {
+    display: block;
+
+}
+
+.egl-filter-direction {
+    width: 40px !important;
+    float: left;
+    margin-right: 5px;
+}
+
+.egl-filter-cd-input {
+    width: 135px !important;
+}
+
+.single-gene-view-wrapper {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.single-gene-view-info-box {
+    display: inline-flex;
+    border: solid 1px #ddd;
+    margin: 5px 5px;
+    padding: 15px;
+    border-radius: 15px;
+    background-color: #00aaff20;
+}
+
+.single-gene-view-info-box .key {
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 10px;
+}
+.single-gene-view-info-box .value {
+    font-size: 16px;
+}
+
+.shrtened-string {
+    display: block;
+}
+
+.shrtened-string .remaining-string {
+    display: none;
+}
+
+.shrtened-string:hover .remaining-string {
+    display: block;
+}

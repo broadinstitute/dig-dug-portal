@@ -164,7 +164,13 @@ let pages = {
         title: "Gene Finder",
         chunks: ["chunk-vendors", "chunk-common", "genefinder"]
     },
-
+    variantfinder: {
+        entry: "src/views/VariantFinder/main.js",
+        template: "public/index.html",
+        filename: "variantfinder.html",
+        title: "Variant Finder",
+        chunks: ["chunk-vendors", "chunk-common", "variantfinder"]
+    },
     complicationsviewer: {
         entry: "src/views/ComplicationsViewer/main.js",
         template: "public/index.html",
@@ -186,6 +192,13 @@ let pages = {
         filename: "gait.html",
         title: "Genetic Association Interactive Tool",
         chunks: ["chunk-vendors", "chunk-common", "gait"]
+    },
+    project: {
+        entry: "src/views/Project/main.js",
+        template: "public/index.html",
+        filename: "project.html",
+        title: "Project",
+        chunks: ["chunk-vendors", "chunk-common", "project"]
     },
     variantsearch: {
         entry: "src/views/VariantSearch/main.js",

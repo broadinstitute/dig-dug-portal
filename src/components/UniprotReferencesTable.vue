@@ -1,5 +1,11 @@
 <template>
     <div>
+        <div class="text-right mt-2 mb-2">
+            <csv-download
+                :data="tableData"
+                filename="UniProt_table"
+            ></csv-download>
+        </div>
         <b-table
             hover
             small
@@ -10,7 +16,9 @@
             :current-page="currentPage"
         >
             <template v-slot:cell(gene)="v">
-                <a :href="'/gene.html?gene=' + v.item.gene_id">{{v.item.gene_id}}</a>
+                <a :href="'/gene.html?gene=' + v.item.gene_id">{{
+                    v.item.gene_id
+                }}</a>
             </template>
         </b-table>
         <b-pagination
@@ -34,37 +42,39 @@ import Formatters from "@/utils/formatters";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
+import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("uniprot-references-table", {
     props: ["references", "filter"],
     components: {
         Documentation,
-        TooltipDocumentation
+        TooltipDocumentation,
+        CsvDownload,
     },
     data() {
         return {
             fields: [
                 {
                     key: "id",
-                    label: "ID"
+                    label: "ID",
                 },
                 {
                     key: "source",
-                    label: "Source"
+                    label: "Source",
                 },
                 {
                     key: "moleculeType",
-                    label: "Molecule Type"
+                    label: "Molecule Type",
                 },
                 {
                     key: "proteinSeqID",
-                    label: "Protein Sequence ID"
-                }
+                    label: "Protein Sequence ID",
+                },
             ],
             perPage: 5,
             currentPage: 1,
             source: "",
-            moleculeType: ""
+            moleculeType: "",
         };
     },
 
@@ -78,12 +88,12 @@ export default Vue.component("uniprot-references-table", {
                 dataRows = dataRows.filter(this.filter);
             }
             return dataRows;
-        }
+        },
     },
     methods: {
         clearFilter(obj) {
             this[obj] = "";
-        }
-    }
+        },
+    },
 });
 </script>

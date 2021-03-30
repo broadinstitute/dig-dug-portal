@@ -5,6 +5,7 @@ import {
     postAlertError,
     closeAlert
 } from "@/components/Alert";
+import { ColorRuler } from "color-ruler"
 
 export const BASE_PANEL_OPTIONS = {
     height: 240,
@@ -19,13 +20,12 @@ export const makeSource = function(that) {
     return {
         isDataSourceType: that.datasource_type,
         givingDataSourceName: that.datasource_namespace_symbol_for_panel,
-        withDataSourceReader: that.bioIndexToLZReader,
+        asDataSourceReader: that.bioIndexToLZReader,
     }
 }
 
 export const makeLayout = function(that) {
     return {
-        id: that.panel_id,
         panelLayoutType: that.panel_layout_type,
         takingDataSourceName: that.datasource_namespace_symbol_for_panel,
         forDataSourceType: that.datasource_type,
@@ -38,18 +38,16 @@ export class LZBioIndexSource extends BaseAdapter {
         super(params)
     }
     parseInit(params) {
-        const { index, queryStringMaker, translator, finishHandler, resolveHandler, errHandler } = params;
+        const { index, queryStringMaker, translator, onLoad, onResolve, onError } = params;
         this.params = params;
         this.queryStringMaker = queryStringMaker;
         this.index = index;
         this.translator = translator;
-        this.finishHandler = finishHandler;
-        this.resolveHandler = resolveHandler;
-        this.errHandler = errHandler;
+        this.onLoad = onLoad;
+        this.onResolve = onResolve;
+        this.onError = onError;
     };
     getCacheKey(state /*, chain, fields*/) {
-        // In generic form, Tabix queries are based on chr, start, and end. The cache is thus controlled by the query,
-        //  not the URL
         return [state.chr, state.start, state.end].join('_');
     }
     fetchRequest(state, chain, fields) {
@@ -61,11 +59,11 @@ export class LZBioIndexSource extends BaseAdapter {
             } else {
                 const alertID = postAlertNotice(`Loading ${self.index}; please wait ...`);
                 query(self.index, self.queryStringMaker(state.chr, state.start, state.end), {
-                    // resolveHandler: self.resolveHandler,
+                    // onResolve: self.onResolve,
                 })
                 .then(async bioIndexResults => {
-                    if(!!self.finishHandler) {
-                        self.finishHandler(bioIndexResults);
+                    if(!!self.onLoad) {
+                        self.onLoad(bioIndexResults);
                     }
                     resolve(self.translator(bioIndexResults));
                 })
@@ -78,3 +76,5 @@ export class LZBioIndexSource extends BaseAdapter {
         });
     };
 }
+
+export const LZColorScheme = new ColorRuler();

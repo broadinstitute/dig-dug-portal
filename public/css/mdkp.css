@@ -432,6 +432,11 @@ a:hover {
     min-width: 1024px !important;
 }
 
+.card.gem-wrapper {
+    box-shadow: inset 0 0 5px #00000050;
+    border: solid 1px #9cf;
+}
+
 .portal-front-tabs {
     margin-top: 50px;
 }
@@ -1239,30 +1244,37 @@ span div.label {
 
 div.filtering-ui-content div.col .form-control,
 div.filtering-ui-content div.col select,
-div.filtering-ui-content div.col .input {
+div.filtering-ui-content div.col input {
     height: 30px;
     width: 175px;
     font-size: 14px;
 }
 
-div.filtering-ui-content div.filter-col-sm .form-control,
-div.filtering-ui-content div.col.filter-col-sm select,
-div.filtering-ui-content div.col.filter-col-sm .input {
-    width: 110px;
-    display: inline-block;
+div.filtering-ui-content div.col input.or-half-gt,
+div.filtering-ui-content div.col input.or-half-lt {
+    width: 70px;
 }
+
+
 
 div.filtering-ui-content div.col.filter-col-md .form-control,
 div.filtering-ui-content div.col.filter-col-md select,
-div.filtering-ui-content div.col.filter-col-md .input {
+div.filtering-ui-content div.col.filter-col-md input {
     width: 220px;
     display: inline-block;
 }
 
 div.filtering-ui-content div.col.filter-col-lg .form-control,
 div.filtering-ui-content div.col.filter-col-lg select,
-div.filtering-ui-content div.col.filter-col-lg .input {
-    width: 300px;
+div.filtering-ui-content div.col.filter-col-lg input {
+    width: 300px !important;
+    display: inline-block;
+}
+
+div.filtering-ui-content div.filter-col-sm .form-control,
+div.filtering-ui-content div.col.filter-col-sm select,
+div.filtering-ui-content div.col.filter-col-sm input {
+    width: 110px !important;
     display: inline-block;
 }
 
@@ -1666,10 +1678,10 @@ a.to-previous-page:hover {
 #gait .variants {
     margin-top: 2rem;
 }
-#gait .btn-mini {
+button.btn.btn-mini {
     padding: 0.1rem 0.25rem;
     font-size: 0.75rem;
-    line-height: 1.25;
+    line-height: 1.25rem;
 }
 #gait .forest-plot-simple {
     position: relative;
@@ -1702,4 +1714,104 @@ a.to-previous-page:hover {
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
     opacity: 0;
+}
+
+/* for volcano plot. Move it to it's own CSS when there's too much */
+#volcanoPlot {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.volcano-plot-label {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.volcano-plot-legend {
+    text-align: center;
+    font-size: 14px;
+}
+
+span.volcano-score-0,
+span.volcano-score-1,
+span.volcano-score-2 {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    background-color: #00000050;
+    border-radius: 6px;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+span.volcano-score-1 {
+    background-color: #09910980;
+}
+
+span.volcano-score-2 {
+    background-color: #ff003780;
+}
+
+#clicked_dot_value,
+#clicked_cell_value {
+    position: absolute;
+    background-color: #fff;
+    border: solid 1px #aaa;
+    box-shadow: 0 0 5px #00000075;
+    font-size: 12px;
+    padding: 0px 10px 5px 10px;
+    max-width: 300px;
+    border-radius: 5px;
+    z-index: 10;
+    width: auto;
+}
+
+.gene-on-clicked-dot {
+    /*
+    background-color: #ddd;
+    border: solid 1px #aaa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    */
+
+    display: inline-block;
+    margin-right: 10px;
+    margin-top: 3px;
+}
+
+.top-associations-section-phenotype-filter {
+    margin-bottom: 25px !important;
+    display: block;
+}
+
+.top-associations-section-phenotype-filter > div {
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
+    border-radius: 5px;
+    height: 48px;
+}
+
+.top-associations-section-phenotype-filter div.filtering-ui-wrapper {
+    border: none !important;
+    background: none !important;
+    width: 50% !important;
+    display: inline-block;
+    text-align: left;
+    padding-left: 30px;
+}
+
+.top-associations-section-phenotype-filter span.filter-pill-collection{
+    border: none !important;
+    background: none !important;
+    width: 50% !important;
+    display: inline-block;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.top-associations-section-phenotype-filter div.filter-col-md > div {
+    display: inline-block;
+    margin-right: 10px;
 }

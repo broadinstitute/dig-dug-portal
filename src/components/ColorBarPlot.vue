@@ -1,39 +1,43 @@
+
 <template>
     <div :id="elementid">
-        <div style="width: 700px">
-            <br />
-            <div v-if="this.category == 'Causal' " class="arrow-up causalclass"></div>
-            <div v-if="this.category == 'Strong'" class="arrow-up strongclass"></div>
-            <div v-if="this.category == 'Moderate'" class="arrow-up moderateclass"></div>
-            <div v-if="this.category == 'Possible'" class="arrow-up possibleclass"></div>
-            <div v-if="this.category == 'Potential'" class="arrow-up potentialclass"></div>
-            <div v-if="this.category== 'Weak'" class="arrow-up weakclass"></div>
-            <div v-if="this.category== 'No'" class="arrow-up noEvidenceclass"></div>
-            <div>
-                <div class="container">
-                    <div class="row">
-                        <div class="col-sm variationCausal">
-                            <strong>Causal</strong>
-                        </div>
-                        <div class="col-sm variationStrong">
-                            <strong>Strong</strong>
-                        </div>
-                        <div class="col-sm variationModerate">
-                            <strong>Moderate</strong>
-                        </div>
-                        <div class="col-sm variationPossible">
-                            <strong>Possible</strong>
-                        </div>
-                        <div class="col-sm variationPotential">
-                            <strong>Potential</strong>
-                        </div>
-                        <div class="col-sm variationWeak">
-                            <strong>Weak</strong>
-                        </div>
-                        <div class="col- variationNoEvidence">
-                            <strong>No Evidence</strong>
-                        </div>
-                    </div>
+        <div class="color-bar-plot-wrapper">
+            <!-- <span>
+                 {{this.score}} HuGe score
+            </span>-->
+            <span
+                style="font-size:12px"
+            >*Compelling: HuGe Score >= 350 Extreme: >=100 Very Strong: >=30 Strong: >=10 Moderate: >=3 Anecdotal: >1 No Evidence: <=1</span>
+            <div class="row color-bars-wrapper">
+                <div class="each-bar-section variationStrong">Compelling</div>
+                <div class="each-bar-section variationModerate">Extreme</div>
+                <div class="each-bar-section variationPossible">Very Strong</div>
+                <div class="each-bar-section variationPotential">Strong</div>
+                <div class="each-bar-section variationWeak">Moderate</div>
+                <div class="each-bar-section variationEquivocal">Anecdotal</div>
+                <div class="each-bar-section variationNoEvidence">No Evidence</div>
+            </div>
+            <div class="row">
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Compelling'" class="arrow-up causalclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Extreme'" class="arrow-up strongclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Very Strong'" class="arrow-up moderateclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Strong'" class="arrow-up possibleclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Moderate'" class="arrow-up potentialclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'Anecdotal'" class="arrow-up weakclass"></div>
+                </div>
+                <div class="each-bar-section">
+                    <div v-if="this.category == 'No'" class="arrow-up noEvidenceclass"></div>
                 </div>
             </div>
         </div>
@@ -53,6 +57,10 @@ export default Vue.component("color-bar-plot", {
             type: String,
             required: true,
             default: "NO"
+        },
+        score: {
+            type: Number,
+            reuired: false
         }
     },
 

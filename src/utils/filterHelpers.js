@@ -1,24 +1,5 @@
 import { get } from "lodash";
 
-export function aos2soa(aos) {
-    // const keys = Object.keys(aos[0]);
-    // let soa = keys.reduce((acc, item) => {
-    //     acc[item] = []
-    //     return acc;
-    // },{});
-    // aos.forEach(s => {
-    //     keys.forEach(k => {
-    //         soa[k].push(s[k])
-    //     });
-    // });
-    // return soa;
-    // return zip(aos)
-}
-
-export function soa2aos(soa) {
-
-}
-
 /* FILTER-MAKING FUNCTIONS */
 export function filterFromPredicates(allPredicates, inclusive) {
     const inclusivePredicates = allPredicates.filter(predicate => predicate.inclusive);
@@ -87,7 +68,7 @@ export function filterFromPredicates(allPredicates, inclusive) {
 }
 
 export function predicateFromSpec(
-    { field, predicate, threshold, inclusive = false },
+    { field, computedField, predicate, threshold, inclusive = false },
     { notStrictMatch = false, strictCase = false }
 ) {
     // Specs for predicateFromSpec are objects satisfying properties { field, predicate, threshold } to return a function Object => Boolean, parameterized on a field
@@ -96,16 +77,18 @@ export function predicateFromSpec(
     //   * "notStrict": if it's important that all objects that the filter is applied to must have the property in question, then `notStrict` should be false.
     //      else if e.g. different components have slightly different properties such that a part of the filter applies to one component and not the other,
     //   * "strictCase": if the field has similar names but different casings, and we don't want it to fail a match (for instance `pvalue` and `pValue`), then this should be "false". else it is "true" and we take the field as-is.
-
     return {
         inclusive,
         func: (obj) => {
+            
             // TODO: other ways of doing matches?
             // TODO: if I had to rework this... the case splitting is coming from having to substitute the proper field into the property
             //       would it be better if we just generated the equivalence class of strings, and iterated over them letting whatever passed out go through as the predicate?
             //       that doesn't sound right but this is whole prop mismatch thing somewhat inelegant
+            // console.assert(!!field || !!computedField, 'neither field or computedField are defined');
+            let getter = !!computedField ? computedField : obj => get(obj, field); // NOTE: this technically supports nested fields.
 
-            let data = get(obj, field);  // NOTE: this technically supports nested fields.
+            let data = getter(obj);
             let match = strictCase ? !!data : !!data // || !!datum[field.toLowerCase()]; // TODO: this doesn't work yet; would mean having to pass down the adjusted predicate match. should abstract into a separate function that returns the field if true:
             if (match) {
                 if (data.constructor.name === 'Array') {
@@ -116,6 +99,7 @@ export function predicateFromSpec(
             } else {
                 return notStrictMatch;
             }
+            
         }
     };
 }
@@ -174,6 +158,7 @@ export function encodeNamespace(
 
 export function decodeNamespace(
     namespacedObject,
+    // NOTE! These can be strings OR instances of regular expressions (wrapped in `new RegExp(<pattern>)`)
     { prefix = "", suffix = "", pDelimiter = "", sDelimiter = "" }
 ) {
     // strip prefixes and suffixes from object properties given that they have them,
@@ -182,8 +167,6 @@ export function decodeNamespace(
     let tempObject = {};
     Object.entries(namespacedObject).forEach(entry => {
         const [key, value] = entry;
-        // TODO: replace with disjoint regex?
-        // for fun: regex crosswords https://regexcrossword.com
         const newKey = key.replace(prefix, '').replace(suffix, '')
             .replace(pDelimiter, '')
             .replace(sDelimiter, '');

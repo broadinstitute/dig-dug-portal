@@ -1,3 +1,14 @@
+/* Defaults */
+.pws-box {
+    border-top: solid 5px #6c757d;
+}
+.pws-phenotype-group div.pws-progress-bar {
+    background-color: #6c757d;
+}
+.phenotype-group {
+    background-color: #6c757d;
+}
+
 .pws-phenotype-group.ANTHROPOMETRIC div.pws-progress-bar {
     background-color: #048845;
 }
@@ -7,52 +18,52 @@
 .pws-phenotype-group.CARDIOVASCULAR div.pws-progress-bar {
     background-color: #6fc7b6;
 }
-.pws-phenotype-group.ECG.TRAITS  div.pws-progress-bar {
+.pws-phenotype-group.ECG.TRAITS div.pws-progress-bar {
     background-color: #8490c8;
 }
-.pws-phenotype-group.GLYCEMIC  div.pws-progress-bar {
+.pws-phenotype-group.GLYCEMIC div.pws-progress-bar {
     background-color: #9f78ac;
 }
-.pws-phenotype-group.HEMORRHAGIC.STROKE  div.pws-progress-bar {
+.pws-phenotype-group.HEMORRHAGIC.STROKE div.pws-progress-bar {
     background-color: #bf61a5;
 }
-.pws-phenotype-group.HEPATIC  div.pws-progress-bar {
+.pws-phenotype-group.HEPATIC div.pws-progress-bar {
     background-color: #f88084;
 }
-.pws-phenotype-group.ISCHEMIC.STROKE  div.pws-progress-bar {
+.pws-phenotype-group.ISCHEMIC.STROKE div.pws-progress-bar {
     background-color: #ee3124;
 }
-.pws-phenotype-group.INFLAMMATORY.BOWEL  div.pws-progress-bar {
+.pws-phenotype-group.INFLAMMATORY.BOWEL div.pws-progress-bar {
     background-color: #007bff;
 }
-.pws-phenotype-group.LIPIDS  div.pws-progress-bar {
+.pws-phenotype-group.LIPIDS div.pws-progress-bar {
     background-color: #faa553;
 }
-.pws-phenotype-group.LUNG  div.pws-progress-bar {
+.pws-phenotype-group.LUNG div.pws-progress-bar {
     background-color: #0000ff;
 }
-.pws-phenotype-group.METABOLITE  div.pws-progress-bar {
+.pws-phenotype-group.METABOLITE div.pws-progress-bar {
     background-color: #fcc500;
 }
-.pws-phenotype-group.MRI.TRAITS  div.pws-progress-bar {
+.pws-phenotype-group.MRI.TRAITS div.pws-progress-bar {
     background-color: #f5a4c7;
 }
-.pws-phenotype-group.MUSCULOSKELETAL  div.pws-progress-bar {
+.pws-phenotype-group.MUSCULOSKELETAL div.pws-progress-bar {
     background-color: #aec6a1;
 }
-.pws-phenotype-group.NEUROLOGICAL  div.pws-progress-bar {
+.pws-phenotype-group.NEUROLOGICAL div.pws-progress-bar {
     background-color: #33ff00;
 }
-.pws-phenotype-group.OCULAR  div.pws-progress-bar {
+.pws-phenotype-group.OCULAR div.pws-progress-bar {
     background-color: #ccc698;
 }
-.pws-phenotype-group.OTHER  div.pws-progress-bar {
+.pws-phenotype-group.OTHER div.pws-progress-bar {
     background-color: #b4b4b4;
 }
-.pws-phenotype-group.PSYCHIATRIC  div.pws-progress-bar {
+.pws-phenotype-group.PSYCHIATRIC div.pws-progress-bar {
     background-color: #5555ff;
 }
-.pws-phenotype-group.RENAL  div.pws-progress-bar {
+.pws-phenotype-group.RENAL div.pws-progress-bar {
     background-color: #ff55ff;
 }
 .pws-phenotype-group.SLEEP.AND.CIRCADIAN div.pws-progress-bar {
@@ -62,9 +73,13 @@
     background-color: #cccc00;
 }
 
-.pws-phenotype-group.TYPE.DIABETES div.pws-progress-bar { background-color: #639bc0; }
+.pws-phenotype-group.TYPE.DIABETES div.pws-progress-bar {
+    background-color: #639bc0;
+}
 
-.pws-phenotype-group.HEMATOLOGICAL div.pws-progress-bar { background-color: #aa0000; }
+.pws-phenotype-group.HEMATOLOGICAL div.pws-progress-bar {
+    background-color: #aa0000;
+}
 
 .pws-box.ANTHROPOMETRIC {
     border-top: solid 5px #048845 !important;
@@ -75,52 +90,52 @@
 .pws-box.CARDIOVASCULAR {
     border-top: solid 5px #6fc7b6 !important;
 }
-.pws-box.ECG.TRAITS  {
+.pws-box.ECG.TRAITS {
     border-top: solid 5px #8a8fa3 !important;
 }
-.pws-box.GLYCEMIC  {
+.pws-box.GLYCEMIC {
     border-top: solid 5px #9f78ac !important;
 }
-.pws-box.HEMORRHAGIC.STROKE  {
+.pws-box.HEMORRHAGIC.STROKE {
     border-top: solid 5px #bf61a5 !important;
 }
-.pws-box.HEPATIC  {
+.pws-box.HEPATIC {
     border-top: solid 5px #f88084 !important;
 }
-.pws-box.ISCHEMIC.STROKE  {
+.pws-box.ISCHEMIC.STROKE {
     border-top: solid 5px #ee3124 !important;
 }
-.pws-box.INFLAMMATORY.BOWEL  {
+.pws-box.INFLAMMATORY.BOWEL {
     border-top: solid 5px #007bff !important;
 }
-.pws-box.LIPIDS  {
+.pws-box.LIPIDS {
     border-top: solid 5px #faa553 !important;
 }
-.pws-box.LUNG  {
+.pws-box.LUNG {
     border-top: solid 5px #0000ff !important;
 }
-.pws-box.METABOLITE  {
+.pws-box.METABOLITE {
     border-top: solid 5px #fcc500 !important;
 }
-.pws-box.MRI.TRAITS  {
+.pws-box.MRI.TRAITS {
     border-top: solid 5px #f5a4c7 !important;
 }
-.pws-box.MUSCULOSKELETAL  {
+.pws-box.MUSCULOSKELETAL {
     border-top: solid 5px #aec6a1 !important;
 }
-.pws-box.NEUROLOGICAL  {
+.pws-box.NEUROLOGICAL {
     border-top: solid 5px #33ff00 !important;
 }
-.pws-box.OCULAR  {
+.pws-box.OCULAR {
     border-top: solid 5px #ccc698 !important;
 }
-.pws-box.OTHER  {
+.pws-box.OTHER {
     border-top: solid 5px #b4b4b4 !important;
 }
-.pws-box.PSYCHIATRIC  {
+.pws-box.PSYCHIATRIC {
     border-top: solid 5px #5555ff !important;
 }
-.pws-box.RENAL  {
+.pws-box.RENAL {
     border-top: solid 5px #ff55ff !important;
 }
 .pws-box.SLEEP.AND.CIRCADIAN {
@@ -130,9 +145,13 @@
     border-top: solid 5px #cccc00 !important;
 }
 
-.pws-box.TYPE.DIABETES { border-top: solid 5px #639bc0 !important; }
+.pws-box.TYPE.DIABETES {
+    border-top: solid 5px #639bc0 !important;
+}
 
-.pws-box.HEMATOLOGICAL { border-top: solid 5px #aa0000 !important; }
+.pws-box.HEMATOLOGICAL {
+    border-top: solid 5px #aa0000 !important;
+}
 
 /* merged plot */
 .pws-group-legend-wrapper {
@@ -142,22 +161,25 @@
 }
 
 .pws-group-legend {
-    display:inline-block;
+    display: inline-block;
     font-size: 12px;
-    padding-right: 10px
+    padding-right: 10px;
 }
 
 .pws-group-legend-box {
     height: 10px;
-    width:10px;
-    display:inline-block;
+    width: 10px;
+    display: inline-block;
 }
 
 .pws-top-phenotypes-wrapper {
     overflow-x: auto;
     overflow-y: hidden;
-    margin-bottom: 15px;
-    height: 190px;
+    height: 160px;
+}
+
+.pws-top-phenotypes-wrapper.showing-all {
+    height: 170px;
 }
 
 .pws-top-phenotypes-bars-wrapper {
@@ -178,7 +200,7 @@
 }
 
 .pws-top-each-phenotype-wrapper {
-    display:inline-block;
+    display: inline-block;
     height: 100%;
     text-align: center;
     width: 100px;
@@ -190,15 +212,15 @@
     position: absolute;
     border-bottom: 1px solid rgb(204, 204, 204);
     border-top: 1px solid rgb(204, 204, 204);
-    border-right:solid 1px #ccc;
+    border-right: solid 1px #ccc;
     margin-left: -5px;
 }
 
 .pws-top-each-phenotype {
-    width:100%;
-    height:100%;
+    width: 100%;
+    height: 100%;
     position: relative;
-    border-bottom:solid 1px #ccc;
+    border-bottom: solid 1px #ccc;
 }
 
 .pws-top-each-phenotype-pvalue {
@@ -211,20 +233,18 @@
 }
 
 .pws-top-each-phenotype-bar {
-    width:20px;
-    padding:0;
-    position:absolute;
-    bottom:0;
-    margin:0;
-    left:calc(50% - 10px);
+    width: 20px;
+    padding: 0;
+    position: absolute;
+    bottom: 0;
+    margin: 0;
+    left: calc(50% - 10px);
 }
 
 .pws-top-each-phenotype-name {
-
     position: absolute;
-    left:0;
+    left: 0;
     width: 100px;
-
 }
 
 .pws-top-each-phenotype-name > .name-wrapper {
@@ -250,19 +270,21 @@
     position: relative;
 }
 
-.pws-top-each-phenotype-name > .options-4-actions, .phenotype-with-signal > .options-4-actions {
+.pws-top-each-phenotype-name > .options-4-actions,
+.phenotype-with-signal > .options-4-actions {
     display: none;
     position: absolute;
     background-color: #000000;
-    color:#fff;
+    color: #fff;
     font-weight: 400;
     padding: 10px;
     border-radius: 5px;
-    left:-12px;
+    left: -12px;
     top: 10px;
     z-index: 20;
     white-space: nowrap;
     line-height: 1.5em;
+    text-align: left;
 }
 
 .phenotype-with-signal > .options-4-actions {
@@ -271,12 +293,17 @@
     top: -30%;
 }
 
-.pws-top-each-phenotype-name:hover > .options-4-actions, .phenotype-with-signal:hover > .options-4-actions {
+.pws-top-each-phenotype-name:hover > .options-4-actions,
+.phenotype-with-signal:hover > .options-4-actions {
     display: block;
 }
 
-.pws-top-each-phenotype-name:hover > .options-4-actions > div:hover, .phenotype-with-signal:hover > .options-4-actions > div:hover  {
-    color: #aaaaff;
+.pws-top-each-phenotype-name:hover > .options-4-actions > div:hover,
+.phenotype-with-signal:hover > .options-4-actions > div:hover {
+    color: #aaccff;
+    /*background-color: #fff;*/
+    border-top: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
 }
 
 /* /////// */
@@ -286,21 +313,18 @@
     overflow-y: auto;*/
 }
 
-
-
 .new-phenotypes-with-signal-wrapper {
     height: auto;
     max-height: 350px;
     border: solid 1px #ccc;
     border-left: none;
     border-right: none;
-    box-shadow: inset 0px 0px 3px rgba(0,0,0,0.25);
+    box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 0.25);
     background-color: #f5f5f5;
     border-radius: 5px;
     overflow: auto;
     padding: 15px;
 }
-
 
 .pws-box {
     display: inline-block;
@@ -358,7 +382,7 @@
 }
 
 .pws-box .beta.down .direction:after {
-    content: ' \2193';
+    content: " \2193";
     position: absolute;
     display: block;
     left: 3px;
@@ -520,11 +544,11 @@
     display: none;
     position: absolute;
     background-color: #000000;
-    color:#fff;
+    color: #fff;
     font-weight: 400;
     padding: 10px;
     border-radius: 5px;
-    left:50%;
+    left: 50%;
     z-index: 20;
 }
 
@@ -533,7 +557,34 @@
 }
 
 .bar-desc:hover > .options-4-actions > div:hover {
-    color: #aaaaff;
+    color: #0000ff;
+    background-color: #fff;
 }
 
+.show-hide-clumped-associations{
+    position: absolute;
+    z-index: 10;
+    transition: all 0.5s;
+    padding: 0 5px !important;
+    border-radius: 0;
+    border: solid 1px #ddd;
+}
 
+.show-hide-clumped-associations.show-all {
+    top:-15px;
+    right: 10%;
+}
+
+.show-hide-clumped-associations.show-top {
+    transform: rotate(90deg);
+    top: -26px;
+    right: 0px;
+    transform-origin: bottom right;
+    background-color: #666;
+    color: #fff;
+}
+
+.show-hide-clumped-associations.show-top:hover {
+    background-color: #fff;
+    color: #333;
+}

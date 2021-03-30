@@ -49,7 +49,7 @@ new Vue({
             ],
             datasets: [
                 { text: "52K", value: "52k" },
-                { text: "TopMed", value: "TopMed" }
+                { text: "TOPMed", value: "TopMed" }
             ],
             testMethods: [
                 { text: "Collapsing Burden", value: "burden" },
@@ -109,14 +109,7 @@ new Vue({
             ],
             fields: [],
             optionalFields: [],
-            searchCriteria: keyParams.gene
-                ? [
-                      {
-                          field: "gene",
-                          threshold: keyParams.gene
-                      }
-                  ]
-                : []
+            searchCriteria: []
         };
     },
     created() {
@@ -124,6 +117,7 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
         this.$store.dispatch("ldServer/getPhenotypes");
+        this.initCriteria();
     },
     computed: {
         phenotypeMap() {
@@ -149,13 +143,6 @@ new Vue({
             //get only the varIDs for selected rows
             return this.tableData.filter(v => v.selected).map(v => v.varId);
         },
-        selectedPhenotypes() {
-            return this.selectedMethods
-                .filter(v => {
-                    return v.field === "phenotype";
-                })
-                .map(v => v.threshold);
-        },
         selectedGene() {
             return this.searchCriteria
                 .filter(v => {
@@ -174,6 +161,13 @@ new Vue({
             return this.selectedMethods
                 .filter(v => {
                     return v.field === "dataset";
+                })
+                .map(v => v.threshold);
+        },
+        selectedPhenotypes() {
+            return this.selectedMethods
+                .filter(v => {
+                    return v.field === "phenotype";
                 })
                 .map(v => v.threshold);
         },
@@ -257,6 +251,46 @@ new Vue({
                 let matches = await match("gene", input, { limit: 10 });
                 this.matchingGenes = matches;
             }
+        },
+        initCriteria() {
+            if (keyParams.gene)
+                this.searchCriteria.push({
+                    field: "gene",
+                    threshold: keyParams.gene
+                });
+            if (keyParams.masks) {
+                let masks = keyParams.masks.split(",");
+                masks.forEach(m =>
+                    this.searchCriteria.push({
+                        field: "mask",
+                        threshold: m
+                    })
+                );
+            }
+            if (keyParams.dataset) {
+                this.selectedMethods.push({
+                    field: "dataset",
+                    threshold: keyParams.dataset
+                });
+            }
+            if (keyParams.phenotypes) {
+                let phenotypes = keyParams.phenotypes.split(",");
+                phenotypes.forEach(p =>
+                    this.selectedMethods.push({
+                        field: "phenotype",
+                        threshold: p
+                    })
+                );
+            }
+            if (keyParams.tests) {
+                let tests = keyParams.tests.split(",");
+                tests.forEach(t =>
+                    this.selectedMethods.push({
+                        field: "test",
+                        threshold: t
+                    })
+                );
+            }
         }
     },
     watch: {
@@ -276,17 +310,44 @@ new Vue({
             },
             deep: true
         },
-        selectedDataset(newDataset, oldDataset) {
-            if (!isEqual(newDataset, oldDataset)) {
-                this.selectedMethods = this.selectedMethods.filter(v => {
-                    return v.field !== "phenotype";
+        selectedGene(newGene, oldGene) {
+            if (!isEqual(newGene, oldGene)) {
+                keyParams.set({ gene: newGene });
+            }
+        },
+        selectedMasks(newMasks, oldMasks) {
+            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
+            if (!isEqual(newMasks, oldMasks)) {
+                keyParams.set({
+                    masks: newMasks.length ? newMasks.join(",") : []
                 });
             }
         },
+        selectedDataset(newDataset, oldDataset) {
+            if (!isEqual(newDataset, oldDataset)) {
+                if (!isEqual([keyParams.dataset], newDataset)) {
+                    this.selectedMethods = this.selectedMethods.filter(v => {
+                        return v.field !== "phenotype";
+                    });
+                }
+                keyParams.set({ dataset: newDataset });
+            }
+        },
         selectedPhenotypes(newPhenotypes, oldPhenotypes) {
-            //check for value change first, otherwise it gets triggered everytime filter change, forcing a recompute
             if (!isEqual(newPhenotypes, oldPhenotypes)) {
+                keyParams.set({
+                    phenotypes: newPhenotypes.length
+                        ? newPhenotypes.join(",")
+                        : []
+                });
                 this.$store.dispatch("onPhenotypeChange", newPhenotypes);
+            }
+        },
+        selectedTests(newTests, oldTests) {
+            if (!isEqual(newTests, oldTests)) {
+                keyParams.set({
+                    tests: newTests.length ? newTests.join(",") : []
+                });
             }
         },
         "$store.state.variants": function() {

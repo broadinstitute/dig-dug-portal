@@ -28,9 +28,9 @@ export default Vue.component("lz-phewas-panel", {
         value: {
             required: false
         },
-        finishHandler: Function,
-        resolveHandler: Function,
-        errHandler: Function,
+        onLoad: Function,
+        onResolve: Function,
+        onError: Function,
     },
     data() {
         return {
@@ -43,15 +43,15 @@ export default Vue.component("lz-phewas-panel", {
     methods: {
         updatePanel() {
             // NOTE: result.data is bioindex-shaped data, NOT locuszoom-shaped data (which is good)
-            const finishHandler = !!!this.finishHandler ? result => this.$emit('input', result) : this.finishHandler;
+            const onLoad = !!!this.onLoad ? result => this.$emit('input', result) : this.onLoad;
             this.panelId = this.$parent.addPhewasPanel(
                 this.id,
                 this.type,
                 this.phenotypeMap,
                 this.value,
-                finishHandler,
-                this.resolveHandler,
-                this.errHandler
+                onLoad,
+                this.onResolve,
+                this.onError
             );
         },
     },
@@ -84,7 +84,7 @@ export default Vue.component("lz-phewas-panel", {
 });
 
 export class LZPhewasPanel {
-    constructor(varOrGeneId, idType, phenotypeMap, finishHandler, resolveHandler, errHandler, initialData) {
+    constructor(varOrGeneId, idType, phenotypeMap, onLoad, onResolve, onError, initialData) {
 
         // panel_layout_type and datasource_type are not necessarily equal, and refer to different things
         // however they are also jointly necessary for LocusZoom –
@@ -127,6 +127,10 @@ export class LZPhewasPanel {
             data_layers: [
                 LocusZoom.Layouts.merge(
                     {
+                        namespace: {
+                            ...LocusZoom.Layouts.get('data_layer', 'phewas_pvalues').namespace,
+                            [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
+                        },
                         fields: [
                             // we need to call out the fields directly since merge algorithm doesn't combine arrays
                             `{{namespace[${this.datasource_type}]}}pValue`, // adding this piece of data irrelevant to the graphic will help us filter later
@@ -157,9 +161,9 @@ export class LZPhewasPanel {
             index: this.index,
             queryStringMaker: this.queryStringMaker,
             translator: this.translator,
-            finishHandler,
-            resolveHandler,
-            errHandler,
+            onLoad,
+            onResolve,
+            onError,
             initialData: this.initialData,
         });
     }

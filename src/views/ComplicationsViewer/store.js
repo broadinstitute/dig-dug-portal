@@ -13,85 +13,54 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
-        geneFinder: bioIndex("gene-finder"),
+        primaryGeneFinder: bioIndex("gene-finder"),
+        secondaryGeneFinder: bioIndex("gene-finder"),
     },
     state: {
-        newPhenotype: null,
-        phenotype: { "name": "T2D", "description": "Type 2 Diabetes" },
-        geneFinderAssociations: {},
-        phenotypelist: [],
-        secondaryPhenotype: null,
-        filterbadges: false
+        associations: [],
+        condition: keyParams.condition,
+
     },
     mutations: {
-        setPrimaryPhenotypeData(state, d = {}) {
-            let data = d.genefinderData
-            let phenotype = d.phenotype
-            state.geneFinderAssociations[phenotype] = data;
-            state.phenotypelist = [phenotype];
-        },
-        setSecondaryPhenotypeData(state, d = {}) {
-            let data = d.genefinderData
-            let phenotype = d.phenotype
 
-            state.geneFinderAssociations[phenotype] = data;
-            state.phenotypelist.push(phenotype);
+        setMatchingGenes(state, genes) {
+            state.matchingGenes = genes;
         },
-
-        setPhenotypeGeneFinderAssociations() {
-            state.geneFinderAssociations[phenotype] = data;
-            state.phenotypelist.push(phenotype);
+        clearAssociations(state) {
+            state.associations = [];
         },
-        setPhenotype(state, phenotype) {
-            state.phenotype = phenotype;
+        updateAssociations(state, data) {
+            state.associations = state.associations.concat(data);
         },
-        setFilterBadges(state, filterbadges) {
-            state.filterbadges = filterbadges;
+        setCondition(state, condition) {
+            state.condition = condition || keyParams.condition
+            keyParams.set({ condition: condition });
         },
-
         setSecondaryPhenotype(state, secondaryPhenotype) {
-            //let secondaryPhenotypeList = []
             state.secondaryPhenotype = secondaryPhenotype
-        },
-        setPhenotypelist(state, phenotypelist) {
-            state.phenotypelist = phenotypelist
+            keyParams.set({ secondaryPhenotype: secondaryPhenotype });
         }
-
-
-    },
-    getters: {
-        phenotypeGeneFinderData(state) {
-            let phenotyped = state.phenotype;
-            if (!!state.secondaryPhenotype) {
-                phenotyped = state.secondaryPhenotype
-            }
-            let data = state.geneFinder.data
-            let m = {}
-            m[phenotyped] = data;
-            return m;
-        },
-       
-
-
     },
     actions: {
-        // async queryGeneFinder(context) {
-        //     let phenotype = context.state.phenotype
-        //     let response = await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
-        //         let data = {}
-        //         data[phenotype] = bioIndexData
-        //         context.commit("setPhenotype", phenotype);
-        //         context.commit("setPrimaryPhenotypeData", { phenotype: phenotype, genefinderData: bioIndexData });
-        //     })
-        // // },
-        // async secondaryGeneFinder(context, phenotype) {
-        //     await query(`gene-finder`, phenotype, { limit: 500 }).then(bioIndexData => {
-        //         let data = {}
-        //         data[phenotype] = bioIndexData
-        //         context.commit("setSecondaryPhenotype", phenotype);
-        //         context.commit("setSecondaryPhenotypeData", { phenotype, genefinderData: bioIndexData });
-        //     })
-        // },
+        async primaryGeneFinder(context, qOpts) {
+            await context.dispatch('primaryGeneFinder/query', qOpts);
+            context.commit('updateAssociations', context.state.primaryGeneFinder.data);
+        },
 
+        async secondaryGeneFinder(context, qOpts) {
+            await context.dispatch('secondaryGeneFinder/query', qOpts);
+            context.commit('updateAssociations', context.state.secondaryGeneFinder.data);
+        },
+
+        async findGenes(context, { primaryPhenotype, secondaryPhenotype, pValue }) {
+            let limitWhile = record => record.pValue < pValue;
+            let limit = 500;
+
+            context.commit('clearAssociations');
+
+            // update each set of genes
+            context.dispatch('primaryGeneFinder', { q: primaryPhenotype, limit, limitWhile });
+            context.dispatch('secondaryGeneFinder', { q: secondaryPhenotype, limit, limitWhile });
+        }
     }
 });

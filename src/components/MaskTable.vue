@@ -1,8 +1,8 @@
 <template>
     <div>
         <div
-            :class="`feature-headers-${index}`"
-            class="feature-content-wrapper hidden"
+            :class="[`feature-headers-${index}`, isHidden ? 'hidden' : '']"
+            class="feature-content-wrapper"
             :key="`features_${index}`"
         >
             <b-row class="feature-header">
@@ -15,9 +15,7 @@
                 <b-col class="feature-header-item" v-if="!dichotomous"
                     >Beta</b-col
                 >
-                <b-col class="feature-header-item" v-if="!!dichotomous"
-                    >Odds Ratio</b-col
-                >
+                <b-col class="feature-header-item" v-else>Odds Ratio</b-col>
             </b-row>
             <template v-for="(mask, j) in formattedMasks">
                 <b-row
@@ -55,7 +53,7 @@
                         >
                         {{ effectFormatter(mask.beta) }}
                     </b-col>
-                    <b-col class="feature-content-item" v-if="!!dichotomous">
+                    <b-col class="feature-content-item" v-else>
                         <span
                             :class="
                                 Math.exp(mask.beta) < 1
@@ -72,12 +70,11 @@
             </template>
         </div>
         <div
-            class="feature-plot-wrapper hidden"
-            :class="`feature-plot-${index}`"
+            class="feature-plot-wrapper"
+            :class="[`feature-plot-${index}`, isHidden ? 'hidden' : '']"
             :key="`plot_${index}`"
         >
             <b-col>Forest Plot</b-col>
-            <!-- <div :id="`plot_${index}`" class="plots"></div> -->
             <forest-plot
                 :data="formattedMasks"
                 :id="`fplot_${index}`"
@@ -94,13 +91,13 @@ import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import ForestPlot from "@/components/ForestPlot";
 
-import * as am4core from "@amcharts/amcharts4/core";
-import * as am4charts from "@amcharts/amcharts4/charts";
-import am4themes_animated from "@amcharts/amcharts4/themes/animated";
-am4core.useTheme(am4themes_animated);
-
 export default Vue.component("mask-table", {
-    props: ["maskData", "index", "dichotomous"],
+    props: {
+        maskData: Array,
+        index: [String, Number],
+        dichotomous: Boolean,
+        isHidden: { type: Boolean, default: false },
+    },
     component: ForestPlot,
     data() {
         return {
@@ -124,9 +121,10 @@ export default Vue.component("mask-table", {
             },
         };
     },
+    created() {},
     computed: {
         formattedMasks() {
-            let sorted = this.maskData.sort((a, b) => {
+            let sorted = this.maskData.slice().sort((a, b) => {
                 if (this.masks[a.mask].sort < this.masks[b.mask].sort)
                     return -1;
                 if (this.masks[b.mask].sort < this.masks[a.mask].sort) return 1;
@@ -138,6 +136,7 @@ export default Vue.component("mask-table", {
             }));
         },
     },
+
     methods: {
         pValueFormatter: Formatters.pValueFormatter,
         effectFormatter: Formatters.effectFormatter,
@@ -145,3 +144,6 @@ export default Vue.component("mask-table", {
     },
 });
 </script>
+<style>
+@import url("/css/effectorGenes.css");
+</style>

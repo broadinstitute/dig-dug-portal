@@ -2,7 +2,7 @@
     <vue-typeahead-bootstrap
         v-model="userText"
         ref="phenotypeSelect"
-        placeholder="Type in a phenotype ..."
+        :placeholder="placeholder || 'Type in a phenotype ...'"
         :data="phenotypeOptions"
         :serializer="(s) => s.description"
         :maxMatches="1000"
@@ -29,7 +29,7 @@ Vue.use(IconsPlugin);
 Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 export default Vue.component("phenotype-selectpicker", {
-    props: ["phenotypes", "clearOnSelected", "defaultPhenotype"],
+    props: ["phenotypes", "clearOnSelected", "defaultPhenotype", "placeholder"],
 
     data() {
         return {
