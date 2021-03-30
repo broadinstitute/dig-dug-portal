@@ -178,6 +178,10 @@
     height: 160px;
 }
 
+.pws-top-phenotypes-wrapper.showing-all {
+    height: 170px;
+}
+
 .pws-top-phenotypes-bars-wrapper {
     height: 80px;
     position: relative;
@@ -296,8 +300,10 @@
 
 .pws-top-each-phenotype-name:hover > .options-4-actions > div:hover,
 .phenotype-with-signal:hover > .options-4-actions > div:hover {
-    color: #0000ff;
-    background-color: #fff;
+    color: #aaccff;
+    /*background-color: #fff;*/
+    border-top: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
 }
 
 /* /////// */
@@ -553,4 +559,32 @@
 .bar-desc:hover > .options-4-actions > div:hover {
     color: #0000ff;
     background-color: #fff;
+}
+
+.show-hide-clumped-associations{
+    position: absolute;
+    z-index: 10;
+    transition: all 0.5s;
+    padding: 0 5px !important;
+    border-radius: 0;
+    border: solid 1px #ddd;
+}
+
+.show-hide-clumped-associations.show-all {
+    top:-15px;
+    right: 10%;
+}
+
+.show-hide-clumped-associations.show-top {
+    transform: rotate(90deg);
+    top: -26px;
+    right: 0px;
+    transform-origin: bottom right;
+    background-color: #666;
+    color: #fff;
+}
+
+.show-hide-clumped-associations.show-top:hover {
+    background-color: #fff;
+    color: #333;
 }
