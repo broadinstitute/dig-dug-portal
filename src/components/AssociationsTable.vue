@@ -15,7 +15,7 @@
                 :sort-null-last="true"
             >
                 <template v-slot:thead-top="data">
-                    <b-th :colspan="!!showChiSquared ? 7 : 6">
+                    <b-th :colspan="!!showChiSquared ? 6 : 5">
                         <span class="sr-only">Variant</span>
                     </b-th>
                     <b-th
@@ -153,11 +153,11 @@ export default Vue.component("associations-table", {
                 {
                     key: "genes",
                     label: "Closest Genes"
-                },
-                {
-                    key: "maf",
-                    label: "MAF"
                 }
+                // {
+                //     key: "maf",
+                //     label: "MAF"
+                // }
             ]
         };
     },
