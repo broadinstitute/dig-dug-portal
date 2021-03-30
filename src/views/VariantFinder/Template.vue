@@ -1,28 +1,19 @@
 <template>
     <div>
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h1 class="card-title">Variant Finder</h1>
+                    <h1 class="card-title">Signal Sifter</h1>
 
-                    <documentation
-                        style="margin-bottom: 30px"
-                        name="tools.variantfinder.subheader"
-                    ></documentation>
+                    <documentation style="margin-bottom: 30px" name="tools.variantfinder.subheader"></documentation>
 
                     <h4 class="card-title">Build search criteria</h4>
 
                     <!-- phenotype criterion -->
                     <div class="row">
                         <div class="col-md-8 mx-auto">
-                            <div
-                                v-for="(p, index) in $store.state.phenotypes"
-                                :key="index"
-                            >
+                            <div v-for="(p, index) in $store.state.phenotypes" :key="index">
                                 <span class="lead">
                                     <span
                                         :class="`mr-4 badge`"
@@ -32,20 +23,14 @@
                                         v-on:click="
                                             $parent.removePhenotype(index)
                                         "
-                                        >{{ p.phenotype.description }}</span
-                                    >
+                                    >{{ p.phenotype.description }}</span>
                                 </span>
-                                <button
-                                    type="button"
-                                    class="mr-2 close"
-                                    aria-label="Filter"
-                                >
+                                <button type="button" class="mr-2 close" aria-label="Filter">
                                     <span
                                         v-on:click="
                                             p.filterVisible = !p.filterVisible
                                         "
-                                        >&#x2261;</span
-                                    >
+                                    >&#x2261;</span>
                                 </button>
                                 <criterion-function-group
                                     v-model="p.filter"
@@ -80,8 +65,7 @@
                                         : 'Select additional phenotype'
                                 "
                                 :clearOnSelected="true"
-                            >
-                            </phenotype-selectpicker>
+                            ></phenotype-selectpicker>
                         </div>
                     </div>
 
