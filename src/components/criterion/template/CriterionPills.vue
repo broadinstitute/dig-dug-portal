@@ -16,7 +16,7 @@
                     !!filter.color ? `${filter.color} !important` : ''
                 }`,
             }"
-            @click="!!clearable ? !!unset ? unset : $parent.$emit('unset', { filter, idx }) : () => {}"
+            @click="clearable ? $emit('unset', filter) : () => {}"
         >
             {{
                 !!filter.label
@@ -33,13 +33,8 @@
 import Vue from "vue"
 export default Vue.component('criterion-pills', {
     props: {
-        header: {
-            default: 'Selected Filters:\t'
-        },
+        header: String,
         filterList: Array,
-        unset: {
-            type: Function
-        },
         clearable: {
             type: Boolean,
             default: false,

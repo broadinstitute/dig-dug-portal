@@ -44,7 +44,6 @@ Vue.use(IconsPlugin);
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
-import Filters from "@/utils/filters";
 import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("datasets-table", {

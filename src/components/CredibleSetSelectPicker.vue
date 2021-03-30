@@ -22,8 +22,6 @@
 <script>
 import Vue from "vue";
 
-import EventBus from "@/utils/eventBus";
-
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";

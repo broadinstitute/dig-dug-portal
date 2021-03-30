@@ -7,8 +7,11 @@
         :looseMatch="true"
         :header="header"
         @input="emitInput"
-        @update-filter-function="emitFilterFunction"
-        @update-filter-list="emitFilterList"
+        
+        :filterList="filterList"
+        :filterFunction="filterFunction"
+        @update:filter-function="emitFilterFunction"
+        @update:filter-list="emitFilterList"
     >
         <slot></slot>
         <template slot="filtered" slot-scope="{ filter }">
@@ -43,6 +46,12 @@ export default Vue.component("criterion-list-group", {
                     }
                 }
             },
+        },
+        filterList: {
+            type: Array,
+        },
+        filterFunction: {
+            type: Function,
         },
         header: String,
     },
