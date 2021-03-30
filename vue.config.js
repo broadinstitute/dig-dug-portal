@@ -168,7 +168,7 @@ let pages = {
         entry: "src/views/SignalSifter/main.js",
         template: "public/index.html",
         filename: "signalsifter.html",
-        title: "Variant Finder",
+        title: "Signal Sifter",
         chunks: ["chunk-vendors", "chunk-common", "signalsifter"]
     },
     complicationsviewer: {
