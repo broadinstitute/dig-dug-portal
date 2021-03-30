@@ -61,7 +61,8 @@ new Vue({
     data() {
         return {
             filterList: [],
-            displayedFilterList: {}
+            displayedFilterList: {},
+            testPhenotypes: []
         };
     },
 
@@ -102,6 +103,18 @@ new Vue({
                 phenotypes: phenotypes.length ? phenotypes.join(",") : []
             });
             console.log("set");
+        },
+        unsetFilter(filterList, filter) {
+            if (!filterList) return {};
+
+            const _filterList = filterList.filter(
+                el =>
+                    !(
+                        el.field === filter.field &&
+                        el.threshold === filter.threshold
+                    )
+            );
+            return _filterList;
         }
     },
 

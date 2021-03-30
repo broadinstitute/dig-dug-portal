@@ -83,10 +83,8 @@
                                             v-model="p.filter"
                                             :noPills="true"
                                             :inlinePills="true"
-                                            @update-filter-list="
-                                                $parent.displayedFilterList[
-                                                    p.phenotype.name
-                                                ] = $event
+                                            :filterList.sync="
+                                                $parent.testPhenotypes
                                             "
                                         >
                                             <filter-pvalue-control
@@ -103,25 +101,22 @@
                                                     }
                                                 "
                                             >
-                                            </filter-effect-direction-control
-                                            ><criterion-pills
-                                                header=""
-                                                :clearable="true"
-                                                :filterList="
-                                                    $parent.displayedFilterList[
-                                                        p.phenotype.name
-                                                    ]
-                                                        ? $parent
-                                                              .displayedFilterList[
-                                                              p.phenotype.name
-                                                          ]
-                                                        : []
-                                                "
-                                            ></criterion-pills>
+                                            </filter-effect-direction-control>
                                         </criterion-function-group>
                                     </div>
                                 </transition>
-                                <transition name="slide-fade" mode="out-in">
+                                <transition name="slide-fade" mode="out-in"
+                                    ><criterion-pills
+                                        header=""
+                                        :clearable="true"
+                                        @unset="
+                                            $parent.testPhenotypes = $parent.unsetFilter(
+                                                $parent.testPhenotypes,
+                                                $event
+                                            )
+                                        "
+                                        :filterList="$parent.testPhenotypes"
+                                    ></criterion-pills>
                                 </transition>
                                 <!-- <div class="filters-wrapper">
                                     Slide example
