@@ -193,14 +193,8 @@
                                 </h4>
                                 <documentation name="region.variantassociation.subheader"></documentation>
                                 
-                                <criterion-pills
-                                    :filterList="$parent.pillList"
-                                    :clearable="true"
-                                    @unset="$parent.pillList = $parent.pillList.filter(el => el.field !== $event.field && el.threshold !== $event.threshold)"
-                                ></criterion-pills>
                                 <criterion-function-group 
-                                    v-model="$parent.associationsFilter"
-                                    :filterList.sync="$parent.pillList">
+                                    v-model="$parent.associationsFilter">
                                     <filter-enumeration-control
                                         :field="'consequence'"
                                         :options="
