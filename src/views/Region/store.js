@@ -108,6 +108,23 @@ export default new Vuex.Store({
         },
 
         async queryRegion(context, region) {
+            // let start = context.state.newStart;
+            // let chr = context.state.newChr;
+            // let end = context.state.newEnd;
+
+            if (
+                context.state.newChr !== context.state.chr ||
+                context.state.newStart !== context.state.start ||
+                context.state.newEnd !== context.state.end
+            ) {
+                context.commit("setLocus", {
+                    chr: context.state.newChr,
+                    start: context.state.newStart,
+                    end: context.state.newEnd
+                });
+            }
+
+
             const newRegion = region || context.getters.region;
             if (context.state.searchGene) {
                 context.dispatch("findGene");

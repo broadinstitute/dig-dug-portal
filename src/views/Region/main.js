@@ -37,12 +37,12 @@ import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
-import Alert, {
-    postAlert,
-    postAlertNotice,
-    postAlertError,
-    closeAlert
-} from "@/components/Alert";
+// import Alert, {
+//     postAlert,
+//     postAlertNotice,
+//     postAlertError,
+//     closeAlert
+// } from "@/components/Alert";
 import JsonQuery from "json-query";
 
 Vue.config.productionTip = false;
@@ -54,7 +54,7 @@ new Vue({
     components: {
         PageHeader,
         PageFooter,
-        Alert,
+        // Alert,
         Documentation,
         LunarisLink,
         LocusZoom,
@@ -106,10 +106,10 @@ new Vue({
     methods: {
         ...uiUtils,
         ...Formatters,
-        postAlert,
-        postAlertNotice,
-        postAlertError,
-        closeAlert,
+        // postAlert,
+        // postAlertNotice,
+        // postAlertError,
+        // closeAlert,
 
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
