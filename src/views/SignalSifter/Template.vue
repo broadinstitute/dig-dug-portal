@@ -6,6 +6,13 @@
         ></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <documentation
+                        name="signalsifter.header.info"
+                    ></documentation>
+                </div>
+            </div>
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <h1 class="card-title">Signal Sifter</h1>
 
@@ -94,12 +101,13 @@
 
                                             <filter-effect-direction-control
                                                 placeholder="Effect (+/-)"
+                                                field="effect"
                                                 :computedField="
                                                     (obj) => {
                                                         return obj.beta * -1;
                                                     }
                                                 "
-                                            >
+                                                ><span></span>
                                             </filter-effect-direction-control>
                                         </criterion-function-group>
                                     </div>

@@ -93,9 +93,8 @@ new Vue({
             // keyParams.set({
             //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
             // });
-
-            this.displayedFilterList.map(p => console.log(Object.entries(p)));
-            console.log("set");
+            //console.log(Object.entries(this.displayedFilterList));
+            //console.log("set", phenotypes);
         },
         unsetFilter(filterList, filter) {
             if (!filterList) return {};
