@@ -108,9 +108,7 @@ export default new Vuex.Store({
         },
 
         async queryRegion(context, region) {
-            // let start = context.state.newStart;
-            // let chr = context.state.newChr;
-            // let end = context.state.newEnd;
+
 
             if (
                 context.state.newChr !== context.state.chr ||
