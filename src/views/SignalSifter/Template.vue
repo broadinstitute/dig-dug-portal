@@ -22,9 +22,7 @@
                                 <phenotype-selectpicker
                                     class="mt-2"
                                     style="width: 400px"
-                                    :phenotypes="
-                                        $store.state.bioPortal.phenotypes
-                                    "
+                                    :phenotypes="$parent.phenotypeList"
                                     :placeholder="
                                         $store.state.phenotypes.length == 0
                                             ? 'Select lead phenotype'

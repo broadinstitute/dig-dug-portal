@@ -61,7 +61,7 @@ new Vue({
     data() {
         return {
             filterList: [],
-            displayedFilterList: {},
+            displayedFilterList: {}
         };
     },
 
@@ -89,14 +89,6 @@ new Vue({
         phenotypeColor(index) {
             return Colors[index];
         },
-        // showFilters() {
-        //     let element = document.getElementById("sliding_filters_wrapper");
-        //     if (element.classList.contains("hidden")) {
-        //         element.classList.remove("hidden");
-        //     } else {
-        //         element.classList.add("hidden");
-        //     }
-        // }
         setPhenotypeParams(phenotypes) {
             keyParams.set({
                 phenotypes: phenotypes.length ? phenotypes.join(",") : []
@@ -130,8 +122,23 @@ new Vue({
         },
 
         // don't allow selection of the lead phenotype in dropdowns
-        phenotypes() {
-            return this.$store.state.phenotypes.map(p => p.phenotype.name);
+        // phenotypes() {
+        //     return this.$store.state.phenotypes.map(p => p.phenotype.name);
+        // },
+
+        //return only the phenotypes that haven't been selected yet, guard against duplicate selections
+        phenotypeList() {
+            const all = this.$store.state.bioPortal.phenotypes;
+            const selected = this.$store.state.phenotypes;
+            if (selected.length)
+                return all.filter(array =>
+                    selected.every(
+                        filter => filter.phenotype.name !== array.name
+                    )
+                );
+            else {
+                return all;
+            }
         },
 
         clumpedAssociations() {
