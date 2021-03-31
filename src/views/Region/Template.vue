@@ -12,9 +12,7 @@
                     <div class="region-search col filter-col-md">
                         <div class="label">Search gene</div>
                         <gene-selectpicker
-                            @onGeneChange="
-                                $store.dispatch('onGeneChange', $event)
-                            "
+                            @onGeneChange=" $store.dispatch('onGeneChange', $event)"
                         ></gene-selectpicker>
                     </div>
                     <div class="col divider" style="background: none">
