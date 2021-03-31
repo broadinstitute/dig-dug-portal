@@ -1,10 +1,7 @@
 <template>
     <!-- Header -->
     <div>
-        <page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-        ></page-header>
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
 
         <!-- body -->
         <div class="container-fluid mdkp-body">
@@ -15,9 +12,7 @@
                     <div class="region-search col filter-col-md">
                         <div class="label">Search gene</div>
                         <gene-selectpicker
-                            @onGeneChange="
-                                $store.dispatch('onGeneChange', $event)
-                            "
+                            @onGeneChange=" $store.dispatch('onGeneChange', $event)"
                         ></gene-selectpicker>
                     </div>
                     <div class="col divider" style="background: none">
@@ -58,9 +53,7 @@
                             class="btn btn-light btn-sm go"
                             type="button"
                             @click="$store.dispatch('queryRegion')"
-                        >
-                            GO
-                        </button>
+                        >GO</button>
                     </div>
                     <div class="col divider"></div>
                     <!-- <div class="region-search col filter-col-md">
@@ -76,9 +69,9 @@
 
             <div class="gene-page-header card mdkp-card">
                 <div class="row card-body">
-                    <div class="col-md-12 gene-page-header-title">
-                        Chromosome: Start position - End position
-                    </div>
+                    <div
+                        class="col-md-12 gene-page-header-title"
+                    >Chromosome: Start position - End position</div>
                     <!-- <div class="col-md-4 gene-page-header-title">Phenotype</div> -->
                     <div class="col-md-6 gene-page-header-body regionInfo">
                         {{ $parent.regionString }}
@@ -86,9 +79,7 @@
                             class="btn btn-primary text-nowrap text-right explore-region-btn"
                             style="margin-left: 20px"
                             @click="$parent.exploreExpanded()"
-                        >
-                            Expand &plusmn; 50 kb
-                        </button>
+                        >Expand &plusmn; 50 kb</button>
                         <lunaris-link
                             :diseaseGroup="$parent.diseaseGroup"
                             :chr="$store.state.chr"
@@ -116,15 +107,25 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">Genes overlapping region</h4>
+                    <h4 class="card-title">
+                        Genes overlapping region
+                        <tooltip-documentation
+                            name="region.genesoverlapping.header.tooltip"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
+                    </h4>
+
                     <div
                         v-for="row in $parent.genes"
                         :class="'gene-with-signal ' + row.type"
                         :key="row.name"
                     >
-                        <a :href="`/gene.html?gene=${row.name}`">{{
+                        <a :href="`/gene.html?gene=${row.name}`">
+                            {{
                             row.name
-                        }}</a>
+                            }}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -133,10 +134,13 @@
                     <h4 class="card-title">
                         Most significant variant associations in the region:
                         {{ $parent.regionString }}
+                        <tooltip-documentation
+                            name="region.mostsignificantassoc.header.tooltip"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
                     </h4>
-                    <documentation
-                        name="region.phenos_w_signal.subheader"
-                    ></documentation>
+                    <documentation name="region.phenos_w_signal.subheader"></documentation>
                     <div v-if="$parent.topAssociations.length > 0">
                         <div
                             style="text-align: right; padding-bottom: 5px"
@@ -154,14 +158,9 @@
                                     )
                                 "
                                 class="switch-view btn btn-secondary btn-sm"
-                            >
-                                View associations by phenotype group
-                            </div>
+                            >View associations by phenotype group</div>
                         </div>
-                        <phenotype-signal-mixed
-                            :phenotypes="$parent.topAssociations"
-                            :limit="10"
-                        ></phenotype-signal-mixed>
+                        <phenotype-signal-mixed :phenotypes="$parent.topAssociations" :limit="10"></phenotype-signal-mixed>
                     </div>
                     <div v-if="$parent.topAssociations.length > 0" class="mt-3">
                         <clumped-variants-table
@@ -180,16 +179,15 @@
                             v-for="p in $parent.selectedPhenotypes"
                             class="item"
                             >{{ p.description }}</span
-                        >-->&nbsp;
+                        >-->
+                        &nbsp;
                         <tooltip-documentation
                             name="region.topassoc.tooltip"
                             :isHover="true"
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h4>
-                    <documentation
-                        name="region.variantassociation.subheader"
-                    ></documentation>
+                    <documentation name="region.variantassociation.subheader"></documentation>
                     <h6>Select/add phenotypes to the section</h6>
                     <criterion-list-group
                         v-model="$parent.regionPageSearchCriterion"
@@ -222,9 +220,7 @@
                             <div class="label">Phenotypes:</div>
                         </filter-enumeration-control>
                     </criterion-list-group>
-                    <h6 v-if="$parent.selectedPhenotypes.length > 0">
-                        Filter top associations table
-                    </h6>
+                    <h6 v-if="$parent.selectedPhenotypes.length > 0">Filter top associations table</h6>
                     <criterion-function-group
                         v-model="$parent.associationsFilter"
                         v-if="$parent.selectedPhenotypes.length > 0"
@@ -288,12 +284,7 @@
 
                             <criterion-function-group>
                                 <div class="col filter-col-md">
-                                    <div
-                                        class="label"
-                                        style="margin-bottom: 5px"
-                                    >
-                                        Add tissue
-                                    </div>
+                                    <div class="label" style="margin-bottom: 5px">Add tissue</div>
                                     <tissue-selectpicker
                                         :tissues="
                                             $parent.globalEnrichmentTissues
@@ -307,12 +298,7 @@
                                     />
                                 </div>
                                 <div class="col filter-col-md">
-                                    <div
-                                        class="label"
-                                        style="margin-bottom: 5px"
-                                    >
-                                        Add annotation
-                                    </div>
+                                    <div class="label" style="margin-bottom: 5px">Add annotation</div>
                                     <annotation-selectpicker
                                         :annotations="
                                             $parent.globalEnrichmentAnnotations
@@ -327,12 +313,7 @@
                                 </div>
 
                                 <div class="col filter-col-md">
-                                    <div
-                                        class="label"
-                                        style="margin-bottom: 5px"
-                                    >
-                                        Add credible set
-                                    </div>
+                                    <div class="label" style="margin-bottom: 5px">Add credible set</div>
                                     <credible-sets-selectpicker
                                         :credibleSets="$parent.credibleSets"
                                         :clearOnSelected="true"
@@ -347,23 +328,16 @@
                                 <div class="col divider">&nbsp;</div>
 
                                 <span style="display: inline-block">
-                                    <div class="label">
-                                        Filter annotations by global enrichment
-                                    </div>
+                                    <div class="label">Filter annotations by global enrichment</div>
                                     <filter-pvalue-control :field="'pValue'">
-                                        <span class="label"
-                                            >P-Value (&le;)</span
-                                        >
+                                        <span class="label">P-Value (&le;)</span>
                                     </filter-pvalue-control>
                                     <filter-greater-control :field="'fold'">
                                         <span class="label">Fold (&ge;)</span>
                                     </filter-greater-control>
                                 </span>
 
-                                <template
-                                    slot="filtered"
-                                    slot-scope="{ filter }"
-                                >
+                                <template slot="filtered" slot-scope="{ filter }">
                                     <locuszoom
                                         ref="locuszoom"
                                         :chr="$store.state.chr"
@@ -417,9 +391,7 @@
         <b-collapse id="collapse-1" class="mt-2">
             <b-card>
                 <p class="card-text">Collapse contents Here</p>
-                <b-button v-b-toggle.collapse-1-inner size="sm"
-                    >Toggle Inner Collapse</b-button
-                >
+                <b-button v-b-toggle.collapse-1-inner size="sm">Toggle Inner Collapse</b-button>
                 <b-collapse id="collapse-1-inner" class="mt-2">
                     <b-card>Hello!</b-card>
                 </b-collapse>

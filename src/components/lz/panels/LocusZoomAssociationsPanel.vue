@@ -106,7 +106,7 @@ export class LZAssociationsPanel {
                 pValue: association.pValue,
                 log_pvalue: -1 * Math.log10(association.pValue), // .toPrecision(4),
                 variant: varId2OtherVarId(association.varId),
-                ref_allele: varId2OtherVarId(association.varId),
+                ref_allele: association.reference,
                 consequence: association.consequence,
                 beta: association.beta,
                 nearest: association.nearest,

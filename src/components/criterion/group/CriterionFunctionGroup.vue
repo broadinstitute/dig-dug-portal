@@ -1,15 +1,22 @@
 <template>
     <criterion-group-template
         :ref="Math.floor(Math.random() * 10000).toString()"
+        
         :value="value"
+        @input="emitInput"
+
         :hide="hide"
         :filterType="'function'"
         :looseMatch="true"
         :header="header"
+        :noPills="noPills"
+        :inlinePills="inlinePills"
         :inclusive="inclusive"
-        @input="emitInput"
-        @update-filter-function="emitFilterFunction"
-        @update-filter-list="emitFilterList"
+
+        :filterList="filterList"
+        :filterFunction="filterFunction"
+        @update:filter-function="emitFilterFunction"
+        @update:filter-list="emitFilterList"
     >
         <slot></slot>
         <template slot="filtered" slot-scope="{ filter }">
@@ -28,8 +35,16 @@ export default Vue.component("criterion-function-group", {
                 return true;
             },
         },
+        filterList: {
+            type: Array,
+        },
+        filterFunction: {
+            type: Function,
+        },
         header: String,
         hide: Boolean,
+        noPills: Boolean,
+        inlinePills: Boolean,
         inclusive: {
             type: Boolean,
         },
@@ -40,10 +55,10 @@ export default Vue.component("criterion-function-group", {
             this.$emit("input", value);
         },
         emitFilterList(value) {
-            this.$emit("update-filter-list", value);
+            this.$emit("update:filter-list", value);
         },
         emitFilterFunction(value) {
-            this.$emit("update-filter-function", value);
+            this.$emit("update:filter-function", value);
         },
     },
 });
