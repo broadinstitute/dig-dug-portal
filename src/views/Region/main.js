@@ -23,7 +23,6 @@ import Autocomplete from "@/components/Autocomplete.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 
 import keyParams from "@/utils/keyParams";
-import { isEqual, startCase } from "lodash";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterPValue from "@/components/criterion/FilterPValue.vue";
@@ -36,14 +35,15 @@ import ClumpedVariantsTable from "@/components/ClumpedVariantsTable";
 import { BButton, BootstrapVueIcons } from "bootstrap-vue";
 
 import Formatters from "@/utils/formatters";
+import filterHelpers from "@/utils/filterHelpers";
 import uiUtils from "@/utils/uiUtils";
+
 import Alert, {
     postAlert,
     postAlertNotice,
     postAlertError,
     closeAlert
 } from "@/components/Alert";
-import JsonQuery from "json-query";
 
 Vue.config.productionTip = false;
 Vue.component("b-button", BButton);
@@ -100,17 +100,18 @@ new Vue({
             pageAssociationsMap: {},
             pageAssociations: [],
             regionPageSearchCriterion: [],
+            pillList: []
         };
     },
 
     methods: {
         ...uiUtils,
         ...Formatters,
+        ...filterHelpers,
         postAlert,
         postAlertNotice,
         postAlertError,
         closeAlert,
-
         requestCredibleSets(eventData) {
             const { start, end } = eventData;
             if (!!start && !!end) {
@@ -118,8 +119,7 @@ new Vue({
 
                 this.$store.dispatch("credibleSets/clear");
                 this.selectedPhenotypes.forEach(p => {
-                    const queryString = `${p.name},${
-                        this.$store.state.chr
+                    const queryString = `${p.name},${this.$store.state.chr
                         }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                     that.$store.dispatch("credibleSets/query", {
                         q: queryString,
@@ -132,8 +132,9 @@ new Vue({
         exploreExpanded() {
             this.$store.commit("setLocus", {
                 chr: this.$store.state.chr,
-                start: this.$store.state.start - 50000,
-                end: this.$store.state.end + 50000
+                //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
+                start: parseInt(this.$store.state.start) - 50000,
+                end: parseInt(this.$store.state.end) + 50000
             });
             this.$store.dispatch("queryRegion");
         },
@@ -260,8 +261,8 @@ new Vue({
 
         regionString() {
             let chr = this.$store.state.chr;
-            let start = this.$store.state.start;
-            let end = this.$store.state.end;
+            let start = parseInt(this.$store.state.start);
+            let end = parseInt(this.$store.state.end);
             return Formatters.locusFormatter(chr, start, end);
         },
 

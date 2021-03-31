@@ -1,6 +1,14 @@
 <template>
-    <div>
-        <div v-if="tableData.length > 0">
+    <div id="clump-associations">
+        <b-row class="mb-2">
+            <b-col class="text-right">
+                <csv-download
+                    :data="clumpedAssociations"
+                    filename="clumped-associations"
+                ></csv-download
+            ></b-col>
+        </b-row>
+        <div v-if="tableData.length">
             <b-table
                 hover
                 small
@@ -136,6 +144,8 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
+import CsvDownload from "@/components/CsvDownload";
+
 import { isEqual } from "lodash";
 
 export default Vue.component("clumped-associations-table", {
@@ -149,6 +159,7 @@ export default Vue.component("clumped-associations-table", {
     components: {
         Documentation,
         TooltipDocumentation,
+        CsvDownload,
     },
     data() {
         return {

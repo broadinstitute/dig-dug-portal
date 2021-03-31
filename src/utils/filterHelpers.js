@@ -174,3 +174,25 @@ export function decodeNamespace(
     });
     return tempObject;
 }
+
+export function unsetFilter(filterList, filter) {
+    const _filterList = _.filter(
+        filterList, 
+        el => !(el.field === filter.field && el.threshold === filter.threshold));
+    return _filterList;
+}
+
+export function unsetFilterFromList(filterList) {
+    return filter => {
+        filterList = unsetFilter(filterList, filter);
+    };
+}
+
+export default {
+    filterFromPredicates,
+    predicateFromSpec,
+    decodeNamespace,
+    encodeNamespace,
+    unsetFilter,
+    unsetFilterFromList
+}
