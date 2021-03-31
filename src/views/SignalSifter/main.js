@@ -90,9 +90,11 @@ new Vue({
             return Colors[index];
         },
         setPhenotypeParams(phenotypes) {
-            keyParams.set({
-                phenotypes: phenotypes.length ? phenotypes.join(",") : []
-            });
+            // keyParams.set({
+            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
+            // });
+
+            this.displayedFilterList.map(p => console.log(Object.entries(p)));
             console.log("set");
         },
         unsetFilter(filterList, filter) {
@@ -120,23 +122,25 @@ new Vue({
         diseaseGroup() {
             return this.$store.getters["bioPortal/diseaseGroup"];
         },
-
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        },
         // don't allow selection of the lead phenotype in dropdowns
-        // phenotypes() {
-        //     return this.$store.state.phenotypes.map(p => p.phenotype.name);
-        // },
+        phenotypes() {
+            return this.$store.state.phenotypes.map(p => p.phenotype.name);
+        },
 
         //return only the phenotypes that haven't been selected yet, guard against duplicate selections
         phenotypeList() {
             const all = this.$store.state.bioPortal.phenotypes;
             const selected = this.$store.state.phenotypes;
-            if (selected.length)
+            if (selected.length) {
                 return all.filter(array =>
                     selected.every(
                         filter => filter.phenotype.name !== array.name
                     )
                 );
-            else {
+            } else {
                 return all;
             }
         },

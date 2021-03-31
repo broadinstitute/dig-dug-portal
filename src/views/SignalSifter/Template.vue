@@ -161,7 +161,7 @@
                         "
                         :associations="$parent.clumpedAssociations"
                         :phenotypes="$parent.phenotypes"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :phenotypeMap="$parent.phenotypeMap"
                         :colorByPhenotype="true"
                         class="mt-2 mb-2"
                     ></manhattan-plot>
@@ -174,7 +174,7 @@
                             $parent.clumpedAssociations.length > 0
                         "
                         :phenotypes="$parent.phenotypes"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :phenotypeMap="$parent.phenotypeMap"
                         :associations="$parent.clumpedAssociations"
                         :rowsPerPage="30"
                         :exclusive="true"
