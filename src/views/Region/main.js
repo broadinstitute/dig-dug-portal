@@ -119,8 +119,7 @@ new Vue({
 
                 this.$store.dispatch("credibleSets/clear");
                 this.selectedPhenotypes.forEach(p => {
-                    const queryString = `${p.name},${
-                        this.$store.state.chr
+                    const queryString = `${p.name},${this.$store.state.chr
                         }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                     that.$store.dispatch("credibleSets/query", {
                         q: queryString,
@@ -133,8 +132,9 @@ new Vue({
         exploreExpanded() {
             this.$store.commit("setLocus", {
                 chr: this.$store.state.chr,
-                start: this.$store.state.start - 50000,
-                end: this.$store.state.end + 50000
+                //HACKYY FIX - PLEASE FIND OUT  - why is "end" state a string but not "start" state
+                start: parseInt(this.$store.state.start) - 50000,
+                end: parseInt(this.$store.state.end) + 50000
             });
             this.$store.dispatch("queryRegion");
         },
@@ -261,8 +261,8 @@ new Vue({
 
         regionString() {
             let chr = this.$store.state.chr;
-            let start = this.$store.state.start;
-            let end = this.$store.state.end;
+            let start = parseInt(this.$store.state.start);
+            let end = parseInt(this.$store.state.end);
             return Formatters.locusFormatter(chr, start, end);
         },
 
