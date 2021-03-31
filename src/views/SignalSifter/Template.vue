@@ -6,6 +6,13 @@
         ></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <documentation
+                        name="signalsifter.header.info"
+                    ></documentation>
+                </div>
+            </div>
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <h1 class="card-title">Signal Sifter</h1>
 
@@ -22,9 +29,7 @@
                                 <phenotype-selectpicker
                                     class="mt-2"
                                     style="width: 400px"
-                                    :phenotypes="
-                                        $store.state.bioPortal.phenotypes
-                                    "
+                                    :phenotypes="$parent.phenotypeList"
                                     :placeholder="
                                         $store.state.phenotypes.length == 0
                                             ? 'Select lead phenotype'
@@ -83,7 +88,9 @@
                                             v-model="p.filter"
                                             :noPills="true"
                                             :filterList.sync="
-                                                $parent.displayedFilterList[p.phenotype.name]
+                                                $parent.displayedFilterList[
+                                                    p.phenotype.name
+                                                ]
                                             "
                                         >
                                             <filter-pvalue-control
@@ -94,12 +101,13 @@
 
                                             <filter-effect-direction-control
                                                 placeholder="Effect (+/-)"
+                                                field="effect"
                                                 :computedField="
                                                     (obj) => {
                                                         return obj.beta * -1;
                                                     }
                                                 "
-                                            >
+                                                ><span></span>
                                             </filter-effect-direction-control>
                                         </criterion-function-group>
                                     </div>
@@ -109,12 +117,24 @@
                                     <criterion-pills
                                         :clearable="true"
                                         @unset="
-                                            $parent.displayedFilterList[p.phenotype.name] = 
-                                                $parent.displayedFilterList[p.phenotype.name]
-                                                    .filter(f => !(f.field === $event.field && f.threshold === $event.threshold))
+                                            $parent.displayedFilterList[
+                                                p.phenotype.name
+                                            ] = $parent.displayedFilterList[
+                                                p.phenotype.name
+                                            ].filter(
+                                                (f) =>
+                                                    !(
+                                                        f.field ===
+                                                            $event.field &&
+                                                        f.threshold ===
+                                                            $event.threshold
+                                                    )
+                                            )
                                         "
                                         :filterList="
-                                            $parent.displayedFilterList[p.phenotype.name]
+                                            $parent.displayedFilterList[
+                                                p.phenotype.name
+                                            ]
                                         "
                                     ></criterion-pills>
                                 </transition>
@@ -148,7 +168,7 @@
                         "
                         :associations="$parent.clumpedAssociations"
                         :phenotypes="$parent.phenotypes"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :phenotypeMap="$parent.phenotypeMap"
                         :colorByPhenotype="true"
                         class="mt-2 mb-2"
                     ></manhattan-plot>
@@ -161,7 +181,7 @@
                             $parent.clumpedAssociations.length > 0
                         "
                         :phenotypes="$parent.phenotypes"
-                        :phenotypeMap="$store.state.bioPortal.phenotypeMap"
+                        :phenotypeMap="$parent.phenotypeMap"
                         :associations="$parent.clumpedAssociations"
                         :rowsPerPage="30"
                         :exclusive="true"
@@ -216,6 +236,8 @@
     border: 1px solid transparent;
     border-radius: 1.5rem;
     min-height: 50px;
+    min-width: fit-content;
+    white-space: nowrap;
 }
 #variant-finder div.col .label {
     display: inline-block;
@@ -225,15 +247,18 @@
 }
 .selected-phenotype div.filtering-ui-content input {
     background: transparent;
-    border: 1px solid #ffffff;
+    border: 1px solid #666;
 }
 .selected-phenotype div.filtering-ui-content input::placeholder {
-    color: #ffffff;
+    color: #666;
     opacity: 1; /* Firefox */
 }
 .selected-phenotype:not(:first-child) {
     margin-left: 2rem;
 }
+/* .selected-phenotype > div {
+    display: table-cell;
+} */
 #variant-finder .selected-phenotype div.filtering-ui-wrapper {
     border: none;
     background-color: transparent;
@@ -246,9 +271,10 @@
     display: inline-block;
 }
 .filter-pill-collection {
-    margin: 0;
-    width: 300px;
+    margin-right: 30px;
+    /* width: 300px; */
     white-space: nowrap;
+    float: right;
 }
 
 .filter-options {
@@ -302,7 +328,9 @@ div.lead .lead-icon {
 }
 
 .slide-fade-enter-active,
-.slide-fade-leave-active {
+.slide-fade-leave-active,
+.slide-down-enter-active,
+.slide-down-leave-active {
     transition: all 0.5s;
 }
 
@@ -312,6 +340,14 @@ div.lead .lead-icon {
 }
 .slide-fade-leave-to {
     transform: translateX(-10%);
+    /* transform: translateY(-100%); */
+}
+.slide-down-enter {
+    transform: translateY(-20%);
+    /* width: auto; */
+}
+.slide-down-leave-to {
+    transform: translateY(-10%);
     /* transform: translateY(-100%); */
 }
 button:focus {
