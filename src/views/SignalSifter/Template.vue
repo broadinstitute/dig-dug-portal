@@ -103,9 +103,7 @@
                                                 placeholder="Effect (+/-)"
                                                 field="effect"
                                                 :computedField="
-                                                    (obj) => {
-                                                        return obj.beta * -1;
-                                                    }
+                                                    $parent.alignedBeta
                                                 "
                                                 ><span></span>
                                             </filter-effect-direction-control>

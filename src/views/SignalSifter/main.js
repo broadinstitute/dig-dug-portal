@@ -107,6 +107,9 @@ new Vue({
                     )
             );
             return _filterList;
+        },
+        alignedBeta(row) {
+            return row.beta * (row.alignment || 1);
         }
     },
 
