@@ -61,7 +61,7 @@
                                             <h4>
                                                 Combined Evidence
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.combined.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -137,7 +137,7 @@
                                             <h4>
                                                 Common Variation
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.commonvariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -253,7 +253,7 @@
                                             <h4>
                                                 Common Variation
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.commonvariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -325,7 +325,7 @@
                                             <h4>
                                                 Rare Variation
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.rarevariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
@@ -380,7 +380,7 @@
                                             <h4>
                                                 Rare Variation
                                                 <tooltip-documentation
-                                                    name="gene.function.tooltip.hover"
+                                                    name="hugecal.rarevariation.tooltip.hover"
                                                     :content-fill="$parent.documentationMap"
                                                     :isHover="true"
                                                     :noIcon="false"
