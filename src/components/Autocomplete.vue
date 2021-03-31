@@ -1,25 +1,23 @@
 <template>
-    <div>
-        <vue-typeahead-bootstrap
-            ref="autocomplete"
-            v-model="userInput"
-            :data="lookupOptions"
-            :disabled="disabled"
-            :placeholder="placeholder"
-            :serializer="labelFormatter"
-            :showOnFocus="true"
-            :maxMatches="1000"
-            @hit="onAutoCompleteItemSelected($event)"
-            @keyup.enter="onUserEnterNonAutoCompleteItem"
-        >
-            <template slot="suggestion" slot-scope="{ data, htmlText }">
-                <span v-html="htmlText"></span>&nbsp;
-                <small v-if="secondaryKey" class="text-secondary">{{
-                    data[secondaryKey]
-                }}</small>
-            </template>
-        </vue-typeahead-bootstrap>
-    </div>
+    <vue-typeahead-bootstrap
+        ref="autocomplete"
+        v-model="userInput"
+        :data="lookupOptions"
+        :disabled="disabled"
+        :placeholder="placeholder"
+        :serializer="labelFormatter"
+        :showOnFocus="true"
+        :maxMatches="1000"
+        @hit="onAutoCompleteItemSelected($event)"
+        @keyup.enter="onUserEnterNonAutoCompleteItem"
+    >
+        <template slot="suggestion" slot-scope="{ data, htmlText }">
+            <span v-html="htmlText"></span>&nbsp;
+            <small v-if="secondaryKey" class="text-secondary">{{
+                data[secondaryKey]
+            }}</small>
+        </template>
+    </vue-typeahead-bootstrap>
 </template>
 
 <script>

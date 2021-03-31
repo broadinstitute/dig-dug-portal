@@ -26,18 +26,19 @@ export default Vue.component("alert", {
                 warning: "Warning",
                 danger: "Error!",
                 primary: "Notice",
-                secondary: "Status"
+                secondary: "Status",
             };
+
             this.$bvToast.toast(alert.message, {
                 id: alert.params ? alert.params.id : null,
                 variant: alert.type,
-                title: title[alert.type],
+                title: `${title[alert.type]}`,
                 solid: true,
                 toaster: "b-toaster-bottom-right",
                 autoHideDelay: 10000,
                 noAutoHide: alert.params ? alert.params.noHide : false,
                 appendToast: true,
-                noCloseButton: alert.params ? alert.params.noClose : false
+                noCloseButton: alert.params ? alert.params.noClose : false,
             });
         },
         closeAlert(id) {
@@ -47,34 +48,36 @@ export default Vue.component("alert", {
              * never close. By waiting 100 ms, the DOM has enough time
              * to add it, and then we can close it.
              */
-            this.$bvToast.hide(id);
+            let that = this;
+            setTimeout(() => that.$bvToast.hide(id), 200);
         },
         pushAlert(alert) {
-            alertQueue.push(() => this.showAlert(alert))
+            alertQueue.push(() => this.showAlert(alert));
         },
         popAlert(id) {
-            alertQueue.push(() => this.closeAlert(id))
+            alertQueue.push(() => this.closeAlert(id));
         },
         processAlertQueue() {
-            alertQueue.forEach(f => f());
+            alertQueue.forEach((f) => f());
             alertQueue = [];
-        }
-    }
+        },
+    },
 });
 
 let alertQueue = [];
 // https://stackoverflow.com/a/5927432
 // http://www.javascriptkit.com/javatutors/requestanimationframe.shtml (cf "Slowing down or cancelling requestAnimationFrame")
-const fps = 60
-function animateAlert(){
-    updateAlert()
-    setTimeout(function(){ //throttle requestAnimationFrame to 45fps
-        requestAnimationFrame(animateAlert)
-    }, 1000/fps)
+const fps = 60;
+function animateAlert() {
+    updateAlert();
+    setTimeout(function () {
+        //throttle requestAnimationFrame to 45fps
+        requestAnimationFrame(animateAlert);
+    }, 1000 / fps);
 }
-requestAnimationFrame(animateAlert)
+requestAnimationFrame(animateAlert);
 
-const postAlert = function(type, message, params) {
+const postAlert = function (type, message, params) {
     EventBus.$emit("ALERT", { type, message, params });
 };
 
@@ -87,13 +90,13 @@ const postAlert = function(type, message, params) {
  * @return {string} unique numeric identifier of the alert
  * @public
  */
-const postAlertError = function(message, context) {
+const postAlertError = function (message, context) {
     const id = Counter.getUniqueId("alert");
     context = context ? context : "danger";
     EventBus.$emit("ALERT", {
         type: context, //"danger",
         message: message,
-        params: { noHide: true, id: id }
+        params: { noHide: true, id: id },
     });
 
     // Logging this alert to Google Analytics
@@ -101,20 +104,22 @@ const postAlertError = function(message, context) {
 
     return id;
 };
-const postAlertNotice = function(message) {
+const postAlertNotice = function (message) {
     const id = Counter.getUniqueId("alert");
+    //console.log(`Requesting creation of toast #${id}`);
     EventBus.$emit("ALERT", {
         type: "secondary",
         message: message,
-        params: { noHide: true, noClose: true, id: id }
+        params: { noHide: true, noClose: true, id: id },
     });
     return id;
 };
-const closeAlert = function(id) {
+const closeAlert = function (id) {
+    //console.log(`Requesting close of toast #${id}`);
     EventBus.$emit("CLOSE_ALERT", id);
 };
 
-const updateAlert = function() {
+const updateAlert = function () {
     EventBus.$emit("UPDATE_ALERT");
 };
 

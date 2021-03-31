@@ -109,7 +109,6 @@ export default function (index, extend) {
                         },
                         // report errors
                         onError: error => {
-                            closeAlert(alertID);
                             postAlertError(error.detail);
                             context.commit('setError', error.detail);
                         },
