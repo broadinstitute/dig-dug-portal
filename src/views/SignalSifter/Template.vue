@@ -83,7 +83,9 @@
                                             v-model="p.filter"
                                             :inlinePills="true"
                                             :filterList.sync="
-                                                $parent.displayedFilterList[p.phenotype.name]
+                                                $parent.displayedFilterList[
+                                                    p.phenotype.name
+                                                ]
                                             "
                                         >
                                             <filter-pvalue-control
@@ -105,21 +107,33 @@
                                     </div>
                                 </transition>
 
-                                <transition name="slide-fade" mode="out-in"
+                                <transition name="slide-down" mode="out-in"
                                     ><criterion-pills
                                         header=""
                                         :clearable="true"
                                         @unset="
-                                            $parent.displayedFilterList[p.phenotype.name] = 
-                                                $parent.displayedFilterList[p.phenotype.name]
-                                                    .filter(f => !(f.field === $event.field && f.threshold === $event.threshold))
+                                            $parent.displayedFilterList[
+                                                p.phenotype.name
+                                            ] = $parent.displayedFilterList[
+                                                p.phenotype.name
+                                            ].filter(
+                                                (f) =>
+                                                    !(
+                                                        f.field ===
+                                                            $event.field &&
+                                                        f.threshold ===
+                                                            $event.threshold
+                                                    )
+                                            )
                                         "
                                         :filterList="
-                                            $parent.displayedFilterList[p.phenotype.name]
+                                            $parent.displayedFilterList[
+                                                p.phenotype.name
+                                            ]
                                         "
                                     ></criterion-pills>
                                 </transition>
-                                
+
                                 <button
                                     type="button"
                                     class="mr-2 close"
@@ -217,6 +231,8 @@
     border: 1px solid transparent;
     border-radius: 1.5rem;
     min-height: 50px;
+    min-width: fit-content;
+    white-space: nowrap;
 }
 #variant-finder div.col .label {
     display: inline-block;
@@ -226,15 +242,18 @@
 }
 .selected-phenotype div.filtering-ui-content input {
     background: transparent;
-    border: 1px solid #ffffff;
+    border: 1px solid #666;
 }
 .selected-phenotype div.filtering-ui-content input::placeholder {
-    color: #ffffff;
+    color: #666;
     opacity: 1; /* Firefox */
 }
 .selected-phenotype:not(:first-child) {
     margin-left: 2rem;
 }
+/* .selected-phenotype > div {
+    display: table-cell;
+} */
 #variant-finder .selected-phenotype div.filtering-ui-wrapper {
     border: none;
     background-color: transparent;
@@ -247,9 +266,10 @@
     display: inline-block;
 }
 .filter-pill-collection {
-    margin: 0;
-    width: 300px;
+    margin-right: 30px;
+    /* width: 300px; */
     white-space: nowrap;
+    float: right;
 }
 
 .filter-options {
@@ -303,7 +323,9 @@ div.lead .lead-icon {
 }
 
 .slide-fade-enter-active,
-.slide-fade-leave-active {
+.slide-fade-leave-active,
+.slide-down-enter-active,
+.slide-down-leave-active {
     transition: all 0.5s;
 }
 
@@ -313,6 +335,14 @@ div.lead .lead-icon {
 }
 .slide-fade-leave-to {
     transform: translateX(-10%);
+    /* transform: translateY(-100%); */
+}
+.slide-down-enter {
+    transform: translateY(-20%);
+    /* width: auto; */
+}
+.slide-down-leave-to {
+    transform: translateY(-10%);
     /* transform: translateY(-100%); */
 }
 button:focus {
