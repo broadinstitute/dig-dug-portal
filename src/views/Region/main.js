@@ -118,8 +118,7 @@ new Vue({
 
                 this.$store.dispatch("credibleSets/clear");
                 this.selectedPhenotypes.forEach(p => {
-                    const queryString = `${p.name},${
-                        this.$store.state.chr
+                    const queryString = `${p.name},${this.$store.state.chr
                         }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                     that.$store.dispatch("credibleSets/query", {
                         q: queryString,

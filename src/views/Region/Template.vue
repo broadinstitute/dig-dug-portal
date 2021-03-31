@@ -94,7 +94,7 @@
                             :chr="$store.state.chr"
                             :begin="$store.state.start"
                             :end="$store.state.end"
-                            :trait="$store.state.phenotype"
+                            :trait="$parent.selectedPhenotypes[0]"
                             :dataContent="
                                 this.$store.state.lunaris.dataFromLunaris
                             "

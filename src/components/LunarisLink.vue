@@ -53,6 +53,7 @@
                     }}
                 </p>
             </div>
+            <div id="loading_lunaris_data" class="hidden">Loading Data...</div>
             <button
                 v-on:click="this.copyDataContent"
                 class="btn btn-secondary btn-sm copy-data-btn"
@@ -82,9 +83,20 @@ export default Vue.component("lunaris-link", {
         };
     },
     mounted: function () {},
+    watch: {
+        "$store.state.lunaris.dataFromLunaris"(data) {
+            console.log("data is there!!");
+            uiUtils.hideElement("loading_lunaris_data");
+            uiUtils.showElement("lunaris-modal-textarea");
+            uiUtils.showElement("copy-data-btn");
+        },
+    },
     methods: {
         loadDataFromLunaris(CLASS) {
             uiUtils.showHideElement(CLASS);
+            uiUtils.showElement("loading_lunaris_data");
+            uiUtils.hideElement("copy-data-btn");
+            uiUtils.hideElement("lunaris-modal-textarea");
             //this.lunarisCaller();
             let arg = {
                 id: "requestFilterTsv",
@@ -110,10 +122,10 @@ export default Vue.component("lunaris-link", {
                 },
             };
 
-            let CHR = this.$store.state.chr;
-            let BEGIN = this.$store.state.start;
-            let END = this.$store.state.end;
-            let TRAIT = this.$store.state.phenotype.name;
+            let CHR = this.chr;
+            let BEGIN = this.begin;
+            let END = this.end;
+            let TRAIT = this.trait.name;
 
             arg.regions[CHR] = [{ begin: BEGIN, end: END }];
             arg.recipe.filter.stringValue = TRAIT;
