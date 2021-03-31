@@ -86,7 +86,7 @@
                                     >
                                         <criterion-function-group
                                             v-model="p.filter"
-                                            :inlinePills="true"
+                                            :noPills="true"
                                             :filterList.sync="
                                                 $parent.displayedFilterList[
                                                     p.phenotype.name
@@ -111,9 +111,8 @@
                                     </div>
                                 </transition>
 
-                                <transition name="slide-down" mode="out-in"
-                                    ><criterion-pills
-                                        header=""
+                                <transition name="slide-fade" mode="out-in">
+                                    <criterion-pills
                                         :clearable="true"
                                         @unset="
                                             $parent.displayedFilterList[

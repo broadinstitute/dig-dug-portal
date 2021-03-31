@@ -12,7 +12,7 @@
                     <!-- Filter Widget Control Slot -->
                     <!-- It's unnamed because multiple filter controls will be placed inside here -->
                     <slot></slot>
-                    <slot v-if="inlinePills" name="pills">
+                    <slot v-if="inlinePills && !noPills" name="pills">
                         <criterion-pills
                             v-if="filterListInternal != null && filterListInternal.length > 0"
                             :header="header"
@@ -25,7 +25,7 @@
                 </b-row>
             </b-container>
 
-            <slot v-if="!inlinePills" name="pills">
+            <slot v-if="!inlinePills && !noPills" name="pills">
                 <criterion-pills
                     v-if="filterListInternal != null && filterListInternal.length > 0"
                     :header="header"
