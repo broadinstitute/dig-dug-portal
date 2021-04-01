@@ -111,14 +111,11 @@ export class LZIntervalsPanel {
             const tissueIntervals = !!intervals
                 ? intervals
                       .map((interval) => {
-                          console.log(interval, scoring)
                           const { r, g, b } = rgb(
                               color(
                                   LZColorScheme.getColor(interval[secondaryKey])
                               )
                           );
-
-                          console.log(title, scoring[`${interval.annotation}___${interval.tissue}`])
 
                           if (!interval[secondaryKey]) return null;
 
