@@ -39,20 +39,17 @@
                 >&#43;</span
             >
             <div class="lunaris-modal-parameters">
-                <p>
-                    {{
-                        "Region: " +
-                        this.chr +
-                        " : " +
-                        this.begin +
-                        " - " +
-                        this.end
-                    }}
-                    {{
-                        "&nbsp;&nbsp;|&nbsp;&nbsp;Phenotype: " + this.trait.name
-                    }}
-                </p>
+                {{
+                    "Region: " +
+                    this.chr +
+                    " : " +
+                    this.begin +
+                    " - " +
+                    this.end
+                }}
+                {{ "&nbsp;&nbsp;|&nbsp;&nbsp;Phenotype: " + this.trait.name }}
             </div>
+
             <div id="loading_lunaris_data" class="hidden">Loading Data...</div>
             <button
                 v-on:click="this.copyDataContent"

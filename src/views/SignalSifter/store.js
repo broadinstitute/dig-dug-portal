@@ -34,7 +34,7 @@ export default new Vuex.Store({
                     phenotype: phenotype,
                     associations: state.globalAssociations.data,
                     filter: x => true,
-                    filterVisible: false
+                    filterVisible: true
                 }
             ];
         },

@@ -43,7 +43,7 @@
                     </b-container>
                     <!-- phenotype criterion -->
                     <div class="row">
-                        <div class="col-md-8 mx-auto">
+                        <div class="col-md-9 mx-auto">
                             <div
                                 class="selected-phenotype text"
                                 :class="`color-${index + 1}-bg`"
@@ -55,29 +55,26 @@
                                         v-if="index === 0"
                                         class="lead-icon"
                                         title="Lead Phenotype"
-                                        v-b-tooltip.hover="{ variant: 'light' }"
+                                        v-b-tooltip.hover="{
+                                            variant: 'light',
+                                        }"
                                         ><b-icon-check2-circle
                                             variant="light"
                                         ></b-icon-check2-circle
                                     ></span>
 
                                     <span
-                                        v-b-tooltip.hover="{ variant: 'light' }"
+                                        v-b-tooltip.hover="{
+                                            variant: 'light',
+                                        }"
                                         class="mr-4"
-                                        :title="
-                                            index === 0
-                                                ? 'Click to clear phenotype list'
-                                                : 'Click to remove this phenotype from list'
-                                        "
                                         :style="`color: ${$parent.phenotypeColor(
                                             index
-                                        )} !important; cursor: pointer;`"
-                                        v-on:click="
-                                            $parent.removePhenotype(index)
-                                        "
+                                        )}`"
                                         >{{ p.phenotype.description }}</span
                                     >
                                 </div>
+
                                 <transition name="slide-fade" mode="out-in"
                                     ><div
                                         class="filter-options"
@@ -137,7 +134,7 @@
                                     ></criterion-pills>
                                 </transition>
 
-                                <button
+                                <!--<button
                                     type="button"
                                     class="mr-2 close"
                                     aria-label="Filter"
@@ -150,7 +147,25 @@
                                         v-on:click="
                                             p.filterVisible = !p.filterVisible
                                         "
-                                        ><b-icon-filter></b-icon-filter
+                                        ><b-icon-filter-circle></b-icon-filter-circle
+                                    ></span>
+                                </button>-->
+                                <button
+                                    type="button"
+                                    class="mr-2 close remove"
+                                    aria-label="Filter"
+                                    v-b-tooltip.hover.html="{
+                                        variant: 'light',
+                                    }"
+                                    :title="
+                                        index === 0
+                                            ? 'Click to clear phenotype list'
+                                            : 'Click to remove this phenotype from list'
+                                    "
+                                    v-on:click="$parent.removePhenotype(index)"
+                                >
+                                    <span
+                                        ><b-icon-x-circle></b-icon-x-circle
                                     ></span>
                                 </button>
                             </div>
@@ -269,25 +284,31 @@
     display: inline-block;
 }
 .filter-pill-collection {
-    margin-right: 30px;
+    margin-right: 28px;
     /* width: 300px; */
     white-space: nowrap;
     float: right;
 }
 
 .filter-options {
-    width: 240px;
+    width: 80%;
     display: inline-block;
 }
 .filter-options > span > div {
     display: inline-block;
 }
-.selected-phenotype .close {
+.selected-phenotype .close,
+.selected-phenotype .remove {
     position: absolute;
-    right: 0;
+    right: 30px;
     top: 12px;
     float: unset;
 }
+
+.selected-phenotype .remove {
+    right: 0;
+}
+
 div.lead {
     display: inline-block;
     vertical-align: top;
