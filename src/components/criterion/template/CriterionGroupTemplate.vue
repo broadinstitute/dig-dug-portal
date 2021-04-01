@@ -324,7 +324,7 @@ export default Vue.component("criterion-group-template", {
             <!--  "clearable" prop removes `X` -->
             <criterion-pills 
                 :clearable="false"
-                :filterListInternal="$parent.displayedfilterListInternal">
+                :filterList="$parent.displayedfilterListInternal">
             </criterion-pills>
 
         </template>
