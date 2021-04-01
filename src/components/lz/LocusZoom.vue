@@ -238,6 +238,7 @@ export default Vue.component("locuszoom", {
             index,
             primaryKey,
             secondaryKey,
+            scoring,
             title,
             initialData,
             onLoad,
@@ -249,33 +250,12 @@ export default Vue.component("locuszoom", {
                     index,
                     primaryKey,
                     secondaryKey,
+                    scoring,
                     title,
                     onLoad,
                     onResolve,
                     onError,
                     initialData
-                )
-            );
-            return panelId;
-        },
-        addAnnotationIntervalsPanel: function (
-            annotation,
-            title,
-            scoring,
-            initialData,
-            onLoad,
-            onResolve,
-            onError
-        ) {
-            const panelId = this.addPanelAndDataSource(
-                new LZAnnotationIntervalsPanel(
-                    annotation,
-                    title,
-                    onLoad,
-                    onResolve,
-                    onError,
-                    initialData,
-                    scoring
                 )
             );
             return panelId;

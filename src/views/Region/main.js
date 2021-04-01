@@ -92,7 +92,7 @@ new Vue({
 
     data() {
         return {
-            tissueScoring: null,
+            enrichmentScoring: null,
 
             associationsFilter: function (id) {
                 return true;
@@ -175,6 +175,7 @@ new Vue({
                 "annotated-regions",
                 r.annotation,
                 "tissue",
+                this.enrichmentScoring,
                 Formatters.snakeFormatter(r.annotation)
             );
         },
@@ -183,22 +184,13 @@ new Vue({
                 "tissue-regions",
                 r.tissue,
                 "annotation",
+                this.enrichmentScoring,
                 Formatters.snakeFormatter(r.tissue)
             );
         },
         topPhenotype(topAssocData) {
             return topAssocData[0];
         },
-        // setCriterionPhenotypes(phenotypeNames) {
-        //     this.regionPageSearchCriterion.splice(0);
-
-        //     phenotypeNames.forEach(name => {
-        //         this.regionPageSearchCriterion.push({
-        //             field: "phenotype",
-        //             threshold: name
-        //         });
-        //     });
-        // }
         setCriterionPhenotypes(phenotypeNames) {
             this.regionPageSearchCriterion.splice(0);
             phenotypeNames.forEach(this.pushCriterionPhenotype);
@@ -333,6 +325,7 @@ new Vue({
             }
         },
         "$store.state.globalEnrichment.data"(enrichment) {
+            
             let groups = {};
             for (let i in enrichment) {
                 let r = enrichment[i];
@@ -350,7 +343,9 @@ new Vue({
                     groups[key].maxFold = Math.max(groups[key].maxFold, fold);
                 }
             }
-            this.tissueScoring = groups;
+            
+            this.enrichmentScoring = groups;
+
         },
         selectedPhenotypes(phenotypes, oldPhenotypes) {
             const removedPhenotypes = _.difference(oldPhenotypes.map(p => p.name), phenotypes.map(p => p.name));
