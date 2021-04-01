@@ -111,7 +111,7 @@
                                     </div>
                                 </transition>
 
-                                <transition name="slide-fade" mode="out-in">
+                                <transition name="slide-down" mode="out-in">
                                     <criterion-pills
                                         :clearable="true"
                                         @unset="
