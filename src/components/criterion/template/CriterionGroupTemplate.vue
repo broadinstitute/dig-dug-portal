@@ -137,8 +137,6 @@ export default Vue.component("criterion-group-template", {
             filterListInternal: null,
             filterFunctionInternal: null,
 
-            // criterion: !!this.value ? this.value : this.filterType === 'function' ? id => true : [],
-
             // Vue doesn't identify anonymous functions of the same form with one another,
             // so we are turning these two props into data to prevent infinite loops that result
             // from passing in anonymous functions which become reidentified under each tick.
@@ -148,6 +146,7 @@ export default Vue.component("criterion-group-template", {
             // which quite frankly seems unlikely.
             makeFilter: this.filterMaker,
             makePredicate: this.predicateMaker,
+
             initialFilterDefinitions: [], // THESE CAN CHANGE, THEY ARE NOT REAL-TIME FILTER DEFINITIONS
             initialFilterDefinitionMap: {},
         };
@@ -307,7 +306,7 @@ export default Vue.component("criterion-group-template", {
         Support events for catching new filter lists and functions 
         seprately, regardless of the kind of criterion group.
 
-        The events are `@update-filter-list` and `@update-filter-function`. 
+        The events are `@update:filter-list` and `@update:filter-function`. 
         
         They act like `@input` does with `v-model`, except it's with a filter list or 
         filter function only. You can use both at the same time.
@@ -317,7 +316,7 @@ export default Vue.component("criterion-group-template", {
             <!-- v-model works as per usual -->
             <criterion-function-group
                 v-model="$parent.filterFunctionInternal"
-                @update-filter-list="$parent.displayedfilterListInternal = $event">
+                @update:filter-list="$parent.displayedfilterListInternal = $event">
             ...
             </criterion-function-group
 
