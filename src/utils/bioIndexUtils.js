@@ -131,3 +131,12 @@ async function processRequest(req, onResolve, onError, onLoad, limitWhile) {
     }
     return data;
 }
+
+export default {
+    query,
+    match,
+    apiUrl,
+    request,
+    rawUrl,
+    BIO_INDEX_HOST,
+}
