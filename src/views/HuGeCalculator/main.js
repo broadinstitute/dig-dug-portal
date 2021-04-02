@@ -478,9 +478,6 @@ new Vue({
                         this.$store.dispatch("gene/query", {
                             q: newCriterion.gene
                         });
-                        this.$store.dispatch("regions/query", {
-                            q: newCriterion.gene
-                        });
                         this.updateAssociations(
                             newCriterion.gene,
                             newCriterion.phenotype,
