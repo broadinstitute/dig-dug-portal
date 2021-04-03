@@ -297,6 +297,7 @@ new Vue({
                 this.$store.state.globalEnrichment.data,
                 el => el.tissue
             );
+            //sort the tissues
             return tissues;
         },
         associationConsequences() {
@@ -325,7 +326,7 @@ new Vue({
             }
         },
         "$store.state.globalEnrichment.data"(enrichment) {
-            
+
             let groups = {};
             for (let i in enrichment) {
                 let r = enrichment[i];
@@ -343,7 +344,7 @@ new Vue({
                     groups[key].maxFold = Math.max(groups[key].maxFold, fold);
                 }
             }
-            
+
             this.enrichmentScoring = groups;
 
         },
