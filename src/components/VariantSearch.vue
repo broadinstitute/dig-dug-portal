@@ -62,6 +62,8 @@ export default Vue.component("variant-search", {
             perPage: 10,
             currentPage: 1,
             datasets: ["dataset1", "dataset2"],
+            variants: [],
+            consequences: {},
         };
     },
     computed: {
@@ -104,11 +106,8 @@ export default Vue.component("variant-search", {
         },
         //This works to display all data fro BI
         tableData() {
-            if (
-                this.$store.state.variants.data &&
-                this.$store.state.variants.data.length
-            ) {
-                return this.$store.state.variants.data;
+            if (this.variants && this.variants.length) {
+                return this.variants;
             } else {
                 return [];
             }
@@ -124,12 +123,26 @@ export default Vue.component("variant-search", {
                 this.matchingGenes = matches;
             }
         },
-        searchVariants() {
-            this.$store.dispatch("variants/query", {
-                q: this.selectedGene,
-            });
+        async searchVariants() {
+            // this.$store.dispatch("variants/query", {
+            //     q: this.selectedGene,
+            // });
+            let variants = await query("gene-variants", this.selectedGene);
+            //console.log("variants", variants);
+            this.variants = variants; //need to add columns from TC
+            if (variants.length) {
+                for (let i = 0; i < variants.length; i++) {
+                    let data = await this.getTranscriptConsequences(
+                        variants[i].varId
+                    );
+                    //console.log("adding", variants[i].varId);
+                    this.consequences[variants[i].varId] = data;
+                }
+            } else {
+                this.variants = [];
+            }
         },
-        async getTanscriptConsequences(varID) {
+        async getTranscriptConsequences(varID) {
             if (!!varID) {
                 let data = await query("transcript-consequences", varID);
                 return data;
