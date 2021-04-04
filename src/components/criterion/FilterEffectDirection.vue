@@ -35,10 +35,19 @@ export default Vue.component("filter-effect-direction-control", {
         labelFormatter: {
             type: Function,
         },
-        pillFormatter: {
+        /*pillFormatter: {
             type: Function,
             default: (filterDefinition) =>
                 `effect size ${filterDefinition.threshold}`,
+        },*/
+        pillFormatter: {
+            type: Function,
+            default: (filterDefinition) =>
+                `${
+                    !!filterDefinition.labelFormatter
+                        ? `effect size ${filterDefinition.threshold}`
+                        : filterDefinition.threshold
+                }`,
         },
         predicate: {
             type: Function,

@@ -4,15 +4,17 @@
 
 <script>
 import Vue from "vue";
+
 import { isEqual, isEmpty } from "lodash";
 import { rgb, color } from "d3";
-import LocusZoom from "locuszoom";
 import {
     LZBioIndexSource,
-    BASE_PANEL_OPTIONS,
     LZColorScheme,
 } from "@/utils/lzUtils";
+import bioIndexGroups from "@/utils/bioIndexGroups"
 import idCounter from "@/utils/idCounter";
+
+import LocusZoom from "locuszoom";
 
 export default Vue.component("lz-intervals-panel", {
     props: {
@@ -28,6 +30,7 @@ export default Vue.component("lz-intervals-panel", {
             type: String,
             required: true,
         },
+        scoring: Object,
         title: String,
         onLoad: Function,
         onResolve: Function,
@@ -51,6 +54,7 @@ export default Vue.component("lz-intervals-panel", {
                 this.index,
                 this.primaryKey,
                 this.secondaryKey,
+                this.scoring,
                 this.title,
                 this.initialData,
                 onLoad,
@@ -84,6 +88,7 @@ export class LZIntervalsPanel {
         index,
         primaryKey,
         secondaryKey,
+        scoring,
         title,
         onLoad,
         onResolve,
@@ -116,6 +121,11 @@ export class LZIntervalsPanel {
 
                           return {
                               name: primaryKey,
+                            
+                                // TODO: using a delimeter here should be 
+                              pValue: scoring[`${interval.annotation}___${interval.tissue}`].minP,
+                              fold: scoring[`${interval.annotation}___${interval.tissue}`].maxFold,
+
                               // some data (not displayed by default)
                               // region information
                               chr: interval.chromosome,
@@ -154,8 +164,8 @@ export class LZIntervalsPanel {
                                 .datasource_namespace_symbol_for_panel,
                         },
                         fields: [
-                            //`{{namespace[${this.datasource_type}]}}pValue`,
-                            //`{{namespace[${this.datasource_type}]}}fold`,
+                            `{{namespace[${this.datasource_type}]}}pValue`,
+                            `{{namespace[${this.datasource_type}]}}fold`,
                             ...LocusZoom.Layouts.get(
                                 "data_layer",
                                 "intervals",

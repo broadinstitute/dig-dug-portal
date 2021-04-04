@@ -29,10 +29,13 @@ export default Vue.component("filter-pvalue-control", {
         pillFormatter: {
             type: Function,
             default: (filterDefinition) =>
-                `${filterDefinition.field} <= ${Formatter.pValueFormatter(
-                    filterDefinition.threshold
-                )}`,
+                `${filterDefinition.field} <= ${
+                    !!filterDefinition.labelFormatter
+                        ? Formatter.pValueFormatter(filterDefinition.threshold)
+                        : filterDefinition.threshold
+                }`,
         },
+
         predicate: {
             type: Function,
             default: (pValue, pBound) => pValue <= pBound,

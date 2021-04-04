@@ -82,12 +82,12 @@
                                         <div
                                             @click="addPhenotype(row.phenotype)"
                                         >
-                                            Add this phenotype bellow
+                                            Add this phenotype below
                                         </div>
                                         <div
                                             @click="setPhenotype(row.phenotype)"
                                         >
-                                            Set bellow to this phenotype
+                                            Set below to this phenotype
                                         </div>
                                         <div
                                             v-on:click="
@@ -273,14 +273,14 @@
                                                     addPhenotype(item.phenotype)
                                                 "
                                             >
-                                                Add this phenotype bellow
+                                                Add this phenotype below
                                             </div>
                                             <div
                                                 @click="
                                                     setPhenotype(item.phenotype)
                                                 "
                                             >
-                                                Set bellow to this phenotype
+                                                Set below to this phenotype
                                             </div>
                                             <div
                                                 v-on:click="
