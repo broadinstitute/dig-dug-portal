@@ -30,7 +30,7 @@
             >
         </div>
         <b-table
-            :items="$options.testData"
+            :items="tableData"
             :per-page="perPage"
             :current-page="currentPage"
         ></b-table>
@@ -44,7 +44,7 @@
 </template>
 <script>
 import Vue from "vue";
-import { match } from "@/utils/bioIndexUtils";
+import { match, query } from "@/utils/bioIndexUtils";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import testData from "@/views/VariantSearch/data.json";
@@ -103,16 +103,16 @@ export default Vue.component("variant-search", {
             } else return [];
         },
         //This works to display all data fro BI
-        // tableData() {
-        //     if (
-        //         this.$store.state.variants.data &&
-        //         this.$store.state.variants.data.length
-        //     ) {
-        //         return this.$store.state.variants.data;
-        //     } else {
-        //         return [];
-        //     }
-        // },
+        tableData() {
+            if (
+                this.$store.state.variants.data &&
+                this.$store.state.variants.data.length
+            ) {
+                return this.$store.state.variants.data;
+            } else {
+                return [];
+            }
+        },
         rows() {
             if (this.tableData) return this.tableData.length;
         },
@@ -128,6 +128,12 @@ export default Vue.component("variant-search", {
             this.$store.dispatch("variants/query", {
                 q: this.selectedGene,
             });
+        },
+        async getTanscriptConsequences(varID) {
+            if (!!varID) {
+                let data = await query("transcript-consequences", varID);
+                return data;
+            }
         },
     },
 });
