@@ -66,8 +66,34 @@
                         Variants</span
                     >
                 </b-button>
-            </template></b-table
-        >
+            </template>
+
+            <template #row-details="row">
+                <div class="details">
+                    <b-table
+                        v-if="variantData[escapedVarID(row.item.varId)]"
+                        :items="variantData[escapedVarID(row.item.varId)]"
+                        :fields="subFields"
+                        :per-page="perPage"
+                        :current-page="
+                            subCurrentPage[escapedVarID(row.item.varId)]
+                        "
+                    >
+                    </b-table>
+                    <b-pagination
+                        v-if="variantData[escapedVarID(row.item.varId)]"
+                        v-model="subCurrentPage[escapedVarID(row.item.varId)]"
+                        :total-rows="
+                            variantData[escapedVarID(row.item.varId)].length
+                        "
+                        :per-page="perPage"
+                        size="sm"
+                        align="fill"
+                        class="sub-details"
+                    ></b-pagination>
+                </div>
+            </template>
+        </b-table>
         <b-pagination
             v-model="currentPage"
             :total-rows="rows"
@@ -169,13 +195,52 @@ export default Vue.component("variant-search", {
                     label: "Variant",
                 },
                 {
-                    key: "dbSNP",
-                    label: "dbSNP",
+                    key: "gene_symbol",
+                    label: "Gene",
                 },
                 {
-                    key: "pValue",
-                    label: "P-Value",
-                    tdClass: "pValue",
+                    key: "position",
+                    label: "Position",
+                },
+                {
+                    key: "amino_acids",
+                    label: "Amino Acids",
+                },
+                {
+                    key: "consequence_terms",
+                    label: "Consequence",
+                },
+                {
+                    key: "impact",
+                    label: "Impact",
+                },
+                {
+                    key: "polyphen2_hdiv_pred",
+                    label: "polyphen2_hdiv_pred",
+                },
+                {
+                    key: "polyphen2_hvar_pred",
+                    label: "polyphen2_hvar_pred",
+                },
+                {
+                    key: "sift_prediction",
+                    label: "SIFT Prediction",
+                },
+                {
+                    key: "lrt_pred",
+                    label: "lrt_pred",
+                },
+                {
+                    key: "mutation_taster",
+                    label: "mutation_taster",
+                },
+                {
+                    key: "cadd_raw_rankscore",
+                    label: "CADD-Phred Score",
+                },
+                {
+                    key: "gnomad_genomes_popmax_af",
+                    label: "gnomad_genomes_popmax_af",
                 },
             ],
             variantData: {},
@@ -268,7 +333,7 @@ export default Vue.component("variant-search", {
             return Formatters.consequenceFormatter(consequence);
         },
         async showVariantData(varID) {
-            let escapedVarID = varID.replace(/:\s*/g, "_");
+            let escapedVarID = this.escapedVarID(varID);
             console.log("escaped", escapedVarID);
             if (this.variantData[escapedVarID] === undefined) {
                 this.loadingData[escapedVarID] = true;
@@ -277,6 +342,13 @@ export default Vue.component("variant-search", {
                 Vue.set(this.variantData, escapedVarID, tcQuery);
                 Vue.set(this.subCurrentPage, escapedVarID, 1);
                 this.loadingData[escapedVarID] = false;
+            }
+        },
+        escapedVarID(varID) {
+            console.log("escaping", varID);
+            if (!!varID) return varID.replace(/:\s*/g, "_");
+            else {
+                return "";
             }
         },
     },
