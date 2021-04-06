@@ -113,7 +113,7 @@ export class LZIntervalsPanel {
                       .map((interval) => {
                             const { r, g, b } = rgb(
                                 color(
-                                    LZColorScheme.getColor(`${interval.annotation}___${interval.tissue}`)
+                                    LZColorScheme.getColor(interval[secondaryKey])
                                 )
                             );
 
