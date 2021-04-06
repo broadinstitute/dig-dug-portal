@@ -332,7 +332,6 @@ new Vue({
 
                 let key = `${r.annotation}___${r.tissue}`;
                 let fold = r.SNPs / r.expectedSNPs;
-
                 if (!(key in groups)) {
                     groups[key] = {
                         minP: r.pValue,

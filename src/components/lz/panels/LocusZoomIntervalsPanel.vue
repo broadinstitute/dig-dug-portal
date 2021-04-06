@@ -111,32 +111,35 @@ export class LZIntervalsPanel {
             const tissueIntervals = !!intervals
                 ? intervals
                       .map((interval) => {
-                          const { r, g, b } = rgb(
-                              color(
-                                  LZColorScheme.getColor(interval[secondaryKey])
-                              )
-                          );
+                            const { r, g, b } = rgb(
+                                color(
+                                    LZColorScheme.getColor(interval[secondaryKey])
+                                )
+                            );
 
-                          if (!interval[secondaryKey]) return null;
+                            if (!interval[secondaryKey]) return null;
 
-                          return {
-                              name: primaryKey,
+                            // workaround for when no global enrichment exists for a defined
+                            // possibly an issue with bioindex ingest?
+                            const score = scoring[`${interval.annotation}___${interval.tissue}`] || { minP: undefined, maxFold: undefined }; 
+
+                            return {
+                                name: primaryKey,
                             
-                                // TODO: using a delimeter here should be 
-                              pValue: scoring[`${interval.annotation}___${interval.tissue}`].minP,
-                              fold: scoring[`${interval.annotation}___${interval.tissue}`].maxFold,
+                                pValue: score.minP,
+                                fold: score.maxFold,
 
-                              // some data (not displayed by default)
-                              // region information
-                              chr: interval.chromosome,
-                              start: interval.start,
-                              end: interval.end,
-                              state_id: `${interval[secondaryKey]}`,
-                              // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
-                              state_name: `${interval[secondaryKey]}`,
-                              // a string-encoded list of RGB coords, e.g. '255,0,128'
-                              itemRgb: [r, g, b].join(),
-                          };
+                                // some data (not displayed by default)
+                                // region information
+                                chr: interval.chromosome,
+                                start: interval.start,
+                                end: interval.end,
+                                state_id: `${interval[secondaryKey]}`,
+                                // "state_name" is what annotations are actually grouped by when you split the tracks. it should be visible in the legend
+                                state_name: `${interval[secondaryKey]}`,
+                                // a string-encoded list of RGB coords, e.g. '255,0,128'
+                                itemRgb: [r, g, b].join(),
+                            };
                       })
                       .filter((el) => !!el)
                 : [];
@@ -144,7 +147,6 @@ export class LZIntervalsPanel {
             return tissueIntervals;
         };
         this.initialData = initialData;
-
         // LocusZoom Layout configuration options
         // See the LocusZoom docs for how this works
         // https://github.com/statgen/locuszoom/wiki/Data-Layer#data-layer-layout
