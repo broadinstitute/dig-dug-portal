@@ -78,7 +78,33 @@
                         :current-page="
                             subCurrentPage[escapedVarID(row.item.varId)]
                         "
-                    >
+                        ><template #cell(varId)="data">
+                            <a
+                                :href="`/variant.html?variant=${data.item.varId}`"
+                                >{{ data.item.varId }}</a
+                            >
+                        </template>
+                        <template #cell(gene_symbol)="data">
+                            <a
+                                :href="`/gene.html?gene=${data.item.gene_symbol}`"
+                                >{{ data.item.gene_symbol }}</a
+                            >
+                        </template>
+                        <template #cell(position)="data">
+                            {{
+                                data.item.protein_start !==
+                                data.item.protein_end
+                                    ? `${data.item.protein_start}-${data.item.protein_end}`
+                                    : data.item.protein_start
+                            }}
+                        </template>
+                        <template #cell(consequence_terms)="data"
+                            ><span
+                                v-for="c in data.item.consequence_terms"
+                                :key="c"
+                                >{{ consequenceFormatter(c) }}</span
+                            ></template
+                        >
                     </b-table>
                     <b-pagination
                         v-if="variantData[escapedVarID(row.item.varId)]"
