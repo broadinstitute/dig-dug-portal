@@ -30,10 +30,26 @@
             >
         </div>
         <b-table
+            hover
+            small
+            responsive="sm"
+            :fields="fields"
             :items="tableData"
             :per-page="perPage"
             :current-page="currentPage"
-        ></b-table>
+            ><template #cell(varId)="data">
+                <a :href="`/variant.html?variant=${data.item.varId}`">{{
+                    data.item.varId
+                }}</a> </template
+            ><template #cell(dbSNP)="data">
+                <a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
+                    data.item.dbSNP
+                }}</a>
+            </template>
+            <template #cell(consequence)="data">{{
+                consequenceFormatter(data.item.consequence)
+            }}</template></b-table
+        >
         <b-pagination
             v-model="currentPage"
             :total-rows="rows"
@@ -48,12 +64,20 @@ import { match, query } from "@/utils/bioIndexUtils";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import testData from "@/views/VariantSearch/data.json";
+import Formatters from "@/utils/formatters";
+import Documentation from "@/components/Documentation";
+import TooltipDocumentation from "@/components/TooltipDocumentation";
+import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("variant-search", {
     testData,
     components: {
         CriterionListGroup,
         FilterEnumeration,
+        Documentation,
+        TooltipDocumentation,
+        Formatters,
+        CsvDownload,
     },
     data() {
         return {
@@ -61,9 +85,83 @@ export default Vue.component("variant-search", {
             matchingGenes: [],
             perPage: 10,
             currentPage: 1,
-            datasets: ["dataset1", "dataset2"],
+            datasets: ["Farhan2019_ALS_eu"],
             variants: [],
             consequences: {},
+            fields: [
+                {
+                    key: "varId",
+                    label: "Variant",
+                },
+                {
+                    key: "dbSNP",
+                    label: "dbSNP",
+                },
+                {
+                    key: "position",
+                    label: "Position",
+                },
+                {
+                    key: "nearest",
+                    label: "Nearest",
+                },
+                {
+                    key: "consequence",
+                    label: "Consequence",
+                },
+                {
+                    key: "reference",
+                    label: "Reference Allele",
+                },
+                {
+                    key: "heterozygousCases",
+                    label: "Heterozygous Cases",
+                },
+                {
+                    key: "heterozygousControls",
+                    label: "Heterozygous Controls",
+                },
+                {
+                    key: "homozygousCases",
+                    label: "Homozygous Cases",
+                },
+                {
+                    key: "homozygousControls",
+                    label: "Homozygous Controls",
+                },
+                {
+                    key: "alleleCount",
+                    label: "Allele Count",
+                },
+                {
+                    key: "alleleCountCases",
+                    label: "Allele Count Cases",
+                },
+                {
+                    key: "alleleCountControls",
+                    label: "Allele Count Controls",
+                },
+                {
+                    key: "alt",
+                    label: "Alt",
+                },
+                { key: "view", label: "View Variants" },
+            ],
+            subFields: [
+                {
+                    key: "varId",
+                    label: "Variant",
+                },
+                {
+                    key: "dbSNP",
+                    label: "dbSNP",
+                },
+                {
+                    key: "pValue",
+                    label: "P-Value",
+                    tdClass: "pValue",
+                },
+            ],
         };
     },
     computed: {
@@ -147,6 +245,9 @@ export default Vue.component("variant-search", {
                 let data = await query("transcript-consequences", varID);
                 return data;
             }
+        },
+        consequenceFormatter(consequence) {
+            return Formatters.consequenceFormatter(consequence);
         },
     },
 });
