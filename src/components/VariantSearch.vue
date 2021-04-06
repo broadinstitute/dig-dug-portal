@@ -48,7 +48,25 @@
             </template>
             <template #cell(consequence)="data">{{
                 consequenceFormatter(data.item.consequence)
-            }}</template></b-table
+            }}</template>
+            <template #cell(view)="data">
+                <b-button
+                    size="sm"
+                    variant="outline-primary"
+                    class="btn-mini showData"
+                    @click="
+                        showVariantData(data.item.varId);
+                        data.toggleDetails();
+                    "
+                    ><span v-if="!!loadingData[data.item.varId]"
+                        ><b-spinner small></b-spinner>
+                        <span class="sr-only">Loading...</span></span
+                    ><span v-else>
+                        {{ data.detailsShowing ? "Hide" : "Show" }}
+                        Variants</span
+                    >
+                </b-button>
+            </template></b-table
         >
         <b-pagination
             v-model="currentPage"
@@ -85,6 +103,7 @@ export default Vue.component("variant-search", {
             matchingGenes: [],
             perPage: 10,
             currentPage: 1,
+            subCurrentPage: {},
             datasets: ["Farhan2019_ALS_eu"],
             variants: [],
             consequences: {},
@@ -102,16 +121,16 @@ export default Vue.component("variant-search", {
                     label: "Position",
                 },
                 {
-                    key: "nearest",
-                    label: "Nearest",
-                },
-                {
                     key: "consequence",
                     label: "Consequence",
                 },
                 {
                     key: "reference",
                     label: "Reference Allele",
+                },
+                {
+                    key: "alt",
+                    label: "Effect Allelle",
                 },
                 {
                     key: "heterozygousCases",
@@ -141,10 +160,7 @@ export default Vue.component("variant-search", {
                     key: "alleleCountControls",
                     label: "Allele Count Controls",
                 },
-                {
-                    key: "alt",
-                    label: "Alt",
-                },
+
                 { key: "view", label: "View Variants" },
             ],
             subFields: [
@@ -162,6 +178,8 @@ export default Vue.component("variant-search", {
                     tdClass: "pValue",
                 },
             ],
+            variantData: {},
+            loadingData: {},
         };
     },
     computed: {
@@ -228,17 +246,17 @@ export default Vue.component("variant-search", {
             let variants = await query("gene-variants", this.selectedGene);
             //console.log("variants", variants);
             this.variants = variants; //need to add columns from TC
-            if (variants.length) {
-                for (let i = 0; i < variants.length; i++) {
-                    let data = await this.getTranscriptConsequences(
-                        variants[i].varId
-                    );
-                    //console.log("adding", variants[i].varId);
-                    this.consequences[variants[i].varId] = data;
-                }
-            } else {
-                this.variants = [];
-            }
+            // if (variants.length) {
+            //     for (let i = 0; i < variants.length; i++) {
+            //         let data = await this.getTranscriptConsequences(
+            //             variants[i].varId
+            //         );
+            //         //console.log("adding", variants[i].varId);
+            //         this.consequences[variants[i].varId] = data;
+            //     }
+            // } else {
+            //     this.variants = [];
+            // }
         },
         async getTranscriptConsequences(varID) {
             if (!!varID) {
@@ -248,6 +266,18 @@ export default Vue.component("variant-search", {
         },
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);
+        },
+        async showVariantData(varID) {
+            let escapedVarID = varID.replace(/:\s*/g, "_");
+            console.log("escaped", escapedVarID);
+            if (this.variantData[escapedVarID] === undefined) {
+                this.loadingData[escapedVarID] = true;
+                let tcQuery = await this.getTranscriptConsequences(varID);
+                console.log("data back", tcQuery);
+                Vue.set(this.variantData, escapedVarID, tcQuery);
+                Vue.set(this.subCurrentPage, escapedVarID, 1);
+                this.loadingData[escapedVarID] = false;
+            }
         },
     },
 });
