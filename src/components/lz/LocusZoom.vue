@@ -18,7 +18,6 @@ import toolbar_addons from "locuszoom/esm/ext/lz-widget-addons";
 import { LZAssociationsPanel } from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import { LZIntervalsPanel } from "@/components/lz/panels/LocusZoomIntervalsPanel";
 import { LZCatalogAnnotationsPanel } from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel";
-import { LZAnnotationIntervalsPanel } from "@/components/lz/panels/LocusZoomAnnotationsPanel";
 import { LZCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomCredibleSetsPanel";
 import { LZComputedCredibleVariantsPanel } from "@/components/lz/panels/LocusZoomComputedCredibleSetsPanel";
 import { LZPhewasPanel } from "@/components/lz/panels/LocusZoomPhewasPanel";
