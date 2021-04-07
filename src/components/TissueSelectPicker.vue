@@ -3,7 +3,7 @@
         v-model="userText"
         ref="tissueOptionsSelect"
         placeholder="Add a tissue..."
-        :data="tissues"
+        :data="tissueOptions"
         :serializer="(r) => capitalizedFormatter(r.tissue)"
         :showOnFocus="true"
         :minMatchingChars="0"
@@ -32,24 +32,34 @@ export default Vue.component("tissue-selectpicker", {
     props: {
         tissues: {
             type: Array,
-            required: true,
+            required: true
         },
         clearOnSelected: {
             type: Boolean,
-            required: false,
+            required: false
         },
         defaultSet: {
             type: String,
-            required: false,
-        },
+            required: false
+        }
     },
     data() {
         return {
-            userText: this.defaultSet || null,
+            userText: this.defaultSet || null
         };
+    },
+    computed: {
+        tissueOptions() {
+            return this.tissues.sort((a, b) => {
+                if (a.tissue < b.tissue) return -1;
+                if (b.tissue < a.tissue) return 1;
+                return 0;
+            });
+        }
     },
     methods: {
         ...Formatters,
+
         onTissueSelect(event) {
             this.$emit("tissue", event);
 
@@ -62,7 +72,7 @@ export default Vue.component("tissue-selectpicker", {
             this.$nextTick(() => {
                 this.$refs.tissueOptions.$refs.input.focus();
             });
-        },
-    },
+        }
+    }
 });
 </script>
