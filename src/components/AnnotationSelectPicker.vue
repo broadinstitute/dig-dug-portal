@@ -3,7 +3,7 @@
         v-model="userText"
         ref="annotationOptionsSelect"
         placeholder="Add an annotation ..."
-        :data="annotations"
+        :data="annotationOptions"
         :serializer="(r) => snakeFormatter(r.annotation)"
         :showOnFocus="true"
         :minMatchingChars="0"
@@ -32,21 +32,30 @@ export default Vue.component("annotation-selectpicker", {
     props: {
         annotations: {
             type: Array,
-            required: true,
+            required: true
         },
         clearOnSelected: {
             type: Boolean,
-            required: false,
+            required: false
         },
         defaultSet: {
             type: String,
-            required: false,
-        },
+            required: false
+        }
     },
     data() {
         return {
-            userText: this.defaultSet || null,
+            userText: this.defaultSet || null
         };
+    },
+    computed: {
+        annotationOptions() {
+            return this.annotations.sort((a, b) => {
+                if (a.annotation < b.annotation) return -1;
+                if (b.annotation < a.annotation) return 1;
+                return 0;
+            });
+        }
     },
     methods: {
         ...Formatters,
@@ -62,7 +71,7 @@ export default Vue.component("annotation-selectpicker", {
             this.$nextTick(() => {
                 this.$refs.annotations.$refs.input.focus();
             });
-        },
-    },
+        }
+    }
 });
 </script>
