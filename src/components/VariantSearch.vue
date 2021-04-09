@@ -41,6 +41,15 @@
                 >Search Variants</b-button
             >
         </div>
+        <b-row
+            ><b-col class="text-right mb-2">
+                <csv-download
+                    v-if="tableData.length"
+                    :data="tableData"
+                    filename="variants"
+                ></csv-download
+            ></b-col>
+        </b-row>
         <b-table
             hover
             small
@@ -162,6 +171,7 @@
             </template>
         </b-table>
         <b-pagination
+            size="sm"
             v-model="currentPage"
             :total-rows="rows"
             :per-page="perPage"
