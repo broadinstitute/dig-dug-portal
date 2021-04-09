@@ -426,7 +426,15 @@ export default Vue.component("variant-search", {
 });
 </script>
 <style>
+@import url("/css/table.css");
+#variant-search thead tr:hover,
+#variant-search tr.b-table-details:hover {
+    background-color: inherit;
+}
 .row-pick {
     background-color: lightcyan;
+}
+.table thead th {
+    vertical-align: top;
 }
 </style>
