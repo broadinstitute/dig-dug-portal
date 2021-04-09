@@ -86,8 +86,14 @@
                         </template>
                         <template #cell(gene_symbol)="data">
                             <a
+                                v-if="data.item.gene_symbol_source === 'HGNC'"
                                 :href="`/gene.html?gene=${data.item.gene_symbol}`"
                                 >{{ data.item.gene_symbol }}</a
+                            >
+                            <span
+                                v-else
+                                title="There's no data available for this gene."
+                                >{{ data.item.gene_symbol }}</span
                             >
                         </template>
                         <template #cell(position)="data">
@@ -242,11 +248,11 @@ export default Vue.component("variant-search", {
                 },
                 {
                     key: "polyphen2_hdiv_pred",
-                    label: "polyphen2_hdiv_pred",
+                    label: "PolyPhen (HDIV)",
                 },
                 {
                     key: "polyphen2_hvar_pred",
-                    label: "polyphen2_hvar_pred",
+                    label: "PolyPhen (HVAR)",
                 },
                 {
                     key: "sift_prediction",
@@ -254,11 +260,11 @@ export default Vue.component("variant-search", {
                 },
                 {
                     key: "lrt_pred",
-                    label: "lrt_pred",
+                    label: "LRT",
                 },
                 {
                     key: "mutation_taster",
-                    label: "mutation_taster",
+                    label: "Mutation Taster",
                 },
                 {
                     key: "cadd_raw_rankscore",
@@ -266,7 +272,7 @@ export default Vue.component("variant-search", {
                 },
                 {
                     key: "gnomad_genomes_popmax_af",
-                    label: "gnomad_genomes_popmax_af",
+                    label: "gnomAD AF",
                 },
             ],
             variantData: {},
