@@ -6,8 +6,14 @@
         ></page-header>
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
+                <div class="card-body temporary-card">
+                    <p>Documentation text goes here.</p>
+                </div>
+            </div>
+            <div class="card mdkp-card">
                 <div class="card-body">
                     <h1 class="card-title">Variant Search</h1>
+                    <p class="mb-5">Subheader text goes here.</p>
                     <variant-search></variant-search>
                 </div>
             </div>
