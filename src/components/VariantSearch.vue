@@ -50,133 +50,150 @@
                 ></csv-download
             ></b-col>
         </b-row>
-        <b-table
-            hover
-            small
-            responsive="sm"
-            :fields="fields"
-            :items="tableData"
-            :per-page="perPage"
-            :current-page="currentPage"
-            ><template #cell(varId)="data">
-                <a :href="`/variant.html?variant=${data.item.varId}`">{{
-                    data.item.varId
-                }}</a> </template
-            ><template #cell(dbSNP)="data">
-                <a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
-                    data.item.dbSNP
-                }}</a>
-            </template>
-            <template #cell(consequence)="data">{{
-                consequenceFormatter(data.item.consequence)
-            }}</template>
-            <template #cell(view)="data">
-                <b-button
-                    size="sm"
-                    variant="outline-primary"
-                    class="btn-mini showData"
-                    @click="
-                        showVariantData(data.item.varId);
-                        data.toggleDetails();
-                    "
-                    ><span v-if="!!loadingData[data.item.varId]"
-                        ><b-spinner small></b-spinner>
-                        <span class="sr-only">Loading...</span></span
-                    ><span v-else>
-                        {{ data.detailsShowing ? "Hide" : "Show" }}
-                        Variants</span
-                    >
-                </b-button>
-            </template>
-
-            <template #row-details="row">
-                <div class="details">
-                    <div
-                        v-if="
-                            variantData[escapedVarID(row.item.varId)] &&
-                            variantData[escapedVarID(row.item.varId)].length
+        <div v-show="tableData.length">
+            <b-table
+                hover
+                small
+                responsive="sm"
+                :fields="fields"
+                :items="tableData"
+                :per-page="perPage"
+                :current-page="currentPage"
+                ><template #cell(varId)="data">
+                    <a :href="`/variant.html?variant=${data.item.varId}`">{{
+                        data.item.varId
+                    }}</a> </template
+                ><template #cell(dbSNP)="data">
+                    <a :href="`/variant.html?variant=${data.item.dbSNP}`">{{
+                        data.item.dbSNP
+                    }}</a>
+                </template>
+                <template #cell(consequence)="data">{{
+                    consequenceFormatter(data.item.consequence)
+                }}</template>
+                <template #cell(view)="data">
+                    <b-button
+                        size="sm"
+                        variant="outline-primary"
+                        class="btn-mini showData"
+                        @click="
+                            showVariantData(data.item.varId);
+                            data.toggleDetails();
                         "
-                    >
-                        <b-table
-                            :items="variantData[escapedVarID(row.item.varId)]"
-                            :fields="subFields"
-                            :per-page="perPage"
-                            :current-page="
-                                subCurrentPage[escapedVarID(row.item.varId)]
-                            "
-                            :tbody-tr-class="rowPickClass"
-                            ><template #cell(varId)="data">
-                                <a
-                                    :href="`/variant.html?variant=${data.item.varId}`"
-                                    >{{ data.item.varId }}</a
-                                >
-                            </template>
-                            <template #cell(gene_symbol)="data">
-                                <a
-                                    v-if="
-                                        data.item.gene_symbol_source === 'HGNC'
-                                    "
-                                    :href="`/gene.html?gene=${data.item.gene_symbol}`"
-                                    >{{ data.item.gene_symbol }}</a
-                                >
-                                <span
-                                    v-else
-                                    title="There's no data available for this gene."
-                                    >{{ data.item.gene_symbol }}</span
-                                >
-                            </template>
-                            <template #cell(position)="data">
-                                {{
-                                    data.item.protein_start !==
-                                    data.item.protein_end
-                                        ? `${data.item.protein_start}-${data.item.protein_end}`
-                                        : data.item.protein_start
-                                }}
-                            </template>
-                            <template #cell(consequence_terms)="data"
-                                ><span
-                                    v-for="c in data.item.consequence_terms"
-                                    :key="c"
-                                    >{{ consequenceFormatter(c) }}</span
-                                ></template
-                            >
-                        </b-table>
-                        <b-pagination
-                            v-if="variantData[escapedVarID(row.item.varId)]"
-                            v-model="
-                                subCurrentPage[escapedVarID(row.item.varId)]
-                            "
-                            :total-rows="
+                        ><span v-if="!!loadingData[data.item.varId]"
+                            ><b-spinner small></b-spinner>
+                            <span class="sr-only">Loading...</span></span
+                        ><span v-else>
+                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                            Variants</span
+                        >
+                    </b-button>
+                </template>
+
+                <template #row-details="row">
+                    <div class="details">
+                        <div
+                            v-if="
+                                variantData[escapedVarID(row.item.varId)] &&
                                 variantData[escapedVarID(row.item.varId)].length
                             "
-                            :per-page="perPage"
-                            size="sm"
-                            align="fill"
-                            class="sub-details"
-                        ></b-pagination>
-                    </div>
-                    <div
-                        v-else-if="
-                            variantData[escapedVarID(row.item.varId)] &&
-                            variantData[escapedVarID(row.item.varId)].length ===
-                                0
-                        "
-                    >
-                        <b-alert show variant="warning">
-                            No predicted transcript consequences found for this
-                            variant.</b-alert
                         >
+                            <b-table
+                                :items="
+                                    variantData[escapedVarID(row.item.varId)]
+                                "
+                                :fields="subFields"
+                                :per-page="perPage"
+                                :current-page="
+                                    subCurrentPage[escapedVarID(row.item.varId)]
+                                "
+                                :tbody-tr-class="rowPickClass"
+                                ><template #cell(varId)="data">
+                                    <a
+                                        :href="`/variant.html?variant=${data.item.varId}`"
+                                        >{{ data.item.varId }}</a
+                                    >
+                                </template>
+                                <template #cell(gene_symbol)="data">
+                                    <a
+                                        v-if="
+                                            data.item.gene_symbol_source ===
+                                            'HGNC'
+                                        "
+                                        :href="`/gene.html?gene=${data.item.gene_symbol}`"
+                                        >{{ data.item.gene_symbol }}</a
+                                    >
+                                    <a
+                                        v-else-if="
+                                            data.item.gene_id &&
+                                            data.item.gene_id.indexOf(
+                                                'ENSG'
+                                            ) !== -1
+                                        "
+                                        :href="`https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=${data.item.gene_id}`"
+                                        target="_blank"
+                                        >{{ data.item.gene_symbol }}</a
+                                    >
+                                    <span
+                                        v-else
+                                        title="There's no data available for this gene."
+                                        >{{ data.item.gene_symbol }}</span
+                                    >
+                                </template>
+                                <template #cell(position)="data">
+                                    {{
+                                        data.item.protein_start !==
+                                        data.item.protein_end
+                                            ? `${data.item.protein_start}-${data.item.protein_end}`
+                                            : data.item.protein_start
+                                    }}
+                                </template>
+                                <template #cell(consequence_terms)="data"
+                                    ><span
+                                        v-for="c in data.item.consequence_terms"
+                                        :key="c"
+                                        >{{ consequenceFormatter(c) }}</span
+                                    ></template
+                                >
+                            </b-table>
+                            <b-pagination
+                                v-if="variantData[escapedVarID(row.item.varId)]"
+                                v-model="
+                                    subCurrentPage[escapedVarID(row.item.varId)]
+                                "
+                                :total-rows="
+                                    variantData[escapedVarID(row.item.varId)]
+                                        .length
+                                "
+                                :per-page="perPage"
+                                size="sm"
+                                align="fill"
+                                class="sub-details"
+                            ></b-pagination>
+                        </div>
+                        <div
+                            v-else-if="
+                                variantData[escapedVarID(row.item.varId)] &&
+                                variantData[escapedVarID(row.item.varId)]
+                                    .length === 0
+                            "
+                        >
+                            <b-alert show variant="warning">
+                                No predicted transcript consequences found for
+                                this variant.</b-alert
+                            >
+                        </div>
                     </div>
-                </div>
-            </template>
-        </b-table>
-        <b-pagination
-            size="sm"
-            v-model="currentPage"
-            :total-rows="rows"
-            :per-page="perPage"
-            aria-controls="my-table"
-        ></b-pagination>
+                </template>
+            </b-table>
+            <b-pagination
+                size="sm"
+                v-model="currentPage"
+                :total-rows="rows"
+                :per-page="perPage"
+                aria-controls="my-table"
+            ></b-pagination>
+        </div>
     </div>
 </template>
 <script>
@@ -264,7 +281,7 @@ export default Vue.component("variant-search", {
                     label: "Allele Count Controls",
                 },
 
-                { key: "view", label: "View Variants" },
+                { key: "view", label: "View VEP Data" },
             ],
             subFields: [
                 {
