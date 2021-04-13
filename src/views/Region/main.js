@@ -297,6 +297,7 @@ new Vue({
                 this.$store.state.globalEnrichment.data,
                 el => el.tissue
             );
+            //sort the tissues
             return tissues;
         },
         associationConsequences() {
@@ -325,14 +326,13 @@ new Vue({
             }
         },
         "$store.state.globalEnrichment.data"(enrichment) {
-            
+
             let groups = {};
             for (let i in enrichment) {
                 let r = enrichment[i];
 
                 let key = `${r.annotation}___${r.tissue}`;
                 let fold = r.SNPs / r.expectedSNPs;
-
                 if (!(key in groups)) {
                     groups[key] = {
                         minP: r.pValue,
@@ -343,7 +343,7 @@ new Vue({
                     groups[key].maxFold = Math.max(groups[key].maxFold, fold);
                 }
             }
-            
+
             this.enrichmentScoring = groups;
 
         },

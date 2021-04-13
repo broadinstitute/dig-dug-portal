@@ -11,9 +11,7 @@
                 <div>
                     <div class="region-search col filter-col-md">
                         <div class="label">Search gene</div>
-                        <gene-selectpicker
-                            @onGeneChange=" $store.dispatch('onGeneChange', $event)"
-                        ></gene-selectpicker>
+                        <gene-selectpicker @onGeneChange=" $store.dispatch('onGeneChange', $event)"></gene-selectpicker>
                     </div>
                     <div class="col divider" style="background: none">
                         <span class="or-text">or</span>
@@ -286,15 +284,9 @@
                                 <div class="col filter-col-md">
                                     <div class="label" style="margin-bottom: 5px">Add tissue</div>
                                     <tissue-selectpicker
-                                        :tissues="
-                                            $parent.globalEnrichmentTissues
-                                        "
+                                        :tissues="$parent.globalEnrichmentTissues"
                                         :clearOnSelected="true"
-                                        @tissue="
-                                            $parent.addTissueIntervalsPanel(
-                                                $event
-                                            )
-                                        "
+                                        @tissue="$parent.addTissueIntervalsPanel($event)"
                                     />
                                 </div>
                                 <div class="col filter-col-md">
