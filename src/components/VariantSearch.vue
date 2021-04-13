@@ -131,18 +131,29 @@
                                         "
                                         :href="`/gene.html?gene=${data.item.gene_symbol}`"
                                         >{{ data.item.gene_symbol }}</a
-                                    >
-                                    <a
+                                    ><span
                                         v-else-if="
                                             data.item.gene_id &&
                                             data.item.gene_id.indexOf(
                                                 'ENSG'
                                             ) !== -1
                                         "
-                                        :href="`https://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=${data.item.gene_id}`"
-                                        target="_blank"
-                                        >{{ data.item.gene_symbol }}</a
+                                        class="external_source"
                                     >
+                                        <a
+                                            :href="`https://grch37.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=${data.item.gene_id}`"
+                                            target="_blank"
+                                            >{{ data.item.gene_symbol }}</a
+                                        ><b-badge
+                                            pill
+                                            disabled
+                                            class="ml-1"
+                                            variant="secondary"
+                                            title="Link to external source."
+                                            >E</b-badge
+                                        ></span
+                                    >
+
                                     <span
                                         v-else
                                         title="There's no data available for this gene."
@@ -302,10 +313,6 @@ export default Vue.component("variant-search", {
                     label: "Consequence",
                 },
                 {
-                    key: "impact",
-                    label: "Impact",
-                },
-                {
                     key: "polyphen2_hdiv_pred",
                     label: "PolyPhen (HDIV)",
                 },
@@ -460,5 +467,13 @@ export default Vue.component("variant-search", {
 }
 .table thead th {
     vertical-align: top;
+}
+.external_source {
+    white-space: nowrap;
+}
+.external_source .badge {
+    vertical-align: middle;
+    font-size: 0.5rem;
+    cursor: help;
 }
 </style>
