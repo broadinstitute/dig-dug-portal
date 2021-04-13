@@ -213,6 +213,11 @@
                                         >
                                     </div></template
                                 >
+                                <template #cell(sift_prediction)="data">
+                                    {{
+                                        siftFormatter(data.item.sift_prediction)
+                                    }}
+                                </template>
                             </b-table>
                         </div>
                         <div
@@ -318,10 +323,6 @@ export default Vue.component("variant-search", {
             ],
             subFields: [
                 {
-                    key: "varId",
-                    label: "Variant",
-                },
-                {
                     key: "gene_symbol",
                     label: "Gene",
                 },
@@ -417,6 +418,9 @@ export default Vue.component("variant-search", {
         },
         consequenceFormatter(consequence) {
             return Formatters.consequenceFormatter(consequence);
+        },
+        siftFormatter(name) {
+            return Formatters.snakeFormatter(name);
         },
         async showVariantData(varID) {
             let escapedVarID = this.escapedVarID(varID);
