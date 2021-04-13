@@ -68,9 +68,11 @@
                         data.item.dbSNP
                     }}</a>
                 </template>
-                <template #cell(consequence)="data">{{
-                    consequenceFormatter(data.item.consequence)
-                }}</template>
+                <template #cell(consequence)="data">
+                    <div class="border-color" :class="data.item.impact">
+                        {{ consequenceFormatter(data.item.consequence) }}
+                    </div></template
+                >
                 <template #cell(view)="data">
                     <b-btn
                         v-if="!data.item.consequence"
@@ -168,12 +170,18 @@
                                             : data.item.protein_start
                                     }}
                                 </template>
-                                <template #cell(consequence_terms)="data"
-                                    ><span
-                                        v-for="c in data.item.consequence_terms"
-                                        :key="c"
-                                        >{{ consequenceFormatter(c) }}</span
-                                    ></template
+                                <template #cell(consequence_terms)="data">
+                                    <div
+                                        class="border-color"
+                                        :class="data.item.impact"
+                                    >
+                                        <span
+                                            v-for="c in data.item
+                                                .consequence_terms"
+                                            :key="c"
+                                            >{{ consequenceFormatter(c) }}</span
+                                        >
+                                    </div></template
                                 >
                             </b-table>
                             <b-pagination
@@ -221,14 +229,12 @@ import Vue from "vue";
 import { match, query } from "@/utils/bioIndexUtils";
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
-import testData from "@/views/VariantSearch/data.json";
 import Formatters from "@/utils/formatters";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 import CsvDownload from "@/components/CsvDownload";
 
 export default Vue.component("variant-search", {
-    testData,
     components: {
         CriterionListGroup,
         FilterEnumeration,
@@ -311,6 +317,7 @@ export default Vue.component("variant-search", {
                 {
                     key: "consequence_terms",
                     label: "Consequence",
+                    tdClass: "border-color",
                 },
                 {
                     key: "polyphen2_hdiv_pred",
@@ -360,29 +367,7 @@ export default Vue.component("variant-search", {
                 })
                 .map((v) => v.threshold);
         },
-        baseFields() {
-            let fields = Object.keys(testData[0]);
-            return fields.filter((v) => v !== "datasets");
-        },
-        datasetFields() {
-            let data1Fields = testData[0].datasets[0].data;
-        },
-        tableFields() {
-            if (this.selectedDataset.length > 0) {
-                return testData.filter((v) => {
-                    console.log(v);
 
-                    return this.selectedDataset.every((d) => {
-                        console.log("d", d.name);
-                        console.log("selected", this.selectedDataset);
-                        let ans = this.selectedDataset.includes(d.name);
-                        console.log("ans", ans);
-                        return ans;
-                    });
-                });
-                //return testData[0].datasets;
-            } else return [];
-        },
         //This works to display all data fro BI
         tableData() {
             if (this.variants && this.variants.length) {
@@ -475,5 +460,17 @@ export default Vue.component("variant-search", {
     vertical-align: middle;
     font-size: 0.5rem;
     cursor: help;
+}
+.border-color.MODIFIER {
+    border-color: rgba(128, 128, 128, 0.822);
+}
+.border-color.LOW {
+    border-color: rgb(3, 165, 30);
+}
+.border-color.MODERATE {
+    border-color: rgb(221, 188, 2);
+}
+.border-color.HIGH {
+    border-color: rgb(180, 2, 2);
 }
 </style>
