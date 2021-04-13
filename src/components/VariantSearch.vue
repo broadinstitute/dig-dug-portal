@@ -72,7 +72,16 @@
                     consequenceFormatter(data.item.consequence)
                 }}</template>
                 <template #cell(view)="data">
+                    <b-btn
+                        v-if="!data.item.consequence"
+                        disabled
+                        size="sm"
+                        class="btn-mini"
+                        variant="outline-secondary"
+                        >No Data</b-btn
+                    >
                     <b-button
+                        v-else
                         size="sm"
                         variant="outline-primary"
                         class="btn-mini showData"
@@ -85,7 +94,7 @@
                             <span class="sr-only">Loading...</span></span
                         ><span v-else>
                             {{ data.detailsShowing ? "Hide" : "Show" }}
-                            Variants</span
+                            Annotations</span
                         >
                     </b-button>
                 </template>
@@ -237,20 +246,8 @@ export default Vue.component("variant-search", {
                     label: "dbSNP",
                 },
                 {
-                    key: "position",
-                    label: "Position",
-                },
-                {
                     key: "consequence",
                     label: "Consequence",
-                },
-                {
-                    key: "reference",
-                    label: "Reference Allele",
-                },
-                {
-                    key: "alt",
-                    label: "Effect Allelle",
                 },
                 {
                     key: "heterozygousCases",
