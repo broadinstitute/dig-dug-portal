@@ -115,9 +115,6 @@
                                 "
                                 :fields="subFields"
                                 :per-page="perPage"
-                                :current-page="
-                                    subCurrentPage[escapedVarID(row.item.varId)]
-                                "
                                 :tbody-tr-class="rowPickClass"
                                 ><template #cell(varId)="data">
                                     <a
@@ -184,20 +181,6 @@
                                     </div></template
                                 >
                             </b-table>
-                            <b-pagination
-                                v-if="variantData[escapedVarID(row.item.varId)]"
-                                v-model="
-                                    subCurrentPage[escapedVarID(row.item.varId)]
-                                "
-                                :total-rows="
-                                    variantData[escapedVarID(row.item.varId)]
-                                        .length
-                                "
-                                :per-page="perPage"
-                                size="sm"
-                                align="fill"
-                                class="sub-details"
-                            ></b-pagination>
                         </div>
                         <div
                             v-else-if="
@@ -249,7 +232,6 @@ export default Vue.component("variant-search", {
             matchingGenes: [],
             perPage: 10,
             currentPage: 1,
-            subCurrentPage: {},
             datasets: ["Farhan2019_ALS_eu"],
             variants: [],
             consequences: {},
@@ -423,7 +405,7 @@ export default Vue.component("variant-search", {
                 let tcQuery = await this.getTranscriptConsequences(varID);
                 console.log("data back", tcQuery);
                 Vue.set(this.variantData, escapedVarID, tcQuery);
-                Vue.set(this.subCurrentPage, escapedVarID, 1);
+
                 this.loadingData[escapedVarID] = false;
             }
         },
