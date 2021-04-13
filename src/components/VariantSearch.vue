@@ -41,8 +41,41 @@
                 >Search Variants</b-button
             >
         </div>
-        <b-row
-            ><b-col class="text-right mb-2">
+        <b-row>
+            <b-col cols="9">
+                <div class="legends" v-show="tableData.length">
+                    <strong class="mr-2">Impact:</strong>
+                    <b-btn
+                        disabled
+                        variant="outline-danger"
+                        size="sm"
+                        class="mr-1 btn-mini"
+                        >HIGH</b-btn
+                    >
+                    <b-btn
+                        disabled
+                        variant="outline-warning"
+                        size="sm"
+                        class="mr-1 btn-mini"
+                        >MODERATE</b-btn
+                    >
+                    <b-btn
+                        disabled
+                        variant="outline-success"
+                        size="sm"
+                        class="mr-1 btn-mini"
+                        >LOW</b-btn
+                    >
+                    <b-btn
+                        disabled
+                        variant="outline-secondary"
+                        size="sm"
+                        class="btn-mini"
+                        >MODIFIER</b-btn
+                    >
+                </div>
+            </b-col>
+            <b-col class="text-right mb-2">
                 <csv-download
                     v-if="tableData.length"
                     :data="tableData"
@@ -276,6 +309,10 @@ export default Vue.component("variant-search", {
                     key: "alleleCountControls",
                     label: "Allele Count Controls",
                 },
+                {
+                    key: "maf",
+                    label: "Minor AF",
+                },
 
                 { key: "view", label: "View VEP Data" },
             ],
@@ -370,23 +407,7 @@ export default Vue.component("variant-search", {
             }
         },
         async searchVariants() {
-            // this.$store.dispatch("variants/query", {
-            //     q: this.selectedGene,
-            // });
-            let variants = await query("gene-variants", this.selectedGene);
-            //console.log("variants", variants);
-            this.variants = variants; //need to add columns from TC
-            // if (variants.length) {
-            //     for (let i = 0; i < variants.length; i++) {
-            //         let data = await this.getTranscriptConsequences(
-            //             variants[i].varId
-            //         );
-            //         //console.log("adding", variants[i].varId);
-            //         this.consequences[variants[i].varId] = data;
-            //     }
-            // } else {
-            //     this.variants = [];
-            // }
+            this.variants = await query("gene-variants", this.selectedGene);
         },
         async getTranscriptConsequences(varID) {
             if (!!varID) {
@@ -399,18 +420,15 @@ export default Vue.component("variant-search", {
         },
         async showVariantData(varID) {
             let escapedVarID = this.escapedVarID(varID);
-            console.log("escaped", escapedVarID);
+
             if (this.variantData[escapedVarID] === undefined) {
                 this.loadingData[escapedVarID] = true;
                 let tcQuery = await this.getTranscriptConsequences(varID);
-                console.log("data back", tcQuery);
                 Vue.set(this.variantData, escapedVarID, tcQuery);
-
                 this.loadingData[escapedVarID] = false;
             }
         },
         escapedVarID(varID) {
-            console.log("escaping", varID);
             if (!!varID) return varID.replace(/:\s*/g, "_");
             else {
                 return "";
@@ -444,15 +462,18 @@ export default Vue.component("variant-search", {
     cursor: help;
 }
 .border-color.MODIFIER {
-    border-color: rgba(128, 128, 128, 0.822);
+    border-color: rgb(161, 166, 171);
 }
 .border-color.LOW {
-    border-color: rgb(3, 165, 30);
+    border-color: rgb(135, 196, 137);
 }
 .border-color.MODERATE {
-    border-color: rgb(221, 188, 2);
+    border-color: rgb(247, 217, 102);
 }
 .border-color.HIGH {
-    border-color: rgb(180, 2, 2);
+    border-color: rgb(217, 130, 135);
+}
+.legends .btn-mini {
+    border-left-width: thick;
 }
 </style>
