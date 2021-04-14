@@ -7,13 +7,17 @@
         <div class="container-fluid mdkp-body">
             <div class="card mdkp-card">
                 <div class="card-body temporary-card">
-                    <p>Documentation ...</p>
+                    <documentation
+                        name="variantsearch.header.info"
+                    ></documentation>
                 </div>
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
                     <h1 class="card-title">Variant Search</h1>
-                    <p class="mb-5">Subheader ...</p>
+                    <documentation
+                        name="variantsearch.subheader"
+                    ></documentation>
                     <variant-search></variant-search>
                 </div>
             </div>
