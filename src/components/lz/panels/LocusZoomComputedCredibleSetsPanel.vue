@@ -107,7 +107,7 @@ export class LZComputedCredibleVariantsPanel {
             posterior_prob: association.posteriorProbability,
             log_pvalue: ((-1) * Math.log10(association.pValue)).toPrecision(4),
             variant: association.varId,
-            ref_allele: association.varId,
+            ref_allele: association.reference,
             state: 'ssss' // TODO: what should this be?
         }));
 
