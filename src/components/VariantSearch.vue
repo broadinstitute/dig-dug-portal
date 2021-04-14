@@ -206,10 +206,18 @@
                                         :class="data.item.impact"
                                     >
                                         <span
-                                            v-for="c in data.item
+                                            v-for="(c, i) in data.item
                                                 .consequence_terms"
                                             :key="c"
-                                            >{{ consequenceFormatter(c) }}</span
+                                            >{{ consequenceFormatter(c)
+                                            }}{{
+                                                i <
+                                                data.item.consequence_terms
+                                                    .length -
+                                                    1
+                                                    ? ", "
+                                                    : ""
+                                            }}</span
                                         >
                                     </div></template
                                 >
