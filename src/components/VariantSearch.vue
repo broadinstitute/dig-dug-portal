@@ -417,7 +417,13 @@ export default Vue.component("variant-search", {
             }
         },
         consequenceFormatter(consequence) {
-            return Formatters.consequenceFormatter(consequence);
+            if (!!consequence) {
+                let trim = consequence
+                    .replace("_prime_", "' ")
+                    .replace("_variant", "");
+                return Formatters.snakeFormatter(trim);
+            }
+            return;
         },
         siftFormatter(name) {
             return Formatters.snakeFormatter(name);
