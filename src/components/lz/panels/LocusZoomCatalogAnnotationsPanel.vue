@@ -97,7 +97,7 @@ export class LZCatalogAnnotationsPanel {
                 pValue: association.pValue,
                 log_pvalue: -1 * Math.log10(association.pValue), // .toPrecision(4),
                 variant: association.varId,
-                ref_allele: association.varId,
+                ref_allele: association.reference,
                 consequence: association.consequence,
                 beta: association.beta,
                 nearest: association.nearest,
@@ -122,8 +122,7 @@ export class LZCatalogAnnotationsPanel {
                         {
                             namespace: {
                                 catalog: "catalog",
-                                [this.datasource_type]: this
-                                    .datasource_namespace_symbol_for_panel,
+                                [this.datasource_type]: this.datasource_namespace_symbol_for_panel,
                             },
                             id_field: LocusZoom.Layouts.get(
                                 "panel",
@@ -139,8 +138,7 @@ export class LZCatalogAnnotationsPanel {
                                 ).data_layers[0].fields.map((field) =>
                                     field.replace(
                                         this.datasource_type,
-                                        this
-                                            .datasource_namespace_symbol_for_panel
+                                        this.datasource_namespace_symbol_for_panel
                                     )
                                 ),
                             ],
