@@ -113,7 +113,7 @@
                         size="sm"
                         class="btn-mini"
                         variant="outline-secondary"
-                        >No Data</b-btn
+                        >No Annotation</b-btn
                     >
                     <b-button
                         v-else
@@ -316,10 +316,10 @@ export default Vue.component("variant-search", {
                 },
                 {
                     key: "maf",
-                    label: "Minor AF",
+                    label: "Max AF",
                 },
 
-                { key: "view", label: "View VEP Data" },
+                { key: "view", label: "View VEP Data", class: "nowrap" },
             ],
             subFields: [
                 {
@@ -479,5 +479,8 @@ export default Vue.component("variant-search", {
 }
 .legends .btn-mini {
     border-left-width: thick;
+}
+.nowrap {
+    white-space: nowrap;
 }
 </style>
