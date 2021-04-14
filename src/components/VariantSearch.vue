@@ -316,7 +316,7 @@ export default Vue.component("variant-search", {
                 },
                 {
                     key: "maf",
-                    label: "Minor AF",
+                    label: "Max AF",
                 },
 
                 { key: "view", label: "View VEP Data" },
