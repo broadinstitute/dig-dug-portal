@@ -416,6 +416,7 @@ export default Vue.component("variant-search", {
             }
         },
         async searchVariants() {
+            this.currentPage = 1; //reset on new search
             this.variants = await query("gene-variants", this.selectedGene);
         },
         async getTranscriptConsequences(varID) {
