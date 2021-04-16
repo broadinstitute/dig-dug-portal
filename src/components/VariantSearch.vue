@@ -113,7 +113,7 @@
                         size="sm"
                         class="btn-mini"
                         variant="outline-secondary"
-                        >No Data</b-btn
+                        >No Annotation</b-btn
                     >
                     <b-button
                         v-else
@@ -155,7 +155,28 @@
                                         >{{ data.item.varId }}</a
                                     >
                                 </template>
-                                <template #cell(gene_symbol)="data">
+                                <template #head(transcript_id)="data">
+                                    <span class="external_source"
+                                        >Feature
+                                        <b-badge
+                                            pill
+                                            disabled
+                                            class="ml-1"
+                                            variant="secondary"
+                                            title="Link to external source."
+                                            >E</b-badge
+                                        ></span
+                                    >
+                                </template>
+                                <template #cell(transcript_id)="data">
+                                    <a
+                                        v-if="data.item.transcript_id"
+                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcript_id}`"
+                                        target="_blank"
+                                        >{{ data.item.transcript_id }}</a
+                                    >
+                                </template>
+                                <!-- <template #cell(gene_symbol)="data">
                                     <a
                                         v-if="
                                             data.item.gene_symbol_source ===
@@ -191,7 +212,7 @@
                                         title="There's no data available for this gene."
                                         >{{ data.item.gene_symbol }}</span
                                     >
-                                </template>
+                                </template> -->
                                 <template #cell(position)="data">
                                     {{
                                         data.item.protein_start !==
@@ -206,10 +227,18 @@
                                         :class="data.item.impact"
                                     >
                                         <span
-                                            v-for="c in data.item
+                                            v-for="(c, i) in data.item
                                                 .consequence_terms"
                                             :key="c"
-                                            >{{ consequenceFormatter(c) }}</span
+                                            >{{ consequenceFormatter(c)
+                                            }}{{
+                                                i <
+                                                data.item.consequence_terms
+                                                    .length -
+                                                    1
+                                                    ? ", "
+                                                    : ""
+                                            }}</span
                                         >
                                     </div></template
                                 >
@@ -319,12 +348,12 @@ export default Vue.component("variant-search", {
                     label: "Max AF",
                 },
 
-                { key: "view", label: "View VEP Data" },
+                { key: "view", label: "View VEP Data", class: "nowrap" },
             ],
             subFields: [
                 {
-                    key: "gene_symbol",
-                    label: "Gene",
+                    key: "transcript_id",
+                    label: "Feature",
                 },
                 {
                     key: "position",
@@ -408,6 +437,7 @@ export default Vue.component("variant-search", {
             }
         },
         async searchVariants() {
+            this.currentPage = 1; //reset on new search
             this.variants = await query("gene-variants", this.selectedGene);
         },
         async getTranscriptConsequences(varID) {
@@ -417,7 +447,13 @@ export default Vue.component("variant-search", {
             }
         },
         consequenceFormatter(consequence) {
-            return Formatters.consequenceFormatter(consequence);
+            if (!!consequence) {
+                let trim = consequence
+                    .replace("_prime_", "' ")
+                    .replace("_variant", "");
+                return Formatters.snakeFormatter(trim);
+            }
+            return;
         },
         siftFormatter(name) {
             return Formatters.snakeFormatter(name);
@@ -479,5 +515,8 @@ export default Vue.component("variant-search", {
 }
 .legends .btn-mini {
     border-left-width: thick;
+}
+.nowrap {
+    white-space: nowrap;
 }
 </style>
