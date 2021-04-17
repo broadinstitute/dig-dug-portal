@@ -393,7 +393,7 @@ export default Vue.component("locuszoom", {
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {
-    // "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/annotation/statistic/single/", params: { source: 45, id_field: "variant" } }],
+    // "assoc": ["AssociationLZ", { url: "https://portaldev.sph.umich.edu/api/v1/statistic/single/", params: { source: 45, id_field: "variant" } }],
     catalog: [
         "GwasCatalogLZ",
         {
