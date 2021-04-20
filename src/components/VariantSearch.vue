@@ -92,7 +92,36 @@
                 :items="tableData"
                 :per-page="perPage"
                 :current-page="currentPage"
-                ><template #cell(varId)="data">
+                ><template #thead-top="data">
+                    <b-tr>
+                        <b-th colspan="3"
+                            ><span class="sr-only"
+                                >Variant, dbSNP, Consequence</span
+                            ></b-th
+                        >
+                        <b-th
+                            colspan="3"
+                            class="text-center"
+                            variant="secondary"
+                            >Allele</b-th
+                        >
+                        <b-th><span class="sr-only">Max AF</span></b-th>
+                        <b-th
+                            colspan="2"
+                            class="text-center"
+                            variant="secondary"
+                            >Heterozygous</b-th
+                        >
+                        <b-th
+                            colspan="2"
+                            class="text-center"
+                            variant="secondary"
+                            >Homozygous</b-th
+                        >
+                        <b-th><span class="sr-only">View VEP Data</span></b-th>
+                    </b-tr>
+                </template>
+                <template #cell(varId)="data">
                     <a :href="`/variant.html?variant=${data.item.varId}`">{{
                         data.item.varId
                     }}</a> </template
@@ -315,37 +344,38 @@ export default Vue.component("variant-search", {
                     key: "consequence",
                     label: "Consequence",
                 },
-                {
-                    key: "heterozygousCases",
-                    label: "Heterozygous Cases",
-                },
-                {
-                    key: "heterozygousControls",
-                    label: "Heterozygous Controls",
-                },
-                {
-                    key: "homozygousCases",
-                    label: "Homozygous Cases",
-                },
-                {
-                    key: "homozygousControls",
-                    label: "Homozygous Controls",
-                },
-                {
-                    key: "alleleCount",
-                    label: "Allele Count",
-                },
+
                 {
                     key: "alleleCountCases",
-                    label: "Allele Count Cases",
+                    label: "Cases",
                 },
                 {
                     key: "alleleCountControls",
-                    label: "Allele Count Controls",
+                    label: "Controls",
+                },
+                {
+                    key: "alleleCount",
+                    label: "Count",
                 },
                 {
                     key: "maf",
                     label: "Max AF",
+                },
+                {
+                    key: "heterozygousCases",
+                    label: "Cases",
+                },
+                {
+                    key: "heterozygousControls",
+                    label: "Controls",
+                },
+                {
+                    key: "homozygousCases",
+                    label: "Cases",
+                },
+                {
+                    key: "homozygousControls",
+                    label: "Controls",
                 },
 
                 { key: "view", label: "View VEP Data", class: "nowrap" },
