@@ -87,6 +87,7 @@
             <b-table
                 hover
                 small
+                sort-icon-left
                 responsive="sm"
                 :fields="fields"
                 :items="tableData"
@@ -116,6 +117,7 @@
                             colspan="2"
                             class="text-center"
                             variant="secondary"
+                            style="border-left: 1px solid #dee2e6"
                             >Homozygous</b-th
                         >
                         <b-th><span class="sr-only">View VEP Data</span></b-th>
@@ -348,37 +350,50 @@ export default Vue.component("variant-search", {
                 {
                     key: "alleleCountCases",
                     label: "Cases",
+                    sortable: true,
                 },
                 {
                     key: "alleleCountControls",
                     label: "Controls",
+                    sortable: true,
                 },
                 {
                     key: "alleleCount",
                     label: "Count",
+                    sortable: true,
                 },
                 {
                     key: "maf",
                     label: "Max AF",
+                    sortable: true,
+                    thStyle: "min-width: 120px;",
                 },
                 {
                     key: "heterozygousCases",
                     label: "Cases",
+                    sortable: true,
                 },
                 {
                     key: "heterozygousControls",
                     label: "Controls",
+                    sortable: true,
                 },
                 {
                     key: "homozygousCases",
                     label: "Cases",
+                    sortable: true,
                 },
                 {
                     key: "homozygousControls",
                     label: "Controls",
+                    sortable: true,
                 },
 
-                { key: "view", label: "View VEP Data", class: "nowrap" },
+                {
+                    key: "view",
+                    label: "View VEP Data",
+                    class: "nowrap",
+                },
             ],
             subFields: [
                 {
@@ -548,5 +563,8 @@ export default Vue.component("variant-search", {
 }
 .nowrap {
     white-space: nowrap;
+}
+.table.b-table > thead > tr > [aria-sort="none"] {
+    background-image: none;
 }
 </style>
