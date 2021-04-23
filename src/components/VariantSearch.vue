@@ -87,12 +87,43 @@
             <b-table
                 hover
                 small
+                sort-icon-left
                 responsive="sm"
                 :fields="fields"
                 :items="tableData"
                 :per-page="perPage"
                 :current-page="currentPage"
-                ><template #cell(varId)="data">
+                ><template #thead-top="data">
+                    <b-tr>
+                        <b-th colspan="3"
+                            ><span class="sr-only"
+                                >Variant, dbSNP, Consequence</span
+                            ></b-th
+                        >
+                        <b-th
+                            colspan="3"
+                            class="text-center"
+                            variant="secondary"
+                            >Allele</b-th
+                        >
+                        <b-th><span class="sr-only">Max AF</span></b-th>
+                        <b-th
+                            colspan="2"
+                            class="text-center"
+                            variant="secondary"
+                            >Heterozygous</b-th
+                        >
+                        <b-th
+                            colspan="2"
+                            class="text-center"
+                            variant="secondary"
+                            style="border-left: 1px solid #dee2e6"
+                            >Homozygous</b-th
+                        >
+                        <b-th><span class="sr-only">View VEP Data</span></b-th>
+                    </b-tr>
+                </template>
+                <template #cell(varId)="data">
                     <a :href="`/variant.html?variant=${data.item.varId}`">{{
                         data.item.varId
                     }}</a> </template
@@ -315,40 +346,54 @@ export default Vue.component("variant-search", {
                     key: "consequence",
                     label: "Consequence",
                 },
-                {
-                    key: "heterozygousCases",
-                    label: "Heterozygous Cases",
-                },
-                {
-                    key: "heterozygousControls",
-                    label: "Heterozygous Controls",
-                },
-                {
-                    key: "homozygousCases",
-                    label: "Homozygous Cases",
-                },
-                {
-                    key: "homozygousControls",
-                    label: "Homozygous Controls",
-                },
-                {
-                    key: "alleleCount",
-                    label: "Allele Count",
-                },
+
                 {
                     key: "alleleCountCases",
-                    label: "Allele Count Cases",
+                    label: "Cases",
+                    sortable: true,
                 },
                 {
                     key: "alleleCountControls",
-                    label: "Allele Count Controls",
+                    label: "Controls",
+                    sortable: true,
+                },
+                {
+                    key: "alleleCount",
+                    label: "Count",
+                    sortable: true,
                 },
                 {
                     key: "maf",
                     label: "Max AF",
+                    sortable: true,
+                    thStyle: "min-width: 120px;",
+                },
+                {
+                    key: "heterozygousCases",
+                    label: "Cases",
+                    sortable: true,
+                },
+                {
+                    key: "heterozygousControls",
+                    label: "Controls",
+                    sortable: true,
+                },
+                {
+                    key: "homozygousCases",
+                    label: "Cases",
+                    sortable: true,
+                },
+                {
+                    key: "homozygousControls",
+                    label: "Controls",
+                    sortable: true,
                 },
 
-                { key: "view", label: "View VEP Data", class: "nowrap" },
+                {
+                    key: "view",
+                    label: "View VEP Data",
+                    class: "nowrap",
+                },
             ],
             subFields: [
                 {
@@ -518,5 +563,8 @@ export default Vue.component("variant-search", {
 }
 .nowrap {
     white-space: nowrap;
+}
+.table.b-table > thead > tr > [aria-sort="none"] {
+    background-image: none;
 }
 </style>
