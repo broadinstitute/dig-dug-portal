@@ -212,7 +212,15 @@
                     <documentation
                         name="region.variantassociation.subheader"
                     ></documentation>
-                    <h6>Select/add phenotypes to the section</h6>
+                    <h6>
+                        Select/add phenotypes to the section
+                        &nbsp;<tooltip-documentation
+                            name="region.add.phenotypes.tooltip"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
+                    </h6>
+
                     <criterion-list-group
                         v-model="$parent.regionPageSearchCriterion"
                         :header="''"
@@ -245,8 +253,14 @@
                         </filter-enumeration-control>
                     </criterion-list-group>
                     <h6 v-if="$parent.selectedPhenotypes.length > 0">
-                        Filter top associations table
+                        Filter top associations table &nbsp;
+                        <tooltip-documentation
+                            name="region.filter.topassoc.tooltip"
+                            :isHover="true"
+                            :noIcon="false"
+                        ></tooltip-documentation>
                     </h6>
+
                     <criterion-function-group
                         v-model="$parent.associationsFilter"
                         v-if="$parent.selectedPhenotypes.length > 0"
