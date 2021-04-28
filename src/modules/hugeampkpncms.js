@@ -43,7 +43,7 @@ export default {
         },
         async getResearchData(context, targetDataPoint) {
 
-            //console.log(targetDataPoint);
+            console.log(targetDataPoint);
             let csv = await fetch("http://hugeampkpncms.org/servedata/dataset?dataset=" + targetDataPoint).then(resp => resp.text());
 
             //console.log(csv);

@@ -10,13 +10,32 @@
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
-            {{ $parent.researchPage }}
-        </div>
-        <div class="container-fluid mdkp-body">
-            {{ $parent.dataTableFormat }}
-        </div>
-        <div class="container-fluid mdkp-body">
-            {{ $parent.researchData }}
+            <div class="card mdkp-card dataset-page-header">
+                <div class="row card-body">
+                    <div class="col-md-12">
+                        <h3 v-html="$parent.pageTitle"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="card mdkp-card">
+                <div class="row card-body">
+                    <div
+                        class="col-md-12"
+                        v-html="$parent.pageDescription"
+                    ></div>
+                    <div class="col-md-12">
+                        {{ $parent.researchPage }}
+                    </div>
+                    <div class="col-md-12">
+                        <research-data-table
+                            :pageID="$parent.pageID"
+                            :dataset="$parent.filteredData"
+                            :tableFormat="$parent.dataTableFormat"
+                        >
+                        </research-data-table>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Footer-->

@@ -12,6 +12,7 @@ Vue.config.productionTip = false;
 
 import PaperPageHeader from "@/components/PaperPageHeader.vue";
 import PaperPageFooter from "@/components/PaperPageFooter.vue";
+import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
 
@@ -20,6 +21,7 @@ new Vue({
     components: {
         PaperPageHeader,
         PaperPageFooter,
+        ResearchDataTable,
     },
 
     created() {
@@ -40,24 +42,91 @@ new Vue({
     methods: {
         ...uiUtils,
 
+        CSVToArray(strData, strDelimiter) {
+            // this function is not used but keeping for future reference
+            strDelimiter = (strDelimiter || ",");
+
+            var objPattern = new RegExp(
+                (
+                    // Delimiters.
+                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+                    // Quoted fields.
+                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+                    // Standard fields.
+                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
+                ),
+                "gi"
+            );
+
+            var arrData = [[]];
+
+            var arrMatches = null;
+
+
+            while (arrMatches = objPattern.exec(strData)) {
+
+
+                var strMatchedDelimiter = arrMatches[1];
+
+                if (
+                    strMatchedDelimiter.length &&
+                    strMatchedDelimiter !== strDelimiter
+                ) {
+
+                    arrData.push([]);
+
+                }
+
+                var strMatchedValue;
+
+
+                if (arrMatches[2]) {
+
+
+                    strMatchedValue = arrMatches[2].replace(
+                        new RegExp("\"\"", "g"),
+                        "\""
+                    );
+
+                } else {
+
+                    strMatchedValue = arrMatches[3];
+
+                }
+
+                arrData[arrData.length - 1].push(strMatchedValue);
+            }
+
+            // Return the parsed data.
+            return (arrData);
+        },
+
         csv2Json(DATA) {
 
-            let csvArr = [];
+            let tsvArr = [];
 
             let rawData = DATA.split("\\r\\n");
 
+            //console.log("rawdata", rawData);
+
             rawData.map(r => {
-                let eachRow = r.split(",");
-                csvArr.push(eachRow);
+                //console.log("r", r);
+                let eachRow = r.split("\\t");
+                tsvArr.push(eachRow);
             })
 
+            //let csvArr = this.CSVToArray(DATA, ",");
+            console.log("tsvarr", tsvArr);
 
-            let jsonHeader = csvArr[0]
-            csvArr.shift();
+
+            let jsonHeader = tsvArr[0]
+            tsvArr.shift();
 
             let jsonData = []
 
-            csvArr.map(i => {
+            tsvArr.map(i => {
 
                 let tempObj = {};
 
@@ -85,8 +154,7 @@ new Vue({
 
                         let fTempObj = {};
                         this.dataTableFormat[f].map(fItem => {
-                            fTempObj[fItem] = (this.testNumber(d[fItem]) == true) ? Number(d[fItem]) : d[fItem];
-
+                            fTempObj[fItem] = (this.testNumber(d[fItem]) == true) ? Number(d[fItem]) : this.cleanUpText(d[fItem]);
                         })
 
                         tempObj["features"][f].push(fTempObj);
@@ -104,6 +172,14 @@ new Vue({
         testNumber(STR) {
             let reg = /^-?[\d.]+(?:e-?\d+)?$/;
             return reg.test(STR);
+        },
+
+        cleanUpText(STR) {
+            if (!!STR) {
+                let cleanText = STR.replaceAll("\\n", "<br>").replaceAll("\\u0022", "")
+                return cleanText;
+            }
+
         },
 
         mergeDataBy(DATA, DATAFORMATTING) {
@@ -133,6 +209,9 @@ new Vue({
     },
 
     computed: {
+        pageID() {
+            return keyParams.pageid.trim();
+        },
         researchPage() {
             let contents = this.$store.state.hugeampkpncms.researchPage;
 
@@ -141,6 +220,30 @@ new Vue({
             }
             return contents;
         },
+        pageTitle() {
+            let contents = this.$store.state.hugeampkpncms.researchPage;
+
+            if (contents.length === 0 || contents[0]["title"] == false) {
+                return null;
+            }
+            return contents[0]["title"];
+        },
+        uid() {
+            let contents = this.$store.state.hugeampkpncms.researchPage;
+
+            if (contents.length === 0 || contents[0]["uid"] == false) {
+                return null;
+            }
+            return contents[0]["uid"];
+        },
+        pageDescription() {
+            let contents = this.$store.state.hugeampkpncms.researchPage;
+
+            if (contents.length === 0 || contents[0]["body"] == false) {
+                return null;
+            }
+            return contents[0]["body"];
+        },
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
@@ -148,7 +251,13 @@ new Vue({
                 return null;
             }
 
+            //console.log(contents);
+
             return this.csv2Json(contents);
+        },
+        filteredData() {
+            let contents = this.researchData;
+            return contents;
         },
         dataTableFormat() {
             let contents = this.$store.state.hugeampkpncms.researchPage;
@@ -162,7 +271,7 @@ new Vue({
 
     watch: {
         researchPage(content) {
-            this.$store.dispatch("hugeampkpncms/getResearchData", "http://hugeampkpncms.org" + content[0]["field_data_file"]);
+            this.$store.dispatch("hugeampkpncms/getResearchData", "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"]);
         },
     }
 }).$mount("#app");

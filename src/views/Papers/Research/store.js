@@ -1,6 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
+import uiUtils from "@/utils/uiUtils";
+import formatters from "@/utils/formatters";
 import hugeampkpncms from "@/modules/hugeampkpncms";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
@@ -15,7 +17,9 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
-        hugeampkpncms
+        hugeampkpncms,
+        ...uiUtils,
+        ...formatters,
     },
     state: {
 
