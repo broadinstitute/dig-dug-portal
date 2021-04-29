@@ -974,6 +974,10 @@ span.weight-blue {
     text-align: center;
     font-size: 12px;
 }
+.x-axis-label {
+    text-align: center;
+    font-size: 14px;
+}
 
 #egl_m_plot_y {
     width: 50px;

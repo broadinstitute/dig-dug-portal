@@ -13,7 +13,8 @@ Vue.config.productionTip = false;
 import PaperPageHeader from "@/components/PaperPageHeader.vue";
 import PaperPageFooter from "@/components/PaperPageFooter.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
-import uiUtils from "@/utils/uiUtils";
+import MPlotBitmap from "@/components/MPlotBitmap";
+import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 import keyParams from "@/utils/keyParams";
 
 new Vue({
@@ -22,6 +23,8 @@ new Vue({
         PaperPageHeader,
         PaperPageFooter,
         ResearchDataTable,
+        MPlotBitmap,
+        EffectorGenesMPlot,
     },
 
     created() {
@@ -40,12 +43,12 @@ new Vue({
     },
 
     methods: {
-        ...uiUtils,
-
         CSVToArray(strData, strDelimiter) {
-            // this function is not used but keeping for future reference
+            // Check to see if the delimiter is defined. If not,
+            // then default to comma.
             strDelimiter = (strDelimiter || ",");
 
+            // Create a regular expression to parse the CSV values.
             var objPattern = new RegExp(
                 (
                     // Delimiters.
@@ -60,42 +63,60 @@ new Vue({
                 "gi"
             );
 
+            // Create an array to hold our data. Give the array
+            // a default empty first row.
             var arrData = [[]];
 
+            // Create an array to hold our individual pattern
+            // matching groups.
             var arrMatches = null;
 
 
+            // Keep looping over the regular expression matches
+            // until we can no longer find a match.
             while (arrMatches = objPattern.exec(strData)) {
 
-
+                // Get the delimiter that was found.
                 var strMatchedDelimiter = arrMatches[1];
 
+                // Check to see if the given delimiter has a length
+                // (is not the start of string) and if it matches
+                // field delimiter. If id does not, then we know
+                // that this delimiter is a row delimiter.
                 if (
                     strMatchedDelimiter.length &&
                     strMatchedDelimiter !== strDelimiter
                 ) {
 
+                    // Since we have reached a new row of data,
+                    // add an empty row to our data array.
                     arrData.push([]);
 
                 }
 
                 var strMatchedValue;
 
-
+                // Now that we have our delimiter out of the way,
+                // let's check to see which kind of value we
+                // captured (quoted or unquoted).
                 if (arrMatches[2]) {
 
-
+                    // We found a quoted value. When we capture
+                    // this value, unescape any double quotes.
                     strMatchedValue = arrMatches[2].replace(
                         new RegExp("\"\"", "g"),
                         "\""
                     );
 
                 } else {
-
+                    // We found a non-quoted value.
                     strMatchedValue = arrMatches[3];
 
                 }
 
+
+                // Now that we have our value string, let's add
+                // it to the data array.
                 arrData[arrData.length - 1].push(strMatchedValue);
             }
 
@@ -105,28 +126,16 @@ new Vue({
 
         csv2Json(DATA) {
 
-            let tsvArr = [];
+            let rawData2 = JSON.parse(DATA);
 
-            let rawData = DATA.split("\\r\\n");
+            let csvArr = this.CSVToArray(rawData2, ",");
 
-            //console.log("rawdata", rawData);
-
-            rawData.map(r => {
-                //console.log("r", r);
-                let eachRow = r.split("\\t");
-                tsvArr.push(eachRow);
-            })
-
-            //let csvArr = this.CSVToArray(DATA, ",");
-            console.log("tsvarr", tsvArr);
-
-
-            let jsonHeader = tsvArr[0]
-            tsvArr.shift();
+            let jsonHeader = csvArr[0]
+            csvArr.shift();
 
             let jsonData = []
 
-            tsvArr.map(i => {
+            csvArr.map(i => {
 
                 let tempObj = {};
 
@@ -154,7 +163,7 @@ new Vue({
 
                         let fTempObj = {};
                         this.dataTableFormat[f].map(fItem => {
-                            fTempObj[fItem] = (this.testNumber(d[fItem]) == true) ? Number(d[fItem]) : this.cleanUpText(d[fItem]);
+                            fTempObj[fItem] = (this.testNumber(d[fItem]) == true) ? Number(d[fItem]) : this.breakLines(d[fItem]);
                         })
 
                         tempObj["features"][f].push(fTempObj);
@@ -174,12 +183,11 @@ new Vue({
             return reg.test(STR);
         },
 
-        cleanUpText(STR) {
+        breakLines(STR) {
             if (!!STR) {
-                let cleanText = STR.replaceAll("\\n", "<br>").replaceAll("\\u0022", "")
+                let cleanText = STR.replaceAll("\n", "<br>");
                 return cleanText;
             }
-
         },
 
         mergeDataBy(DATA, DATAFORMATTING) {
@@ -244,6 +252,14 @@ new Vue({
             }
             return contents[0]["body"];
         },
+        dataFilters() {
+            let contents = this.$store.state.hugeampkpncms.researchPage;
+
+            if (contents.length === 0 || contents[0]["field_filters"] == false) {
+                return null;
+            }
+            return JSON.parse(contents[0]["field_filters"]);
+        },
         researchData() {
             let contents = this.$store.state.hugeampkpncms.researchData;
 
@@ -252,8 +268,11 @@ new Vue({
             }
 
             //console.log(contents);
+            let convertedData = this.csv2Json(contents);
 
-            return this.csv2Json(contents);
+            //console.log(convertedData);
+
+            return convertedData;
         },
         filteredData() {
             let contents = this.researchData;
@@ -267,11 +286,41 @@ new Vue({
             }
             return JSON.parse(contents[0]["field_data_table_format"]);
         },
+        tableperPageNumber() {
+            let contents = this.$store.state.hugeampkpncms.researchPage;
+
+            if (contents.length === 0 || contents[0]["field_number_of_rows"] == false) {
+                return null;
+            }
+            return JSON.parse(contents[0]["field_number_of_rows"]);
+        },
+        plotType() {
+            let contents = this.$store.state.hugeampkpncms.researchPage;
+
+            if (contents.length === 0 || contents[0]["field_data_visualizer"] == false) {
+                return null;
+            }
+            return contents[0]["field_data_visualizer"];
+        },
+        plotConfig() {
+            let contents = this.$store.state.hugeampkpncms.researchPage;
+
+            if (contents.length === 0 || contents[0]["field_visualizer_configuration"] == false) {
+                return null;
+            }
+            return JSON.parse(contents[0]["field_visualizer_configuration"]);
+        },
     },
 
     watch: {
         researchPage(content) {
-            this.$store.dispatch("hugeampkpncms/getResearchData", "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"]);
+            let dataPoint = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? content[0]["field_data_point"] : "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"];
+
+            let domain = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? "external" : "hugeampkpn";
+
+            let fetchParam = { "dataPoint": dataPoint, "domain": domain }
+
+            this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
         },
     }
 }).$mount("#app");

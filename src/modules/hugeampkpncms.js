@@ -41,10 +41,12 @@ export default {
             // set the data
             context.commit("setResearchPage", json);
         },
-        async getResearchData(context, targetDataPoint) {
+        async getResearchData(context, param) {
 
-            console.log(targetDataPoint);
-            let csv = await fetch("http://hugeampkpncms.org/servedata/dataset?dataset=" + targetDataPoint).then(resp => resp.text());
+            console.log(param.dataPoint);
+            console.log(param.domain);
+            let fetchUrl = (param.domain == "hugeampkpn") ? "http://hugeampkpncms.org/servedata/dataset?dataset=" + param.dataPoint : param.dataPoint;
+            let csv = await fetch(fetchUrl).then(resp => resp.text(fetchUrl));
 
             //console.log(csv);
 

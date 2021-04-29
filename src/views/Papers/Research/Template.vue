@@ -23,16 +23,43 @@
                         class="col-md-12"
                         v-html="$parent.pageDescription"
                     ></div>
-                    <div class="col-md-12">
-                        {{ $parent.researchPage }}
+
+                    <div
+                        class="col-md-12 egl-m-plot-wrapper"
+                        v-if="
+                            !!$parent.filteredData &&
+                            $parent.plotType == 'm_plot'
+                        "
+                    >
+                        <effector-genes-m-plot
+                            :plotData="$parent.filteredData"
+                            :locusKey="$parent.plotConfig['locusKey']"
+                            :scoreKey="$parent.plotConfig['scoreKey']"
+                            :renderBy="$parent.plotConfig['renderBy']"
+                            :yAxisLabel="$parent.plotConfig['yAxisLabel']"
+                            :xAxisLabel="$parent.plotConfig['xAxisLabel']"
+                            :popUpContent="$parent.plotConfig['hoverContent']"
+                        ></effector-genes-m-plot>
                     </div>
+                    <!--<div class="col-md-12" v-if="!!filteredData">
+                        <m-bitmap-plot
+                            :plotData="$parent.filteredData"
+                            :renderConfig="$parent.plotConfig"
+                            :geneOfInterest="selectedGene"
+                            v-model="selectedGene"
+                        ></m-bitmap-plot>
+                    </div>-->
                     <div class="col-md-12">
                         <research-data-table
                             :pageID="$parent.pageID"
                             :dataset="$parent.filteredData"
                             :tableFormat="$parent.dataTableFormat"
+                            :perPageNumber="$parent.tableperPageNumber"
                         >
                         </research-data-table>
+                    </div>
+                    <div class="col-md-12">
+                        {{ $parent.researchPage }}
                     </div>
                 </div>
             </div>
@@ -46,5 +73,5 @@
 </template>
 
 <style>
-/*@import url("/css/effectorGenes.css");*/
+@import url("/css/effectorGenes.css");
 </style>
