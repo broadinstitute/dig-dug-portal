@@ -10,8 +10,9 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
-import PaperPageHeader from "@/components/PaperPageHeader.vue";
-import PaperPageFooter from "@/components/PaperPageFooter.vue";
+import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
+import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
+import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import MPlotBitmap from "@/components/MPlotBitmap";
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
@@ -20,8 +21,9 @@ import keyParams from "@/utils/keyParams";
 new Vue({
     store,
     components: {
-        PaperPageHeader,
-        PaperPageFooter,
+        ResearchPageHeader,
+        ResearchPageFooter,
+        ResearchPageFilters,
         ResearchDataTable,
         MPlotBitmap,
         EffectorGenesMPlot,
@@ -229,33 +231,33 @@ new Vue({
             return contents;
         },
         pageTitle() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
+            let contents = this.researchPage;
 
-            if (contents.length === 0 || contents[0]["title"] == false) {
+            if (contents === null || contents[0]["title"] == false) {
                 return null;
             }
             return contents[0]["title"];
         },
         uid() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
+            let contents = this.researchPage;
 
-            if (contents.length === 0 || contents[0]["uid"] == false) {
+            if (contents === null || contents[0]["uid"] == false) {
                 return null;
             }
             return contents[0]["uid"];
         },
         pageDescription() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
+            let contents = this.researchPage;
 
-            if (contents.length === 0 || contents[0]["body"] == false) {
+            if (contents === null || contents[0]["body"] == false) {
                 return null;
             }
             return contents[0]["body"];
         },
         dataFilters() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
+            let contents = this.researchPage;
 
-            if (contents.length === 0 || contents[0]["field_filters"] == false) {
+            if (contents === null || contents[0]["field_filters"] == false) {
                 return null;
             }
             return JSON.parse(contents[0]["field_filters"]);
@@ -274,42 +276,47 @@ new Vue({
 
             return convertedData;
         },
+        /*
         filteredData() {
             let contents = this.researchData;
             return contents;
         },
+        */
         dataTableFormat() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
+            let contents = this.researchPage;
 
-            if (contents.length === 0 || contents[0]["field_data_table_format"] == false) {
+            if (contents === null || contents[0]["field_data_table_format"] == false) {
                 return null;
             }
             return JSON.parse(contents[0]["field_data_table_format"]);
         },
         tableperPageNumber() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
+            let contents = this.researchPage;
 
-            if (contents.length === 0 || contents[0]["field_number_of_rows"] == false) {
+            if (contents === null || contents[0]["field_number_of_rows"] == false) {
                 return null;
             }
             return JSON.parse(contents[0]["field_number_of_rows"]);
         },
         plotType() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
+            let contents = this.researchPage;
 
-            if (contents.length === 0 || contents[0]["field_data_visualizer"] == false) {
+            if (contents === null || contents[0]["field_data_visualizer"] == false) {
                 return null;
             }
             return contents[0]["field_data_visualizer"];
         },
         plotConfig() {
-            let contents = this.$store.state.hugeampkpncms.researchPage;
+            let contents = this.researchPage;
 
-            if (contents.length === 0 || contents[0]["field_visualizer_configuration"] == false) {
+            if (contents === null || contents[0]["field_visualizer_configuration"] == false) {
                 return null;
             }
             return JSON.parse(contents[0]["field_visualizer_configuration"]);
         },
+        researchMenu() {
+            return "menu";
+        }
     },
 
     watch: {
@@ -322,5 +329,8 @@ new Vue({
 
             this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
         },
+        researchData(content) {
+            this.$store.dispatch("filteredData", content);
+        }
     }
 }).$mount("#app");

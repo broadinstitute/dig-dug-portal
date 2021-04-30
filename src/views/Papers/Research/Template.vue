@@ -1,12 +1,9 @@
 <template>
     <div>
         <!-- Header -->
-        <!--<paper-page-header
-            :disease-group="$parent.diseaseGroup"
-            :front-contents="$parent.frontContents"
-            :paperMenu="$parent.paperMenu[0].body"
-            v-if="!!$parent.paperMenu"
-        ></paper-page-header>-->
+        <research-page-header
+            :researchMenu="$parent.researchMenu"
+        ></research-page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -23,16 +20,29 @@
                         class="col-md-12"
                         v-html="$parent.pageDescription"
                     ></div>
-
+                    <div
+                        class="col-md-12"
+                        v-if="
+                            $parent.dataFilters != null &&
+                            $parent.researchData != null
+                        "
+                    >
+                        <research-page-filters
+                            :filters="$parent.dataFilters"
+                            :dataset="$store.state.filteredData"
+                            :unfilteredDataset="$parent.researchData"
+                        ></research-page-filters>
+                    </div>
+                    <!-- plots -->
                     <div
                         class="col-md-12 egl-m-plot-wrapper"
                         v-if="
-                            !!$parent.filteredData &&
+                            !!$store.state.filteredData &&
                             $parent.plotType == 'm_plot'
                         "
                     >
                         <effector-genes-m-plot
-                            :plotData="$parent.filteredData"
+                            :plotData="$store.state.filteredData"
                             :locusKey="$parent.plotConfig['locusKey']"
                             :scoreKey="$parent.plotConfig['scoreKey']"
                             :renderBy="$parent.plotConfig['renderBy']"
@@ -41,34 +51,34 @@
                             :popUpContent="$parent.plotConfig['hoverContent']"
                         ></effector-genes-m-plot>
                     </div>
-                    <!--<div class="col-md-12" v-if="!!filteredData">
+                    <div
+                        v-if="
+                            !!$store.state.filteredData &&
+                            $parent.plotType == 'mbm_plot'
+                        "
+                        class="mbm-plot-wrapper"
+                    >
                         <m-bitmap-plot
-                            :plotData="$parent.filteredData"
+                            :plotData="$store.state.filteredData"
                             :renderConfig="$parent.plotConfig"
-                            :geneOfInterest="selectedGene"
-                            v-model="selectedGene"
                         ></m-bitmap-plot>
-                    </div>-->
+                    </div>
+
                     <div class="col-md-12">
                         <research-data-table
                             :pageID="$parent.pageID"
-                            :dataset="$parent.filteredData"
+                            :dataset="$store.state.filteredData"
                             :tableFormat="$parent.dataTableFormat"
                             :perPageNumber="$parent.tableperPageNumber"
                         >
                         </research-data-table>
-                    </div>
-                    <div class="col-md-12">
-                        {{ $parent.researchPage }}
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Footer-->
-        <!--<paper-page-footer
-            :disease-group="$parent.diseaseGroup"
-        ></paper-page-footer>-->
+        <research-page-footer></research-page-footer>
     </div>
 </template>
 

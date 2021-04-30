@@ -19,11 +19,17 @@ export default new Vuex.Store({
         hugeampkpncms,
     },
     state: {
-
+        filteredData: "",
     },
     mutations: {
+        setFilteredData(state, data) {
+            state.filteredData = data;
+        },
     },
     getters: {},
     actions: {
+        filteredData(context, filtered) {
+            context.commit("setFilteredData", filtered);
+        }
     }
 });
