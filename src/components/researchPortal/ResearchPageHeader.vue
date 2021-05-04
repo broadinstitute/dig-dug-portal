@@ -2,9 +2,15 @@
     <div class="research-header-menu-wrapper container-fluid">
         <!-- Menu header-->
 
-        <div v-if="!!this.researchMenu" v-html="this.researchMenu">
-            {{ this.researchMenu }}
-        </div>
+        <ul v-if="!!this.researchMenu">
+            <li
+                v-for="menu in this.researchMenu"
+                :key="menu.label"
+                class="menu"
+            >
+                <a :href="menu.link">{{ menu.label }}</a>
+            </li>
+        </ul>
     </div>
 </template>
 

@@ -5,7 +5,7 @@
                 <div
                     class="col"
                     v-for="filter in this.filters"
-                    :key="filter.type"
+                    :key="filter.field"
                 >
                     <div class="label" v-html="filter.label"></div>
                     <template
@@ -79,6 +79,7 @@
             <div
                 v-for="(value, name, index) in this.filtersIndex"
                 :class="'search-field f-' + index"
+                :key="value.field"
             >
                 <b-badge
                     pill
@@ -100,46 +101,6 @@
                 Clear all search
             </b-badge>
         </b-container>
-        <!--
-        <div class="search-fields-wrapper">
-            <div
-                v-for="(value, name, index) in filtersIndex"
-                :class="'search-field f-' + index"
-            >
-                {{ value }}{{ name }}{{ index }}
-
-                <span
-                    v-for="(v, i) in value.search"
-                    :key="v"
-                    :class="
-                        'badge badge-secondary badge-pill btn search-bubble ' +
-                        i
-                    "
-                    v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
-                ></span>
-
-                <span
-                    v-if="value.search.length > 0"
-                    v-for="(v, i) in value.search.filter(
-                        (v, i, arr) => arr.indexOf(v) == i
-                    )"
-                    :key="v"
-                    :class="
-                        'badge badge-secondary badge-pill btn search-bubble ' +
-                        i
-                    "
-                    @click="removeFilter(value.field, i)"
-                    v-html="v + '&nbsp;<span class=\'remove\'>X</span>'"
-                ></span>
-            </div>
-            <span
-                v-if="this.numberOfSearches() > 1"
-                class="badge badge-secondary badge-pill btn search-bubble clear-all-filters-bubble"
-                @click="removeAllFilters()"
-            >
-                Clear all search
-            </span>
-        </div>-->
     </div>
 </template>
 
@@ -150,7 +111,9 @@ export default Vue.component("research-page-filters", {
     props: ["filters", "dataset", "unfilteredDataset"],
 
     data() {
-        return { filtersIndex: {} };
+        return {
+            filtersIndex: {},
+        };
     },
     created() {
         let configFilterFields = this.filters;
@@ -196,23 +159,6 @@ export default Vue.component("research-page-filters", {
             inputField.value = "";
 
             if (TYPE == "search") {
-                /*if (!!this.config[this.dataset].single_gene_view) {
-                    this.selectedGene = searchValue;
-
-                    let newUrl =
-                        window.location.protocol +
-                        "//" +
-                        window.location.host +
-                        window.location.pathname +
-                        "?trait=" +
-                        keyParams.trait +
-                        "&dataset=" +
-                        keyParams.dataset +
-                        "&gene=" +
-                        searchValue;
-
-                    window.history.replaceState({}, null, newUrl);
-                } else {*/
                 let searchTerms = searchValue.split(",");
                 searchTerms.map((searchTerm) => {
                     this.filtersIndex[FIELD]["search"].push(searchTerm.trim());
@@ -221,8 +167,6 @@ export default Vue.component("research-page-filters", {
                         FIELD
                     ]["search"].filter((v, i, arr) => arr.indexOf(v) == i);
                 });
-
-                //}
             } else if (
                 TYPE == "search_gt" ||
                 TYPE == "search_lt" ||
@@ -239,6 +183,11 @@ export default Vue.component("research-page-filters", {
                     this.filtersIndex[FIELD]["search"].push(searchValue);
                 }
             }
+
+            console.log(
+                "this.$store.state.filtersIndex",
+                this.$store.state.filtersIndex
+            );
 
             this.applyFilters();
         },
@@ -358,4 +307,7 @@ export default Vue.component("research-page-filters", {
 </script>
 
 <style>
+.clear-all-filters-bubble {
+    background-color: #ff0000;
+}
 </style>

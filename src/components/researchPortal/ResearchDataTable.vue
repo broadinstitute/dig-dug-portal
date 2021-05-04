@@ -12,7 +12,8 @@
                         v-for="(value, index) in tableFormat['top rows']"
                         :key="index"
                         v-html="value"
-                        class=""
+                        @click="applySorting(value)"
+                        class="sortable-th"
                     ></th>
                     <th class="" v-if="tableFormat['features'] != undefined">
                         Evidence
@@ -70,6 +71,7 @@ import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 
 import uiUtils from "@/utils/uiUtils";
+import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component("research-data-table", {
     props: ["pageID", "dataset", "tableFormat", "perPageNumber"],
@@ -123,6 +125,68 @@ export default Vue.component("research-data-table", {
         showHideFeature(ELEMENT) {
             uiUtils.showHideElement(ELEMENT);
         },
+        applySorting(key) {
+            console.log(key);
+
+            if (key != this.tableFormat["locus field"]) {
+                let filtered = this.dataset;
+                let sortDirection = this.sortDirection == "asc" ? false : true;
+                this.sortDirection =
+                    this.sortDirection == "asc" ? "desc" : "asc";
+                let keyData = filtered[0][key];
+                let isNumeric = typeof keyData != "number" ? false : true;
+
+                sortUtils.sortEGLTableData(
+                    filtered,
+                    key,
+                    isNumeric,
+                    sortDirection
+                );
+                this.$store.dispatch("filteredData", filtered);
+            } else if (key == this.tableFormat["locus field"]) {
+                let sortKey = this.tableFormat["locus field"];
+                let filtered = this.dataset;
+                let sortDirection = this.sortDirection == "asc" ? false : true;
+                this.sortDirection =
+                    this.sortDirection == "asc" ? "desc" : "asc";
+
+                filtered.map(function (g) {
+                    let locusArr = g[sortKey].split(":");
+                    let chrNum = locusArr[0].trim();
+                    let bpNum;
+                    if (!!locusArr[1]) {
+                        bpNum =
+                            locusArr[1].includes("-") == true
+                                ? (Number(locusArr[1].split("-")[0].trim()) +
+                                      Number(
+                                          locusArr[1].split("-")[1].trim()
+                                      )) /
+                                  2
+                                : Number(locusArr[1]);
+                    } else {
+                        bpNum = 0;
+                    }
+
+                    g["chr"] =
+                        chrNum != "X" && chrNum != "Y"
+                            ? Number(chrNum)
+                            : chrNum == "X"
+                            ? 23
+                            : 24;
+
+                    g["bp"] = bpNum;
+                });
+
+                sortUtils.sortEGLTableData(filtered, "bp", true, sortDirection);
+                sortUtils.sortEGLTableData(
+                    filtered,
+                    "chr",
+                    true,
+                    sortDirection
+                );
+                this.$store.dispatch("filteredData", filtered);
+            }
+        },
     },
 });
 </script>
@@ -146,6 +210,14 @@ table.research-data-table {
     border-left: solid 1px #ddd !important;
     border-bottom: solid 2px #ccc !important;
     font-size: 13px;
+}
+
+.research-data-table > thead > tr > th.sortable-th {
+    color: #007bff;
+}
+
+.research-data-table > thead > tr > th.sortable-th:hover {
+    color: #004bcf;
 }
 
 .research-data-table td {

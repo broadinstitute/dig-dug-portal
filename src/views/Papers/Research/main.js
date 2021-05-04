@@ -14,8 +14,8 @@ import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.v
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
-import MPlotBitmap from "@/components/MPlotBitmap";
-import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
+import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
+import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot.vue";
 import keyParams from "@/utils/keyParams";
 
 new Vue({
@@ -25,12 +25,18 @@ new Vue({
         ResearchPageFooter,
         ResearchPageFilters,
         ResearchDataTable,
-        MPlotBitmap,
+        ResearchMPlotBitmap,
         EffectorGenesMPlot,
+    },
+    data() {
+        return {
+            devID: null,
+            devPW: null
+        }
     },
 
     created() {
-        this.$store.dispatch("hugeampkpncms/getResearchPage", { 'pageID': keyParams.pageid, 'reviewerID': keyParams.id, 'reviewerCode': keyParams.pw });
+        this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
     },
 
     render(createElement, context) {
@@ -45,6 +51,13 @@ new Vue({
     },
 
     methods: {
+        fetchDevPage() {
+            let devID = this.devID;
+            let devPW = this.devPW;
+
+            console.log(devID, devPW);
+            this.$store.dispatch("hugeampkpncms/getResearchDevPage", { 'pageID': keyParams.pageid, 'devID': devID, 'devPW': devPW });
+        },
         CSVToArray(strData, strDelimiter) {
             // Check to see if the delimiter is defined. If not,
             // then default to comma.
@@ -215,12 +228,32 @@ new Vue({
                 mergedArray.push(beforeMerged[property])
             }
             return mergedArray;
+        },
+        filterData(EVENT, FIELD, TYPE) {
+            //revisit this method later
+            /*
+                        this.$nextTick(() => {
+                            console.log(this.$refs);
+                            console.log(this.$refs.dataFilters);
+                        });
+
+                        this.$refs["dataFilters"][.methods].filterData(
+                            EVENT, FIELD, TYPE
+                        );*/
         }
     },
 
     computed: {
         pageID() {
             return keyParams.pageid.trim();
+        },
+        researchMode() {
+            let contents = this.$store.state.hugeampkpncms.researchMode;
+
+            if (contents.length === 0) {
+                return null;
+            }
+            return contents[0].field_page_mode;
         },
         researchPage() {
             let contents = this.$store.state.hugeampkpncms.researchPage;
@@ -314,13 +347,35 @@ new Vue({
             }
             return JSON.parse(contents[0]["field_visualizer_configuration"]);
         },
+        researchMethod() {
+            let contents = this.$store.state.hugeampkpncms.researchMethod;
+
+            if (contents.length === 0) {
+                return null;
+            }
+            console.log("method", contents);
+            return contents[0].body;
+        },
         researchMenu() {
-            return "menu";
+            let contents = this.$store.state.hugeampkpncms.researchMenu;
+
+            if (contents.length === 0) {
+                return null;
+            }
+            return JSON.parse(contents[0].field_menu);
         }
     },
 
     watch: {
+        researchMode(content) {
+            let pageMode = content;
+
+            if (pageMode == "public") {
+                this.$store.dispatch("hugeampkpncms/getResearchPage", { 'pageID': keyParams.pageid });
+            }
+        },
         researchPage(content) {
+            //Load data
             let dataPoint = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? content[0]["field_data_point"] : "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"];
 
             let domain = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? "external" : "hugeampkpn";
@@ -328,6 +383,17 @@ new Vue({
             let fetchParam = { "dataPoint": dataPoint, "domain": domain }
 
             this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+
+            //Load research method
+            let methodID = content[0]["field_research_method"];
+            let methodParam = { "methodID": methodID };
+
+            this.$store.dispatch("hugeampkpncms/getResearchMethod", methodParam);
+
+            //Load research menu
+            let menuID = content[0]["field_page_header_menu_node_id"];
+            let menuParam = { "menuID": menuID };
+            this.$store.dispatch("hugeampkpncms/getResearchMenu", menuParam);
         },
         researchData(content) {
             this.$store.dispatch("filteredData", content);

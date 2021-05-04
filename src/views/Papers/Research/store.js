@@ -30,6 +30,6 @@ export default new Vuex.Store({
     actions: {
         filteredData(context, filtered) {
             context.commit("setFilteredData", filtered);
-        }
+        },
     }
 });
