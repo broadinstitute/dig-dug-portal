@@ -1,46 +1,5 @@
 <template>
     <div id="variant-search">
-        <transition name="fade"
-            ><b-alert show v-if="selectedGene.length === 0"
-                >Please select a gene.</b-alert
-            >
-
-            <b-alert show v-else-if="selectedDataset.length === 0"
-                >Please select a dataset.</b-alert
-            ></transition
-        >
-        <criterion-list-group
-            v-model="searchCriteria"
-            :header="'Search Criteria'"
-        >
-            <filter-enumeration-control
-                ref="gene"
-                :field="'gene'"
-                placeholder="Select a gene ..."
-                :options="matchingGenes"
-                @input-change="lookupGenes($event)"
-            >
-                <div class="label">Gene</div>
-            </filter-enumeration-control>
-            <b-col class="divider"></b-col>
-            <filter-enumeration-control
-                ref="dataset"
-                :field="'dataset'"
-                placeholder="Select a dataset ..."
-                :options="datasets"
-                :multiple="true"
-            >
-                <div class="label">Dataset</div></filter-enumeration-control
-            >
-        </criterion-list-group>
-        <div class="function text-center mb-4">
-            <b-button
-                variant="primary"
-                @click="searchVariants"
-                :disabled="!selectedGene.length || !selectedDataset.length"
-                >Search Variants</b-button
-            >
-        </div>
         <b-row>
             <b-col cols="9">
                 <div class="legends" v-show="tableData.length">
@@ -329,11 +288,9 @@ export default Vue.component("variant-search", {
     },
     data() {
         return {
-            searchCriteria: [],
-            matchingGenes: [],
             perPage: 10,
             currentPage: 1,
-            datasets: ["Farhan2019_ALS_eu"],
+
             variants: [],
             consequences: {},
             fields: [
@@ -449,22 +406,12 @@ export default Vue.component("variant-search", {
             loadingData: {},
         };
     },
+    created() {
+        if (this.gene) {
+            this.searchVariants();
+        }
+    },
     computed: {
-        selectedGene() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "gene";
-                })
-                .map((v) => v.threshold);
-        },
-        selectedDataset() {
-            return this.searchCriteria
-                .filter((v) => {
-                    return v.field === "dataset";
-                })
-                .map((v) => v.threshold);
-        },
-
         //This works to display all data fro BI
         tableData() {
             if (this.variants && this.variants.length) {
@@ -478,15 +425,9 @@ export default Vue.component("variant-search", {
         },
     },
     methods: {
-        async lookupGenes(input) {
-            if (!!input) {
-                let matches = await match("gene", input, { limit: 10 });
-                this.matchingGenes = matches;
-            }
-        },
         async searchVariants() {
             this.currentPage = 1; //reset on new search
-            this.variants = await query("gene-variants", this.selectedGene);
+            this.variants = await query("gene-variants", this.gene);
         },
         async getTranscriptConsequences(varID) {
             if (!!varID) {

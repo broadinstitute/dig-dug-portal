@@ -18,7 +18,56 @@
                     <documentation
                         name="variantsearch.subheader"
                     ></documentation>
-                    <variant-search></variant-search>
+
+                    <transition name="fade"
+                        ><b-alert show v-if="$parent.selectedGene.length === 0"
+                            >Please select a gene.</b-alert
+                        >
+
+                        <b-alert show v-else-if="selectedDataset.length === 0"
+                            >Please select a dataset.</b-alert
+                        ></transition
+                    >
+                    <criterion-list-group
+                        v-model="$parent.searchCriteria"
+                        :header="'Search Criteria'"
+                    >
+                        <filter-enumeration-control
+                            ref="gene"
+                            :field="'gene'"
+                            placeholder="Select a gene ..."
+                            :options="$parent.matchingGenes"
+                            @input-change="$parent.lookupGenes($event)"
+                        >
+                            <div class="label">Gene</div>
+                        </filter-enumeration-control>
+                        <b-col class="divider"></b-col>
+                        <filter-enumeration-control
+                            ref="dataset"
+                            :field="'dataset'"
+                            placeholder="Select a dataset ..."
+                            :options="$parent.datasets"
+                            :multiple="true"
+                        >
+                            <div class="label">
+                                Dataset
+                            </div></filter-enumeration-control
+                        >
+                    </criterion-list-group>
+                    <div class="function text-center mb-4">
+                        <b-button
+                            variant="primary"
+                            @click="$parent.searchVariants"
+                            :disabled="
+                                !$parent.selectedGene.length ||
+                                !$parent.selectedDataset.length
+                            "
+                            >Search Variants</b-button
+                        >
+                    </div>
+                    <variant-search
+                        :gene="$parent.selectedGene"
+                    ></variant-search>
                 </div>
             </div>
         </div>

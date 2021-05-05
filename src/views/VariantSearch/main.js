@@ -12,7 +12,11 @@ new Vue({
     components: { VariantSearch },
 
     data() {
-        return {};
+        return {
+            searchCriteria: [],
+            matchingGenes: [],
+            datasets: ["Farhan2019_ALS_eu"]
+        };
     },
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
@@ -22,5 +26,29 @@ new Vue({
 
     render(createElement, context) {
         return createElement(Template);
+    },
+    computed: {
+        selectedGene() {
+            return this.searchCriteria
+                .filter(v => {
+                    return v.field === "gene";
+                })
+                .map(v => v.threshold);
+        },
+        selectedDataset() {
+            return this.searchCriteria
+                .filter(v => {
+                    return v.field === "dataset";
+                })
+                .map(v => v.threshold);
+        }
+    },
+    methods: {
+        async lookupGenes(input) {
+            if (!!input) {
+                let matches = await match("gene", input, { limit: 10 });
+                this.matchingGenes = matches;
+            }
+        }
     }
 }).$mount("#app");
