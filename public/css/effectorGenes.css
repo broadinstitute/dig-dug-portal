@@ -787,7 +787,6 @@ span.weight-blue {
     color: #6bcdfa !important;
 }
 
-
 /* for plots */
 .feature-scores-wrapper {
     position: fixed;
@@ -892,6 +891,14 @@ span.weight-blue {
 }
 
 /* 52K table */
+.fiftytwo {
+    border: unset;
+}
+.fiftytwo .top-level-header-item,
+.fiftytwo .top-level-value-item {
+    border-left: unset;
+    text-align: left;
+}
 .fiftytwo .feature-header-item,
 .datasets .feature-header-item {
     background-color: #75def850;
@@ -919,7 +926,6 @@ span.weight-blue {
     font-size: 12px;
     font-weight: 600;
 }
-
 
 /* EGL M-Plot */
 .egl-m-plot-wrapper {
@@ -991,7 +997,7 @@ span.weight-blue {
 }
 
 #egl_m_plot_y .tick span.tick-num {
-    display:block;
+    display: block;
     position: absolute;
     top: -12px;
     right: 6px;
@@ -1043,7 +1049,7 @@ span.weight-blue {
     text-align: center;
     white-space: nowrap;
     cursor: pointer;
-    color: #0067A6;
+    color: #0067a6;
 }
 
 .egl-m-plot .chr_wrapper.expanded-chr .chr_number {
@@ -1110,7 +1116,7 @@ html {
     background: var(--scrollbarBG);
 }
 .egl-m-plot .dot-content::-webkit-scrollbar-thumb {
-    background-color: var(--thumbBG) ;
+    background-color: var(--thumbBG);
     border-radius: 6px;
     border: 3px solid var(--scrollbarBG);
 }
@@ -1128,7 +1134,7 @@ html {
     position: relative;
 }
 
-.image-popup-link .image-popup-wrapper{
+.image-popup-link .image-popup-wrapper {
     display: none;
     position: absolute;
     background-color: #fff;
@@ -1144,7 +1150,6 @@ html {
 
 .image-popup-link:hover .image-popup-wrapper {
     display: block;
-
 }
 
 .egl-filter-direction {
