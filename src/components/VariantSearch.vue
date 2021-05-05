@@ -324,6 +324,9 @@ export default Vue.component("variant-search", {
         Formatters,
         CsvDownload,
     },
+    props: {
+        gene: String,
+    },
     data() {
         return {
             searchCriteria: [],
