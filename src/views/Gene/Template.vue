@@ -227,9 +227,19 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
-                        <h4 class="card-title">Variant Search</h4>
+                        <h4 class="card-title">
+                            Variant search for {{ $store.state.geneName }}
+                            <tooltip-documentation
+                                name="gene.variantsearch.tooltip.hover"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
 
-                        <variant-search></variant-search>
+                        <variant-search
+                            :gene="$store.state.geneName"
+                        ></variant-search>
                     </div>
                 </div>
             </div>
