@@ -284,7 +284,7 @@ export default Vue.component("variant-search", {
         CsvDownload,
     },
     props: {
-        gene: String,
+        gene: [String, Array],
     },
     data() {
         return {

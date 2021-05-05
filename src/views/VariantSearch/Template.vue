@@ -23,11 +23,13 @@
                         ><b-alert show v-if="$parent.selectedGene.length === 0"
                             >Please select a gene.</b-alert
                         >
-
-                        <b-alert show v-else-if="selectedDataset.length === 0"
+                        <!--
+                        <b-alert
+                            show
+                            v-else-if="$parent.selectedDataset.length === 0"
                             >Please select a dataset.</b-alert
-                        ></transition
-                    >
+                        > -->
+                    </transition>
                     <criterion-list-group
                         v-model="$parent.searchCriteria"
                         :header="'Search Criteria'"
@@ -41,7 +43,7 @@
                         >
                             <div class="label">Gene</div>
                         </filter-enumeration-control>
-                        <b-col class="divider"></b-col>
+                        <!-- <b-col class="divider"></b-col>
                         <filter-enumeration-control
                             ref="dataset"
                             :field="'dataset'"
@@ -52,19 +54,9 @@
                             <div class="label">
                                 Dataset
                             </div></filter-enumeration-control
-                        >
+                        > -->
                     </criterion-list-group>
-                    <div class="function text-center mb-4">
-                        <b-button
-                            variant="primary"
-                            @click="$parent.searchVariants"
-                            :disabled="
-                                !$parent.selectedGene.length ||
-                                !$parent.selectedDataset.length
-                            "
-                            >Search Variants</b-button
-                        >
-                    </div>
+
                     <variant-search
                         :gene="$parent.selectedGene"
                     ></variant-search>
