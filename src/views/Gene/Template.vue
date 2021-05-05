@@ -227,7 +227,7 @@
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
-                        <h4 class="card-title">
+                        <h4 class="card-title mb-4">
                             Variant search for {{ $store.state.geneName }}
                             <tooltip-documentation
                                 name="gene.variantsearch.tooltip.hover"
