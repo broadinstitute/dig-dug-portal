@@ -14,8 +14,8 @@
                 <div class="row card-body">
                     <div class="col-md-12">
                         <h3>
-                            Sorry, this page is not open yet. Please come back
-                            later.
+                            Sorry, this page is not published yet. Please come
+                            back later.
                         </h3>
                     </div>
                 </div>
