@@ -406,11 +406,11 @@ export default Vue.component("variant-search", {
             loadingData: {},
         };
     },
-    created() {
-        if (this.gene) {
-            this.searchVariants();
-        }
-    },
+    // created() {
+    //     if (this.gene) {
+    //         this.searchVariants();
+    //     }
+    // },
     computed: {
         //This works to display all data fro BI
         tableData() {
@@ -466,6 +466,14 @@ export default Vue.component("variant-search", {
         rowPickClass(item, type) {
             if (!item || type !== "row") return;
             if (item.pick === 1) return "row-pick";
+        },
+    },
+    watch: {
+        gene: {
+            handler(val) {
+                if (!!val) this.searchVariants();
+            },
+            immediate: true,
         },
     },
 });
