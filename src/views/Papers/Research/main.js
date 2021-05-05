@@ -16,6 +16,8 @@ import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot.vue";
+import VolcanoPlot from "@/components/eglt/VolcanoPlot.vue";
+import Heatmap from "@/components/Heatmap";
 import keyParams from "@/utils/keyParams";
 
 new Vue({
@@ -27,6 +29,8 @@ new Vue({
         ResearchDataTable,
         ResearchMPlotBitmap,
         EffectorGenesMPlot,
+        VolcanoPlot,
+        Heatmap,
     },
     data() {
         return {
@@ -55,7 +59,7 @@ new Vue({
             let devID = this.devID;
             let devPW = this.devPW;
 
-            console.log(devID, devPW);
+            //console.log(devID, devPW);
             this.$store.dispatch("hugeampkpncms/getResearchDevPage", { 'pageID': keyParams.pageid, 'devID': devID, 'devPW': devPW });
         },
         CSVToArray(strData, strDelimiter) {
@@ -145,6 +149,7 @@ new Vue({
 
             let csvArr = this.CSVToArray(rawData2, ",");
 
+
             let jsonHeader = csvArr[0]
             csvArr.shift();
 
@@ -163,6 +168,8 @@ new Vue({
 
 
 
+
+
             let renderingData = []
 
             jsonData.map(d => {
@@ -170,6 +177,8 @@ new Vue({
                 this.dataTableFormat["top rows"].map(t => {
                     tempObj[t] = (this.testNumber(d[t]) == true) ? Number(d[t]) : d[t];
                 })
+
+                //console.log("d[t]", tempObj);
 
                 if (this.dataTableFormat["features"] != undefined) {
                     tempObj["features"] = {};
@@ -186,6 +195,8 @@ new Vue({
                 }
                 renderingData.push(tempObj);
             })
+
+
 
 
             let renderingDataMerged = (this.dataTableFormat["rows merge by"] != undefined) ? this.mergeDataBy(renderingData, this.dataTableFormat) : renderingData;
@@ -262,6 +273,14 @@ new Vue({
                 return null;
             }
             return contents;
+        },
+        isLandingPage() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_landing_page"] == "0") {
+                return null;
+            }
+            return true;
         },
         pageTitle() {
             let contents = this.researchPage;
@@ -353,7 +372,7 @@ new Vue({
             if (contents.length === 0) {
                 return null;
             }
-            console.log("method", contents);
+            //console.log("method", contents);
             return contents[0].body;
         },
         researchMenu() {
@@ -376,24 +395,31 @@ new Vue({
         },
         researchPage(content) {
             //Load data
-            let dataPoint = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? content[0]["field_data_point"] : "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"];
+            if (content.length != 0 && content[0]["field_data_point"] != false) {
+                let dataPoint = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? content[0]["field_data_point"] : "http://hugeampkpncms.org/sites/default/files/users/user" + this.uid + "/" + content[0]["field_data_point"];
 
-            let domain = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? "external" : "hugeampkpn";
+                let domain = (content[0]["field_data_point"].includes("http://") || content[0]["field_data_point"].includes("https://")) ? "external" : "hugeampkpn";
 
-            let fetchParam = { "dataPoint": dataPoint, "domain": domain }
+                let fetchParam = { "dataPoint": dataPoint, "domain": domain }
 
-            this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+                this.$store.dispatch("hugeampkpncms/getResearchData", fetchParam);
+            }
+
 
             //Load research method
-            let methodID = content[0]["field_research_method"];
-            let methodParam = { "methodID": methodID };
+            if (content.length != 0 && content[0]["field_research_method"] != false) {
+                let methodID = content[0]["field_research_method"];
+                let methodParam = { "methodID": methodID };
 
-            this.$store.dispatch("hugeampkpncms/getResearchMethod", methodParam);
+                this.$store.dispatch("hugeampkpncms/getResearchMethod", methodParam);
+            }
 
             //Load research menu
-            let menuID = content[0]["field_page_header_menu_node_id"];
-            let menuParam = { "menuID": menuID };
-            this.$store.dispatch("hugeampkpncms/getResearchMenu", menuParam);
+            if (content.length != 0 && content[0]["field_page_header_menu_node_id"] != false) {
+                let menuID = content[0]["field_page_header_menu_node_id"];
+                let menuParam = { "menuID": menuID };
+                this.$store.dispatch("hugeampkpncms/getResearchMenu", menuParam);
+            }
         },
         researchData(content) {
             this.$store.dispatch("filteredData", content);

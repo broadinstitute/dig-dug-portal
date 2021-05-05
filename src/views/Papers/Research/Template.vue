@@ -29,44 +29,42 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h3>
-                            <div class="filtering-ui-wrapper">
-                                <div class="filtering-ui-content row">
-                                    <div class="col">
-                                        <div class="label">Reviewer ID</div>
-                                        <div>
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                v-model="$parent.devID"
-                                            />
-                                        </div>
+                        <div class="filtering-ui-wrapper">
+                            <div class="filtering-ui-content row">
+                                <div class="col">
+                                    <div class="label">Reviewer ID</div>
+                                    <div>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            v-model="$parent.devID"
+                                        />
                                     </div>
-                                    <div class="col">
-                                        <div class="label">Reviewer P/W</div>
-                                        <div>
-                                            <input
-                                                type="password"
-                                                class="form-control"
-                                                v-model="$parent.devPW"
-                                            />
-                                        </div>
+                                </div>
+                                <div class="col">
+                                    <div class="label">Reviewer P/W</div>
+                                    <div>
+                                        <input
+                                            type="password"
+                                            class="form-control"
+                                            v-model="$parent.devPW"
+                                        />
                                     </div>
-                                    <div class="col">
-                                        <div class="label">&nbsp;</div>
-                                        <div>
-                                            <button
-                                                type="button"
-                                                class="btn btn-primary"
-                                                @click="$parent.fetchDevPage()"
-                                            >
-                                                Load page
-                                            </button>
-                                        </div>
+                                </div>
+                                <div class="col">
+                                    <div class="label">&nbsp;</div>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary"
+                                            @click="$parent.fetchDevPage()"
+                                        >
+                                            Load page
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </h3>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,7 +81,15 @@
                     </div>
                 </div>
             </div>
-            <div class="card mdkp-card">
+            <div class="card mdkp-card" v-if="$parent.isLandingPage == true">
+                <div class="row card-body">
+                    <div
+                        class="col-md-12"
+                        v-html="$parent.pageDescription"
+                    ></div>
+                </div>
+            </div>
+            <div class="card mdkp-card" v-if="$parent.isLandingPage == null">
                 <div class="row card-body">
                     <b-tabs align="center" class="container-fluid">
                         <b-tab title="View data" active>
@@ -143,6 +149,31 @@
                                     :filtersIndex="$store.state.filtersIndex"
                                 ></research-m-bitmap-plot>
                             </div>
+                            <div
+                                v-if="
+                                    !!$store.state.filteredData &&
+                                    $parent.plotType == 'volcano_plot'
+                                "
+                                class="volcano-plot-wrapper"
+                            >
+                                <volcano-plot
+                                    :plotData="$store.state.filteredData"
+                                    :renderConfig="$parent.plotConfig"
+                                ></volcano-plot>
+                            </div>
+                            <div
+                                v-if="
+                                    !!$store.state.filteredData &&
+                                    $parent.plotType == 'h_map'
+                                "
+                                class="heat-map-wrapper"
+                            >
+                                <heatmap
+                                    :heatmapData="$store.state.filteredData"
+                                    :renderConfig="$parent.plotConfig"
+                                ></heatmap>
+                            </div>
+                            <!---->
 
                             <div class="col-md-12">
                                 <research-data-table
