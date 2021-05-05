@@ -231,6 +231,10 @@ new Vue({
                     )}-${Formatters.intFormatter(r.end)}`
                 };
             }
+        },
+
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
         }
     },
 
