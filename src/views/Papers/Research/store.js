@@ -23,12 +23,14 @@ export default new Vuex.Store({
     },
     mutations: {
         setFilteredData(state, data) {
+            console.log("called 2");
             state.filteredData = data;
         },
     },
     getters: {},
     actions: {
         filteredData(context, filtered) {
+            console.log("called 1");
             context.commit("setFilteredData", filtered);
         },
     }

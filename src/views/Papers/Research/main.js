@@ -145,11 +145,13 @@ new Vue({
 
         csv2Json(DATA) {
 
+
+
             let rawData2 = JSON.parse(DATA);
 
             let csvArr = this.CSVToArray(rawData2, ",");
 
-
+            console.log(csvArr);
             let jsonHeader = csvArr[0]
             csvArr.shift();
 
@@ -165,10 +167,6 @@ new Vue({
                 }
                 jsonData.push(tempObj);
             })
-
-
-
-
 
             let renderingData = []
 

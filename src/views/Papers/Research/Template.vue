@@ -105,11 +105,9 @@
                                 "
                             >
                                 <research-page-filters
-                                    ref="dataFilters"
                                     :filters="$parent.dataFilters"
                                     :dataset="$store.state.filteredData"
                                     :unfilteredDataset="$parent.researchData"
-                                    :filtersIndex="$store.state.filtersIndex"
                                 ></research-page-filters>
                             </div>
                             <!-- plots -->

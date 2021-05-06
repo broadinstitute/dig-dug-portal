@@ -75,11 +75,11 @@
                 </div>
             </div>
         </div>
-        <b-container class="search-fields-wrapper">
+        <b-container class="search-fields-wrapper" v-if="this.dataset != null">
             <div
                 v-for="(value, name, index) in this.filtersIndex"
                 :class="'search-field f-' + index"
-                :key="value.field"
+                :key="name"
             >
                 <b-badge
                     pill
@@ -132,6 +132,7 @@ export default Vue.component("research-page-filters", {
     watch: {},
     methods: {
         numberOfSearches() {
+            console.log("called 3");
             let numberOfBubbles = 0;
             for (const FIELD in this.filtersIndex) {
                 numberOfBubbles += this.filtersIndex[FIELD].search.length;
@@ -184,10 +185,7 @@ export default Vue.component("research-page-filters", {
                 }
             }
 
-            console.log(
-                "this.$store.state.filtersIndex",
-                this.$store.state.filtersIndex
-            );
+            console.log("this.filtersIndex", this.filtersIndex);
 
             this.applyFilters();
         },
