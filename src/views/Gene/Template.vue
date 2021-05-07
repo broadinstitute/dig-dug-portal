@@ -1,7 +1,10 @@
 <template>
     <div>
         <!-- Header -->
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents"></page-header>
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
 
         <!-- Body -->
         <div class="container-fluid mdkp-body">
@@ -9,7 +12,9 @@
                 <!-- Wrap page level searchs with "pageSearchParameters" div -->
 
                 <div class="col filter-col-md">
-                    <gene-selectpicker @onGeneChange="$store.dispatch('queryGeneName', $event)"></gene-selectpicker>
+                    <gene-selectpicker
+                        @onGeneChange="$store.dispatch('queryGeneName', $event)"
+                    ></gene-selectpicker>
                 </div>
             </search-header-wrapper>
 
@@ -27,7 +32,8 @@
                                         $parent.symbolName.toLowerCase() !==
                                         $store.state.geneName.toLowerCase()
                                     "
-                                >({{ $store.state.geneName }})</span>
+                                    >({{ $store.state.geneName }})</span
+                                >
                             </span>
                         </div>
                     </div>
@@ -38,12 +44,16 @@
                                 style="margin-right: 20px"
                                 :title="$parent.regionText"
                                 @click="$parent.exploreRegion()"
-                            >Explore Region</button>
+                            >
+                                Explore Region
+                            </button>
                             <button
                                 class="btn btn-primary input-group-append explore-region-btn"
                                 :title="$parent.regionTextExpanded"
                                 @click="$parent.exploreRegion(50000)"
-                            >Explore &plusmn; 50 kb</button>
+                            >
+                                Explore &plusmn; 50 kb
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -86,7 +96,8 @@
                                 v-for="gene in $parent.alternateNames"
                                 v-if="gene.source == 'alias'"
                                 :key="gene.name"
-                            >{{ gene.name }}</span>&nbsp;
+                                >{{ gene.name }}</span
+                            >&nbsp;
                         </div>
                         <div v-if="$parent.regionText">
                             <strong>Coding sequence:</strong>
@@ -95,16 +106,14 @@
                         <div v-if="$parent.region">
                             <strong>Length:</strong>
                             {{
-                            " " +
-                            (
-                            $parent.region.end - $parent.region.start
-                            ).toLocaleString()
+                                " " +
+                                (
+                                    $parent.region.end - $parent.region.start
+                                ).toLocaleString()
                             }}
                             bp
                         </div>
-                        <div>
-                            <strong>Assembly:</strong> GRCh37
-                        </div>
+                        <div><strong>Assembly:</strong> GRCh37</div>
                         <div>
                             <strong>Gene sources:</strong>
                             <span>&nbsp;Ensembl, HGNC, UCSC, RGD, MGD</span>
@@ -129,7 +138,11 @@
                         <criterion-function-group>
                             <filter-enumeration-control
                                 :field="'phenotype'"
-                                :options="$store.state.associations.data.map((association) => association.phenotype)"
+                                :options="
+                                    $store.state.associations.data.map(
+                                        (association) => association.phenotype
+                                    )
+                                "
                                 :labelFormatter="
                                     (phenotype) =>
                                         !!$store.state.bioPortal.phenotypeMap[
@@ -210,6 +223,27 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mdkp-card">
+                <div class="card-body">
+                    <div v-if="$parent.dbReference">
+                        <h4 class="card-title mb-4">
+                            Variant search for {{ $store.state.geneName }}
+                            <tooltip-documentation
+                                name="gene.variantsearch.tooltip.hover"
+                                :content-fill="$parent.documentationMap"
+                                :isHover="true"
+                                :noIcon="false"
+                            ></tooltip-documentation>
+                        </h4>
+
+                        <variant-search
+                            :gene="$store.state.geneName"
+                        ></variant-search>
+                    </div>
+                </div>
+            </div>
+
             <div class="card mdkp-card">
                 <div class="card-body">
                     <div v-if="$parent.dbReference">
@@ -226,14 +260,22 @@
                         <criterion-function-group :inclusive="true">
                             <filter-enumeration-control
                                 :field="'source'"
-                                :options="$parent.dbReference.map((reference) => reference.source)"
+                                :options="
+                                    $parent.dbReference.map(
+                                        (reference) => reference.source
+                                    )
+                                "
                                 :inclusive="false"
                             >
                                 <div class="label">Sources</div>
                             </filter-enumeration-control>
                             <filter-enumeration-control
                                 :field="'moleculeType'"
-                                :options="$parent.dbReference.map((reference) => reference.moleculeType)"
+                                :options="
+                                    $parent.dbReference.map(
+                                        (reference) => reference.moleculeType
+                                    )
+                                "
                                 :inclusive="true"
                             >
                                 <div class="label">Molecule Type</div>
@@ -254,7 +296,10 @@
                 <div class="card-body">
                     <div v-if="$parent.geneNames">
                         <h4 class="card-title">External resources</h4>
-                        <div v-if="$parent.accession.length > 0" class="gene-with-signal none">
+                        <div
+                            v-if="$parent.accession.length > 0"
+                            class="gene-with-signal none"
+                        >
                             <a
                                 :href="
                                     $parent.externalResources['uniprot'].link +
@@ -264,7 +309,8 @@
                                 :title="
                                     $parent.externalResources['uniprot'].title
                                 "
-                            >UNIPROT</a>
+                                >UNIPROT</a
+                            >
                         </div>
                         <div
                             v-for="gene in $parent.alternateNames"
@@ -282,7 +328,8 @@
                                 :title="
                                     $parent.externalResources[gene.source].title
                                 "
-                            >{{ gene.source.toUpperCase() }}</a>
+                                >{{ gene.source.toUpperCase() }}</a
+                            >
                             <a
                                 v-else
                                 :href="
@@ -293,7 +340,8 @@
                                 :title="
                                     $parent.externalResources[gene.source].title
                                 "
-                            >{{ gene.source.toUpperCase() }}</a>
+                                >{{ gene.source.toUpperCase() }}</a
+                            >
                         </div>
                     </div>
                 </div>
