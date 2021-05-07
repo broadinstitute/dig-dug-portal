@@ -15,9 +15,9 @@ import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.v
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
 import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
-import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot.vue";
-import VolcanoPlot from "@/components/eglt/VolcanoPlot.vue";
-import Heatmap from "@/components/Heatmap";
+import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
+import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
+import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
 import keyParams from "@/utils/keyParams";
 
 new Vue({
@@ -28,9 +28,9 @@ new Vue({
         ResearchPageFilters,
         ResearchDataTable,
         ResearchMPlotBitmap,
-        EffectorGenesMPlot,
-        VolcanoPlot,
-        Heatmap,
+        ResearchMPlot,
+        ResearchVolcanoPlot,
+        ResearchHeatmap,
     },
     data() {
         return {
@@ -151,30 +151,44 @@ new Vue({
 
             let csvArr = this.CSVToArray(rawData2, ",");
 
-            console.log(csvArr);
+            //console.log(csvArr);
             let jsonHeader = csvArr[0]
             csvArr.shift();
 
             let jsonData = []
 
             csvArr.map(i => {
+                if (i.length > 1) {
+                    let tempObj = {};
 
-                let tempObj = {};
+                    for (let h = 0; h < i.length; h++) {
 
-                for (let h = 0; h < i.length; h++) {
-
-                    tempObj[jsonHeader[h]] = i[h];
+                        tempObj[jsonHeader[h]] = i[h];
+                    }
+                    jsonData.push(tempObj);
                 }
-                jsonData.push(tempObj);
+
+
             })
 
             let renderingData = []
 
+
             jsonData.map(d => {
+
                 let tempObj = {};
-                this.dataTableFormat["top rows"].map(t => {
-                    tempObj[t] = (this.testNumber(d[t]) == true) ? Number(d[t]) : d[t];
-                })
+                if (this.dataTableFormat == false) {
+                    let topRows = Object.keys(d);
+                    topRows.map(t => {
+                        tempObj[t] = (this.testNumber(d[t]) == true) ? Number(d[t]) : d[t];
+                    })
+
+                } else {
+                    this.dataTableFormat["top rows"].map(t => {
+                        tempObj[t] = (this.testNumber(d[t]) == true) ? Number(d[t]) : d[t];
+                    })
+                }
+
 
                 //console.log("d[t]", tempObj);
 
@@ -192,14 +206,70 @@ new Vue({
                     })
                 }
                 renderingData.push(tempObj);
+
             })
 
+            console.log(this.dataTableFormat["data convert"]);
 
+            let processedData = (!!this.dataTableFormat["data convert"]) ? this.convertData(this.dataTableFormat["data convert"], renderingData) : renderingData;
 
+            let renderingDataMerged = (this.dataTableFormat["rows merge by"] != undefined) ? this.mergeDataBy(processedData, this.dataTableFormat) : processedData;
 
-            let renderingDataMerged = (this.dataTableFormat["rows merge by"] != undefined) ? this.mergeDataBy(renderingData, this.dataTableFormat) : renderingData;
+            //console.log(renderingDataMerged);
 
             return renderingDataMerged;
+        },
+
+        convertData(CONVERT, DATA) {
+            let convertedData = [];
+
+            DATA.map(d => {
+                let tempObj = {};
+                CONVERT.map(c => {
+                    //console.log(c.type);
+                    let cType = c.type;
+                    let joinValues = function (FIELDS, jBy, fData) {
+
+                        let fieldValue = "";
+                        let fieldsLength = FIELDS.length;
+
+                        for (let i = 0; i < fieldsLength; i++) {
+                            if (i < fieldsLength - 1) {
+                                fieldValue += fData[FIELDS[i]] + jBy;
+                            } else {
+                                fieldValue += fData[FIELDS[i]];
+                            }
+
+                        }
+                        return fieldValue;
+                    }
+
+                    switch (cType) {
+                        case "join":
+                            tempObj[c["field name"]] = joinValues(c["fields to join"], c["join by"], d);
+                            break;
+
+                        case "calculate":
+
+                            let calType = c["calculation type"];
+
+                            switch (calType) {
+                                case "-log10":
+                                    tempObj[c["field name"]] = -Math.log10(d[c["raw field"]]);
+                                    break;
+                            }
+                            break;
+
+                        case "raw":
+                            tempObj[c["field name"]] = d[c["raw field"]];
+                            break;
+                    }
+                })
+
+                convertedData.push(tempObj);
+            });
+
+            return convertedData;
         },
 
         testNumber(STR) {
@@ -326,27 +396,44 @@ new Vue({
 
             return convertedData;
         },
-        /*
-        filteredData() {
-            let contents = this.researchData;
-            return contents;
-        },
-        */
         dataTableFormat() {
             let contents = this.researchPage;
 
-            if (contents === null || contents[0]["field_data_table_format"] == false) {
+            if (contents === null) {
                 return null;
+            } else {
+                if (contents[0]["field_data_table_format"] == false) {
+                    return false;
+                } else {
+                    return JSON.parse(contents[0]["field_data_table_format"]);
+                }
             }
-            return JSON.parse(contents[0]["field_data_table_format"]);
+
         },
-        tableperPageNumber() {
+        rawDataTableFormat() {
+            let data = this.researchData;
+
+            if (data != null) {
+                let topRows = Object.keys(data[0]);
+                let dataTableFormat = { "top rows": topRows };
+                return dataTableFormat;
+            }
+        },
+        tablePerPageNumber() {
             let contents = this.researchPage;
 
             if (contents === null || contents[0]["field_number_of_rows"] == false) {
                 return null;
             }
-            return JSON.parse(contents[0]["field_number_of_rows"]);
+            return contents[0]["field_number_of_rows"];
+        },
+        tableLegend() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_table_legend"] == false) {
+                return null;
+            }
+            return contents[0]["field_data_table_legend"];
         },
         plotType() {
             let contents = this.researchPage;
@@ -363,6 +450,41 @@ new Vue({
                 return null;
             }
             return JSON.parse(contents[0]["field_visualizer_configuration"]);
+        },
+        plotClass() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_visualizer"] == false) {
+                return null;
+            }
+
+            let plotType = contents[0]["field_data_visualizer"];
+
+            switch (plotType) {
+                case "m_plot":
+                    return "egl-m-plot-wrapper";
+                    break;
+                case "mbm_plot":
+                    return "mbm-plot-wrapper";
+                    break;
+                case "volcano_plot":
+                    return "volcano-plot-wrapper";
+                    break;
+                case "h_map":
+                    return "heat-map-wrapper";
+                    break;
+                default:
+                    return "";
+            }
+
+        },
+        plotLegend() {
+            let contents = this.researchPage;
+
+            if (contents === null || contents[0]["field_data_visualizer_legend"] == false) {
+                return null;
+            }
+            return contents[0]["field_data_visualizer_legend"];
         },
         researchMethod() {
             let contents = this.$store.state.hugeampkpncms.researchMethod;

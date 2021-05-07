@@ -1,5 +1,6 @@
 <template>
     <div class="research-data-table-wrapper">
+        <div v-html="tableLegend" class="data-table-legend"></div>
         <table
             :class="'table table-sm research-data-table ' + pageID"
             cellpadding="0"
@@ -9,7 +10,7 @@
             <thead class="">
                 <tr>
                     <th
-                        v-for="(value, index) in tableFormat['top rows']"
+                        v-for="(value, index) in topRows"
                         :key="index"
                         v-html="value"
                         @click="applySorting(value)"
@@ -24,7 +25,7 @@
             <tbody v-for="(value, index) in pagedData" :key="index" class="">
                 <tr>
                     <td
-                        v-if="tableFormat['top rows'].includes(tdKey)"
+                        v-if="topRows.includes(tdKey)"
                         v-for="(tdValue, tdKey) in value"
                         :key="tdKey"
                         v-html="tdValue"
@@ -60,7 +61,7 @@
                 class="pagination-sm justify-content-center"
                 v-model="currentPage"
                 :total-rows="rows"
-                :per-page="perPage"
+                :per-page="perPageNumber"
             ></b-pagination>
         </b-container>
     </div>
@@ -74,9 +75,9 @@ import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 
 export default Vue.component("research-data-table", {
-    props: ["pageID", "dataset", "tableFormat", "perPageNumber"],
+    props: ["pageID", "dataset", "tableFormat", "perPageNumber", "tableLegend"],
     data() {
-        return { currentPage: 1, perPage: 25 };
+        return { currentPage: 1, perPage: null };
     },
     modules: {},
     components: { ResearchDataTableFeatures },
@@ -110,6 +111,19 @@ export default Vue.component("research-data-table", {
                 return paged;
             } else {
                 return this.dataset;
+            }
+        },
+        topRows() {
+            if (this.tableFormat["data convert"] != undefined) {
+                let topRowsArr = [];
+
+                this.tableFormat["data convert"].map((d) => {
+                    topRowsArr.push(d["field name"]);
+                });
+
+                return topRowsArr;
+            } else {
+                return this.tableFormat["top rows"];
             }
         },
         topRowNumber() {
@@ -192,7 +206,11 @@ export default Vue.component("research-data-table", {
 </script>
 
 <style>
+.data-table-legend {
+    margin-bottom: -15px;
+}
 .research-data-table-wrapper {
+    margin-top: 25px;
     font-size: 14px;
     line-height: 18px;
 }

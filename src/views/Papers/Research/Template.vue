@@ -101,7 +101,8 @@
                                 class="col-md-12"
                                 v-if="
                                     $parent.dataFilters != null &&
-                                    $parent.researchData != null
+                                    $parent.researchData != null &&
+                                    $store.state.filteredData != ''
                                 "
                             >
                                 <research-page-filters
@@ -111,14 +112,16 @@
                                 ></research-page-filters>
                             </div>
                             <!-- plots -->
-                            <div
-                                class="col-md-12 egl-m-plot-wrapper"
-                                v-if="
-                                    !!$store.state.filteredData &&
-                                    $parent.plotType == 'm_plot'
-                                "
-                            >
-                                <effector-genes-m-plot
+                            <div :class="'col-md-12 ' + $parent.plotClass">
+                                <div
+                                    class="plot-legend"
+                                    v-html="$parent.plotLegend"
+                                ></div>
+                                <research-m-plot
+                                    v-if="
+                                        $store.state.filteredData != '' &&
+                                        $parent.plotType == 'm_plot'
+                                    "
                                     :plotData="$store.state.filteredData"
                                     :locusKey="$parent.plotConfig['locusKey']"
                                     :scoreKey="$parent.plotConfig['scoreKey']"
@@ -132,53 +135,53 @@
                                     :popUpContent="
                                         $parent.plotConfig['hoverContent']
                                     "
-                                ></effector-genes-m-plot>
-                            </div>
-                            <div
-                                v-if="
-                                    !!$store.state.filteredData &&
-                                    $parent.plotType == 'mbm_plot'
-                                "
-                                class="mbm-plot-wrapper"
-                            >
+                                    :renderConfig="$parent.plotConfig"
+                                ></research-m-plot>
+
                                 <research-m-bitmap-plot
+                                    v-if="
+                                        $store.state.filteredData != '' &&
+                                        $parent.plotType == 'mbm_plot'
+                                    "
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
                                     :filtersIndex="$store.state.filtersIndex"
                                 ></research-m-bitmap-plot>
-                            </div>
-                            <div
-                                v-if="
-                                    !!$store.state.filteredData &&
-                                    $parent.plotType == 'volcano_plot'
-                                "
-                                class="volcano-plot-wrapper"
-                            >
-                                <volcano-plot
+
+                                <research-volcano-plot
+                                    v-if="
+                                        $store.state.filteredData != '' &&
+                                        $parent.plotType == 'volcano_plot'
+                                    "
                                     :plotData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
-                                ></volcano-plot>
-                            </div>
-                            <div
-                                v-if="
-                                    !!$store.state.filteredData &&
-                                    $parent.plotType == 'h_map'
-                                "
-                                class="heat-map-wrapper"
-                            >
-                                <heatmap
+                                ></research-volcano-plot>
+
+                                <research-heatmap
+                                    v-if="
+                                        $store.state.filteredData != '' &&
+                                        $parent.plotType == 'h_map'
+                                    "
                                     :heatmapData="$store.state.filteredData"
                                     :renderConfig="$parent.plotConfig"
-                                ></heatmap>
+                                ></research-heatmap>
                             </div>
                             <!---->
 
-                            <div class="col-md-12">
+                            <div
+                                class="col-md-12"
+                                v-if="$store.state.filteredData != ''"
+                            >
                                 <research-data-table
                                     :pageID="$parent.pageID"
                                     :dataset="$store.state.filteredData"
-                                    :tableFormat="$parent.dataTableFormat"
-                                    :perPageNumber="$parent.tableperPageNumber"
+                                    :tableFormat="
+                                        $parent.dataTableFormat != false
+                                            ? $parent.dataTableFormat
+                                            : $parent.rawDataTableFormat
+                                    "
+                                    :perPageNumber="$parent.tablePerPageNumber"
+                                    :tableLegend="$parent.tableLegend"
                                 >
                                 </research-data-table>
                             </div>
