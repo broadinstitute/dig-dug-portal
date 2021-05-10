@@ -107,16 +107,28 @@ export default Vue.component("effector-genes-m-plot", {
                 "#cb181d",
             ];
 
+            let LKey = this.locusKey;
+            let SKey = this.scoreKey;
+            let renderKey = this.renderBy;
+
             let dnaLength = 0;
 
-            for (const chr in chromosomeLength) {
-                dnaLength += chromosomeLength[chr];
-            }
+            let uniqueChromosomes = this.plotData
+                .map((v) => Number(v[LKey].split(":")[0]))
+                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
+                .filter((v, i, arr) => v != ""); //remove blank
+
+            uniqueChromosomes.sort(function (a, b) {
+                return a - b;
+            });
 
             let plotWrapper = document.getElementById("egl_m_plot");
 
-            for (const chr in chromosomeLength) {
+            //for (const chr in chromosomeLength) {
+            uniqueChromosomes.map((chr) => {
                 let chrLength = (chromosomeLength[chr] / dnaLength) * 100;
+
+                console.log(chromosomeLength[chr], ":", dnaLength);
                 let chrWrapper =
                     '<div id="chr_wrapper_' +
                     chr +
@@ -133,11 +145,8 @@ export default Vue.component("effector-genes-m-plot", {
                     "</div>\
             </div>";
                 plotWrapper.innerHTML += chrWrapper;
-            }
+            });
 
-            let LKey = this.locusKey;
-            let SKey = this.scoreKey;
-            let renderKey = this.renderBy;
             let scores = [];
 
             this.plotData.map(function (p) {
