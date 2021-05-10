@@ -464,7 +464,7 @@ export default Vue.component("effector-genes-table", {
             sortTableSelect: null,
             sortDirection: "asc",
             /*igvBrowser: false,*/
-            perPage: this.config[dataset].pageUI.perPage,
+            perPage: null,
             currentPage: 1,
             selectedGene: "",
         };
