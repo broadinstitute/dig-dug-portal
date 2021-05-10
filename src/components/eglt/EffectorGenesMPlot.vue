@@ -60,7 +60,6 @@ export default Vue.component("effector-genes-m-plot", {
     computed: {},
     watch: {
         plotData() {
-            //console.log("call");
             this.renderPlot();
         },
     },
@@ -122,13 +121,16 @@ export default Vue.component("effector-genes-m-plot", {
                 return a - b;
             });
 
+            uniqueChromosomes.map((chr) => {
+                dnaLength += chromosomeLength[chr];
+            });
+
             let plotWrapper = document.getElementById("egl_m_plot");
 
             //for (const chr in chromosomeLength) {
             uniqueChromosomes.map((chr) => {
                 let chrLength = (chromosomeLength[chr] / dnaLength) * 100;
 
-                console.log(chromosomeLength[chr], ":", dnaLength);
                 let chrWrapper =
                     '<div id="chr_wrapper_' +
                     chr +
@@ -160,8 +162,6 @@ export default Vue.component("effector-genes-m-plot", {
             let lScore = scores[scores.length - 1];
 
             let popUpContentPaths = this.popUpContent;
-
-            //console.log(this.plotData);
 
             // render y axis
             let yAxisContent = "";
@@ -276,7 +276,7 @@ export default Vue.component("effector-genes-m-plot", {
 
                 this.plotData.map(function (p) {
                     let locusArr = p[LKey].split(":");
-                    //console.log("locusArr[0]", locusArr[0]);
+
                     let chr =
                         locusArr[0] == null ||
                         locusArr[0] == "" ||
@@ -310,8 +310,6 @@ export default Vue.component("effector-genes-m-plot", {
                     }
                 });
 
-                //console.log(groupByChr);
-
                 for (const chr in groupByChr) {
                     let chrGroup = groupByChr[chr];
                     if (chr != "NA") {
@@ -333,7 +331,6 @@ export default Vue.component("effector-genes-m-plot", {
                             bpVLocArr.sort(function (a, b) {
                                 return b - a;
                             });
-                            //console.log(bpVLocArr);
 
                             let bpVLoc =
                                 100 -
@@ -349,8 +346,6 @@ export default Vue.component("effector-genes-m-plot", {
                                     100 -
                                 bpVLoc;
 
-                            //console.log("bpSpread", bpSpread);
-
                             let bpHeight =
                                 bpSpread < 5
                                     ? "10px !important"
@@ -364,7 +359,6 @@ export default Vue.component("effector-genes-m-plot", {
 
                             let dotContent = '<div class="dot-content">';
                             chrGroup[bpNum].map(function (p) {
-                                //console.log(l[renderKey]);
                                 dotContent +=
                                     "<strong>" + p[renderKey] + "</strong>";
                                 if (popUpContentPaths != null) {

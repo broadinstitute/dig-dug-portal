@@ -142,6 +142,22 @@ export default Vue.component("m-bitmap-plot", {
 
             return massagedData;
         },
+        uniqueChrs() {
+            let chrs = Object.keys(this.chromosomeLength);
+            let uniqueArr = [];
+
+            chrs.map((c) => {
+                if (this.renderData.sorted[c].length > 0) {
+                    uniqueArr.push(c);
+                }
+            });
+
+            uniqueArr.sort(function (a, b) {
+                return a - b;
+            });
+
+            return uniqueArr;
+        },
     },
     watch: {
         renderData() {
@@ -329,9 +345,9 @@ export default Vue.component("m-bitmap-plot", {
 
             let dnaLength = 0;
 
-            for (const chr in this.chromosomeLength) {
+            this.uniqueChrs.map((chr) => {
                 dnaLength += this.chromosomeLength[chr];
-            }
+            });
 
             let chrByPixel = plotWidth / dnaLength;
 
@@ -339,7 +355,8 @@ export default Vue.component("m-bitmap-plot", {
             ctx.textAlign = "center";
             ctx.rotate((Math.PI * 2) / 4);
 
-            for (const chr in this.chromosomeLength) {
+            //for (const chr in this.chromosomeLength) {
+            this.uniqueChrs.map((chr) => {
                 let chrLength = this.chromosomeLength[chr] * chrByPixel;
                 xStart += chrLength;
                 let chrPos = xStart - chrLength / 2;
@@ -349,7 +366,7 @@ export default Vue.component("m-bitmap-plot", {
                     chrPos,
                     this.topMargin + plotHeight + yBump + 14
                 );
-            }
+            });
 
             //Render x axis label
             ctx.fillText(
@@ -367,11 +384,14 @@ export default Vue.component("m-bitmap-plot", {
             //Render Dots
             xStart = 0;
             let exChr = "";
-            let chrNum = 1;
+            let chrNum = this.uniqueChrs.length != 1 ? 1 : this.uniqueChrs[0];
 
-            for (const chr in this.chromosomeLength) {
-                if (chr != 1) {
-                    xStart += this.chromosomeLength[exChr];
+            //for (const chr in this.chromosomeLength) {
+            this.uniqueChrs.map((chr) => {
+                if (this.uniqueChrs.length != 1) {
+                    if (chr != 1) {
+                        xStart += this.chromosomeLength[exChr];
+                    }
                 }
 
                 this.renderData.sorted[chr].map((g) => {
@@ -419,7 +439,7 @@ export default Vue.component("m-bitmap-plot", {
                 });
                 exChr = chr;
                 chrNum++;
-            }
+            });
         },
     },
 });
