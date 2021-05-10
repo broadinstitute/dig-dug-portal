@@ -193,6 +193,17 @@ export default Vue.component("m-bitmap-plot", {
                 );
             }
         },
+        correctDecimal(decimalNum) {
+            let dNum = decimalNum;
+
+            for (let i = 0; i < 3; i++) {
+                if (dNum.slice(-1) == 0) {
+                    dNum = dNum.slice(0, -1);
+                }
+            }
+
+            return dNum;
+        },
         checkPosition(event) {
             let wrapper = document.getElementById("clicked_dot_value");
             let canvas = document.getElementById("manhattanPlot");
@@ -323,8 +334,15 @@ export default Vue.component("m-bitmap-plot", {
                 ctx.textAlign = "right";
                 ctx.fillStyle = "#000000";
 
+                let tickerNum =
+                    (yMin + i * yStep) % 1 == 0
+                        ? Formatters.floatFormatter(yMin + i * yStep)
+                        : this.correctDecimal(
+                              Formatters.floatFormatter(yMin + i * yStep)
+                          );
+
                 ctx.fillText(
-                    Formatters.floatFormatter(yMin + i * yStep),
+                    tickerNum,
                     this.leftMargin - 10,
                     this.topMargin + plotHeight + 5 - i * yTickDistance
                 );

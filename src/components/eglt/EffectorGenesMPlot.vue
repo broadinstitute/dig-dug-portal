@@ -125,13 +125,15 @@ export default Vue.component("effector-genes-m-plot", {
             let dnaLength = 0;
 
             let uniqueChromosomes = this.plotData
-                .map((v) => Number(v[LKey].split(":")[0]))
+                .map((v) => v[LKey].split(":")[0].trim())
                 .filter((v, i, arr) => arr.indexOf(v) == i) //unique
                 .filter((v, i, arr) => v != ""); //remove blank
 
             uniqueChromosomes.sort(function (a, b) {
                 return a - b;
             });
+
+            console.log(uniqueChromosomes);
 
             uniqueChromosomes.map((chr) => {
                 dnaLength += chromosomeLength[chr];
@@ -272,6 +274,8 @@ export default Vue.component("effector-genes-m-plot", {
                         let dotColor =
                             chromosomeColors[chrNum % chromosomeColors.length];
                         let dotOppacity = "75";
+
+                        console.log("chrNum", chrNum);
 
                         document.getElementById(
                             "chr_dots_" + chrNum
