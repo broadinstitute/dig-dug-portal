@@ -416,7 +416,7 @@
                     class="pagination-sm justify-content-center"
                     v-model="currentPage"
                     :total-rows="rows"
-                    :per-page="perPage"
+                    :per-page="config[dataset].pageUI.perPage"
                 ></b-pagination>
             </b-container>
             <b-container
@@ -464,7 +464,7 @@ export default Vue.component("effector-genes-table", {
             sortTableSelect: null,
             sortDirection: "asc",
             /*igvBrowser: false,*/
-            perPage: 25,
+            perPage: this.config[dataset].pageUI.perPage,
             currentPage: 1,
             selectedGene: "",
         };
