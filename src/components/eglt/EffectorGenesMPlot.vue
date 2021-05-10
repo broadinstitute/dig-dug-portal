@@ -65,6 +65,18 @@ export default Vue.component("effector-genes-m-plot", {
     },
     methods: {
         ...uiUtils,
+        correctDecimal(decimalNum) {
+            let dNum = decimalNum;
+
+            for (let i = 0; i < 3; i++) {
+                console.log("dNum", dNum);
+                if (dNum.slice(-1) == 0) {
+                    dNum = dNum.slice(0, -1);
+                }
+            }
+
+            return dNum;
+        },
         renderPlot() {
             let grouped = document.getElementById("groupByLocusCheck").checked;
 
@@ -171,10 +183,28 @@ export default Vue.component("effector-genes-m-plot", {
                 hScoreLabel +
                 "</span></div>";
 
+            let decimalCount = 0;
+            scores.map((s) => {
+                if (s % 1 != 0) {
+                    decimalCount++;
+                }
+            });
+
+            let onlyInts = decimalCount > 0 ? false : true;
+
+            console.log("onlyInts", onlyInts);
+
             for (let i = 1; i < 5; i++) {
                 let countUnit = (hScore - lScore) / 4;
                 let unitNum = hScore - countUnit * i;
-                let unitLabel = unitNum % 1 != 0 ? unitNum.toFixed(3) : unitNum;
+
+                let unitLabel =
+                    unitNum % 1 != 0
+                        ? onlyInts == false
+                            ? this.correctDecimal(unitNum.toFixed(3))
+                            : ""
+                        : unitNum;
+
                 yAxisContent +=
                     "<div class='tick'><span class='tick-num'>" +
                     unitLabel +
