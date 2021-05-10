@@ -290,10 +290,15 @@
             </b-container>
             <!-- convertJson2Csv works only for tables with no feature tables -->
             <b-container fluid class="per-page-ui-wrapper">
-                <label class="items-per-page-label">Rows per page: </label>
+                <label
+                    class="items-per-page-label"
+                    v-if="!!config && !!config[dataset].pageUI"
+                    >Rows per page:
+                </label>
                 <select
                     v-model="perPage"
                     class="form-control-sm items-per-page"
+                    v-if="!!config && !!config[dataset].pageUI"
                 >
                     <option value="10">10</option>
                     <option value="20">20</option>
