@@ -1255,8 +1255,6 @@ div.filtering-ui-content div.col input.or-half-lt {
     width: 70px;
 }
 
-
-
 div.filtering-ui-content div.col.filter-col-md .form-control,
 div.filtering-ui-content div.col.filter-col-md select,
 div.filtering-ui-content div.col.filter-col-md input {
@@ -1637,7 +1635,8 @@ a.to-previous-page:hover {
     display: inline;
     overflow: visible;
 }
-#gait .accordion .alert {
+#gait .accordion .alert,
+#variant-search .alert {
     text-align: center;
 }
 #gait .reference > span {
@@ -1666,7 +1665,8 @@ a.to-previous-page:hover {
 #gait .form-group {
     margin-bottom: auto;
 }
-#gait .alert-info {
+#gait .alert-info,
+#variant-search .alert-info {
     padding: 0.1rem 1.25rem;
 }
 #gait .b-table-details {
@@ -1802,7 +1802,7 @@ span.volcano-score-2 {
     padding-left: 30px;
 }
 
-.top-associations-section-phenotype-filter span.filter-pill-collection{
+.top-associations-section-phenotype-filter span.filter-pill-collection {
     border: none !important;
     background: none !important;
     width: 50% !important;

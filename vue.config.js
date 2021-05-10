@@ -199,6 +199,13 @@ let pages = {
         filename: "project.html",
         title: "Project",
         chunks: ["chunk-vendors", "chunk-common", "project"]
+    },
+    variantsearch: {
+        entry: "src/views/VariantSearch/main.js",
+        template: "public/index.html",
+        filename: "variantsearch.html",
+        title: "Variant Search",
+        chunks: ["chunk-vendors", "chunk-common", "variantsearch"]
     }
 };
 

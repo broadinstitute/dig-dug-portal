@@ -117,8 +117,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="" style="position: relative">
+                <div style="position: relative">
                     <b-button
+                        v-if="topAssociationsFiltered.length > 10"
                         size="sm"
                         variant="outline-secondary"
                         class="btn-mini show-hide-clumped-associations"
