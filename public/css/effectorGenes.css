@@ -981,6 +981,12 @@ span.weight-blue {
     font-size: 12px;
 }
 
+.x-axis-label {
+    position: relative;
+    text-align: center;
+    font-size: 12px;
+}
+
 #egl_m_plot_y {
     width: 50px;
     height: calc(100% - 30px);
