@@ -12,6 +12,7 @@
             <a
                 v-if="
                     !!$store.state.config &&
+                    !!$store.state.config[$parent.dataset].link2EGLMethods ==
                         true
                 "
                 href="/effectorgenes.html"
