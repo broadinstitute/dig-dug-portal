@@ -1,18 +1,18 @@
 <template>
     <div class="EGLT-table fiftytwo" v-if="associations.length > 0">
         <b-container fluid>
-            <div class="text-right mt-2 mb-2">
+            <div class="text-right mt-2 mb-2 border-0">
                 <csv-download
                     :data="associations"
                     filename="rare_variant_gene_associations"
                 ></csv-download>
             </div>
             <b-row class="top-level-header">
-                <b-col class="top-level-header-item">Phenotype</b-col>
-                <b-col class="top-level-header-item">pValue</b-col>
-                <b-col class="top-level-header-item">Beta</b-col>
-                <b-col class="top-level-header-item">Odds Ratio</b-col>
-                <b-col class="top-level-header-item">View</b-col>
+                <b-col class="top-level-header-item" cols="4">Phenotype</b-col>
+                <b-col class="top-level-header-item" cols="2">pValue</b-col>
+                <b-col class="top-level-header-item" cols="2">Beta</b-col>
+                <b-col class="top-level-header-item" cols="2">Odds Ratio</b-col>
+                <b-col class="top-level-header-item" cols="2">View</b-col>
             </b-row>
             <template v-for="(row, i) in associations">
                 <b-row
@@ -20,16 +20,16 @@
                     class="data top-level-value"
                     :key="row.phenotype + i"
                 >
-                    <b-col class="top-level-value-item">
+                    <b-col class="top-level-value-item" cols="4">
                         <a
                             :href="`/phenotype.html?phenotype=${row.phenotype}`"
                             >{{ phenotypeMap[row.phenotype].description }}</a
                         >
                     </b-col>
-                    <b-col class="top-level-value-item pValue">{{
+                    <b-col class="top-level-value-item pValue" cols="2">{{
                         pValueFormatter(row.pValue)
                     }}</b-col>
-                    <b-col class="top-level-value-item beta">
+                    <b-col class="top-level-value-item beta" cols="2">
                         <template
                             v-if="!phenotypeMap[row.phenotype].dichotomous"
                         >
@@ -46,7 +46,7 @@
                             <span>{{ effectFormatter(row.beta) }}</span>
                         </template>
                     </b-col>
-                    <b-col class="top-level-value-item beta">
+                    <b-col class="top-level-value-item beta" cols="2">
                         <template
                             v-if="!!phenotypeMap[row.phenotype].dichotomous"
                         >
@@ -67,7 +67,7 @@
                             }}</span>
                         </template>
                     </b-col>
-                    <b-col class="top-level-value-item">
+                    <b-col class="top-level-value-item" cols="2">
                         <b-button
                             @click="showFeatures(i)"
                             class="view-features-btn"
