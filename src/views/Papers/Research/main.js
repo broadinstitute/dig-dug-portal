@@ -353,6 +353,16 @@ new Vue({
             }
             return contents[0].field_page_mode;
         },
+        displayOnKP() {
+            let contents = this.$store.state.hugeampkpncms.researchMode;
+
+            if (contents.length === 0 || contents[0].field_display_on_kp == false) {
+                return null;
+            } else {
+                return true;
+            }
+
+        },
         researchPage() {
             let contents = this.$store.state.hugeampkpncms.researchPage;
 

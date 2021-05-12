@@ -2,12 +2,18 @@
     <div id="app">
         <!-- KP Header -->
         <page-header
+            v-if="$parent.displayOnKP == true"
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
 
         <!--  Research page Header -->
         <research-page-header
+            :class="
+                $parent.displayOnKP == true
+                    ? 'research-portal-header-compact'
+                    : 'research-portal-header'
+            "
             :researchMenu="$parent.researchMenu"
         ></research-page-header>
 
@@ -204,10 +210,15 @@
         </div>
 
         <!-- Research portal Footer-->
-        <research-page-footer></research-page-footer>
+        <research-page-footer
+            v-if="$parent.displayOnKP == null"
+        ></research-page-footer>
 
         <!-- KP Footer-->
-        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
+        <page-footer
+            v-if="$parent.displayOnKP == true"
+            :disease-group="$parent.diseaseGroup"
+        ></page-footer>
     </div>
 </template>
 

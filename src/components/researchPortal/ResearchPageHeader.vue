@@ -56,4 +56,21 @@ export default Vue.component("research-page-header", {
 .research-header-menu-wrapper ul li a:hover {
     color: #cdf !important;
 }
+
+.research-portal-header-compact {
+    width: fit-content !important;
+    padding: 15px 15px 0 0 !important;
+    margin: 0;
+    border: none !important;
+    background: none !important;
+    float: right;
+}
+
+.research-portal-header-compact ul li a {
+    color: #007bff !important;
+}
+
+.research-portal-header-compact ul li a:hover {
+    color: #004bcf !important;
+}
 </style>
