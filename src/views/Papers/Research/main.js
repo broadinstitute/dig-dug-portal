@@ -10,6 +10,9 @@ import store from "./store.js";
 Vue.use(BootstrapVue);
 Vue.config.productionTip = false;
 
+import Documentation from "@/components/Documentation.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PageFooter from "@/components/PageFooter.vue";
 import ResearchPageHeader from "@/components/researchPortal/ResearchPageHeader.vue";
 import ResearchPageFooter from "@/components/researchPortal/ResearchPageFooter.vue";
 import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
@@ -18,11 +21,20 @@ import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap
 import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 import ResearchVolcanoPlot from "@/components/researchPortal/ResearchVolcanoPlot.vue";
 import ResearchHeatmap from "@/components/researchPortal/ResearchHeatmap";
+import uiUtils from "@/utils/uiUtils";
 import keyParams from "@/utils/keyParams";
+import Alert, {
+    postAlert,
+    postAlertNotice,
+    postAlertError,
+    closeAlert
+} from "@/components/Alert";
 
 new Vue({
     store,
     components: {
+        PageHeader,
+        PageFooter,
         ResearchPageHeader,
         ResearchPageFooter,
         ResearchPageFilters,
@@ -40,6 +52,8 @@ new Vue({
     },
 
     created() {
+        this.$store.dispatch("bioPortal/getDiseaseGroups");
+        this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("hugeampkpncms/getResearchMode", { 'pageID': keyParams.pageid });
     },
 
@@ -55,6 +69,11 @@ new Vue({
     },
 
     methods: {
+        ...uiUtils,
+        postAlert,
+        postAlertNotice,
+        postAlertError,
+        closeAlert,
         fetchDevPage() {
             let devID = this.devID;
             let devPW = this.devPW;
@@ -502,7 +521,22 @@ new Vue({
                 return null;
             }
             return JSON.parse(contents[0].field_menu);
-        }
+        },
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        phenotypes() {
+            return this.$store.bioportal;
+        },
+
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
     },
 
     watch: {

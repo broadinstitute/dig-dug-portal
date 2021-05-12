@@ -206,6 +206,13 @@ let pages = {
         filename: "variantsearch.html",
         title: "Variant Search",
         chunks: ["chunk-vendors", "chunk-common", "variantsearch"]
+    },
+    research: {
+        entry: "src/views/Papers/Research/main.js",
+        template: "public/index.html",
+        filename: "research.html",
+        title: "Research",
+        chunks: ["chunk-vendors", "chunk-common", "research"]
     }
 };
 

@@ -1,7 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-
+import bioPortal from "@/modules/bioPortal";
+import kp4cd from "@/modules/kp4cd";
 import hugeampkpncms from "@/modules/hugeampkpncms";
 
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
@@ -16,6 +17,8 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {
+        bioPortal,
+        kp4cd,
         hugeampkpncms,
     },
     state: {

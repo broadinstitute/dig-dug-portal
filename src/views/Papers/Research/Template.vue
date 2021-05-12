@@ -1,6 +1,12 @@
 <template>
     <div id="app">
-        <!-- Header -->
+        <!-- KP Header -->
+        <page-header
+            :disease-group="$parent.diseaseGroup"
+            :front-contents="$parent.frontContents"
+        ></page-header>
+
+        <!--  Research page Header -->
         <research-page-header
             :researchMenu="$parent.researchMenu"
         ></research-page-header>
@@ -197,8 +203,11 @@
             </div>
         </div>
 
-        <!-- Footer-->
+        <!-- Research portal Footer-->
         <research-page-footer></research-page-footer>
+
+        <!-- KP Footer-->
+        <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
 
