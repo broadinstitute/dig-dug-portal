@@ -55,7 +55,6 @@ export class LZAssociationsPanel {
         // Use the datasources in the "assoc" namespace (we'll be replacing them)
         this.datasource_type = "assoc";  
 
-
         /* Define namespace-binding information */
         //
         // These two pieces of ID information can be defined arbitrarily and independent from everything else;
