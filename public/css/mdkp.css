@@ -1815,3 +1815,9 @@ span.volcano-score-2 {
     display: inline-block;
     margin-right: 10px;
 }
+
+.kp-lab-icon {
+    width: 75px;
+    float: left;
+    margin-right: 10px;
+}
