@@ -1153,6 +1153,11 @@ div.filtering-ui-wrapper .list-group {
     text-align: left;
 }
 
+div.filtering-ui-wrapper.add-search {
+    background-color: #ddefff;
+    border: solid 1px #bbdfff;
+}
+
 div.selected-filters-ui-wrapper {
     margin-bottom: 30px;
     text-align: center;

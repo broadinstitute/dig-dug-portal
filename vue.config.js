@@ -206,6 +206,13 @@ let pages = {
         filename: "variantsearch.html",
         title: "Variant Search",
         chunks: ["chunk-vendors", "chunk-common", "variantsearch"]
+    },
+    variantsifter: {
+        entry: "src/views/VariantSifter/main.js",
+        template: "public/index.html",
+        filename: "variantsifter.html",
+        title: "Variant Sifter",
+        chunks: ["chunk-vendors", "chunk-common", "variantsifter"]
     }
 };
 
