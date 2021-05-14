@@ -25,7 +25,7 @@
                     <b-container fluid class="filtering-ui-wrapper add-search">
                         <b-row class="filtering-ui-content">
                             <div>
-                                <div class="region-search col filter-col-md">
+                                <div class="col filter-col-md">
                                     <div class="label">Search gene</div>
                                     <gene-selectpicker
                                         @onGeneChange="
@@ -42,256 +42,41 @@
                                 >
                                     <span class="or-text">or</span>
                                 </div>
-                                <div class="region-search col filter-col-sm">
-                                    <div class="label">Chromosome</div>
+                                <div class="col filter-col-md">
+                                    <div class="label">Set Region</div>
                                     <input
-                                        v-model="$store.state.newChr"
+                                        v-model="$parent.region"
                                         type="text"
                                         class="form-control input-default"
-                                        placeholder="Chromosome"
+                                        placeholder="Chr:Start-End"
                                     />
                                 </div>
-                                <div class="region-search col filter-col-md">
-                                    <div class="label">Start</div>
-                                    <input
-                                        v-model="$store.state.newStart"
-                                        type="text"
-                                        class="form-control input-default"
-                                        placeholder="Start position"
-                                    />
+                                <div class="col divider"></div>
+                                <div class="col filter-col-md">
+                                    <div class="label">Select Phenotypes</div>
+                                    <phenotype-selectpicker
+                                        :phenotypes="$parent.phenotypeList"
+                                        :placeholder="'Select phenotype'"
+                                        :clearOnSelected="true"
+                                    >
+                                    </phenotype-selectpicker>
                                 </div>
-
-                                <div class="region-search col filter-col-md">
-                                    <div class="label">End</div>
-                                    <input
-                                        v-model="$store.state.newEnd"
-                                        type="text"
-                                        class="form-control input-default"
-                                        placeholder="End position"
-                                    />
-                                </div>
-                                <div class="region-search col filter-col-md">
-                                    <div class="label">Search</div>
+                                <div class="col filter-col-sm">
+                                    <div class="label">
+                                        Get credible sets list
+                                    </div>
                                     <button
                                         id="regionSearchGo"
                                         class="btn btn-light btn-sm go"
                                         type="button"
-                                        @click="$store.dispatch('queryRegion')"
                                     >
                                         GO
                                     </button>
                                 </div>
-                                <div class="col divider"></div>
                             </div>
-                            <b-col class="col-md-5 mx-auto">
-                                <div class="label">Select Phenotypes</div>
-                                <phenotype-selectpicker
-                                    class="mt-2"
-                                    style="width: 400px"
-                                    :phenotypes="$parent.phenotypeList"
-                                    :placeholder="
-                                        $store.state.phenotypes.length == 0
-                                            ? 'Select lead phenotype'
-                                            : 'Select additional phenotype'
-                                    "
-                                    :clearOnSelected="true"
-                                >
-                                </phenotype-selectpicker>
-                            </b-col>
                         </b-row>
                     </b-container>
-                    <!-- phenotype criterion -->
-                    <div class="row">
-                        <div class="col-md-10 mx-auto">
-                            <div
-                                class="selected-phenotype text"
-                                :class="`color-${index + 1}-bg`"
-                                v-for="(p, index) in $store.state.phenotypes"
-                                :key="index"
-                            >
-                                <div class="lead">
-                                    <small
-                                        ><span
-                                            v-if="index === 0"
-                                            class="lead-icon"
-                                            title="Lead Phenotype"
-                                            v-b-tooltip.hover="{
-                                                variant: 'light',
-                                            }"
-                                            ><b-icon-check2-circle
-                                                variant="light"
-                                            ></b-icon-check2-circle></span
-                                    ></small>
-
-                                    <span
-                                        v-b-tooltip.hover="{ variant: 'light' }"
-                                        class="mr-4"
-                                        :title="p.phenotype.description"
-                                        :style="`color: ${$parent.phenotypeColor(
-                                            index
-                                        )}`"
-                                        >{{ p.phenotype.description }}</span
-                                    >
-                                </div>
-                                <div
-                                    class="filter-options"
-                                    :key="index"
-                                    v-show="true"
-                                >
-                                    <criterion-function-group
-                                        v-model="p.filter"
-                                        :noPills="true"
-                                        :filterList.sync="
-                                            $parent.displayedFilterList[
-                                                p.phenotype.name
-                                            ]
-                                        "
-                                    >
-                                        <filter-pvalue-control
-                                            :field="'pValue'"
-                                            :placeholder="`P-Value (\u2264)`"
-                                            :pillFormatter="
-                                                (filter) => filter.threshold
-                                            "
-                                            ><span></span>
-                                        </filter-pvalue-control>
-
-                                        <filter-effect-direction-control
-                                            placeholder="Effect (+/-)"
-                                            field="effect"
-                                            :pillFormatter="
-                                                (filter) => filter.threshold
-                                            "
-                                            :computedField="$parent.alignedBeta"
-                                            ><span></span>
-                                        </filter-effect-direction-control>
-                                    </criterion-function-group>
-                                </div>
-
-                                <criterion-pills
-                                    :clearable="true"
-                                    @unset="
-                                        $parent.displayedFilterList[
-                                            p.phenotype.name
-                                        ] = $parent.displayedFilterList[
-                                            p.phenotype.name
-                                        ].filter(
-                                            (f) =>
-                                                !(
-                                                    f.field === $event.field &&
-                                                    f.threshold ===
-                                                        $event.threshold
-                                                )
-                                        )
-                                    "
-                                    :filterList="
-                                        $parent.displayedFilterList[
-                                            p.phenotype.name
-                                        ]
-                                    "
-                                ></criterion-pills>
-
-                                <!--<button
-                                    type="button"
-                                    class="mr-2 close"
-                                    aria-label="Filter"
-                                    :title="`Filters for <strong>${p.phenotype.description}</strong>`"
-                                    v-b-tooltip.hover.html="{
-                                        variant: 'light',
-                                    }"
-                                >
-                                    <span
-                                        v-on:click="
-                                            p.filterVisible = !p.filterVisible
-                                        "
-                                        ><b-icon-filter></b-icon-filter
-                                    ></span>
-                                </button>-->
-                                <button
-                                    type="button"
-                                    class="mr-2 close remove"
-                                    aria-label="Filter"
-                                    v-b-tooltip.hover.html="{
-                                        variant: 'light',
-                                    }"
-                                    :title="
-                                        index === 0
-                                            ? 'Click to clear phenotype list'
-                                            : 'Click to remove this phenotype from list'
-                                    "
-                                    v-on:click="$parent.removePhenotype(index)"
-                                >
-                                    <span style="color: #ffffff"
-                                        ><b-icon-x-circle-fill></b-icon-x-circle-fill
-                                    ></span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- plot of all overlapping clumps -->
-
-                    <manhattan-plot
-                        v-show="
-                            $store.state.phenotypes.length > 0 ||
-                            $parent.clumpedAssociations.length > 0
-                        "
-                        :associations="$parent.clumpedAssociations"
-                        :phenotypes="$parent.phenotypes"
-                        :phenotypeMap="$parent.phenotypeMap"
-                        :colorByPhenotype="true"
-                        class="mt-2 mb-2"
-                    ></manhattan-plot>
-
-                    <!-- table of overlapping associations -->
-
-                    <clumped-associations-table
-                        v-show="
-                            $store.state.phenotypes.length > 0 ||
-                            $parent.clumpedAssociations.length > 0
-                        "
-                        :phenotypes="$parent.phenotypes"
-                        :phenotypeMap="$parent.phenotypeMap"
-                        :associations="$parent.clumpedAssociations"
-                        :rowsPerPage="30"
-                        :exclusive="true"
-                    ></clumped-associations-table>
-
-                    <b-overlay :show="!$store.state.phenotypes.length">
-                        <template #overlay>
-                            <b-alert show
-                                ><b-icon icon="info-circle"></b-icon> Please
-                                select a phenotype to start.</b-alert
-                            >
-                        </template>
-                        <b-skeleton-wrapper
-                            :loading="!$store.state.phenotypes.length"
-                        >
-                            <template #loading>
-                                <b-card>
-                                    <div class="col-md-8 mx-auto">
-                                        <b-skeleton
-                                            width="100%"
-                                            height="2rem"
-                                        ></b-skeleton>
-                                        <b-skeleton
-                                            style="margin-left: 10%"
-                                            width="90%"
-                                            height="2rem"
-                                        ></b-skeleton>
-                                        <b-skeleton
-                                            style="margin-left: 10%"
-                                            width="90%"
-                                            height="2rem"
-                                        ></b-skeleton>
-                                    </div>
-                                    <b-skeleton-table
-                                        :rows="5"
-                                        :columns="4"
-                                    ></b-skeleton-table
-                                ></b-card>
-                            </template> </b-skeleton-wrapper
-                    ></b-overlay>
+                    {{ $parent.region }}
                 </div>
             </div>
         </div>

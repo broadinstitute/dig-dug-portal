@@ -18,122 +18,18 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     modules: {
         bioPortal,
-        kp4cd,
-        globalAssociations: bioIndex("global-associations"),
-        clumpedMatrix: bioIndex("clumped-matrix")
+        kp4cd
     },
     state: {
-        associations: [],
-        leadPositions: {},
-        phenotypes: []
+
     },
     mutations: {
-        setLeadPhenotype(state, phenotype) {
-            state.phenotypes = [
-                {
-                    phenotype: phenotype,
-                    associations: state.globalAssociations.data,
-                    filter: x => true,
-                    filterVisible: true
-                }
-            ];
-        },
-        setLeadPositions(state) {
-            state.leadPositions = {};
 
-            // get the lead SNP position for each clump
-            state.globalAssociations.data.forEach(r => {
-                state.leadPositions[r.clump] = r.position;
-            });
-        },
-        addPhenotype(state, phenotype) {
-            state.phenotypes.push({
-                phenotype: phenotype,
-                associations: state.clumpedMatrix.data.map(r => {
-                    let alignment = r.alignment || 1;
-                    let alignedBeta = r.beta * alignment;
-
-                    // align the position so variants in the same clump line up
-                    return {
-                        ...r,
-
-                        // calculate aligned effect direction
-                        alignment,
-                        alignedBeta,
-
-                        // overwrite position w/ that of lead SNP
-                        position: state.leadPositions[r.clump]
-                    };
-                }),
-                filter: x => true,
-                filterVisible: false
-            });
-        },
-        removePhenotype(state, index) {
-            if (index == 0) {
-                state.phenotypes = []; // remove all
-            } else {
-                state.phenotypes = state.phenotypes.filter(
-                    (p, i) => i != index
-                );
-            }
-        }
     },
     getters: {
-        leadPhenotype(state) {
-            if (state.phenotypes.length > 0) {
-                return state.phenotypes[0].phenotype;
-            }
-        },
-        leadAssociations(state) {
-            if (state.phenotypes.length > 0) {
-                return state.phenotypes[0].associations.filter(
-                    state.phenotypes[0].filter
-                );
-            }
-        }
+
     },
     actions: {
-        async onPhenotypeChange(context, phenotype) {
-            let i = context.state.phenotypes.indexOf(
-                p => p.name == phenotype.name
-            );
 
-            // doesn't exist, so add it
-            if (i < 0) {
-                if (context.state.phenotypes.length == 0) {
-                    context.dispatch(
-                        "fetchLeadPhenotypeAssociations",
-                        phenotype
-                    );
-                } else {
-                    context.dispatch("fetchAssociationsMatrix", phenotype);
-                }
-            }
-        },
-
-        // fetch the lead (first) phenotype clumped associations
-        async fetchLeadPhenotypeAssociations(context, phenotype) {
-            await context.dispatch("globalAssociations/query", {
-                q: phenotype.name
-            });
-
-            // calculate lead positions
-            context.commit("setLeadPhenotype", phenotype);
-            context.commit("setLeadPositions");
-        },
-
-        // load secondary phenotype associations
-        async fetchAssociationsMatrix(context, phenotype) {
-            let lead = context.state.phenotypes[0].phenotype.name;
-
-            // use the module to download
-            await context.dispatch("clumpedMatrix/query", {
-                q: `${lead},${phenotype.name}`
-            });
-
-            // commit a copy of the data
-            context.commit("addPhenotype", phenotype);
-        }
     }
 });

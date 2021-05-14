@@ -13,18 +13,9 @@ import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
-import ClumpedAssociationsTable from "@/components/ClumpedAssociationsTable.vue";
-import ManhattanPlot from "@/components/ManhattanPlot.vue";
-import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
-import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
-import CriterionPills from "@/components/criterion/template/CriterionPills";
-import FilterPValue from "@/components/criterion/FilterPValue.vue";
-import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
-import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
-import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import { isEqual } from "lodash";
 import Colors from "@/utils/colors";
-import keyParams from "@/utils/keyParams";
 
 import Alert, {
     postAlert,
@@ -46,22 +37,12 @@ new Vue({
         Alert,
         PhenotypeSelectPicker,
         Documentation,
-        ManhattanPlot,
-        ClumpedAssociationsTable,
-        UnauthorizedMessage,
-        CriterionFunctionGroup,
-        CriterionListGroup,
-        CriterionPills,
-        FilterPValue,
-        FilterEffectDirection,
-        FilterEnumeration,
-        FilterGreaterThan
+        GeneSelectPicker,
     },
 
     data() {
         return {
-            filterList: [],
-            displayedFilterList: {}
+            region: null,
         };
     },
 
@@ -82,35 +63,6 @@ new Vue({
         postAlertError,
         closeAlert,
 
-        removePhenotype(index) {
-            this.$store.commit("removePhenotype", index);
-        },
-
-        phenotypeColor(index) {
-            return Colors[index];
-        },
-        setPhenotypeParams(phenotypes) {
-            // keyParams.set({
-            //     phenotypes: phenotypes.length ? phenotypes.join(",") : []
-            // });
-            //console.log(Object.entries(this.displayedFilterList));
-            //console.log("set", phenotypes);
-        },
-        unsetFilter(filterList, filter) {
-            if (!filterList) return {};
-
-            const _filterList = filterList.filter(
-                el =>
-                    !(
-                        el.field === filter.field &&
-                        el.threshold === filter.threshold
-                    )
-            );
-            return _filterList;
-        },
-        alignedBeta(row) {
-            return row.beta * (row.alignment || 1);
-        }
     },
 
     computed: {
@@ -127,48 +79,7 @@ new Vue({
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
         },
-        // don't allow selection of the lead phenotype in dropdowns
-        phenotypes() {
-            return this.$store.state.phenotypes.map(p => p.phenotype.name);
-        },
 
-        //return only the phenotypes that haven't been selected yet, guard against duplicate selections
-        phenotypeList() {
-            const all = this.$store.state.bioPortal.phenotypes;
-            const selected = this.$store.state.phenotypes;
-            if (selected.length) {
-                return all.filter(array =>
-                    selected.every(
-                        filter => filter.phenotype.name !== array.name
-                    )
-                );
-            } else {
-                return all;
-            }
-        },
-
-        clumpedAssociations() {
-            let n = this.$store.state.phenotypes.length;
-            let clumps = {};
-
-            this.$store.state.phenotypes.forEach(p => {
-                p.associations.forEach(r => {
-                    if (p.filter(r)) {
-                        if (r.clump in clumps) {
-                            clumps[r.clump].push(r);
-                        } else {
-                            clumps[r.clump] = [r];
-                        }
-                    }
-                });
-            });
-
-            // drop all clumps that do not contain all phenotypes
-            let clumped = Object.values(clumps).filter(rs => rs.length == n);
-            let flattened = [].concat.apply([], clumped);
-
-            return flattened;
-        }
     },
 
     watch: {
