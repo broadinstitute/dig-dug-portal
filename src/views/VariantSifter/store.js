@@ -21,15 +21,20 @@ export default new Vuex.Store({
         kp4cd
     },
     state: {
-
+        phenotype: null
     },
     mutations: {
+        setPhenotype(state, phenotype) {
+            state.phenotype = phenotype;
+        }
 
     },
     getters: {
 
     },
     actions: {
-
+        async onPhenotypeChange(context, phenotype) {
+            context.commit('setPhenotype', phenotype);
+        },
     }
 });

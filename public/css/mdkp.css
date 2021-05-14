@@ -1820,3 +1820,8 @@ span.volcano-score-2 {
     display: inline-block;
     margin-right: 10px;
 }
+
+
+.clear-all-filters-bubble {
+    background-color: #ff0000;
+}

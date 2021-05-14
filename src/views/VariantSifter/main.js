@@ -73,6 +73,9 @@ new Vue({
                 this.end = locus.end;
             }
         },
+        onPhenotypeChange(phenotype) {
+            console.log(phenotype)
+        }
 
     },
 
