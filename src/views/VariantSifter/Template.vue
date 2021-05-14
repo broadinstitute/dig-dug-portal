@@ -17,7 +17,6 @@
                     <h1 class="card-title">Variant Sifter</h1>
 
                     <documentation
-                        style="margin-bottom: 30px"
                         name="tools.variantsifter.subheader"
                     ></documentation>
 
@@ -29,10 +28,7 @@
                                     <div class="label">Search gene</div>
                                     <gene-selectpicker
                                         @onGeneChange="
-                                            $store.dispatch(
-                                                'onGeneChange',
-                                                $event
-                                            )
+                                            $parent.onGeneChange($event)
                                         "
                                     ></gene-selectpicker>
                                 </div>
@@ -76,7 +72,7 @@
                             </div>
                         </b-row>
                     </b-container>
-                    {{ $parent.region }}
+                    {{ $parent.chr + ":" + $parent.start + "-" + $parent.end }}
                 </div>
             </div>
         </div>
@@ -84,141 +80,4 @@
     </div>
 </template>
 <style>
-.selected-phenotype {
-    position: relative;
-    padding: 0 15px 0 15px;
-    margin-bottom: 0.5rem;
-    border: 1px solid transparent;
-    border-radius: 1.5rem;
-    /* min-height: 50px; */
-    /* min-width: -webkit-fit-content; */
-    min-width: -moz-fit-content;
-    min-width: fit-content;
-    white-space: nowrap;
-    height: 40px;
-}
-#variant-finder div.col .label {
-    display: inline-block;
-}
-.selected-phenotype div.filtering-ui-content {
-    display: inline-block;
-}
-.selected-phenotype div.filtering-ui-content input {
-    /*background: transparent;*/
-    background-color: #ffffff60;
-    border: 1px solid #aaa;
-}
-.selected-phenotype div.filtering-ui-content input::placeholder {
-    color: #666;
-    opacity: 1; /* Firefox */
-}
-.selected-phenotype:not(:first-child) {
-    margin-left: 2rem;
-}
-
-.selected-phenotype:not(:first-child) div.lead {
-    width: 310px !important;
-}
-/* .selected-phenotype > div {
-    display: table-cell;
-} */
-#variant-finder .selected-phenotype div.filtering-ui-wrapper {
-    border: none;
-    background-color: transparent;
-    margin: auto;
-    padding: 0;
-    width: 240px;
-    transition: all 2s;
-    /* overflow: hidden; */
-    /* white-space: nowrap; */
-    display: inline-block;
-}
-.filter-pill-collection {
-    margin-right: 15px;
-    /* width: 300px; */
-    white-space: nowrap;
-    float: right;
-}
-
-.filter-options {
-    width: 240px;
-    display: inline-block;
-}
-.filter-options > span > div {
-    display: inline-block;
-}
-.selected-phenotype .close {
-    position: absolute;
-    right: 0.1rem;
-    top: 0.6rem;
-    font-size: 1.15rem;
-    opacity: 1 !important;
-    /*float: unset;*/
-}
-div.lead {
-    display: inline-block;
-    vertical-align: top;
-    margin-top: 0.2rem;
-    width: 342px !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.selected-phenotype:first-child div.lead {
-    /*margin-left: 0.75rem;*/
-}
-div.lead .lead-icon {
-    /*position: absolute;
-    left: 0.6rem;
-    top: 0.3rem;*/
-    font-size: 1.4rem;
-}
-.filters-wrapper {
-    border: solid 1px #ddd;
-    border-radius: 5px;
-    padding: 10px 15px;
-    font-size: 16px;
-    font-family: Arial, Helvetica, sans-serif;
-}
-.filters-wrapper div,
-.filters-wrapper span {
-    display: inline-block;
-}
-#sliding_filters_wrapper {
-    width: 50%;
-    overflow: hidden;
-    white-space: nowrap;
-    border: solid 1px #ddd;
-    transition: all 2s;
-}
-#sliding_filters_wrapper.hidden {
-    width: 0 !important;
-    border: solid 0px #fff;
-}
-
-.slide-fade-enter-active,
-.slide-fade-leave-active,
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.5s;
-}
-
-.slide-fade-enter {
-    transform: translateX(-20%);
-    /* width: auto; */
-}
-.slide-fade-leave-to {
-    transform: translateX(-10%);
-    /* transform: translateY(-100%); */
-}
-.slide-down-enter {
-    transform: translateY(-20%);
-    /* width: auto; */
-}
-.slide-down-leave-to {
-    transform: translateY(-10%);
-    /* transform: translateY(-100%); */
-}
-button:focus {
-    outline: none !important;
-}
 </style>

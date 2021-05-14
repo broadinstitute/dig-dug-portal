@@ -8,14 +8,12 @@ import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
-
-import UnauthorizedMessage from "@/components/UnauthorizedMessage";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
+import regionUtils from "@/utils/regionUtils";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import { isEqual } from "lodash";
-import Colors from "@/utils/colors";
 
 import Alert, {
     postAlert,
@@ -30,7 +28,7 @@ Vue.use(BootstrapVueIcons);
 
 new Vue({
     store,
-    modules: {},
+    modules: { regionUtils },
     components: {
         PageHeader,
         PageFooter,
@@ -43,6 +41,10 @@ new Vue({
     data() {
         return {
             region: null,
+            chr: null,
+            start: null,
+            end: null,
+            phenotype: null,
         };
     },
 
@@ -62,6 +64,15 @@ new Vue({
         postAlertNotice,
         postAlertError,
         closeAlert,
+        async onGeneChange(gene) {
+            let locus = await regionUtils.parseRegion(gene, true, 50000);
+
+            if (locus) {
+                this.chr = locus.chr;
+                this.start = locus.start;
+                this.end = locus.end;
+            }
+        },
 
     },
 
@@ -93,6 +104,13 @@ new Vue({
                 }
             },
             deep: true
+        },
+        region() {
+            if (this.region.includes(":") && this.region.includes("-")) {
+                this.chr = this.region.split(":")[0];
+                this.start = this.region.split(":")[1].split("-")[0];
+                this.end = this.region.split(":")[1].split("-")[1];
+            }
         }
     }
 }).$mount("#app");
