@@ -21,10 +21,11 @@ export default Vue.component('lz-associations', {
             () => this.$emit('error')
         )
         // hack - needs to be replaced
-        this.addPanels = this.$parent.addPanels
+        this.addPanels = this.$parent.addPanels;
     }
 })
 
+// panelClass
 export class LZAssociationsPanel {
     /* 
      * LZAssociationsPanel

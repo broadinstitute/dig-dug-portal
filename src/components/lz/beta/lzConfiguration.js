@@ -133,7 +133,7 @@ class LzDataSource {
             if (this.#name !== null && this.#datasource !== null) {
                 return [this.#name, this.#datasource];
             }
-            throw Error(`One of 'namespace' or 'datasource' hasn't been initialized. name: ${this.#name} datasource: ${this.#datasource}`);
+            throw Error(`One of 'name' or 'datasource' hasn't been initialized. name: ${this.#name} datasource: ${this.#datasource}`);
         } catch(e) {
             console.warn(e);
             return null;
@@ -161,10 +161,10 @@ class LzPanelClass {
     constructor(lzLayout, lzDataSource, shared_field) {
         this.#layout = lzLayout;
         this.#datasource = lzDataSource;
-        if (typeof binder === 'string') {
+        if (typeof shared_field === 'string') {
             this.initialize(shared_field);
         } else {
-            console.warn('Remember to bind the lazyout and datasource together with `initialize()`');
+            console.warn('Remember to bind the lazyout and datasource together with `initialize(shared_field?)`');
         }
     }
     initialize(shared_field) {
@@ -439,7 +439,7 @@ class LZAssociationsPanel {
 }
 
 
-const oldAssocationsPanelLayout = new LZAssociationsPanel().layouts[0];
+const oldAssocationsPanelLayout = new LZAssociationsPanel('T2D').layouts[0];
 
 const layout1 = new LzLayout('associations_catalog')
     .addFields('assoc', ['pvalue', 'fold' /* etc */]);
@@ -452,7 +452,6 @@ const associations_panel = new LzPanelClass(layout1, datasource).initialize('ass
 console.log(oldAssocationsPanelLayout === layout.full())
 console.log(oldAssocationsPanelLayout === associations_panel.full().layout)
 
-const layout2 = new LzLayout(LocusZoom.Layouts.get('panel', 'associations_catalog'), {})
-                    .withNamespace('assoc', 'assoc')
+const layout2 = new LzLayout(LocusZoom.Layouts.get('panel', 'associations_catalog')).withNamespace('assoc', 'assoc')
 
 console.log(oldAssocationsPanelLayout === layout2.full())
