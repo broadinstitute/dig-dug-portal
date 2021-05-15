@@ -361,7 +361,33 @@ The following example is taken from the constructor of `LZAssociationsPanel` (a 
 
 ##### Tooltips, colors and other customizations
 
-_Curse of the layouts_.
+_Curse of the layouts_. As seen in the other two configurations, for namespaces and fields, because merging two JSON objects together could mean one overrides the properties of the other, we need to duplicate the properties of the object (with e.g. `...LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog').namespace` for duplicating and spreading the default namespace) before adding properties underneath as overrides. 
+
+The same holds for other configuration properties like `color` or `fields`, which are arrays. Even though some object merging algorithms can have consistent override rules - say, the second object dominates the first - this can't hold in the case of arrays where whether or not some data is overriden becomes dependent on its position, which is arbitrary.
+
+So in the case where arrays must have properties added to them, one must always make sure to do something like `...LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog').<fieldname>` to guarantee that the rest of the display is unchanged.
+
+Below is an example of `color` being changed for `association_pvalues_catalog`.
+
+```js
+color: [
+    // declarative rule for what should happen in matching state
+    {
+        field: "lz_highlight_match", // Special field name whose presence triggers custom rendering
+        scale_function: "if",
+        parameters: {
+            field_value: true,
+            then: "#FF00FF",
+        },
+    },
+    // remember other color rules
+    ...LocusZoom.Layouts.get(
+        "data_layer",
+        "association_pvalues_catalog",
+        { unnamespaced: true }
+    ).color,
+],
+```
 
 #### Configuring the datasource
 
