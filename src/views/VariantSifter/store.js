@@ -18,7 +18,11 @@ Vue.use(Vuex);
 export default new Vuex.Store({
     modules: {
         bioPortal,
-        kp4cd
+        kp4cd,
+        credibleSets: bioIndex("credible-sets"),
+        credibleVariants: bioIndex("credible-variants"),
+        globalEnrichment: bioIndex("global-enrichment"),
+        documentation: bioIndex("documentation"),
     },
     state: {
         phenotype: null
@@ -35,6 +39,7 @@ export default new Vuex.Store({
     actions: {
         async onPhenotypeChange(context, phenotype) {
             context.commit('setPhenotype', phenotype);
+            //this.$parent.phenotype = phenotype.name;
         },
     }
 });
