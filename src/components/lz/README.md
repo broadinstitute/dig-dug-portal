@@ -26,7 +26,9 @@ Configuring layouts, datasources and namespaces are how LocusZoom features are b
 
 ## Using LocusZoom components
 
-Although by this time there are many examples of LocusZoom being used in the Portal, the syntax for using LocusZoom was chosen to make it behave like other Vue components as closely as possible. Examples of each syntactic choice are given here, as well as a brief description of why.
+Although by this time there are many examples of LocusZoom being used in the Portal, the syntax for using LocusZoom was chosen to make it behave like other Vue components as closely as possible.
+
+Examples of each syntactic choice are given here, as well as a brief description of why.
 
 ### Declaring Components in LocusZoom
 
