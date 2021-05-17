@@ -12,7 +12,7 @@ This results in two kinds of components:
 * a wrapper for LocusZoom itself - `<locuszoom>`, implemented in the file `@/components/lz/LocusZoom.vue` 
 * components that manage LocusZoom panels - `<lz-*-panel>`, implementations found as `@/components/lz/panels/LocusZoom*Panel.vue`.
 
-Additionally, each `LocusZoom*Panel.vue` gets its own *`panelClass`*, a dataclass that configures the layout and datasource associated with the panel.
+Additionally, each `LocusZoom*Panel.vue` gets its own *`panelClass`*, a dataclass that configures the layout/datasource associated with the panel.
 
 `<locuszoom>` treats LocusZoom as an "engine" - we give the Vue component methods that tell LocusZoom what we want it to do, like adding panels with datsources, removing these panels, or refreshing the data. 
 
