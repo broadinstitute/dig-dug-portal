@@ -451,7 +451,7 @@ The important things to note are:
 
 The `LZBioIndexSource` uses all this information to query `index` whenever LocusZoom refreshes (like when its region changes). The data is collected, translated with `translator`, then emitted into whatever optional function was bound to `onLoad`.
 
-## The lifecycle of <lz-associations-panel>
+## The lifecycle of lz-associations-panel
 
 During debugging and development, it is useful to know how and when certain events are meant to occur.
 
