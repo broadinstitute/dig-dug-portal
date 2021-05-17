@@ -1,8 +1,8 @@
-## Overview
+# Overview
 
 LocusZoom is a data-visualization system used in the portal for PheWAS plots, GWAS plots, and genomic annotations. Its support for displaying many different datatypes and datasets makes it an integral part of how we deliver value in the portal.
 
-### Why it looks the way it does
+## Why it looks the way it does
 
 LocusZoom is very much a wholesale solution: it not only displays information, but also manages how data is drawn from remote APIs, and how it updates upon user interaction. Because of this, LocusZoom is often used in a standalone manner - it acts as its own model and controller, on top of being a view.
 
@@ -20,11 +20,11 @@ LocusZoom's documentation describes how layouts/datasources/namespaces are relat
 
 Configuring layouts, datasources and namespaces are how LocusZoom features are built - so when creating a new panel, it is important to be familiar with this process. It is possible to describe this process step-by-step, so that it can be followed procedurally when a developer wants to write a new panel for LocusZoom on the portal. Importantly, reading (or skimming!) [LocusZoom's own guides](https://statgen.github.io/locuszoom/docs/) guarantees a smooth transition when it comes to modifying panels for use in the Portal.
 
-### Using LocusZoom components
+## Using LocusZoom components
 
 Although by this time there are many examples of LocusZoom being used in the Portal, the syntax for using LocusZoom was chosen to make it behave like other Vue components as closely as possible. Examples of each syntactic choice are given here, as well as a brief description of why.
 
-#### Declaring Components in LocusZoom
+### Declaring Components in LocusZoom
 
 Adding panels to LocusZoom works like other Vue components. Although you can add panels to LocusZoom with functions (i.e. programmatically), this notation was chosen so that using LocusZoom felt as close as possible to using other Vue components.
 
@@ -50,7 +50,7 @@ Adding panels to LocusZoom works like other Vue components. Although you can add
 </template>
 ```
 
-#### Pulling LocusZoom's data when it updates
+### Pulling LocusZoom's data when it updates
 
 ```vue
 <template>
@@ -66,7 +66,7 @@ Adding panels to LocusZoom works like other Vue components. Although you can add
 </template>
 ```
 
-#### Pushing data into LocusZoom (UNSUPPORTED)
+### Pushing data into LocusZoom (UNSUPPORTED)
 
 _This case is not currently supported by our components._ I leave it here to illustrate why `@input` makes sense as a handler for capturing data requested by LocusZoom. In the future, if we decide to use Vuex to populate LocusZoom with data (making it completely a "view") then this is how the data would be passed to a LocusZoom panel.
 
@@ -92,7 +92,7 @@ _This case is not currently supported by our components._ I leave it here to ill
 </template>
 ```
 
-#### Binding filters onto LocusZoom
+### Binding filters onto LocusZoom
 
 ```vue
 <template>
@@ -114,7 +114,7 @@ _This case is not currently supported by our components._ I leave it here to ill
 </template>
 ```
 
-### Writing LocusZoom panels
+## Writing LocusZoom panels
 
 Through trial-and-error a boilerplate-y means of writing new panels was converged upon. It takes place in three steps:
 
@@ -124,7 +124,7 @@ Through trial-and-error a boilerplate-y means of writing new panels was converge
 
 > TODO: For the future: it is feasible and likely desirable to write a small set of helper classes that can make these tasks more routine. When LocusZoom v0.14.0 is release, a `mutate_attr` function will have been written that could help make this task easy. Its progress can be tracked [here](https://github.com/statgen/locuszoom/pull/243) with discussion [here](https://github.com/statgen/locuszoom/issues/242).
 
-#### Configuring the layout
+### Configuring the layout
 
 Custom configuration for LocusZoom layouts can seem difficult at first. However, each panel shares much of the same kind of configuration problems:
 
@@ -241,7 +241,7 @@ this.layouts = [
 ];
 ```
 
-#### Defining Namespaces
+### Defining Namespaces
 
 The following example is taken from the constructor of `LZAssociationsPanel` (a `panelClass`), which takes `(phenotype, title, onLoad, onResolve, onError, initialData)` as its arguments.
 
@@ -284,7 +284,7 @@ this.datasource_namespace_symbol_for_panel = `${this.panel_id}_${this.datasource
 
 As this part of the code is thoroughly commented, no further elucidation is made here.
 
-##### Finding your base layout
+#### Finding your base layout
 
 - Choosing your base layout from existing layouts
   - Look at existing examples
@@ -329,7 +329,7 @@ Namespaces are what glue datasources and layouts together. Every time a field an
 
 Since we're overriding a JSON object via this configuration, we need to make sure that we aren't overriding the properties we need. Thus we call `LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog")` and spread it before the we add another field to the namespace. This way we are only overriding one field, and not removing any of them.
 
-##### Adding fields
+#### Adding fields
 
 It is important to know that a LocusZoom panel *only stores data from datasources that match its fields*. For instance, if our datasource gives `pValue`, `log_pvalue`, `position`, and `consequence`, but the data layer only requires `pvalue` and `position`, then `consequence`, `log_pvalue` and `pValue` will be stripped from the data (the latter because fields are case sensitive).
 
@@ -359,7 +359,7 @@ The following example is taken from the constructor of `LZAssociationsPanel` (a 
 }
 ```
 
-##### Tooltips, colors and other customizations
+#### Tooltips, colors and other customizations
 
 _Curse of the layouts_. As seen in the other two configurations, for namespaces and fields, because merging two JSON objects together could mean one overrides the properties of the other, we need to duplicate the properties of the object (with e.g. `...LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog').namespace` for duplicating and spreading the default namespace) before adding properties underneath as overrides. 
 
@@ -389,7 +389,7 @@ color: [
 ],
 ```
 
-#### Configuring the datasource
+### Configuring the datasource
 
 All of the Portal's panels (with one exception) use a `LZBioIndexSource` designed to call the [BioIndex](https://bioindex.hugeamp.org). The `LZBioIndexSource` takes the name of an index (like `associations` or `gene-links`), and a means of producing a query to that index, both required to figure out what data to give a layout when LocusZoom queries datasources for its current region. Its implementation uses the same function for queries that the Portal's BioIndex modules uses, which means it gives similar results. If the same of the data needs to change before, it takes a `translator` function which can do the transformation.
 
@@ -451,7 +451,7 @@ The important things to note are:
 
 The `LZBioIndexSource` uses all this information to query `index` whenever LocusZoom refreshes (like when its region changes). The data is collected, translated with `translator`, then emitted into whatever optional function was bound to `onLoad`.
 
-### The lifecycle of <lz-associations-panel>
+## The lifecycle of <lz-associations-panel>
 
 During debugging and development, it is useful to know how and when certain events are meant to occur.
 
