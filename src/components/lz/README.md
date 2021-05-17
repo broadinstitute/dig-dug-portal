@@ -135,7 +135,7 @@ Through trial-and-error a boilerplate-y means of writing new panels was converge
 Custom configuration for LocusZoom layouts can seem difficult at first. However, each panel shares much of the same kind of configuration problems:
 
 * They all need to have an existing LocusZoom panel to be based on;
-* They all need to have a unique datasource connected to them via a name and a "shared field";
+* They all need to have a unique datasource connected to them, via a name and a "shared field";
 * Mostly, they need to add fields to a data layer that weren't there before;
 * Sometimes, they need to be configured with features like tooltips, color matching, different axis labels... etc.
 
