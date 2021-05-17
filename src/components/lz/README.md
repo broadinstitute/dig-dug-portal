@@ -2,11 +2,11 @@
 
 LocusZoom is a data-visualization system used in the portal for PheWAS plots, GWAS plots, and genomic annotations. Its support for displaying many different datatypes and datasets makes it an integral part of how we deliver value in the portal.
 
-## Why it looks the way it does
-
 LocusZoom is very much a wholesale solution: it not only displays information, but also manages how data is drawn from remote APIs, and how it updates upon user interaction. Because of this, LocusZoom is often used in a standalone manner - it acts as its own model and controller, on top of being a view.
 
-But as the Portal is its own application (with its own model, controller, etc), it often conflicts with LocusZoom in how, and when, data should be displayed. To combine LocusZoom with Vue, so that it can be used like any other Vue component, requires wrapping LocusZoom in a way which empowers each portal page to create panels and synchronize with their state, while also respecting the ways that LocusZoom handles its data. 
+## Why it looks the way it does
+
+As the Portal is its own application (with its own model, controller, etc), it often conflicts with LocusZoom in how, and when, data should be displayed. To combine LocusZoom with Vue, so that it can be used like any other Vue component, requires wrapping LocusZoom in a way which empowers each portal page to create panels and synchronize with their state, while respecting how LocusZoom handles its own data. 
 
 This results in two kinds of components: a wrapper for LocusZoom itself - `<locuszoom>`, implemented in the file `@/components/lz/LocusZoom.vue` - and components that manage LocusZoom panels - `<lz-*-panel>`, implementations found as `@/components/lz/panels/LocusZoom*Panel.vue`. Additionally, each `LocusZoom*Panel.vue` gets its own *`panelClass`*, a dataclass that configures the layout and datasource associated with the panel.
 
