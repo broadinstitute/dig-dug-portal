@@ -247,6 +247,31 @@ this.layouts = [
 ];
 ```
 
+### Finding your base layout
+
+- Choosing your base layout from existing layouts
+  - Look at existing examples
+  - Deciding on the shared fields
+  - Thinking about alternative customizations
+  - Seeking the specific data layer to be modified from the source
+  - Providing the panel ID and namespace information
+
+When creating a new panel for the Portal, your first task is to find the right layout. The LocusZoom project creates new layouts through a combination of custom code written in D3, and configuration on that code written in plain old JSON. You can find the layout closest to yours by looking at LocusZoom's examples, [here](https://statgen.github.io/locuszoom/#examples). 
+
+For instance, this is the panel used for `LocusZoomAssociationsPanel.vue`, which incorporates three data layers that define its layout:
+
+```js
+// An example of this layout in use is here: https://statgen.github.io/locuszoom/examples/gwas_catalog.html?chrom=9&start=21751670&end=22351670
+LocusZoom.Layouts.get("panel", "association_catalog", { /* configuration options to override layout here */ })
+```
+
+Once you find the layout, you need to find plan your customization for the Portal by finding certain information first. When you find the example that works for you, there are two pieces of information you need to extract from the spec.
+
+* You need to find the data layer that encodes that data you want to display. For instance, `association_pvalues_catalog`: [1](https://github.com/statgen/locuszoom/blob/5190f5985027a0fd6b939d3456981d579e19b659/esm/layouts/index.js#L291) [2](https://github.com/statgen/locuszoom/blob/5190f5985027a0fd6b939d3456981d579e19b659/esm/layouts/index.js#L439)
+* You need to find the the namespace that the fields you want to modify uses. Here, `assoc`: [1](https://github.com/statgen/locuszoom/blob/5190f5985027a0fd6b939d3456981d579e19b659/esm/layouts/index.js#L441) [2](https://github.com/statgen/locuszoom/blob/5190f5985027a0fd6b939d3456981d579e19b659/esm/layouts/index.js#L450)
+
+These pieces of information are used to give values to `this.panel_layout_type` and `this.datasource_type`, which are referenced in the configuration below.
+
 ### Defining Namespaces
 
 The following example is taken from the constructor of `LZAssociationsPanel` (a `panelClass`), which takes `(phenotype, title, onLoad, onResolve, onError, initialData)` as its arguments.
@@ -290,32 +315,7 @@ this.datasource_namespace_symbol_for_panel = `${this.panel_id}_${this.datasource
 
 As this part of the code is thoroughly commented, no further elucidation is made here.
 
-#### Finding your base layout
-
-- Choosing your base layout from existing layouts
-  - Look at existing examples
-  - Deciding on the shared fields
-  - Thinking about alternative customizations
-  - Seeking the specific data layer to be modified from the source
-  - Providing the panel ID and namespace information
-
-When creating a new panel for the Portal, your first task is to find the right layout. The LocusZoom project creates new layouts through a combination of custom code written in D3, and configuration on that code written in plain old JSON. You can find the layout closest to yours by looking at LocusZoom's examples, [here](https://statgen.github.io/locuszoom/#examples). 
-
-For instance, this is the panel used for `LocusZoomAssociationsPanel.vue`, which incorporates three data layers that define its layout:
-
-```js
-// An example of this layout in use is here: https://statgen.github.io/locuszoom/examples/gwas_catalog.html?chrom=9&start=21751670&end=22351670
-LocusZoom.Layouts.get("panel", "association_catalog", { /* configuration options to override layout here */ })
-```
-
-Once you find the layout, you need to find plan your customization for the Portal by finding certain information first. When you find the example that works for you, there are two pieces of information you need to extract from the spec.
-
-* You need to find the data layer that encodes that data you want to display. For instance, `association_pvalues_catalog`: [1](https://github.com/statgen/locuszoom/blob/5190f5985027a0fd6b939d3456981d579e19b659/esm/layouts/index.js#L291) [2](https://github.com/statgen/locuszoom/blob/5190f5985027a0fd6b939d3456981d579e19b659/esm/layouts/index.js#L439)
-* You need to find the the namespace that the fields you want to modify uses. Here, `assoc`: [1](https://github.com/statgen/locuszoom/blob/5190f5985027a0fd6b939d3456981d579e19b659/esm/layouts/index.js#L441) [2](https://github.com/statgen/locuszoom/blob/5190f5985027a0fd6b939d3456981d579e19b659/esm/layouts/index.js#L450)
-
-These pieces of information are used to give values to `this.panel_layout_type` and `this.datasource_type`, which are referenced in the configuration below.
-
-###### Namespace the layout
+### Namespace the layout
 
 One essential, simple customization must be made to any chosen layout: namespacing.
 
@@ -335,7 +335,7 @@ Namespaces are what glue datasources and layouts together. Every time a field an
 
 Since we're overriding a JSON object via this configuration, we need to make sure that we aren't overriding the properties we need. Thus we call `LocusZoom.Layouts.get("data_layer", "association_pvalues_catalog")` and spread it before the we add another field to the namespace. This way we are only overriding one field, and not removing any of them.
 
-#### Adding fields
+### Adding fields
 
 It is important to know that a LocusZoom panel *only stores data from datasources that match its fields*. For instance, if our datasource gives `pValue`, `log_pvalue`, `position`, and `consequence`, but the data layer only requires `pvalue` and `position`, then `consequence`, `log_pvalue` and `pValue` will be stripped from the data (the latter because fields are case sensitive).
 
@@ -365,7 +365,7 @@ The following example is taken from the constructor of `LZAssociationsPanel` (a 
 }
 ```
 
-#### Tooltips, colors and other customizations
+### Tooltips, colors and other customizations
 
 _Curse of the layouts_. As seen in the other two configurations, for namespaces and fields, because merging two JSON objects together could mean one overrides the properties of the other, we need to duplicate the properties of the object (with e.g. `...LocusZoom.Layouts.get('data_layer', 'association_pvalues_catalog').namespace` for duplicating and spreading the default namespace) before adding properties underneath as overrides. 
 
