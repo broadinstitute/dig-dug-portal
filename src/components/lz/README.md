@@ -6,7 +6,7 @@ LocusZoom is very much a wholesale solution: it not only displays information, b
 
 ## Why it looks the way it does
 
-As the Portal is its own application (with its own model, controller, etc), it often conflicts with LocusZoom in how, and when, data should be displayed. To combine LocusZoom with Vue, so that it can be used like any other Vue component, requires wrapping LocusZoom in a way which empowers each portal page to create panels and synchronize with their state, while respecting how LocusZoom handles its own data. 
+As the Portal is its own application (with its own model, controller, etc), it often conflicts with LocusZoom in how, and when, data should be displayed. Combining LocusZoom with Vue, so that it can be used like any other Vue component, requires wrapping LocusZoom in a way which empowers each portal page to create panels and synchronize with their state, while respecting how LocusZoom handles its own data. 
 
 This results in two kinds of components: 
 * a wrapper for LocusZoom itself - `<locuszoom>`, implemented in the file `@/components/lz/LocusZoom.vue` 
