@@ -195,26 +195,18 @@
             </div>
             <div class="card mdkp-card">
                 <div class="card-body">
-                    <h4 class="card-title">
-                        Variants in region
-                        <!--<span
-                            v-for="p in $parent.selectedPhenotypes"
-                            class="item"
-                            >{{ p.description }}</span
-                        >-->
-                        &nbsp;
-                        <tooltip-documentation
-                            name="region.topassoc.tooltip"
-                            :isHover="true"
-                            :noIcon="false"
-                        ></tooltip-documentation>
-                    </h4>
                     <documentation
-                        name="region.variantassociation.subheader"
+                        name="region.lz.subheader"
+                        :content-fill="$parent.documentationMap"
                     ></documentation>
+
+                    <documentation
+                        name="region.igv.subheader"
+                        :content-fill="$parent.documentationMap"
+                    ></documentation>
+
                     <h6>
-                        Select/add phenotypes to the section
-                        &nbsp;<tooltip-documentation
+                        Add tracks &nbsp;<tooltip-documentation
                             name="region.add.phenotypes.tooltip"
                             :isHover="true"
                             :noIcon="false"
@@ -224,7 +216,6 @@
                     <criterion-list-group
                         v-model="$parent.regionPageSearchCriterion"
                         :header="''"
-                        class="top-associations-section-phenotype-filter"
                     >
                         <!-- Phenotype Selector -->
                         <filter-enumeration-control
@@ -248,12 +239,53 @@
                                           ].description
                                         : phenotype
                             "
+                            placeholder="Select one ore more phenotypes"
                         >
                             <div class="label">Phenotypes:</div>
                         </filter-enumeration-control>
+
+                        <div class="col filter-col-md">
+                            <div class="label" style="margin-bottom: 5px">
+                                Add tissue
+                            </div>
+                            <tissue-selectpicker
+                                :tissues="$parent.globalEnrichmentTissues"
+                                :clearOnSelected="true"
+                                @tissue="
+                                    $parent.addTissueIntervalsPanel($event)
+                                "
+                            />
+                        </div>
+                        <div class="col filter-col-md">
+                            <div class="label" style="margin-bottom: 5px">
+                                Add annotation
+                            </div>
+                            <annotation-selectpicker
+                                :annotations="
+                                    $parent.globalEnrichmentAnnotations
+                                "
+                                :clearOnSelected="true"
+                                @annotation="
+                                    $parent.addAnnotationIntervalsPanel($event)
+                                "
+                            />
+                        </div>
+
+                        <div class="col filter-col-md">
+                            <div class="label" style="margin-bottom: 5px">
+                                Add credible set
+                            </div>
+                            <credible-sets-selectpicker
+                                :credibleSets="$parent.credibleSets"
+                                :clearOnSelected="true"
+                                @credibleset="
+                                    $parent.addCredibleVariantsPanel($event)
+                                "
+                            />
+                        </div>
                     </criterion-list-group>
                     <h6 v-if="$parent.selectedPhenotypes.length > 0">
-                        Filter top associations table &nbsp;
+                        Filter tracks &nbsp;
                         <tooltip-documentation
                             name="region.filter.topassoc.tooltip"
                             :isHover="true"
@@ -309,68 +341,32 @@
                                         :filter="filter"
                                         :exclusive="false"
                                     ></associations-table>
-                                </template> </criterion-function-group></b-tab
+                                </template>
+                            </criterion-function-group>
+                            <h4 class="card-title">
+                                Variants in region
+                                <!--<span
+                            v-for="p in $parent.selectedPhenotypes"
+                            class="item"
+                            >{{ p.description }}</span
+                        >-->
+                                &nbsp;
+                                <tooltip-documentation
+                                    name="region.topassoc.tooltip"
+                                    :isHover="true"
+                                    :noIcon="false"
+                                ></tooltip-documentation>
+                            </h4>
+                            <documentation
+                                name="region.variantassociation.subheader"
+                            ></documentation></b-tab
                         ><b-tab title="Annotations by global enrichment"
                             >tab2</b-tab
                         >
                     </b-tabs>
 
                     <div v-if="$parent.selectedPhenotypes.length > 0">
-                        <documentation
-                            name="region.lz.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-
-                        <documentation
-                            name="region.igv.subheader"
-                            :content-fill="$parent.documentationMap"
-                        ></documentation>
-
                         <criterion-function-group>
-                            <div class="col filter-col-md">
-                                <div class="label" style="margin-bottom: 5px">
-                                    Add tissue
-                                </div>
-                                <tissue-selectpicker
-                                    :tissues="$parent.globalEnrichmentTissues"
-                                    :clearOnSelected="true"
-                                    @tissue="
-                                        $parent.addTissueIntervalsPanel($event)
-                                    "
-                                />
-                            </div>
-                            <div class="col filter-col-md">
-                                <div class="label" style="margin-bottom: 5px">
-                                    Add annotation
-                                </div>
-                                <annotation-selectpicker
-                                    :annotations="
-                                        $parent.globalEnrichmentAnnotations
-                                    "
-                                    :clearOnSelected="true"
-                                    @annotation="
-                                        $parent.addAnnotationIntervalsPanel(
-                                            $event
-                                        )
-                                    "
-                                />
-                            </div>
-
-                            <div class="col filter-col-md">
-                                <div class="label" style="margin-bottom: 5px">
-                                    Add credible set
-                                </div>
-                                <credible-sets-selectpicker
-                                    :credibleSets="$parent.credibleSets"
-                                    :clearOnSelected="true"
-                                    @credibleset="
-                                        $parent.addCredibleVariantsPanel($event)
-                                    "
-                                />
-                            </div>
-
-                            <div class="col divider">&nbsp;</div>
-
                             <span style="display: inline-block">
                                 <div class="label">
                                     Filter annotations by global enrichment
