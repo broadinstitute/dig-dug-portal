@@ -19,6 +19,7 @@ export default new Vuex.Store({
     modules: {
         bioPortal,
         kp4cd,
+        annotation: bioIndex("annotated-regions"),
         credibleSets: bioIndex("credible-sets"),
         credibleVariants: bioIndex("credible-variants"),
         globalEnrichment: bioIndex("global-enrichment"),

@@ -64,7 +64,7 @@ new Vue({
             region: null,
             locus: null,
             credibleSetsData: [],
-            credibleSetsDataSorted: [],
+            credibleSetsDataSorted: {},
         };
     },
 
@@ -92,12 +92,8 @@ new Vue({
             }
         },
         getOptions() {
-            console.log(this.locus, this.$store.state.phenotype)
             this.requestCredibleSets();
-        },
-        clearAllSearch() {
-            this.locus = null;
-            this.$store.state.phenotype = null;
+            this.requestAnnotations();
         },
         requestCredibleSets() {
             let that = this;
@@ -110,19 +106,24 @@ new Vue({
                 q: queryString,
                 append: true
             });
+        },
+        requestAnnotations() {
+            let that = this;
+            let phenotype = this.$store.state.phenotype;
 
+            this.$store.dispatch("globalEnrichment/clear");
+            const queryString = `${phenotype.name}`;
+            that.$store.dispatch("globalEnrichment/query", {
+                q: queryString,
+                append: true
+            });
         },
         addCredibleSets(event) {
-            console.log(event);
             const { phenotype, credibleSetId } = event;
             if (credibleSetId !== "computed") {
                 this.requestCredibleVariants(event.credibleSetId);
-
             } else if (credibleSetId === "computed") {
-                // pass LocusZoom the page phenotype (which would have been what controlled the credible sets call in the first place)
-                /*this.$children[0].$refs.locuszoom.addComputedCredibleVariantsPanel(
-                    this.$store.state.phenotype.name
-                );*/
+
             }
         },
         requestCredibleVariants(credibleSetId) {
@@ -135,7 +136,32 @@ new Vue({
                 q: queryString,
                 append: true
             });
+        },
+        addAnnotation(event) {
+            console.log(event);
+            let that = this;
+            let annotationId = event.annotation;
 
+            this.$store.dispatch("annotation/clear");
+            const queryString = `${annotationId},${this.locus.chr
+                }:${Number.parseInt(this.locus.start)}-${Number.parseInt(this.locus.end)}`;
+            that.$store.dispatch("annotation/query", {
+                q: queryString,
+                append: true
+            });
+        },
+
+
+        clearAll(pram) {
+            switch (pram) {
+                case "all":
+                    this.region = null;
+                    this.locus = null;
+                    this.credibleSetsData = [];
+                    this.credibleSetsDataSorted = {};
+                    this.$store.state.phenotype = null;
+                    break
+            }
         },
     },
 
@@ -153,6 +179,32 @@ new Vue({
         },
         phenotypeMap() {
             return this.$store.state.bioPortal.phenotypeMap;
+        },
+        annotation() {
+
+            let tissues = [...new Set(this.$store.state.annotation.data.map(a => a.tissue))].sort();
+
+            let content = {};
+            tissues.map(t => {
+                content[t] = [];
+            });
+
+            this.$store.state.annotation.data.map(a => {
+                let tissue = a.tissue;
+                let tempObj = { "start": a.start, "end": a.end };
+                content[tissue].push(tempObj);
+            })
+
+            for (const tissue in content) {
+                //console.log(tissue);
+                sortUtils.sortEGLTableData(
+                    content[tissue], "start", true, false
+                )
+            }
+
+
+
+            return content;
         },
         credibleSets() {
             return this.$store.state.credibleSets.data;
@@ -191,41 +243,66 @@ new Vue({
             deep: true
         },
         region() {
-            if (this.region.includes(":") && this.region.includes("-")) {
-                this.locus = {}
-                this.locus.chr = this.region.split(":")[0];
-                this.locus.start = this.region.split(":")[1].split("-")[0];
-                this.locus.end = this.region.split(":")[1].split("-")[1];
+            if (this.region != null) {
+                if (this.region.includes(":") && this.region.includes("-")) {
+                    this.locus = {}
+                    this.locus.chr = this.region.split(":")[0];
+                    this.locus.start = this.region.split(":")[1].split("-")[0];
+                    this.locus.end = this.region.split(":")[1].split("-")[1];
+                }
             }
         },
         credibleVariants(data) {
             if (!!data.length) {
 
-                let tempObj = {};
+                let cdId = data[0].credibleSetId;
+                let cdExist = null;
 
-                tempObj.id = data[0].credibleSetId;
-                tempObj.data = data;
-
-                this.credibleSetsData.push(tempObj);
+                this.credibleSetsData.map(cd => {
+                    if (cd.id == cdId) {
+                        cdExist = true;
+                    }
+                })
+                if (cdExist != true) {
+                    let tempObj = {};
+                    tempObj.id = data[0].credibleSetId;
+                    tempObj.data = data;
+                    this.credibleSetsData.push(tempObj);
+                }
             }
         },
         credibleSetsData(data) {
-            console.log("updated");
-            //console.log(data);
-            this.credibleSetsDataSorted = [];
-            let csdIndex = 0;
+
+            let tempArr = [];
+            let csdIndex = 1;
 
             data.map(cs => {
 
                 cs.data.map(csv => {
                     csv.colorIndex = csdIndex;
-                    this.credibleSetsDataSorted.push(csv);
+                    //console.log(csv.posteriorProbability + '\n')
+                    tempArr.push(csv);
+                    //this.credibleSetsDataSorted[csv.varId] = csv;
                 })
                 csdIndex++;
             })
             sortUtils.sortEGLTableData(
-                this.credibleSetsDataSorted, "position", true, false
+                tempArr, "position", true, false
             );
+
+            this.credibleSetsDataSorted = {};
+
+            tempArr.map(t => {
+                if (!!this.credibleSetsDataSorted[t.varId]) {
+                    this.credibleSetsDataSorted[t.varId].push(t);
+                } else {
+                    this.credibleSetsDataSorted[t.varId] = [];
+                    this.credibleSetsDataSorted[t.varId].push(t);
+                }
+            })
+
+            //console.log(Object.keys(this.credibleSetsDataSorted).length);
+
         }
         /*'$store.state.phenotype'() {
             console.log(this.$store.state.phenotype.name);

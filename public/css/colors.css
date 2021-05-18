@@ -94,5 +94,37 @@
 .text.color-14-bg { background-color: #D5A76840; }
 .text.color-15-bg { background-color: #D4D4D440; }
 
+.text.color-1-bg-100 { background-color: #048845; }
+.text.color-2-bg-100 { background-color: #8490C8; }
+.text.color-3-bg-100 { background-color: #BF61A5; }
+.text.color-4-bg-100 { background-color: #EE3124; }
+.text.color-5-bg-100 { background-color: #FCD700; }
+.text.color-6-bg-100 { background-color: #5555FF; }
+.text.color-7-bg-100 { background-color: #7aaa1c; }
+.text.color-8-bg-100 { background-color: #9F78AC; }
+.text.color-9-bg-100 { background-color: #F88084; }
+.text.color-10-bg-100 { background-color: #F5A4C7; }
+.text.color-11-bg-100 { background-color: #CEE6C1; }
+.text.color-12-bg-100 { background-color: #cccc00; }
+.text.color-13-bg-100 { background-color: #6FC7B6; }
+.text.color-14-bg-100 { background-color: #D5A768; }
+.text.color-15-bg-100 { background-color: #D4D4D4; }
+
 .effect.positive { color: #048845; }
 .effect.negative { color: #EE3124; }
+
+.border-color-1 { border: solid 1px #048845; }
+.border-color-2 { border: solid 1px #8490C8; }
+.border-color-3 { border: solid 1px #BF61A5; }
+.border-color-4 { border: solid 1px #EE3124; }
+.border-color-5 { border: solid 1px #FCD700; }
+.border-color-6 { border: solid 1px #5555FF; }
+.border-color-7 { border: solid 1px #7aaa1c; }
+.border-color-8 { border: solid 1px #9F78AC; }
+.border-color-9 { border: solid 1px #F88084; }
+.border-color-10 { border: solid 1px #F5A4C7; }
+.border-color-11 { border: solid 1px #CEE6C1; }
+.border-color-12 { border: solid 1px #cccc00; }
+.border-color-13 { border: solid 1px #6FC7B6; }
+.border-color-14 { border: solid 1px #D5A768; }
+.border-color-15 { border: solid 1px #D4D4D4; }
