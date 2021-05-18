@@ -315,146 +315,116 @@
                         >
                     </b-tabs>
 
-                    <br />
+                    <div v-if="$parent.selectedPhenotypes.length > 0">
+                        <documentation
+                            name="region.lz.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
 
-                    <div
-                        class="card mdkp-card gem-wrapper"
-                        v-if="$parent.selectedPhenotypes.length > 0"
-                    >
-                        <div class="card-body">
-                            <documentation
-                                name="region.lz.subheader"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
+                        <documentation
+                            name="region.igv.subheader"
+                            :content-fill="$parent.documentationMap"
+                        ></documentation>
 
-                            <documentation
-                                name="region.igv.subheader"
-                                :content-fill="$parent.documentationMap"
-                            ></documentation>
-
-                            <criterion-function-group>
-                                <div class="col filter-col-md">
-                                    <div
-                                        class="label"
-                                        style="margin-bottom: 5px"
-                                    >
-                                        Add tissue
-                                    </div>
-                                    <tissue-selectpicker
-                                        :tissues="
-                                            $parent.globalEnrichmentTissues
-                                        "
-                                        :clearOnSelected="true"
-                                        @tissue="
-                                            $parent.addTissueIntervalsPanel(
-                                                $event
-                                            )
-                                        "
-                                    />
+                        <criterion-function-group>
+                            <div class="col filter-col-md">
+                                <div class="label" style="margin-bottom: 5px">
+                                    Add tissue
                                 </div>
-                                <div class="col filter-col-md">
-                                    <div
-                                        class="label"
-                                        style="margin-bottom: 5px"
-                                    >
-                                        Add annotation
-                                    </div>
-                                    <annotation-selectpicker
-                                        :annotations="
-                                            $parent.globalEnrichmentAnnotations
-                                        "
-                                        :clearOnSelected="true"
-                                        @annotation="
-                                            $parent.addAnnotationIntervalsPanel(
-                                                $event
-                                            )
-                                        "
-                                    />
+                                <tissue-selectpicker
+                                    :tissues="$parent.globalEnrichmentTissues"
+                                    :clearOnSelected="true"
+                                    @tissue="
+                                        $parent.addTissueIntervalsPanel($event)
+                                    "
+                                />
+                            </div>
+                            <div class="col filter-col-md">
+                                <div class="label" style="margin-bottom: 5px">
+                                    Add annotation
                                 </div>
+                                <annotation-selectpicker
+                                    :annotations="
+                                        $parent.globalEnrichmentAnnotations
+                                    "
+                                    :clearOnSelected="true"
+                                    @annotation="
+                                        $parent.addAnnotationIntervalsPanel(
+                                            $event
+                                        )
+                                    "
+                                />
+                            </div>
 
-                                <div class="col filter-col-md">
-                                    <div
-                                        class="label"
-                                        style="margin-bottom: 5px"
-                                    >
-                                        Add credible set
-                                    </div>
-                                    <credible-sets-selectpicker
-                                        :credibleSets="$parent.credibleSets"
-                                        :clearOnSelected="true"
-                                        @credibleset="
-                                            $parent.addCredibleVariantsPanel(
-                                                $event
-                                            )
-                                        "
-                                    />
+                            <div class="col filter-col-md">
+                                <div class="label" style="margin-bottom: 5px">
+                                    Add credible set
                                 </div>
+                                <credible-sets-selectpicker
+                                    :credibleSets="$parent.credibleSets"
+                                    :clearOnSelected="true"
+                                    @credibleset="
+                                        $parent.addCredibleVariantsPanel($event)
+                                    "
+                                />
+                            </div>
 
-                                <div class="col divider">&nbsp;</div>
+                            <div class="col divider">&nbsp;</div>
 
-                                <span style="display: inline-block">
-                                    <div class="label">
-                                        Filter annotations by global enrichment
-                                    </div>
-                                    <filter-pvalue-control :field="'pValue'">
-                                        <span class="label"
-                                            >P-Value (&le;)</span
-                                        >
-                                    </filter-pvalue-control>
-                                    <filter-greater-control :field="'fold'">
-                                        <span class="label">Fold (&ge;)</span>
-                                    </filter-greater-control>
-                                </span>
+                            <span style="display: inline-block">
+                                <div class="label">
+                                    Filter annotations by global enrichment
+                                </div>
+                                <filter-pvalue-control :field="'pValue'">
+                                    <span class="label">P-Value (&le;)</span>
+                                </filter-pvalue-control>
+                                <filter-greater-control :field="'fold'">
+                                    <span class="label">Fold (&ge;)</span>
+                                </filter-greater-control>
+                            </span>
 
-                                <template
-                                    slot="filtered"
-                                    slot-scope="{ filter }"
+                            <template slot="filtered" slot-scope="{ filter }">
+                                <locuszoom
+                                    ref="locuszoom"
+                                    :chr="$store.state.chr"
+                                    :start="$store.state.start"
+                                    :end="$store.state.end"
+                                    :filterAssociations="
+                                        $parent.associationsFilter
+                                    "
+                                    :filterAnnotations="filter"
+                                    @regionchanged="
+                                        ($event) => {
+                                            $parent.requestCredibleSets(
+                                                $event.data
+                                            );
+                                        }
+                                    "
+                                    :ldpop="true"
+                                    :refSeq="true"
                                 >
-                                    <locuszoom
-                                        ref="locuszoom"
-                                        :chr="$store.state.chr"
-                                        :start="$store.state.start"
-                                        :end="$store.state.end"
-                                        :filterAssociations="
-                                            $parent.associationsFilter
-                                        "
-                                        :filterAnnotations="filter"
-                                        @regionchanged="
-                                            ($event) => {
-                                                $parent.requestCredibleSets(
-                                                    $event.data
-                                                );
-                                            }
-                                        "
-                                        :ldpop="true"
-                                        :refSeq="true"
+                                    <span
+                                        v-for="phenotype in $parent.selectedPhenotypes"
+                                        :key="phenotype.name"
                                     >
-                                        <span
-                                            v-for="phenotype in $parent.selectedPhenotypes"
-                                            :key="phenotype.name"
-                                        >
-                                            <lz-associations-panel
-                                                :phenotype="phenotype.name"
-                                                :title="phenotype.description"
-                                                @input="
-                                                    $parent.updatePageAssociations(
-                                                        {
-                                                            phenotype:
-                                                                phenotype.name,
-                                                            data: $event,
-                                                        }
-                                                    )
-                                                "
-                                            ></lz-associations-panel>
-                                            <lz-catalog-annotations-panel
-                                                :phenotype="phenotype.name"
-                                                :title="phenotype.description"
-                                            ></lz-catalog-annotations-panel>
-                                        </span>
-                                    </locuszoom>
-                                </template>
-                            </criterion-function-group>
-                        </div>
+                                        <lz-associations-panel
+                                            :phenotype="phenotype.name"
+                                            :title="phenotype.description"
+                                            @input="
+                                                $parent.updatePageAssociations({
+                                                    phenotype: phenotype.name,
+                                                    data: $event,
+                                                })
+                                            "
+                                        ></lz-associations-panel>
+                                        <lz-catalog-annotations-panel
+                                            :phenotype="phenotype.name"
+                                            :title="phenotype.description"
+                                        ></lz-catalog-annotations-panel>
+                                    </span>
+                                </locuszoom>
+                            </template>
+                        </criterion-function-group>
                     </div>
                 </div>
             </div>
