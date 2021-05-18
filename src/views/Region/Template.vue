@@ -260,50 +260,60 @@
                             :noIcon="false"
                         ></tooltip-documentation>
                     </h6>
+                    <b-tabs
+                        ><b-tab title="Variant associations" key="associations">
+                            <criterion-function-group
+                                v-model="$parent.associationsFilter"
+                                v-if="$parent.selectedPhenotypes.length > 0"
+                            >
+                                <filter-enumeration-control
+                                    :field="'consequence'"
+                                    :options="$parent.associationConsequences"
+                                    :inclusive="false"
+                                >
+                                    <div class="label">Consequence</div>
+                                </filter-enumeration-control>
 
-                    <criterion-function-group
-                        v-model="$parent.associationsFilter"
-                        v-if="$parent.selectedPhenotypes.length > 0"
-                    >
-                        <filter-enumeration-control
-                            :field="'consequence'"
-                            :options="$parent.associationConsequences"
-                            :inclusive="false"
+                                <filter-enumeration-control
+                                    class="filter-col-sm"
+                                    :field="'nearest'"
+                                    :options="$parent.associationNearestGenes"
+                                    :inclusive="false"
+                                >
+                                    <div class="label">Closest Genes</div>
+                                </filter-enumeration-control>
+
+                                <filter-pvalue-control :field="'pValue'">
+                                    <div class="label">P-Value (&le;)</div>
+                                </filter-pvalue-control>
+
+                                <filter-effect-direction-control
+                                    :field="'beta'"
+                                >
+                                    <div class="label">Effect (+/-)</div>
+                                </filter-effect-direction-control>
+
+                                <template
+                                    slot="filtered"
+                                    slot-scope="{ filter }"
+                                >
+                                    <associations-table
+                                        id="associations-table"
+                                        v-if="
+                                            $parent.selectedPhenotypes.length >
+                                                0 &&
+                                            $parent.pageAssociations.length > 0
+                                        "
+                                        :phenotypes="$parent.selectedPhenotypes"
+                                        :associations="$parent.pageAssociations"
+                                        :filter="filter"
+                                        :exclusive="false"
+                                    ></associations-table>
+                                </template> </criterion-function-group></b-tab
+                        ><b-tab title="Annotations by global enrichment"
+                            >tab2</b-tab
                         >
-                            <div class="label">Consequence</div>
-                        </filter-enumeration-control>
-
-                        <filter-enumeration-control
-                            class="filter-col-sm"
-                            :field="'nearest'"
-                            :options="$parent.associationNearestGenes"
-                            :inclusive="false"
-                        >
-                            <div class="label">Closest Genes</div>
-                        </filter-enumeration-control>
-
-                        <filter-pvalue-control :field="'pValue'">
-                            <div class="label">P-Value (&le;)</div>
-                        </filter-pvalue-control>
-
-                        <filter-effect-direction-control :field="'beta'">
-                            <div class="label">Effect (+/-)</div>
-                        </filter-effect-direction-control>
-
-                        <template slot="filtered" slot-scope="{ filter }">
-                            <associations-table
-                                id="associations-table"
-                                v-if="
-                                    $parent.selectedPhenotypes.length > 0 &&
-                                    $parent.pageAssociations.length > 0
-                                "
-                                :phenotypes="$parent.selectedPhenotypes"
-                                :associations="$parent.pageAssociations"
-                                :filter="filter"
-                                :exclusive="false"
-                            ></associations-table>
-                        </template>
-                    </criterion-function-group>
+                    </b-tabs>
 
                     <br />
 
