@@ -145,7 +145,7 @@
                                         >{{ data.item.varId }}</a
                                     >
                                 </template>
-                                <template #head(transcript_id)="data">
+                                <template #head(transcriptId)="data">
                                     <span class="external_source"
                                         >Feature
                                         <b-badge
@@ -158,12 +158,13 @@
                                         ></span
                                     >
                                 </template>
-                                <template #cell(transcript_id)="data">
+                                <template #cell(transcriptId)="data">
                                     <a
-                                        v-if="data.item.transcript_id"
-                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcript_id}`"
+                                        v-if="data.item.transcriptId"
+                                        :href="`https://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=${data.item.transcriptId}`"
                                         target="_blank"
-                                        >{{ data.item.transcript_id }}</a
+                                        rel="noopener noreferrer nofollow"
+                                        >{{ data.item.transcriptId }}</a
                                     >
                                 </template>
                                 <!-- <template #cell(gene_symbol)="data">
@@ -205,25 +206,25 @@
                                 </template> -->
                                 <template #cell(position)="data">
                                     {{
-                                        data.item.protein_start !==
-                                        data.item.protein_end
-                                            ? `${data.item.protein_start}-${data.item.protein_end}`
-                                            : data.item.protein_start
+                                        data.item.proteinStart !==
+                                        data.item.proteinEnd
+                                            ? `${data.item.proteinStart}-${data.item.proteinEnd}`
+                                            : data.item.proteinStart
                                     }}
                                 </template>
-                                <template #cell(consequence_terms)="data">
+                                <template #cell(consequenceTerms)="data">
                                     <div
                                         class="border-color"
                                         :class="data.item.impact"
                                     >
                                         <span
                                             v-for="(c, i) in data.item
-                                                .consequence_terms"
+                                                .consequenceTerms"
                                             :key="c"
                                             >{{ consequenceFormatter(c)
                                             }}{{
                                                 i <
-                                                data.item.consequence_terms
+                                                data.item.consequenceTerms
                                                     .length -
                                                     1
                                                     ? ", "
@@ -232,9 +233,9 @@
                                         >
                                     </div></template
                                 >
-                                <template #cell(sift_prediction)="data">
+                                <template #cell(siftPrediction)="data">
                                     {{
-                                        siftFormatter(data.item.sift_prediction)
+                                        siftFormatter(data.item.siftPrediction)
                                     }}
                                 </template>
                             </b-table>
@@ -357,7 +358,7 @@ export default Vue.component("variant-search", {
             ],
             subFields: [
                 {
-                    key: "transcript_id",
+                    key: "transcriptId",
                     label: "Feature",
                 },
                 {
@@ -365,40 +366,52 @@ export default Vue.component("variant-search", {
                     label: "Position",
                 },
                 {
-                    key: "amino_acids",
+                    key: "aminoAcids",
                     label: "Amino Acids",
                 },
                 {
-                    key: "consequence_terms",
+                    key: "consequenceTerms",
                     label: "Consequence",
                     tdClass: "border-color",
                 },
                 {
-                    key: "polyphen2_hdiv_pred",
+                    key: "hgncId",
+                    label: "HGNC",
+                },
+                {
+                    key: "hgvsc",
+                    label: "HGVSc",
+                },
+                {
+                    key: "hgvsp",
+                    label: "HGVSp",
+                },
+                {
+                    key: "polyphen2HdivPred",
                     label: "PolyPhen (HDIV)",
                 },
                 {
-                    key: "polyphen2_hvar_pred",
+                    key: "polyphen2HvarPred",
                     label: "PolyPhen (HVAR)",
                 },
                 {
-                    key: "sift_prediction",
+                    key: "siftPrediction",
                     label: "SIFT Prediction",
                 },
                 {
-                    key: "lrt_pred",
+                    key: "lrtPred",
                     label: "LRT",
                 },
                 {
-                    key: "mutation_taster",
+                    key: "mutationTaster",
                     label: "Mutation Taster",
                 },
                 {
-                    key: "cadd_raw_rankscore",
+                    key: "caddRawRankscore",
                     label: "CADD-Phred Score",
                 },
                 {
-                    key: "gnomad_genomes_popmax_af",
+                    key: "gnomadGenomesPopmaxAf",
                     label: "gnomAD AF",
                 },
             ],
