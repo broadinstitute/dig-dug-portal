@@ -12,10 +12,10 @@ import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
 import regionUtils from "@/utils/regionUtils";
+import formatters from "@/utils/formatters";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 import GeneSelectPicker from "@/components/GeneSelectPicker.vue";
 import { isEqual } from "lodash";
-
 
 import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
@@ -82,6 +82,7 @@ new Vue({
                 "#6FC7B6",
                 "#D5A768",
                 "#D4D4D4"],
+            plotsConfig: { hBump: 5.5, vBump: 5.5, itemWidth: 20, itemMargin: 2, itemWrapperMargin: 3, font: "12px Arial" },
         };
     },
 
@@ -189,13 +190,15 @@ new Vue({
                     this.locus = null;
                     this.credibleSetsData = [];
                     this.credibleSetsDataSorted = {};
+                    this.annotations = {};
+                    this.canvasHeight = null;
                     this.$store.state.phenotype = null;
                     break
             }
         },
         updateAnnotations() {
             let data = this.annotations;
-            //console.log(data);
+            console.log("this.annotations", data);
             document.getElementById("annotationsWrapper").innerHTML = "";
 
             for (const annotation in data) {
@@ -204,53 +207,76 @@ new Vue({
 
                 let wrapper = document.createElement('div');
                 wrapper.id = annotation;
-                wrapper.class = "cs-plot-field-value-annotation";
+                wrapper.className = "cs-plot-field-value-annotation";
                 let plotsWrapper = document.getElementById("annotationsWrapper");
                 plotsWrapper.appendChild(wrapper);
 
                 var canvas = document.createElement('canvas');
 
-                let xBump = 15.5, yBump = 5, bubbleWidth = 25;
-                canvas.id = "CursorLayer";
+                let xBump = this.plotsConfig.hBump,
+                    yBump = this.plotsConfig.vBump,
+                    itemWidth = this.plotsConfig.itemWidth,
+                    itemHeight = 20,
+                    itemMargin = this.plotsConfig.itemMargin,
+                    itemWrapperMargin = this.plotsConfig.itemWrapperMargin,
+                    lineHeight = 5,
+                    font = this.plotsConfig.font;
+
                 canvas.width = this.canvasHeight; //canvasHeight is the width of the variants canvas since it turned -90deg
-                canvas.height = (Object.keys(annotationData).length * 20) + (yBump * 2);
+                canvas.height = (Object.keys(annotationData).length * itemHeight) + (yBump * 2);
                 canvas.style.position = "relative";
-                //canvas.style.border = "1px solid #ddd";
+                //canvas.style.borderTop = "1px solid #dddddd";
+                //canvas.style.borderBottom = "1px solid #dddddd";
 
                 var ctx = canvas.getContext("2d");
 
-                let rectTop = yBump + 12;
+                let rectTop = yBump;
 
                 for (const tissue in annotationData) {
-                    ctx.font = "12px arial";
-                    ctx.textBaseline = "middle";
-                    ctx.textAlign = "left";
-                    ctx.fillStyle = "#aaaaaa";
-                    ctx.fillText(tissue, 5, rectTop);
 
+                    let atLeast1 = false;
                     annotationData[tissue].map(t => {
                         //console.log(tissue, t);
 
-                        let variantLeft = xBump;
+
+
                         for (const variant in this.credibleSetsDataSorted) {
-                            let position = variant.split(":")[1];
-
+                            let position = this.credibleSetsDataSorted[variant][0].position;
                             if (position >= t.start && position <= t.end) {
-                                ctx.fillStyle = "#ff0000";
-                                ctx.fillRect(variantLeft, rectTop + 5, 25 * this.credibleSetsDataSorted[variant].length, 5);
-                                ctx.fillStyle = "#000000";
-                                ctx.fillText(position, variantLeft, rectTop);
+                                atLeast1 = true;
                             }
-                            variantLeft += (30.5 * this.credibleSetsDataSorted[variant].length) + 4.5;
+                        }
 
+                        if (atLeast1 == true) {
+                            let itemLeft = xBump;
+                            for (const variant in this.credibleSetsDataSorted) {
+                                let position = this.credibleSetsDataSorted[variant][0].position;
+
+                                if (position >= t.start && position <= t.end) {
+                                    ctx.fillStyle = "#ff0000";
+                                    //ctx.fillRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight);
+
+                                    ctx.roundRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight, 3).fill();
+
+                                    //ctx.fillStyle = "#000000";
+                                    //ctx.fillText(position, itemLeft, rectTop);
+                                }
+                                itemLeft += (((itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length)) + itemWrapperMargin;
+                            }
                         }
                     })
 
-                    rectTop += 20;
-                    //ctx.fillStyle = "#ff0000";
-                    //ctx.fillRect(50, 50, 20, 20);
-                }
+                    if (atLeast1 == true) {
+                        ctx.font = font;
+                        ctx.textBaseline = "middle";
+                        ctx.textAlign = "left";
+                        ctx.fillStyle = "#aaaaaa";
+                        let fillingText = tissue + "/" + formatters.floatFormatter(this.globalEnrichmentFolds[annotation][tissue]);
+                        ctx.fillText(fillingText, 5, rectTop);
 
+                        rectTop += itemHeight;
+                    }
+                }
 
                 var targetWrapper = document.getElementById(annotation);
                 targetWrapper.appendChild(canvas);
@@ -264,15 +290,25 @@ new Vue({
     computed: {
 
         annotation() {
-            let content = { annotation: "", data: {} };
+            let content = { annotation: "", folds: [], data: {} };
+
+
+            //console.log(this.$store.state.annotation.data);
 
             if (this.$store.state.annotation.data.length != 0) {
+
+                let annotationName = this.$store.state.annotation.data[0].annotation;
 
                 let tissues = [...new Set(this.$store.state.annotation.data.map(a => a.tissue))].sort();
 
                 tissues.map(t => {
+                    content.folds.push({ fold: this.globalEnrichmentFolds[annotationName][t], tissue: t });
                     content.data[t] = [];
                 });
+
+                sortUtils.sortEGLTableData(
+                    content.folds, "fold", true, true
+                )
 
                 this.$store.state.annotation.data.map(a => {
                     let tissue = a.tissue;
@@ -280,14 +316,16 @@ new Vue({
                     content.data[tissue].push(tempObj);
                 })
 
+                content["annotation"] = annotationName;
+
+                //console.log("annotation", content);
+
                 for (const tissue in content.data) {
                     //console.log(tissue);
                     sortUtils.sortEGLTableData(
                         content.data[tissue], "start", true, false
                     )
                 }
-
-                content["annotation"] = this.$store.state.annotation.data[0].annotation;
             }
 
             return content;
@@ -297,6 +335,45 @@ new Vue({
         },
         credibleVariants() {
             return this.$store.state.credibleVariants.data;
+        },
+        globalEnrichmentFolds() {
+            let data = this.$store.state.globalEnrichment.data;
+
+            let annotations = sortUtils.uniqBy(
+                data,
+                el => el.annotation
+            );
+
+            let foldsObj = {};
+            annotations.map(a => {
+                foldsObj[a.annotation] = {};
+            });
+
+            data.map(d => {
+                if (!foldsObj[d.annotation][d.tissue]) {
+                    foldsObj[d.annotation][d.tissue] = [];
+                }
+                let fold = d.SNPs / d.expectedSNPs;
+                foldsObj[d.annotation][d.tissue].push(fold);
+            })
+
+            for (const annotation in foldsObj) {
+                let perAnnotation = foldsObj[annotation]
+                for (const tissue in perAnnotation) {
+
+                    let eachFold = 0;
+                    perAnnotation[tissue].map(f => {
+                        eachFold += f;
+                    })
+
+                    perAnnotation[tissue] = eachFold / perAnnotation[tissue].length;
+                }
+
+            }
+
+            let content = foldsObj;
+
+            return content;
         },
         globalEnrichmentAnnotations() {
             // an array of annotations
@@ -331,14 +408,16 @@ new Vue({
 
     watch: {
         annotation(data) {
-
+            console.log("watch", data);
             if (!!data.annotation) {
-                this.annotations[data.annotation] = data.data;
+                let tempObj = {};
 
+                data.folds.map(f => {
+                    tempObj[f.tissue] = data.data[f.tissue];
+                })
+                this.annotations[data.annotation] = tempObj;
                 this.updateAnnotations();
             }
-
-
         },
 
         diseaseGroup(group) {
@@ -414,17 +493,24 @@ new Vue({
         },
         credibleSetsDataSorted(data) {
 
-            let xBump = 15.5, yBump = 15.5, ppWidth = 30, variantsWidth = 125, perVariantHeight = 30.5, perVariantWrapperBottom = 4.5;
+            let xBump = this.plotsConfig.hBump,
+                yBump = this.plotsConfig.vBump,
+                ppWidth = 30,
+                variantsWidth = 110,
+                variantPpSpace = 3,
+                perVariantHeight = this.plotsConfig.itemWidth,
+                perVariantMargin = this.plotsConfig.itemMargin,
+                perVariantWrapperBottom = this.plotsConfig.itemWrapperMargin,
+                font = this.plotsConfig.font;
             //console.log(data);
             /* get canvas width and height */
             let canvasHeight = yBump * 2;
             for (const variant in data) {
-                canvasHeight += (data[variant].length * perVariantHeight) + 4;
+                canvasHeight += (data[variant].length * (perVariantHeight + perVariantMargin)) + perVariantWrapperBottom;
             }
 
             this.canvasHeight = canvasHeight;
-
-            let canvasWidth = xBump + ppWidth + variantsWidth;
+            let canvasWidth = (xBump * 2) + ppWidth + variantsWidth + (variantPpSpace * 2);
 
             var c = document.getElementById("credibleVariants");
             var ctx = c.getContext("2d");
@@ -441,15 +527,24 @@ new Vue({
                 this.canvasHeight
             );
 
-
-
             let rectTop = xBump;
+
+            let rectLeft = canvasWidth - xBump;
+            let rectHeight = this.canvasHeight - (xBump * 2);
+            let rectWidth = 1;
+
+            //console.log(rectLeft, yBump, rectWidth, rectHeight);
+
+            ctx.fillStyle = "#eeeeee";
+            ctx.fillRect(rectLeft - (ppWidth + 0.5), yBump, ppWidth + 0.5, rectHeight);
+            //ctx.fillRect(rectLeft + 0.5, yBump, rectWidth, rectHeight);
+
 
             for (const variant in data) {
 
                 if (data[variant].length > 1) {
                     ctx.fillStyle = "#ff0000";
-                    ctx.fillRect(xBump + variantsWidth + 3, rectTop, 1, (perVariantHeight * data[variant].length) - 4.5);
+                    ctx.fillRect(xBump + variantsWidth + variantPpSpace, rectTop, 1, (perVariantHeight * data[variant].length) + perVariantMargin);
                 }
 
                 data[variant].map(v => {
@@ -458,30 +553,30 @@ new Vue({
                     let variantLeft = xBump;
 
                     ctx.strokeStyle = variantColor;
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = 1;
                     ctx.fillStyle = variantColor + '40';
-                    ctx.roundRect(variantLeft, rectTop, variantsWidth, 25, 15).stroke()
-                    ctx.roundRect(variantLeft, rectTop, variantsWidth, 25, 15).fill();
+                    ctx.roundRect(variantLeft, rectTop, variantsWidth, perVariantHeight, 15).stroke()
+                    ctx.roundRect(variantLeft, rectTop, variantsWidth, perVariantHeight, 15).fill();
 
                     //variant ID
-                    ctx.font = "14px arial";
+                    ctx.font = font;
                     ctx.textBaseline = "middle";
                     ctx.textAlign = "left";
                     ctx.fillStyle = "#000000";
-                    ctx.fillText(variant, xBump + 7, rectTop + 13);
+                    ctx.fillText(variant, xBump + 7, rectTop + 11);
 
                     //pp
 
-                    let ppRectLeft = xBump + variantsWidth + 6;//yBump + (ppWidth - (ppWidth * v.posteriorProbability));
+                    let ppRectLeft = xBump + variantsWidth + (variantPpSpace * 2);
                     let ppRectWidth = ppWidth * v.posteriorProbability;
 
                     ctx.fillStyle = variantColor;
-                    ctx.fillRect(ppRectLeft, rectTop, ppRectWidth, 25);
+                    ctx.fillRect(ppRectLeft, rectTop, ppRectWidth, perVariantHeight);
 
-                    rectTop += perVariantHeight;
+                    rectTop += perVariantHeight + perVariantMargin;
 
                 })
-                rectTop += 4.5;
+                rectTop += perVariantWrapperBottom;
             }
 
             this.updateAnnotations();

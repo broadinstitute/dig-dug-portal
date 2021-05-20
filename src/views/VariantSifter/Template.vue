@@ -256,11 +256,26 @@
 @import url("/css/effectorGenes.css");
 @import url("/css/colors.css");
 
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
 #credibleVariants {
     transform: rotate(-90deg);
     transform-origin: top left;
     position: relative;
-    top: 170px;
+    top: 157px;
 }
 .clear-all-filters-bubble {
     background-color: #ff0000 !important;
@@ -283,7 +298,7 @@
 }
 
 .cs-plot-field-name-variants {
-    height: 150px;
+    height: 170px;
     position: relative;
     padding: 0 0 5px 0;
 }
@@ -295,14 +310,15 @@
 
 .cs-plot-field-value {
     width: calc(100% - 150px);
-    overflow-x: auto;
+    border-left: solid 1px #dddddd;
 }
 
 .cs-plot-field-value-annotations {
 }
 .cs-plot-field-value-annotation {
-    max-height: 100px;
-    overflow-y: auto;
+    max-height: 150px;
+    overflow: auto;
+    /*margin-bottom: 10px;*/
 }
 
 .cs-plot-field-value-pp {
@@ -315,13 +331,11 @@
 }
 
 .cs-plot-field-value-variants {
-    /*
-    flex-wrap: nowrap !important;
-    display: flex;
-    */
     position: relative;
-    height: 150px;
+    height: 167px;
     padding: 0 0 5px 0;
+    overflow-x: auto;
+    overflow-y: clip;
 }
 
 .cs-pp-items-wrapper {
