@@ -243,6 +243,58 @@
                                         width="0"
                                     ></canvas>
                                 </div>
+                                <!-- scroll panel -->
+                                <div
+                                    id="scrollPanel"
+                                    v-if="
+                                        Object.keys(
+                                            $parent.credibleSetsDataSorted
+                                        ).length > 0
+                                    "
+                                    @click="$parent.scrollTest()"
+                                >
+                                    <div class="locus-start">
+                                        {{ $parent.locus.start }}
+                                    </div>
+                                    <div class="locus-end">
+                                        {{ $parent.locus.end }}
+                                    </div>
+                                    <div
+                                        v-for="(
+                                            value, key, index
+                                        ) in $parent.credibleSetsDataSorted"
+                                        class="variant-dots-wrapper"
+                                        v-if="
+                                            value[0].position >=
+                                                $parent.locus.start &&
+                                            value[0].position <=
+                                                $parent.locus.end
+                                        "
+                                        :style="
+                                            'left:' +
+                                            $parent.getLeftPosition(
+                                                value[0].position
+                                            ) +
+                                            '%;'
+                                        "
+                                        :key="index"
+                                    >
+                                        <div
+                                            v-for="(vDot, vIndex) in value"
+                                            class="variant-dot"
+                                            :style="
+                                                'background-color:' +
+                                                $parent.colorIndex[
+                                                    vDot.colorIndex
+                                                ] +
+                                                '50; top:' +
+                                                (vDot.colorIndex * 10 + 5) +
+                                                'px;'
+                                            "
+                                            :key="vIndex"
+                                        ></div>
+                                    </div>
+                                </div>
                             </div>
                         </b-row>
                     </b-container>
@@ -255,6 +307,43 @@
 <style>
 @import url("/css/effectorGenes.css");
 @import url("/css/colors.css");
+
+#scrollPanel {
+    width: 100%;
+    height: 30px;
+    border: solid 1px #ddd;
+    border-left: none;
+    position: relative;
+}
+
+.locus-start,
+.locus-end {
+    position: absolute;
+    bottom: -15px;
+    font-size: 12px;
+}
+
+.locus-start {
+    left: 0;
+}
+
+.locus-end {
+    right: 0;
+}
+
+.variant-dots-wrapper {
+    position: absolute;
+    top: 0;
+}
+
+.variant-dot {
+    position: absolute;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
 
 ::-webkit-scrollbar {
     width: 8px;

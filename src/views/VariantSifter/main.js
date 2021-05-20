@@ -238,8 +238,6 @@ new Vue({
                     annotationData[tissue].map(t => {
                         //console.log(tissue, t);
 
-
-
                         for (const variant in this.credibleSetsDataSorted) {
                             let position = this.credibleSetsDataSorted[variant][0].position;
                             if (position >= t.start && position <= t.end) {
@@ -261,6 +259,7 @@ new Vue({
                                     //ctx.fillStyle = "#000000";
                                     //ctx.fillText(position, itemLeft, rectTop);
                                 }
+
                                 itemLeft += (((itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length)) + itemWrapperMargin;
                             }
                         }
@@ -284,6 +283,19 @@ new Vue({
 
 
         },
+        scrollTest() {
+            const el = document.querySelector('.cs-plot-field-value-variants');
+            // set scroll position in px
+            el.scrollLeft = 100000;
+        },
+        getLeftPosition(position) {
+            let region = this.locus.end - this.locus.start;
+            let dotP = position - this.locus.start
+            let leftP = (dotP / region) * 100;
+
+            console.log(position, ":", leftP);
+            return leftP;
+        }
     },
 
 
@@ -291,9 +303,6 @@ new Vue({
 
         annotation() {
             let content = { annotation: "", folds: [], data: {} };
-
-
-            //console.log(this.$store.state.annotation.data);
 
             if (this.$store.state.annotation.data.length != 0) {
 
@@ -334,7 +343,10 @@ new Vue({
             return this.$store.state.credibleSets.data;
         },
         credibleVariants() {
-            return this.$store.state.credibleVariants.data;
+            let data = this.$store.state.credibleVariants.data
+            let content = data.filter(d => d.position >= this.locus.start && d.position <= this.locus.end);
+
+            return content;
         },
         globalEnrichmentFolds() {
             let data = this.$store.state.globalEnrichment.data;
@@ -443,7 +455,6 @@ new Vue({
         },
         credibleVariants(data) {
             if (!!data.length) {
-
                 let cdId = data[0].credibleSetId;
                 let cdExist = null;
 
@@ -492,7 +503,7 @@ new Vue({
 
         },
         credibleSetsDataSorted(data) {
-
+            //render variants plot
             let xBump = this.plotsConfig.hBump,
                 yBump = this.plotsConfig.vBump,
                 ppWidth = 30,
@@ -506,7 +517,11 @@ new Vue({
             /* get canvas width and height */
             let canvasHeight = yBump * 2;
             for (const variant in data) {
+                let position = data[variant][0].position
+                //if (position >= this.locus.start && position <= this.locus.end) {
                 canvasHeight += (data[variant].length * (perVariantHeight + perVariantMargin)) + perVariantWrapperBottom;
+                //}
+
             }
 
             this.canvasHeight = canvasHeight;
@@ -541,6 +556,9 @@ new Vue({
 
 
             for (const variant in data) {
+
+                let position = data[variant][0].position
+                //if (position >= this.locus.start && position <= this.locus.end) {
 
                 if (data[variant].length > 1) {
                     ctx.fillStyle = "#ff0000";
@@ -577,9 +595,12 @@ new Vue({
 
                 })
                 rectTop += perVariantWrapperBottom;
+                //}
             }
 
             this.updateAnnotations();
+
+
         }
         /*'$store.state.phenotype'() {
             console.log(this.$store.state.phenotype.name);
