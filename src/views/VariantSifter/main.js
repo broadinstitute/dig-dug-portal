@@ -65,6 +65,23 @@ new Vue({
             locus: null,
             credibleSetsData: [],
             credibleSetsDataSorted: {},
+            annotations: {},
+            canvasHeight: null,
+            colorIndex: ["#048845",
+                "#8490C8",
+                "#BF61A5",
+                "#EE3124",
+                "#FCD700",
+                "#5555FF",
+                "#7aaa1c",
+                "#9F78AC",
+                "#F88084",
+                "#F5A4C7",
+                "#CEE6C1",
+                "#cccc00",
+                "#6FC7B6",
+                "#D5A768",
+                "#D4D4D4"],
         };
     },
 
@@ -72,6 +89,19 @@ new Vue({
         this.$store.dispatch("bioPortal/getDiseaseGroups");
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.$store.dispatch("bioPortal/getDatasets");
+
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            this.beginPath();
+            this.moveTo(x + r, y);
+            this.arcTo(x + w, y, x + w, y + h, r);
+            this.arcTo(x + w, y + h, x, y + h, r);
+            this.arcTo(x, y + h, x, y, r);
+            this.arcTo(x, y, x + w, y, r);
+            this.closePath();
+            return this;
+        }
     },
 
     render(createElement, context) {
@@ -138,7 +168,7 @@ new Vue({
             });
         },
         addAnnotation(event) {
-            console.log(event);
+            //console.log(event);
             let that = this;
             let annotationId = event.annotation;
 
@@ -163,46 +193,102 @@ new Vue({
                     break
             }
         },
+        updateAnnotations() {
+            let data = this.annotations;
+            //console.log(data);
+            document.getElementById("annotationsWrapper").innerHTML = "";
+
+            for (const annotation in data) {
+
+                let annotationData = data[annotation];
+
+                let wrapper = document.createElement('div');
+                wrapper.id = annotation;
+                wrapper.class = "cs-plot-field-value-annotation";
+                let plotsWrapper = document.getElementById("annotationsWrapper");
+                plotsWrapper.appendChild(wrapper);
+
+                var canvas = document.createElement('canvas');
+
+                let xBump = 15.5, yBump = 5, bubbleWidth = 25;
+                canvas.id = "CursorLayer";
+                canvas.width = this.canvasHeight; //canvasHeight is the width of the variants canvas since it turned -90deg
+                canvas.height = (Object.keys(annotationData).length * 20) + (yBump * 2);
+                canvas.style.position = "relative";
+                //canvas.style.border = "1px solid #ddd";
+
+                var ctx = canvas.getContext("2d");
+
+                let rectTop = yBump + 12;
+
+                for (const tissue in annotationData) {
+                    ctx.font = "12px arial";
+                    ctx.textBaseline = "middle";
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = "#aaaaaa";
+                    ctx.fillText(tissue, 5, rectTop);
+
+                    annotationData[tissue].map(t => {
+                        //console.log(tissue, t);
+
+                        let variantLeft = xBump;
+                        for (const variant in this.credibleSetsDataSorted) {
+                            let position = variant.split(":")[1];
+
+                            if (position >= t.start && position <= t.end) {
+                                ctx.fillStyle = "#ff0000";
+                                ctx.fillRect(variantLeft, rectTop + 5, 25 * this.credibleSetsDataSorted[variant].length, 5);
+                                ctx.fillStyle = "#000000";
+                                ctx.fillText(position, variantLeft, rectTop);
+                            }
+                            variantLeft += (30.5 * this.credibleSetsDataSorted[variant].length) + 4.5;
+
+                        }
+                    })
+
+                    rectTop += 20;
+                    //ctx.fillStyle = "#ff0000";
+                    //ctx.fillRect(50, 50, 20, 20);
+                }
+
+
+                var targetWrapper = document.getElementById(annotation);
+                targetWrapper.appendChild(canvas);
+            }
+
+
+        },
     },
 
 
     computed: {
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-        phenotypeMap() {
-            return this.$store.state.bioPortal.phenotypeMap;
-        },
+
         annotation() {
+            let content = { annotation: "", data: {} };
 
-            let tissues = [...new Set(this.$store.state.annotation.data.map(a => a.tissue))].sort();
+            if (this.$store.state.annotation.data.length != 0) {
 
-            let content = {};
-            tissues.map(t => {
-                content[t] = [];
-            });
+                let tissues = [...new Set(this.$store.state.annotation.data.map(a => a.tissue))].sort();
 
-            this.$store.state.annotation.data.map(a => {
-                let tissue = a.tissue;
-                let tempObj = { "start": a.start, "end": a.end };
-                content[tissue].push(tempObj);
-            })
+                tissues.map(t => {
+                    content.data[t] = [];
+                });
 
-            for (const tissue in content) {
-                //console.log(tissue);
-                sortUtils.sortEGLTableData(
-                    content[tissue], "start", true, false
-                )
+                this.$store.state.annotation.data.map(a => {
+                    let tissue = a.tissue;
+                    let tempObj = { "start": a.start, "end": a.end };
+                    content.data[tissue].push(tempObj);
+                })
+
+                for (const tissue in content.data) {
+                    //console.log(tissue);
+                    sortUtils.sortEGLTableData(
+                        content.data[tissue], "start", true, false
+                    )
+                }
+
+                content["annotation"] = this.$store.state.annotation.data[0].annotation;
             }
-
-
 
             return content;
         },
@@ -227,10 +313,34 @@ new Vue({
             );
             //sort the tissues
             return tissues;
+        },
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
         }
     },
 
     watch: {
+        annotation(data) {
+
+            if (!!data.annotation) {
+                this.annotations[data.annotation] = data.data;
+
+                this.updateAnnotations();
+            }
+
+
+        },
+
         diseaseGroup(group) {
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
@@ -274,15 +384,15 @@ new Vue({
         credibleSetsData(data) {
 
             let tempArr = [];
-            let csdIndex = 1;
+            let csdIndex = 0;
 
             data.map(cs => {
 
                 cs.data.map(csv => {
                     csv.colorIndex = csdIndex;
-                    //console.log(csv.posteriorProbability + '\n')
+
                     tempArr.push(csv);
-                    //this.credibleSetsDataSorted[csv.varId] = csv;
+
                 })
                 csdIndex++;
             })
@@ -301,8 +411,80 @@ new Vue({
                 }
             })
 
-            //console.log(Object.keys(this.credibleSetsDataSorted).length);
+        },
+        credibleSetsDataSorted(data) {
 
+            let xBump = 15.5, yBump = 15.5, ppWidth = 30, variantsWidth = 125, perVariantHeight = 30.5, perVariantWrapperBottom = 4.5;
+            //console.log(data);
+            /* get canvas width and height */
+            let canvasHeight = yBump * 2;
+            for (const variant in data) {
+                canvasHeight += (data[variant].length * perVariantHeight) + 4;
+            }
+
+            this.canvasHeight = canvasHeight;
+
+            let canvasWidth = xBump + ppWidth + variantsWidth;
+
+            var c = document.getElementById("credibleVariants");
+            var ctx = c.getContext("2d");
+
+            /* set canvas width and height before rendering */
+
+            ctx.canvas.width = canvasWidth;
+            ctx.canvas.height = this.canvasHeight;
+
+            ctx.clearRect(
+                0,
+                0,
+                canvasWidth,
+                this.canvasHeight
+            );
+
+
+
+            let rectTop = xBump;
+
+            for (const variant in data) {
+
+                if (data[variant].length > 1) {
+                    ctx.fillStyle = "#ff0000";
+                    ctx.fillRect(xBump + variantsWidth + 3, rectTop, 1, (perVariantHeight * data[variant].length) - 4.5);
+                }
+
+                data[variant].map(v => {
+                    let variantColor = this.colorIndex[v.colorIndex]
+                    //variants
+                    let variantLeft = xBump;
+
+                    ctx.strokeStyle = variantColor;
+                    ctx.lineWidth = 2;
+                    ctx.fillStyle = variantColor + '40';
+                    ctx.roundRect(variantLeft, rectTop, variantsWidth, 25, 15).stroke()
+                    ctx.roundRect(variantLeft, rectTop, variantsWidth, 25, 15).fill();
+
+                    //variant ID
+                    ctx.font = "14px arial";
+                    ctx.textBaseline = "middle";
+                    ctx.textAlign = "left";
+                    ctx.fillStyle = "#000000";
+                    ctx.fillText(variant, xBump + 7, rectTop + 13);
+
+                    //pp
+
+                    let ppRectLeft = xBump + variantsWidth + 6;//yBump + (ppWidth - (ppWidth * v.posteriorProbability));
+                    let ppRectWidth = ppWidth * v.posteriorProbability;
+
+                    ctx.fillStyle = variantColor;
+                    ctx.fillRect(ppRectLeft, rectTop, ppRectWidth, 25);
+
+                    rectTop += perVariantHeight;
+
+                })
+                rectTop += 4.5;
+            }
+
+            this.updateAnnotations();
         }
         /*'$store.state.phenotype'() {
             console.log(this.$store.state.phenotype.name);

@@ -128,7 +128,10 @@
                                     "
                                 />
                             </div>
-                            <div class="col filter-col-md">
+                            <div
+                                class="col filter-col-md"
+                                v-if="$parent.credibleSetsData.length > 0"
+                            >
                                 <div class="label" style="margin-bottom: 5px">
                                     Add annotation
                                 </div>
@@ -156,47 +159,7 @@
                                 "
                             />
                         </div>
-                        <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add annotation
-                            </div>
-                            <annotation-selectpicker
-                                :annotations="
-                                    $parent.globalEnrichmentAnnotations
-                                "
-                                :clearOnSelected="true"
-                                @annotation="
-                                    $parent.addAnnotationIntervalsPanel($event)
-                                "
-                            />
-                        </div>
 
-                        <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add credible set
-                            </div>
-                            <credible-sets-selectpicker
-                                :credibleSets="$parent.credibleSets"
-                                :clearOnSelected="true"
-                                @credibleset="
-                                    $parent.addCredibleVariantsPanel($event)
-                                "
-                            />
-                        </div>
-
-                        <div class="col divider">&nbsp;</div>
-
-                        <span style="display: inline-block">
-                            <div class="label">
-                                Filter annotations by global enrichment
-                            </div>
-                            <filter-pvalue-control :field="'pValue'">
-                                <span class="label">P-Value (&le;)</span>
-                            </filter-pvalue-control>
-                            <filter-greater-control :field="'fold'">
-                                <span class="label">Fold (&ge;)</span>
-                            </filter-greater-control>
-                        </span>
                     </criterion-function-group>
                     <criterion-function-group>
                         <div class="col filter-col-md">
@@ -211,35 +174,6 @@
                                 "
                             />
                         </div>
-                        <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add annotation
-                            </div>
-                            <annotation-selectpicker
-                                :annotations="
-                                    $parent.globalEnrichmentAnnotations
-                                "
-                                :clearOnSelected="true"
-                                @annotation="
-                                    $parent.addAnnotationIntervalsPanel($event)
-                                "
-                            />
-                        </div>
-
-                        <div class="col filter-col-md">
-                            <div class="label" style="margin-bottom: 5px">
-                                Add credible set
-                            </div>
-                            <credible-sets-selectpicker
-                                :credibleSets="$parent.credibleSets"
-                                :clearOnSelected="true"
-                                @credibleset="
-                                    $parent.addCredibleVariantsPanel($event)
-                                "
-                            />
-                        </div>
-
-                        <div class="col divider">&nbsp;</div>
 
                         <span style="display: inline-block">
                             <div class="label">
@@ -253,16 +187,19 @@
                             </filter-greater-control>
                         </span>
                     </criterion-function-group>
-                    {{ $parent.credibleSets }}
                     -->
-                    {{ $parent.annotation }}
+
                     <b-container fluid class="cs-plot-wrapper">
-                        <b-row
-                            fluid
-                            style="flex-wrap: nowrap !important"
-                            v-if="$parent.credibleSetsData.length > 0"
-                        >
+                        <b-row fluid :style="'flex-wrap: nowrap !important'">
+                            <!-- track names-->
                             <div class="cs-plot-field-names">
+                                <div class="cs-plot-field-name-annotations">
+                                    <div>
+                                        <span class="cs-plot-field-name-title"
+                                            >Annotations</span
+                                        >
+                                    </div>
+                                </div>
                                 <div class="cs-plot-field-name-pp">
                                     <div>
                                         <span class="cs-plot-field-name-title"
@@ -293,67 +230,18 @@
                                 </div>
                             </div>
                             <div class="cs-plot-field-value">
-                                <div class="cs-plot-field-value-pp">
-                                    <div
-                                        v-for="(
-                                            value, key, index
-                                        ) in $parent.credibleSetsDataSorted"
-                                        class="cs-pp-items-wrapper"
-                                        :key="index"
-                                    >
-                                        <div
-                                            v-for="(
-                                                varValue, varIndex
-                                            ) in value"
-                                            class="cs-pp-item"
-                                            :key="varIndex"
-                                        >
-                                            <span
-                                                :class="
-                                                    'text color-' +
-                                                    varValue.colorIndex +
-                                                    '-bg-100'
-                                                "
-                                                :style="
-                                                    'height:' +
-                                                    100 *
-                                                        varValue.posteriorProbability +
-                                                    '% !important;'
-                                                "
-                                            ></span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <!-- Annotations -->
+                                <div
+                                    class="cs-plot-field-value-annotations"
+                                    id="annotationsWrapper"
+                                ></div>
+                                <!-- credible sets variants -->
                                 <div class="cs-plot-field-value-variants">
-                                    <div
-                                        v-for="(
-                                            value, key, index
-                                        ) in $parent.credibleSetsDataSorted"
-                                        :class="
-                                            value.length > 1
-                                                ? 'cs-variant-items-wrapper multi'
-                                                : 'cs-variant-items-wrapper'
-                                        "
-                                        :key="index"
-                                    >
-                                        <div
-                                            v-for="(
-                                                varValue, varIndex
-                                            ) in value"
-                                            :class="
-                                                'cs-variant-item text border-color-' +
-                                                varValue.colorIndex +
-                                                ' color-' +
-                                                varValue.colorIndex +
-                                                '-bg'
-                                            "
-                                            :key="varIndex"
-                                        >
-                                            <span
-                                                v-html="varValue.varId"
-                                            ></span>
-                                        </div>
-                                    </div>
+                                    <canvas
+                                        id="credibleVariants"
+                                        height="0"
+                                        width="0"
+                                    ></canvas>
                                 </div>
                             </div>
                         </b-row>
@@ -368,6 +256,12 @@
 @import url("/css/effectorGenes.css");
 @import url("/css/colors.css");
 
+#credibleVariants {
+    transform: rotate(-90deg);
+    transform-origin: top left;
+    position: relative;
+    top: 170px;
+}
 .clear-all-filters-bubble {
     background-color: #ff0000 !important;
 }
@@ -404,6 +298,13 @@
     overflow-x: auto;
 }
 
+.cs-plot-field-value-annotations {
+}
+.cs-plot-field-value-annotation {
+    max-height: 100px;
+    overflow-y: auto;
+}
+
 .cs-plot-field-value-pp {
     height: 30px;
     position: relative;
@@ -414,11 +315,13 @@
 }
 
 .cs-plot-field-value-variants {
-    height: 150px;
-    position: relative;
+    /*
     flex-wrap: nowrap !important;
-    padding: 0 0 5px 0;
     display: flex;
+    */
+    position: relative;
+    height: 150px;
+    padding: 0 0 5px 0;
 }
 
 .cs-pp-items-wrapper {
