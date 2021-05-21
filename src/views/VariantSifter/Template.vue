@@ -236,7 +236,9 @@
                                     id="annotationsWrapper"
                                 ></div>
                                 <!-- credible sets variants -->
-                                <div class="cs-plot-field-value-variants">
+                                <div
+                                    class="cs-plot-field-value-variants cs-plot-wrapper"
+                                >
                                     <canvas
                                         id="credibleVariants"
                                         height="0"
@@ -251,7 +253,6 @@
                                             $parent.credibleSetsDataSorted
                                         ).length > 0
                                     "
-                                    @click="$parent.scrollTest()"
                                 >
                                     <div class="locus-start">
                                         {{ $parent.locus.start }}
@@ -280,6 +281,11 @@
                                         :key="index"
                                     >
                                         <div
+                                            @click="
+                                                $parent.scrollPlotsTo(
+                                                    value[0].position
+                                                )
+                                            "
                                             v-for="(vDot, vIndex) in value"
                                             class="variant-dot"
                                             :style="
@@ -288,11 +294,15 @@
                                                     vDot.colorIndex
                                                 ] +
                                                 '50; top:' +
-                                                (vDot.colorIndex * 10 + 5) +
+                                                (22 -
+                                                    vDot.posteriorProbability *
+                                                        22) +
                                                 'px;'
                                             "
                                             :key="vIndex"
-                                        ></div>
+                                        >
+                                            <span>{{ vDot }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -345,6 +355,16 @@
     margin-bottom: 5px;
 }
 
+.variant-dot span {
+    position: absolute;
+    display: none;
+    bottom: 0;
+}
+
+.variant-dot:hover span {
+    display: block;
+}
+
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -371,6 +391,7 @@
 }
 
 .cs-plot-wrapper {
+    scroll-behavior: smooth;
 }
 .cs-plot-field-names {
     font-size: 14px;
@@ -406,90 +427,15 @@
 }
 .cs-plot-field-value-annotation {
     max-height: 150px;
-    overflow: auto;
-    /*margin-bottom: 10px;*/
-}
-
-.cs-plot-field-value-pp {
-    height: 30px;
-    position: relative;
-    flex-wrap: nowrap !important;
-    padding: 0 0 5px 0;
-    display: flex;
-    border-bottom: solid 1px #dddddd;
+    overflow-x: hidden;
+    width: calc(100% + 8px);
 }
 
 .cs-plot-field-value-variants {
     position: relative;
     height: 167px;
     padding: 0 0 5px 0;
-    overflow-x: auto;
-    overflow-y: clip;
-}
-
-.cs-pp-items-wrapper {
-    display: flex;
-    margin-right: 4px;
-    border-top: solid 2px #ffffff;
-    padding-top: 3px;
-}
-
-.cs-pp-items-wrapper.multi {
-    border-top: solid 2px #ff0000;
-}
-
-.cs-pp-item {
-    border-radius: 20px;
-    padding: 0;
-    border-width: 2px;
-    position: relative;
-    width: 25px;
-    margin-right: 2px;
-    height: 100%;
-}
-
-.cs-pp-item span {
-    display: block;
-    border-width: 1.5px;
-    width: 25px;
-    bottom: 0;
-    position: absolute;
-    left: 0;
-}
-
-.cs-variant-items-wrapper {
-    display: flex;
-    margin-right: 4px;
-    border-top: solid 2px #ffffff;
-    padding-top: 3px;
-}
-
-.cs-variant-items-wrapper.multi {
-    border-top: solid 2px #ff0000;
-}
-
-.cs-variant-item {
-    border-radius: 20px;
-    padding: 0;
-    border-width: 2px;
-    position: relative;
-    width: 25px;
-    margin-right: 2px;
-    height: 100%;
-}
-
-.cs-variant-item span {
-    display: block;
-    -webkit-transform: rotate(-90deg);
-    transform: rotate(-90deg);
-    font-size: 13px;
-    border-width: 1.5px;
-    width: 125px;
-    height: 25px;
-    bottom: -85%;
-    position: relative;
-    -webkit-transform-origin: 13px;
-    transform-origin: 13px 13px;
-    text-align: center;
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 </style>

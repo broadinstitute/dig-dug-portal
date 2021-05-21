@@ -196,314 +196,8 @@ new Vue({
                     break
             }
         },
-        updateAnnotations() {
-            let data = this.annotations;
-            console.log("this.annotations", data);
-            document.getElementById("annotationsWrapper").innerHTML = "";
-
-            for (const annotation in data) {
-
-                let annotationData = data[annotation];
-
-                let wrapper = document.createElement('div');
-                wrapper.id = annotation;
-                wrapper.className = "cs-plot-field-value-annotation";
-                let plotsWrapper = document.getElementById("annotationsWrapper");
-                plotsWrapper.appendChild(wrapper);
-
-                var canvas = document.createElement('canvas');
-
-                let xBump = this.plotsConfig.hBump,
-                    yBump = this.plotsConfig.vBump,
-                    itemWidth = this.plotsConfig.itemWidth,
-                    itemHeight = 20,
-                    itemMargin = this.plotsConfig.itemMargin,
-                    itemWrapperMargin = this.plotsConfig.itemWrapperMargin,
-                    lineHeight = 5,
-                    font = this.plotsConfig.font;
-
-                canvas.width = this.canvasHeight; //canvasHeight is the width of the variants canvas since it turned -90deg
-                canvas.height = (Object.keys(annotationData).length * itemHeight) + (yBump * 2);
-                canvas.style.position = "relative";
-                //canvas.style.borderTop = "1px solid #dddddd";
-                //canvas.style.borderBottom = "1px solid #dddddd";
-
-                var ctx = canvas.getContext("2d");
-
-                let rectTop = yBump;
-
-                for (const tissue in annotationData) {
-
-                    let atLeast1 = false;
-                    annotationData[tissue].map(t => {
-                        //console.log(tissue, t);
-
-                        for (const variant in this.credibleSetsDataSorted) {
-                            let position = this.credibleSetsDataSorted[variant][0].position;
-                            if (position >= t.start && position <= t.end) {
-                                atLeast1 = true;
-                            }
-                        }
-
-                        if (atLeast1 == true) {
-                            let itemLeft = xBump;
-                            for (const variant in this.credibleSetsDataSorted) {
-                                let position = this.credibleSetsDataSorted[variant][0].position;
-
-                                if (position >= t.start && position <= t.end) {
-                                    ctx.fillStyle = "#ff0000";
-                                    //ctx.fillRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight);
-
-                                    ctx.roundRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight, 3).fill();
-
-                                    //ctx.fillStyle = "#000000";
-                                    //ctx.fillText(position, itemLeft, rectTop);
-                                }
-
-                                itemLeft += (((itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length)) + itemWrapperMargin;
-                            }
-                        }
-                    })
-
-                    if (atLeast1 == true) {
-                        ctx.font = font;
-                        ctx.textBaseline = "middle";
-                        ctx.textAlign = "left";
-                        ctx.fillStyle = "#aaaaaa";
-                        let fillingText = tissue + "/" + formatters.floatFormatter(this.globalEnrichmentFolds[annotation][tissue]);
-                        ctx.fillText(fillingText, 5, rectTop);
-
-                        rectTop += itemHeight;
-                    }
-                }
-
-                var targetWrapper = document.getElementById(annotation);
-                targetWrapper.appendChild(canvas);
-            }
-
-
-        },
-        scrollTest() {
-            const el = document.querySelector('.cs-plot-field-value-variants');
-            // set scroll position in px
-            el.scrollLeft = 100000;
-        },
-        getLeftPosition(position) {
-            let region = this.locus.end - this.locus.start;
-            let dotP = position - this.locus.start
-            let leftP = (dotP / region) * 100;
-
-            console.log(position, ":", leftP);
-            return leftP;
-        }
-    },
-
-
-    computed: {
-
-        annotation() {
-            let content = { annotation: "", folds: [], data: {} };
-
-            if (this.$store.state.annotation.data.length != 0) {
-
-                let annotationName = this.$store.state.annotation.data[0].annotation;
-
-                let tissues = [...new Set(this.$store.state.annotation.data.map(a => a.tissue))].sort();
-
-                tissues.map(t => {
-                    content.folds.push({ fold: this.globalEnrichmentFolds[annotationName][t], tissue: t });
-                    content.data[t] = [];
-                });
-
-                sortUtils.sortEGLTableData(
-                    content.folds, "fold", true, true
-                )
-
-                this.$store.state.annotation.data.map(a => {
-                    let tissue = a.tissue;
-                    let tempObj = { "start": a.start, "end": a.end };
-                    content.data[tissue].push(tempObj);
-                })
-
-                content["annotation"] = annotationName;
-
-                //console.log("annotation", content);
-
-                for (const tissue in content.data) {
-                    //console.log(tissue);
-                    sortUtils.sortEGLTableData(
-                        content.data[tissue], "start", true, false
-                    )
-                }
-            }
-
-            return content;
-        },
-        credibleSets() {
-            console.log("credibleSets", this.$store.state.credibleSets);
-            return this.$store.state.credibleSets.data;
-        },
-        credibleVariants() {
-            let data = this.$store.state.credibleVariants.data
-            let content = data.filter(d => d.position >= this.locus.start && d.position <= this.locus.end);
-
-            return content;
-        },
-        globalEnrichmentFolds() {
-            let data = this.$store.state.globalEnrichment.data;
-
-            let annotations = sortUtils.uniqBy(
-                data,
-                el => el.annotation
-            );
-
-            let foldsObj = {};
-            annotations.map(a => {
-                foldsObj[a.annotation] = {};
-            });
-
-            data.map(d => {
-                if (!foldsObj[d.annotation][d.tissue]) {
-                    foldsObj[d.annotation][d.tissue] = [];
-                }
-                let fold = d.SNPs / d.expectedSNPs;
-                foldsObj[d.annotation][d.tissue].push(fold);
-            })
-
-            for (const annotation in foldsObj) {
-                let perAnnotation = foldsObj[annotation]
-                for (const tissue in perAnnotation) {
-
-                    let eachFold = 0;
-                    perAnnotation[tissue].map(f => {
-                        eachFold += f;
-                    })
-
-                    perAnnotation[tissue] = eachFold / perAnnotation[tissue].length;
-                }
-
-            }
-
-            let content = foldsObj;
-
-            return content;
-        },
-        globalEnrichmentAnnotations() {
-            // an array of annotations
-            let annotations = sortUtils.uniqBy(
-                this.$store.state.globalEnrichment.data,
-                el => el.annotation
-            );
-            return annotations;
-        },
-        globalEnrichmentTissues() {
-            let tissues = sortUtils.uniqBy(
-                this.$store.state.globalEnrichment.data,
-                el => el.tissue
-            );
-            //sort the tissues
-            return tissues;
-        },
-        frontContents() {
-            let contents = this.$store.state.kp4cd.frontContents;
-            if (contents.length === 0) {
-                return {};
-            }
-            return contents[0];
-        },
-        diseaseGroup() {
-            return this.$store.getters["bioPortal/diseaseGroup"];
-        },
-        phenotypeMap() {
-            return this.$store.state.bioPortal.phenotypeMap;
-        }
-    },
-
-    watch: {
-        annotation(data) {
-            console.log("watch", data);
-            if (!!data.annotation) {
-                let tempObj = {};
-
-                data.folds.map(f => {
-                    tempObj[f.tissue] = data.data[f.tissue];
-                })
-                this.annotations[data.annotation] = tempObj;
-                this.updateAnnotations();
-            }
-        },
-
-        diseaseGroup(group) {
-            this.$store.dispatch("kp4cd/getFrontContents", group.name);
-        },
-        phenotypes: {
-            handler(newData, oldData) {
-                if (!isEqual(newData, oldData)) {
-                    this.setPhenotypeParams(newData);
-                }
-            },
-            deep: true
-        },
-        region() {
-            if (this.region != null) {
-                if (this.region.includes(":") && this.region.includes("-")) {
-                    this.locus = {}
-                    this.locus.chr = this.region.split(":")[0];
-                    this.locus.start = this.region.split(":")[1].split("-")[0];
-                    this.locus.end = this.region.split(":")[1].split("-")[1];
-                }
-            }
-        },
-        credibleVariants(data) {
-            if (!!data.length) {
-                let cdId = data[0].credibleSetId;
-                let cdExist = null;
-
-                this.credibleSetsData.map(cd => {
-                    if (cd.id == cdId) {
-                        cdExist = true;
-                    }
-                })
-                if (cdExist != true) {
-                    let tempObj = {};
-                    tempObj.id = data[0].credibleSetId;
-                    tempObj.data = data;
-                    this.credibleSetsData.push(tempObj);
-                }
-            }
-        },
-        credibleSetsData(data) {
-
-            let tempArr = [];
-            let csdIndex = 0;
-
-            data.map(cs => {
-
-                cs.data.map(csv => {
-                    csv.colorIndex = csdIndex;
-
-                    tempArr.push(csv);
-
-                })
-                csdIndex++;
-            })
-            sortUtils.sortEGLTableData(
-                tempArr, "position", true, false
-            );
-
-            this.credibleSetsDataSorted = {};
-
-            tempArr.map(t => {
-                if (!!this.credibleSetsDataSorted[t.varId]) {
-                    this.credibleSetsDataSorted[t.varId].push(t);
-                } else {
-                    this.credibleSetsDataSorted[t.varId] = [];
-                    this.credibleSetsDataSorted[t.varId].push(t);
-                }
-            })
-
-        },
-        credibleSetsDataSorted(data) {
+        renderCredibleSetsPlot() {
+            let data = this.credibleSetsDataSorted;
             //render variants plot
             let xBump = this.plotsConfig.hBump,
                 yBump = this.plotsConfig.vBump,
@@ -596,12 +290,346 @@ new Vue({
 
                 })
                 rectTop += perVariantWrapperBottom;
-                //}
+
+            }
+        },
+        renderAnnotationsPlot() {
+            let data = this.annotations;
+            //console.log("this.annotations", data);
+            document.getElementById("annotationsWrapper").innerHTML = "";
+
+            for (const annotation in data) {
+
+                let annotationData = data[annotation];
+
+                let wrapper = document.createElement('div');
+                wrapper.id = annotation;
+                wrapper.className = "cs-plot-field-value-annotation cs-plot-wrapper";
+                let plotsWrapper = document.getElementById("annotationsWrapper");
+                plotsWrapper.appendChild(wrapper);
+
+                var canvas = document.createElement('canvas');
+
+                let xBump = this.plotsConfig.hBump,
+                    yBump = this.plotsConfig.vBump,
+                    itemWidth = this.plotsConfig.itemWidth,
+                    itemHeight = 20,
+                    itemMargin = this.plotsConfig.itemMargin,
+                    itemWrapperMargin = this.plotsConfig.itemWrapperMargin,
+                    lineHeight = 5,
+                    font = this.plotsConfig.font;
+
+                canvas.width = this.canvasHeight; //canvasHeight is the width of the variants canvas since it turned -90deg
+                canvas.height = (Object.keys(annotationData).length * itemHeight) + (yBump * 2);
+                canvas.style.position = "relative";
+                //canvas.style.borderTop = "1px solid #dddddd";
+                //canvas.style.borderBottom = "1px solid #dddddd";
+
+                var ctx = canvas.getContext("2d");
+
+                let rectTop = yBump;
+
+                for (const tissue in annotationData) {
+
+                    let atLeast1 = false;
+                    annotationData[tissue].map(t => {
+                        //console.log(tissue, t);
+
+                        for (const variant in this.credibleSetsDataSorted) {
+                            let position = this.credibleSetsDataSorted[variant][0].position;
+                            if (position >= t.start && position <= t.end) {
+                                atLeast1 = true;
+                            }
+                        }
+
+                        if (atLeast1 == true) {
+                            let itemLeft = xBump;
+                            for (const variant in this.credibleSetsDataSorted) {
+                                let position = this.credibleSetsDataSorted[variant][0].position;
+
+                                if (position >= t.start && position <= t.end) {
+                                    ctx.fillStyle = "#ff0000";
+                                    //ctx.fillRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight);
+
+                                    ctx.roundRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight, 3).fill();
+
+                                    //ctx.fillStyle = "#000000";
+                                    //ctx.fillText(position, itemLeft, rectTop);
+                                }
+
+                                itemLeft += (((itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length)) + itemWrapperMargin;
+                            }
+                        }
+                    })
+
+                    if (atLeast1 == true) {
+                        ctx.font = font;
+                        ctx.textBaseline = "middle";
+                        ctx.textAlign = "left";
+                        ctx.fillStyle = "#aaaaaa";
+                        let fillingText = tissue + "/" + formatters.floatFormatter(this.globalEnrichmentFolds[annotation][tissue]);
+                        ctx.fillText(fillingText, 5, rectTop);
+
+                        rectTop += itemHeight;
+                    }
+                }
+
+                var targetWrapper = document.getElementById(annotation);
+                targetWrapper.appendChild(canvas);
             }
 
-            this.updateAnnotations();
+
+        },
+        scrollPlotsTo(position) {
+            console.log("vId", position);
+
+            let elements = document.querySelectorAll('.cs-plot-wrapper');
+
+            let leftPos = this.getScrollLeft(position);
+
+            elements.forEach(function (element) {
+                element.scrollLeft = leftPos;
+            });
+        },
+        getScrollLeft(position) {
+            let widthConfig = this.plotsConfig;
+
+            let leftPos = widthConfig.hBump;
+
+            for (const variant in this.credibleSetsDataSorted) {
+                if (this.credibleSetsDataSorted[variant][0].position <= position) {
+                    leftPos += (this.credibleSetsDataSorted[variant].length * (widthConfig.itemWidth + widthConfig.itemMargin)) + widthConfig.itemWrapperMargin;
+                }
+            }
+
+            let wrapper = document.querySelector('.cs-plot-field-value-variants');
+
+            leftPos -= (wrapper.offsetWidth / 2)
+
+            return leftPos;
+        },
+
+        getLeftPosition(position) {
+            let region = this.locus.end - this.locus.start;
+            let dotP = position - this.locus.start
+            let leftP = (dotP / region) * 100;
+
+            //console.log(position, ":", leftP);
+            return leftP;
+        }
+    },
 
 
+    computed: {
+
+        annotation() {
+            let content = { annotation: "", folds: [], data: {} };
+
+            if (this.$store.state.annotation.data.length != 0) {
+
+                let annotationName = this.$store.state.annotation.data[0].annotation;
+
+                let tissues = [...new Set(this.$store.state.annotation.data.map(a => a.tissue))].sort();
+
+                tissues.map(t => {
+                    content.folds.push({ fold: this.globalEnrichmentFolds[annotationName][t], tissue: t });
+                    content.data[t] = [];
+                });
+
+                sortUtils.sortEGLTableData(
+                    content.folds, "fold", true, true
+                )
+
+                this.$store.state.annotation.data.map(a => {
+                    let tissue = a.tissue;
+                    let tempObj = { "start": a.start, "end": a.end };
+                    content.data[tissue].push(tempObj);
+                })
+
+                content["annotation"] = annotationName;
+
+                //console.log("annotation", content);
+
+                for (const tissue in content.data) {
+                    //console.log(tissue);
+                    sortUtils.sortEGLTableData(
+                        content.data[tissue], "start", true, false
+                    )
+                }
+            }
+
+            return content;
+        },
+        credibleSets() {
+            //console.log("credibleSets", this.$store.state.credibleSets);
+            return this.$store.state.credibleSets.data;
+        },
+        credibleVariants() {
+            let data = this.$store.state.credibleVariants.data
+            let content = data.filter(d => d.position >= this.locus.start && d.position <= this.locus.end);
+
+            return content;
+        },
+        globalEnrichmentFolds() {
+            let data = this.$store.state.globalEnrichment.data;
+
+            let annotations = sortUtils.uniqBy(
+                data,
+                el => el.annotation
+            );
+
+            let foldsObj = {};
+            annotations.map(a => {
+                foldsObj[a.annotation] = {};
+            });
+
+            data.map(d => {
+                if (!foldsObj[d.annotation][d.tissue]) {
+                    foldsObj[d.annotation][d.tissue] = [];
+                }
+                let fold = d.SNPs / d.expectedSNPs;
+                foldsObj[d.annotation][d.tissue].push(fold);
+            })
+
+            for (const annotation in foldsObj) {
+                let perAnnotation = foldsObj[annotation]
+                for (const tissue in perAnnotation) {
+
+                    let eachFold = 0;
+                    perAnnotation[tissue].map(f => {
+                        eachFold += f;
+                    })
+
+                    perAnnotation[tissue] = eachFold / perAnnotation[tissue].length;
+                }
+
+            }
+
+            let content = foldsObj;
+
+            return content;
+        },
+        globalEnrichmentAnnotations() {
+            // an array of annotations
+            let annotations = sortUtils.uniqBy(
+                this.$store.state.globalEnrichment.data,
+                el => el.annotation
+            );
+            return annotations;
+        },
+        globalEnrichmentTissues() {
+            let tissues = sortUtils.uniqBy(
+                this.$store.state.globalEnrichment.data,
+                el => el.tissue
+            );
+            //sort the tissues
+            return tissues;
+        },
+        frontContents() {
+            let contents = this.$store.state.kp4cd.frontContents;
+            if (contents.length === 0) {
+                return {};
+            }
+            return contents[0];
+        },
+        diseaseGroup() {
+            return this.$store.getters["bioPortal/diseaseGroup"];
+        },
+        phenotypeMap() {
+            return this.$store.state.bioPortal.phenotypeMap;
+        }
+    },
+
+    watch: {
+        annotation(data) {
+            console.log("watch", data);
+            if (data != undefined && !!data.annotation) {
+                let tempObj = {};
+
+                data.folds.map(f => {
+                    tempObj[f.tissue] = data.data[f.tissue];
+                })
+                this.annotations[data.annotation] = tempObj;
+
+                if (Object.keys(this.annotations).length != 0) { this.renderAnnotationsPlot(); };
+                if (Object.keys(this.credibleSetsDataSorted).length != 0) { this.renderCredibleSetsPlot(); };
+
+            }
+        },
+
+        diseaseGroup(group) {
+            this.$store.dispatch("kp4cd/getFrontContents", group.name);
+        },
+        phenotypes: {
+            handler(newData, oldData) {
+                if (!isEqual(newData, oldData)) {
+                    this.setPhenotypeParams(newData);
+                }
+            },
+            deep: true
+        },
+        region() {
+            if (this.region != null) {
+                if (this.region.includes(":") && this.region.includes("-")) {
+                    this.locus = {}
+                    this.locus.chr = this.region.split(":")[0];
+                    this.locus.start = this.region.split(":")[1].split("-")[0];
+                    this.locus.end = this.region.split(":")[1].split("-")[1];
+                }
+            }
+        },
+        credibleVariants(data) {
+            if (!!data.length) {
+                let cdId = data[0].credibleSetId;
+                let cdExist = null;
+
+                this.credibleSetsData.map(cd => {
+                    if (cd.id == cdId) {
+                        cdExist = true;
+                    }
+                })
+                if (cdExist != true) {
+                    let tempObj = {};
+                    tempObj.id = data[0].credibleSetId;
+                    tempObj.data = data;
+                    this.credibleSetsData.push(tempObj);
+                }
+            }
+        },
+        credibleSetsData(data) {
+
+            let tempArr = [];
+            let csdIndex = 0;
+
+            data.map(cs => {
+
+                cs.data.map(csv => {
+                    csv.colorIndex = csdIndex;
+
+                    tempArr.push(csv);
+
+                })
+                csdIndex++;
+            })
+            sortUtils.sortEGLTableData(
+                tempArr, "position", true, false
+            );
+
+            this.credibleSetsDataSorted = {};
+
+            tempArr.map(t => {
+                if (!!this.credibleSetsDataSorted[t.varId]) {
+                    this.credibleSetsDataSorted[t.varId].push(t);
+                } else {
+                    this.credibleSetsDataSorted[t.varId] = [];
+                    this.credibleSetsDataSorted[t.varId].push(t);
+                }
+            })
+
+        },
+        credibleSetsDataSorted(data) {
+            if (Object.keys(this.annotations).length != 0) { this.renderAnnotationsPlot(); };
+            if (Object.keys(this.credibleSetsDataSorted).length != 0) { this.renderCredibleSetsPlot(); };
         }
         /*'$store.state.phenotype'() {
             console.log(this.$store.state.phenotype.name);
