@@ -307,6 +307,22 @@
                                 </div>
                             </div>
                         </b-row>
+                        <b-row>
+                            <div
+                                class="col-md-12"
+                                v-if="$parent.tableData.length > 0"
+                                style="margin-top: 20px"
+                            >
+                                <research-data-table
+                                    :pageID="'table data'"
+                                    :dataset="$parent.tableData"
+                                    :tableFormat="$parent.tableDataFormat"
+                                    :perPageNumber="10"
+                                    :tableLegend="''"
+                                >
+                                </research-data-table>
+                            </div>
+                        </b-row>
                     </b-container>
                 </div>
             </div>
@@ -329,7 +345,7 @@
 .locus-start,
 .locus-end {
     position: absolute;
-    bottom: -15px;
+    bottom: -20px;
     font-size: 12px;
 }
 
@@ -429,6 +445,9 @@
     max-height: 150px;
     overflow-x: hidden;
     width: calc(100% + 8px);
+    border-top: solid 1px #ddd;
+    border-bottom: solid 1px #ddd;
+    margin-top: 10px;
 }
 
 .cs-plot-field-value-variants {

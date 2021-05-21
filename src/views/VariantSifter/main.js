@@ -26,6 +26,7 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
+import ResearchDataTable from "@/components/researchPortal/ResearchDataTable.vue";
 
 import Alert, {
     postAlert,
@@ -56,7 +57,8 @@ new Vue({
         FilterPValue,
         FilterEffectDirection,
         FilterEnumeration,
-        FilterGreaterThan
+        FilterGreaterThan,
+        ResearchDataTable
     },
 
     data() {
@@ -65,6 +67,8 @@ new Vue({
             locus: null,
             credibleSetsData: [],
             credibleSetsDataSorted: {},
+            tableData: [],
+            tableDataFormat: {},
             annotations: {},
             canvasHeight: null,
             colorIndex: ["#048845",
@@ -292,6 +296,95 @@ new Vue({
                 rectTop += perVariantWrapperBottom;
 
             }
+        },
+        setTableData() {
+            /*
+            alt: "A"
+ancestry: "EU"
+beta: 0.05499999999999582
+chromosome: "8"
+colorIndex: 2
+credibleSetId: "20303"
+dataset: "GWAS_DIAMANTE_eu"
+eaf: 0.021
+maf: 0.021
+multiAllelic: false
+n: 231420
+oddsRatio: 1.0565406146754899
+pValue: 0.016
+phenotype: "T2D"
+position: 117905012
+posteriorProbability: 0.000065792
+reference: "G"
+stdErr: 0.022831850662235375
+varId: "8:117905012:G:A"
+zScore: 2.408915545815461
+*/
+            let tableFormat = { "top rows": ["Locus", "Allele", "P/P", "Credible set ID", "Ancestry", "Beta", "Odds Ratio"] };
+            let credibleData = this.credibleSetsDataSorted;
+            let annotationData = this.annotations;
+
+            let preData = {};
+            let mergedData = [];
+
+            for (const variantId in credibleData) {
+                credibleData[variantId].map(v => {
+                    let tempObj = {}
+                    tempObj["Locus"] = v.chromosome + ":" + v.position;
+                    tempObj["position"] = v.position;
+                    tempObj["Allele"] = formatters.alleleFormatter(v.reference, v.alt);
+                    tempObj["P/P"] = formatters.floatFormatter(v.posteriorProbability);
+                    tempObj["Credible set ID"] = v.credibleSetId;
+                    tempObj["Ancestry"] = formatters.ancestryFormatter(v.ancestry);
+                    tempObj["Beta"] = formatters.floatFormatter(v.beta);
+                    tempObj["Odds Ratio"] = formatters.floatFormatter(v.oddsRatio);
+
+                    mergedData.push(tempObj);
+                })
+            }
+
+            if (Object.keys(annotationData).length > 0) {
+                for (const annotation in annotationData) {
+                    tableFormat["top rows"].push(annotation);
+                    let eachAnnotation = annotationData[annotation];
+
+                    mergedData.map(v => {
+                        let tissuesList = "";
+                        for (const tissue in eachAnnotation) {
+                            let atLeast1 = null;
+
+                            eachAnnotation[tissue].map(t => {
+                                let position = v.position;
+                                if (position >= t.start && position <= t.end) {
+                                    atLeast1 = true;
+                                }
+                            })
+                            if (atLeast1 == true) { tissuesList += tissue + "<br>" }
+                        }
+
+                        v[annotation] = tissuesList;
+                    })
+
+                }
+            }
+
+            /*
+
+            for (const variant in this.credibleSetsDataSorted) {
+                            let position = this.credibleSetsDataSorted[variant][0].position;
+                            if (position >= t.start && position <= t.end) {
+                                atLeast1 = true;
+                            }
+                        }
+
+            */
+
+            this.tableData = mergedData;
+            this.tableDataFormat = tableFormat;
+
+            console.log("tableData", this.tableData);
+            console.log("tableDataFormat", this.tableDataFormat);
+
         },
         renderAnnotationsPlot() {
             let data = this.annotations;
@@ -553,6 +646,7 @@ new Vue({
 
                 if (Object.keys(this.annotations).length != 0) { this.renderAnnotationsPlot(); };
                 if (Object.keys(this.credibleSetsDataSorted).length != 0) { this.renderCredibleSetsPlot(); };
+                this.setTableData()
 
             }
         },
@@ -630,6 +724,7 @@ new Vue({
         credibleSetsDataSorted(data) {
             if (Object.keys(this.annotations).length != 0) { this.renderAnnotationsPlot(); };
             if (Object.keys(this.credibleSetsDataSorted).length != 0) { this.renderCredibleSetsPlot(); };
+            this.setTableData();
         }
         /*'$store.state.phenotype'() {
             console.log(this.$store.state.phenotype.name);
