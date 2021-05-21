@@ -112,7 +112,7 @@
                         class="filtering-ui-wrapper add-search"
                         v-if="
                             !!$parent.credibleSets &&
-                            $parent.credibleSets.length > 1 &&
+                            $parent.credibleSets.length > 0 &&
                             $parent.locus != null &&
                             $store.state.phenotype != null
                         "

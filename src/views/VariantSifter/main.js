@@ -340,6 +340,7 @@ new Vue({
             return content;
         },
         credibleSets() {
+            console.log("credibleSets", this.$store.state.credibleSets);
             return this.$store.state.credibleSets.data;
         },
         credibleVariants() {
