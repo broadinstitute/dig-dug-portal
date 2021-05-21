@@ -30,6 +30,13 @@ let pages = {
         filename: "paperdata.html",
         title: "Paper Data",
         chunks: ["chunk-vendors", "chunk-common", "paperdata"]
+    },
+    research: {
+        entry: "src/views/Papers/Research/main.js",
+        template: "public/index.html",
+        filename: "research.html",
+        title: "Research",
+        chunks: ["chunk-vendors", "chunk-common", "research"]
     }
 };
 

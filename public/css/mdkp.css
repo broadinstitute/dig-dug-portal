@@ -1821,7 +1821,12 @@ span.volcano-score-2 {
     margin-right: 10px;
 }
 
-
 .clear-all-filters-bubble {
     background-color: #ff0000;
+}
+
+.kp-lab-icon {
+    width: 75px;
+    float: left;
+    margin-right: 10px;
 }

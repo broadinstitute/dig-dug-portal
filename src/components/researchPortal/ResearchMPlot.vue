@@ -30,7 +30,7 @@
         <div class="y-axis-label">{{ yAxisLabel }}</div>
         <div id="egl_m_plot_y"></div>
         <div class="egl-m-plot" id="egl_m_plot"></div>
-        <div class="x-axis-label">Chromosome</div>
+        <div class="x-axis-label">{{ xAxisLabel }}</div>
     </div>
 </template>
 
@@ -42,7 +42,7 @@ import { BootstrapVueIcons } from "bootstrap-vue";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("effector-genes-m-plot", {
+export default Vue.component("research-m-plot", {
     props: [
         "plotData",
         "locusKey",
@@ -61,23 +61,12 @@ export default Vue.component("effector-genes-m-plot", {
     computed: {},
     watch: {
         plotData() {
+            //console.log("call");
             this.renderPlot();
         },
     },
     methods: {
         ...uiUtils,
-        correctDecimal(decimalNum) {
-            let dNum = decimalNum;
-
-            for (let i = 0; i < 3; i++) {
-                console.log("dNum", dNum);
-                if (dNum.slice(-1) == 0) {
-                    dNum = dNum.slice(0, -1);
-                }
-            }
-
-            return dNum;
-        },
         renderPlot() {
             let grouped = document.getElementById("groupByLocusCheck").checked;
 
@@ -119,33 +108,16 @@ export default Vue.component("effector-genes-m-plot", {
                 "#cb181d",
             ];
 
-            let LKey = this.locusKey;
-            let SKey = this.scoreKey;
-            let renderKey = this.renderBy;
-
             let dnaLength = 0;
 
-            let uniqueChromosomes = this.plotData
-                .map((v) => v[LKey].split(":")[0].trim())
-                .filter((v, i, arr) => arr.indexOf(v) == i) //unique
-                .filter((v, i, arr) => v != ""); //remove blank
-
-            uniqueChromosomes.sort(function (a, b) {
-                return a - b;
-            });
-
-            console.log(uniqueChromosomes);
-
-            uniqueChromosomes.map((chr) => {
+            for (const chr in chromosomeLength) {
                 dnaLength += chromosomeLength[chr];
-            });
+            }
 
             let plotWrapper = document.getElementById("egl_m_plot");
 
-            //for (const chr in chromosomeLength) {
-            uniqueChromosomes.map((chr) => {
+            for (const chr in chromosomeLength) {
                 let chrLength = (chromosomeLength[chr] / dnaLength) * 100;
-
                 let chrWrapper =
                     '<div id="chr_wrapper_' +
                     chr +
@@ -162,8 +134,11 @@ export default Vue.component("effector-genes-m-plot", {
                     "</div>\
             </div>";
                 plotWrapper.innerHTML += chrWrapper;
-            });
+            }
 
+            let LKey = this.locusKey;
+            let SKey = this.scoreKey;
+            let renderKey = this.renderBy;
             let scores = [];
 
             this.plotData.map(function (p) {
@@ -178,6 +153,8 @@ export default Vue.component("effector-genes-m-plot", {
 
             let popUpContentPaths = this.popUpContent;
 
+            //console.log(this.plotData);
+
             // render y axis
             let yAxisContent = "";
             let hScoreLabel = hScore % 1 != 0 ? hScore.toFixed(3) : hScore;
@@ -186,28 +163,10 @@ export default Vue.component("effector-genes-m-plot", {
                 hScoreLabel +
                 "</span></div>";
 
-            let decimalCount = 0;
-            scores.map((s) => {
-                if (s % 1 != 0) {
-                    decimalCount++;
-                }
-            });
-
-            let onlyInts = decimalCount > 0 ? false : true;
-
-            console.log("onlyInts", onlyInts);
-
             for (let i = 1; i < 5; i++) {
                 let countUnit = (hScore - lScore) / 4;
                 let unitNum = hScore - countUnit * i;
-
-                let unitLabel =
-                    unitNum % 1 != 0
-                        ? onlyInts == false
-                            ? this.correctDecimal(unitNum.toFixed(3))
-                            : ""
-                        : unitNum;
-
+                let unitLabel = unitNum % 1 != 0 ? unitNum.toFixed(3) : unitNum;
                 yAxisContent +=
                     "<div class='tick'><span class='tick-num'>" +
                     unitLabel +
@@ -276,8 +235,6 @@ export default Vue.component("effector-genes-m-plot", {
                             chromosomeColors[chrNum % chromosomeColors.length];
                         let dotOppacity = "75";
 
-                        console.log("chrNum", chrNum);
-
                         document.getElementById(
                             "chr_dots_" + chrNum
                         ).innerHTML +=
@@ -311,7 +268,7 @@ export default Vue.component("effector-genes-m-plot", {
 
                 this.plotData.map(function (p) {
                     let locusArr = p[LKey].split(":");
-
+                    //console.log("locusArr[0]", locusArr[0]);
                     let chr =
                         locusArr[0] == null ||
                         locusArr[0] == "" ||
@@ -345,6 +302,8 @@ export default Vue.component("effector-genes-m-plot", {
                     }
                 });
 
+                //console.log(groupByChr);
+
                 for (const chr in groupByChr) {
                     let chrGroup = groupByChr[chr];
                     if (chr != "NA") {
@@ -366,6 +325,7 @@ export default Vue.component("effector-genes-m-plot", {
                             bpVLocArr.sort(function (a, b) {
                                 return b - a;
                             });
+                            //console.log(bpVLocArr);
 
                             let bpVLoc =
                                 100 -
@@ -381,6 +341,8 @@ export default Vue.component("effector-genes-m-plot", {
                                     100 -
                                 bpVLoc;
 
+                            //console.log("bpSpread", bpSpread);
+
                             let bpHeight =
                                 bpSpread < 5
                                     ? "10px !important"
@@ -394,6 +356,7 @@ export default Vue.component("effector-genes-m-plot", {
 
                             let dotContent = '<div class="dot-content">';
                             chrGroup[bpNum].map(function (p) {
+                                //console.log(l[renderKey]);
                                 dotContent +=
                                     "<strong>" + p[renderKey] + "</strong>";
                                 if (popUpContentPaths != null) {
@@ -499,3 +462,4 @@ $(function () {
     document.getElementsByTagName("head")[0].appendChild(customScript);
 });
 </script>
+

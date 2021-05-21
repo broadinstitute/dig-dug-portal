@@ -36,8 +36,8 @@ import Formatters from "@/utils/formatters.js";
 
 Vue.use(BootstrapVueIcons);
 
-export default Vue.component("m-bitmap-plot", {
-    props: ["plotData", "renderConfig"],
+export default Vue.component("research-m-bitmap-plot", {
+    props: ["plotData", "renderConfig", "filtersIndex"],
     data() {
         return {
             plotRendered: 0,
@@ -86,6 +86,7 @@ export default Vue.component("m-bitmap-plot", {
         uiUtils,
         Formatters,
     },
+    components: {},
     mounted: function () {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);
@@ -142,22 +143,6 @@ export default Vue.component("m-bitmap-plot", {
 
             return massagedData;
         },
-        uniqueChrs() {
-            let chrs = Object.keys(this.chromosomeLength);
-            let uniqueArr = [];
-
-            chrs.map((c) => {
-                if (this.renderData.sorted[c].length > 0) {
-                    uniqueArr.push(c);
-                }
-            });
-
-            uniqueArr.sort(function (a, b) {
-                return a - b;
-            });
-
-            return uniqueArr;
-        },
     },
     watch: {
         renderData() {
@@ -166,9 +151,7 @@ export default Vue.component("m-bitmap-plot", {
     },
     methods: {
         ...uiUtils,
-        hidePanel() {
-            //uiUtils.hideElement("clicked-dot-value");
-        },
+        hidePanel() {},
         onResize(e) {
             this.renderPlot();
         },
@@ -183,26 +166,31 @@ export default Vue.component("m-bitmap-plot", {
 
                 genesLength.forEach((gene) => items.push(gene.innerText));
 
-                document.getElementById(
+                /*document.getElementById(
                     "filter_" + this.renderConfig.renderBy.replace(/ /g, "")
                 ).value = items.join(", ");
-                this.$parent.filterData(
+                this.$parent.$parent.filterData(
                     "",
                     this.renderConfig.renderBy,
                     "search"
-                );
-            }
-        },
-        correctDecimal(decimalNum) {
-            let dNum = decimalNum;
+                );*/
 
-            for (let i = 0; i < 3; i++) {
-                if (dNum.slice(-1) == 0) {
-                    dNum = dNum.slice(0, -1);
-                }
-            }
+                let searchValue = items.join(", ");
+                let FIELD = this.renderConfig.renderBy;
+                let searchTerms = searchValue.split(",");
+                let newFiltersIndex = this.filtersIndex;
+                searchTerms.map((searchTerm) => {
+                    newFiltersIndex[FIELD]["search"].push(searchTerm.trim());
 
-            return dNum;
+                    newFiltersIndex[FIELD]["search"] = newFiltersIndex[FIELD][
+                        "search"
+                    ].filter((v, i, arr) => arr.indexOf(v) == i);
+                });
+
+                this.$store.dispatch("filtersIndex", newFiltersIndex);
+
+                console.log(this.filtersIndex);
+            }
         },
         checkPosition(event) {
             let wrapper = document.getElementById("clicked_dot_value");
@@ -334,15 +322,8 @@ export default Vue.component("m-bitmap-plot", {
                 ctx.textAlign = "right";
                 ctx.fillStyle = "#000000";
 
-                let tickerNum =
-                    (yMin + i * yStep) % 1 == 0
-                        ? Formatters.floatFormatter(yMin + i * yStep)
-                        : this.correctDecimal(
-                              Formatters.floatFormatter(yMin + i * yStep)
-                          );
-
                 ctx.fillText(
-                    tickerNum,
+                    Formatters.floatFormatter(yMin + i * yStep),
                     this.leftMargin - 10,
                     this.topMargin + plotHeight + 5 - i * yTickDistance
                 );
@@ -363,9 +344,9 @@ export default Vue.component("m-bitmap-plot", {
 
             let dnaLength = 0;
 
-            this.uniqueChrs.map((chr) => {
+            for (const chr in this.chromosomeLength) {
                 dnaLength += this.chromosomeLength[chr];
-            });
+            }
 
             let chrByPixel = plotWidth / dnaLength;
 
@@ -373,8 +354,7 @@ export default Vue.component("m-bitmap-plot", {
             ctx.textAlign = "center";
             ctx.rotate((Math.PI * 2) / 4);
 
-            //for (const chr in this.chromosomeLength) {
-            this.uniqueChrs.map((chr) => {
+            for (const chr in this.chromosomeLength) {
                 let chrLength = this.chromosomeLength[chr] * chrByPixel;
                 xStart += chrLength;
                 let chrPos = xStart - chrLength / 2;
@@ -384,7 +364,7 @@ export default Vue.component("m-bitmap-plot", {
                     chrPos,
                     this.topMargin + plotHeight + yBump + 14
                 );
-            });
+            }
 
             //Render x axis label
             ctx.fillText(
@@ -402,14 +382,11 @@ export default Vue.component("m-bitmap-plot", {
             //Render Dots
             xStart = 0;
             let exChr = "";
-            let chrNum = this.uniqueChrs.length != 1 ? 1 : this.uniqueChrs[0];
+            let chrNum = 1;
 
-            //for (const chr in this.chromosomeLength) {
-            this.uniqueChrs.map((chr) => {
-                if (this.uniqueChrs.length != 1) {
-                    if (chr != 1) {
-                        xStart += this.chromosomeLength[exChr];
-                    }
+            for (const chr in this.chromosomeLength) {
+                if (chr != 1) {
+                    xStart += this.chromosomeLength[exChr];
                 }
 
                 this.renderData.sorted[chr].map((g) => {
@@ -457,7 +434,7 @@ export default Vue.component("m-bitmap-plot", {
                 });
                 exChr = chr;
                 chrNum++;
-            });
+            }
         },
     },
 });

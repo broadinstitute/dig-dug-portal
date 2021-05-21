@@ -19,6 +19,8 @@ export default {
             researchMethod: [],
             eglSummaries: [],
             eglData: [],
+            researchData: [],
+            researchDataPage: [],
             eglConfig: [],
             paperMenu: [],
             forestPlotData: {},
@@ -58,6 +60,12 @@ export default {
         },
         setEglData(state, data) {
             state.eglData = data;
+        },
+        setResearchData(state, data) {
+            state.researchData = data;
+        },
+        setResearchDataPage(state, data) {
+            state.researchDataPage = data;
         },
         setEglConfig(state, config) {
             state.eglConfig = config;
@@ -171,6 +179,20 @@ export default {
             ).then(resp => resp.json());
 
             context.commit("setEglData", json);
+        },
+        async getResearchData(context, targetDataPoint) {
+
+            console.log(targetDataPoint);
+            let json = await fetch(targetDataPoint).then(resp => resp.json());
+
+            context.commit("setResearchData", json);
+        },
+        async getResearchDataPage(context, param) {
+            let json = await fetch(
+                "https://kp4cd.org/rest/views/research_data?dataid=" + param.pageID + "&&reviewerid=" + param.reviewerID + "&&reviewercode=" + param.reviewerCode
+            ).then(resp => resp.json());
+            // set the data
+            context.commit("setResearchDataPage", json);
         },
         async getEglConfig(context, targetData) {
             let json = await fetch(
