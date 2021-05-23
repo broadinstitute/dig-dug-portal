@@ -26,12 +26,17 @@ export default new Vuex.Store({
         documentation: bioIndex("documentation"),
     },
     state: {
-        phenotype: null
+        phenotype: null,
+        filteredData: "",
     },
     mutations: {
         setPhenotype(state, phenotype) {
             state.phenotype = phenotype;
-        }
+        },
+        setFilteredData(state, data) {
+            //console.log("called 2");
+            state.filteredData = data;
+        },
 
     },
     getters: {
@@ -41,6 +46,10 @@ export default new Vuex.Store({
         async onPhenotypeChange(context, phenotype) {
             context.commit('setPhenotype', phenotype);
             //this.$parent.phenotype = phenotype.name;
+        },
+        filteredData(context, filtered) {
+            //console.log("called 1");
+            context.commit("setFilteredData", filtered);
         },
     }
 });

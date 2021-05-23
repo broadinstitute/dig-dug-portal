@@ -199,18 +199,26 @@
                                             >Annotations</span
                                         >
                                     </div>
-                                </div>
-                                <div class="cs-plot-field-name-pp">
-                                    <div>
-                                        <span class="cs-plot-field-name-title"
-                                            >Posterior Probability</span
-                                        >
-                                    </div>
+                                    <div
+                                        v-for="(
+                                            annotation, key, index
+                                        ) in $parent.annotations"
+                                        :key="key"
+                                        :style="
+                                            'color:' +
+                                            $parent.annotationColors[index] +
+                                            ';'
+                                        "
+                                        v-html="
+                                            key +
+                                            '&nbsp;<span class=\'remove\'>X</span>'
+                                        "
+                                    ></div>
                                 </div>
                                 <div class="cs-plot-field-name-variants">
                                     <div>
                                         <span class="cs-plot-field-name-title"
-                                            >Variants</span
+                                            >Credible sets</span
                                         >
                                     </div>
                                     <div
@@ -218,9 +226,11 @@
                                             cs, index
                                         ) in $parent.credibleSetsData"
                                         :key="cs.id"
-                                        :class="
-                                            'cs-plot-field-name text color-' +
-                                            (index + 1)
+                                        :class="'cs-plot-field-name'"
+                                        :style="
+                                            'color:' +
+                                            $parent.colorIndex[index] +
+                                            ';'
                                         "
                                         v-html="
                                             cs.id +
@@ -230,21 +240,16 @@
                                 </div>
                             </div>
                             <div class="cs-plot-field-value">
-                                <!-- Annotations -->
-                                <div
-                                    class="cs-plot-field-value-annotations"
-                                    id="annotationsWrapper"
-                                ></div>
-                                <!-- credible sets variants -->
-                                <div
-                                    class="cs-plot-field-value-variants cs-plot-wrapper"
-                                >
-                                    <canvas
-                                        id="credibleVariants"
-                                        height="0"
-                                        width="0"
-                                    ></canvas>
+                                <div class="locus-start">
+                                    {{ $parent.locus.start }}
                                 </div>
+                                <div class="locus-end">
+                                    {{ $parent.locus.end }}
+                                </div>
+                                <div
+                                    id="annotationsSummary"
+                                    class="annotations-summary-wrapper"
+                                ></div>
                                 <!-- scroll panel -->
                                 <div
                                     id="scrollPanel"
@@ -254,12 +259,6 @@
                                         ).length > 0
                                     "
                                 >
-                                    <div class="locus-start">
-                                        {{ $parent.locus.start }}
-                                    </div>
-                                    <div class="locus-end">
-                                        {{ $parent.locus.end }}
-                                    </div>
                                     <div
                                         v-for="(
                                             value, key, index
@@ -301,9 +300,29 @@
                                             "
                                             :key="vIndex"
                                         >
-                                            <span>{{ vDot }}</span>
+                                            <span
+                                                class="variant-dot-info"
+                                                v-html="
+                                                    $parent.getDotInfo(vDot)
+                                                "
+                                            ></span>
                                         </div>
                                     </div>
+                                </div>
+                                <!-- Annotations -->
+                                <div
+                                    class="cs-plot-field-value-annotations"
+                                    id="annotationsWrapper"
+                                ></div>
+                                <!-- credible sets variants -->
+                                <div
+                                    class="cs-plot-field-value-variants cs-plot-wrapper"
+                                >
+                                    <canvas
+                                        id="credibleVariants"
+                                        height="0"
+                                        width="0"
+                                    ></canvas>
                                 </div>
                             </div>
                         </b-row>
@@ -315,7 +334,7 @@
                             >
                                 <research-data-table
                                     :pageID="'table data'"
-                                    :dataset="$parent.tableData"
+                                    :dataset="$store.state.filteredData"
                                     :tableFormat="$parent.tableDataFormat"
                                     :perPageNumber="10"
                                     :tableLegend="''"
@@ -342,10 +361,22 @@
     position: relative;
 }
 
+.cs-plot-annotation-tissue-names {
+    position: absolute;
+    top: -2px;
+    border: solid 0px #ff0000;
+    font-size: 13px;
+    text-align: left;
+    line-height: 20px;
+    white-space: nowrap;
+    padding-left: 15px;
+}
+
 .locus-start,
 .locus-end {
     position: absolute;
-    bottom: -20px;
+    /*bottom: -20px;*/
+    top: -20px;
     font-size: 12px;
 }
 
@@ -355,6 +386,13 @@
 
 .locus-end {
     right: 0;
+}
+
+.annotations-summary-wrapper {
+    width: 100%;
+    border: solid 1px #ddd;
+    border-left: none;
+    position: relative;
 }
 
 .variant-dots-wrapper {
@@ -371,13 +409,25 @@
     margin-bottom: 5px;
 }
 
-.variant-dot span {
-    position: absolute;
-    display: none;
-    bottom: 0;
+.variant-dot:hover {
+    cursor: pointer;
 }
 
-.variant-dot:hover span {
+.variant-dot span.variant-dot-info {
+    position: absolute;
+    display: none;
+    background-color: #ffffff99;
+    border: solid 1px #aaaaaa;
+    border-radius: 5px;
+    font-size: 14px;
+    bottom: 10px;
+    left: 10px;
+    padding: 10px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.variant-dot:hover span.variant-dot-info {
     display: block;
 }
 
@@ -408,6 +458,7 @@
 
 .cs-plot-wrapper {
     scroll-behavior: smooth;
+    margin-top: 30px;
 }
 .cs-plot-field-names {
     font-size: 14px;
@@ -448,6 +499,8 @@
     border-top: solid 1px #ddd;
     border-bottom: solid 1px #ddd;
     margin-top: 10px;
+    position: relative;
+    padding-top: 5px;
 }
 
 .cs-plot-field-value-variants {

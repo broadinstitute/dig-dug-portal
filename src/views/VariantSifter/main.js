@@ -71,21 +71,8 @@ new Vue({
             tableDataFormat: {},
             annotations: {},
             canvasHeight: null,
-            colorIndex: ["#048845",
-                "#8490C8",
-                "#BF61A5",
-                "#EE3124",
-                "#FCD700",
-                "#5555FF",
-                "#7aaa1c",
-                "#9F78AC",
-                "#F88084",
-                "#F5A4C7",
-                "#CEE6C1",
-                "#cccc00",
-                "#6FC7B6",
-                "#D5A768",
-                "#D4D4D4"],
+            colorIndex: ["#048845", "#8490C8", "#BF61A5", "#EE3124", "#FCD700", "#5555FF", "#7aaa1c", "#9F78AC", "#F88084", "#F5A4C7", "#CEE6C1", "#cccc00", "#6FC7B6", "#D5A768", "#D4D4D4"],
+            annotationColors: ["#D5A768", "#6FC7B6", "#cccc00", "#CEE6C1", "#F5A4C7", "#F88084", "#9F78AC", "#7aaa1c", "#5555FF", "#FCD700", "#EE3124", "#BF61A5", "#8490C8", "#048845"],
             plotsConfig: { hBump: 5.5, vBump: 5.5, itemWidth: 20, itemMargin: 2, itemWrapperMargin: 3, font: "12px Arial" },
         };
     },
@@ -186,6 +173,40 @@ new Vue({
             });
         },
 
+        getDotInfo(dotId) {
+            /* {
+  "alt": "A",
+  "ancestry": "EU",
+  "beta": -0.1100000000000004,
+  "chromosome": "8",
+  "credibleSetId": "20302",
+  "dataset": "GWAS_DIAMANTE_eu",
+  "eaf": 0.31,
+  "maf": 0.31,
+  "multiAllelic": false,
+  "n": 231420,
+  "oddsRatio": 0.8958341352965279,
+  "pValue": 6.3e-55,
+  "phenotype": "T2D",
+  "position": 118185025,
+  "posteriorProbability": 0.56993,
+  "reference": "G",
+  "stdErr": 0.007047115876281957,
+  "varId": "8:118185025:G:A",
+  "zScore": -15.609222543114498,
+  "colorIndex": 0
+} */
+            let contents = "<strong>" + dotId.varId + "</strong></br>";
+            contents += "Credible Set: " + dotId.credibleSetId + "</br>";
+            contents += "Reference: " + dotId.reference + "</br>";
+            contents += "Alt: " + dotId.alt + "</br>";
+            contents += "Posterior Probability: " + formatters.floatFormatter(dotId.posteriorProbability) + "</br>";
+            contents += "P-Value: " + formatters.pValueFormatter(dotId.pValue) + "</br>";
+            contents += "Beta: " + formatters.floatFormatter(dotId.beta) + "</br>";
+            contents += "Odds Ratio: " + formatters.floatFormatter(dotId.oddsRatio);
+
+            return contents;
+        },
 
         clearAll(pram) {
             switch (pram) {
@@ -212,7 +233,7 @@ new Vue({
                 perVariantMargin = this.plotsConfig.itemMargin,
                 perVariantWrapperBottom = this.plotsConfig.itemWrapperMargin,
                 font = this.plotsConfig.font;
-            //console.log(data);
+
             /* get canvas width and height */
             let canvasHeight = yBump * 2;
             for (const variant in data) {
@@ -247,7 +268,7 @@ new Vue({
             let rectHeight = this.canvasHeight - (xBump * 2);
             let rectWidth = 1;
 
-            //console.log(rectLeft, yBump, rectWidth, rectHeight);
+
 
             ctx.fillStyle = "#eeeeee";
             ctx.fillRect(rectLeft - (ppWidth + 0.5), yBump, ppWidth + 0.5, rectHeight);
@@ -368,29 +389,18 @@ zScore: 2.408915545815461
                 }
             }
 
-            /*
-
-            for (const variant in this.credibleSetsDataSorted) {
-                            let position = this.credibleSetsDataSorted[variant][0].position;
-                            if (position >= t.start && position <= t.end) {
-                                atLeast1 = true;
-                            }
-                        }
-
-            */
-
             this.tableData = mergedData;
             this.tableDataFormat = tableFormat;
 
-            console.log("tableData", this.tableData);
-            console.log("tableDataFormat", this.tableDataFormat);
+
 
         },
         renderAnnotationsPlot() {
             let data = this.annotations;
-            //console.log("this.annotations", data);
+
             document.getElementById("annotationsWrapper").innerHTML = "";
 
+            let annotationIndex = 0;
             for (const annotation in data) {
 
                 let annotationData = data[annotation];
@@ -402,6 +412,10 @@ zScore: 2.408915545815461
                 plotsWrapper.appendChild(wrapper);
 
                 var canvas = document.createElement('canvas');
+
+                let tissueNames = document.createElement('div');
+                tissueNames.className = "cs-plot-annotation-tissue-names";
+                let tissueNamesContent = "";
 
                 let xBump = this.plotsConfig.hBump,
                     yBump = this.plotsConfig.vBump,
@@ -426,7 +440,7 @@ zScore: 2.408915545815461
 
                     let atLeast1 = false;
                     annotationData[tissue].map(t => {
-                        //console.log(tissue, t);
+
 
                         for (const variant in this.credibleSetsDataSorted) {
                             let position = this.credibleSetsDataSorted[variant][0].position;
@@ -441,7 +455,9 @@ zScore: 2.408915545815461
                                 let position = this.credibleSetsDataSorted[variant][0].position;
 
                                 if (position >= t.start && position <= t.end) {
-                                    ctx.fillStyle = "#ff0000";
+
+
+                                    ctx.fillStyle = this.annotationColors[annotationIndex];
                                     //ctx.fillRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight);
 
                                     ctx.roundRect(itemLeft, rectTop + 5, (itemWidth + itemMargin) * this.credibleSetsDataSorted[variant].length, lineHeight, 3).fill();
@@ -456,12 +472,14 @@ zScore: 2.408915545815461
                     })
 
                     if (atLeast1 == true) {
-                        ctx.font = font;
+                        /*ctx.font = font;
                         ctx.textBaseline = "middle";
                         ctx.textAlign = "left";
-                        ctx.fillStyle = "#aaaaaa";
+                        ctx.fillStyle = "#aaaaaa";*/
                         let fillingText = tissue + "/" + formatters.floatFormatter(this.globalEnrichmentFolds[annotation][tissue]);
-                        ctx.fillText(fillingText, 5, rectTop);
+                        //ctx.fillText(fillingText, 5, rectTop);
+
+                        tissueNamesContent += fillingText + "</br>"
 
                         rectTop += itemHeight;
                     }
@@ -469,12 +487,28 @@ zScore: 2.408915545815461
 
                 var targetWrapper = document.getElementById(annotation);
                 targetWrapper.appendChild(canvas);
-            }
 
+                /* add tissue names */
+
+                tissueNames.innerHTML = tissueNamesContent;
+
+                //let tissueNamesWrapper = document.getElementById(annotation);
+                targetWrapper.appendChild(tissueNames);
+                annotationIndex++;
+            }
+        },
+        setTissueNamesLeft(leftPos) {
+
+            let elements = document.querySelectorAll('.cs-plot-annotation-tissue-names');
+
+            elements.forEach(function (element) {
+
+
+                element.style['left'] = leftPos + "px";
+            });
 
         },
         scrollPlotsTo(position) {
-            console.log("vId", position);
 
             let elements = document.querySelectorAll('.cs-plot-wrapper');
 
@@ -483,6 +517,8 @@ zScore: 2.408915545815461
             elements.forEach(function (element) {
                 element.scrollLeft = leftPos;
             });
+
+            this.setTissueNamesLeft(leftPos)
         },
         getScrollLeft(position) {
             let widthConfig = this.plotsConfig;
@@ -507,7 +543,6 @@ zScore: 2.408915545815461
             let dotP = position - this.locus.start
             let leftP = (dotP / region) * 100;
 
-            //console.log(position, ":", leftP);
             return leftP;
         }
     },
@@ -541,10 +576,7 @@ zScore: 2.408915545815461
 
                 content["annotation"] = annotationName;
 
-                //console.log("annotation", content);
-
                 for (const tissue in content.data) {
-                    //console.log(tissue);
                     sortUtils.sortEGLTableData(
                         content.data[tissue], "start", true, false
                     )
@@ -554,7 +586,7 @@ zScore: 2.408915545815461
             return content;
         },
         credibleSets() {
-            //console.log("credibleSets", this.$store.state.credibleSets);
+
             return this.$store.state.credibleSets.data;
         },
         credibleVariants() {
@@ -634,8 +666,10 @@ zScore: 2.408915545815461
     },
 
     watch: {
+        tableData(content) {
+            this.$store.dispatch("filteredData", content);
+        },
         annotation(data) {
-            console.log("watch", data);
             if (data != undefined && !!data.annotation) {
                 let tempObj = {};
 
