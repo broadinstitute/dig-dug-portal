@@ -73,6 +73,7 @@ new Vue({
             canvasHeight: null,
             colorIndex: ["#048845", "#8490C8", "#BF61A5", "#EE3124", "#FCD700", "#5555FF", "#7aaa1c", "#9F78AC", "#F88084", "#F5A4C7", "#CEE6C1", "#cccc00", "#6FC7B6", "#D5A768", "#D4D4D4"],
             annotationColors: ["#D5A768", "#6FC7B6", "#cccc00", "#CEE6C1", "#F5A4C7", "#F88084", "#9F78AC", "#7aaa1c", "#5555FF", "#FCD700", "#EE3124", "#BF61A5", "#8490C8", "#048845"],
+            tissuesOnSearch: ["pancreas", "uterus"],
             plotsConfig: { hBump: 5.5, vBump: 5.5, itemWidth: 20, itemMargin: 2, itemWrapperMargin: 3, font: "12px Arial" },
         };
     },
@@ -544,6 +545,23 @@ zScore: 2.408915545815461
             let leftP = (dotP / region) * 100;
 
             return leftP;
+        },
+
+        getTissueEnrichedStyle(tissue, colorIndex) {
+
+            //console.log(tissue);
+
+            let start = (tissue.start >= this.locus.start) ? tissue.start : this.locus.start;
+            let end = (tissue.end >= this.locus.end) ? this.locus.end : tissue.end;
+
+            let leftPos = this.getLeftPosition(start);
+            let tissueWidth = ((end - start) / (this.locus.end - this.locus.start)) * 100;
+            let backgroundColor = this.annotationColors[colorIndex];
+
+            let style = "left:" + leftPos + "%; width:" + tissueWidth + "%; background-color:" + backgroundColor + ";";
+
+            return style;
+
         }
     },
 

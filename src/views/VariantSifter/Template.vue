@@ -240,16 +240,52 @@
                                 </div>
                             </div>
                             <div class="cs-plot-field-value">
-                                <div class="locus-start">
-                                    {{ $parent.locus.start }}
-                                </div>
-                                <div class="locus-end">
-                                    {{ $parent.locus.end }}
-                                </div>
                                 <div
                                     id="annotationsSummary"
                                     class="annotations-summary-wrapper"
-                                ></div>
+                                    v-if="
+                                        Object.keys($parent.annotations)
+                                            .length > 0
+                                    "
+                                >
+                                    <div
+                                        class="annotation-summary"
+                                        v-for="(
+                                            annotation, aKey, aIndex
+                                        ) in $parent.annotations"
+                                    >
+                                        <div
+                                            v-for="(
+                                                tissue, tKey, tIndex
+                                            ) in annotation"
+                                            class="annotation-summary-tissue"
+                                        >
+                                            <span
+                                                v-for="(
+                                                    tRegion, rIndex
+                                                ) in tissue"
+                                                class="tissue-enriched"
+                                                :style="
+                                                    $parent.getTissueEnrichedStyle(
+                                                        tRegion,
+                                                        aIndex
+                                                    )
+                                                "
+                                            >
+                                                <span
+                                                    v-html="
+                                                        tKey +
+                                                        '</br>' +
+                                                        tRegion.start +
+                                                        '-' +
+                                                        tRegion.end
+                                                    "
+                                                    class="variant-dot-info"
+                                                ></span
+                                            ></span>
+                                        </div>
+                                    </div>
+                                </div>
                                 <!-- scroll panel -->
                                 <div
                                     id="scrollPanel"
@@ -259,6 +295,18 @@
                                         ).length > 0
                                     "
                                 >
+                                    <div
+                                        class="locus-start"
+                                        v-if="$parent.locus.start != null"
+                                    >
+                                        {{ $parent.locus.start }}
+                                    </div>
+                                    <div
+                                        class="locus-end"
+                                        v-if="!!$parent.locus.end != null"
+                                    >
+                                        {{ $parent.locus.end }}
+                                    </div>
                                     <div
                                         v-for="(
                                             value, key, index
@@ -359,6 +407,7 @@
     border: solid 1px #ddd;
     border-left: none;
     position: relative;
+    margin-bottom: 20px;
 }
 
 .cs-plot-annotation-tissue-names {
@@ -375,8 +424,8 @@
 .locus-start,
 .locus-end {
     position: absolute;
-    /*bottom: -20px;*/
-    top: -20px;
+    bottom: -20px;
+    /*top: -20px;*/
     font-size: 12px;
 }
 
@@ -393,6 +442,48 @@
     border: solid 1px #ddd;
     border-left: none;
     position: relative;
+}
+
+.annotation-summary {
+    position: relative;
+}
+
+.annotation-summary-tissue {
+    height: 5px;
+    position: relative;
+}
+
+.annotation-summary-tissue:hover {
+    background-color: #ddd;
+}
+
+.tissue-enriched {
+    display: block;
+    position: absolute;
+    height: 5px;
+}
+
+.tissue-enriched:hover {
+    background-color: #ff0000;
+    cursor: pointer;
+}
+
+.tissue-enriched span.variant-dot-info {
+    position: absolute;
+    display: none;
+    background-color: #ffffff99;
+    border: solid 1px #aaaaaa;
+    border-radius: 5px;
+    font-size: 14px;
+    bottom: 10px;
+    left: 10px;
+    padding: 10px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.tissue-enriched:hover span.variant-dot-info {
+    display: block;
 }
 
 .variant-dots-wrapper {
