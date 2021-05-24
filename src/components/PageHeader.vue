@@ -6,38 +6,31 @@
 
         <!-- Menu header-->
         <div v-if="diseaseGroup" class="container-fluid">
-            <div class="row amp-header" v-if="diseaseGroup.default">
-                <div class="amp-banner-right">
-                    <div class="amp-banner-left">
-                        <a
-                            href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
-                            >ACCELERATING MEDICINES PARTNERSHIP (AMP)</a
-                        >
-                    </div>
-                </div>
+            <div class="row amp-banner-2021" v-if="diseaseGroup.default">
+                <a
+                    href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/type-2-diabetes"
+                    ><img
+                        :src="'//kp4cd.org/sites/default/files/vueportal/amp_text.svg'"
+                        style="
+                            width: 500px;
+                            margin-left: 15px;
+                            margin-top: 15px;
+                        "
+                /></a>
             </div>
             <div
-                class="row amp-header"
+                class="row amp-banner-2021"
                 v-if="!diseaseGroup.default && diseaseGroup.memberCMD"
-                style="height: 50px"
+                style="height: 50px; display: block"
             >
-                <div class="amp-banner-right" style="height: 50px">
-                    <a :href="url2Md">
-                        <div
-                            class="amp-banner-left"
-                            style="
-                                padding: 5px;
-                                text-align: center;
-                                height: 50px;
-                            "
-                        >
-                            <img
-                                :src="'//kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
-                                :class="'portals-2-mdkp-logo'"
-                            />
-                        </div>
-                    </a>
-                </div>
+                <a :href="url2Md">
+                    <div style="padding: 5px; text-align: center; height: 50px">
+                        <img
+                            :src="'//kp4cd.org/sites/default/files/vueportal/portals2mdkp_banner.svg'"
+                            :class="'portals-2-mdkp-logo'"
+                        />
+                    </div>
+                </a>
             </div>
             <div :class="'row ' + diseaseGroup.name + 'kp-header'">
                 <div :class="diseaseGroup.name + 'kp-logo-wrapper col-md-4'">
