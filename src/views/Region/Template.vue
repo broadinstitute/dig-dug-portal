@@ -338,24 +338,12 @@
                                 <criterion-function-group
                                     v-model="$parent.annotationsFilter"
                                 >
-                                    <span style="display: inline-block">
-                                        <div class="label">
-                                            Filter annotations by global
-                                            enrichment
-                                        </div>
-                                        <filter-pvalue-control
-                                            :field="'pValue'"
-                                        >
-                                            <span class="label"
-                                                >P-Value (&le;)</span
-                                            >
-                                        </filter-pvalue-control>
-                                        <filter-greater-control :field="'fold'">
-                                            <span class="label"
-                                                >Fold (&ge;)</span
-                                            >
-                                        </filter-greater-control>
-                                    </span>
+                                    <filter-pvalue-control :field="'pValue'">
+                                        <div class="label">P-Value (&le;)</div>
+                                    </filter-pvalue-control>
+                                    <filter-greater-control :field="'fold'">
+                                        <div class="label">Fold (&ge;)</div>
+                                    </filter-greater-control>
 
                                     <template
                                         slot="filtered"
@@ -382,7 +370,7 @@
                         :ldpop="true"
                         :refSeq="true"
                     >
-                        <span
+                        <p
                             v-for="phenotype in $parent.selectedPhenotypes"
                             :key="phenotype.name"
                         >
@@ -400,7 +388,7 @@
                                 :phenotype="phenotype.name"
                                 :title="phenotype.description"
                             ></lz-catalog-annotations-panel>
-                        </span>
+                        </p>
                     </locuszoom>
 
                     <h4 class="card-title">
@@ -439,3 +427,15 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+<style>
+ul.nav-tabs {
+    border-bottom: unset;
+}
+.nav-tabs a.nav-link.active {
+    background-color: #efefef;
+}
+.tab-pane div.filtering-ui-wrapper {
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+}
+</style>
