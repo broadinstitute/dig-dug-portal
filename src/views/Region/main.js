@@ -94,7 +94,10 @@ new Vue({
         return {
             enrichmentScoring: null,
 
-            associationsFilter: function (id) {
+            associationsFilter: function(id) {
+                return true;
+            },
+            annotationsFilter: function(id) {
                 return true;
             },
             pageAssociationsMap: {},
@@ -119,8 +122,9 @@ new Vue({
 
                 this.$store.dispatch("credibleSets/clear");
                 this.selectedPhenotypes.forEach(p => {
-                    const queryString = `${p.name},${this.$store.state.chr
-                        }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
+                    const queryString = `${p.name},${
+                        this.$store.state.chr
+                    }:${Number.parseInt(start)}-${Number.parseInt(end)}`;
                     that.$store.dispatch("credibleSets/query", {
                         q: queryString,
                         append: true
@@ -234,7 +238,7 @@ new Vue({
         },
 
         genes() {
-            return this.$store.state.genes.data.filter(function (gene) {
+            return this.$store.state.genes.data.filter(function(gene) {
                 return gene.source == "symbol";
             });
         },
@@ -326,7 +330,6 @@ new Vue({
             }
         },
         "$store.state.globalEnrichment.data"(enrichment) {
-
             let groups = {};
             for (let i in enrichment) {
                 let r = enrichment[i];
@@ -345,19 +348,21 @@ new Vue({
             }
 
             this.enrichmentScoring = groups;
-
         },
         selectedPhenotypes(phenotypes, oldPhenotypes) {
-            const removedPhenotypes = _.difference(oldPhenotypes.map(p => p.name), phenotypes.map(p => p.name));
+            const removedPhenotypes = _.difference(
+                oldPhenotypes.map(p => p.name),
+                phenotypes.map(p => p.name)
+            );
             if (removedPhenotypes.length > 0) {
                 removedPhenotypes.forEach(removedPhenotype => {
                     delete this.pageAssociationsMap[removedPhenotype];
                     this.pageAssociations = Object.entries(
                         this.pageAssociationsMap
                     ).flatMap(pam => pam[1]);
-                })
+                });
             }
-            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(',') });
+            keyParams.set({ phenotype: phenotypes.map(p => p.name).join(",") });
             //console.log("current phenotypes",phenotypes)
 
             // reload the global enrichment for these phenotypes
